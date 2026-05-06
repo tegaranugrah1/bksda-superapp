@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #008 — Backend — IDE Helper Setup |
-| **Issue Selanjutnya** | #009 — Backend — Users Migration & Model |
-| **Branch Aktif** | — (belum dibuat) |
-| **Model Terakhir** | Gemini 3.1 Pro (High) |
-| **Timestamp** | 2026-05-06T13:54:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #009 |
+| **Issue Terakhir Selesai** | #009 — Backend — Users Migration & Model |
+| **Issue Selanjutnya** | #010 — Backend — Sanctum Setup |
+| **Branch Aktif** | main |
+| **Model Terakhir** | Gemini 3 Flash |
+| **Timestamp** | 2026-05-06T14:15:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #010 |
 
 ---
 
@@ -32,7 +32,7 @@
 
 ## Progress Phase 2: IAM & Auth (#009–#021)
 
-- [ ] #009 — Backend Users Migration & Model
+- [x] #009 — Backend Users Migration & Model
 - [ ] #010 — Backend Sanctum Setup
 - [ ] #011 — Backend Auth Controller
 - [ ] #012 — Backend Module Access Middleware
@@ -51,15 +51,15 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-backend/composer.json      ← IDE Helper scripts
-backend/composer.lock      ← Package lock
-backend/.gitignore         ← Ignore _ide_helper files
+backend/database/migrations/0001_01_01_000000_create_users_table.php  ← Users table schema
+backend/app/Models/User.php                                            ← User Eloquent model
+ONBOARDING.md                                                         ← Updated phases
+AI_PROMPT.md                                                          ← Recovery prompt added
 ```
 
 ## Error / Blocker Terakhir
 
-Sempat ada warning "commands not defined" saat artisan karena auto-discovery terlewat.
-Solusi: `php artisan package:discover`. Sudah resolved.
+None. Issue #009 completed successfully.
 
 ---
 
