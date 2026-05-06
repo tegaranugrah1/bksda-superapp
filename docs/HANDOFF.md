@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #019 — Frontend Auth Sync |
-| **Issue Selanjutnya** | #020 — Frontend Query Provider |
+| **Issue Terakhir Selesai** | #020 — Frontend Query Provider |
+| **Issue Selanjutnya** | #021 — Frontend Theme Toggle |
 | **Branch Aktif** | main |
 | **Model Terakhir** | Gemini 3.1 Pro |
-| **Timestamp** | 2026-05-06T15:24:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #020 |
+| **Timestamp** | 2026-05-06T15:28:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #021 |
 
 ---
 
@@ -43,7 +43,7 @@
 - [x] #017 — Frontend Login Page
 - [x] #018 — Frontend Route Guard
 - [x] #019 — Frontend Auth Sync
-- [ ] #020 — Frontend Query Provider
+- [x] #020 — Frontend Query Provider
 - [ ] #021 — Frontend Theme Toggle
 
 ---
@@ -51,13 +51,13 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-frontend/src/lib/auth-store.ts  ← Auth store implementation (Observer pattern)
-frontend/src/hooks/useAuth.ts   ← React hook using useSyncExternalStore
+frontend/src/providers/query-provider.tsx  ← TanStack React Query Provider wrapper
+frontend/src/app/layout.tsx                ← Added QueryProvider to the RootLayout
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #019 completed successfully.
+None. Issue #020 completed successfully.
 
 ---
 
