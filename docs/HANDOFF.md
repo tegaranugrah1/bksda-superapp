@@ -7,36 +7,33 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Aktif** | #006 — Frontend — Design System & Theme |
-| **Branch** | `issue/006-frontend-design-system` (Merged to main) |
+| **Issue Aktif** | #007 — Docker Compose — PostgreSQL & Database GUI |
+| **Branch** | `issue/007-docker-compose-postgresql` (Merged to main) |
 | **Model Terakhir** | Gemini 3.1 Pro (High) |
-| **Timestamp** | 2026-05-06T13:31:00+08:00 |
+| **Timestamp** | 2026-05-06T13:38:00+08:00 |
 | **Status** | ✅ DONE |
 
 ## Progress Checklist
 
-- [x] Package `next-themes` berhasil diinstall
-- [x] `src/components/theme-provider.tsx` telah dibuat dengan `"use client"`
-- [x] `globals.css` menggunakan Tailwind v4 `@theme` block beserta palet warna BKSDA Emerald
-- [x] Konfigurasi font (Geist Sans, Geist Mono, Public Sans) di set di `layout.tsx`
-- [x] `RootLayout` dibungkus dengan `<ThemeProvider>` plus `suppressHydrationWarning`
-- [x] Server development tidak menunjukkan error/warning dan layout berjalan dengan baik
-- [x] Create PR & Merge to `main` (beserta Issue GitHub berhasil di generate)
+- [x] Service PostgreSQL di-update dengan versi 15-alpine dan persistent volume `db-data`.
+- [x] Service pgAdmin telah ditambahkan dengan port `5050:80` dan persistent volume `pgadmin-data`.
+- [x] Port `db` diubah ke `5435:5432` agar tidak menabrak instalasi PostgreSQL lokal bawaan di komputer.
+- [x] Bug validasi pgAdmin 4 ("admin@bksda.local tidak valid") di-fix dengan mengganti environment jadi `admin@bksda.com`.
+- [x] Perintah `docker compose up -d` sukses, dan kedua service berstatus UP (`healthy`).
+- [x] Issue GitHub terbuat (tanpa argumen label demi menghindari error).
+- [x] PR berhasil di-merge ke branch `main`.
 
 ## File yang Sudah Dibuat/Diubah
 
 ```
-frontend/package.json
-frontend/src/components/theme-provider.tsx
-frontend/src/app/globals.css
-frontend/src/app/layout.tsx
+docker-compose.yml
 docs/HANDOFF.md
 ```
 
 ## Catatan untuk Model Selanjutnya
 
-Issue #006 telah selesai sepenuhnya tanpa ada kendala! Isu terkait pembuatan *Git Issue* juga sudah berhasil ditangani dengan menghilangkan *label* untuk sementara waktu. Sekarang aplikasi Next.js telah dipasang kerangka desain sistem yang tangguh (dark mode friendly, variable fonts, HSL tokens). Kita siap menuju ke issue selanjutnya!
+Issue #007 berjalan lancar dan infrastruktur database development berbasis Docker sudah final (PostgreSQL 15 & pgAdmin). Sedikit penyesuaian dilakukan untuk port mapping dan format email dari pgadmin agar tidak menyebabkan crash `Restarting`. Anda bisa langsung melanjutkan eksekusi pengembangan API Laravel atau integrasi berikutnya (misal Issue #008 jika ada, atau Issue #009).
 
 ## Error / Blocker
 
-Tidak ada error. Semuanya berjalan mulus.
+Tidak ada error lagi. `pgAdmin` validation error berhasil diatasi dengan mengganti ekstensi `.local` menjadi `.com`. Semua services `Up`.
