@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #015 — Backend — Register Middleware |
-| **Issue Selanjutnya** | #016 — Frontend API Client |
+| **Issue Terakhir Selesai** | #016 — Frontend API Client |
+| **Issue Selanjutnya** | #017 — Frontend Login Page |
 | **Branch Aktif** | main |
-| **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-06T15:06:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #016 |
+| **Model Terakhir** | Gemini 3.1 Pro |
+| **Timestamp** | 2026-05-06T15:10:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #017 |
 
 ---
 
@@ -39,7 +39,7 @@
 - [x] #013 — Backend Role Middleware
 - [x] #014 — Backend AuditLog Middleware
 - [x] #015 — Backend Register Middleware
-- [ ] #016 — Frontend API Client
+- [x] #016 — Frontend API Client
 - [ ] #017 — Frontend Login Page
 - [ ] #018 — Frontend Route Guard
 - [ ] #019 — Frontend Auth Sync
@@ -51,12 +51,13 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-backend/bootstrap/app.php  ← Registered middleware aliases (module.access, role) + AuditLog to API group
+frontend/src/lib/api.ts  ← Setup Axios instance with interceptors for auth token and 401 redirect
+frontend/package.json    ← Added axios dependency
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #015 completed successfully. All 3 custom middlewares are now active.
+None. Issue #016 completed successfully.
 
 ---
 
