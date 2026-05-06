@@ -1,0 +1,181 @@
+# 🧠 BKSDA SuperApp — Onboarding untuk AI / Developer Baru
+
+> **Baca dokumen ini SEBELUM mengerjakan apapun.**
+> Dokumen ini berisi semua konteks yang dibutuhkan untuk memahami project dari nol.
+
+---
+
+## 1. Apa Ini?
+
+**BKSDA SuperApp** adalah sistem informasi terintegrasi untuk Balai Konservasi Sumber Daya Alam (BKSDA) Kalimantan Timur. Satu aplikasi mengelola:
+
+| Modul | Fungsi | Prefix Tabel |
+|-------|--------|-------------|
+| **CMS** | Website publik (berita, kawasan, galeri) | `cms_*` |
+| **BMN** | Barang Milik Negara (aset pemerintah) | `bmn_*` |
+| **Inventory** | Inventaris barang habis pakai | `inv_*` |
+| **DeReporting** | Pelaporan & monitoring | `dr_*` |
+| **Core** | Employee, User, Auth | `core_*` / default |
+| **Surat Tugas** | Surat tugas pegawai | `st_*` |
+
+---
+
+## 2. Tech Stack
+
+| Layer | Teknologi |
+|-------|-----------|
+| Frontend | Next.js 16 + React 19 + TypeScript + Tailwind CSS 4 + shadcn/ui |
+| Backend | Laravel 11 (PHP 8.2) — Arsitektur Modular (`app/Modules/`) |
+| Database | PostgreSQL via Supabase (Connection Pooler port 6543) |
+| Storage | Supabase Storage (S3-compatible) via `SupabaseStorageService` |
+| Auth | Laravel Sanctum — Bearer Token (7 hari expiry) |
+| Deployment | Vercel (Frontend + Backend Serverless) |
+
+---
+
+## 3. Struktur Monorepo
+
+```
+e:\bksda-superapp\
+├── frontend/              ← Next.js app
+│   ├── src/app/           ← Pages (App Router)
+│   ├── src/components/    ← UI components (shadcn/ui)
+│   └── src/lib/           ← Utilities (api.ts, utils.ts)
+│
+├── backend/               ← Laravel API
+│   ├── app/Modules/       ← CMS, BMN, Inventory, Core, DeReporting
+│   │   └── {Module}/
+│   │       ├── Controllers/
+│   │       ├── Models/
+│   │       ├── Services/   (jika ada business logic)
+│   │       └── routes.php
+│   ├── app/Services/      ← SupabaseStorageService
+│   ├── config/            ← cors.php, sanctum.php, filesystems.php, logging.php
+│   ├── bootstrap/app.php  ← Middleware + Exception handler
+│   └── vercel.json        ← Serverless deployment config
+│
+├── docs/issues/           ← 125 issue specifications (PANDUAN UTAMA!)
+│   ├── 001-*.md ... 125-*.md
+│   └── Setiap file = 1 task lengkap dengan kode, diagram, dan AI prompt
+│
+└── ONBOARDING.md          ← File ini
+```
+
+---
+
+## 4. Referensi Kode Sumber
+
+Project ini di-fork dari **`e:\superapp-inventory\`** yang sudah berjalan di production. Jika butuh referensi kode yang sudah jalan:
+
+```
+e:\superapp-inventory\
+├── frontend/    ← Next.js yang sudah production (superapp-inventory.vercel.app)
+└── backend/     ← Laravel yang sudah production (superapp-backend-dun.vercel.app)
+```
+
+**ATURAN:** Copy kode dari `superapp-inventory`, lalu sesuaikan:
+- URL/domain: `superapp-inventory` → `bksda-superapp`
+- Supabase project ID (jika berbeda)
+- Nama project di `vercel.json`
+
+---
+
+## 5. Cara Kerja: Issue-Driven Development
+
+Semua pekerjaan diatur via **125 issue specs** di `docs/issues/`. Setiap file berisi:
+
+1. **Deskripsi** — Apa dan mengapa
+2. **Acceptance Criteria** — Checklist "selesai"
+3. **Kode lengkap** — Copy-paste ready
+4. **Diagram** — Alur visual
+5. **Troubleshooting** — Error yang sering muncul
+6. **Git workflow** — Branch name, commit message, PR template
+7. **AI Prompt** — Prompt untuk AI mengerjakan issue tersebut
+
+### Fase-Fase Project
+
+| Phase | Issue Range | Status | Deskripsi |
+|-------|------------|--------|-----------|
+| 1 | #001–#003 | 📋 Spec | Project init (Laravel + Next.js) |
+| 2 | #004–#020 | 📋 Spec | CMS Module |
+| 3 | #021–#040 | 📋 Spec | BMN Module |
+| 4 | #041–#060 | 📋 Spec | Inventory Module |
+| 5 | #061–#075 | 📋 Spec | Core Module (Employee, Auth) |
+| 6 | #076–#090 | 📋 Spec | DeReporting Module |
+| 7 | #091–#100 | 📋 Spec | Surat Tugas Module |
+| 8 | #101–#108 | 📋 Spec | Public Website |
+| 9 | #109–#115 | ✅ Done | UI Components & Utilities |
+| 10 | #116–#125 | ✅ Done | DevOps & Deployment |
+
+> **Phase 9 & 10 sudah selesai** (dokumentasi). Phase 1–8 belum diimplementasi.
+
+---
+
+## 6. Rules Project (WAJIB DIIKUTI)
+
+File rules lengkap ada di workspace (`rules.md`), ringkasan kunci:
+
+| Rule | Detail |
+|------|--------|
+| **Auth** | Semua endpoint WAJIB `auth:sanctum`, kecuali yang eksplisit public |
+| **Model** | Gunakan `$fillable`, BUKAN `$guarded = []` |
+| **Pagination** | Semua list endpoint WAJIB pagination — DILARANG `Model::all()` |
+| **Response** | Format: `{ data, message?, meta? }` untuk sukses, `{ error, message }` untuk gagal |
+| **File Upload** | Nama unik (UUID), simpan di private storage, akses via signed URL |
+| **Frontend** | Semua API call via `lib/api.ts`, tidak boleh ada business logic di frontend |
+| **Modular** | Setiap fitur di `app/Modules/{Nama}/` dengan Controllers, Models, routes.php |
+
+---
+
+## 7. Environment Variables Kunci
+
+### Backend (.env)
+
+| Variable | Dev Value | Prod Value |
+|----------|-----------|------------|
+| `APP_DEBUG` | `true` | **`false`** |
+| `DB_CONNECTION` | `pgsql` | `pgsql` |
+| `DB_PORT` | `5432` | `6543` (pooler!) |
+| `SESSION_DRIVER` | `database` | `array` (Vercel!) |
+| `LOG_CHANNEL` | `stack` | `stderr` (Vercel!) |
+| `FRONTEND_URL` | `http://localhost:3000` | `https://bksda-superapp.vercel.app` |
+
+### Frontend (.env.local)
+
+| Variable | Dev Value | Prod Value |
+|----------|-----------|------------|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | `https://backend-bksda.vercel.app` |
+| `NEXT_PUBLIC_STORAGE_URL` | — | `https://xxx.supabase.co/storage/v1/object/public/cms` |
+
+---
+
+## 8. Cara Mulai Mengerjakan Issue
+
+```bash
+# 1. Baca issue spec
+cat docs/issues/XXX-nama-issue.md
+
+# 2. Buat branch
+git checkout -b issue/XXX-nama-issue
+
+# 3. Kerjakan sesuai spec
+
+# 4. Commit + Push
+git commit -m "feat(module): deskripsi singkat (#XXX)"
+git push -u origin issue/XXX-nama-issue
+
+# 5. Buat PR
+gh pr create --title "feat(module): deskripsi (#XXX)" --base main
+```
+
+---
+
+## 9. File Penting yang Harus Dibaca Pertama
+
+Jika waktu terbatas, baca 5 file ini:
+
+1. `docs/issues/116-backend-cors-sanctum-config.md` — Fondasi keamanan
+2. `docs/issues/119-frontend-nextjs-config.md` — Fondasi frontend
+3. `docs/issues/122-deployment-vercel-backend.md` — Cara deploy backend
+4. `docs/issues/123-deployment-supabase-db-setup.md` — Setup database
+5. `docs/issues/125-documentation-api-docs-readme.md` — Daftar API endpoint
