@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #014 — Backend — AuditLog Middleware |
-| **Issue Selanjutnya** | #015 — Backend — Register Middleware |
+| **Issue Terakhir Selesai** | #015 — Backend — Register Middleware |
+| **Issue Selanjutnya** | #016 — Frontend API Client |
 | **Branch Aktif** | main |
 | **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-06T15:00:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #015 |
+| **Timestamp** | 2026-05-06T15:06:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #016 |
 
 ---
 
@@ -38,7 +38,7 @@
 - [x] #012 — Backend Module Access Middleware
 - [x] #013 — Backend Role Middleware
 - [x] #014 — Backend AuditLog Middleware
-- [ ] #015 — Backend Register Middleware
+- [x] #015 — Backend Register Middleware
 - [ ] #016 — Frontend API Client
 - [ ] #017 — Frontend Login Page
 - [ ] #018 — Frontend Route Guard
@@ -51,15 +51,12 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-backend/app/Models/AuditLog.php                                          ← Audit log model (no updated_at)
-backend/app/Http/Middleware/AuditLogMiddleware.php                        ← Post-middleware pattern
-backend/database/migrations/2026_05_06_145748_create_audit_logs_table.php ← Audit logs schema
-backend/config/sanctum.php                                               ← Sanctum config (auto-published)
+backend/bootstrap/app.php  ← Registered middleware aliases (module.access, role) + AuditLog to API group
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #014 completed successfully.
+None. Issue #015 completed successfully. All 3 custom middlewares are now active.
 
 ---
 
