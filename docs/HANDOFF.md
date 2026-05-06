@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #021b — Phase 2 UI Overhaul (Login Page) |
-| **Issue Selanjutnya** | Phase 3: Core Module (#022–#034) |
+| **Issue Terakhir Selesai** | #024 — Backend Kepegawaian Service Provider |
+| **Issue Selanjutnya** | #025 — Backend Employee Controller |
 | **Branch Aktif** | main |
-| **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-06T15:53:00+08:00 |
-| **Status** | ✅ Phase 2 IAM & Auth + UI Overhaul Selesai! |
+| **Model Terakhir** | Gemini 3 Flash |
+| **Timestamp** | 2026-05-06T16:59:00+08:00 |
+| **Status** | ✅ Phase 3 Kepegawaian Module In Progress |
 
 ---
 
@@ -47,23 +47,30 @@
 - [x] #021 — Frontend Theme Toggle
 - [x] #021b — **Phase 2 UI Overhaul** (Login Page → Split-screen premium)
 
+## Progress Phase 3: Kepegawaian Module (#022–#034)
+
+- [x] #022 — Backend Employees Migration
+- [x] #023 — Backend Employee Model (Modular)
+- [x] #024 — Backend Kepegawaian Service Provider (Modular Routes)
+- [ ] #025 — Backend Employee Controller
+- [ ] #026 — Backend Employee Access Controller
+- [ ] #027 — Backend Kepegawaian Routes
+
 ---
 
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-frontend/src/app/(auth)/login/page.tsx      ← Dirombak total: split-screen premium, zod + react-hook-form
-frontend/src/app/layout.tsx                 ← Ditambahkan <Toaster> dari sonner
-frontend/src/components/ui/form.tsx         ← [NEW] Shadcn Form component
-frontend/src/components/ui/input.tsx        ← [NEW] Shadcn Input component
-frontend/src/components/ui/label.tsx        ← [NEW] Shadcn Label component
-frontend/src/components/ui/sonner.tsx       ← [NEW] Shadcn Sonner (toast) component
-docs/issues/021b-frontend-phase-2-ui-overhaul.md ← [NEW] Issue spec untuk UI Overhaul
+backend/app/Modules/Kepegawaian/Providers/KepegawaianServiceProvider.php ← Registrasi route modular
+backend/app/Modules/Kepegawaian/Routes/api.php                          ← Kanvas rute kepegawaian
+backend/bootstrap/providers.php                                         ← Injeksi Service Provider baru
+backend/app/Modules/Kepegawaian/Models/Employee.php                    ← Model modular pegawai
+backend/database/migrations/xxxx_create_kpg_employees_table.php         ← Tabel pegawai (kpg_)
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #021b completed successfully. Phase 2 IAM & Auth + UI Overhaul is completely done.
+None. Issue #024 completed successfully.
 
 ---
 
@@ -77,4 +84,5 @@ Jika kamu membaca file ini di sesi chat baru, lakukan langkah berikut:
 4. Baca spec issue di `docs/issues/XXX-*.md`.
 5. Referensi kode yang sudah production: `e:\superapp-inventory\`
 6. **PENTING (TAMPILAN UI):** Setiap kali satu Phase selesai, AI wajib mengecek tampilan UI referensi di `superapp-inventory`. Jika UI kita masih terlalu *basic*, AI harus menyarankan dan membuat Issue khusus (misal: "Phase X UI Overhaul") untuk merombak UI agar estetikanya premium seperti referensi, namun tetap menjaga *Clean Code* yang ramah AI murah dan junior developer.
-7. **SEBELUM sesi berakhir atau token habis**, UPDATE file ini!
+7. **PENTING (KUALITAS KODE):** WAJIB cek warnings dari IDE (eslint, typescript, laravel extension) sebelum melakukan push. Jika ada error/warning, perbaiki dulu.
+8. **SEBELUM sesi berakhir atau token habis**, UPDATE file ini!
