@@ -7,35 +7,42 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Aktif** | #002 — Init Monorepo Structure |
-| **Branch** | `issue/002-init-monorepo-structure` (Merged to main) |
+| **Issue Aktif** | #003 — Backend — Laravel 12 Scaffold |
+| **Branch** | `issue/003-backend-laravel-scaffold` (Merged to main) |
 | **Model Terakhir** | Gemini 3.1 Pro (High) |
-| **Timestamp** | 2026-05-06T12:17:00+08:00 |
+| **Timestamp** | 2026-05-06T12:22:00+08:00 |
 | **Status** | ✅ DONE |
 
 ## Progress Checklist
 
-- [x] Folder `backend/` dengan `.gitkeep`
-- [x] Folder `frontend/` dengan `.gitkeep`
-- [x] Folder `docker/` dengan `.gitkeep`
-- [x] `docker-compose.yml` (PostgreSQL only)
-- [x] Verifikasi Docker Container
+- [x] Scaffold Laravel 12
+- [x] Edit `.env.example`
+- [x] Edit `bootstrap/app.php`
+- [x] Edit `routes/api.php`
+- [x] Edit `composer.json` autoload & `composer dump-autoload`
+- [x] Edit `config/cors.php`
+- [x] Buat struktur folder modul (`app/Modules/*`) dengan `.gitkeep`
+- [x] Cleanup file tidak dipakai (views, vite, web routes, dll.)
+- [x] Lulus tes `./vendor/bin/pint --test` dan `php artisan optimize`
 - [x] Create PR & Merge to `main`
 
 ## File yang Sudah Dibuat/Diubah
 
 ```
-docker-compose.yml
-backend/.gitkeep
-frontend/.gitkeep
-docker/.gitkeep
+backend/.env.example
+backend/bootstrap/app.php
+backend/routes/api.php
+backend/config/cors.php
+backend/composer.json
+backend/app/Modules/*
 docs/HANDOFF.md
 ```
 
 ## Catatan untuk Model Selanjutnya
 
-Issue #002 selesai. Struktur monorepo dasar telah dibuat. Port PostgreSQL di `docker-compose.yml` telah diubah ke `5435` karena port `5432` dan `5433` telah terpakai di sistem pengguna lokal. PR telah dimerge dan sekarang branch aktif adalah `main`. Siap untuk lanjut ke Issue #003 (Backend Laravel setup).
+Issue #003 selesai. Backend Laravel 12 telah discaffold sebagai API-only. Struktur direktori modular juga telah dibuat dan Composer telah di-konfigurasi untuk memuat `App\Modules`. Database config telah diarahkan ke Docker setup dari Issue #002 (menggunakan port 5435 di mesin lokal ini jika di-run secara terpisah).
+Siap untuk lanjut ke Issue #004.
 
 ## Error / Blocker
 
-Tidak ada. Port konflik saat inisialisasi Docker berhasil di-resolve ke 5435.
+Tidak ada. Semua instruksi telah diselesaikan dan PR telah dimerge.
