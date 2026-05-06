@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #012 — Backend — CheckModuleAccess Middleware |
-| **Issue Selanjutnya** | #013 — Backend — Role Middleware |
+| **Issue Terakhir Selesai** | #013 — Backend — CheckRole Middleware |
+| **Issue Selanjutnya** | #014 — Backend — AuditLog Middleware |
 | **Branch Aktif** | main |
 | **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-06T14:50:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #013 |
+| **Timestamp** | 2026-05-06T14:56:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #014 |
 
 ---
 
@@ -36,7 +36,7 @@
 - [x] #010 — Backend Laravel Sanctum Setup
 - [x] #011 — Backend Auth Controller
 - [x] #012 — Backend Module Access Middleware
-- [ ] #013 — Backend Role Middleware
+- [x] #013 — Backend Role Middleware
 - [ ] #014 — Backend AuditLog Middleware
 - [ ] #015 — Backend Register Middleware
 - [ ] #016 — Frontend API Client
@@ -51,12 +51,12 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-backend/app/Http/Middleware/CheckModuleAccess.php  ← Module-Based Access Control middleware
+backend/app/Http/Middleware/CheckRole.php  ← Role-Based Access Control middleware
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #012 completed successfully.
+None. Issue #013 completed successfully.
 
 ---
 
