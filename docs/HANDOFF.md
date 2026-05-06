@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #009 — Backend — Users Migration & Model |
-| **Issue Selanjutnya** | #010 — Backend — Sanctum Setup |
+| **Issue Terakhir Selesai** | #010 — Backend — Laravel Sanctum Setup |
+| **Issue Selanjutnya** | #011 — Backend — Auth Controller |
 | **Branch Aktif** | main |
 | **Model Terakhir** | Gemini 3 Flash |
-| **Timestamp** | 2026-05-06T14:15:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #010 |
+| **Timestamp** | 2026-05-06T14:18:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #011 |
 
 ---
 
@@ -33,7 +33,7 @@
 ## Progress Phase 2: IAM & Auth (#009–#021)
 
 - [x] #009 — Backend Users Migration & Model
-- [ ] #010 — Backend Sanctum Setup
+- [x] #010 — Backend Laravel Sanctum Setup
 - [ ] #011 — Backend Auth Controller
 - [ ] #012 — Backend Module Access Middleware
 - [ ] #013 — Backend Role Middleware
@@ -51,15 +51,15 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-backend/database/migrations/0001_01_01_000000_create_users_table.php  ← Users table schema
-backend/app/Models/User.php                                            ← User Eloquent model
-ONBOARDING.md                                                         ← Updated phases
-AI_PROMPT.md                                                          ← Recovery prompt added
+backend/database/migrations/2026_05_06_141547_create_personal_access_tokens_table.php  ← Sanctum tokens table
+backend/app/Models/User.php                                                            ← Added HasApiTokens trait
+backend/composer.json                                                                  ← Added laravel/sanctum
+backend/composer.lock                                                                  ← Updated lock file
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #009 completed successfully.
+None. Issue #010 completed successfully.
 
 ---
 
