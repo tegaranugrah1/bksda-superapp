@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authStore } from './auth-store';
 
 // 1. Buat Instance Axios dengan Base URL bawaan
 export const api = axios.create({
@@ -39,8 +40,7 @@ api.interceptors.response.use(
       // 401 Unauthenticated: Token habis / tidak valid. 
       // Hapus token dan tendang user ke halaman login.
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('bksda_token');
-        localStorage.removeItem('bksda_user'); // (opsional) menghapus identitas profil
+        authStore.logout(); // <-- Panggil fungsi logout dari store
         
         // Jangan redirect jika posisinya memang sudah di /login
         if (window.location.pathname !== '/login') {

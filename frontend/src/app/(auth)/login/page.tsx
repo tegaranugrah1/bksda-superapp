@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { isAxiosError } from "axios";
+import { authStore } from "@/lib/auth-store";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,9 +32,8 @@ export default function LoginPage() {
 
       const { token, data } = response.data;
 
-      // Simpan token ke local storage
-      localStorage.setItem("bksda_token", token);
-      localStorage.setItem("bksda_user", JSON.stringify(data));
+      // Simpan token ke local storage via authStore
+      authStore.login(token, data); // <-- Panggil fungsi login dari store
 
       // Redirect ke dashboard (nanti akan kita buat)
       router.push("/");
