@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #011 — Backend — Auth Controller |
-| **Issue Selanjutnya** | #012 — Backend — Module Access Middleware |
+| **Issue Terakhir Selesai** | #012 — Backend — CheckModuleAccess Middleware |
+| **Issue Selanjutnya** | #013 — Backend — Role Middleware |
 | **Branch Aktif** | main |
-| **Model Terakhir** | Gemini 3 Flash |
-| **Timestamp** | 2026-05-06T14:48:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #012 |
+| **Model Terakhir** | Claude Opus 4.6 |
+| **Timestamp** | 2026-05-06T14:50:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #013 |
 
 ---
 
@@ -35,7 +35,7 @@
 - [x] #009 — Backend Users Migration & Model
 - [x] #010 — Backend Laravel Sanctum Setup
 - [x] #011 — Backend Auth Controller
-- [ ] #012 — Backend Module Access Middleware
+- [x] #012 — Backend Module Access Middleware
 - [ ] #013 — Backend Role Middleware
 - [ ] #014 — Backend AuditLog Middleware
 - [ ] #015 — Backend Register Middleware
@@ -51,16 +51,12 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-backend/app/Http/Controllers/Api/AuthController.php  ← Logic login/logout/me
-backend/app/Http/Requests/Auth/LoginRequest.php       ← Input validation
-backend/app/Http/Requests/Auth/ChangePasswordRequest.php ← Input validation
-backend/app/Http/Resources/UserResource.php           ← Response formatting
-backend/routes/api.php                                ← Auth routes registration
+backend/app/Http/Middleware/CheckModuleAccess.php  ← Module-Based Access Control middleware
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #011 completed successfully.
+None. Issue #012 completed successfully.
 
 ---
 
