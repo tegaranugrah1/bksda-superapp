@@ -109,6 +109,16 @@ Semua pekerjaan diatur via **125 issue specs** di `docs/issues/`. Setiap file be
 
 > **Phase 9 & 10 sudah selesai** (dokumentasi). Phase 1–8 belum diimplementasi.
 
+### 🎨 PENTING: Standar Kualitas Frontend (UI Overhaul)
+Setiap kali sebuah Phase (misalnya Phase 2, Phase 3, dst) selesai dikerjakan berdasarkan urutan Issue-nya, **WAJIB** melakukan pengecekan ulang terhadap *Frontend* referensi di `e:\superapp-inventory\`. 
+
+Jika UI yang dihasilkan dari instruksi Issue masih terlalu "basic", kita akan membuat **Issue baru terpisah** (contoh: *Issue Phase 1 FE Overhaul*) yang khusus berfokus untuk merombak tampilan UI agar sebagus dan semewah versi `superapp-inventory`. 
+
+Dalam melakukan *UI Overhaul*, aturan ini mutlak:
+1. Tampilan harus sama premium/bagusnya dengan `superapp-inventory`.
+2. **TETAP** mempertahankan *Best Practices* dan *Clean Code* aplikasi ini (tidak asal *copy-paste* kode kotor).
+3. Kode harus tetap mudah dipahami oleh *Junior Developer* dan AI model yang lebih ringan.
+
 ---
 
 ## 6. Rules Project (WAJIB DIIKUTI)

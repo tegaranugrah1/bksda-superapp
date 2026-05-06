@@ -70,4 +70,5 @@ Jika kamu membaca file ini di sesi chat baru, lakukan langkah berikut:
 3. Lanjutkan dari issue yang tertulis di "Issue Selanjutnya".
 4. Baca spec issue di `docs/issues/XXX-*.md`.
 5. Referensi kode yang sudah production: `e:\superapp-inventory\`
-6. **SEBELUM sesi berakhir atau token habis**, UPDATE file ini!
+6. **PENTING (TAMPILAN UI):** Setiap kali satu Phase selesai, AI wajib mengecek tampilan UI referensi di `superapp-inventory`. Jika UI kita masih terlalu *basic*, AI harus menyarankan dan membuat Issue khusus (misal: "Phase X UI Overhaul") untuk merombak UI agar estetikanya premium seperti referensi, namun tetap menjaga *Clean Code* yang ramah AI murah dan junior developer.
+7. **SEBELUM sesi berakhir atau token habis**, UPDATE file ini!
