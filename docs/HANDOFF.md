@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #021 — Frontend Theme Toggle |
-| **Issue Selanjutnya** | Phase 2 Selesai. Lanjut ke Phase 3 (opsional/tergantung instruksi) |
+| **Issue Terakhir Selesai** | #021b — Phase 2 UI Overhaul (Login Page) |
+| **Issue Selanjutnya** | Phase 3: Core Module (#022–#034) |
 | **Branch Aktif** | main |
-| **Model Terakhir** | Gemini 3.1 Pro |
-| **Timestamp** | 2026-05-06T15:32:00+08:00 |
-| **Status** | ✅ Phase 2 IAM & Auth Selesai! |
+| **Model Terakhir** | Claude Opus 4.6 |
+| **Timestamp** | 2026-05-06T15:53:00+08:00 |
+| **Status** | ✅ Phase 2 IAM & Auth + UI Overhaul Selesai! |
 
 ---
 
@@ -45,19 +45,25 @@
 - [x] #019 — Frontend Auth Sync
 - [x] #020 — Frontend Query Provider
 - [x] #021 — Frontend Theme Toggle
+- [x] #021b — **Phase 2 UI Overhaul** (Login Page → Split-screen premium)
 
 ---
 
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-frontend/src/components/theme-toggle.tsx  ← Dark mode toggle button with Hydration safe render
-frontend/package.json                     ← Added lucide-react dependency
+frontend/src/app/(auth)/login/page.tsx      ← Dirombak total: split-screen premium, zod + react-hook-form
+frontend/src/app/layout.tsx                 ← Ditambahkan <Toaster> dari sonner
+frontend/src/components/ui/form.tsx         ← [NEW] Shadcn Form component
+frontend/src/components/ui/input.tsx        ← [NEW] Shadcn Input component
+frontend/src/components/ui/label.tsx        ← [NEW] Shadcn Label component
+frontend/src/components/ui/sonner.tsx       ← [NEW] Shadcn Sonner (toast) component
+docs/issues/021b-frontend-phase-2-ui-overhaul.md ← [NEW] Issue spec untuk UI Overhaul
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #021 completed successfully. Phase 2 IAM & Auth is completely done.
+None. Issue #021b completed successfully. Phase 2 IAM & Auth + UI Overhaul is completely done.
 
 ---
 
