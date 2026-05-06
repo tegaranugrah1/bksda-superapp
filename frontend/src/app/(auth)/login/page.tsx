@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { isAxiosError } from "axios";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,12 +37,15 @@ export default function LoginPage() {
 
       // Redirect ke dashboard (nanti akan kita buat)
       router.push("/");
-    } catch (error: any) {
+    } catch (error) {
       // Tangkap pesan error dari backend
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.errors?.username?.[0] ||
-        "Terjadi kesalahan pada server.";
+      let message = "Terjadi kesalahan pada server.";
+      if (isAxiosError(error)) {
+        message =
+          error.response?.data?.message ||
+          error.response?.data?.errors?.username?.[0] ||
+          message;
+      }
       setErrorMsg(message);
     } finally {
       setLoading(false);
@@ -54,7 +58,7 @@ export default function LoginPage() {
         Background Estetika Premium (Forestry / Emerald theme) 
         Menggunakan gradients untuk visual yang dinamis tanpa butuh image eksternal
       */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-zinc-900 to-black z-0"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-emerald-900 via-zinc-900 to-black z-0"></div>
       
       {/* Decorative Blur Orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl z-0 animate-pulse"></div>

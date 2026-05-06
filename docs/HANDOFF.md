@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #016 — Frontend API Client |
-| **Issue Selanjutnya** | #017 — Frontend Login Page |
+| **Issue Terakhir Selesai** | #017 — Frontend Login Page |
+| **Issue Selanjutnya** | #018 — Frontend Route Guard |
 | **Branch Aktif** | main |
 | **Model Terakhir** | Gemini 3.1 Pro |
-| **Timestamp** | 2026-05-06T15:10:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #017 |
+| **Timestamp** | 2026-05-06T15:12:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #018 |
 
 ---
 
@@ -40,7 +40,7 @@
 - [x] #014 — Backend AuditLog Middleware
 - [x] #015 — Backend Register Middleware
 - [x] #016 — Frontend API Client
-- [ ] #017 — Frontend Login Page
+- [x] #017 — Frontend Login Page
 - [ ] #018 — Frontend Route Guard
 - [ ] #019 — Frontend Auth Sync
 - [ ] #020 — Frontend Query Provider
@@ -51,13 +51,12 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-frontend/src/lib/api.ts  ← Setup Axios instance with interceptors for auth token and 401 redirect
-frontend/package.json    ← Added axios dependency
+frontend/src/app/(auth)/login/page.tsx  ← Premium login page with Glassmorphism
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #016 completed successfully.
+None. Issue #017 completed successfully.
 
 ---
 
