@@ -14,7 +14,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Middleware aliases akan ditambahkan di Issue #015
+        
+        // 1. Mendaftarkan Alias (Agar bisa dipanggil di route misal: middleware('role:admin'))
+        $middleware->alias([
+            'module.access' => \App\Http\Middleware\CheckModuleAccess::class,
+            'role'          => \App\Http\Middleware\CheckRole::class,
+        ]);
+
+        // 2. Mendaftarkan Global API Middleware (Berjalan otomatis di seluruh rute /api/*)
+        // Kita masukkan AuditLog ke grup 'api' agar kita tidak pernah lupa me-log aktivitas
+        $middleware->api(append: [
+            \App\Http\Middleware\AuditLogMiddleware::class,
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // API error handler: return JSON untuk semua API requests
