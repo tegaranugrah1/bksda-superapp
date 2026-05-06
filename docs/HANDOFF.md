@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #010 — Backend — Laravel Sanctum Setup |
-| **Issue Selanjutnya** | #011 — Backend — Auth Controller |
+| **Issue Terakhir Selesai** | #011 — Backend — Auth Controller |
+| **Issue Selanjutnya** | #012 — Backend — Module Access Middleware |
 | **Branch Aktif** | main |
 | **Model Terakhir** | Gemini 3 Flash |
-| **Timestamp** | 2026-05-06T14:18:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #011 |
+| **Timestamp** | 2026-05-06T14:48:00+08:00 |
+| **Status** | ✅ Siap lanjut ke #012 |
 
 ---
 
@@ -34,7 +34,7 @@
 
 - [x] #009 — Backend Users Migration & Model
 - [x] #010 — Backend Laravel Sanctum Setup
-- [ ] #011 — Backend Auth Controller
+- [x] #011 — Backend Auth Controller
 - [ ] #012 — Backend Module Access Middleware
 - [ ] #013 — Backend Role Middleware
 - [ ] #014 — Backend AuditLog Middleware
@@ -51,15 +51,16 @@
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-backend/database/migrations/2026_05_06_141547_create_personal_access_tokens_table.php  ← Sanctum tokens table
-backend/app/Models/User.php                                                            ← Added HasApiTokens trait
-backend/composer.json                                                                  ← Added laravel/sanctum
-backend/composer.lock                                                                  ← Updated lock file
+backend/app/Http/Controllers/Api/AuthController.php  ← Logic login/logout/me
+backend/app/Http/Requests/Auth/LoginRequest.php       ← Input validation
+backend/app/Http/Requests/Auth/ChangePasswordRequest.php ← Input validation
+backend/app/Http/Resources/UserResource.php           ← Response formatting
+backend/routes/api.php                                ← Auth routes registration
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #010 completed successfully.
+None. Issue #011 completed successfully.
 
 ---
 
