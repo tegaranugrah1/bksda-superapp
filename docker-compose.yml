@@ -1,10 +1,12 @@
 # =============================================================================
 # BKSDA SuperApp — Docker Compose (Local Development)
 # =============================================================================
-# Hanya PostgreSQL untuk development lokal.
-# Backend: jalankan dengan `php artisan serve` (BUKAN Docker)
-# Frontend: jalankan dengan `npm run dev` (BUKAN Docker)
+# Hanya PostgreSQL dan pgAdmin untuk development lokal (Sesuai Rule 10.2).
+# Backend: php artisan serve
+# Frontend: npm run dev
 # =============================================================================
+
+version: '3.8'
 
 services:
   db:
@@ -25,6 +27,24 @@ services:
       timeout: 5s
       retries: 5
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bksda-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@bksda.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   db-data:
+    driver: local
+  pgadmin-data:
     driver: local
