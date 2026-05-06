@@ -7,38 +7,35 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Aktif** | #001 — Project Rules & Coding Standards |
-| **Branch** | `issue/001-project-rules-coding-standards` |
+| **Issue Aktif** | #002 — Init Monorepo Structure |
+| **Branch** | `issue/002-init-monorepo-structure` (Merged to main) |
 | **Model Terakhir** | Gemini 3.1 Pro (High) |
-| **Timestamp** | 2026-05-06T12:10:00+08:00 |
+| **Timestamp** | 2026-05-06T12:17:00+08:00 |
 | **Status** | ✅ DONE |
 
 ## Progress Checklist
 
-- [x] `.editorconfig`
-- [x] `.gitignore` (root)
-- [x] `backend/.gitignore`
-- [x] `frontend/.gitignore`
-- [x] `README.md`
-- [x] `RULES.md`
-- [x] `docs/HANDOFF.md`
+- [x] Folder `backend/` dengan `.gitkeep`
+- [x] Folder `frontend/` dengan `.gitkeep`
+- [x] Folder `docker/` dengan `.gitkeep`
+- [x] `docker-compose.yml` (PostgreSQL only)
+- [x] Verifikasi Docker Container
+- [x] Create PR & Merge to `main`
 
 ## File yang Sudah Dibuat/Diubah
 
 ```
-.editorconfig
-.gitignore
-backend/.gitignore
-frontend/.gitignore
-README.md
-RULES.md
+docker-compose.yml
+backend/.gitkeep
+frontend/.gitkeep
+docker/.gitkeep
 docs/HANDOFF.md
 ```
 
 ## Catatan untuk Model Selanjutnya
 
-Ini adalah issue pertama. Tidak ada dependency. Semua file fondasi telah dibuat.
+Issue #002 selesai. Struktur monorepo dasar telah dibuat. Port PostgreSQL di `docker-compose.yml` telah diubah ke `5435` karena port `5432` dan `5433` telah terpakai di sistem pengguna lokal. PR telah dimerge dan sekarang branch aktif adalah `main`. Siap untuk lanjut ke Issue #003 (Backend Laravel setup).
 
 ## Error / Blocker
 
-Tidak ada.
+Tidak ada. Port konflik saat inisialisasi Docker berhasil di-resolve ke 5435.
