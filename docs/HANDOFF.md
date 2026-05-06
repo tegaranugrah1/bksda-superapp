@@ -7,42 +7,36 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Aktif** | #003 — Backend — Laravel 12 Scaffold |
-| **Branch** | `issue/003-backend-laravel-scaffold` (Merged to main) |
+| **Issue Aktif** | #004 — Backend — Database & Environment Config |
+| **Branch** | `issue/004-backend-database-env-config` (Merged to main) |
 | **Model Terakhir** | Gemini 3.1 Pro (High) |
-| **Timestamp** | 2026-05-06T12:22:00+08:00 |
+| **Timestamp** | 2026-05-06T12:27:00+08:00 |
 | **Status** | ✅ DONE |
 
 ## Progress Checklist
 
-- [x] Scaffold Laravel 12
-- [x] Edit `.env.example`
-- [x] Edit `bootstrap/app.php`
-- [x] Edit `routes/api.php`
-- [x] Edit `composer.json` autoload & `composer dump-autoload`
-- [x] Edit `config/cors.php`
-- [x] Buat struktur folder modul (`app/Modules/*`) dengan `.gitkeep`
-- [x] Cleanup file tidak dipakai (views, vite, web routes, dll.)
-- [x] Lulus tes `./vendor/bin/pint --test` dan `php artisan optimize`
+- [x] Docker PostgreSQL berjalan (`docker compose up -d`)
+- [x] File `.env` disetup dengan konfigurasi PostgreSQL lokal
+- [x] `config/database.php` dibersihkan, hanya menyisakan driver PostgreSQL
+- [x] `config/app.php` diset untuk timezone (`Asia/Makassar`) dan locale (`id`)
+- [x] Migration cache dan jobs yang tidak perlu telah dihapus
+- [x] `php artisan migrate` berjalan sukses tanpa error
+- [x] Verifikasi koneksi ke DB berhasil via `php artisan db:show`
 - [x] Create PR & Merge to `main`
 
 ## File yang Sudah Dibuat/Diubah
 
 ```
-backend/.env.example
-backend/bootstrap/app.php
-backend/routes/api.php
-backend/config/cors.php
-backend/composer.json
-backend/app/Modules/*
+backend/config/database.php
+backend/config/app.php
+backend/database/migrations/* (cache & jobs terhapus)
 docs/HANDOFF.md
 ```
 
 ## Catatan untuk Model Selanjutnya
 
-Issue #003 selesai. Backend Laravel 12 telah discaffold sebagai API-only. Struktur direktori modular juga telah dibuat dan Composer telah di-konfigurasi untuk memuat `App\Modules`. Database config telah diarahkan ke Docker setup dari Issue #002 (menggunakan port 5435 di mesin lokal ini jika di-run secara terpisah).
-Siap untuk lanjut ke Issue #004.
+Issue #004 telah selesai sepenuhnya. Aplikasi Laravel sekarang telah terhubung dengan baik ke PostgreSQL 15 via Docker di port 5435. File konfigurasi telah diformat menggunakan pint dan database default `bksda_superapp` sukses dimigrasi untuk setup awal table `users`. Siap melangkah ke Issue #005.
 
 ## Error / Blocker
 
-Tidak ada. Semua instruksi telah diselesaikan dan PR telah dimerge.
+Tidak ada blocker tersisa. Issue port conflict pada command key:generate tadi juga telah berhasil ditangani dan tidak akan menjadi masalah di kemudian hari karena `.env` file sudah diperbaiki.
