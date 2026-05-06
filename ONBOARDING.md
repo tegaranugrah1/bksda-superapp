@@ -96,14 +96,14 @@ Semua pekerjaan diatur via **125 issue specs** di `docs/issues/`. Setiap file be
 
 | Phase | Issue Range | Status | Deskripsi |
 |-------|------------|--------|-----------|
-| 1 | #001–#003 | 📋 Spec | Project init (Laravel + Next.js) |
-| 2 | #004–#020 | 📋 Spec | CMS Module |
-| 3 | #021–#040 | 📋 Spec | BMN Module |
-| 4 | #041–#060 | 📋 Spec | Inventory Module |
-| 5 | #061–#075 | 📋 Spec | Core Module (Employee, Auth) |
-| 6 | #076–#090 | 📋 Spec | DeReporting Module |
-| 7 | #091–#100 | 📋 Spec | Surat Tugas Module |
-| 8 | #101–#108 | 📋 Spec | Public Website |
+| 1 | #001–#008 | 📋 Spec | Project Init & Foundation (DB, Docker, IDE Helper) |
+| 2 | #009–#021 | 📋 Spec | IAM & Auth (Sanctum, Roles, Login UI) |
+| 3 | #022–#034 | 📋 Spec | Core Module (Pegawai, Admin Layout) |
+| 4 | #035–#045 | 📋 Spec | Surat Tugas Module |
+| 5 | #046–#059 | 📋 Spec | Inventory Module |
+| 6 | #060–#076 | 📋 Spec | BMN Module |
+| 7 | #077–#090 | 📋 Spec | DeReporting Module |
+| 8 | #091–#108 | 📋 Spec | CMS Module (Public Web & Admin) |
 | 9 | #109–#115 | ✅ Done | UI Components & Utilities |
 | 10 | #116–#125 | ✅ Done | DevOps & Deployment |
 

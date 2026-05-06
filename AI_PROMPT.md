@@ -100,3 +100,43 @@ Harus detail, clean code, best practice, dan bisa dipahami AI model murah atau j
 | `123-deployment-supabase-db-setup.md` | Supabase PostgreSQL |
 | `124-seed-data.md` | Database seeders |
 | `125-documentation-api-docs-readme.md` | README + API docs |
+
+---
+
+## Prompt 6: Token Habis di Tengah Jalan (RECOVERY)
+
+Jika AI kehabisan token di tengah mengerjakan issue, paste ini ke chat BARU:
+
+```
+Saya sedang mengerjakan project BKSDA SuperApp.
+
+PENTING — BACA FILE-FILE INI DULU SEBELUM MELAKUKAN APAPUN:
+1. ONBOARDING.md — Konteks arsitektur project.
+2. docs/HANDOFF.md — Progress terakhir, issue mana yang sedang/sudah dikerjakan.
+
+AI sebelumnya KEHABISAN TOKEN di tengah mengerjakan task.
+Tugasmu:
+1. Baca docs/HANDOFF.md untuk tahu posisi terakhir.
+2. Cek branch git aktif dengan `git status` dan `git log --oneline -5`.
+3. Cek file mana yang sudah diubah dengan `git diff --stat`.
+4. Lanjutkan dari titik terakhir, JANGAN mulai ulang dari awal.
+5. Setelah selesai, UPDATE docs/HANDOFF.md dengan progress terbaru.
+6. Referensi kode production: e:\superapp-inventory\
+
+ATURAN:
+- JANGAN ulangi langkah yang sudah selesai (cek HANDOFF.md).
+- Jika ragu, tanya saya sebelum mengerjakan.
+- Sebelum sesi ini berakhir, WAJIB update docs/HANDOFF.md.
+```
+
+---
+
+## Tips Mencegah Kehilangan Progress
+
+| Situasi | Solusi |
+|---------|--------|
+| Token hampir habis | Minta AI: *"Update HANDOFF.md sekarang sebelum token habis"* |
+| AI mulai lambat/repetitif | Itu tanda token menipis — segera minta update HANDOFF.md |
+| Mau ganti model AI | Minta AI lama update HANDOFF.md dulu, baru buka chat baru |
+| Issue terlalu besar | Pecah jadi sub-task, minta AI commit per langkah |
+
