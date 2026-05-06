@@ -1,0 +1,30 @@
+# =============================================================================
+# BKSDA SuperApp — Docker Compose (Local Development)
+# =============================================================================
+# Hanya PostgreSQL untuk development lokal.
+# Backend: jalankan dengan `php artisan serve` (BUKAN Docker)
+# Frontend: jalankan dengan `npm run dev` (BUKAN Docker)
+# =============================================================================
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: bksda-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bksda_superapp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:5435:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:
+    driver: local
