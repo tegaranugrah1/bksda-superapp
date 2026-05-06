@@ -1,3 +1,68 @@
+# Issue #021b — Frontend — Phase 2 UI Overhaul (Login Page)
+
+> **Type**: `feature` / `refactor`
+> **Labels**: `frontend`, `ui`, `design`
+> **Priority**: 🔴 Critical (Standarisasi estetika visual)
+> **Complexity**: 🟡 Medium (Instalasi komponen shadcn dan state form kompleks)
+> **Recommended AI Model**: Claude Sonnet / Gemini 2.5 Flash / Ollama
+> **Dependencies**: Issue #017 (Login Page dasar) & Issue #019 (Auth Sync)
+
+---
+
+## Branch
+
+```
+issue/021b-frontend-phase-2-ui-overhaul
+```
+
+## Deskripsi
+
+Berdasarkan aturan terbaru dalam project ini, setiap akhir dari sebuah *Phase*, kita diwajibkan untuk memeriksa referensi UI di `superapp-inventory`. 
+Halaman Login yang kita bangun di Issue #017 masih menggunakan *Glassmorphism* dasar dan state manual. Versi *production* (`superapp-inventory`) menggunakan desain *split-screen* premium dengan form terstruktur berbasis `zod` dan `react-hook-form`, serta komponen `shadcn/ui`.
+
+**Apa yang dilakukan:**
+1. Menginstal pustaka validasi form (`react-hook-form`, `zod`, `@hookform/resolvers`).
+2. Memasang komponen UI dasar dari `shadcn` (`form`, `label`, `input`, `sonner`).
+3. Mengganti total isi file `login/page.tsx` agar visualnya sama persis dengan `superapp-inventory` (dua kolom layar terbelah).
+4. Menyambungkan logika login dengan *reactive store* yang sudah kita buat di Issue #019 (`authStore.login`).
+
+---
+
+## Acceptance Criteria
+
+- [ ] Package `react-hook-form`, `zod`, dan `sonner` terinstal.
+- [ ] Komponen shadcn `form`, `label`, `input`, dan `sonner` berhasil diinisialisasi.
+- [ ] File `src/app/(auth)/login/page.tsx` diubah menjadi UI *split-screen* kelas atas.
+- [ ] Terintegrasi penuh dengan `authStore.login(token, user)` (bukan sekadar `localStorage.setItem` statis).
+- [ ] Error validasi form muncul elegan di bawah *input field* (bukan *alert box* browser).
+- [ ] Toast notifikasi hijau muncul saat login berhasil sebelum di-*redirect*.
+
+---
+
+## Langkah Demi Langkah
+
+> 💡 **Untuk junior/AI**: Langkah ini menggabungkan eksekusi `shadcn CLI` dan modifikasi *Client Component*. Jika CLI gagal, komponen bisa di-*copy* langsung dari `superapp-inventory`.
+
+### Langkah 1: Instalasi Package & Shadcn Components
+
+**Kenapa?** Kita membutuhkan alat bantu standar industri untuk mengelola input user agar tidak ada celah *bug* validasi.
+
+```bash
+cd e:\bksda-superapp\frontend
+
+npm install react-hook-form zod @hookform/resolvers sonner
+npx shadcn@latest add form label input sonner -y
+```
+
+---
+
+### Langkah 2: Edit Halaman Login Utama
+
+**Path:** `e:\bksda-superapp\frontend\src\app\(auth)\login\page.tsx`
+
+**Rombak total file ini dan gantikan dengan kode berikut:**
+
+```tsx
 "use client";
 
 import { useState } from "react";
@@ -173,7 +238,7 @@ export default function LoginPage() {
             className="absolute inset-0 bg-cover bg-center opacity-80 mix-blend-overlay" 
             style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDlo-JpVGBaoUwLf0K7HW1CHye6SJdYgvXAvRyMkHSNG82DZ4ZJrmIbEY_VrllF4PXw2YmLcZKF8cdDBpLq57KOw06fN20fGGd7p3sBFDIsOh1YvGdl6og1WT7_Kqo5d69l56dPWxV_eSjp8WHPczKGmngvIWISopr8DHTGdojGaiHk6nkvKPVsh9pHo-pVoyqX6pUMABERWNYd1aa5jX4yGpYAEoP20DM5XP1j5V3QVpPURqWgumcBtzM6FtfM8PfEugSVTrQ3hks')" }}
           >
-            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
           </div>
           <div className="absolute bottom-16 left-16 right-16 text-white max-w-xl z-10">
             <div className="bg-emerald-500 h-1 w-12 mb-6"></div>
@@ -185,3 +250,125 @@ export default function LoginPage() {
     </div>
   );
 }
+```
+
+---
+
+### Langkah 3: Modifikasi Root Layout (Pemasangan Sonner Toaster)
+
+**Kenapa?** Agar sistem notifikasi *toast* (hijau untuk sukses, merah untuk gagal) dari `sonner` bisa bekerja secara global di seluruh aplikasi.
+
+**Path:** `e:\bksda-superapp\frontend\src\app\layout.tsx`
+
+Tambahkan baris berikut di dalam `<ThemeProvider>`:
+```tsx
+import { Toaster } from "@/components/ui/sonner";
+
+// Di dalam return:
+<ThemeProvider ...>
+  <QueryProvider>
+    {children}
+    <Toaster richColors position="top-right" />
+  </QueryProvider>
+</ThemeProvider>
+```
+
+---
+
+## Troubleshooting
+
+### Q: IDE memberikan warning `Cannot find module '@/components/ui/form'`.
+**Artinya:** Langkah eksekusi shadcn CLI gagal, sehingga file `form.tsx` tidak tercipta.
+**Solusi:** Pastikan terminal merespons sukses saat menjalankan `npx shadcn@latest add form`. 
+
+---
+
+## Git Workflow (Professional)
+
+### Step 1: Buat Issue di GitHub
+
+```bash
+cd e:\bksda-superapp
+
+gh issue create \
+  --title "refactor: phase 2 ui overhaul for login page" \
+  --body "Merombak tampilan login basic menjadi premium split-screen design. Detail di docs/issues/021b-frontend-phase-2-ui-overhaul.md" \
+  --label "frontend,ui,design"
+```
+
+### Step 2: Buat Branch
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b issue/021b-frontend-phase-2-ui-overhaul
+```
+
+### Step 3: Kerjakan
+
+Jalankan perintah instalasi npm, modifikasi `page.tsx`, modifikasi `layout.tsx`. Tes UI dengan menjalankan `npm run dev`.
+
+### Step 4: Commit & Push
+
+```bash
+cd e:\bksda-superapp
+git add frontend/
+git commit -m "refactor: phase 2 ui overhaul for login page (#22)"
+git push -u origin issue/021b-frontend-phase-2-ui-overhaul
+```
+
+### Step 5: Buat Pull Request
+
+```bash
+gh pr create \
+  --title "refactor: phase 2 ui overhaul for login page (#22)" \
+  --body "## Summary
+Menyempurnakan estetika visual halaman login sesuai aturan baru (UI Overhaul per Phase).
+
+## Changes
+- Integrasi `react-hook-form`, `zod`, dan komponen `shadcn`.
+- Merombak UI menjadi *split-screen* premium.
+- Menyuntikkan komponen `<Toaster>` global di layout.
+
+## Verification
+- [x] Linter React lolos.
+- [x] Validasi form (Zod) berjalan mulus.
+- [x] Toast notifikasi muncul tanpa kendala.
+
+Closes #22" \
+  --base main
+```
+
+### Step 6: Merge & Sync
+
+```bash
+gh pr merge --squash --delete-branch
+git checkout main
+git pull origin main
+```
+
+---
+
+## 🤖 AI Prompt
+
+````
+## Context
+
+Project: bksda-superapp (monorepo)
+Workspace: e:\bksda-superapp\
+Kita baru saja selesai Phase 2. Saatnya menaikkan kualitas UI agar setara dengan `superapp-inventory`.
+
+## Task
+
+Kerjakan Issue #021b (Phase 2 UI Overhaul).
+Ikuti instruksi PERSIS seperti yang tertulis di file:
+`docs/issues/021b-frontend-phase-2-ui-overhaul.md`
+
+### Urutan Kerja:
+1. Jalankan `gh issue create` dan checkout branch git.
+2. Navigasi ke `frontend/` lalu eksekusi instalasi NPM dan Shadcn CLI.
+3. Rombak `login/page.tsx` sesuai spesifikasi kode.
+4. Rombak `layout.tsx` untuk mengimpor dan merender `<Toaster>`.
+5. Uji coba linter (`npm run lint`).
+6. Lakukan Git push dan `gh pr create` sesuai panduan Workflow.
+````

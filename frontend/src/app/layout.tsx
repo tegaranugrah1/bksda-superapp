@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Public_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/providers/query-provider";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 // Setup Geist Sans
@@ -52,6 +53,7 @@ export default function RootLayout({
         >
           <QueryProvider>
             {children}
+            <Toaster richColors position="top-right" />
           </QueryProvider>
         </ThemeProvider>
       </body>
