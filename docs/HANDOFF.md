@@ -7,36 +7,40 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Aktif** | #004 — Backend — Database & Environment Config |
-| **Branch** | `issue/004-backend-database-env-config` (Merged to main) |
+| **Issue Aktif** | #005 — Frontend — Next.js 16 Scaffold |
+| **Branch** | `issue/005-frontend-nextjs-scaffold` (Merged to main) |
 | **Model Terakhir** | Gemini 3.1 Pro (High) |
-| **Timestamp** | 2026-05-06T12:27:00+08:00 |
+| **Timestamp** | 2026-05-06T13:28:00+08:00 |
 | **Status** | ✅ DONE |
 
 ## Progress Checklist
 
-- [x] Docker PostgreSQL berjalan (`docker compose up -d`)
-- [x] File `.env` disetup dengan konfigurasi PostgreSQL lokal
-- [x] `config/database.php` dibersihkan, hanya menyisakan driver PostgreSQL
-- [x] `config/app.php` diset untuk timezone (`Asia/Makassar`) dan locale (`id`)
-- [x] Migration cache dan jobs yang tidak perlu telah dihapus
-- [x] `php artisan migrate` berjalan sukses tanpa error
-- [x] Verifikasi koneksi ke DB berhasil via `php artisan db:show`
+- [x] Next.js terinstall di `frontend/` (`create-next-app`)
+- [x] TypeScript strict mode aktif
+- [x] Tailwind CSS v4 & PostCSS aktif
+- [x] Folder `src/components`, `src/hooks`, `src/lib`, `src/types` tersedia
+- [x] Route group `src/app/(website)` dibuat
+- [x] `src/app/loading.tsx` global selesai ditambahkan
+- [x] `next.config.ts` di-set untuk whitelist domain image
+- [x] `npm run build` dan `npm run lint` telah divalidasi sukses tanpa warning/error
 - [x] Create PR & Merge to `main`
 
 ## File yang Sudah Dibuat/Diubah
 
 ```
-backend/config/database.php
-backend/config/app.php
-backend/database/migrations/* (cache & jobs terhapus)
+frontend/package.json
+frontend/tailwind.config.ts (dihapus)
+frontend/postcss.config.mjs
+frontend/src/app/globals.css
+frontend/src/app/loading.tsx
+frontend/next.config.ts
 docs/HANDOFF.md
 ```
 
 ## Catatan untuk Model Selanjutnya
 
-Issue #004 telah selesai sepenuhnya. Aplikasi Laravel sekarang telah terhubung dengan baik ke PostgreSQL 15 via Docker di port 5435. File konfigurasi telah diformat menggunakan pint dan database default `bksda_superapp` sukses dimigrasi untuk setup awal table `users`. Siap melangkah ke Issue #005.
+Issue #005 telah berhasil dituntaskan secara menyeluruh! Kita telah men-setup kerangka dasar frontend Next.js menggunakan versi terbaru dengan React 19. Desain sistemnya menggunakan perpaduan **Tailwind CSS v4** dan **shadcn/ui** default (Nova/Radix). Semuanya bebas error dan warning setelah melalui perbaikan versi dan `postcss.config.mjs`. Frontend siap untuk digunakan pada pengembangan UI & komponen selanjutnya (misal: Issue #006).
 
 ## Error / Blocker
 
-Tidak ada blocker tersisa. Issue port conflict pada command key:generate tadi juga telah berhasil ditangani dan tidak akan menjadi masalah di kemudian hari karena `.env` file sudah diperbaiki.
+Sempat terjadi hang saat instalasi `create-next-app` karena mencoba menginstall package Next.js 16.1.6 yang belum rilis secara sempurna di npm. Masalah ini berhasil diselesaikan dengan fall-back menggunakan flag versi `latest` di package.json dan menjalankan manual `npm install`.
