@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #020 — Frontend Query Provider |
-| **Issue Selanjutnya** | #021 — Frontend Theme Toggle |
+| **Issue Terakhir Selesai** | #021 — Frontend Theme Toggle |
+| **Issue Selanjutnya** | Phase 2 Selesai. Lanjut ke Phase 3 (opsional/tergantung instruksi) |
 | **Branch Aktif** | main |
 | **Model Terakhir** | Gemini 3.1 Pro |
-| **Timestamp** | 2026-05-06T15:28:00+08:00 |
-| **Status** | ✅ Siap lanjut ke #021 |
+| **Timestamp** | 2026-05-06T15:32:00+08:00 |
+| **Status** | ✅ Phase 2 IAM & Auth Selesai! |
 
 ---
 
@@ -44,20 +44,20 @@
 - [x] #018 — Frontend Route Guard
 - [x] #019 — Frontend Auth Sync
 - [x] #020 — Frontend Query Provider
-- [ ] #021 — Frontend Theme Toggle
+- [x] #021 — Frontend Theme Toggle
 
 ---
 
 ## File yang Terakhir Dibuat/Diubah
 
 ```
-frontend/src/providers/query-provider.tsx  ← TanStack React Query Provider wrapper
-frontend/src/app/layout.tsx                ← Added QueryProvider to the RootLayout
+frontend/src/components/theme-toggle.tsx  ← Dark mode toggle button with Hydration safe render
+frontend/package.json                     ← Added lucide-react dependency
 ```
 
 ## Error / Blocker Terakhir
 
-None. Issue #020 completed successfully.
+None. Issue #021 completed successfully. Phase 2 IAM & Auth is completely done.
 
 ---
 
