@@ -15,7 +15,7 @@
 | **BMN** | Barang Milik Negara (aset pemerintah) | `bmn_*` |
 | **Inventory** | Inventaris barang habis pakai | `inv_*` |
 | **DeReporting** | Pelaporan & monitoring | `dr_*` |
-| **Core** | Employee, User, Auth | `core_*` / default |
+| **Kepegawaian** | Manajemen SDM, Pegawai, Hak Akses IAM | `kpg_*` |
 | **Surat Tugas** | Surat tugas pegawai | `st_*` |
 
 ---
@@ -43,7 +43,7 @@ e:\bksda-superapp\
 │   └── src/lib/           ← Utilities (api.ts, utils.ts)
 │
 ├── backend/               ← Laravel API
-│   ├── app/Modules/       ← CMS, BMN, Inventory, Core, DeReporting
+│   ├── app/Modules/       ← Kepegawaian, BMN, Inventory, CMS, DeReporting
 │   │   └── {Module}/
 │   │       ├── Controllers/
 │   │       ├── Models/
@@ -96,9 +96,9 @@ Semua pekerjaan diatur via **125 issue specs** di `docs/issues/`. Setiap file be
 
 | Phase | Issue Range | Status | Deskripsi |
 |-------|------------|--------|-----------|
-| 1 | #001–#008 | 📋 Spec | Project Init & Foundation (DB, Docker, IDE Helper) |
-| 2 | #009–#021 | 📋 Spec | IAM & Auth (Sanctum, Roles, Login UI) |
-| 3 | #022–#034 | 📋 Spec | Core Module (Pegawai, Admin Layout) |
+| 1 | #001–#008 | ✅ Done | Project Init & Foundation (DB, Docker, IDE Helper) |
+| 2 | #009–#021 | ✅ Done | IAM & Auth (Sanctum, Roles, Login UI) |
+| 3 | #022–#034 | ✅ Done | Kepegawaian Module (Pegawai CRUD, Admin Layout, IAM) |
 | 4 | #035–#045 | 📋 Spec | Surat Tugas Module |
 | 5 | #046–#059 | 📋 Spec | Inventory Module |
 | 6 | #060–#076 | 📋 Spec | BMN Module |
@@ -107,7 +107,7 @@ Semua pekerjaan diatur via **125 issue specs** di `docs/issues/`. Setiap file be
 | 9 | #109–#115 | ✅ Done | UI Components & Utilities |
 | 10 | #116–#125 | ✅ Done | DevOps & Deployment |
 
-> **Phase 9 & 10 sudah selesai** (dokumentasi). Phase 1–8 belum diimplementasi.
+> **Phase 1–3, 9, 10 sudah selesai.** Phase 4–8 belum diimplementasi.
 
 ### 🎨 PENTING: Standar Kualitas Frontend (UI Overhaul)
 Setiap kali sebuah Phase (misalnya Phase 2, Phase 3, dst) selesai dikerjakan berdasarkan urutan Issue-nya, **WAJIB** melakukan pengecekan ulang terhadap *Frontend* referensi di `e:\superapp-inventory\`. 
@@ -118,6 +118,22 @@ Dalam melakukan *UI Overhaul*, aturan ini mutlak:
 1. Tampilan harus sama premium/bagusnya dengan `superapp-inventory`.
 2. **TETAP** mempertahankan *Best Practices* dan *Clean Code* aplikasi ini (tidak asal *copy-paste* kode kotor).
 3. Kode harus tetap mudah dipahami oleh *Junior Developer* dan AI model yang lebih ringan.
+
+### ✅ MANDATORY: End-of-Phase Checklist
+
+Setiap kali **satu Phase selesai**, AI **WAJIB** melakukan semua langkah berikut **SEBELUM** melanjutkan ke Phase berikutnya:
+
+| # | Langkah | Detail |
+|---|---------|--------|
+| 1 | **IDE Warning Check** | Jalankan `npm run lint`, `npm run build`, dan periksa PHP warnings. **HARUS 0 error/warning.** Jika ada, perbaiki dulu. |
+| 2 | **UI Comparison** | Bandingkan tampilan frontend dengan referensi `e:\superapp-inventory\`. Jika masih *basic*, buat Issue "Phase X UI Overhaul". |
+| 3 | **GitHub Issues** | Pastikan SEMUA issue di Phase tersebut sudah ada di GitHub dan berstatus **CLOSED**. |
+| 4 | **GitHub PRs** | Setiap issue HARUS punya branch → PR → merge. **DILARANG** commit langsung ke main tanpa PR. |
+| 5 | **Update HANDOFF.md** | Catat progress terakhir, timestamp, model, dan issue selanjutnya. |
+| 6 | **Update ONBOARDING.md** | Update tabel Phase Status dari `📋 Spec` menjadi `✅ Done`. |
+| 7 | **Push ke GitHub** | Commit dan push semua perubahan dokumentasi. |
+
+> ⚠️ **JIKA ADA LANGKAH YANG TERLEWAT, PHASE BELUM DIANGGAP SELESAI!**
 
 ---
 
