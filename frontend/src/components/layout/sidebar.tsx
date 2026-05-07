@@ -61,7 +61,7 @@ export function Sidebar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  onClick={() => setIsOpen(false)} // Tutup laci otomatis di mobile kalau diklik
+                  onClick={() => setIsOpen(false)}
                   className={`
                     flex items-center gap-3 px-4 py-3.5 rounded-2xl font-medium transition-all duration-300 group
                     ${isActive

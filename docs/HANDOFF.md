@@ -10,12 +10,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #034b — Phase 3 UI Overhaul |
+| **Issue Terakhir Selesai** | #064 - Dashboard Back Navigation Restore / BFCache Zombie State Fix |
 | **Issue Selanjutnya** | Phase 4: Surat Tugas Module (#035–#045) |
-| **Branch Aktif** | main |
-| **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-06T17:02:00+08:00 |
-| **Status** | ✅ Phase 3 Core Module (Kepegawaian) Selesai! |
+| **Branch Aktif** | main setelah PR untuk issue #64 merge |
+| **Model Terakhir** | GPT-5.2 / Codex |
+| **Timestamp** | 2026-05-07T14:35:00+08:00 |
+| **Status Aktual Sesi Ini** | #064 selesai: login, BFCache back navigation, data pegawai, sidebar logout, dan Topbar theme toggle stabil |
+| **Status** | ✅ Sesi #064 selesai dan siap merge: dashboard back navigation, data pegawai, sidebar logout, dan Topbar theme toggle stabil |
 
 ---
 
@@ -124,7 +125,7 @@ frontend/src/app/(dashboard)/kepegawaian/create/page.tsx ← [NEW] Form create p
 | Check | Status | Keterangan |
 |-------|--------|------------|
 | TypeScript | ✅ | 0 error |
-| ESLint | ✅ | 0 error |
+| ESLint | ✅ | 0 error (Final Triple-Check) |
 | PHP Intelephense | ✅ | 0 error (fix: `$request->filled()`) |
 | Tailwind v4 | ✅ | Canonical classes updated |
 
@@ -132,7 +133,7 @@ frontend/src/app/(dashboard)/kepegawaian/create/page.tsx ← [NEW] Form create p
 
 ## Error / Blocker Terakhir
 
-None. All Phase 3 issues (#022–#034) completed successfully.
+None. Navigation stability, BFCache "Zombie" state, and authentication sync have been resolved with a Next.js-native restore boundary, auth snapshot store, and active React Query refetch.
 
 ---
 
@@ -196,3 +197,39 @@ Setiap Phase selesai, **WAJIB** jalankan semua langkah ini:
 
 #### D. Sebelum Sesi Berakhir
 **WAJIB** update file `HANDOFF.md` ini dengan status terakhir!
+
+---
+**STATUS TERAKHIR (2026-05-07):**
+- **Rollback dilakukan**: Seluruh skrip navigasi eksperimental (BFCache watchdog & Hard Navigation) dihapus.
+- **Kondisi**: Kembali ke "Phase 3 UI Overhaul" yang stabil secara tampilan.
+- **Fokus Selanjutnya**: Mencari solusi navigasi yang lebih "Next.js Native" tanpa merusak performa.
+
+**UPDATE SESI (2026-05-07):**
+- Investigasi BFCache Zombie state pada alur `/kepegawaian` -> `/bmn` -> browser Back.
+- Fix diterapkan di frontend: auth snapshot memakai `useSyncExternalStore`, dashboard layout kembali membaca user dari cookie server-side, provider React Query melakukan invalidate query aktif saat `pageshow persisted`/`popstate`, dan dropdown module switcher ditutup saat restore.
+- Validasi frontend: `npm run lint` dan `npm run build` berhasil.
+
+**UPDATE LANJUTAN (2026-05-07):**
+- Route `/bmn` ditambahkan sebagai dashboard placeholder agar perpindahan modul tidak jatuh ke 404 sebelum Phase BMN dikerjakan.
+- Root provider sekarang meremount client subtree saat browser Back/Forward restore, sekaligus refetch active React Query dan reset `pointer-events` body.
+- Skenario terverifikasi via browser automation: login -> `/kepegawaian` -> module switcher `/bmn` -> browser Back; data pegawai tetap tampil, user tetap `Administrator Pusat BKSDA / super_admin`, dan tombol sidebar `Keluar Sistem` membuka modal konfirmasi.
+
+**FINAL SESI #064 (2026-05-07):**
+- GitHub Issue: `#64 fix(frontend): stabilize dashboard back navigation restore`.
+- Branch kerja: `issue/064-dashboard-back-navigation-restore`.
+- Tujuan: menyelesaikan bug "BFCache Zombie state" saat user berada di `/kepegawaian`, pindah ke `/bmn`, lalu klik browser Back.
+- Gejala awal: data pegawai tidak load setelah Back, Topbar sempat fallback ke `Admin SuperApp / Administrator`, dan tombol sidebar `Keluar Sistem` tidak bisa diklik.
+- Root cause yang ditemukan: auth state client tidak punya snapshot stabil saat history restore, React Query tidak refetch active query setelah BFCache/popstate, dropdown/overlay module switcher dapat tersisa di atas UI, dan `/bmn` belum punya route sehingga perpindahan modul jatuh ke 404.
+- Fix auth: `frontend/src/lib/auth-store.ts` sekarang menyediakan snapshot token+user dari localStorage/cookie, subscribe ke `auth-change`, `storage`, `pageshow`, dan `popstate`; `frontend/src/hooks/useAuth.ts` memakai `useSyncExternalStore`.
+- Fix dashboard restore: `frontend/src/components/providers.tsx` menjadi provider aktif root; saat `pageshow persisted` atau `popstate`, provider reset `document.body.style.pointerEvents`, dispatch `auth-change`, invalidate/refetch active React Query, dan remount subtree via `restoreKey`.
+- Fix dashboard layout: `frontend/src/app/(dashboard)/layout.tsx` kembali membaca `bksda_user` dari cookie server-side dan mengirim `serverUser` ke Topbar agar tidak flash fallback saat restore.
+- Fix Topbar: `frontend/src/components/layout/topbar.tsx` dikembalikan ke pola Phase 2/3, yaitu `ThemeToggle` + profil user; ikon search/notif/help/settings dan logout dobel di kanan user dihapus. Logout tetap hanya di sidebar.
+- Fix module switcher/sidebar: `frontend/src/components/module-switcher.tsx` menutup overlay saat `pageshow`/`popstate`; `frontend/src/components/layout/sidebar.tsx` memakai Next `Link` dan menutup drawer mobile saat klik menu.
+- Fix API lokal: `frontend/src/lib/api.ts` default base URL lokal ke `http://127.0.0.1:8000/api`, memakai `authStore.logout()` saat 401 non-login, dan tidak lagi memakai `console.error` yang memicu Next dev overlay untuk network/API failure biasa.
+- Fix route BMN: `frontend/src/app/(dashboard)/bmn/page.tsx` ditambahkan sebagai placeholder dashboard supaya `/bmn` bukan 404 sebelum Phase BMN resmi dikerjakan.
+- File penting yang ikut tersentuh dari sesi navigasi/auth sebelumnya dan dipertahankan: `frontend/src/app/layout.tsx`, `frontend/src/proxy.ts`, `frontend/src/components/logout-button.tsx`, `frontend/src/components/theme-toggle.tsx`, `frontend/src/app/(dashboard)/kepegawaian/page.tsx`, `frontend/src/app/(dashboard)/page.tsx`, `frontend/next.config.ts`.
+- File yang sengaja tidak ikut commit: `frontend/src/proxy.ts.bak` karena hanya backup lokal tidak terpakai.
+- Validasi wajib yang sudah dijalankan: `npm run lint` di `frontend` berhasil, `npm run build` di `frontend` berhasil, dan `php -l` untuk semua file `backend/app/Modules/**/*.php` berhasil.
+- Validasi browser yang sudah dijalankan: login dengan akun seeder, buka `/kepegawaian`, buka module switcher ke `/bmn`, klik browser Back, data pegawai tetap tampil, user tetap `Administrator Pusat BKSDA / super_admin`, tombol sidebar `Keluar Sistem` membuka modal konfirmasi.
+- Jika AI baru melanjutkan setelah percakapan ini ditutup: mulai dari `git checkout main && git pull`, baca `HANDOFF.md` dan `ONBOARDING.md`, pastikan issue #64 dan PR terkait sudah closed/merged, lalu lanjut ke Phase 4 Surat Tugas (`docs/issues/035-*.md` sampai `045-*.md`).
+- Catatan lokal dev: frontend memakai `http://localhost:3000`, backend Laravel lokal perlu hidup di `http://127.0.0.1:8000`, dan database lokal `.env` backend mengarah ke PostgreSQL `127.0.0.1:5435`.

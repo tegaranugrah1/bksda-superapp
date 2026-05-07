@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { LogOut, AlertTriangle, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { authStore } from "@/lib/auth-store";
@@ -9,26 +8,26 @@ import { authStore } from "@/lib/auth-store";
 export function LogoutButton() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      // 1. Lapor ke Satpam Backend agar tiket (Token) dihancurkan di Database
-      await api.post("/logout");
+      
+      // Gunakan Promise.race agar tidak nyangkut selamanya jika backend hang
+      await Promise.race([
+        api.post("/logout"),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000))
+      ]);
     } catch (error) {
-      console.error("Gagal terhubung ke server saat logout", error);
-      // Catatan: Jika server mati/timeout, kita tetap izinkan proses lanjut
-      // agar user tidak terjebak di dalam aplikasi tanpa bisa keluar.
+      console.error("Logout backend skip/timeout", error);
     } finally {
-      // 2. Sapu bersih seluruh data rahasia dari brankas lokal browser (Rule 7.1)
+      // Sapu bersih data lokal (Cookie & LocalStorage)
       authStore.logout();
-
       setIsLoading(false);
       setShowConfirm(false);
-
-      // 3. Tendang kembali ke halaman Login (Gunakan replace agar history mundur terhapus)
-      router.replace("/login");
+      
+      // Gunakan window.location agar seluruh state React ter-reset total (Cleanest Logout)
+      window.location.href = "/login";
     }
   };
 

@@ -66,7 +66,7 @@ export default function PortalPage() {
           Portal Aplikasi Terpadu
         </h1>
         <p className="text-zinc-500 dark:text-zinc-400 text-lg">
-          Selamat datang kembali, <span className="font-bold text-emerald-600 dark:text-emerald-400">{user?.name}</span>. Silakan pilih ruang kerja (modul) Anda hari ini.
+          Selamat datang kembali, <span className="font-bold text-emerald-600 dark:text-emerald-400">{user?.nama_lengkap || user?.name || "Admin"}</span>. Silakan pilih ruang kerja (modul) Anda hari ini.
         </p>
       </div>
 
