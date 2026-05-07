@@ -62,6 +62,7 @@
 - [x] #032 — Frontend Employee List Page (TanStack Query + Debounce + Pagination)
 - [x] #033 — Frontend Employee Create Form (Split layout + FormData + Image Preview)
 - [x] #034 — SuperAdmin Seeder + Integration Test Protocol
+- [x] #034b — **Phase 3 UI Overhaul** (Admin Layout, Portal, & Employee UI → Premium Glassmorphism)
 
 ---
 
