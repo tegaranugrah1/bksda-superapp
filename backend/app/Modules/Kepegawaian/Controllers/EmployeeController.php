@@ -15,17 +15,21 @@ class EmployeeController extends Controller
      * Rule 3.1: Wajib Pagination dan Search
      *
      * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
         $query = Employee::query();
 
-        // Fitur Pencarian Cepat (NIP atau Nama)
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            // Gunakan ILIKE (PostgreSQL) agar pencarian case-insensitive (huruf besar/kecil diabaikan)
-            $query->where('nama_lengkap', 'ilike', "%{$search}%")
-                ->orWhere('nip', 'ilike', "%{$search}%");
+        // Ambil parameter pencarian dari URL (?search=...)
+        $searchTerm = $request->input('search');
+
+        if (!empty($searchTerm)) {
+            // Gunakan ILIKE (PostgreSQL) agar pencarian case-insensitive
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('nama_lengkap', 'ilike', "%{$searchTerm}%")
+                    ->orWhere('nip', 'ilike', "%{$searchTerm}%");
+            });
         }
 
         // Status filter opsional

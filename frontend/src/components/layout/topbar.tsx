@@ -1,0 +1,38 @@
+"use client";
+
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/hooks/useAuth";
+import { ModuleSwitcher } from "@/components/module-switcher";
+
+export function Topbar() {
+  const { user } = useAuth(); // Hook sakti yang melacak login state
+
+  return (
+    <header className="sticky top-0 z-20 w-full h-16 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl border-b border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-between px-6 md:px-8 transition-colors duration-300">
+       <div className="flex items-center gap-4">
+          {/* Module Switcher di sebelah kiri */}
+          <ModuleSwitcher />
+       </div>
+
+       <div className="flex items-center gap-5">
+          {/* Inject Komponen Saklar Tema */}
+          <ThemeToggle />
+
+          {/* Garis Pemisah */}
+          <div className="h-8 w-px bg-zinc-200 dark:bg-zinc-800"></div>
+
+          {/* Modul Reaktif Profil Pegawai */}
+          <div className="flex items-center gap-3">
+             <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-sm border border-emerald-200 dark:border-emerald-800">
+                {/* Tampilkan inisial huruf pertama nama, atau U jika kosong */}
+                {user?.name?.charAt(0).toUpperCase() || "U"}
+             </div>
+             <div className="hidden md:block text-sm">
+                <p className="font-bold text-zinc-900 dark:text-zinc-100 leading-none">{user?.name || "Pengguna Aplikasi"}</p>
+                <p className="text-zinc-500 dark:text-zinc-400 text-[11px] font-medium mt-1 uppercase tracking-wider">{user?.role || "GUEST"}</p>
+             </div>
+          </div>
+       </div>
+    </header>
+  );
+}

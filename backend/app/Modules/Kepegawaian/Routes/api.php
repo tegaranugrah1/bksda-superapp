@@ -1,9 +1,27 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Modules\Kepegawaian\Controllers\EmployeeController;
+use App\Modules\Kepegawaian\Controllers\EmployeeAccessController;
 
-// Di sinilah endpoint-endpoint modul kepegawaian akan hidup (Dikerjakan di Issue #027)
-// Ingat: Semua route di dalam file ini OTOMATIS memiliki prefix /api/kepegawaian/
+// Semua route di bawah ini otomatis memiliki prefix /api/kepegawaian/
+Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
 
-// Contoh (Hanya testing, boleh dihapus nanti):
-// Route::get('/ping', function() { return 'pong kepegawaian'; });
+    // --- MANAJEMEN DATA PEGAWAI (CRUD) ---
+    Route::get('/employees', [EmployeeController::class, 'index']);
+    Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
+
+    // Operasi tulis/hapus hanya untuk Admin/SuperAdmin
+    Route::middleware('role:super_admin,admin')->group(function () {
+        Route::post('/employees', [EmployeeController::class, 'store']);
+        Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
+        Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
+    });
+
+    // --- MANAJEMEN HAK AKSES (IAM) ---
+    // Hanya Super Admin yang boleh mengelola akses pintu ke modul lain
+    Route::middleware('role:super_admin')->group(function () {
+        Route::get('/employees/{employee}/access', [EmployeeAccessController::class, 'show']);
+        Route::put('/employees/{employee}/access', [EmployeeAccessController::class, 'update']);
+    });
+});

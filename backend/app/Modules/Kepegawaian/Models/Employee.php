@@ -8,6 +8,39 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property int $id
+ * @property string $nip Nomor Induk Pegawai. Digunakan untuk link ke table users.username
+ * @property string $nama_lengkap
+ * @property string|null $jabatan
+ * @property string|null $pangkat_golongan Contoh: Penata Tk. I (III/d)
+ * @property string|null $satuan_kerja Contoh: SKW I / Resor Konservasi Wilayah
+ * @property bool $is_active Apakah pegawai masih aktif bekerja
+ * @property string|null $foto_profil
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereFotoProfil($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereJabatan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereNamaLengkap($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereNip($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee wherePangkatGolongan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereSatuanKerja($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee withoutTrashed()
+ * @mixin \Eloquent
+ */
 class Employee extends Model
 {
     // Menggunakan SoftDeletes agar record tidak hilang (Rule 3.6)
