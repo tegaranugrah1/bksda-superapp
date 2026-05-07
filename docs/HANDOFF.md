@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #037 - SuratTugas Service Provider + API Routing (Phase 4 Surat Tugas) |
-| **Issue Selanjutnya** | Phase 4: Surat Tugas Module #038–#045 |
-| **Branch Aktif** | main (after PR #69 merged) |
+| **Issue Terakhir Selesai** | #038 - Assignment Letter Controller + Request (Phase 4 Surat Tugas) |
+| **Issue Selanjutnya** | Phase 4: Surat Tugas Module #039–#045 |
+| **Branch Aktif** | main (after PR #70 merged) |
 | **Model Terakhir** | GPT-5.2 / Codex |
-| **Timestamp** | 2026-05-07T16:00:00+08:00 |
-| **Status Aktual Sesi Ini** | Phase 4 #035, #036, #037 selesai. Bug konsisten: setelah PR merge + git pull, file tidak tertulis ke disk meskipun git bilang "up to date". Perbaikan: git restore. |
+| **Timestamp** | 2026-05-07T16:30:00+08:00 |
+| **Status Aktual Sesi Ini** | Phase 4 #035-#038 selesai. Bug git restore: setelah PR merge, jalankan git restore . untuk sinkronkan working tree. |
 
 ---
 
@@ -72,14 +72,18 @@
 - [x] #036 — Assignment Letter Model (`AssignmentLetter.php` + `AssignmentLetterEmployee.php` Pivot, PR #68 merged)
 - [x] #037 — SuratTugas Service Provider + API Routing (`SuratTugasServiceProvider.php` + `Routes/api.php` + `bootstrap/providers.php`, PR #69 merged)
 
+- [x] #038 — Assignment Letter Controller + Request (`AssignmentLetterController.php` + `AssignmentLetterRequest.php` + Routes updated, PR #70 merged)
+
 ## File yang Terakhir Dibuat/Diubah (Phase 4)
 ```
 backend/app/Modules/SuratTugas/Migrations/2026_06_01_000001_create_st_assignment_letters_table.php   ← [NEW] #035
 backend/app/Modules/SuratTugas/Migrations/2026_06_01_000002_create_st_assignment_letter_employees_table.php ← [NEW] #035
 backend/app/Modules/SuratTugas/Models/AssignmentLetter.php                                         ← [NEW] #036
 backend/app/Modules/SuratTugas/Models/AssignmentLetterEmployee.php                                 ← [NEW] #036
-backend/app/Modules/SuratTugas/Routes/api.php                                                      ← [NEW] #037
+backend/app/Modules/SuratTugas/Routes/api.php                                                      ← [NEW] #037, [UPDATED] #038
 backend/app/Modules/SuratTugas/SuratTugasServiceProvider.php                                       ← [NEW] #037
+backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php                                 ← [NEW] #038
+backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php                           ← [NEW] #038
 backend/bootstrap/providers.php                                                                   ← [UPDATED] #037
 ```
 
