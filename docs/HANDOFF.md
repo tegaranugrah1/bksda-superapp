@@ -10,8 +10,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #034 — System Integration & Final Test (Phase 3) |
-| **Issue Selanjutnya** | #034b — Phase 3 UI Overhaul (Wajib sebelum Phase 4) |
+| **Issue Terakhir Selesai** | #034b — Phase 3 UI Overhaul |
+| **Issue Selanjutnya** | Phase 4: Surat Tugas Module (#035–#045) |
 | **Branch Aktif** | main |
 | **Model Terakhir** | Claude Opus 4.6 |
 | **Timestamp** | 2026-05-06T17:02:00+08:00 |
