@@ -1,11 +1,24 @@
+import { cookies } from "next/headers";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const userStr = cookieStore.get("bksda_user")?.value;
+  
+  let serverUser = null;
+  if (userStr) {
+    try {
+      serverUser = JSON.parse(decodeURIComponent(userStr));
+    } catch (_e) {
+      serverUser = null;
+    }
+  }
+
   return (
     <>
       {/* Background Dot Pattern Premium */}
@@ -19,7 +32,7 @@ export default function DashboardLayout({
         <div className="flex-1 flex flex-col min-w-0 md:ml-64 transition-all duration-300 ease-in-out">
 
           {/* Navigasi Atas */}
-          <Topbar />
+          <Topbar serverUser={serverUser} />
 
           {/* Kanvas Halaman Tengah */}
           <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">

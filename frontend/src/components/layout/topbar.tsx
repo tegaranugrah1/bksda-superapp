@@ -4,8 +4,12 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { ModuleSwitcher } from "@/components/module-switcher";
 
-export function Topbar() {
-  const { user } = useAuth(); // Hook sakti yang melacak login state
+export function Topbar({ serverUser }: { serverUser?: any }) {
+  const { user: clientUser } = useAuth(); // Hook sakti yang melacak login state
+  
+  // Gunakan data dari Server Component sebagai fallback agar tidak ada flash 'Guest'
+  // saat hidrasi Client-Side tertunda oleh popstate
+  const user = clientUser || serverUser;
 
   return (
     <header className="sticky top-0 z-20 w-full h-16 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-3xl border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm dark:shadow-none flex items-center justify-between px-6 md:px-8 transition-all duration-500">
