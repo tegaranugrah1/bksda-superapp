@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #044 - Archive + Filter Status Toolbar (Phase 4 Surat Tugas) |
-| **Issue Selanjutnya** | Phase 4 COMPLETE ✅ |
-| **Branch Aktif** | main (after PR #77 merged) |
+| **Issue Terakhir Selesai** | #046 - UI Enhancement: Split Panel Create Page + Live Letter Preview |
+| **Issue Selanjutnya** | Phase 4 COMPLETE ✅ (UI Enhanced to superapp-inventory standard) |
+| **Branch Aktif** | main (after direct push #046) |
 | **Model Terakhir** | GPT-5.2 / Codex |
-| **Timestamp** | 2026-05-07T18:00:00+08:00 |
-| **Status Aktual Sesi Ini** | Phase 4 Surat Tugas (#035-#045) COMPLETE. All frontend pages, backend controllers, and shared components done. |
+| **Timestamp** | 2026-05-07T18:15:00+08:00 |
+| **Status Aktual Sesi Ini** | Phase 4 Surat Tugas (#035-#046) COMPLETE. All frontend pages, backend controllers, shared components, and UI enhanced to match superapp-inventory standard (split panel, glassmorphism, live preview). |
 
 ---
 
@@ -80,6 +80,7 @@
 - [x] #043 — Approval Dialog (`frontend/src/app/(dashboard)/surat-tugas/_components/ApprovalDialog.tsx`, 3-state (approve/reject/input nomor), PR #76 merged)
 - [x] #044 — Archive + Filter Status Toolbar (`frontend/src/app/(dashboard)/surat-tugas/page.tsx`, Status dropdown + Trash toggle + Delete/Restore mutations, PR #77 merged)
 - [x] #045 — EmployeePicker Component (`frontend/src/components/custom/EmployeePicker.tsx`, debounce 300ms + click-outside, PR #75 merged via #042 dependency)
+- [x] #046 — UI Enhancement: Split Panel Create Page (`frontend/src/app/(dashboard)/surat-tugas/create/page.tsx`, split panel left 440px + live A4 preview right, glassmorphism form, gradient submit button)
 
 ## File yang Terakhir Dibuat/Diubah (Phase 4)
 ```
