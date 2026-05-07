@@ -121,14 +121,15 @@ export default function EmployeeCreatePage() {
         </div>
       )}
 
-      {/* KARTU FORMULIR (Layout Terbelah/Split Layout) */}
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-4xl shadow-xl shadow-zinc-200/40 dark:shadow-black/40 overflow-hidden flex flex-col md:flex-row">
+      {/* KARTU FORMULIR (Layout Terbelah/Split Layout Premium) */}
+      <form onSubmit={handleSubmit} className="bg-white/70 dark:bg-zinc-900/70 backdrop-blur-3xl border border-zinc-200/80 dark:border-zinc-800/80 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col md:flex-row relative">
+        <div className="absolute inset-0 bg-linear-to-br from-emerald-500/5 to-transparent pointer-events-none" />
 
         {/* KOLOM KIRI KHUSUS FOTO (Premium Aesthetic) */}
-        <div className="md:w-[35%] bg-zinc-50/80 dark:bg-zinc-950/80 p-8 md:p-10 border-b md:border-b-0 md:border-r border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-start gap-6">
+        <div className="md:w-[35%] bg-white/40 dark:bg-zinc-950/40 p-8 md:p-10 border-b md:border-b-0 md:border-r border-zinc-200/60 dark:border-zinc-800/60 flex flex-col items-center justify-start gap-6 relative z-10">
            <div className="w-full text-center">
-             <h3 className="text-sm font-bold text-zinc-900 dark:text-white mb-1 uppercase tracking-wider">Pas Foto Pegawai</h3>
-             <p className="text-[11px] font-medium text-zinc-500 mb-6 uppercase tracking-widest">Max 10MB • Rasio 3:4</p>
+             <h3 className="text-sm font-extrabold text-zinc-900 dark:text-white mb-1 uppercase tracking-wider">Pas Foto Pegawai</h3>
+             <p className="text-[10px] font-bold text-zinc-500 mb-6 uppercase tracking-widest bg-zinc-100 dark:bg-zinc-800/50 inline-block px-3 py-1 rounded-full">Max 10MB • Rasio 3:4</p>
 
              {previewUrl ? (
                // Pratinjau Jika Gambar Sudah Dipilih

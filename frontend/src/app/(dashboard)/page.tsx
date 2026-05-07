@@ -93,11 +93,11 @@ export default function PortalPage() {
                 key={mod.id}
                 href={mod.path}
                 // Animasi bertahap (Staggered fade-in) dihitung dari Index
-                className="group relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-7 hover:shadow-2xl hover:shadow-emerald-900/5 dark:hover:shadow-black/50 hover:-translate-y-1.5 transition-all duration-300 ease-out animate-in fade-in slide-in-from-bottom-6"
+                className="group relative overflow-hidden rounded-3xl bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md border border-white/60 dark:border-zinc-800/60 p-7 hover:bg-white dark:hover:bg-zinc-900 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] hover:-translate-y-2 transition-all duration-500 ease-out animate-in fade-in slide-in-from-bottom-8"
                 style={{ animationDelay: `${idx * 150}ms`, animationFillMode: "both" }}
               >
                 {/* Efek Sinar Mentari / Gradasi Tembus Pandang di Latar Belakang */}
-                <div className={`absolute inset-0 bg-linear-to-br ${mod.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
+                <div className={`absolute inset-0 bg-linear-to-br ${mod.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
 
                 <div className="relative z-10 flex flex-col h-full">
 
