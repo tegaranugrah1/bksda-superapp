@@ -10,13 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #064 - Dashboard Back Navigation Restore / BFCache Zombie State Fix |
-| **Issue Selanjutnya** | Phase 4: Surat Tugas Module (#035–#045) |
-| **Branch Aktif** | main setelah PR untuk issue #64 merge |
+| **Issue Terakhir Selesai** | #035 - Assignment Letters Database Migration (Phase 4 Surat Tugas) |
+| **Issue Selanjutnya** | Phase 4: Surat Tugas Module #036–#045 |
+| **Branch Aktif** | main (after PR #67 merged) |
 | **Model Terakhir** | GPT-5.2 / Codex |
-| **Timestamp** | 2026-05-07T14:35:00+08:00 |
-| **Status Aktual Sesi Ini** | #064 selesai: login, BFCache back navigation, data pegawai, sidebar logout, dan Topbar theme toggle stabil |
-| **Status** | ✅ Sesi #064 selesai dan siap merge: dashboard back navigation, data pegawai, sidebar logout, dan Topbar theme toggle stabil |
+| **Timestamp** | 2026-05-07T15:30:00+08:00 |
+| **Status Aktual Sesi Ini** | Phase 4 mulai: #035 migration done. Working tree dipulihkan via git restore setelah terdeteksi file Phase 1-3 hilang dari disk. Issue #035 completed via PR #67. |
 
 ---
 
@@ -67,17 +66,16 @@
 
 ---
 
-## File yang Terakhir Dibuat/Diubah (Phase 3)
+## Progress Phase 4: Surat Tugas Module (#035–#045)
 
-### Backend (Modul Kepegawaian)
+- [x] #035 — Backend Assignment Letters Migration (`st_assignment_letters` + `st_assignment_letter_employees` tables, GitHub Issue #66, PR #67 merged)
+
+## File yang Terakhir Dibuat/Diubah (Phase 4)
+
+### Backend (Modul Surat Tugas)
 ```
-backend/app/Modules/Kepegawaian/Requests/EmployeeRequest.php         ← [NEW] Validasi CRUD pegawai
-backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php   ← [NEW] CRUD + Upload + Pagination
-backend/app/Modules/Kepegawaian/Requests/EmployeeAccessRequest.php   ← [NEW] Validasi IAM akses
-backend/app/Modules/Kepegawaian/Controllers/EmployeeAccessController.php ← [NEW] Manajemen hak akses
-backend/app/Modules/Kepegawaian/Routes/api.php                       ← [UPDATED] 7 endpoint routing
-backend/database/seeders/SuperAdminSeeder.php                       ← [NEW] Akun super_admin pertama
-backend/database/seeders/DatabaseSeeder.php                         ← [UPDATED] Panggil SuperAdminSeeder
+backend/app/Modules/SuratTugas/Migrations/2026_06_01_000001_create_st_assignment_letters_table.php   ← [NEW] Tabel induk surat tugas
+backend/app/Modules/SuratTugas/Migrations/2026_06_01_000002_create_st_assignment_letter_employees_table.php ← [NEW] Tabel pivot employee-surat
 ```
 
 ### Frontend (Components & Pages)
@@ -213,6 +211,16 @@ Setiap Phase selesai, **WAJIB** jalankan semua langkah ini:
 - Route `/bmn` ditambahkan sebagai dashboard placeholder agar perpindahan modul tidak jatuh ke 404 sebelum Phase BMN dikerjakan.
 - Root provider sekarang meremount client subtree saat browser Back/Forward restore, sekaligus refetch active React Query dan reset `pointer-events` body.
 - Skenario terverifikasi via browser automation: login -> `/kepegawaian` -> module switcher `/bmn` -> browser Back; data pegawai tetap tampil, user tetap `Administrator Pusat BKSDA / super_admin`, dan tombol sidebar `Keluar Sistem` membuka modal konfirmasi.
+
+**SESI FASE 4 - #035 (2026-05-07):**
+- Issue GitHub: `#66` (feat-surat-tugas-assignment-letters-database-migrations), PR `#67` merged.
+- 2 file migrasi dibuat di `backend/app/Modules/SuratTugas/Migrations/`: tabel induk `st_assignment_letters` dan tabel pivot `st_assignment_letter_employees`.
+- Validasi wajib dijalankan: `npm run lint` ✅, `npm run build` ✅, `php -l` kedua migrasi ✅.
+- Working tree lokal terdeteksi corrupt (puluhan file Phase 1-3 hilang dari disk tapi tercatat di git HEAD) — penyebab: kemungkinan AI sebelumnya mengerjakan di branch berbeda tanpa merge.
+- Perbaikan: `git restore .` berhasil memulihkan semua file Phase 1-3 tanpa mengubah file migrasi Phase 4.
+- File `frontend/src/proxy.ts.bak` dihapus dari untracked (sesuai pilihan user di awal sesi).
+- HANDOFF.md diupdate dengan progress Phase 4.
+- Catatan dev: Pastikan sebelum setiap sesi, cek `git status` untuk memastikan working tree bersih.
 
 **FINAL SESI #064 (2026-05-07):**
 - GitHub Issue: `#64 fix(frontend): stabilize dashboard back navigation restore`.
