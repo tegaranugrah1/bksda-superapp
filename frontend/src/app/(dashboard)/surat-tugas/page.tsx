@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Printer, Plus, ChevronLeft, ShieldCheck } from "lucide-react";
+import { Printer, Plus, ChevronLeft, ShieldCheck, Trash2, RefreshCcw, Filter } from "lucide-react";
 import Link from "next/link";
 import AssignmentLetterPreview from "./_components/AssignmentLetterPreview";
 import ApprovalDialog from "./_components/ApprovalDialog";
@@ -35,13 +35,29 @@ const STATUS_LABELS: Record<string, string> = {
 export default function SuratTugasPage() {
     const [previewData, setPreviewData] = useState<SuratTugasItem | null>(null);
     const [approvalId, setApprovalId] = useState<string | null>(null);
+    const [filterStatus, setFilterStatus] = useState("");
+    const [isTrashMode, setIsTrashMode] = useState(false);
+    const queryClient = useQueryClient();
 
     const { data, isLoading } = useQuery({
-        queryKey: ["surat-tugas-list"],
+        queryKey: ["surat-tugas-list", filterStatus, isTrashMode],
         queryFn: async () => {
-            const res = await api.get("/surat-tugas");
+            const params = new URLSearchParams();
+            if (filterStatus) params.append("status", filterStatus);
+            if (isTrashMode) params.append("trashed", "true");
+            const res = await api.get(`/surat-tugas?${params.toString()}`);
             return res.data;
         },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => api.delete(`/surat-tugas/${id}`),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["surat-tugas-list"] }),
+    });
+
+    const restoreMutation = useMutation({
+        mutationFn: (id: string) => api.post(`/surat-tugas/${id}/restore`),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["surat-tugas-list"] }),
     });
 
     const items = data?.data ?? [];
@@ -59,6 +75,33 @@ export default function SuratTugasPage() {
                 >
                     <Plus className="w-4 h-4" /> Buat Surat
                 </Link>
+            </div>
+
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl backdrop-blur-md">
+                <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-zinc-400" />
+                    <select
+                        className="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-emerald-500 outline-none"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                        <option value="">Semua Status</option>
+                        <option value="pending">Menunggu (Pending)</option>
+                        <option value="approved">Disetujui (Approved)</option>
+                        <option value="rejected">Ditolak (Rejected)</option>
+                    </select>
+                </div>
+                <button
+                    onClick={() => setIsTrashMode(!isTrashMode)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                        isTrashMode
+                            ? "bg-red-500/20 text-red-400 border border-red-500/30 shadow-lg shadow-red-500/10"
+                            : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    }`}
+                >
+                    <Trash2 className="w-4 h-4" />
+                    {isTrashMode ? "Keluar dari Arsip Sampah" : "Lihat Tong Sampah"}
+                </button>
             </div>
 
             <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl overflow-hidden backdrop-blur-md">
@@ -123,7 +166,7 @@ export default function SuratTugasPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-1">
-                                                {item.status === "pending" && (
+                                                {!isTrashMode && item.status === "pending" && (
                                                     <button
                                                         onClick={() => setApprovalId(item.id)}
                                                         className="flex items-center gap-1.5 px-3 py-1.5 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all text-xs font-semibold"
@@ -131,13 +174,33 @@ export default function SuratTugasPage() {
                                                         <ShieldCheck className="w-3.5 h-3.5" /> Otorisasi
                                                     </button>
                                                 )}
-                                                <button
-                                                    onClick={() => setPreviewData(item)}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all text-xs font-semibold"
-                                                    title="Pratinjau / Cetak"
-                                                >
-                                                    <Printer className="w-3.5 h-3.5" /> Cetak
-                                                </button>
+                                                {!isTrashMode && (
+                                                    <button
+                                                        onClick={() => setPreviewData(item)}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all text-xs font-semibold"
+                                                        title="Pratinjau / Cetak"
+                                                    >
+                                                        <Printer className="w-3.5 h-3.5" /> Cetak
+                                                    </button>
+                                                )}
+                                                {!isTrashMode && (
+                                                    <button
+                                                        onClick={() => deleteMutation.mutate(item.id)}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:bg-red-500/10 rounded-lg transition-all text-xs font-semibold"
+                                                        title="Hapus"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                                {isTrashMode && (
+                                                    <button
+                                                        onClick={() => restoreMutation.mutate(item.id)}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all text-xs font-semibold"
+                                                        title="Pulihkan"
+                                                    >
+                                                        <RefreshCcw className="w-3.5 h-3.5" /> Pulihkan
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
