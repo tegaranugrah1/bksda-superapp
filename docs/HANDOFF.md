@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #035 - Assignment Letters Database Migration (Phase 4 Surat Tugas) |
-| **Issue Selanjutnya** | Phase 4: Surat Tugas Module #036–#045 |
-| **Branch Aktif** | main (after PR #67 merged) |
+| **Issue Terakhir Selesai** | #037 - SuratTugas Service Provider + API Routing (Phase 4 Surat Tugas) |
+| **Issue Selanjutnya** | Phase 4: Surat Tugas Module #038–#045 |
+| **Branch Aktif** | main (after PR #69 merged) |
 | **Model Terakhir** | GPT-5.2 / Codex |
-| **Timestamp** | 2026-05-07T15:30:00+08:00 |
-| **Status Aktual Sesi Ini** | Phase 4 mulai: #035 migration done. Working tree dipulihkan via git restore setelah terdeteksi file Phase 1-3 hilang dari disk. Issue #035 completed via PR #67. |
+| **Timestamp** | 2026-05-07T16:00:00+08:00 |
+| **Status Aktual Sesi Ini** | Phase 4 #035, #036, #037 selesai. Bug konsisten: setelah PR merge + git pull, file tidak tertulis ke disk meskipun git bilang "up to date". Perbaikan: git restore. |
 
 ---
 
@@ -68,14 +68,19 @@
 
 ## Progress Phase 4: Surat Tugas Module (#035–#045)
 
-- [x] #035 — Backend Assignment Letters Migration (`st_assignment_letters` + `st_assignment_letter_employees` tables, GitHub Issue #66, PR #67 merged)
+- [x] #035 — Backend Assignment Letters Migration (`st_assignment_letters` + `st_assignment_letter_employees`, GitHub Issue #66, PR #67 merged)
+- [x] #036 — Assignment Letter Model (`AssignmentLetter.php` + `AssignmentLetterEmployee.php` Pivot, PR #68 merged)
+- [x] #037 — SuratTugas Service Provider + API Routing (`SuratTugasServiceProvider.php` + `Routes/api.php` + `bootstrap/providers.php`, PR #69 merged)
 
 ## File yang Terakhir Dibuat/Diubah (Phase 4)
-
-### Backend (Modul Surat Tugas)
 ```
-backend/app/Modules/SuratTugas/Migrations/2026_06_01_000001_create_st_assignment_letters_table.php   ← [NEW] Tabel induk surat tugas
-backend/app/Modules/SuratTugas/Migrations/2026_06_01_000002_create_st_assignment_letter_employees_table.php ← [NEW] Tabel pivot employee-surat
+backend/app/Modules/SuratTugas/Migrations/2026_06_01_000001_create_st_assignment_letters_table.php   ← [NEW] #035
+backend/app/Modules/SuratTugas/Migrations/2026_06_01_000002_create_st_assignment_letter_employees_table.php ← [NEW] #035
+backend/app/Modules/SuratTugas/Models/AssignmentLetter.php                                         ← [NEW] #036
+backend/app/Modules/SuratTugas/Models/AssignmentLetterEmployee.php                                 ← [NEW] #036
+backend/app/Modules/SuratTugas/Routes/api.php                                                      ← [NEW] #037
+backend/app/Modules/SuratTugas/SuratTugasServiceProvider.php                                       ← [NEW] #037
+backend/bootstrap/providers.php                                                                   ← [UPDATED] #037
 ```
 
 ### Frontend (Components & Pages)
