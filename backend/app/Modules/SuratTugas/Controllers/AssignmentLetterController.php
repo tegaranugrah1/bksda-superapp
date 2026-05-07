@@ -55,7 +55,7 @@ class AssignmentLetterController extends Controller
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'tempat_tujuan' => $validated['tempat_tujuan'],
                 'status' => 'pending',
-                'created_by' => auth()->id(),
+                'created_by' => (int) auth()->id(),
             ]);
 
             $pivotData = [];
@@ -141,7 +141,7 @@ class AssignmentLetterController extends Controller
 
         $surat = AssignmentLetter::findOrFail($id);
         $surat->status = $request->status;
-        $surat->approved_by = auth()->id();
+        $surat->approved_by = (int) auth()->id();
 
         if ($request->has('nomor_surat')) {
             $surat->nomor_surat = $request->nomor_surat;
