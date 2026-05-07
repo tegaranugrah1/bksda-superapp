@@ -1,4 +1,15 @@
-import { RouteGuard } from "@/components/route-guard";
+import dynamic from "next/dynamic";
+const RouteGuard = dynamic(() => import("@/components/route-guard").then((mod) => mod.RouteGuard), { 
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-900">
+      <div className="flex flex-col items-center gap-4">
+        <div className="animate-spin w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full"></div>
+        <p className="text-emerald-500/50 text-sm font-medium animate-pulse">Memuat Modul...</p>
+      </div>
+    </div>
+  )
+});
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
