@@ -152,7 +152,8 @@ Jika kamu membaca file ini di sesi chat baru, lakukan langkah berikut:
 
 #### A. Git Workflow — DILARANG SHORTCUT
 Setiap issue WAJIB mengikuti flow ini **TANPA PENGECUALIAN**:
-```
+```bash
+0. gh issue create --title "nama issue" --body "deskripsi" (Jika issue belum ada di GitHub)
 1. git checkout -b issue/XXX-nama-issue
 2. Kerjakan kode
 3. Cek IDE warnings (lihat poin B)
@@ -162,6 +163,7 @@ Setiap issue WAJIB mengikuti flow ini **TANPA PENGECUALIAN**:
 7. gh pr merge <PR_NUMBER> --merge --delete-branch
 8. git checkout main && git pull
 ```
+> ❌ **DILARANG** mulai mengerjakan fitur/issue baru jika belum ada tiket isunya di GitHub!
 > ❌ **DILARANG** commit langsung ke `main` tanpa PR!
 > ❌ **DILARANG** skip membuat GitHub Issue untuk issue yang dikerjakan!
 

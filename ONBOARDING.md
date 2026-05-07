@@ -177,21 +177,27 @@ File rules lengkap ada di workspace (`rules.md`), ringkasan kunci:
 
 ## 8. Cara Mulai Mengerjakan Issue
 
+**PENTING**: Jika kamu akan mengerjakan fitur/bug baru yang belum ada tiket isunya, kamu **WAJIB** membuat issue terlebih dahulu di GitHub!
+
 ```bash
-# 1. Baca issue spec
-cat docs/issues/XXX-nama-issue.md
+# 0. Buat Issue di GitHub (jika belum ada)
+gh issue create --title "nama fitur/bug" --body "deskripsi spec"
+
+# 1. Baca issue spec (jika sudah ada)
+# Gunakan view_file atau command lain yang spesifik
 
 # 2. Buat branch
 git checkout -b issue/XXX-nama-issue
 
-# 3. Kerjakan sesuai spec
+# 3. Kerjakan sesuai spec & periksa IDE warnings
 
 # 4. Commit + Push
 git commit -m "feat(module): deskripsi singkat (#XXX)"
 git push -u origin issue/XXX-nama-issue
 
-# 5. Buat PR
+# 5. Buat PR & Merge
 gh pr create --title "feat(module): deskripsi (#XXX)" --base main
+gh pr merge <PR_NUMBER> --merge --delete-branch
 ```
 
 ---
