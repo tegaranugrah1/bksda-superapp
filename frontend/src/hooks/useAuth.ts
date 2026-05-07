@@ -26,8 +26,9 @@ export function useAuth() {
       }
     };
 
-    // Sinkronisasi segera setelah mount
-    syncUser();
+    // Sinkronisasi setelah mount dengan setTimeout untuk membongkar event loop 
+    // agar terbebas dari bug Next.js startTransition popstate batching!
+    setTimeout(syncUser, 0);
 
     // Berlangganan ke perubahan authStore (saat login/logout dari tab/komponen yang sama)
     // Gunakan setTimeout 0 untuk membongkar antrean event loop dari Next.js popstate batch
