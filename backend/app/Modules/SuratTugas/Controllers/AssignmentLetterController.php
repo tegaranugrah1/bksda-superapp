@@ -194,4 +194,28 @@ class AssignmentLetterController extends Controller
             'ST_BKSDA_' . ($surat->nomor_surat ?? 'Draft') . '.pdf'
         );
     }
+
+    public function verify(string $id)
+    {
+        $surat = AssignmentLetter::with(['employees:id,nama_lengkap'])->findOrFail($id);
+
+        if ($surat->status !== 'approved' && $surat->status !== 'completed') {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Dokumen ini tidak memiliki ketetapan hukum yang sah atau statusnya belum disetujui.'
+            ], 403);
+        }
+
+        return response()->json([
+            'valid' => true,
+            'message' => 'Dokumen ini terverifikasi SAH dan TERCATAT di database.',
+            'data' => [
+                'nomor_surat' => $surat->nomor_surat,
+                'maksud_tujuan' => $surat->maksud_tujuan,
+                'tanggal_berlaku' => $surat->tanggal_mulai->format('d M Y') . ' s/d ' . $surat->tanggal_selesai->format('d M Y'),
+                'tempat_tujuan' => $surat->tempat_tujuan,
+                'personil' => $surat->employees->pluck('nama_lengkap')
+            ]
+        ]);
+    }
 }
