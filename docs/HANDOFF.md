@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #040 - Public QR Verification Page (Phase 4 Surat Tugas) |
-| **Issue Selanjutnya** | Phase 4: Surat Tugas Module #041–#045 |
-| **Branch Aktif** | main (after PR #72 merged) |
+| **Issue Terakhir Selesai** | #044 - Archive + Filter Status Toolbar (Phase 4 Surat Tugas) |
+| **Issue Selanjutnya** | Phase 4 COMPLETE ✅ |
+| **Branch Aktif** | main (after PR #77 merged) |
 | **Model Terakhir** | GPT-5.2 / Codex |
-| **Timestamp** | 2026-05-07T17:30:00+08:00 |
-| **Status Aktual Sesi Ini** | Phase 4 #035-#040 selesai. Catatan: terminal 6 mengalami corrupOutput saat git status/show — selalu verifikasi di terminal baru. |
+| **Timestamp** | 2026-05-07T18:00:00+08:00 |
+| **Status Aktual Sesi Ini** | Phase 4 Surat Tugas (#035-#045) COMPLETE. All frontend pages, backend controllers, and shared components done. |
 
 ---
 
@@ -75,6 +75,11 @@
 - [x] #038 — Assignment Letter Controller + Request (`AssignmentLetterController.php` + `AssignmentLetterRequest.php` + Routes updated, PR #70 merged)
 - [x] #039 — API Routing Security Layers (`auth:sanctum`, `module.access:surat_tugas`, `audit.log`, public verify endpoint, PR #71 merged)
 - [x] #040 — Public QR Verification Page (`frontend/src/app/(website)/verifikasi/surat-tugas/[id]/page.tsx`, 3-State UI, PR #72 merged)
+- [x] #041 — A4 Letter Preview Component (`frontend/src/app/(dashboard)/surat-tugas/_components/AssignmentLetterPreview.tsx`, QR Code + @media print CSS, PR #74 merged)
+- [x] #042 — Data Grid + Create Form (`frontend/src/app/(dashboard)/surat-tugas/page.tsx` + `create/page.tsx`, FormData multipart, PR #75 merged)
+- [x] #043 — Approval Dialog (`frontend/src/app/(dashboard)/surat-tugas/_components/ApprovalDialog.tsx`, 3-state (approve/reject/input nomor), PR #76 merged)
+- [x] #044 — Archive + Filter Status Toolbar (`frontend/src/app/(dashboard)/surat-tugas/page.tsx`, Status dropdown + Trash toggle + Delete/Restore mutations, PR #77 merged)
+- [x] #045 — EmployeePicker Component (`frontend/src/components/custom/EmployeePicker.tsx`, debounce 300ms + click-outside, PR #75 merged via #042 dependency)
 
 ## File yang Terakhir Dibuat/Diubah (Phase 4)
 ```
