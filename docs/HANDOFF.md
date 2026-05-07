@@ -140,7 +140,7 @@ None. All Phase 3 issues (#022–#034) completed successfully.
 
 Jika kamu membaca file ini di sesi chat baru, lakukan langkah berikut:
 
-1. Baca `ONBOARDING.md` di root project untuk konteks arsitektur lengkap.
+1. Baca `HANDOFF.md` di docs DAN `ONBOARDING.md`  di root project untuk konteks arsitektur lengkap.
 2. Lihat tabel "Status Saat Ini" di atas untuk tahu posisi terakhir.
 3. Lanjutkan dari issue yang tertulis di "Issue Selanjutnya".
 4. Baca spec issue di `docs/issues/XXX-*.md`.

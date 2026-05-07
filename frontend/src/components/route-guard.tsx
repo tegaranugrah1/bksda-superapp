@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -16,8 +16,17 @@ interface RouteGuardProps {
 export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Mencegah redirect prematur saat hydration SSR
+    if (!isMounted) return;
+
     // Jika tidak ada user setelah diparsing oleh useAuth
     if (!isAuthenticated) {
       router.replace("/login");
@@ -32,7 +41,7 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
         router.replace("/403");
       }
     }
-  }, [isAuthenticated, user, requiredModule, router]);
+  }, [isMounted, isAuthenticated, user, requiredModule, router]);
 
   // Selama belum terautentikasi, tampilkan loading.
   // useSyncExternalStore di useAuth sudah otomatis handle SSR hydration.
