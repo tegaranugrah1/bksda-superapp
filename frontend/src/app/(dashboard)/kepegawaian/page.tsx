@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Plus, UserCog, Edit, Trash2, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 import Link from "next/link";
 
 // 1. Tipe Data (TypeScript Interfaces) - Sesuai dengan respons Issue #025
@@ -32,7 +33,8 @@ export default function EmployeeListPage() {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // 2. Rule 7.5: Debounce Logic (Tahan nafas 500ms sebelum nembak API)
+
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchInput);
@@ -50,11 +52,33 @@ export default function EmployeeListPage() {
   };
 
   // 4. TanStack Query (Manajemen State Server Premium)
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['employees', page, debouncedSearch],
     queryFn: () => fetchEmployees(page, debouncedSearch),
-    staleTime: 60 * 1000, // Data ini valid/di-cache di RAM selama 60 detik
+    staleTime: 30 * 1000, // 30 detik agar tidak membebani loop
+    refetchOnMount: true,
+    refetchOnWindowFocus: true, // Refetch saat window focus (termasuk back button)
   });
+
+  // 5. Notifikasi Error (Jika API Gagal)
+  useEffect(() => {
+    if (isError) {
+      toast.error("Gagal mengambil data pegawai. Pastikan server backend menyala.");
+    }
+  }, [isError]);
+
+  // 6. BFCache Detection: Paksa refetch saat halaman di-restore dari back/forward cache
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        // Halaman di-restore dari BFCache, paksa refetch data
+        refetch();
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [refetch]);
 
   return (
     <div className="space-y-6">

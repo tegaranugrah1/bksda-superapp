@@ -10,8 +10,15 @@ export function ThemeToggle() {
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setMounted(true);
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pageshow", handlePageShow);
+    };
   }, []);
 
   // Jika komponen belum di-mount di browser, jangan render icon apa-apa (blank button)
