@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -16,16 +16,9 @@ interface RouteGuardProps {
 export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted) return;
-
+    // Jika tidak ada user setelah diparsing oleh useAuth
     if (!isAuthenticated) {
       router.replace("/login");
       return;
@@ -39,13 +32,13 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
         router.replace("/403");
       }
     }
-  }, [isMounted, isAuthenticated, user, requiredModule, router]);
+  }, [isAuthenticated, user, requiredModule, router]);
 
-  // Selama komponen belum mount, atau belum terautentikasi, tampilkan loading.
-  // Ini menghindari isi halaman "bocor" sekian milidetik sebelum redirect dan fix Hydration Mismatch.
+  // Selama belum terautentikasi, tampilkan loading.
+  // useSyncExternalStore di useAuth sudah otomatis handle SSR hydration.
   const isPendingModuleCheck = requiredModule && user?.role !== "super_admin" && !user?.access_modules?.includes(requiredModule);
   
-  if (!isMounted || !isAuthenticated || isPendingModuleCheck) {
+  if (!isAuthenticated || isPendingModuleCheck) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-900">
         <div className="flex flex-col items-center gap-4">
