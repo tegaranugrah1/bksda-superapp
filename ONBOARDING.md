@@ -177,7 +177,7 @@ File rules lengkap ada di workspace (`rules.md`), ringkasan kunci:
 
 ## 8. Cara Mulai Mengerjakan Issue
 
-**PENTING**: Jika kamu akan mengerjakan fitur/bug baru yang belum ada tiket isunya, kamu **WAJIB** membuat issue terlebih dahulu di GitHub!
+**PENTING**: Jika kamu akan mengerjakan fitur/bug baru di luar flow utama (Phase 1-125) yang belum ada tiket isunya, kamu **WAJIB** membuat issue terlebih dahulu di GitHub!
 
 ```bash
 # 0. Buat Issue di GitHub (jika belum ada)
@@ -191,11 +191,14 @@ git checkout -b issue/XXX-nama-issue
 
 # 3. Kerjakan sesuai spec & periksa IDE warnings
 
-# 4. Commit + Push
+# 4. MINTA KONFIRMASI KE USER SEBELUM LANJUT! (Kecuali Issue Utama Phase 1-125)
+# Tunggu user bilang "Lanjutkan" atau "Oke".
+
+# 5. Commit + Push (Setelah dikonfirmasi)
 git commit -m "feat(module): deskripsi singkat (#XXX)"
 git push -u origin issue/XXX-nama-issue
 
-# 5. Buat PR & Merge
+# 6. Buat PR & Merge
 gh pr create --title "feat(module): deskripsi (#XXX)" --base main
 gh pr merge <PR_NUMBER> --merge --delete-branch
 ```

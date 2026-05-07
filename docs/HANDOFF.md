@@ -62,7 +62,7 @@
 - [x] #032 — Frontend Employee List Page (TanStack Query + Debounce + Pagination)
 - [x] #033 — Frontend Employee Create Form (Split layout + FormData + Image Preview)
 - [x] #034 — SuperAdmin Seeder + Integration Test Protocol
-- [x] #034b — **Phase 3 UI Overhaul** (Admin Layout, Portal, & Employee UI → Premium Glassmorphism)
+- [x] #034b — **Phase 3 UI Overhaul** (Admin Layout, Portal, & Employee UI → Premium Glassmorphism)![alt text](image.png)
 
 ---
 
@@ -157,13 +157,15 @@ Setiap issue WAJIB mengikuti flow ini **TANPA PENGECUALIAN**:
 1. git checkout -b issue/XXX-nama-issue
 2. Kerjakan kode
 3. Cek IDE warnings (lihat poin B)
-4. git add . && git commit -m "feat(module): deskripsi (#XXX)"
-5. git push -u origin issue/XXX-nama-issue
-6. gh pr create --title "feat(module): deskripsi (#XXX)" --base main
-7. gh pr merge <PR_NUMBER> --merge --delete-branch
-8. git checkout main && git pull
+4. Minta KONFIRMASI ke User sebelum lanjut ke langkah 5! (Kecuali untuk Issue Utama Phase 1-125)
+5. git add . && git commit -m "feat(module): deskripsi (#XXX)"
+6. git push -u origin issue/XXX-nama-issue
+7. gh pr create --title "feat(module): deskripsi (#XXX)" --base main
+8. gh pr merge <PR_NUMBER> --merge --delete-branch
+9. git checkout main && git pull
 ```
-> ❌ **DILARANG** mulai mengerjakan fitur/issue baru jika belum ada tiket isunya di GitHub!
+> ❌ **DILARANG** mulai mengerjakan fitur/bug baru di luar flow utama (Phase 1-125) jika belum ada tiket isunya di GitHub!
+> ❌ **DILARANG** melakukan `commit` atau membuat `Pull Request` untuk issue tambahan/bug tanpa konfirmasi dari User (misal: "Lanjutkan", "Oke")!
 > ❌ **DILARANG** commit langsung ke `main` tanpa PR!
 > ❌ **DILARANG** skip membuat GitHub Issue untuk issue yang dikerjakan!
 
