@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Printer, Plus, ChevronLeft } from "lucide-react";
+import { Printer, Plus, ChevronLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import AssignmentLetterPreview from "./_components/AssignmentLetterPreview";
+import ApprovalDialog from "./_components/ApprovalDialog";
 
 interface SuratTugasItem {
     id: string;
@@ -33,6 +34,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function SuratTugasPage() {
     const [previewData, setPreviewData] = useState<SuratTugasItem | null>(null);
+    const [approvalId, setApprovalId] = useState<string | null>(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ["surat-tugas-list"],
@@ -121,6 +123,14 @@ export default function SuratTugasPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-1">
+                                                {item.status === "pending" && (
+                                                    <button
+                                                        onClick={() => setApprovalId(item.id)}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all text-xs font-semibold"
+                                                    >
+                                                        <ShieldCheck className="w-3.5 h-3.5" /> Otorisasi
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => setPreviewData(item)}
                                                     className="flex items-center gap-1.5 px-3 py-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all text-xs font-semibold"
@@ -140,6 +150,9 @@ export default function SuratTugasPage() {
 
             {previewData && (
                 <AssignmentLetterPreview data={previewData} onClose={() => setPreviewData(null)} />
+            )}
+            {approvalId && (
+                <ApprovalDialog suratId={approvalId} onClose={() => setApprovalId(null)} />
             )}
         </div>
     );
