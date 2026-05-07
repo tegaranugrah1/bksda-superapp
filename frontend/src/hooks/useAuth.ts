@@ -1,29 +1,46 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
 import { authStore } from "@/lib/auth-store";
 
 export function useAuth() {
-  // Hook sakti React 18: otomatis re-render komponen jika snapshot berubah
-  const userStr = useSyncExternalStore(
-    authStore.subscribe,
-    authStore.getSnapshot,
-    () => null // Server-side fallback
-  );
+  const [user, setUser] = useState<Record<string, unknown> | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Parse JSON dengan aman
-  let user = null;
-  if (userStr) {
-    try {
-      user = JSON.parse(userStr);
-    } catch {
-      console.error("Gagal membaca profil pengguna.");
-    }
-  }
+  useEffect(() => {
+    // Fungsi untuk menyinkronkan data dari localStorage secara aman
+    const syncUser = () => {
+      const userStr = localStorage.getItem("bksda_user");
+      if (userStr) {
+        try {
+          const parsedUser = JSON.parse(userStr);
+          setUser(parsedUser);
+          setIsAuthenticated(true);
+        } catch {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    };
+
+    // Sinkronisasi segera setelah mount
+    syncUser();
+
+    // Berlangganan ke perubahan authStore (saat login/logout dari tab/komponen yang sama)
+    // Gunakan setTimeout 0 untuk membongkar antrean event loop dari Next.js popstate batch
+    const unsubscribe = authStore.subscribe(() => {
+      setTimeout(syncUser, 0);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated,
     login: authStore.login,
     logout: authStore.logout,
   };
