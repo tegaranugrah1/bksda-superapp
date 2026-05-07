@@ -92,10 +92,10 @@ export default function EmployeeListPage() {
       </div>
 
       {/* CONTAINER TABEL DATA (Premium Card) */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden animate-in fade-in duration-500">
+      <div className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] overflow-hidden animate-in fade-in duration-500 relative">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-zinc-50/80 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 font-semibold text-[11px] uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-800">
+            <thead className="bg-zinc-50/90 dark:bg-zinc-800/90 backdrop-blur-md sticky top-0 z-10 text-zinc-500 dark:text-zinc-400 font-semibold text-[11px] uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-800">
               <tr>
                 <th className="px-6 py-4 whitespace-nowrap">Profil Pegawai</th>
                 <th className="px-6 py-4 whitespace-nowrap">NIP</th>
@@ -104,7 +104,7 @@ export default function EmployeeListPage() {
                 <th className="px-6 py-4 whitespace-nowrap text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200/60 dark:divide-zinc-800/60">
+            <tbody className="divide-y divide-zinc-200/60 dark:divide-zinc-800/60 relative">
 
               {/* STATE 1: SEDANG LOADING (Skeleton) */}
               {isLoading && (
@@ -142,7 +142,7 @@ export default function EmployeeListPage() {
 
               {/* STATE 4: MENAMPILKAN BARIS DATA */}
               {!isLoading && !isError && data?.data.map((emp) => (
-                <tr key={emp.id} className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors group">
+                <tr key={emp.id} className="hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 transition-all duration-300 group hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.1)] relative z-0 hover:z-10 hover:scale-[1.002]">
                   <td className="px-6 py-4">
                     <p className="font-semibold text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{emp.nama_lengkap}</p>
                     <p className="text-xs text-zinc-500 mt-0.5">{emp.satuan_kerja || "Satuan Kerja Belum Diatur"}</p>

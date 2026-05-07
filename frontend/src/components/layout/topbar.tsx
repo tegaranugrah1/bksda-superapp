@@ -8,7 +8,7 @@ export function Topbar() {
   const { user } = useAuth(); // Hook sakti yang melacak login state
 
   return (
-    <header className="sticky top-0 z-20 w-full h-16 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl border-b border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-between px-6 md:px-8 transition-colors duration-300">
+    <header className="sticky top-0 z-20 w-full h-16 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-3xl border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm dark:shadow-none flex items-center justify-between px-6 md:px-8 transition-all duration-500">
        <div className="flex items-center gap-4">
           {/* Module Switcher di sebelah kiri */}
           <ModuleSwitcher />
