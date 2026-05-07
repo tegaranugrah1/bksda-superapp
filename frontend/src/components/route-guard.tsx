@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -15,39 +14,51 @@ interface RouteGuardProps {
 
 export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
-  const [isMounted, setIsMounted] = useState(false);
+  
+  // State tunggal untuk mengelola status otentikasi dan loading
+  const [authState, setAuthState] = useState({
+    isLoading: true, // Selalu mulai dari true untuk match dengan SSR Hydration
+    isAuthenticated: false,
+    hasModuleAccess: false,
+  });
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMounted(true);
-  }, []);
+    // 1. Baca token dari LocalStorage secara langsung (Bypass BFCache Issues)
+    const token = localStorage.getItem("bksda_token");
+    const userStr = localStorage.getItem("bksda_user");
 
-  useEffect(() => {
-    // Mencegah redirect prematur saat hydration SSR
-    if (!isMounted) return;
-
-    // Jika tidak ada user setelah diparsing oleh useAuth
-    if (!isAuthenticated) {
+    if (!token || !userStr) {
       router.replace("/login");
       return;
     }
 
-    if (requiredModule) {
-      const role = user?.role;
-      const modules = user?.access_modules || [];
+    try {
+      const user = JSON.parse(userStr);
+      let hasAccess = true;
 
-      if (role !== "super_admin" && !modules.includes(requiredModule)) {
-        router.replace("/403");
+      // 2. Cek Module Access Control
+      if (requiredModule && user?.role !== "super_admin") {
+        const modules = user?.access_modules || [];
+        if (!modules.includes(requiredModule)) {
+          hasAccess = false;
+          router.replace("/403");
+        }
       }
-    }
-  }, [isMounted, isAuthenticated, user, requiredModule, router]);
 
-  // Selama belum terautentikasi, tampilkan loading.
-  // useSyncExternalStore di useAuth sudah otomatis handle SSR hydration.
-  const isPendingModuleCheck = requiredModule && user?.role !== "super_admin" && !user?.access_modules?.includes(requiredModule);
-  
-  if (!isAuthenticated || isPendingModuleCheck) {
+      // 3. Jika semua lolos, izinkan render komponen
+      if (hasAccess) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setAuthState({ isLoading: false, isAuthenticated: true, hasModuleAccess: true });
+      }
+    } catch {
+      // Jika JSON corrupt
+      localStorage.clear();
+      router.replace("/login");
+    }
+  }, [requiredModule, router]);
+
+  // Tampilkan loading screen jika masih mengecek (atau sedang proses redirect)
+  if (authState.isLoading || !authState.isAuthenticated || !authState.hasModuleAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-900">
         <div className="flex flex-col items-center gap-4">
@@ -58,6 +69,6 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
     );
   }
 
-  // Lolos sensor: tampilkan halamannya
+  // Lolos verifikasi
   return <>{children}</>;
 }
