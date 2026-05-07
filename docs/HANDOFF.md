@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #038 - Assignment Letter Controller + Request (Phase 4 Surat Tugas) |
-| **Issue Selanjutnya** | Phase 4: Surat Tugas Module #039–#045 |
-| **Branch Aktif** | main (after PR #70 merged) |
+| **Issue Terakhir Selesai** | #039 - API Routing Security Layers (Phase 4 Surat Tugas) |
+| **Issue Selanjutnya** | Phase 4: Surat Tugas Module #040–#045 |
+| **Branch Aktif** | main (after PR #71 merged) |
 | **Model Terakhir** | GPT-5.2 / Codex |
-| **Timestamp** | 2026-05-07T16:30:00+08:00 |
-| **Status Aktual Sesi Ini** | Phase 4 #035-#038 selesai. Bug git restore: setelah PR merge, jalankan git restore . untuk sinkronkan working tree. |
+| **Timestamp** | 2026-05-07T17:00:00+08:00 |
+| **Status Aktual Sesi Ini** | Phase 4 #035-#039 selesai. Bug git restore: setelah PR merge, jalankan git restore . untuk sinkronkan working tree. |
 
 ---
 
@@ -73,6 +73,7 @@
 - [x] #037 — SuratTugas Service Provider + API Routing (`SuratTugasServiceProvider.php` + `Routes/api.php` + `bootstrap/providers.php`, PR #69 merged)
 
 - [x] #038 — Assignment Letter Controller + Request (`AssignmentLetterController.php` + `AssignmentLetterRequest.php` + Routes updated, PR #70 merged)
+- [x] #039 — API Routing Security Layers (`auth:sanctum`, `module.access:surat_tugas`, `audit.log`, public verify endpoint, PR #71 merged)
 
 ## File yang Terakhir Dibuat/Diubah (Phase 4)
 ```
