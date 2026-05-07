@@ -30,6 +30,7 @@ class SuperAdminSeeder extends Seeder
             ['username' => $nipAdmin], // Username = NIP
             [
                 'name' => 'Administrator Pusat BKSDA',
+                'email' => 'admin@bksda.local', // Required by database constraint
                 'password' => 'Bksda2026!@#', // Password polos (Akan otomatis di-hash oleh sistem casts User.php)
                 'role' => 'super_admin',
                 'access_modules' => ['kepegawaian', 'bmn', 'inventory', 'dereporting'],
