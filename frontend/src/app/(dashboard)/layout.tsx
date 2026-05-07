@@ -1,4 +1,4 @@
-import { RouteGuardWrapper } from "@/components/route-guard-wrapper";
+import { RouteGuard } from "@/components/route-guard";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
@@ -8,7 +8,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <RouteGuardWrapper>
+    <RouteGuard>
       {/* Background Dot Pattern Premium */}
       <div className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 flex overflow-hidden relative">
         <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
@@ -32,6 +32,6 @@ export default function DashboardLayout({
 
         </div>
       </div>
-    </RouteGuardWrapper>
+    </RouteGuard>
   );
 }
