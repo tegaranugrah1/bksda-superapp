@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #107 - Frontend Publikasi Pages |
-| **Issue Selanjutnya** | #108 - Frontend Hubungi Kami |
+| **Issue Terakhir Selesai** | #108 - Frontend Hubungi Kami |
+| **Issue Selanjutnya** | (SEMUA ISSUE PHASE 8 SELESAI) |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:00:00+08:00 |
-| **GitHub Issue** | #107 (PR #199 merged) |
+| **GitHub Issue** | #108 (PR #201 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -144,8 +144,14 @@
 - Metadata varian per tipe (penulis/penerbit untuk buku, nomor/tahun untuk regulasi)
 - GitHub: Issue #198, PR #199 merged ✅
 
-### 📝 BELUM DIKERJAKAN (1/18 issues):
-- #108 - Hubungi Kami (halaman kontak dengan form pesan masuk)
+**#108 - Frontend Hubungi Kami** (Halaman Kontak)
+- `hubungi-kami/page.tsx` — Form kirim pesan dengan validasi (nama, email, telepon, subjek, pesan)
+- POST ke \`/cms/public/pesan\` API endpoint
+- Success state dengan animasi CheckCircle
+- Layout 2 kolom: info kontak + placeholder peta di kiri, form di kanan
+- GitHub: Issue #200, PR #201 merged ✅
+
+### 📝 SEMUA ISSUE PHASE 8 SELESAI (18/18) ✅
 
 ### 📊 FILE SUMMARY PHASE 8:
 **Backend CMS Migrations (#091):**
@@ -272,6 +278,9 @@ frontend/src/app/(website)/galeri/page.tsx               ← [NEW] #106 - Tab Fo
 
 # FRONTEND — Issue #107 (Publikasi Pages)
 frontend/src/app/(website)/publikasi/page.tsx             ← [NEW] #107 - 4 tab publikasi + kartu download universal
+
+# FRONTEND — Issue #108 (Hubungi Kami)
+frontend/src/app/(website)/hubungi-kami/page.tsx          ← [NEW] #108 - Halaman kontak dengan form kirim pesan
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
