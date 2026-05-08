@@ -500,10 +500,10 @@ git checkout -b issue/XXX-nama-issue
 # STEP 2 — Kerjakan kode sesuai spec di docs/issues/XXX-*.md
 
 # STEP 3 — CEK IDE WARNINGS (WAJIB, lihat poin B untuk detail lengkap)
-cd frontend && npm run lint -- --max-warnings=0   # wajib 0
-cd frontend && npx tsc --noEmit                   # wajib 0 error
-cd frontend && npm run build                       # wajib clean
-# Periksa juga tab Problems di VS Code untuk Tailwind v4 warnings!
+cd frontend; npm run lint -- --max-warnings=0   # wajib 0
+cd frontend; npx tsc --noEmit                   # wajib 0 error
+cd frontend; npm run build                       # wajib clean
+# Periksa juga IDE Warning All di VS Code Problems tab untuk Tailwind v4 warnings!
 # Ganti bg-gradient-to-* → bg-linear-to-*, flex-shrink-0 → shrink-0, dst.
 
 # STEP 4 — Commit
@@ -516,11 +516,11 @@ gh pr create --title "feat(module): deskripsi (#XXX)" --body "Closes #<nomor_gh_
 
 # STEP 6 — Merge & cleanup
 gh pr merge <PR_NUMBER> --merge --delete-branch
-git checkout main && git pull origin main
+git checkout main; git pull origin main
 
 # STEP 7 — Update HANDOFF.md lalu push
 # Tandai issue sebagai [x] di HANDOFF.md, update Status Saat Ini, lalu:
-git add docs/HANDOFF.md && git commit -m "docs: update HANDOFF.md - issue #XXX selesai" && git push origin main
+git add docs/HANDOFF.md; git commit -m "docs: update HANDOFF.md - issue #XXX selesai"; git push origin main
 ```
 
 > ❌ **DILARANG** mulai mengerjakan issue tanpa `gh issue create` terlebih dahulu!
@@ -534,16 +534,20 @@ Jalankan **semua command berikut** dan pastikan hasilnya **0 error / 0 warning**
 
 ```bash
 # 1. ESLint — wajib 0 warning
-cd frontend && npm run lint -- --max-warnings=0
+cd frontend; npm run lint -- --max-warnings=0
 
 # 2. TypeScript — wajib 0 error
-cd frontend && npx tsc --noEmit
+cd frontend; npx tsc --noEmit
 
 # 3. Next.js Build — wajib clean
-cd frontend && npm run build
+cd frontend; npm run build
 
 # 4. PHP syntax check
-cd backend && php artisan route:list
+cd backend; php artisan route:list
+
+# 5. IDE Warning All — wajib 0 warning (cek semua problem di VS Code Problems tab)
+# Jalankan command ini di VS Code: Ctrl+Shift+M atau klik Problems tab
+# Pastikan tidak ada warning apapun, terutama Tailwind v4 canonical class warnings
 ```
 
 ##### ⚠️ Tailwind v4 Canonical Class Warnings (WAJIB CEK)
@@ -586,16 +590,16 @@ Setiap Phase selesai, **WAJIB** jalankan semua langkah ini **SECARA BERURUTAN**:
 
 ```bash
 # 1. Cek ESLint
-cd frontend && npm run lint -- --max-warnings=0
+cd frontend; npm run lint -- --max-warnings=0
 
 # 2. Cek TypeScript
-cd frontend && npx tsc --noEmit
+cd frontend; npx tsc --noEmit
 
 # 3. Cek Build
-cd frontend && npm run build
+cd frontend; npm run build
 
-# 4. Cek IDE warnings (Tailwind v4)
-# Buka VS Code Problems tab ATAU gunakan diagnostics tool
+# 4. Cek IDE Warning All (Tailwind v4)
+# Buka VS Code Problems tab (Ctrl+Shift+M) — SEMUA warning HARUS 0 sebelum lanjut!
 # Semua warning Tailwind v4 HARUS 0 sebelum lanjut!
 
 # 5. Cek GitHub Issues phase ini sudah semua closed
@@ -609,12 +613,12 @@ Setelah semua command clean:
 - [ ] **ESLint**: `npm run lint -- --max-warnings=0` → **0 warning**
 - [ ] **TypeScript**: `npx tsc --noEmit` → **0 error**
 - [ ] **Build**: `npm run build` → **clean, 0 error**
-- [ ] **Tailwind v4 IDE**: Tab Problems VS Code → **0 warning** (lihat tabel di poin B)
+- [ ] **IDE Warning All**: Tab Problems VS Code (Ctrl+Shift+M) → **0 warning** (semua warning, termasuk Tailwind v4)
 - [ ] **GitHub Issues**: Semua issue phase ini CLOSED
 - [ ] **GitHub PRs**: Semua PR sudah MERGED
 - [ ] **Update HANDOFF.md**: Checklist `[x]`, Status Saat Ini, timestamp, issue selanjutnya, file tree yang dibuat, endpoint API baru
 - [ ] **Update ONBOARDING.md**: Ubah status Phase dari `📋 Spec` → `✅ Done`
-- [ ] **Push dokumentasi**: `git add docs/ && git commit -m "docs: Phase X complete" && git push origin main`
+- [ ] **Push dokumentasi**: `git add docs/; git commit -m "docs: Phase X complete"; git push origin main`
 
 > ⚠️ **JIKA ADA SATU SAJA LANGKAH YANG TERLEWAT, PHASE BELUM DIANGGAP SELESAI!**
 
