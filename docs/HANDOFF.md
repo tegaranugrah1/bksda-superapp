@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #085 - Backend DeReporting Form Requests |
-| **Issue Selanjutnya** | #086 - Frontend DeReporting Public Form |
+| **Issue Terakhir Selesai** | #086 - Frontend DeReporting Public Form |
+| **Issue Selanjutnya** | #087 - Frontend DeReporting Dashboard |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | hy3-preview-free |
-| **Timestamp** | 2026-05-08T15:00:00+08:00 |
-| **GitHub Issue** | #161 (PR #162 merged) |
+| **Timestamp** | 2026-05-08T15:15:00+08:00 |
+| **GitHub Issue** | #86 (PR #163 merged) |
 
 > [!IMPORTANT]
 > **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
@@ -100,6 +100,7 @@
 - [x] #083 — Backend DeReporting Operator Controller (OperatorController: CRUD operator delegation via User IAM mutation, Migration add dereporting columns to users, GitHub Issue #83, PR #158 merged)
 - [x] #084 — Backend DeReporting Routes (Strict RBAC routing: Public Zone, Employee Zone, Admin Zone nested middleware, GitHub Issue #159, PR #160 merged)
 - [x] #085 — Backend DeReporting Form Requests (StoreInternalRequest & StoreEksternalRequest + Controller refactoring, GitHub Issue #161, PR #162 merged)
+- [x] #086 — Frontend DeReporting Public Form (Public whistleblower form at /lapor with bare axios, GitHub Issue #86, PR #163 merged)
 - [ ] #085 — Backend DeReporting Form Requests
 - [ ] #086 — Frontend DeReporting Public Form
 - [ ] #087 — Frontend DeReporting Dashboard
