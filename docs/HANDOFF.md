@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #059 - Frontend Inventory Types |
-| **Issue Selanjutnya** | #060 - BMN Module (Phase 6) |
+| **Issue Terakhir Selesai** | #076 - Frontend BMN Utils & Constants |
+| **Issue Selanjutnya** | #077 - DeReporting Module (Phase 7) |
 | **Branch Aktif** | `main` |
 | **Model Terakhir** | Claude Sonnet 4.6 |
-| **Timestamp** | 2025-05-08T13:00:00+08:00 |
-| **GitHub Issue** | #108 (PR #109 merged) |
+| **Timestamp** | 2025-05-08T16:00:00+08:00 |
+| **GitHub Issue** | #138 (PR #139 merged) |
 
 > [!IMPORTANT]
 > **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
@@ -86,6 +86,28 @@
 - [x] #057 — Frontend Inventory Stock Out (orange form + cross-module employees, GitHub Issue #104, PR #105 merged)
 - [x] #058 — Frontend Inventory Transactions (audit trail + backend patch history(), GitHub Issue #106, PR #107 merged)
 - [x] #059 — Frontend Inventory Types (5 TypeScript interfaces, GitHub Issue #108, PR #109 merged)
+
+---
+
+## Progress Phase 6: BMN Module (#060–#076)
+
+- [x] #060 — Backend BMN Migrations (4 tables: bmn_assets+SoftDeletes, loans, maintenances, updates, GitHub Issue #110, PR #111 merged)
+- [x] #061 — Backend BMN Models (Asset+SoftDeletes, AssetLoan, AssetMaintenance, AssetUpdate, GitHub Issue #113, PR #115 merged)
+- [x] #062 — Backend BMN Service Provider (BmnServiceProvider + Routes ping + providers.php, GitHub Issue #116, PR #117 merged)
+- [x] #063 — Backend BMN Asset Service (storeAsset, updateAsset+audit trail, disposeAsset, GitHub Issue #119, PR #122 merged)
+- [x] #064 — Backend BMN Loan & Maintenance Services (LoanService+pessimistic locking, MaintenanceService, GitHub Issue #124, PR #126 merged)
+- [x] #065 — Backend BMN FormRequests (5 requests: StoreAsset, UpdateAsset, StoreAssetLoan, StoreAssetMaintenance, DisposeAsset, GitHub Issue #114, PR #118 merged)
+- [x] #066 — Backend BMN Controllers (AssetController, LoanController, MaintenanceController with DI, GitHub Issue #120, PR #121 merged)
+- [x] #067 — Backend BMN Routes (11 endpoints: apiResource assets, loans, maintenances, GitHub Issue #123, PR #125 merged)
+- [x] #068 — Frontend BMN Layout (glassmorphism sidebar 6 menu + useDebounce hook, GitHub Issue #127, PR #128 merged)
+- [x] #069 — Frontend BMN Dashboard (Recharts BarChart + 4 KPI cards, GitHub Issue #129, PR #130 merged)
+- [x] #070 — Frontend BMN Assets Table (search+pagination+condition badges, GitHub Issue #131, PR #140 merged)
+- [x] #071 — Frontend BMN Asset Form (3-tab form react-hook-form+audit trail, GitHub Issue #141, PR #142 merged)
+- [x] #072 — Frontend BMN Action Modals (BorrowAssetModal + MaintenanceModal, GitHub Issue #143, PR #144 merged)
+- [x] #073 — Frontend BMN Logs (maintenances/page + loans/page, GitHub Issue #132, PR #133 merged)
+- [x] #074 — Frontend BMN Disposal (disposal archive page + softdelete filter, GitHub Issue #134, PR #135 merged)
+- [x] #075 — Frontend BMN Reports (authenticated blob download Excel, GitHub Issue #136, PR #137 merged)
+- [x] #076 — Frontend BMN Utils (constants/bmn.ts + bmn-utils.ts, GitHub Issue #138, PR #139 merged)
 
 ---
 

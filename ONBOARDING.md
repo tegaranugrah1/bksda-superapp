@@ -101,7 +101,7 @@ Semua pekerjaan diatur via **125 issue specs** di `docs/issues/`. Setiap file be
 | 3 | #022–#034 | ✅ Done | Kepegawaian Module (Pegawai CRUD, Admin Layout, IAM) |
 | 4 | #035–#045 | ✅ Done | Surat Tugas Module |
 | 5 | #046–#059 | ✅ Done | Inventory Module |
-| 6 | #060–#076 | 📋 Spec | BMN Module |
+| 6 | #060–#076 | ✅ Done | BMN Module |
 | 7 | #077–#090 | 📋 Spec | DeReporting Module |
 | 8 | #091–#108 | 📋 Spec | CMS Module (Public Web & Admin) |
 | 9 | #109–#115 | ✅ Done | UI Components & Utilities |
