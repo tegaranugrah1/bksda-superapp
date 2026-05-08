@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #106 - Frontend Galeri Pages |
-| **Issue Selanjutnya** | #107 - Frontend Profil Pages |
+| **Issue Terakhir Selesai** | #107 - Frontend Publikasi Pages |
+| **Issue Selanjutnya** | #108 - Frontend Hubungi Kami |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:00:00+08:00 |
-| **GitHub Issue** | #106 (PR #197 merged) |
+| **GitHub Issue** | #107 (PR #199 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -138,8 +138,14 @@
 - Fungsi \`extractYoutubeId()\` menangani berbagai format URL YouTube
 - GitHub: Issue #196, PR #197 merged ✅
 
-### 📝 BELUM DIKERJAKAN (2/18 issues):
-- #107-#108 - (CMS lanjutan)
+**#107 - Frontend Publikasi Pages** (Perpustakaan Digital)
+- `publikasi/page.tsx` — 4 tab (Buku, Leaflet, Poster, Regulasi) + grid kartu + download
+- \`PublikasiCard\`: Komponen kartu universal dengan spacer flexbox
+- Metadata varian per tipe (penulis/penerbit untuk buku, nomor/tahun untuk regulasi)
+- GitHub: Issue #198, PR #199 merged ✅
+
+### 📝 BELUM DIKERJAKAN (1/18 issues):
+- #108 - Hubungi Kami (halaman kontak dengan form pesan masuk)
 
 ### 📊 FILE SUMMARY PHASE 8:
 **Backend CMS Migrations (#091):**
@@ -263,6 +269,9 @@ frontend/src/app/(website)/tsl/[slug]/page.tsx          ← [NEW] #105 - Detail 
 
 # FRONTEND — Issue #106 (Galeri Pages)
 frontend/src/app/(website)/galeri/page.tsx               ← [NEW] #106 - Tab Foto/Video + Masonry + Lightbox + YouTube embed
+
+# FRONTEND — Issue #107 (Publikasi Pages)
+frontend/src/app/(website)/publikasi/page.tsx             ← [NEW] #107 - 4 tab publikasi + kartu download universal
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
