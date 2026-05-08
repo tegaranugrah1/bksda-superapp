@@ -9,18 +9,18 @@
 ## Status Saat Ini
 
 | Field | Value |
-|-------|-------|
-| **Issue Terakhir Selesai** | #092 - Backend CMS Models |
-| **Issue Selanjutnya** | #093 - Backend CMS Service Provider |
+|-------|---------|
+| **Issue Terakhir Selesai** | #093 - Backend CMS Service Provider |
+| **Issue Selanjutnya** | #094 - Backend CMS Public Controller |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-08T15:01:00+08:00 |
-| **GitHub Issue** | #92 (PR #169 merged) |
+| **Timestamp** | 2026-05-08T15:10:00+08:00 |
+| **GitHub Issue** | #93 (PR #170 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (2/18 issues Phase 8):
+### ✅ SELESAI (3/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -47,8 +47,14 @@
 - **Routes**: menggunakan `EksternalController` dan `/eksternals` prefix
 - **DECISION**: Biarkan seperti ini untuk sekarang. Inkonsistensi minor yang tidak menyebabkan error karena `$table` sudah eksplisit
 
-### 📝 BELUM DIKERJAKAN (16/18 issues):
-- #093 - Backend CMS Service Provider
+**#093 - Backend CMS Service Provider** (dual-path routing)
+- `Providers/CMSServiceProvider.php` — public route + admin route + migration loading
+- `Routes/public.php` — endpoint website pengunjung (tanpa auth)
+- `Routes/admin.php` — endpoint admin CMS (auth:sanctum + module.access:cms)
+- Registered in `bootstrap/providers.php`
+- GitHub: Issue #93, PR #170 merged ✅
+
+### 📝 BELUM DIKERJAKAN (15/18 issues):
 - #094 - Backend CMS Public Controller
 - #095 - Backend CMS Admin Controllers
 - #096 - Backend CMS Routes
