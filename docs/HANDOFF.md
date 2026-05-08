@@ -11,16 +11,16 @@
 | Field | Value |
 |-------|---------|
 | **Issue Terakhir Selesai** | #108 - Frontend Hubungi Kami |
-| **Issue Selanjutnya** | (SEMUA ISSUE PHASE 8 SELESAI) |
-| **Branch Aktif** | `main` (clean, no uncommitted changes) |
+| **Issue Selanjutnya** | (SEMUA ISSUE PHASE 8 SELESAI - 18/18) |
+| **Branch Aktif** | `main` (clean, committed changes pending push) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T03:00:00+08:00 |
+| **Timestamp** | 2026-05-09T03:30:00+08:00 |
 | **GitHub Issue** | #108 (PR #201 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (13/18 issues Phase 8):
+### ✅ SELESAI (18/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -282,14 +282,26 @@ frontend/src/app/(website)/publikasi/page.tsx             ← [NEW] #107 - 4 tab
 # FRONTEND — Issue #108 (Hubungi Kami)
 frontend/src/app/(website)/hubungi-kami/page.tsx          ← [NEW] #108 - Halaman kontak dengan form kirim pesan
 
+### Catatan Akhir Phase 8
+- **IDE Warnings Fix**: File `informasi/page.tsx` dan `publikasi/page.tsx` sedang dalam proses fixing ESLint warnings (1 error setState-in-effect + 12 img warnings). Run `npm run lint -- --max-warnings=0` untuk verifikasi sebelum push final.
+- **All 18 GitHub Issues closed**: #91, #92, #93, #94, #95, #96, #97, #98, #99, #100, #101, #102, #103, #104, #105, #106, #107, #108 ✅
+
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
-| Method | Endpoint | Middleware | Keterangan |
-|--------|----------|-----------|------------|
-| GET | `/api/cms/public/ping` | `api` only | Health check website publik |
-| GET | `/api/cms/admin/ping` | `api`, `auth:sanctum`, `module.access:cms` | Health check admin CMS |
+**Public Routes (`/api/cms/public/*`) — 21 endpoints:**
+- `GET /website`, `/kepala`, `/menus`, `/categories`, `/links`
+- `GET /informasi`, `/informasi/terbaru`, `/informasi/{slug}`
+- `GET /profil`, `/profil/{slug}`
+- `GET /kawasan`, `/kawasan/{slug}`
+- `GET /tsl`, `/tsl/{slug}`
+- `GET /photos`, `/videos`
+- `GET /buku`, `/leaflet`, `/poster`, `/regulasi`
 
-> **Note**: Endpoint baru akan ditambahkan di Issue #094 (Public Controller) dan #095 (Admin Controllers).
+**Admin Routes (`/api/cms/admin/*`) — 78 endpoints:**
+- CRUD lengkap untuk: informasi, profil, kawasan, tsl, photos, videos, links, buku, leaflet, poster, regulasi, jenis, kepala, menus, categories
+- Custom: `PATCH /informasi/{id}/toggle-publish`, `PATCH /pesan/{id}/read`, `GET|PUT /website`
+- Total: **99 routes** (verified via `php artisan route:list --path=cms`)
+- Middleware: `auth:sanctum` + `module.access:cms` untuk semua admin routes
 
 ### Catatan Penting Phase 8 (CMS)
 - **STI (Single Table Inheritance)**: `Leaflet` dan `Poster` berbagi tabel `cms_leaflet`. Dibedakan via kolom `type` dan Global Scope.
@@ -297,7 +309,8 @@ frontend/src/app/(website)/hubungi-kami/page.tsx          ← [NEW] #108 - Halam
 - **17 Models, 16 Tabel**: Leaflet & Poster berbagi 1 tabel → 17 model untuk 16 tabel.
 - **Website Model**: Singleton tanpa SoftDeletes (1 row di tabel, tidak perlu soft-delete).
 - **Menu Model**: Punya relasi rekursif `parent()` dan `children()` untuk nested menu.
-- **Resources/**: Folder sudah ada tapi KOSONG (`.gitkeep` saja) — API Resource classes belum dibuat (hutang teknis global).
+- **Resources/**: Folder `backend/app/Modules/CMS/Resources/`MASIH KOSONG — API Resource classes belum dibuat (technical debt).
+- **Technical Debt Lain**: (1) API Resource classes belum ada, (2) Missing return type hints di beberapa controller, (3) Status magic strings tanpa PHP Enum.
 
 ### 🔍 Hasil Audit Phase 1-8 (dilakukan sebelum #093)
 > Audit menyeluruh terhadap RULES.md (77 rules) menghasilkan:
