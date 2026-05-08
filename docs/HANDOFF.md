@@ -91,23 +91,89 @@
 
 ## Progress Phase 6: BMN Module (#060–#076)
 
-- [x] #060 — Backend BMN Migrations (4 tables: bmn_assets+SoftDeletes, loans, maintenances, updates, GitHub Issue #110, PR #111 merged)
-- [x] #061 — Backend BMN Models (Asset+SoftDeletes, AssetLoan, AssetMaintenance, AssetUpdate, GitHub Issue #113, PR #115 merged)
-- [x] #062 — Backend BMN Service Provider (BmnServiceProvider + Routes ping + providers.php, GitHub Issue #116, PR #117 merged)
-- [x] #063 — Backend BMN Asset Service (storeAsset, updateAsset+audit trail, disposeAsset, GitHub Issue #119, PR #122 merged)
-- [x] #064 — Backend BMN Loan & Maintenance Services (LoanService+pessimistic locking, MaintenanceService, GitHub Issue #124, PR #126 merged)
-- [x] #065 — Backend BMN FormRequests (5 requests: StoreAsset, UpdateAsset, StoreAssetLoan, StoreAssetMaintenance, DisposeAsset, GitHub Issue #114, PR #118 merged)
-- [x] #066 — Backend BMN Controllers (AssetController, LoanController, MaintenanceController with DI, GitHub Issue #120, PR #121 merged)
-- [x] #067 — Backend BMN Routes (11 endpoints: apiResource assets, loans, maintenances, GitHub Issue #123, PR #125 merged)
-- [x] #068 — Frontend BMN Layout (glassmorphism sidebar 6 menu + useDebounce hook, GitHub Issue #127, PR #128 merged)
-- [x] #069 — Frontend BMN Dashboard (Recharts BarChart + 4 KPI cards, GitHub Issue #129, PR #130 merged)
-- [x] #070 — Frontend BMN Assets Table (search+pagination+condition badges, GitHub Issue #131, PR #140 merged)
-- [x] #071 — Frontend BMN Asset Form (3-tab form react-hook-form+audit trail, GitHub Issue #141, PR #142 merged)
-- [x] #072 — Frontend BMN Action Modals (BorrowAssetModal + MaintenanceModal, GitHub Issue #143, PR #144 merged)
-- [x] #073 — Frontend BMN Logs (maintenances/page + loans/page, GitHub Issue #132, PR #133 merged)
-- [x] #074 — Frontend BMN Disposal (disposal archive page + softdelete filter, GitHub Issue #134, PR #135 merged)
-- [x] #075 — Frontend BMN Reports (authenticated blob download Excel, GitHub Issue #136, PR #137 merged)
-- [x] #076 — Frontend BMN Utils (constants/bmn.ts + bmn-utils.ts, GitHub Issue #138, PR #139 merged)
+- [x] #060 — Backend BMN Migrations (`bmn_assets`+SoftDeletes+unique(kode_barang,nup), `bmn_asset_loans`, `bmn_asset_maintenances`, `bmn_asset_updates`, GitHub Issue #110, PR #111 merged)
+- [x] #061 — Backend BMN Models (`Asset.php`+SoftDeletes+HasUuids, `AssetLoan.php`, `AssetMaintenance.php`, `AssetUpdate.php`, relasi cross-module ke `Employee`, GitHub Issue #113, PR #115 merged)
+- [x] #062 — Backend BMN Service Provider (`BmnServiceProvider.php` register migrations+routes, `Routes/api.php` ping, `bootstrap/providers.php` ditambah BmnServiceProvider, GitHub Issue #116, PR #117 merged)
+- [x] #063 — Backend BMN Asset Service (`AssetService.php`: `storeAsset()`, `updateAsset()+audit trail nilai_perolehan & kondisi`, `disposeAsset()+SoftDelete`, GitHub Issue #119, PR #122 merged)
+- [x] #064 — Backend BMN Loan & Maintenance Services (`LoanService.php`: `borrowAsset()+pessimistic lock+cek employee_id null`, `returnAsset()+set null employee_id`; `MaintenanceService.php`: `recordMaintenance()+optional kondisi update`, GitHub Issue #124, PR #126 merged)
+- [x] #065 — Backend BMN FormRequests (`StoreAssetRequest.php` unique NUP per kode_barang, `UpdateAssetRequest.php` ignore self, `StoreAssetLoanRequest.php` exists kpg_employees, `StoreAssetMaintenanceRequest.php`, `DisposeAssetRequest.php` min:10, GitHub Issue #114, PR #118 merged)
+- [x] #066 — Backend BMN Controllers (`AssetController.php`: index+search+onlyTrashed(status=disposed)+store+show+update+dispose; `LoanController.php`: index+borrow+return; `MaintenanceController.php`: index+record, GitHub Issue #120, PR #121 merged)
+- [x] #067 — Backend BMN Routes (11 endpoints via `apiResource assets`+`dispose`+`loans`+`loans/{loan}/return`+`maintenances`+`assets/{asset}/loans`+`assets/{asset}/maintenances`, GitHub Issue #123, PR #125 merged)
+- [x] #068 — Frontend BMN Layout (`frontend/src/app/(dashboard)/bmn/layout.tsx` sidebar glassmorphism 6 menu active-state, `frontend/src/hooks/use-debounce.ts` hook baru, GitHub Issue #127, PR #128 merged)
+- [x] #069 — Frontend BMN Dashboard (`frontend/src/app/(dashboard)/bmn/page.tsx` 4 KPI cards + Recharts BarChart kondisi fisik, mock data sementara, GitHub Issue #129, PR #130 merged)
+- [x] #070 — Frontend BMN Assets Table (`frontend/src/app/(dashboard)/bmn/assets/page.tsx` search debounce+pagination+condition badge animate-pulse Rusak Berat, GitHub Issue #131, PR #140 merged)
+- [x] #071 — Frontend BMN Asset Form (`frontend/src/app/(dashboard)/bmn/assets/[id]/page.tsx` 3-tab form (Identitas/Valuasi/Lokasi)+react-hook-form+audit trail field wajib saat edit, GitHub Issue #141, PR #142 merged)
+- [x] #072 — Frontend BMN Action Modals (`frontend/src/app/(dashboard)/bmn/components/modals/BorrowAssetModal.tsx` + `MaintenanceModal.tsx` dengan sonner toast+invalidateQueries, GitHub Issue #143, PR #144 merged)
+- [x] #073 — Frontend BMN Logs (`frontend/src/app/(dashboard)/bmn/maintenances/page.tsx` + `frontend/src/app/(dashboard)/bmn/loans/page.tsx` tabel riwayat dengan pagination, GitHub Issue #132, PR #133 merged)
+- [x] #074 — Frontend BMN Disposal (`frontend/src/app/(dashboard)/bmn/disposal/page.tsx` memanggil `?status=disposed` ke endpoint assets yang memicu `onlyTrashed()` di backend, GitHub Issue #134, PR #135 merged)
+- [x] #075 — Frontend BMN Reports (`frontend/src/app/(dashboard)/bmn/reports/page.tsx` 3 tombol download Excel via authenticated blob download `responseType: blob`, GitHub Issue #136, PR #137 merged)
+- [x] #076 — Frontend BMN Utils (`frontend/src/lib/constants/bmn.ts` konstanta CONDITIONS+LOCATIONS+type AssetState, `frontend/src/lib/bmn-utils.ts` fungsi `formatRupiah()`+`getAssetConditionStyle()`, GitHub Issue #138, PR #139 merged)
+
+### File yang Dibuat/Diubah (Phase 6 - BMN)
+```
+# BACKEND
+backend/app/Modules/Bmn/Migrations/2024_01_01_000001_create_bmn_assets_table.php         ← [NEW] #060
+backend/app/Modules/Bmn/Migrations/2024_01_01_000002_create_bmn_asset_loans_table.php    ← [NEW] #060
+backend/app/Modules/Bmn/Migrations/2024_01_01_000003_create_bmn_asset_maintenances_table.php ← [NEW] #060
+backend/app/Modules/Bmn/Migrations/2024_01_01_000004_create_bmn_asset_updates_table.php  ← [NEW] #060
+backend/app/Modules/Bmn/Models/Asset.php                                                  ← [NEW] #061
+backend/app/Modules/Bmn/Models/AssetLoan.php                                              ← [NEW] #061
+backend/app/Modules/Bmn/Models/AssetMaintenance.php                                       ← [NEW] #061
+backend/app/Modules/Bmn/Models/AssetUpdate.php                                            ← [NEW] #061
+backend/app/Modules/Bmn/BmnServiceProvider.php                                            ← [NEW] #062
+backend/app/Modules/Bmn/Routes/api.php                                                    ← [NEW] #062, [UPDATED] #067
+backend/bootstrap/providers.php                                                           ← [UPDATED] #062 - tambah BmnServiceProvider
+backend/app/Modules/Bmn/Services/AssetService.php                                         ← [NEW] #063
+backend/app/Modules/Bmn/Services/LoanService.php                                          ← [NEW] #064
+backend/app/Modules/Bmn/Services/MaintenanceService.php                                   ← [NEW] #064
+backend/app/Modules/Bmn/Requests/StoreAssetRequest.php                                    ← [NEW] #065
+backend/app/Modules/Bmn/Requests/UpdateAssetRequest.php                                   ← [NEW] #065
+backend/app/Modules/Bmn/Requests/StoreAssetLoanRequest.php                                ← [NEW] #065
+backend/app/Modules/Bmn/Requests/StoreAssetMaintenanceRequest.php                         ← [NEW] #065
+backend/app/Modules/Bmn/Requests/DisposeAssetRequest.php                                  ← [NEW] #065
+backend/app/Modules/Bmn/Controllers/AssetController.php                                   ← [NEW] #066
+backend/app/Modules/Bmn/Controllers/LoanController.php                                    ← [NEW] #066
+backend/app/Modules/Bmn/Controllers/MaintenanceController.php                             ← [NEW] #066
+
+# FRONTEND
+frontend/src/hooks/use-debounce.ts                                                        ← [NEW] #068
+frontend/src/app/(dashboard)/bmn/layout.tsx                                               ← [NEW] #068
+frontend/src/app/(dashboard)/bmn/page.tsx                                                 ← [NEW] #069 - Dashboard
+frontend/src/app/(dashboard)/bmn/assets/page.tsx                                          ← [NEW] #070 - Catalog table
+frontend/src/app/(dashboard)/bmn/assets/[id]/page.tsx                                     ← [NEW] #071 - Form create/edit
+frontend/src/app/(dashboard)/bmn/components/modals/BorrowAssetModal.tsx                   ← [NEW] #072
+frontend/src/app/(dashboard)/bmn/components/modals/MaintenanceModal.tsx                   ← [NEW] #072
+frontend/src/app/(dashboard)/bmn/maintenances/page.tsx                                    ← [NEW] #073
+frontend/src/app/(dashboard)/bmn/loans/page.tsx                                           ← [NEW] #073
+frontend/src/app/(dashboard)/bmn/disposal/page.tsx                                        ← [NEW] #074
+frontend/src/app/(dashboard)/bmn/reports/page.tsx                                         ← [NEW] #075
+frontend/src/lib/constants/bmn.ts                                                         ← [NEW] #076
+frontend/src/lib/bmn-utils.ts                                                             ← [NEW] #076
+```
+
+### Endpoint API Tersedia (Backend BMN)
+
+| Method | Endpoint | Middleware | Keterangan |
+|--------|----------|-----------|------------|
+| GET | `/api/bmn/ping` | `auth:sanctum`, `module.access:bmn` | Health check modul |
+| GET | `/api/bmn/assets` | same | List aset (search + ?status=disposed untuk trashed) |
+| POST | `/api/bmn/assets` | same | Registrasi aset baru |
+| GET | `/api/bmn/assets/{asset}` | same | Detail 1 aset dengan relasi |
+| PUT | `/api/bmn/assets/{asset}` | same | Update aset + auto audit trail |
+| DELETE | `/api/bmn/assets/{asset}/dispose` | same | Soft-delete aset (pemutihan) |
+| GET | `/api/bmn/loans` | same | List riwayat peminjaman |
+| POST | `/api/bmn/assets/{asset}/loans` | same | Pinjamkan aset ke pegawai |
+| POST | `/api/bmn/loans/{loan}/return` | same | Kembalikan aset dari pegawai |
+| GET | `/api/bmn/maintenances` | same | List riwayat servis/perbaikan |
+| POST | `/api/bmn/assets/{asset}/maintenances` | same | Catat nota servis aset |
+
+### Catatan Penting Phase 6
+- **SoftDeletes**: `bmn_assets` menggunakan SoftDeletes — JANGAN gunakan `DELETE` permanen. Disposal via `dispose` endpoint.
+- **Audit Trail**: `bmn_asset_updates` otomatis terisi saat `nilai_perolehan` atau `kondisi` berubah via `AssetService::updateAsset()`.
+- **Pessimistic Locking**: `LoanService::borrowAsset()` menggunakan `lockForUpdate()` untuk mencegah race condition.
+- **Dashboard**: Halaman `/bmn` masih menggunakan mock data. Endpoint `/api/bmn/dashboard/stats` **BELUM DIBUAT** — jika Phase 7 atau seterusnya perlu menghubungkan data real, tambahkan endpoint tersebut di `AssetController` dan `Routes/api.php`.
+- **Reports**: Tombol download di `/bmn/reports` memanggil endpoint `/export` yang **BELUM ADA** di backend. Ini adalah UI placeholder — perlu diimplementasi di issue berikutnya jika diperlukan.
+- **npm package baru**: `recharts@^3.8.1` ditambahkan di Phase 6.
 
 ---
 
@@ -128,37 +194,33 @@
 - [x] #045b — UI Enhancement: Split Panel Create Page (`frontend/src/app/(dashboard)/surat-tugas/create/page.tsx`, split panel left 440px + live A4 preview right, glassmorphism form, gradient submit button)
 - [x] #045c — Public Surat Tugas Form + Admin Approve Flow
 
-## File yang Terakhir Dibuat/Diubah (Phase 4 - #045c)
-```
-backend/app/Modules/SuratTugas/Requests/PublicSuratTugasRequest.php                  ← [NEW] #045c
-backend/app/Modules/SuratTugas/Routes/api.php                                 ← [UPDATED] #045c - public route
-backend/app/Modules/Kepegawaian/Routes/api.php                            ← [UPDATED] #045c - employee select
-backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php           ← [UPDATED] #045c - select()
-```
+## File yang Terakhir Dibuat/Diubah (Phase 6 - BMN #076)
 
-### Frontend (#045c - Public Form + Admin)
-```
-frontend/src/app/(website)/surat-tugas/page.tsx     ← [NEW] Public form 3 steps
-frontend/src/app/(website)/layout.tsx              ← [NEW] Basic layout with Providers
-frontend/src/app/(dashboard)/admin/surat-tugas/  ← [NEW] Admin pages (moved from surat-tugas)
-frontend/src/components/layout/sidebar.tsx       ← [UPDATED] Menu Surat Tugas
-```
+> File terbaru ada di section **Progress Phase 6** di atas. Section ini hanya untuk quick reference.
 
-### Frontend (Components & Pages)
 ```
-frontend/src/components/layout/sidebar.tsx              ← [NEW] Glassmorphism sidebar + LogoutButton
-frontend/src/components/layout/topbar.tsx               ← [NEW] Topbar + ModuleSwitcher + ThemeToggle
-frontend/src/components/module-switcher.tsx             ← [NEW] Dropdown modul dengan IAM filter
-frontend/src/components/logout-button.tsx               ← [NEW] Modal konfirmasi logout + API revoke
-frontend/src/app/(dashboard)/layout.tsx                 ← [NEW] Dashboard layout dengan RouteGuard
-frontend/src/app/(dashboard)/page.tsx                   ← [NEW] Portal hub grid cards
-frontend/src/app/(dashboard)/kepegawaian/page.tsx       ← [NEW] Tabel pegawai dengan pagination
-frontend/src/app/(dashboard)/kepegawaian/create/page.tsx ← [NEW] Form create pegawai + upload foto
+# File TERBARU (Phase 6)
+frontend/src/lib/bmn-utils.ts                                     ← [NEW] #076
+frontend/src/lib/constants/bmn.ts                                 ← [NEW] #076
+frontend/src/app/(dashboard)/bmn/reports/page.tsx                 ← [NEW] #075
+frontend/src/app/(dashboard)/bmn/disposal/page.tsx                ← [NEW] #074
+frontend/src/app/(dashboard)/bmn/loans/page.tsx                   ← [NEW] #073
+frontend/src/app/(dashboard)/bmn/maintenances/page.tsx            ← [NEW] #073
+frontend/src/app/(dashboard)/bmn/components/modals/*.tsx          ← [NEW] #072
+frontend/src/app/(dashboard)/bmn/assets/[id]/page.tsx             ← [NEW] #071
+frontend/src/app/(dashboard)/bmn/assets/page.tsx                  ← [NEW] #070
+frontend/src/app/(dashboard)/bmn/page.tsx                         ← [NEW] #069
+frontend/src/app/(dashboard)/bmn/layout.tsx                       ← [NEW] #068
+frontend/src/hooks/use-debounce.ts                                ← [NEW] #068
+backend/app/Modules/Bmn/                                          ← [NEW] #060-#067 (seluruh modul)
+backend/bootstrap/providers.php                                   ← [UPDATED] #062 - tambah BmnServiceProvider
 ```
 
 ---
 
-## Endpoint API Tersedia (Backend Kepegawaian)
+## Endpoint API Tersedia (Semua Modul)
+
+### Backend Kepegawaian (`/api/kepegawaian/*`)
 
 | Method | Endpoint | Middleware | Keterangan |
 |--------|----------|-----------|------------|
@@ -169,6 +231,49 @@ frontend/src/app/(dashboard)/kepegawaian/create/page.tsx ← [NEW] Form create p
 | DELETE | `/api/kepegawaian/employees/{id}` | + `role:super_admin,admin` | Soft Delete Pegawai |
 | GET | `/api/kepegawaian/employees/{id}/access` | + `role:super_admin` | Cek Status IAM |
 | PUT | `/api/kepegawaian/employees/{id}/access` | + `role:super_admin` | Atur IAM |
+| GET | `/api/kepegawaian/employees/select` | `auth:sanctum` | Dropdown Pegawai (lintas modul) |
+
+### Backend Surat Tugas (`/api/surat-tugas/*`)
+
+| Method | Endpoint | Middleware | Keterangan |
+|--------|----------|-----------|------------|
+| GET | `/api/surat-tugas` | `auth:sanctum`, `module.access:surat_tugas` | List surat dengan filter status |
+| POST | `/api/surat-tugas` | same | Buat surat tugas baru |
+| GET | `/api/surat-tugas/{id}` | same | Detail surat tugas |
+| PUT | `/api/surat-tugas/{id}/approve` | same + `role:admin,super_admin` | Approve surat |
+| PUT | `/api/surat-tugas/{id}/reject` | same + `role:admin,super_admin` | Reject surat |
+| DELETE | `/api/surat-tugas/{id}` | same + `role:admin,super_admin` | Soft delete (archive) |
+| POST | `/api/surat-tugas/{id}/restore` | same + `role:admin,super_admin` | Restore dari archive |
+| GET | `/api/public/surat-tugas/{id}/verify` | PUBLIC (no auth) | QR Code verification |
+
+### Backend Inventory (`/api/inventory/*`)
+
+| Method | Endpoint | Middleware | Keterangan |
+|--------|----------|-----------|------------|
+| GET | `/api/inventory/ping` | `auth:sanctum`, `module.access:inventory` | Health check |
+| GET | `/api/inventory/dashboard/stats` | same | Stats: total_items, mutasi_bulan_ini, krisis_stok |
+| GET | `/api/inventory/offices` | same | List kantor |
+| POST | `/api/inventory/offices` | same + `role:admin,super_admin` | Tambah kantor |
+| GET | `/api/inventory/items` | same | List master barang |
+| POST | `/api/inventory/items` | same + `role:admin,super_admin` | Tambah master barang |
+| GET | `/api/inventory/transactions` | same | Riwayat mutasi (filter ?type=in/out) |
+| POST | `/api/inventory/stock/in` | same + `role:admin,super_admin` | Stok masuk |
+| POST | `/api/inventory/stock/out` | same + `role:admin,super_admin` | Distribusi keluar ke pegawai |
+
+### Backend BMN (`/api/bmn/*`)
+
+| Method | Endpoint | Middleware | Keterangan |
+|--------|----------|-----------|------------|
+| GET | `/api/bmn/assets` | `auth:sanctum`, `module.access:bmn` | List aset (?search, ?status=disposed) |
+| POST | `/api/bmn/assets` | same | Registrasi aset baru |
+| GET | `/api/bmn/assets/{asset}` | same | Detail aset + relasi |
+| PUT | `/api/bmn/assets/{asset}` | same | Update aset + auto audit trail |
+| DELETE | `/api/bmn/assets/{asset}/dispose` | same | Soft-delete (pemutihan) |
+| GET | `/api/bmn/loans` | same | List riwayat peminjaman |
+| POST | `/api/bmn/assets/{asset}/loans` | same | Pinjamkan aset |
+| POST | `/api/bmn/loans/{loan}/return` | same | Kembalikan aset |
+| GET | `/api/bmn/maintenances` | same | List riwayat servis |
+| POST | `/api/bmn/assets/{asset}/maintenances` | same | Catat nota servis |
 
 ---
 
