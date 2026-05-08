@@ -5,6 +5,11 @@ use App\Modules\Kepegawaian\Controllers\EmployeeController;
 use App\Modules\Kepegawaian\Controllers\EmployeeAccessController;
 
 // Semua route di bawah ini otomatis memiliki prefix /api/kepegawaian/
+
+// Public routes (untuk form surat tugas)
+Route::get('/employees/select', [EmployeeController::class, 'select'])
+    ->middleware('throttle:30,1');
+
 Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
 
     // --- MANAJEMEN DATA PEGAWAI (CRUD) ---

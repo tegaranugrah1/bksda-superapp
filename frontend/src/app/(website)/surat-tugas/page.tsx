@@ -1,0 +1,496 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Users, Search, UserPlus, X, ChevronRight, FileText, 
+  Upload, CheckCircle2, ChevronLeft, Calendar as CalendarIcon, 
+  AlertCircle
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import api from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+
+interface Employee {
+  id: string;
+  name: string;
+  nip: string;
+  department: string;
+  position?: string;
+}
+
+export default function SuratTugasForm() {
+    const [step, setStep] = useState<1 | 2 | 3>(1);
+    
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const { data: allEmployees = [], isLoading: isSearching } = useQuery({
+        queryKey: ['all-employees-list'],
+        queryFn: async () => {
+            const response = await api.get('/kepegawaian/employees/select');
+            return response.data.data || response.data;
+        },
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const searchResults = allEmployees
+        .filter((emp: Employee) => 
+            emp.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            (emp.nip && emp.nip.toLowerCase().includes(searchQuery.toLowerCase()))
+        )
+        .slice(0, 50);
+
+    const [formData, setFormData] = useState({
+        nama_kegiatan: '',
+        tanggal_mulai: '',
+        tanggal_selesai: '',
+        sumber_dana: '',
+        sumber_dana_other: '',
+        tempat_tujuan: '',
+        keterangan: ''
+    });
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const toggleEmployee = (emp: Employee) => {
+        if (selectedEmployees.find(e => e.id === emp.id)) {
+            setSelectedEmployees(prev => prev.filter(e => e.id !== emp.id));
+        } else {
+            setSelectedEmployees(prev => [...prev, emp]);
+            setSearchQuery('');
+            setShowDropdown(false);
+        }
+    };
+
+    const removeEmployee = (id: string) => {
+        setSelectedEmployees(prev => prev.filter(e => e.id !== id));
+    };
+
+    const handleNextStep = () => {
+        if (selectedEmployees.length === 0) {
+            toast.error('Pilih minimal satu pegawai untuk ditugaskan.');
+            return;
+        }
+        setStep(2);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                toast.error('Format file tidak didukung. Gunakan PDF, JPG, atau PNG.');
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('Ukuran maksimal file adalah 10MB.');
+                return;
+            }
+            setSelectedFile(file);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        setIsSubmitting(true);
+        try {
+            const submitData = new FormData();
+            submitData.append('maksud_tujuan', formData.nama_kegiatan);
+            submitData.append('tanggal_mulai', formData.tanggal_mulai);
+            submitData.append('tanggal_selesai', formData.tanggal_selesai);
+            submitData.append('tempat_tujuan', formData.tempat_tujuan);
+            submitData.append('sumber_dana', formData.sumber_dana);
+            
+            if (formData.sumber_dana === 'other') {
+                submitData.append('sumber_dana_other', formData.sumber_dana_other);
+            }
+            if (formData.keterangan) submitData.append('keterangan', formData.keterangan);
+            
+            if (selectedFile) {
+                submitData.append('dasar_surat', selectedFile);
+            }
+
+            selectedEmployees.forEach((emp, index) => {
+                submitData.append(`employee_ids[${index}]`, emp.id);
+            });
+
+            await api.post('/surat-tugas', submitData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            toast.success('Pengajuan surat tugas berhasil disubmit!');
+            setStep(3);
+
+        } catch (error: unknown) {
+            console.error('Submit failed:', error);
+            const msg = error instanceof Error 
+                ? error.message 
+                : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengirim pengajuan surat tugas.';
+            toast.error(msg);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const renderStep1 = () => (
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center mb-10">
+                <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-sm border border-blue-100/50">
+                    <Users className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Pilih Pegawai</h2>
+                <p className="text-slate-500 text-sm mt-2 font-medium">Cari dan tambahkan pegawai yang akan melaksanakan tugas.</p>
+            </div>
+
+            <div className="mb-8">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 block">Daftar Pegawai yang Ditugaskan</label>
+                {selectedEmployees.length === 0 ? (
+                    <div className="p-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center flex flex-col items-center justify-center">
+                        <UserPlus className="w-6 h-6 text-slate-300 mb-2" />
+                        <span className="text-sm font-medium text-slate-400">Belum ada pegawai dipilih</span>
+                    </div>
+                ) : (
+                    <div className="flex flex-wrap gap-2">
+                        {selectedEmployees.map((emp) => (
+                            <div key={emp.id} className="group flex items-center gap-2 bg-blue-50/80 hover:bg-blue-100 border border-blue-200/60 pl-3 pr-1 py-1 rounded-full transition-all duration-200">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-blue-900 leading-tight">{emp.name}</span>
+                                    <span className="text-[10px] text-blue-600 font-medium truncate max-w-[150px]">{emp.department || emp.nip}</span>
+                                </div>
+                                <button 
+                                    onClick={() => removeEmployee(emp.id)}
+                                    className="w-6 h-6 rounded-full flex items-center justify-center text-blue-400 hover:bg-white hover:text-red-500 transition-colors"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="relative z-20" ref={dropdownRef}>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                        type="text"
+                        className="block w-full pl-11 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-700 shadow-sm"
+                        placeholder="Ketik nama atau NIP pegawai (min. 2 karakter)..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => { if (searchResults.length > 0) setShowDropdown(true); }}
+                    />
+                    {isSearching && (
+                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                            <div className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+                        </div>
+                    )}
+                </div>
+
+                {showDropdown && searchResults.length > 0 && searchQuery.length >= 2 && (
+                    <div className="absolute mt-2 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden max-h-60 overflow-y-auto">
+                        <ul className="py-2">
+                            {searchResults.map((emp: Employee) => {
+                                const isSelected = selectedEmployees.some((e: Employee) => e.id === emp.id);
+                                return (
+                                    <li key={emp.id}>
+                                        <button
+                                            className={cn(
+                                                "w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between transition-colors",
+                                                isSelected && "bg-slate-50/80"
+                                            )}
+                                            onClick={() => toggleEmployee(emp)}
+                                        >
+                                            <div className="flex flex-col overflow-hidden">
+                                                <span className={cn("text-sm font-semibold truncate", isSelected ? "text-slate-400" : "text-slate-700")}>
+                                                    {emp.name}
+                                                </span>
+                                                <span className="text-xs text-slate-500 truncate mt-0.5">
+                                                    {emp.department && emp.department !== '-' ? emp.department : emp.nip}
+                                                </span>
+                                            </div>
+                                            <div className={cn(
+                                                "w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ml-3 transition-colors",
+                                                isSelected ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300"
+                                            )}>
+                                                {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                                            </div>
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-10 flex justify-end pt-4 border-t border-slate-100">
+                <Button 
+                    onClick={handleNextStep} 
+                    disabled={selectedEmployees.length === 0}
+                    className="h-12 px-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold tracking-wide disabled:opacity-50 transition-all gap-2"
+                >
+                    Lanjutkan <ChevronRight className="w-4 h-4" />
+                </Button>
+            </div>
+        </div>
+    );
+
+    const renderStep2 = () => (
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-right-8 duration-500">
+            <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
+                <button 
+                    onClick={() => setStep(1)}
+                    className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                >
+                    <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div>
+                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">Detail Surat Tugas</h2>
+                    <p className="text-slate-500 text-sm font-medium">Lengkapi informasi perjalanan dinas.</p>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="bg-emerald-50/80 border border-emerald-100 rounded-2xl p-4 flex gap-3 text-emerald-800">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-emerald-600" />
+                    <div>
+                        <span className="block text-sm font-bold mb-1">Daftar Pegawai ({selectedEmployees.length})</span>
+                        <div className="text-xs font-medium text-emerald-700/80 flex flex-wrap gap-x-2 gap-y-1">
+                            {selectedEmployees.map(e => e.name).join(', ')}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Nama Kegiatan <span className="text-red-500">*</span>
+                        </label>
+                        <textarea 
+                            required
+                            value={formData.nama_kegiatan}
+                            onChange={e => setFormData({...formData, nama_kegiatan: e.target.value})}
+                            className="w-full min-h-[100px] p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm font-medium"
+                            placeholder="Contoh: Melaksanakan Perjalanan Dinas dari Samarinda ke Kabupaten Kutai Barat dalam rangka Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi di Suaka Margasatwa Kelian."
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Mulai Tanggal <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input 
+                                    type="date" required 
+                                    value={formData.tanggal_mulai}
+                                    onChange={e => setFormData({...formData, tanggal_mulai: e.target.value})}
+                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Sampai Tanggal <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input 
+                                    type="date" required 
+                                    min={formData.tanggal_mulai}
+                                    value={formData.tanggal_selesai}
+                                    onChange={e => setFormData({...formData, tanggal_selesai: e.target.value})}
+                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Tempat Tujuan <span className="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            required
+                            value={formData.tempat_tujuan}
+                            onChange={e => setFormData({...formData, tempat_tujuan: e.target.value})}
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
+                            placeholder="Contoh: Kecamatan Melville, Kabupaten Kutai Barat"
+                        />
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">
+                            Sumber Dana <span className="text-red-500">*</span>
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {[
+                                { id: 'dipa', label: 'DIPA' },
+                                { id: 'other', label: 'Lainnya' },
+                            ].map((opt) => (
+                                <label key={opt.id} className={cn(
+                                    "flex items-center p-4 border rounded-xl cursor-pointer transition-all",
+                                    formData.sumber_dana === opt.id 
+                                        ? "bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500/20" 
+                                        : "bg-white border-slate-200 hover:bg-slate-50"
+                                )}>
+                                    <input 
+                                        type="radio" 
+                                        name="sumber_dana" 
+                                        value={opt.id}
+                                        required
+                                        className="sr-only"
+                                        checked={formData.sumber_dana === opt.id}
+                                        onChange={(e) => setFormData({...formData, sumber_dana: e.target.value})}
+                                    />
+                                    <div className={cn(
+                                        "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
+                                        formData.sumber_dana === opt.id ? "border-emerald-500" : "border-slate-300"
+                                    )}>
+                                        {formData.sumber_dana === opt.id && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />}
+                                    </div>
+                                    <span className={cn(
+                                        "text-sm font-semibold transition-colors",
+                                        formData.sumber_dana === opt.id ? "text-emerald-900" : "text-slate-600"
+                                    )}>
+                                        {opt.label}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                        
+                        {formData.sumber_dana === 'other' && (
+                            <div className="mt-3 animate-in fade-in slide-in-from-top-2">
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.sumber_dana_other}
+                                    onChange={e => setFormData({...formData, sumber_dana_other: e.target.value})}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
+                                    placeholder="Sebutkan sumber dana..."
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Upload Dasar Surat <span className="text-slate-400 font-normal normal-case tracking-normal ml-1">(Opsional)</span>
+                        </label>
+                        <div className="mt-2 relative">
+                            <input 
+                                type="file" 
+                                id="dasar_surat"
+                                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                className="sr-only"
+                                onChange={handleFileChange}
+                            />
+                            <label 
+                                htmlFor="dasar_surat"
+                                className={cn(
+                                    "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-all bg-slate-50 hover:bg-slate-100",
+                                    selectedFile ? "border-emerald-500 bg-emerald-50/50" : "border-slate-300"
+                                )}
+                            >
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    {selectedFile ? (
+                                        <>
+                                            <FileText className="w-8 h-8 text-emerald-500 mb-2" />
+                                            <p className="text-sm font-bold text-emerald-700">{selectedFile.name}</p>
+                                            <p className="text-xs text-emerald-600/70 opacity-80 mt-1">
+                                                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload className="w-8 h-8 text-slate-400 mb-2" />
+                                            <p className="text-sm font-semibold text-slate-600">Klik untuk upload file</p>
+                                            <p className="text-xs text-slate-400 mt-1">PDF, JPG, PNG (Max. 10MB)</p>
+                                        </>
+                                    )}
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Keterangan Lainnya
+                        </label>
+                        <textarea 
+                            value={formData.keterangan}
+                            onChange={e => setFormData({...formData, keterangan: e.target.value})}
+                            className="w-full min-h-[100px] p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm font-medium"
+                            placeholder="Catatan tambahan (opsional)"
+                        />
+                    </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-100 flex justify-end">
+                    <Button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="h-14 px-10 rounded-xl bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold tracking-wide shadow-lg shadow-emerald-500/20 transition-all text-base disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {isSubmitting ? 'Mengirim Data...' : 'Submit Pengajuan'}
+                    </Button>
+                </div>
+            </form>
+        </div>
+    );
+
+    const renderStep3 = () => (
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 text-center animate-in zoom-in-95 duration-500">
+            <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full mx-auto flex items-center justify-center mb-6 shadow-sm border border-emerald-100">
+                <CheckCircle2 className="w-12 h-12" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-3">Berhasil Disubmit!</h2>
+            <p className="text-slate-500 font-medium max-w-sm mx-auto mb-10">
+                Pengajuan surat tugas Anda berhasil dikirim dan akan segera diproses oleh Admin.
+            </p>
+            <Button 
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="h-12 border-slate-200 hover:bg-slate-50 font-bold"
+            >
+                Buat Surat Tugas Baru
+            </Button>
+        </div>
+    );
+
+    return (
+        <>
+            {isSearching && (
+                <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-sm font-bold text-slate-700">Tunggu sebentar, memuat pegawai...</p>
+                </div>
+            )}
+            <div className="w-full pb-20">
+                {step === 1 && renderStep1()}
+                {step === 2 && renderStep2()}
+                {step === 3 && renderStep3()}
+            </div>
+        </>
+    );
+}

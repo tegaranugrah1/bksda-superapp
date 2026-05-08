@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #046 - UI Enhancement: Split Panel Create Page + Live Letter Preview |
-| **Issue Selanjutnya** | Phase 4 COMPLETE ✅ (UI Enhanced to superapp-inventory standard) |
-| **Branch Aktif** | main (after direct push #046) |
+| **Issue Terakhir Selesai** | #045c - Public Surat Tugas Form + Admin Approve Flow |
+| **IssueSelanjutnya** | Phase 4 Surat Tugas Complete |
+| **Branch Aktif** | issue/045c-public-surat-tugas-form |
 | **Model Terakhir** | GPT-5.2 / Codex |
-| **Timestamp** | 2026-05-07T18:15:00+08:00 |
-| **Status Aktual Sesi Ini** | Phase 4 Surat Tugas (#035-#046) COMPLETE. All frontend pages, backend controllers, shared components, and UI enhanced to match superapp-inventory standard (split panel, glassmorphism, live preview). |
+| **Timestamp** | 2026-05-08T12:00:00+08:00 |
+| **GitHub Issue** | #79 |
 
 ---
 
@@ -66,7 +66,7 @@
 
 ---
 
-## Progress Phase 4: Surat Tugas Module (#035–#045)
+## Progress Phase 4: Surat Tugas Module (#035–#045c)
 
 - [x] #035 — Backend Assignment Letters Migration (`st_assignment_letters` + `st_assignment_letter_employees`, GitHub Issue #66, PR #67 merged)
 - [x] #036 — Assignment Letter Model (`AssignmentLetter.php` + `AssignmentLetterEmployee.php` Pivot, PR #68 merged)
@@ -80,19 +80,23 @@
 - [x] #043 — Approval Dialog (`frontend/src/app/(dashboard)/surat-tugas/_components/ApprovalDialog.tsx`, 3-state (approve/reject/input nomor), PR #76 merged)
 - [x] #044 — Archive + Filter Status Toolbar (`frontend/src/app/(dashboard)/surat-tugas/page.tsx`, Status dropdown + Trash toggle + Delete/Restore mutations, PR #77 merged)
 - [x] #045 — EmployeePicker Component (`frontend/src/components/custom/EmployeePicker.tsx`, debounce 300ms + click-outside, PR #75 merged via #042 dependency)
-- [x] #046 — UI Enhancement: Split Panel Create Page (`frontend/src/app/(dashboard)/surat-tugas/create/page.tsx`, split panel left 440px + live A4 preview right, glassmorphism form, gradient submit button)
+- [x] #045b — UI Enhancement: Split Panel Create Page (`frontend/src/app/(dashboard)/surat-tugas/create/page.tsx`, split panel left 440px + live A4 preview right, glassmorphism form, gradient submit button)
+- [x] #045c — Public Surat Tugas Form + Admin Approve Flow
 
-## File yang Terakhir Dibuat/Diubah (Phase 4)
+## File yang Terakhir Dibuat/Diubah (Phase 4 - #045c)
 ```
-backend/app/Modules/SuratTugas/Migrations/2026_06_01_000001_create_st_assignment_letters_table.php   ← [NEW] #035
-backend/app/Modules/SuratTugas/Migrations/2026_06_01_000002_create_st_assignment_letter_employees_table.php ← [NEW] #035
-backend/app/Modules/SuratTugas/Models/AssignmentLetter.php                                         ← [NEW] #036
-backend/app/Modules/SuratTugas/Models/AssignmentLetterEmployee.php                                 ← [NEW] #036
-backend/app/Modules/SuratTugas/Routes/api.php                                                      ← [NEW] #037, [UPDATED] #038
-backend/app/Modules/SuratTugas/SuratTugasServiceProvider.php                                       ← [NEW] #037
-backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php                                 ← [NEW] #038
-backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php                           ← [NEW] #038
-backend/bootstrap/providers.php                                                                   ← [UPDATED] #037
+backend/app/Modules/SuratTugas/Requests/PublicSuratTugasRequest.php                  ← [NEW] #045c
+backend/app/Modules/SuratTugas/Routes/api.php                                 ← [UPDATED] #045c - public route
+backend/app/Modules/Kepegawaian/Routes/api.php                            ← [UPDATED] #045c - employee select
+backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php           ← [UPDATED] #045c - select()
+```
+
+### Frontend (#045c - Public Form + Admin)
+```
+frontend/src/app/(website)/surat-tugas/page.tsx     ← [NEW] Public form 3 steps
+frontend/src/app/(website)/layout.tsx              ← [NEW] Basic layout with Providers
+frontend/src/app/(dashboard)/admin/surat-tugas/  ← [NEW] Admin pages (moved from surat-tugas)
+frontend/src/components/layout/sidebar.tsx       ← [UPDATED] Menu Surat Tugas
 ```
 
 ### Frontend (Components & Pages)

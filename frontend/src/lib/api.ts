@@ -1,7 +1,7 @@
 import axios from "axios";
 import { authStore } from "@/lib/auth-store";
 
-export const api = axios.create({
+const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api",
   headers: {
     "Content-Type": "application/json",
@@ -41,3 +41,8 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+const apiExport = api;
+
+export { apiExport as api };
+export default apiExport;
