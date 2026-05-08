@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #096 - Backend CMS Routes |
-| **Issue Selanjutnya** | #097 - Frontend CMS Layout & Dashboard |
+| **Issue Terakhir Selesai** | #097 - Frontend CMS Layout & Dashboard |
+| **Issue Selanjutnya** | #098 - Frontend CMS Informasi |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-08T17:30:00+08:00 |
-| **GitHub Issue** | #96 (PR #176 merged) |
+| **Timestamp** | 2026-05-08T22:45:00+08:00 |
+| **GitHub Issue** | #177 (PR #178 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (6/18 issues Phase 8):
+### ✅ SELESAI (7/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -76,8 +76,12 @@
 - Also created: KepalaController & MenuController (missing from #095)
 - GitHub: Issue #96, PR #176 merged ✅
 
-### 📝 BELUM DIKERJAKAN (12/18 issues):
-- #097 - Frontend CMS Layout & Dashboard
+**#097 - Frontend CMS Layout & Dashboard** (Sidebar 14 link + Dashboard 8 metrik)
+- `frontend/src/app/(dashboard)/cms/layout.tsx` — Sidebar dengan SIDEBAR_SECTIONS (4 groups: Umum, Institusi, Media, Publikasi), warna teal
+- `frontend/src/app/(dashboard)/cms/page.tsx` — Dashboard dengan 8 stat cards via React Query parallel fetch (Promise.all)
+- GitHub: Issue #177, PR #178 merged ✅
+
+### 📝 BELUM DIKERJAKAN (11/18 issues):
 - #098 - Frontend CMS Informasi
 - #099 - Frontend CMS Reusable CRUD
 - #100-#108 - (CMS lanjutan)
@@ -149,6 +153,10 @@ backend/app/Modules/CMS/Controllers/Admin/KepalaController.php ← [NEW] #096 - 
 backend/app/Modules/CMS/Controllers/Admin/MenuController.php    ← [NEW] #096 - lightweight CRUD via trait
 
 backend/bootstrap/providers.php                           ← [UPDATED] #093 - tambah CMSServiceProvider
+
+# FRONTEND — Issue #097 (CMS Layout & Dashboard)
+frontend/src/app/(dashboard)/cms/layout.tsx         ← [NEW] #097 - Sidebar 14 links, 4 section groups
+frontend/src/app/(dashboard)/cms/page.tsx           ← [NEW] #097 - Dashboard 8 stat cards, parallel fetch
 ```
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
