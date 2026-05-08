@@ -169,4 +169,3 @@ class EmployeeController extends Controller
         ]);
     }
 }
-}
