@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #094 - Backend CMS Public Controller |
-| **Issue Selanjutnya** | #095 - Backend CMS Admin Controllers |
+| **Issue Terakhir Selesai** | #095 - Backend CMS Admin Controllers |
+| **Issue Selanjutnya** | #096 - Backend CMS Routes |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-08T16:30:00+08:00 |
-| **GitHub Issue** | #94 (PR #172 merged) |
+| **Timestamp** | 2026-05-08T17:00:00+08:00 |
+| **GitHub Issue** | #95 (PR #174 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (4/18 issues Phase 8):
+### ✅ SELESAI (5/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -62,8 +62,14 @@
 - Views counter: `informasiShow()` memanggil `->increment('views_count')`
 - GitHub: Issue #94, PR #172 merged ✅
 
-### 📝 BELUM DIKERJAKAN (14/18 issues):
-- #095 - Backend CMS Admin Controllers
+**#095 - Backend CMS Admin Controllers** (armada controller dengan Trait Injection)
+- `Traits/AdminCrudTrait.php` — 136 lines, 5 CRUD methods generik + handleFileUpload (UUID masking)
+- 10 Controller Ringan: Profil, Kawasan, Tsl, Photo, Video, Link, Leaflet, Poster, Category, Jenis (masing-masing ~14 baris)
+- 5 Controller Khusus: Informasi (+togglePublish, eager load), Buku (+jenis eager load), Regulasi (+tahun filter), Website (singleton pattern), Pesan (custom logic)
+- DRY: Trait mengeliminasi ~600 baris kode repetitif
+- GitHub: Issue #95, PR #174 merged ✅
+
+### 📝 BELUM DIKERJAKAN (13/18 issues):
 - #096 - Backend CMS Routes
 - #097 - Frontend CMS Layout & Dashboard
 - #098 - Frontend CMS Informasi
@@ -111,6 +117,24 @@ backend/app/Modules/CMS/Routes/admin.php                  ← [NEW] #093 - admin
 
 # BACKEND — Issue #094 (Public Controller - Read-Only Etalase)
 backend/app/Modules/CMS/Controllers/Public/PublicController.php  ← [NEW] #094 - 20+ GET endpoints, 337 lines
+
+# BACKEND — Issue #095 (Admin Controllers - Trait Injection)
+backend/app/Modules/CMS/Traits/AdminCrudTrait.php              ← [NEW] #095 - 136 lines, 5 CRUD methods + file upload
+backend/app/Modules/CMS/Controllers/Admin/ProfilController.php   ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/KawasanController.php  ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/TslController.php       ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/PhotoController.php   ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/VideoController.php   ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/LinkController.php     ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/LeafletController.php ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/PosterController.php   ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/CategoryController.php ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/JenisController.php     ← [NEW] #095 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/InformasiController.php ← [NEW] #095 - override index/store + togglePublish
+backend/app/Modules/CMS/Controllers/Admin/BukuController.php      ← [NEW] #095 - override index with eager load
+backend/app/Modules/CMS/Controllers/Admin/RegulasiController.php  ← [NEW] #095 - override index with tahun filter
+backend/app/Modules/CMS/Controllers/Admin/WebsiteController.php   ← [NEW] #095 - singleton pattern, no trait
+backend/app/Modules/CMS/Controllers/Admin/PesanController.php     ← [NEW] #095 - custom index/markAsRead/destroy
 backend/bootstrap/providers.php                           ← [UPDATED] #093 - tambah CMSServiceProvider
 ```
 
