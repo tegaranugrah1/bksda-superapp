@@ -91,7 +91,7 @@ export default function BmnDisposalLogsPage() {
                                             <p className="font-bold text-red-300 text-sm">{new Date(asset.deleted_at).toLocaleDateString("id-ID")}</p>
                                         </td>
                                         <td className="p-4">
-                                            <p className="font-bold text-zinc-300 text-sm max-w-[300px] truncate">{asset.nama_barang}</p>
+                                            <p className="font-bold text-zinc-300 text-sm max-w-75 truncate">{asset.nama_barang}</p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-xs font-mono text-zinc-500">{asset.kode_barang}</span>
                                                 <span className="text-[10px] bg-red-950 text-red-400 px-1.5 py-0.5 rounded font-mono uppercase border border-red-900/50">NUP: {asset.nup}</span>

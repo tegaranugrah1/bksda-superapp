@@ -133,7 +133,7 @@ export default function StockOutPage() {
 
             {errorMessage && (
                 <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center gap-3 text-red-400 animate-in fade-in duration-300">
-                    <AlertOctagon className="w-6 h-6 flex-shrink-0" />
+                    <AlertOctagon className="w-6 h-6 shrink-0" />
                     <div>
                         <p className="font-bold">Operasi Digagalkan</p>
                         <p className="text-sm text-red-500/80">{errorMessage}</p>

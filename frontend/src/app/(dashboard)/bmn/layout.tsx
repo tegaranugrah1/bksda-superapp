@@ -33,7 +33,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                 {/* Header: Logo & Module Switcher */}
                 <div className="p-6 border-b border-zinc-800/50">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
                             <Building2 className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -88,7 +88,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
             </aside>
 
             {/* Area Konten Utama */}
-            <main className="flex-1 relative z-10 overflow-y-auto bg-gradient-to-br from-black to-zinc-900/50">
+            <main className="flex-1 relative z-10 overflow-y-auto bg-linear-to-br from-black to-zinc-900/50">
                 {children}
             </main>
         </div>

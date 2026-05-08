@@ -24,7 +24,7 @@ export function InventorySidebar() {
     const pathname = usePathname();
 
     return (
-        <aside className="w-64 flex-shrink-0 border-r border-zinc-800 bg-zinc-950/50 backdrop-blur-xl hidden md:flex flex-col">
+        <aside className="w-64 shrink-0 border-r border-zinc-800 bg-zinc-950/50 backdrop-blur-xl hidden md:flex flex-col">
             {/* Header / Kop Sidebar */}
             <div className="h-16 flex items-center px-6 border-b border-zinc-800">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center mr-3">

@@ -45,7 +45,7 @@ export default function MaintenanceModal({ isOpen, onClose, assetId, assetName }
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="bg-zinc-950 border border-zinc-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                <div className="flex items-center justify-between p-6 border-b border-zinc-800/50 bg-gradient-to-r from-blue-900/20 to-transparent">
+                <div className="flex items-center justify-between p-6 border-b border-zinc-800/50 bg-linear-to-r from-blue-900/20 to-transparent">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-500/20 rounded-xl text-blue-400"><Wrench className="w-5 h-5" /></div>
                         <h2 className="text-lg font-bold text-white">Catatan Perbaikan Aset</h2>

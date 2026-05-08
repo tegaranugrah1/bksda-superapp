@@ -150,7 +150,7 @@ export default function BmnAssetFormPage({
           ))}
         </div>
 
-        <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 md:p-8 shadow-2xl min-h-[400px]">
+        <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 md:p-8 shadow-2xl min-h-100">
           <div
             className={
               activeTab === "identitas"

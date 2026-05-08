@@ -41,7 +41,7 @@ export default function AssignmentLetterPreview({
       : "";
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto">
+    <div className="fixed inset-0 z-100 flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto">
       <div className="sticky top-0 w-full z-10 flex items-center justify-between px-6 py-4 bg-zinc-900/95 border-b border-zinc-800 shadow-2xl print:hidden backdrop-blur-md">
         <div className="text-white font-medium flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
           <span className="text-sm text-zinc-400 uppercase tracking-widest font-bold">
@@ -74,12 +74,12 @@ export default function AssignmentLetterPreview({
           ref={printRef}
           className="w-[210mm] min-h-[297mm] bg-white p-[25mm] shadow-2xl shadow-black/50 print:shadow-none print:m-0 print:p-[15mm] text-black font-serif relative"
         >
-          <div className="flex items-center justify-between border-b-[4px] border-double border-black pb-4 mb-1">
+          <div className="flex items-center justify-between border-b-4 border-double border-black pb-4 mb-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/kemenhut.png"
               alt="Kemenhut"
-              className="w-[85px] object-contain"
+              className="w-21.25 object-contain"
             />
             <div className="text-center flex-1 px-4 tracking-tight">
               <h1 className="text-base font-bold uppercase tracking-wider">
@@ -103,7 +103,7 @@ export default function AssignmentLetterPreview({
             <img
               src="/assets/logo_bksda.png"
               alt="BKSDA"
-              className="w-[85px] object-contain"
+              className="w-21.25 object-contain"
             />
           </div>
           <div className="border-b-2 border-black mb-8"></div>
@@ -120,7 +120,7 @@ export default function AssignmentLetterPreview({
 
           <div className="space-y-6 text-[15px] leading-relaxed text-justify">
             <div className="flex items-start gap-4">
-              <div className="w-[120px] font-bold tracking-widest">Dasar</div>
+              <div className="w-30 font-bold tracking-widest">Dasar</div>
               <div className="w-4 font-bold">:</div>
               <div className="flex-1 whitespace-pre-wrap">
                 {data.dasar_hukum ||
@@ -133,7 +133,7 @@ export default function AssignmentLetterPreview({
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="w-[120px] font-bold tracking-widest">Kepada</div>
+              <div className="w-30 font-bold tracking-widest">Kepada</div>
               <div className="w-4 font-bold">:</div>
               <div className="flex-1">
                 <table className="w-full text-[15px]">
@@ -141,7 +141,7 @@ export default function AssignmentLetterPreview({
                     {data.employees?.map((emp, index) => (
                       <tr key={emp.id}>
                         <td className="w-8 align-top py-1">{index + 1}.</td>
-                        <td className="w-[100px] align-top py-1">
+                        <td className="w-25 align-top py-1">
                           Nama
                           <br />
                           NIP
@@ -166,7 +166,7 @@ export default function AssignmentLetterPreview({
             </div>
 
             <div className="flex items-start gap-4 mt-6">
-              <div className="w-[120px] font-bold tracking-widest">Untuk</div>
+              <div className="w-30 font-bold tracking-widest">Untuk</div>
               <div className="w-4 font-bold">:</div>
               <div className="flex-1 whitespace-pre-wrap">
                 {data.maksud_tujuan}
@@ -174,7 +174,7 @@ export default function AssignmentLetterPreview({
             </div>
 
             <div className="flex items-start gap-4 mt-2">
-              <div className="w-[120px] font-bold tracking-widest">Waktu</div>
+              <div className="w-30 font-bold tracking-widest">Waktu</div>
               <div className="w-4 font-bold">:</div>
               <div className="flex-1">
                 {data.tanggal_mulai} <span className="mx-2 font-bold">s/d</span>{" "}
@@ -183,7 +183,7 @@ export default function AssignmentLetterPreview({
             </div>
 
             <div className="flex items-start gap-4 mt-2">
-              <div className="w-[120px] font-bold tracking-widest">Tempat</div>
+              <div className="w-30 font-bold tracking-widest">Tempat</div>
               <div className="w-4 font-bold">:</div>
               <div className="flex-1 font-bold">{data.tempat_tujuan}</div>
             </div>
@@ -195,7 +195,7 @@ export default function AssignmentLetterPreview({
                 {data.status === "approved" || data.status === "completed" ? (
                   <QRCode value={verifyUrl} size={90} level="M" />
                 ) : (
-                  <div className="w-[90px] h-[90px] flex items-center justify-center bg-zinc-100 text-[10px] text-zinc-400 font-bold border border-dashed border-zinc-300 text-center leading-tight">
+                  <div className="w-22.5 h-22.5 flex items-center justify-center bg-zinc-100 text-[10px] text-zinc-400 font-bold border border-dashed border-zinc-300 text-center leading-tight">
                     BELUM
                     <br />
                     DISETUJUI
@@ -207,7 +207,7 @@ export default function AssignmentLetterPreview({
               </p>
             </div>
 
-            <div className="w-[300px] text-center text-[15px]">
+            <div className="w-75 text-center text-[15px]">
               <p className="mb-0.5 text-left ml-6">
                 Dikeluarkan di{" "}
                 <span className="ml-2">: Ibu Kota Pemerintahan</span>

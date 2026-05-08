@@ -164,7 +164,7 @@ export default function BmnAssetsPage() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <p className="font-bold text-zinc-100 text-sm max-w-[250px] truncate">
+                      <p className="font-bold text-zinc-100 text-sm max-w-62.5 truncate">
                         {asset.nama_barang}
                       </p>
                       <p className="text-xs text-zinc-500 truncate">
@@ -191,7 +191,7 @@ export default function BmnAssetsPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-2 text-xs text-zinc-400 mb-1">
                         <MapPin className="w-3.5 h-3.5 text-zinc-500" />
-                        <span className="truncate max-w-[150px]">
+                        <span className="truncate max-w-37.5">
                           {asset.lokasi_spesifik || "Gudang Utama"}
                         </span>
                       </div>
