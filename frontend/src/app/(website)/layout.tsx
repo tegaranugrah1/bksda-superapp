@@ -1,27 +1,22 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "@/app/globals.css";
-import { Providers } from "@/components/providers";
+import PublicNavbar from "./_components/PublicNavbar";
+import PublicFooter from "./_components/PublicFooter";
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "BKSDA SuperApp - Pengajuan Surat Tugas",
-  description: "Pengajuan Surat Tugas Online",
+export const metadata = {
+  title: "BKSDA — Balai Konservasi Sumber Daya Alam",
+  description:
+    "Website resmi Balai Konservasi Sumber Daya Alam — Kementerian Lingkungan Hidup dan Kehutanan Republik Indonesia.",
 };
 
-export default function PublicLayout({
+export default function WebsiteLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="id" suppressHydrationWarning>
-      <body className={`${inter.className} font-sans antialiased min-h-screen bg-slate-50`}>
-        <Providers>
-          {children}
-        </Providers>
-      </body>
-    </html>
+    <div className="min-h-screen flex flex-col bg-white">
+      <PublicNavbar />
+      <main className="flex-1">{children}</main>
+      <PublicFooter />
+    </div>
   );
 }
