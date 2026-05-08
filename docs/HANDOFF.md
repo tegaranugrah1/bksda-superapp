@@ -323,45 +323,133 @@ Jika kamu membaca file ini di sesi chat baru, lakukan langkah berikut:
 
 #### A. Git Workflow — DILARANG SHORTCUT
 Setiap issue WAJIB mengikuti flow ini **TANPA PENGECUALIAN**:
+
 ```bash
-0. gh issue create --title "nama issue" --body "deskripsi" (Jika issue belum ada di GitHub)
-1. git checkout -b issue/XXX-nama-issue
-2. Kerjakan kode
-3. Cek IDE warnings (lihat poin B)
-4. Minta KONFIRMASI ke User sebelum lanjut ke langkah 5! (Kecuali untuk Issue Utama Phase 1-125)
-5. git add . && git commit -m "feat(module): deskripsi (#XXX)"
-6. git push -u origin issue/XXX-nama-issue
-7. gh pr create --title "feat(module): deskripsi (#XXX)" --base main
-8. gh pr merge <PR_NUMBER> --merge --delete-branch
-9. git checkout main && git pull
+# STEP 0 — Buat GitHub Issue (jika belum ada)
+gh issue create --title "feat(module): nama issue" --body "deskripsi" --label "backend" # atau frontend
+
+# STEP 1 — Ambil state terbaru & buat branch
+git pull origin main
+git checkout -b issue/XXX-nama-issue
+
+# STEP 2 — Kerjakan kode sesuai spec di docs/issues/XXX-*.md
+
+# STEP 3 — CEK IDE WARNINGS (WAJIB, lihat poin B untuk detail lengkap)
+cd frontend && npm run lint -- --max-warnings=0   # wajib 0
+cd frontend && npx tsc --noEmit                   # wajib 0 error
+cd frontend && npm run build                       # wajib clean
+# Periksa juga tab Problems di VS Code untuk Tailwind v4 warnings!
+# Ganti bg-gradient-to-* → bg-linear-to-*, flex-shrink-0 → shrink-0, dst.
+
+# STEP 4 — Commit
+git add backend/ frontend/   # jangan pakai git add . sembarangan
+git commit -m "feat(module): deskripsi (#<nomor_gh_issue>)"
+
+# STEP 5 — Push & PR
+git push -u origin issue/XXX-nama-issue
+gh pr create --title "feat(module): deskripsi (#XXX)" --body "Closes #<nomor_gh_issue>" --base main
+
+# STEP 6 — Merge & cleanup
+gh pr merge <PR_NUMBER> --merge --delete-branch
+git checkout main && git pull origin main
+
+# STEP 7 — Update HANDOFF.md lalu push
+# Tandai issue sebagai [x] di HANDOFF.md, update Status Saat Ini, lalu:
+git add docs/HANDOFF.md && git commit -m "docs: update HANDOFF.md - issue #XXX selesai" && git push origin main
 ```
-> ❌ **DILARANG** mulai mengerjakan fitur/bug baru di luar flow utama (Phase 1-125) jika belum ada tiket isunya di GitHub!
-> ❌ **DILARANG** melakukan `commit` atau membuat `Pull Request` untuk issue tambahan/bug tanpa konfirmasi dari User (misal: "Lanjutkan", "Oke")!
+
+> ❌ **DILARANG** mulai mengerjakan issue tanpa `gh issue create` terlebih dahulu!
+> ❌ **DILARANG** skip cek IDE warning — Tailwind v4 warnings **harus 0** sebelum commit!
 > ❌ **DILARANG** commit langsung ke `main` tanpa PR!
-> ❌ **DILARANG** skip membuat GitHub Issue untuk issue yang dikerjakan!
+> ❌ **DILARANG** `git add .` — selalu spesifikasi folder (`backend/` atau `frontend/`) untuk menghindari commit file tidak perlu!
 
 #### B. IDE Warning Check — SEBELUM SETIAP PUSH
-Jalankan command berikut **DAN pastikan hasilnya 0 error/warning**:
-```bash
-# Frontend
-cd frontend && npm run lint && npm run build
 
-# Backend  
-cd backend && php -l app/Modules/**/*.php
+Jalankan **semua command berikut** dan pastikan hasilnya **0 error / 0 warning**:
+
+```bash
+# 1. ESLint — wajib 0 warning
+cd frontend && npm run lint -- --max-warnings=0
+
+# 2. TypeScript — wajib 0 error
+cd frontend && npx tsc --noEmit
+
+# 3. Next.js Build — wajib clean
+cd frontend && npm run build
+
+# 4. PHP syntax check
+cd backend && php artisan route:list
 ```
-Juga periksa **pesan IDE yang di-attach user** (format `@[file:current_problems]`).
-Jika ada warning, **PERBAIKI DULU** sebelum push. Jangan abaikan!
+
+##### ⚠️ Tailwind v4 Canonical Class Warnings (WAJIB CEK)
+Proyek ini memakai **Tailwind CSS v4**. IDE (VS Code) akan menampilkan warning jika kamu memakai class lama. **Sebelum commit**, selalu periksa tab `Problems` di VS Code atau jalankan diagnostics.
+
+Aturan penggantian yang **WAJIB** diikuti:
+
+| ❌ Class Lama (v3) | ✅ Class Baru (v4 Canonical) |
+|---|---|
+| `bg-gradient-to-br` | `bg-linear-to-br` |
+| `bg-gradient-to-r` | `bg-linear-to-r` |
+| `bg-gradient-to-l` | `bg-linear-to-l` |
+| `bg-gradient-to-t` | `bg-linear-to-t` |
+| `bg-gradient-to-b` | `bg-linear-to-b` |
+| `flex-shrink-0` | `shrink-0` |
+| `flex-shrink` | `shrink` |
+| `flex-grow-0` | `grow-0` |
+| `flex-grow` | `grow` |
+| `overflow-ellipsis` | `text-ellipsis` |
+| `z-[100]` | `z-100` |
+| `border-b-[4px]` | `border-b-4` |
+| `w-[85px]` | `w-21.25` |
+| `w-[90px]` | `w-22.5` |
+| `h-[90px]` | `h-22.5` |
+| `w-[100px]` | `w-25` |
+| `w-[120px]` | `w-30` |
+| `w-[150px]` | `w-37.5` |
+| `w-[250px]` | `w-62.5` |
+| `w-[300px]` | `w-75` |
+| `max-w-[250px]` | `max-w-62.5` |
+| `max-w-[300px]` | `max-w-75` |
+| `min-h-[400px]` | `min-h-100` |
+
+> **Aturan umum arbitrary value**: Jika nilai adalah kelipatan 4px (`[Xpx]` di mana X % 4 = 0), selalu gunakan `X/4` sebagai angka canonical. Contoh: `w-[160px]` → `w-40`, `h-[48px]` → `h-12`.
+
+Jika ada warning yang tidak ada di tabel di atas, cari di [Tailwind CSS v4 upgrade guide](https://tailwindcss.com/docs/upgrade-guide) atau tanyakan ke user.
 
 #### C. End-of-Phase Checklist (MANDATORY)
-Setiap Phase selesai, **WAJIB** jalankan semua langkah ini:
+Setiap Phase selesai, **WAJIB** jalankan semua langkah ini **SECARA BERURUTAN**:
 
-- [ ] **IDE Check**: 0 error/warning di ESLint, TypeScript, PHP
-- [ ] **UI Comparison**: Bandingkan UI dengan `e:\superapp-inventory\`. Jika *basic*, buat Issue "Phase X UI Overhaul"
-- [ ] **GitHub Issues**: Semua issue sudah CLOSED (jalankan `gh issue list --state open`)
-- [ ] **GitHub PRs**: Semua issue punya PR yang sudah MERGED (jalankan `gh pr list --state all`)
-- [ ] **Update HANDOFF.md**: Timestamp, status, issue selanjutnya
+```bash
+# 1. Cek ESLint
+cd frontend && npm run lint -- --max-warnings=0
+
+# 2. Cek TypeScript
+cd frontend && npx tsc --noEmit
+
+# 3. Cek Build
+cd frontend && npm run build
+
+# 4. Cek IDE warnings (Tailwind v4)
+# Buka VS Code Problems tab ATAU gunakan diagnostics tool
+# Semua warning Tailwind v4 HARUS 0 sebelum lanjut!
+
+# 5. Cek GitHub Issues phase ini sudah semua closed
+gh issue list --state open
+
+# 6. Cek semua PR sudah merged
+gh pr list --state all --limit 20
+```
+
+Setelah semua command clean:
+- [ ] **ESLint**: `npm run lint -- --max-warnings=0` → **0 warning**
+- [ ] **TypeScript**: `npx tsc --noEmit` → **0 error**
+- [ ] **Build**: `npm run build` → **clean, 0 error**
+- [ ] **Tailwind v4 IDE**: Tab Problems VS Code → **0 warning** (lihat tabel di poin B)
+- [ ] **GitHub Issues**: Semua issue phase ini CLOSED
+- [ ] **GitHub PRs**: Semua PR sudah MERGED
+- [ ] **Update HANDOFF.md**: Checklist `[x]`, Status Saat Ini, timestamp, issue selanjutnya, file tree yang dibuat, endpoint API baru
 - [ ] **Update ONBOARDING.md**: Ubah status Phase dari `📋 Spec` → `✅ Done`
-- [ ] **Push dokumentasi**: Commit & push perubahan docs
+- [ ] **Push dokumentasi**: `git add docs/ && git commit -m "docs: Phase X complete" && git push origin main`
 
 > ⚠️ **JIKA ADA SATU SAJA LANGKAH YANG TERLEWAT, PHASE BELUM DIANGGAP SELESAI!**
 
