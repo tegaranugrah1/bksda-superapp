@@ -12,9 +12,9 @@
 |-------|-------|
 | **Issue Terakhir Selesai** | #082 - Backend DeReporting Ekternal Controller |
 | **Issue Selanjutnya** | #083 - Backend DeReporting Operator Controller |
-| **Branch Aktif** | `main` |
+| **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-08T12:40:00+08:00 |
+| **Timestamp** | 2026-05-08T12:48:00+08:00 |
 | **GitHub Issue** | #155 (PR #156 merged) |
 
 > [!IMPORTANT]
@@ -97,7 +97,7 @@
 - [x] #080 — Backend DeReporting Master Controller (Dynamic model mapping for 7 tables in 1 controller, GitHub Issue #151, PR #152 merged)
 - [x] #081 — Backend DeReporting Internal Controller (InternalController: CRUD + 8-relation eager load + private storage + UUID masking, GitHub Issue #153, PR #154 merged)
 - [x] #082 — Backend DeReporting Ekternal Controller (EkternalController: throttle:10,1 + IP forensic + admin review, GitHub Issue #155, PR #156 merged)
-- [ ] #083 — Backend DeReporting Operator Controller
+- [ ] #083 — Backend DeReporting Operator Controller (**GitHub Issue #157 sudah dibuat**, branch belum dibuat, PERLU: 1. Migration tambah kolom `dereporting_role` & `dereporting_bidang_id` ke tabel `users` — BELUM ADA, 2. Tambah `dereportingBidang()` relation ke `User.php` — BELUM ADA, 3. Tambah kolom ke `$fillable` di `User.php`)
 - [ ] #084 — Backend DeReporting Routes
 - [ ] #085 — Backend DeReporting Form Requests
 - [ ] #086 — Frontend DeReporting Public Form
