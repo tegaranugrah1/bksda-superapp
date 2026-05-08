@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #076 - Frontend BMN Utils & Constants |
-| **Issue Selanjutnya** | #077 - DeReporting Module (Phase 7) |
+| **Issue Terakhir Selesai** | #077 - Backend DeReporting Migrations |
+| **Issue Selanjutnya** | #078 - Backend DeReporting Models |
 | **Branch Aktif** | `main` |
-| **Model Terakhir** | Claude Sonnet 4.6 |
-| **Timestamp** | 2025-05-08T16:00:00+08:00 |
-| **GitHub Issue** | #138 (PR #139 merged) |
+| **Model Terakhir** | Claude Opus 4.6 |
+| **Timestamp** | 2026-05-08T12:27:00+08:00 |
+| **GitHub Issue** | #145 (PR #146 merged) |
 
 > [!IMPORTANT]
 > **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
@@ -86,6 +86,25 @@
 - [x] #057 — Frontend Inventory Stock Out (orange form + cross-module employees, GitHub Issue #104, PR #105 merged)
 - [x] #058 — Frontend Inventory Transactions (audit trail + backend patch history(), GitHub Issue #106, PR #107 merged)
 - [x] #059 — Frontend Inventory Types (5 TypeScript interfaces, GitHub Issue #108, PR #109 merged)
+
+---
+
+## Progress Phase 7: DeReporting Module (#077–#090)
+
+- [x] #077 — Backend DeReporting Migrations (3 files: 7 master tables + dr_internals + dr_ekternals, GitHub Issue #145, PR #146 merged)
+- [ ] #078 — Backend DeReporting Models
+- [ ] #079 — Backend DeReporting Service Provider
+- [ ] #080 — Backend DeReporting Master Controller
+- [ ] #081 — Backend DeReporting Internal Controller
+- [ ] #082 — Backend DeReporting Ekternal Controller
+- [ ] #083 — Backend DeReporting Operator Controller
+- [ ] #084 — Backend DeReporting Routes
+- [ ] #085 — Backend DeReporting Form Requests
+- [ ] #086 — Frontend DeReporting Public Form
+- [ ] #087 — Frontend DeReporting Dashboard
+- [ ] #088 — Frontend DeReporting Internal
+- [ ] #089 — Frontend DeReporting Sub Pages
+- [ ] #090 — Frontend DeReporting Types
 
 ---
 
