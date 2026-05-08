@@ -27,6 +27,8 @@ class User extends Authenticatable
         'role',
         'access_modules',
         'is_active',
+        'dereporting_role',
+        'dereporting_bidang_id',
     ];
 
     /**
@@ -54,5 +56,13 @@ class User extends Authenticatable
             'access_modules' => 'array', // Mengubah JSON DB menjadi Array PHP
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Relasi ke Bidang DeReporting (Operator)
+     */
+    public function dereportingBidang()
+    {
+        return $this->belongsTo(\App\Modules\DeReporting\Models\Bidang::class, 'dereporting_bidang_id');
     }
 }
