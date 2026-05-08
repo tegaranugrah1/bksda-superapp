@@ -31,6 +31,7 @@ Route::get('/ping', function () {
 Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 Route::get('/offices', [OfficeController::class, 'index']);
 Route::get('/items', [ItemController::class, 'index']);
+Route::get('/transactions', [StockController::class, 'history']);
 
 // ==========================================
 // RUTE KENDALI (WRITE)
