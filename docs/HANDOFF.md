@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #083 - Backend DeReporting Operator Controller |
-| **Issue Selanjutnya** | #084 - Backend DeReporting Routes |
+| **Issue Terakhir Selesai** | #085 - Backend DeReporting Form Requests |
+| **Issue Selanjutnya** | #086 - Frontend DeReporting Public Form |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | hy3-preview-free |
-| **Timestamp** | 2026-05-08T14:30:00+08:00 |
-| **GitHub Issue** | #83 (PR #158 merged) |
+| **Timestamp** | 2026-05-08T15:00:00+08:00 |
+| **GitHub Issue** | #161 (PR #162 merged) |
 
 > [!IMPORTANT]
 > **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
@@ -98,7 +98,8 @@
 - [x] #081 — Backend DeReporting Internal Controller (InternalController: CRUD + 8-relation eager load + private storage + UUID masking, GitHub Issue #153, PR #154 merged)
 - [x] #082 — Backend DeReporting Ekternal Controller (EkternalController: throttle:10,1 + IP forensic + admin review, GitHub Issue #155, PR #156 merged)
 - [x] #083 — Backend DeReporting Operator Controller (OperatorController: CRUD operator delegation via User IAM mutation, Migration add dereporting columns to users, GitHub Issue #83, PR #158 merged)
-- [ ] #084 — Backend DeReporting Routes
+- [x] #084 — Backend DeReporting Routes (Strict RBAC routing: Public Zone, Employee Zone, Admin Zone nested middleware, GitHub Issue #159, PR #160 merged)
+- [x] #085 — Backend DeReporting Form Requests (StoreInternalRequest & StoreEksternalRequest + Controller refactoring, GitHub Issue #161, PR #162 merged)
 - [ ] #085 — Backend DeReporting Form Requests
 - [ ] #086 — Frontend DeReporting Public Form
 - [ ] #087 — Frontend DeReporting Dashboard
