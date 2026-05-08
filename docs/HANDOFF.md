@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #099 - Frontend CMS Reusable CRUD |
-| **Issue Selanjutnya** | #100 - Frontend CMS Profil & Kawasan |
+| **Issue Terakhir Selesai** | #100 - Frontend CMS Special Pages |
+| **Issue Selanjutnya** | #101 - Frontend Public Layout |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T00:30:00+08:00 |
-| **GitHub Issue** | #181 (PR #182 merged) |
+| **Timestamp** | 2026-05-09T01:00:00+08:00 |
+| **GitHub Issue** | #183 (PR #184 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (9/18 issues Phase 8):
+### ✅ SELESAI (10/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -94,8 +94,14 @@
 - 12 halaman CRUD ultra-tipis (15-30 baris per halaman): kawasan, profil, tsl, photos, videos, links, buku, leaflet, poster, regulasi, categories, kepala
 - GitHub: Issue #181, PR #182 merged ✅
 
-### 📝 BELUM DIKERJAKAN (9/18 issues):
-- #100-#108 - (CMS lanjutan)
+**#100 - Frontend CMS Special Pages** (Website Settings, Pesan Inbox, Menu Builder)
+- `website/page.tsx` — Singleton settings form untuk konfigurasi website
+- `pesan/page.tsx` — Inbox dengan filter tabs dan aksi mark read/delete
+- `menus/page.tsx` — CRUD menu builder menggunakan CrudPageFactory
+- GitHub: Issue #183, PR #184 merged ✅
+
+### 📝 BELUM DIKERJAKAN (8/18 issues):
+- #101-#108 - (CMS lanjutan)
 
 ### 📊 FILE SUMMARY PHASE 8:
 **Backend CMS Migrations (#091):**
@@ -190,6 +196,11 @@ frontend/src/app/(dashboard)/cms/poster/page.tsx                  ← [NEW] #099
 frontend/src/app/(dashboard)/cms/regulasi/page.tsx                ← [NEW] #099 - Regulasi CRUD page (23 lines)
 frontend/src/app/(dashboard)/cms/categories/page.tsx              ← [NEW] #099 - Categories CRUD page (25 lines)
 frontend/src/app/(dashboard)/cms/kepala/page.tsx                  ← [NEW] #099 - Kepala CRUD page (23 lines)
+
+# FRONTEND — Issue #100 (CMS Special Pages)
+frontend/src/app/(dashboard)/cms/website/page.tsx              ← [NEW] #100 - Website settings singleton form
+frontend/src/app/(dashboard)/cms/pesan/page.tsx               ← [NEW] #100 - Pesan inbox dengan filter tabs
+frontend/src/app/(dashboard)/cms/menus/page.tsx               ← [NEW] #100 - Menu builder CRUD
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
