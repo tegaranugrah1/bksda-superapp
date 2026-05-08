@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #104 - Frontend Kawasan Pages |
-| **Issue Selanjutnya** | #105 - Frontend TSL Pages |
+| **Issue Terakhir Selesai** | #105 - Frontend TSL Pages |
+| **Issue Selanjutnya** | #106 - Frontend Galeri Pages |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:00:00+08:00 |
-| **GitHub Issue** | #104 (PR #193 merged) |
+| **GitHub Issue** | #105 (PR #195 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -125,8 +125,14 @@
 - Leaflet icon fix via CDN unpkg
 - GitHub: Issue #192, PR #193 merged ✅
 
-### 📝 BELUM DIKERJAKAN (4/18 issues):
-- #105-#108 - (CMS lanjutan)
+**#105 - Frontend TSL Pages** (Ensiklopedia Spesies Dilindungi)
+- `tsl/page.tsx` — Daftar spesies dengan tab Satwa/Tumbuhan + pencarian debounced + pagination
+- `tsl/[slug]/page.tsx` — Detail spesies dengan foto + nama latin italic + kartu IUCN
+- Badge IUCN berwarna: CR (merah), EN (oranye), VU (kuning), NT (biru), LC (hijau)
+- GitHub: Issue #194, PR #195 merged ✅
+
+### 📝 BELUM DIKERJAKAN (3/18 issues):
+- #106-#108 - (CMS lanjutan)
 
 ### 📊 FILE SUMMARY PHASE 8:
 **Backend CMS Migrations (#091):**
@@ -243,6 +249,10 @@ frontend/src/app/(website)/informasi/[slug]/page.tsx     ← [NEW] #103 - Detail
 frontend/src/app/(website)/kawasan/page.tsx              ← [NEW] #104 - Daftar kawasan dengan Leaflet map overview
 frontend/src/app/(website)/kawasan/[slug]/page.tsx      ← [NEW] #104 - Detail kawasan dengan peta zoom
 frontend/src/app/(website)/kawasan/_components/KawasanMap.tsx ← [NEW] #104 - Komponen peta SSR-safe dual-mode
+
+# FRONTEND — Issue #105 (TSL Pages)
+frontend/src/app/(website)/tsl/page.tsx                  ← [NEW] #105 - Daftar spesies dengan tab Satwa/Tumbuhan
+frontend/src/app/(website)/tsl/[slug]/page.tsx          ← [NEW] #105 - Detail spesies dengan kartu IUCN
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
