@@ -177,6 +177,18 @@ frontend/src/lib/bmn-utils.ts                                                   
 
 ---
 
+## ⚠️ Hutang Teknis (Technical Debt) dari Phase Sebelumnya
+
+> Catatan item yang **belum dikerjakan** dari Phase 5 dan Phase 6.
+> Harus diselesaikan sebelum deployment production atau di issue terpisah.
+
+| # | Phase | Deskripsi | Status |
+|---|-------|-----------|--------|
+| 1 | Phase 6 (BMN) | **BMN Dashboard** (`/bmn`) masih pakai **mock data**. Endpoint `/api/bmn/dashboard/stats` **BELUM DIBUAT** di backend. | ❌ Pending |
+| 2 | Phase 6 (BMN) | **BMN Reports** (`/bmn/reports`) — 3 tombol download Excel memanggil endpoint `/export` yang **BELUM ADA** di backend. UI placeholder only. | ❌ Pending |
+
+---
+
 ## Progress Phase 4: Surat Tugas Module (#035–#045c)
 
 - [x] #035 — Backend Assignment Letters Migration (`st_assignment_letters` + `st_assignment_letter_employees`, GitHub Issue #66, PR #67 merged)
