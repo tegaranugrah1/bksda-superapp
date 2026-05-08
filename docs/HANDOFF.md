@@ -69,6 +69,66 @@
 - `backend/app/Modules/CMS/Migrations/2024_01_01_000002_create_cms_content_tables.php` (cms_informasi, cms_profil, cms_kawasan, cms_tsl)
 - `backend/app/Modules/CMS/Migrations/2024_01_01_000003_create_cms_media_tables.php` (cms_photos, cms_videos, cms_pesan, cms_links)
 - `backend/app/Modules/CMS/Migrations/2024_01_01_000004_create_cms_publication_tables.php` (cms_jenis, cms_buku, cms_leaflet, cms_regulasi)
+
+### File yang Dibuat/Diubah (Phase 8 - CMS)
+```
+# BACKEND — Issue #091 (Migrations)
+backend/app/Modules/CMS/Migrations/2024_01_01_000001_create_cms_foundation_tables.php  ← [NEW] #091
+backend/app/Modules/CMS/Migrations/2024_01_01_000002_create_cms_content_tables.php     ← [NEW] #091
+backend/app/Modules/CMS/Migrations/2024_01_01_000003_create_cms_media_tables.php       ← [NEW] #091
+backend/app/Modules/CMS/Migrations/2024_01_01_000004_create_cms_publication_tables.php ← [NEW] #091
+
+# BACKEND — Issue #092 (17 Models)
+backend/app/Modules/CMS/Models/Category.php       ← [NEW] #092 - belongsTo parent rekursif
+backend/app/Modules/CMS/Models/Website.php         ← [NEW] #092 - singleton, tanpa SoftDeletes
+backend/app/Modules/CMS/Models/Kepala.php          ← [NEW] #092 - scope active()
+backend/app/Modules/CMS/Models/Menu.php            ← [NEW] #092 - self-referencing parent/children
+backend/app/Modules/CMS/Models/Informasi.php       ← [NEW] #092 - belongsTo Category, scope active()
+backend/app/Modules/CMS/Models/Profil.php          ← [NEW] #092 - cast json
+backend/app/Modules/CMS/Models/Kawasan.php         ← [NEW] #092 - float casts lat/lng
+backend/app/Modules/CMS/Models/Tsl.php             ← [NEW] #092 - scopes satwa()/tumbuhan()
+backend/app/Modules/CMS/Models/Photo.php           ← [NEW] #092
+backend/app/Modules/CMS/Models/Video.php           ← [NEW] #092 - youtube_url
+backend/app/Modules/CMS/Models/Pesan.php           ← [NEW] #092 - scope unread()
+backend/app/Modules/CMS/Models/Link.php            ← [NEW] #092
+backend/app/Modules/CMS/Models/Jenis.php           ← [NEW] #092 - hasMany Buku, Regulasi
+backend/app/Modules/CMS/Models/Buku.php            ← [NEW] #092 - belongsTo Jenis
+backend/app/Modules/CMS/Models/Leaflet.php         ← [NEW] #092 - STI pattern (global scope type=leaflet)
+backend/app/Modules/CMS/Models/Poster.php          ← [NEW] #092 - STI pattern (global scope type=poster)
+backend/app/Modules/CMS/Models/Regulasi.php        ← [NEW] #092 - belongsTo Jenis
+
+# BACKEND — Issue #093 (Service Provider + Routes)
+backend/app/Modules/CMS/Providers/CMSServiceProvider.php  ← [NEW] #093 - dual-path routing
+backend/app/Modules/CMS/Routes/public.php                 ← [NEW] #093 - website publik (tanpa auth)
+backend/app/Modules/CMS/Routes/admin.php                  ← [NEW] #093 - admin CMS (auth:sanctum + module.access:cms)
+backend/bootstrap/providers.php                           ← [UPDATED] #093 - tambah CMSServiceProvider
+```
+
+### Endpoint API Tersedia (Backend CMS — saat ini)
+
+| Method | Endpoint | Middleware | Keterangan |
+|--------|----------|-----------|------------|
+| GET | `/api/cms/public/ping` | `api` only | Health check website publik |
+| GET | `/api/cms/admin/ping` | `api`, `auth:sanctum`, `module.access:cms` | Health check admin CMS |
+
+> **Note**: Endpoint baru akan ditambahkan di Issue #094 (Public Controller) dan #095 (Admin Controllers).
+
+### Catatan Penting Phase 8 (CMS)
+- **STI (Single Table Inheritance)**: `Leaflet` dan `Poster` berbagi tabel `cms_leaflet`. Dibedakan via kolom `type` dan Global Scope.
+- **Dual-Path Routing**: CMS punya 2 file route: `public.php` (tanpa auth, untuk pengunjung website) dan `admin.php` (dengan auth, untuk admin kelola konten).
+- **17 Models, 16 Tabel**: Leaflet & Poster berbagi 1 tabel → 17 model untuk 16 tabel.
+- **Website Model**: Singleton tanpa SoftDeletes (1 row di tabel, tidak perlu soft-delete).
+- **Menu Model**: Punya relasi rekursif `parent()` dan `children()` untuk nested menu.
+- **Resources/**: Folder sudah ada tapi KOSONG (`.gitkeep` saja) — API Resource classes belum dibuat (hutang teknis global).
+
+### 🔍 Hasil Audit Phase 1-8 (dilakukan sebelum #093)
+> Audit menyeluruh terhadap RULES.md (77 rules) menghasilkan:
+> - **74% compliance** (57/77 rules pass)
+> - **0 security-critical violations**
+> - **10 violations** — mayoritas "aspirational" (belum diimplementasi karena fase masih early)
+> - **Top 3 hutang teknis**: (1) Tidak ada API Resource classes, (2) Missing return type hints, (3) Status magic strings tanpa PHP Enum
+> - **Bugfix**: 5 bugs di `EkternalController.php` ditemukan dan diperbaiki (duplikat code, wrong import, missing method)
+
 ---
 
 ## Progress Phase 1: Project Init & Foundation (#001–#008)
@@ -255,15 +315,21 @@ frontend/src/lib/bmn-utils.ts                                                   
 
 ---
 
-## ⚠️ Hutang Teknis (Technical Debt) dari Phase Sebelumnya
+## ⚠️ Hutang Teknis (Technical Debt)
 
-> Catatan item yang **belum dikerjakan** dari Phase 5 dan Phase 6.
+> Catatan item yang **belum dikerjakan** dari Phase 5, Phase 6, dan hasil Audit Phase 1-8.
 > Harus diselesaikan sebelum deployment production atau di issue terpisah.
 
-| # | Phase | Deskripsi | Status |
-|---|-------|-----------|--------|
-| 1 | Phase 6 (BMN) | **BMN Dashboard** (`/bmn`) masih pakai **mock data**. Endpoint `/api/bmn/dashboard/stats` **BELUM DIBUAT** di backend. | ❌ Pending |
-| 2 | Phase 6 (BMN) | **BMN Reports** (`/bmn/reports`) — 3 tombol download Excel memanggil endpoint `/export` yang **BELUM ADA** di backend. UI placeholder only. | ❌ Pending |
+| # | Phase | Deskripsi | Severity | Status |
+|---|-------|-----------|----------|--------|
+| 1 | Phase 6 (BMN) | **BMN Dashboard** (`/bmn`) masih pakai **mock data**. Endpoint `/api/bmn/dashboard/stats` **BELUM DIBUAT** di backend. | 🟡 MEDIUM | ❌ Pending |
+| 2 | Phase 6 (BMN) | **BMN Reports** (`/bmn/reports`) — 3 tombol download Excel memanggil endpoint `/export` yang **BELUM ADA** di backend. UI placeholder only. | 🟡 MEDIUM | ❌ Pending |
+| 3 | ALL (Audit) | **API Resource classes** (`JsonResource`) belum ada di semua module. Semua controller return model langsung (Rule 5.6, 8.10). | 🟡 MEDIUM | ❌ Pending |
+| 4 | ALL (Audit) | **Return type hints** missing di semua Controllers kecuali Kepegawaian (Rule 8.12). | 🟢 LOW | ❌ Pending |
+| 5 | ALL (Audit) | **PHP Enum** belum dipakai untuk status values — masih magic strings (Rule 8.11). | 🟡 MEDIUM | ❌ Pending |
+| 6 | DeReporting | **OperatorController.store()** pakai `Request` bukan `FormRequest` (Rule 8.9). | 🟢 LOW | ❌ Pending |
+| 7 | ALL (Audit) | **Laravel Pint** belum pernah dijalankan (Rule 9.9). | 🟢 LOW | ❌ Pending |
+| 8 | ALL (Audit) | **Response format** tidak konsisten — beberapa wrapped `{data, message}`, lain raw paginate (Rule 5.1). | 🟢 LOW | ❌ Pending |
 
 ---
 
