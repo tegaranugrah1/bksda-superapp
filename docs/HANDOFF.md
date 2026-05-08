@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #105 - Frontend TSL Pages |
-| **Issue Selanjutnya** | #106 - Frontend Galeri Pages |
+| **Issue Terakhir Selesai** | #106 - Frontend Galeri Pages |
+| **Issue Selanjutnya** | #107 - Frontend Profil Pages |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:00:00+08:00 |
-| **GitHub Issue** | #105 (PR #195 merged) |
+| **GitHub Issue** | #106 (PR #197 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -131,8 +131,15 @@
 - Badge IUCN berwarna: CR (merah), EN (oranye), VU (kuning), NT (biru), LC (hijau)
 - GitHub: Issue #194, PR #195 merged ✅
 
-### 📝 BELUM DIKERJAKAN (3/18 issues):
-- #106-#108 - (CMS lanjutan)
+**#106 - Frontend Galeri Pages** (Pameran Foto & Video)
+- `galeri/page.tsx` — Tab Foto/Video + Masonry Grid + Lightbox + YouTube Embed
+- CSS Masonry \`columns-4\` untuk galeri foto
+- Lightbox modal dengan \`e.stopPropagation()\` agar tidak close saat klik gambar
+- Fungsi \`extractYoutubeId()\` menangani berbagai format URL YouTube
+- GitHub: Issue #196, PR #197 merged ✅
+
+### 📝 BELUM DIKERJAKAN (2/18 issues):
+- #107-#108 - (CMS lanjutan)
 
 ### 📊 FILE SUMMARY PHASE 8:
 **Backend CMS Migrations (#091):**
@@ -253,6 +260,9 @@ frontend/src/app/(website)/kawasan/_components/KawasanMap.tsx ← [NEW] #104 - K
 # FRONTEND — Issue #105 (TSL Pages)
 frontend/src/app/(website)/tsl/page.tsx                  ← [NEW] #105 - Daftar spesies dengan tab Satwa/Tumbuhan
 frontend/src/app/(website)/tsl/[slug]/page.tsx          ← [NEW] #105 - Detail spesies dengan kartu IUCN
+
+# FRONTEND — Issue #106 (Galeri Pages)
+frontend/src/app/(website)/galeri/page.tsx               ← [NEW] #106 - Tab Foto/Video + Masonry + Lightbox + YouTube embed
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
