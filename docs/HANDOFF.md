@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #093 - Backend CMS Service Provider |
-| **Issue Selanjutnya** | #094 - Backend CMS Public Controller |
+| **Issue Terakhir Selesai** | #094 - Backend CMS Public Controller |
+| **Issue Selanjutnya** | #095 - Backend CMS Admin Controllers |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
-| **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-08T15:10:00+08:00 |
-| **GitHub Issue** | #93 (PR #170 merged) |
+| **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
+| **Timestamp** | 2026-05-08T16:30:00+08:00 |
+| **GitHub Issue** | #94 (PR #172 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (3/18 issues Phase 8):
+### ✅ SELESAI (4/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -54,8 +54,15 @@
 - Registered in `bootstrap/providers.php`
 - GitHub: Issue #93, PR #170 merged ✅
 
-### 📝 BELUM DIKERJAKAN (15/18 issues):
-- #094 - Backend CMS Public Controller
+**#094 - Backend CMS Public Controller** (etalase website untuk rakyat — read-only)
+- `Controllers/Public/PublicController.php` — 20+ metode GET untuk 10 entitas konten
+- Entitas: Website, Kepala, Menu, Informasi, Profil, Kawasan, TSL, Photo, Video, Link, Category, Buku, Leaflet, Poster, Regulasi
+- Filter: Semua query pakai `is_published=true` atau `scopePublished()`
+- Select: Semua query list pakai `->select([...])` eksplisit (kolom sensitif disembunyikan)
+- Views counter: `informasiShow()` memanggil `->increment('views_count')`
+- GitHub: Issue #94, PR #172 merged ✅
+
+### 📝 BELUM DIKERJAKAN (14/18 issues):
 - #095 - Backend CMS Admin Controllers
 - #096 - Backend CMS Routes
 - #097 - Frontend CMS Layout & Dashboard
@@ -101,6 +108,9 @@ backend/app/Modules/CMS/Models/Regulasi.php        ← [NEW] #092 - belongsTo Je
 backend/app/Modules/CMS/Providers/CMSServiceProvider.php  ← [NEW] #093 - dual-path routing
 backend/app/Modules/CMS/Routes/public.php                 ← [NEW] #093 - website publik (tanpa auth)
 backend/app/Modules/CMS/Routes/admin.php                  ← [NEW] #093 - admin CMS (auth:sanctum + module.access:cms)
+
+# BACKEND — Issue #094 (Public Controller - Read-Only Etalase)
+backend/app/Modules/CMS/Controllers/Public/PublicController.php  ← [NEW] #094 - 20+ GET endpoints, 337 lines
 backend/bootstrap/providers.php                           ← [UPDATED] #093 - tambah CMSServiceProvider
 ```
 
