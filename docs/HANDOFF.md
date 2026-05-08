@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #082 - Backend DeReporting Ekternal Controller |
-| **Issue Selanjutnya** | #083 - Backend DeReporting Operator Controller |
+| **Issue Terakhir Selesai** | #083 - Backend DeReporting Operator Controller |
+| **Issue Selanjutnya** | #084 - Backend DeReporting Routes |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
-| **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-08T12:48:00+08:00 |
-| **GitHub Issue** | #155 (PR #156 merged) |
+| **Model Terakhir** | hy3-preview-free |
+| **Timestamp** | 2026-05-08T14:30:00+08:00 |
+| **GitHub Issue** | #83 (PR #158 merged) |
 
 > [!IMPORTANT]
 > **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
@@ -97,7 +97,7 @@
 - [x] #080 — Backend DeReporting Master Controller (Dynamic model mapping for 7 tables in 1 controller, GitHub Issue #151, PR #152 merged)
 - [x] #081 — Backend DeReporting Internal Controller (InternalController: CRUD + 8-relation eager load + private storage + UUID masking, GitHub Issue #153, PR #154 merged)
 - [x] #082 — Backend DeReporting Ekternal Controller (EkternalController: throttle:10,1 + IP forensic + admin review, GitHub Issue #155, PR #156 merged)
-- [ ] #083 — Backend DeReporting Operator Controller (**GitHub Issue #157 sudah dibuat**, branch belum dibuat, PERLU: 1. Migration tambah kolom `dereporting_role` & `dereporting_bidang_id` ke tabel `users` — BELUM ADA, 2. Tambah `dereportingBidang()` relation ke `User.php` — BELUM ADA, 3. Tambah kolom ke `$fillable` di `User.php`)
+- [x] #083 — Backend DeReporting Operator Controller (OperatorController: CRUD operator delegation via User IAM mutation, Migration add dereporting columns to users, GitHub Issue #83, PR #158 merged)
 - [ ] #084 — Backend DeReporting Routes
 - [ ] #085 — Backend DeReporting Form Requests
 - [ ] #086 — Frontend DeReporting Public Form
@@ -105,6 +105,15 @@
 - [ ] #088 — Frontend DeReporting Internal
 - [ ] #089 — Frontend DeReporting Sub Pages
 - [ ] #090 — Frontend DeReporting Types
+
+### File yang Dibuat/Diubah (Phase 7 - DeReporting) #083
+```
+# BACKEND
+backend/database/migrations/0001_01_02_add_dereporting_columns_to_users_table.php  ← [NEW] #083
+backend/app/Models/User.php                                                  ← [UPDATED] #083 - tambah fillable & relasi dereportingBidang()
+backend/app/Modules/DeReporting/Controllers/OperatorController.php           ← [NEW] #083
+backend/app/Modules/DeReporting/Routes/api.php                              ← [UPDATED] #083 - tambah route /operators
+```
 
 ---
 
@@ -305,6 +314,15 @@ backend/bootstrap/providers.php                                   ← [UPDATED] 
 | POST | `/api/bmn/loans/{loan}/return` | same | Kembalikan aset |
 | GET | `/api/bmn/maintenances` | same | List riwayat servis |
 | POST | `/api/bmn/assets/{asset}/maintenances` | same | Catat nota servis |
+
+### Backend DeReporting (`/api/dereporting/*`)
+| Method | Endpoint | Middleware | Keterangan |
+|--------|----------|-----------|------------|
+| GET | `/api/dereporting/ping` | `auth:sanctum`, `module.access:dereporting` | Health check modul |
+| GET | `/api/dereporting/operators` | same | List operator laporan |
+| POST | `/api/dereporting/operators` | same | Angkat pegawai jadi operator |
+| PUT | `/api/dereporting/operators/{id}` | same | Mutasi operator ke bidang lain |
+| DELETE | `/api/dereporting/operators/{id}` | same | Cabut jabatan operator (demote) |
 
 ---
 
