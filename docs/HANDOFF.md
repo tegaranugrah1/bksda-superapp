@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #098 - Frontend CMS Informasi |
-| **Issue Selanjutnya** | #099 - Frontend CMS Reusable CRUD |
+| **Issue Terakhir Selesai** | #099 - Frontend CMS Reusable CRUD |
+| **Issue Selanjutnya** | #100 - Frontend CMS Profil & Kawasan |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-08T23:15:00+08:00 |
-| **GitHub Issue** | #179 (PR #180 merged) |
+| **Timestamp** | 2026-05-09T00:30:00+08:00 |
+| **GitHub Issue** | #181 (PR #182 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (8/18 issues Phase 8):
+### ✅ SELESAI (9/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -87,8 +87,14 @@
 - `frontend/src/app/(dashboard)/cms/informasi/[id]/page.tsx` — Form edit berita dengan pre-filled data
 - GitHub: Issue #179, PR #180 merged ✅
 
-### 📝 BELUM DIKERJAKAN (10/18 issues):
-- #099 - Frontend CMS Reusable CRUD
+**#099 - Frontend CMS Reusable CRUD** (Mesin Cetak Halaman Otomatis)
+- `_components/types.ts` — Interface CrudColumn, CrudField, CrudPageConfig
+- `_components/CrudPageFactory.tsx` — Komponen factory untuk tabel + pagination + search
+- `_components/CrudFormDrawer.tsx` — Drawer form generik dengan dukungan file upload multipart
+- 12 halaman CRUD ultra-tipis (15-30 baris per halaman): kawasan, profil, tsl, photos, videos, links, buku, leaflet, poster, regulasi, categories, kepala
+- GitHub: Issue #181, PR #182 merged ✅
+
+### 📝 BELUM DIKERJAKAN (9/18 issues):
 - #100-#108 - (CMS lanjutan)
 
 ### 📊 FILE SUMMARY PHASE 8:
@@ -167,7 +173,23 @@ frontend/src/app/(dashboard)/cms/page.tsx           ← [NEW] #097 - Dashboard 8
 frontend/src/app/(dashboard)/cms/informasi/page.tsx        ← [NEW] #098 - Tabel daftar berita, toggle publish, search
 frontend/src/app/(dashboard)/cms/informasi/create/page.tsx ← [NEW] #098 - Form create berita dengan ReactQuill
 frontend/src/app/(dashboard)/cms/informasi/[id]/page.tsx   ← [NEW] #098 - Form edit berita dengan pre-filled data
-```
+
+# FRONTEND — Issue #099 (CMS Reusable CRUD Components)
+frontend/src/app/(dashboard)/cms/_components/types.ts              ← [NEW] #099 - CrudColumn, CrudField, CrudPageConfig interfaces
+frontend/src/app/(dashboard)/cms/_components/CrudPageFactory.tsx   ← [NEW] #099 - Config-driven page factory (table + search + pagination)
+frontend/src/app/(dashboard)/cms/_components/CrudFormDrawer.tsx   ← [NEW] #099 - Generic form drawer with file upload support
+frontend/src/app/(dashboard)/cms/kawasan/page.tsx                  ← [NEW] #099 - Kawasan CRUD page (25 lines)
+frontend/src/app/(dashboard)/cms/profil/page.tsx                   ← [NEW] #099 - Profil CRUD page (21 lines)
+frontend/src/app/(dashboard)/cms/tsl/page.tsx                     ← [NEW] #099 - TSL CRUD page (28 lines)
+frontend/src/app/(dashboard)/cms/photos/page.tsx                  ← [NEW] #099 - Photos CRUD page (21 lines)
+frontend/src/app/(dashboard)/cms/videos/page.tsx                  ← [NEW] #099 - Videos CRUD page (21 lines)
+frontend/src/app/(dashboard)/cms/links/page.tsx                   ← [NEW] #099 - Links CRUD page (20 lines)
+frontend/src/app/(dashboard)/cms/buku/page.tsx                    ← [NEW] #099 - Buku CRUD page (25 lines)
+frontend/src/app/(dashboard)/cms/leaflet/page.tsx                 ← [NEW] #099 - Leaflet CRUD page (20 lines)
+frontend/src/app/(dashboard)/cms/poster/page.tsx                  ← [NEW] #099 - Poster CRUD page (20 lines)
+frontend/src/app/(dashboard)/cms/regulasi/page.tsx                ← [NEW] #099 - Regulasi CRUD page (23 lines)
+frontend/src/app/(dashboard)/cms/categories/page.tsx              ← [NEW] #099 - Categories CRUD page (25 lines)
+frontend/src/app/(dashboard)/cms/kepala/page.tsx                  ← [NEW] #099 - Kepala CRUD page (23 lines)
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
