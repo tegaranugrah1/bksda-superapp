@@ -14,8 +14,80 @@
 | **Issue Selanjutnya** | #088 - Frontend DeReporting Internal |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | hy3-preview-free |
-| **Timestamp** | 2026-05-08T15:30:00+08:00 |
+| **Timestamp** | 2026-05-08T15:45:00+08:00 |
 | **GitHub Issue** | #87 (PR #164 merged) |
+| **Token Usage** | ~95% - BERHENTI sesuai instruksi user |
+
+---
+## ⚠️ STATUS BERHENTI (95% Token Usage)
+**Progress Phase 7 (DeReporting) per 2026-05-08:**
+
+### ✅ SELESAI (5/10 issues):
+1. **#083** - Backend DeReporting Operator Controller
+   - File: `backend/app/Modules/DeReporting/Controllers/OperatorController.php` (NEW)
+   - File: `backend/database/migrations/0001_01_02_add_dereporting_columns_to_users_table.php` (NEW)
+   - File: `backend/app/Models/User.php` (UPDATED - fillable + relasi dereportingBidang())
+   - GitHub: Issue #83, PR #158 merged
+
+2. **#084** - Backend DeReporting Routes
+   - File: `backend/app/Modules/DeReporting/Routes/api.php` (UPDATED - RBAC routing)
+   - GitHub: Issue #159, PR #160 merged
+
+3. **#085** - Backend DeReporting Form Requests
+   - File: `backend/app/Modules/DeReporting/Requests/StoreInternalRequest.php` (NEW)
+   - File: `backend/app/Modules/DeReporting/Requests/StoreEksternalRequest.php` (NEW)
+   - File: `backend/app/Modules/DeReporting/Controllers/InternalController.php` (UPDATED)
+   - File: `backend/app/Modules/DeReporting/Controllers/EksternalController.php` (UPDATED)
+   - GitHub: Issue #161, PR #162 merged
+
+4. **#086** - Frontend DeReporting Public Form
+   - File: `frontend/src/app/lapor/page.tsx` (NEW - public whistleblower form)
+   - GitHub: Issue #86, PR #163 merged
+
+5. **#087** - Frontend DeReporting Dashboard
+   - File: `frontend/src/app/(dashboard)/dereporting/layout.tsx` (NEW - sidebar nav)
+   - File: `frontend/src/app/(dashboard)/dereporting/page.tsx` (NEW - analytics dashboard with Recharts)
+   - GitHub: Issue #87, PR #164 merged
+
+### ❌ BELUM DIKERJAKAN (5/10 issues):
+- #088 - Frontend DeReporting Internal
+- #089 - Frontend DeReporting Sub Pages
+- #090 - Frontend DeReporting Types
+- #091-#108 - Phase 8 (CMS Module)
+- #109-#115 - Phase 9 (UI Components & Utilities)
+- #116-#125 - Phase 10 (DevOps & Deployment)
+
+### 📝 File Summary Phase 7 (Completed):
+**Backend:**
+- `backend/app/Modules/DeReporting/Controllers/OperatorController.php`
+- `backend/app/Modules/DeReporting/Controllers/InternalController.php`
+- `backend/app/Modules/DeReporting/Controllers/EksternalController.php`
+- `backend/app/Modules/DeReporting/Requests/StoreInternalRequest.php`
+- `backend/app/Modules/DeReporting/Requests/StoreEksternalRequest.php`
+- `backend/app/Modules/DeReporting/Routes/api.php`
+- `backend/app/Models/User.php` (modified)
+- `backend/database/migrations/0001_01_02_add_dereporting_columns_to_users_table.php`
+
+**Frontend:**
+- `frontend/src/app/lapor/page.tsx` (public form)
+- `frontend/src/app/(dashboard)/dereporting/layout.tsx`
+- `frontend/src/app/(dashboard)/dereporting/page.tsx`
+
+### 🔌 API Endpoints Aktif (DeReporting):
+| Method | Endpoint | Keterangan |
+|--------|----------|------------|
+| GET | `/api/dereporting/operators` | List operator |
+| POST | `/api/dereporting/operators` | Angkat operator |
+| PUT | `/api/dereporting/operators/{id}` | Mutasi operator |
+| DELETE | `/api/dereporting/operators/{id}` | Cabut operator |
+| GET | `/api/dereporting/master/{type}` | Master data (public) |
+| POST | `/api/dereporting/eksternal/public` | Submit laporan publik |
+| GET | `/api/dereporting/internals` | List laporan internal |
+| POST | `/api/dereporting/internals` | Buat laporan internal |
+| GET | `/api/dereporting/eksternal` | List laporan publik (admin) |
+| PUT | `/api/dereporting/eksternal/{id}/status` | Update status laporan |
+
+**INSTRUKSI LANJUTAN:** Lanjutkan dari #088 setelah user memberikan sinyal untuk melanjutkan.
 
 > [!IMPORTANT]
 > **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
