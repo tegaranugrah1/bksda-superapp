@@ -70,7 +70,7 @@ export default function SuratTugasPage() {
                     <p className="text-zinc-400 mt-1 text-sm">Kelola pengajuan dan pencetakan Surat Tugas</p>
                 </div>
                 <Link
-                    href="/surat-tugas/create"
+                    href="/admin/surat-tugas/create"
                     className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20"
                 >
                     <Plus className="w-4 h-4" /> Buat Surat
@@ -136,7 +136,7 @@ export default function SuratTugasPage() {
                                                 <ChevronLeft className="w-8 h-8 text-zinc-600" />
                                             </div>
                                             <p className="font-medium">Belum ada surat tugas</p>
-                                            <Link href="/surat-tugas/create" className="text-emerald-400 hover:text-emerald-300 text-sm font-semibold underline underline-offset-2">
+                                            <Link href="/admin/surat-tugas/create" className="text-emerald-400 hover:text-emerald-300 text-sm font-semibold underline underline-offset-2">
                                                 Buat surat pertama
                                             </Link>
                                         </div>

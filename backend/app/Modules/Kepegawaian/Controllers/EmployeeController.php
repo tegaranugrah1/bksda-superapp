@@ -120,7 +120,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    /**
+/**
      * Rule 3.6: Soft Delete
      */
     public function destroy($id): JsonResponse
@@ -134,4 +134,39 @@ class EmployeeController extends Controller
             'message' => 'Data pegawai berhasil dihapus (soft delete).'
         ]);
     }
+
+    /**
+     * Public select - untuk dropdown di form surat tugas
+     * Rate limited: 30 per menit
+     */
+    public function select(Request $request): JsonResponse
+    {
+        $searchTerm = $request->input('q', '');
+
+        $query = Employee::query()->where('is_active', true);
+
+        if (!empty($searchTerm)) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('nama_lengkap', 'ilike', "%{$searchTerm}%")
+                    ->orWhere('nip', 'ilike', "%{$searchTerm}%");
+            });
+        }
+
+        $employees = $query->orderBy('nama_lengkap', 'asc')
+            ->limit(50)
+            ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'unit_kerja']);
+
+        return response()->json([
+            'data' => $employees->map(function ($emp) {
+                return [
+                    'id' => $emp->id,
+                    'name' => $emp->nama_lengkap,
+                    'nip' => $emp->nip,
+                    'department' => $emp->unit_kerja,
+                    'position' => $emp->jabatan,
+                ];
+            })
+        ]);
+    }
+}
 }

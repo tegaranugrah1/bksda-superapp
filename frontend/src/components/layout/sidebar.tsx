@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, LayoutDashboard, Settings, Menu } from "lucide-react";
+import { Users, LayoutDashboard, Settings, Menu, FileText, Inbox } from "lucide-react";
 import { useState } from "react";
 import { LogoutButton } from "@/components/logout-button";
 
@@ -10,6 +10,8 @@ import { LogoutButton } from "@/components/logout-button";
 const menuItems = [
   { name: "Portal Modul", href: "/", icon: LayoutDashboard },
   { name: "Kepegawaian", href: "/kepegawaian", icon: Users },
+  { name: "Surat Tugas", href: "/admin/surat-tugas", icon: Inbox },
+  { name: "Buat Surat Tugas", href: "/admin/surat-tugas/create", icon: FileText, indent: true },
   { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 
