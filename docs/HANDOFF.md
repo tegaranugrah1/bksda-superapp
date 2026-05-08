@@ -10,12 +10,16 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #045c - Public Surat Tugas Form + Admin Approve Flow |
-| **IssueSelanjutnya** | Phase 4 Surat Tugas Complete |
-| **Branch Aktif** | issue/045c-public-surat-tugas-form |
-| **Model Terakhir** | GPT-5.2 / Codex |
-| **Timestamp** | 2026-05-08T12:00:00+08:00 |
-| **GitHub Issue** | #79 |
+| **Issue Terakhir Selesai** | #052 - Backend Inventory Routes |
+| **Issue Selanjutnya** | #053 - Frontend Inventory Layout |
+| **Branch Aktif** | `main` |
+| **Model Terakhir** | Claude Sonnet 4.6 |
+| **Timestamp** | 2025-05-08T11:00:00+08:00 |
+| **GitHub Issue** | #94 (PR #95 merged) |
+
+> [!IMPORTANT]
+> **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
+> UI Overhaul akan dilakukan setelah seluruh issue Phase 5–8 selesai dikerjakan.
 
 ---
 
@@ -63,6 +67,25 @@
 - [x] #033 — Frontend Employee Create Form (Split layout + FormData + Image Preview)
 - [x] #034 — SuperAdmin Seeder + Integration Test Protocol
 - [x] #034b — **Phase 3 UI Overhaul** (Admin Layout, Portal, & Employee UI → Premium Glassmorphism)![alt text](image.png)
+
+---
+
+## Progress Phase 5: Inventory Module (#046–#059)
+
+- [x] #046 — Backend Inventory Migrations (5 tables: categories, offices, items, inventory_stocks, stock_transactions, GitHub Issue #81, PR #82 merged)
+- [x] #047 — Backend Inventory Models (5 Eloquent models with cross-module relations, GitHub Issue #83, PR #84 merged)
+- [x] #048 — Backend Inventory Service Provider (InventoryServiceProvider + Routes/api.php ping + providers.php, GitHub Issue #85, PR #86 merged)
+- [x] #049 — Backend Inventory Service (InventoryService stockIn/stockOut + DB::transaction + lockForUpdate, GitHub Issue #87, PR #88 merged)
+- [x] #050 — Backend Inventory Requests (4 FormRequests: StoreOffice, StoreItem, StockIn, StockOut, GitHub Issue #89, PR #90 merged)
+- [x] #051 — Backend Inventory Controllers (4 Controllers: Dashboard, Office, Item, Stock with DI, GitHub Issue #91, PR #92 merged)
+- [x] #052 — Backend Inventory Routes (8 endpoints, role-based READ/WRITE split, GitHub Issue #94, PR #95 merged)
+- [ ] #053 — Frontend Inventory Layout
+- [ ] #054 — Frontend Inventory Dashboard
+- [ ] #055 — Frontend Inventory Items
+- [ ] #056 — Frontend Inventory Stock In
+- [ ] #057 — Frontend Inventory Stock Out
+- [ ] #058 — Frontend Inventory Transactions
+- [ ] #059 — Frontend Inventory Types
 
 ---
 
