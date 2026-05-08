@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #097 - Frontend CMS Layout & Dashboard |
-| **Issue Selanjutnya** | #098 - Frontend CMS Informasi |
+| **Issue Terakhir Selesai** | #098 - Frontend CMS Informasi |
+| **Issue Selanjutnya** | #099 - Frontend CMS Reusable CRUD |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-08T22:45:00+08:00 |
-| **GitHub Issue** | #177 (PR #178 merged) |
+| **Timestamp** | 2026-05-08T23:15:00+08:00 |
+| **GitHub Issue** | #179 (PR #180 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (7/18 issues Phase 8):
+### ✅ SELESAI (8/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -81,8 +81,13 @@
 - `frontend/src/app/(dashboard)/cms/page.tsx` — Dashboard dengan 8 stat cards via React Query parallel fetch (Promise.all)
 - GitHub: Issue #177, PR #178 merged ✅
 
-### 📝 BELUM DIKERJAKAN (11/18 issues):
-- #098 - Frontend CMS Informasi
+**#098 - Frontend CMS Informasi** (Full CRUD Berita dengan Rich Text Editor)
+- `frontend/src/app/(dashboard)/cms/informasi/page.tsx` — Tabel daftar berita dengan toggle publish, search, pagination
+- `frontend/src/app/(dashboard)/cms/informasi/create/page.tsx` — Form tulis berita baru dengan ReactQuill (dynamic import ssr:false)
+- `frontend/src/app/(dashboard)/cms/informasi/[id]/page.tsx` — Form edit berita dengan pre-filled data
+- GitHub: Issue #179, PR #180 merged ✅
+
+### 📝 BELUM DIKERJAKAN (10/18 issues):
 - #099 - Frontend CMS Reusable CRUD
 - #100-#108 - (CMS lanjutan)
 
@@ -157,6 +162,11 @@ backend/bootstrap/providers.php                           ← [UPDATED] #093 - t
 # FRONTEND — Issue #097 (CMS Layout & Dashboard)
 frontend/src/app/(dashboard)/cms/layout.tsx         ← [NEW] #097 - Sidebar 14 links, 4 section groups
 frontend/src/app/(dashboard)/cms/page.tsx           ← [NEW] #097 - Dashboard 8 stat cards, parallel fetch
+
+# FRONTEND — Issue #098 (CMS Informasi CRUD)
+frontend/src/app/(dashboard)/cms/informasi/page.tsx        ← [NEW] #098 - Tabel daftar berita, toggle publish, search
+frontend/src/app/(dashboard)/cms/informasi/create/page.tsx ← [NEW] #098 - Form create berita dengan ReactQuill
+frontend/src/app/(dashboard)/cms/informasi/[id]/page.tsx   ← [NEW] #098 - Form edit berita dengan pre-filled data
 ```
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
