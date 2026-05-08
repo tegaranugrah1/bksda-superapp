@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #103 - Frontend Informasi Pages |
-| **Issue Selanjutnya** | #104 - Frontend Profil & Kawasan |
+| **Issue Terakhir Selesai** | #104 - Frontend Kawasan Pages |
+| **Issue Selanjutnya** | #105 - Frontend TSL Pages |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:00:00+08:00 |
-| **GitHub Issue** | #103 (PR #191 merged) |
+| **GitHub Issue** | #104 (PR #193 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -117,8 +117,16 @@
 - Format tanggal Indonesia
 - GitHub: Issue #103, PR #191 merged ✅
 
-### 📝 BELUM DIKERJAKAN (5/18 issues):
-- #104-#108 - (CMS lanjutan)
+**#104 - Frontend Kawasan Pages** (Peta Interaktif Konservasi)
+- `kawasan/page.tsx` — Daftar kawasan dengan grid kartu + peta overview Leaflet
+- `kawasan/[slug]/page.tsx` — Detail kawasan dengan thumbnail + deskripsi + peta zoom
+- `_components/KawasanMap.tsx` — Komponen peta dual-mode (single/multi marker)
+- SSR-safe dengan `next/dynamic({ ssr: false })`
+- Leaflet icon fix via CDN unpkg
+- GitHub: Issue #192, PR #193 merged ✅
+
+### 📝 BELUM DIKERJAKAN (4/18 issues):
+- #105-#108 - (CMS lanjutan)
 
 ### 📊 FILE SUMMARY PHASE 8:
 **Backend CMS Migrations (#091):**
@@ -230,6 +238,11 @@ frontend/src/app/page.tsx                               ← [NEW] #102 - Landing
 # FRONTEND — Issue #103 (Informasi Pages)
 frontend/src/app/(website)/informasi/page.tsx            ← [NEW] #103 - Daftar berita dengan filter kategori + pagination
 frontend/src/app/(website)/informasi/[slug]/page.tsx     ← [NEW] #103 - Detail berita dengan sidebar related articles
+
+# FRONTEND — Issue #104 (Kawasan Pages)
+frontend/src/app/(website)/kawasan/page.tsx              ← [NEW] #104 - Daftar kawasan dengan Leaflet map overview
+frontend/src/app/(website)/kawasan/[slug]/page.tsx      ← [NEW] #104 - Detail kawasan dengan peta zoom
+frontend/src/app/(website)/kawasan/_components/KawasanMap.tsx ← [NEW] #104 - Komponen peta SSR-safe dual-mode
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
