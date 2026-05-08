@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, FileText, Globe, Users, LayoutDashboard } from "lucide-react";
+import { BarChart3, FileText, Globe, Users, LayoutDashboard, Gem, Handshake, ShieldCheck, FolderOpen } from "lucide-react";
 
 const SIDEBAR_ITEMS = [
     { href: "/dereporting",          label: "Dashboard",        icon: LayoutDashboard },
     { href: "/dereporting/internal", label: "Laporan Internal", icon: FileText },
     { href: "/dereporting/eksternal",label: "Laporan Publik",   icon: Globe },
     { href: "/dereporting/operator", label: "Operator",         icon: Users },
+    { href: "/dereporting/bernilai",       label: "Data Bernilai",    icon: Gem },
+    { href: "/dereporting/kerjasama",      label: "Kerjasama",        icon: Handshake },
+    { href: "/dereporting/pemegang-izin",  label: "Pemegang Izin",    icon: ShieldCheck },
+    { href: "/dereporting/lain",           label: "Lainnya",          icon: FolderOpen },
 ];
 
 export default function DeReportingLayout({ children }: { children: React.ReactNode }) {
