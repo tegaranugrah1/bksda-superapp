@@ -7,6 +7,7 @@ use App\Modules\Inventory\Services\InventoryService;
 use App\Modules\Inventory\Requests\StockInRequest;
 use App\Modules\Inventory\Requests\StockOutRequest;
 use Exception;
+use Illuminate\Http\Request;
 
 class StockController extends Controller
 {
@@ -63,5 +64,24 @@ class StockController extends Controller
                 'message' => $e->getMessage()
             ], 400);
         }
+    }
+
+    /**
+     * RIWAYAT MUTASI (Audit Trail untuk BPK)
+     */
+    public function history(Request $request)
+    {
+        $query = \App\Modules\Inventory\Models\StockTransaction::with([
+            'item:id,nama_barang,satuan',
+            'office:id,nama_kantor',
+            'employee:id,nama_lengkap',
+            'user:id,name',
+        ])->latest();
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        return response()->json($query->paginate(20));
     }
 }
