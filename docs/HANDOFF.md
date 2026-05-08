@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #077 - Backend DeReporting Migrations |
-| **Issue Selanjutnya** | #078 - Backend DeReporting Models |
+| **Issue Terakhir Selesai** | #078 - Backend DeReporting Models |
+| **Issue Selanjutnya** | #079 - Backend DeReporting Service Provider |
 | **Branch Aktif** | `main` |
 | **Model Terakhir** | Claude Opus 4.6 |
-| **Timestamp** | 2026-05-08T12:27:00+08:00 |
-| **GitHub Issue** | #145 (PR #146 merged) |
+| **Timestamp** | 2026-05-08T12:30:00+08:00 |
+| **GitHub Issue** | #147 (PR #148 merged) |
 
 > [!IMPORTANT]
 > **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
@@ -92,7 +92,7 @@
 ## Progress Phase 7: DeReporting Module (#077–#090)
 
 - [x] #077 — Backend DeReporting Migrations (3 files: 7 master tables + dr_internals + dr_ekternals, GitHub Issue #145, PR #146 merged)
-- [ ] #078 — Backend DeReporting Models
+- [x] #078 — Backend DeReporting Models (9 Eloquent models: Tahun, Bidang, Koordinator, Anggaran, Jenis, Kategori, JenisData, Internal, Ekternal, GitHub Issue #147, PR #148 merged)
 - [ ] #079 — Backend DeReporting Service Provider
 - [ ] #080 — Backend DeReporting Master Controller
 - [ ] #081 — Backend DeReporting Internal Controller
