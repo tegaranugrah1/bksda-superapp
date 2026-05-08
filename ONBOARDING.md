@@ -99,8 +99,8 @@ Semua pekerjaan diatur via **125 issue specs** di `docs/issues/`. Setiap file be
 | 1 | #001–#008 | ✅ Done | Project Init & Foundation (DB, Docker, IDE Helper) |
 | 2 | #009–#021 | ✅ Done | IAM & Auth (Sanctum, Roles, Login UI) |
 | 3 | #022–#034 | ✅ Done | Kepegawaian Module (Pegawai CRUD, Admin Layout, IAM) |
-| 4 | #035–#045 | 📋 Spec | Surat Tugas Module |
-| 5 | #046–#059 | 📋 Spec | Inventory Module |
+| 4 | #035–#045 | ✅ Done | Surat Tugas Module |
+| 5 | #046–#059 | ✅ Done | Inventory Module |
 | 6 | #060–#076 | 📋 Spec | BMN Module |
 | 7 | #077–#090 | 📋 Spec | DeReporting Module |
 | 8 | #091–#108 | 📋 Spec | CMS Module (Public Web & Admin) |

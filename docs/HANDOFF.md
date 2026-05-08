@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #052 - Backend Inventory Routes |
-| **Issue Selanjutnya** | #053 - Frontend Inventory Layout |
+| **Issue Terakhir Selesai** | #059 - Frontend Inventory Types |
+| **Issue Selanjutnya** | #060 - BMN Module (Phase 6) |
 | **Branch Aktif** | `main` |
 | **Model Terakhir** | Claude Sonnet 4.6 |
-| **Timestamp** | 2025-05-08T11:00:00+08:00 |
-| **GitHub Issue** | #94 (PR #95 merged) |
+| **Timestamp** | 2025-05-08T13:00:00+08:00 |
+| **GitHub Issue** | #108 (PR #109 merged) |
 
 > [!IMPORTANT]
 > **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
@@ -79,13 +79,13 @@
 - [x] #050 — Backend Inventory Requests (4 FormRequests: StoreOffice, StoreItem, StockIn, StockOut, GitHub Issue #89, PR #90 merged)
 - [x] #051 — Backend Inventory Controllers (4 Controllers: Dashboard, Office, Item, Stock with DI, GitHub Issue #91, PR #92 merged)
 - [x] #052 — Backend Inventory Routes (8 endpoints, role-based READ/WRITE split, GitHub Issue #94, PR #95 merged)
-- [ ] #053 — Frontend Inventory Layout
-- [ ] #054 — Frontend Inventory Dashboard
-- [ ] #055 — Frontend Inventory Items
-- [ ] #056 — Frontend Inventory Stock In
-- [ ] #057 — Frontend Inventory Stock Out
-- [ ] #058 — Frontend Inventory Transactions
-- [ ] #059 — Frontend Inventory Types
+- [x] #053 — Frontend Inventory Layout (InventorySidebar + layout.tsx, GitHub Issue #96, PR #97 merged)
+- [x] #054 — Frontend Inventory Dashboard (stats cards + krisis stok alert, GitHub Issue #98, PR #99 merged)
+- [x] #055 — Frontend Inventory Items (split-panel catalog + data grid, GitHub Issue #100, PR #101 merged)
+- [x] #056 — Frontend Inventory Stock In (blue glassmorphism form, GitHub Issue #102, PR #103 merged)
+- [x] #057 — Frontend Inventory Stock Out (orange form + cross-module employees, GitHub Issue #104, PR #105 merged)
+- [x] #058 — Frontend Inventory Transactions (audit trail + backend patch history(), GitHub Issue #106, PR #107 merged)
+- [x] #059 — Frontend Inventory Types (5 TypeScript interfaces, GitHub Issue #108, PR #109 merged)
 
 ---
 
