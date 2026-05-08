@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #095 - Backend CMS Admin Controllers |
-| **Issue Selanjutnya** | #096 - Backend CMS Routes |
+| **Issue Terakhir Selesai** | #096 - Backend CMS Routes |
+| **Issue Selanjutnya** | #097 - Frontend CMS Layout & Dashboard |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-08T17:00:00+08:00 |
-| **GitHub Issue** | #95 (PR #174 merged) |
+| **Timestamp** | 2026-05-08T17:30:00+08:00 |
+| **GitHub Issue** | #96 (PR #176 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (5/18 issues Phase 8):
+### ✅ SELESAI (6/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -69,8 +69,14 @@
 - DRY: Trait mengeliminasi ~600 baris kode repetitif
 - GitHub: Issue #95, PR #174 merged ✅
 
-### 📝 BELUM DIKERJAKAN (13/18 issues):
-- #096 - Backend CMS Routes
+**#096 - Backend CMS Routes** (99 endpoint API - dual public/admin routing)
+- `Routes/public.php` — 21 endpoint GET (website, kepala, menus, categories, links, informasi, profil, kawasan, tsl, photos, videos, buku, leaflet, poster, regulasi)
+- `Routes/admin.php` — 78 endpoint CRUD via apiResource + custom (togglePublish, markAsRead)
+- Total: 99 routes confirmed via `php artisan route:list --path=cms`
+- Also created: KepalaController & MenuController (missing from #095)
+- GitHub: Issue #96, PR #176 merged ✅
+
+### 📝 BELUM DIKERJAKAN (12/18 issues):
 - #097 - Frontend CMS Layout & Dashboard
 - #098 - Frontend CMS Informasi
 - #099 - Frontend CMS Reusable CRUD
@@ -135,6 +141,13 @@ backend/app/Modules/CMS/Controllers/Admin/BukuController.php      ← [NEW] #095
 backend/app/Modules/CMS/Controllers/Admin/RegulasiController.php  ← [NEW] #095 - override index with tahun filter
 backend/app/Modules/CMS/Controllers/Admin/WebsiteController.php   ← [NEW] #095 - singleton pattern, no trait
 backend/app/Modules/CMS/Controllers/Admin/PesanController.php     ← [NEW] #095 - custom index/markAsRead/destroy
+
+# BACKEND — Issue #096 (CMS Routes - 99 endpoints)
+backend/app/Modules/CMS/Routes/public.php                 ← [UPDATED] #096 - 21 GET endpoints (was ping stub)
+backend/app/Modules/CMS/Routes/admin.php                  ← [UPDATED] #096 - 78 CRUD endpoints (was ping stub)
+backend/app/Modules/CMS/Controllers/Admin/KepalaController.php ← [NEW] #096 - lightweight CRUD via trait
+backend/app/Modules/CMS/Controllers/Admin/MenuController.php    ← [NEW] #096 - lightweight CRUD via trait
+
 backend/bootstrap/providers.php                           ← [UPDATED] #093 - tambah CMSServiceProvider
 ```
 
