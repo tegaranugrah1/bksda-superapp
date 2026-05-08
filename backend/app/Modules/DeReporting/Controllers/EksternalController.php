@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-use App\Modules\DeReporting\Models\Eksternal;
+use App\Modules\DeReporting\Models\Ekternal;
 use App\Modules\DeReporting\Requests\StoreEksternalRequest;
 
 class EksternalController extends Controller
@@ -28,7 +28,7 @@ class EksternalController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Eksternal::latest();
+        $query = Ekternal::latest();
 
         // Fitur Pencarian Cerdas untuk Operator
         if ($request->filled('search')) {
@@ -62,7 +62,7 @@ class EksternalController extends Controller
             $filePath = $file->storeAs('private/dereporting/eksternals', $filename);
         }
 
-        $report = Eksternal::create([
+        $report = Ekternal::create([
             'nama_pelapor'  => $request->nama_pelapor,
             'instansi'      => $request->instansi,
             'email'         => $request->email,
@@ -94,7 +94,7 @@ class EksternalController extends Controller
             'status' => 'required|in:Menunggu Tinjauan,Diterima,Ditolak',
         ]);
 
-        $report = Eksternal::findOrFail($id);
+        $report = Ekternal::findOrFail($id);
         $report->update(['status' => $request->status]);
 
         return response()->json([
@@ -109,12 +109,28 @@ class EksternalController extends Controller
      */
     public function downloadFile(string $id)
     {
-        $report = Eksternal::findOrFail($id);
+        $report = Ekternal::findOrFail($id);
 
         if (!$report->file_path || !Storage::exists($report->file_path)) {
             return response()->json(['message' => 'Berkas laporan gagal ditemukan di karantina.'], 404);
         }
 
         return Storage::download($report->file_path, $report->judul_laporan . '_Pelapor_Eksternal.' . pathinfo($report->file_path, PATHINFO_EXTENSION));
+    }
+
+    /**
+     * DELETE /api/dereporting/eksternals/{id}
+     * ADMIN ONLY: Menghapus Laporan Eksternal (SoftDeletes)
+     */
+    public function destroy(string $id)
+    {
+        $report = Ekternal::findOrFail($id);
+
+        // File fisik tetap tersimpan untuk keperluan Audit Forensik (SoftDeletes)
+        $report->delete();
+
+        return response()->json([
+            'message' => 'Laporan eksternal telah ditarik dari peredaran (Archived).'
+        ]);
     }
 }
