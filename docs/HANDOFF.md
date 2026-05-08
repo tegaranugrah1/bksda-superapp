@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #100 - Frontend CMS Special Pages |
-| **Issue Selanjutnya** | #101 - Frontend Public Layout |
+| **Issue Terakhir Selesai** | #101 - Frontend Public Layout |
+| **Issue Selanjutnya** | #102 - Frontend Landing Page |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T01:00:00+08:00 |
-| **GitHub Issue** | #183 (PR #184 merged) |
+| **Timestamp** | 2026-05-09T01:30:00+08:00 |
+| **GitHub Issue** | #185 (PR #186 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (10/18 issues Phase 8):
+### ✅ SELESAI (11/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -100,8 +100,14 @@
 - `menus/page.tsx` — CRUD menu builder menggunakan CrudPageFactory
 - GitHub: Issue #183, PR #184 merged ✅
 
-### 📝 BELUM DIKERJAKAN (8/18 issues):
-- #101-#108 - (CMS lanjutan)
+**#101 - Frontend Public Layout** (Kerangka Website Publik)
+- `(website)/_components/PublicNavbar.tsx` — Navbar responsif dengan menu dari API + hamburger mobile
+- `(website)/_components/PublicFooter.tsx` — Footer 3 kolom (Tentang, Kontak, Link Terkait)
+- `(website)/layout.tsx` — Layout pembungkus dengan SEO metadata
+- GitHub: Issue #185, PR #186 merged ✅
+
+### 📝 BELUM DIKERJAKAN (7/18 issues):
+- #102-#108 - (CMS lanjutan)
 
 ### 📊 FILE SUMMARY PHASE 8:
 **Backend CMS Migrations (#091):**
@@ -201,6 +207,11 @@ frontend/src/app/(dashboard)/cms/kepala/page.tsx                  ← [NEW] #099
 frontend/src/app/(dashboard)/cms/website/page.tsx              ← [NEW] #100 - Website settings singleton form
 frontend/src/app/(dashboard)/cms/pesan/page.tsx               ← [NEW] #100 - Pesan inbox dengan filter tabs
 frontend/src/app/(dashboard)/cms/menus/page.tsx               ← [NEW] #100 - Menu builder CRUD
+
+# FRONTEND — Issue #101 (Public Layout)
+frontend/src/app/(website)/_components/PublicNavbar.tsx    ← [NEW] #101 - Navbar responsif dengan menu dari API
+frontend/src/app/(website)/_components/PublicFooter.tsx    ← [NEW] #101 - Footer 3 kolom dari API
+frontend/src/app/(website)/layout.tsx                    ← [NEW] #101 - Layout pembungkus Navbar+Footer
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
