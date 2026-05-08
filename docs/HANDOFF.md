@@ -10,17 +10,17 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #102 - Frontend Landing Page |
-| **Issue Selanjutnya** | #103 - Frontend Informasi Pages |
+| **Issue Terakhir Selesai** | #103 - Frontend Informasi Pages |
+| **Issue Selanjutnya** | #104 - Frontend Profil & Kawasan |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T02:00:00+08:00 |
-| **GitHub Issue** | #187 (PR #188 merged) |
+| **Timestamp** | 2026-05-09T03:00:00+08:00 |
+| **GitHub Issue** | #103 (PR #191 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (12/18 issues Phase 8):
+### ✅ SELESAI (13/18 issues Phase 8):
 **#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
 - GitHub: Issue #91, PR #168 merged ✅
 
@@ -110,8 +110,15 @@
 - `page.tsx` — Landing page dengan Hero, Berita, Kawasan, TSL, Sambutan Kepala
 - GitHub: Issue #187, PR #188 merged ✅
 
-### 📝 BELUM DIKERJAKAN (6/18 issues):
-- #103-#108 - (CMS lanjutan)
+**#103 - Frontend Informasi Pages** (Portal Berita Publik)
+- `informasi/page.tsx` — Daftar berita dengan filter kategori tab + pencarian debounced + pagination
+- `informasi/[slug]/page.tsx` — Detail berita dengan konten HTML + sidebar berita terkait
+- Menggunakan axios (publik, bukan auth api)
+- Format tanggal Indonesia
+- GitHub: Issue #103, PR #191 merged ✅
+
+### 📝 BELUM DIKERJAKAN (5/18 issues):
+- #104-#108 - (CMS lanjutan)
 
 ### 📊 FILE SUMMARY PHASE 8:
 **Backend CMS Migrations (#091):**
@@ -219,6 +226,10 @@ frontend/src/app/(website)/layout.tsx                    ← [NEW] #101 - Layout
 
 # FRONTEND — Issue #102 (Landing Page)
 frontend/src/app/page.tsx                               ← [NEW] #102 - Landing page homepage
+
+# FRONTEND — Issue #103 (Informasi Pages)
+frontend/src/app/(website)/informasi/page.tsx            ← [NEW] #103 - Daftar berita dengan filter kategori + pagination
+frontend/src/app/(website)/informasi/[slug]/page.tsx     ← [NEW] #103 - Detail berita dengan sidebar related articles
 
 ### Endpoint API Tersedia (Backend CMS — saat ini)
 
