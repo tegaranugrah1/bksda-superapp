@@ -10,89 +10,59 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | #087 - Frontend DeReporting Dashboard |
-| **Issue Selanjutnya** | #088 - Frontend DeReporting Internal |
+| **Issue Terakhir Selesai** | #092 - Backend CMS Models |
+| **Issue Selanjutnya** | #093 - Backend CMS Service Provider |
 | **Branch Aktif** | `main` (clean, no uncommitted changes) |
-| **Model Terakhir** | hy3-preview-free |
-| **Timestamp** | 2026-05-08T15:45:00+08:00 |
-| **GitHub Issue** | #87 (PR #164 merged) |
-| **Token Usage** | ~95% - BERHENTI sesuai instruksi user |
+| **Model Terakhir** | Claude Opus 4.6 |
+| **Timestamp** | 2026-05-08T15:01:00+08:00 |
+| **GitHub Issue** | #92 (PR #169 merged) |
 
 ---
-## ⚠️ STATUS BERHENTI (95% Token Usage)
-**Progress Phase 7 (DeReporting) per 2026-05-08:**
+## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 
-### ✅ SELESAI (5/10 issues):
-1. **#083** - Backend DeReporting Operator Controller
-   - File: `backend/app/Modules/DeReporting/Controllers/OperatorController.php` (NEW)
-   - File: `backend/database/migrations/0001_01_02_add_dereporting_columns_to_users_table.php` (NEW)
-   - File: `backend/app/Models/User.php` (UPDATED - fillable + relasi dereportingBidang())
-   - GitHub: Issue #83, PR #158 merged
+### ✅ SELESAI (2/18 issues Phase 8):
+**#091 - Backend CMS Migrations** (16 tabel CMS dalam 4 migration files)
+- GitHub: Issue #91, PR #168 merged ✅
 
-2. **#084** - Backend DeReporting Routes
-   - File: `backend/app/Modules/DeReporting/Routes/api.php` (UPDATED - RBAC routing)
-   - GitHub: Issue #159, PR #160 merged
+**#092 - Backend CMS Models** (17 Eloquent models untuk 16 tabel CMS)
+- 17 models: Category, Website, Kepala, Menu, Informasi, Profil, Kawasan, Tsl, Photo, Video, Pesan, Link, Jenis, Buku, Leaflet(STI), Poster(STI), Regulasi
+- Pola: Standar, Relasional(belongsTo/hasMany), Rekursif(Menu), STI(Leaflet/Poster)
+- GitHub: Issue #92, PR #169 merged ✅
 
-3. **#085** - Backend DeReporting Form Requests
-   - File: `backend/app/Modules/DeReporting/Requests/StoreInternalRequest.php` (NEW)
-   - File: `backend/app/Modules/DeReporting/Requests/StoreEksternalRequest.php` (NEW)
-   - File: `backend/app/Modules/DeReporting/Controllers/InternalController.php` (UPDATED)
-   - File: `backend/app/Modules/DeReporting/Controllers/EksternalController.php` (UPDATED)
-   - GitHub: Issue #161, PR #162 merged
+### 🔧 BUGFIX AUDIT (dilakukan sebelum #093):
+**Masalah ditemukan oleh audit Phase 1-8:**
+1. ✅ FIXED: `EkternalController.php` — duplikat dead code di luar class body (parse error line 126)
+2. ✅ FIXED: Duplikat controller file — hapus `EkternalController.php` (lama), keep `EksternalController.php` (baru)
+3. ✅ FIXED: `EksternalController.php` import `Eksternal` model padahal class sebenarnya `Ekternal` → fixed to `Ekternal`
+4. ✅ FIXED: `Routes/api.php` import `EkternalController` padahal class aktif adalah `EksternalController` → fixed
+5. ✅ FIXED: `EksternalController.php` missing `destroy()` method padahal routes memanggil-nya → added
+6. ✅ All PHP files: 0 syntax errors (full scan)
+7. ✅ Frontend ESLint: 0 errors
 
-4. **#086** - Frontend DeReporting Public Form
-   - File: `frontend/src/app/lapor/page.tsx` (NEW - public whistleblower form)
-   - GitHub: Issue #86, PR #163 merged
+### ⚠️ CATATAN PENAMAAN (Ekternal vs Eksternal):
+- **Database table**: `dr_ekternals` (tanpa 's')
+- **Model class**: `Ekternal` (file: `Models/Ekternal.php`) — matches DB
+- **Controller class**: `EksternalController` (file: `Controllers/EksternalController.php`) — berbeda!
+- **FormRequest**: `StoreEksternalRequest` — dengan 's'
+- **Routes**: menggunakan `EksternalController` dan `/eksternals` prefix
+- **DECISION**: Biarkan seperti ini untuk sekarang. Inkonsistensi minor yang tidak menyebabkan error karena `$table` sudah eksplisit
 
-5. **#087** - Frontend DeReporting Dashboard
-   - File: `frontend/src/app/(dashboard)/dereporting/layout.tsx` (NEW - sidebar nav)
-   - File: `frontend/src/app/(dashboard)/dereporting/page.tsx` (NEW - analytics dashboard with Recharts)
-   - GitHub: Issue #87, PR #164 merged
+### 📝 BELUM DIKERJAKAN (16/18 issues):
+- #093 - Backend CMS Service Provider
+- #094 - Backend CMS Public Controller
+- #095 - Backend CMS Admin Controllers
+- #096 - Backend CMS Routes
+- #097 - Frontend CMS Layout & Dashboard
+- #098 - Frontend CMS Informasi
+- #099 - Frontend CMS Reusable CRUD
+- #100-#108 - (CMS lanjutan)
 
-### ❌ BELUM DIKERJAKAN (5/10 issues):
-- #088 - Frontend DeReporting Internal
-- #089 - Frontend DeReporting Sub Pages
-- #090 - Frontend DeReporting Types
-- #091-#108 - Phase 8 (CMS Module)
-- #109-#115 - Phase 9 (UI Components & Utilities)
-- #116-#125 - Phase 10 (DevOps & Deployment)
-
-### 📝 File Summary Phase 7 (Completed):
-**Backend:**
-- `backend/app/Modules/DeReporting/Controllers/OperatorController.php`
-- `backend/app/Modules/DeReporting/Controllers/InternalController.php`
-- `backend/app/Modules/DeReporting/Controllers/EksternalController.php`
-- `backend/app/Modules/DeReporting/Requests/StoreInternalRequest.php`
-- `backend/app/Modules/DeReporting/Requests/StoreEksternalRequest.php`
-- `backend/app/Modules/DeReporting/Routes/api.php`
-- `backend/app/Models/User.php` (modified)
-- `backend/database/migrations/0001_01_02_add_dereporting_columns_to_users_table.php`
-
-**Frontend:**
-- `frontend/src/app/lapor/page.tsx` (public form)
-- `frontend/src/app/(dashboard)/dereporting/layout.tsx`
-- `frontend/src/app/(dashboard)/dereporting/page.tsx`
-
-### 🔌 API Endpoints Aktif (DeReporting):
-| Method | Endpoint | Keterangan |
-|--------|----------|------------|
-| GET | `/api/dereporting/operators` | List operator |
-| POST | `/api/dereporting/operators` | Angkat operator |
-| PUT | `/api/dereporting/operators/{id}` | Mutasi operator |
-| DELETE | `/api/dereporting/operators/{id}` | Cabut operator |
-| GET | `/api/dereporting/master/{type}` | Master data (public) |
-| POST | `/api/dereporting/eksternal/public` | Submit laporan publik |
-| GET | `/api/dereporting/internals` | List laporan internal |
-| POST | `/api/dereporting/internals` | Buat laporan internal |
-| GET | `/api/dereporting/eksternal` | List laporan publik (admin) |
-| PUT | `/api/dereporting/eksternal/{id}/status` | Update status laporan |
-
-**INSTRUKSI LANJUTAN:** Lanjutkan dari #088 setelah user memberikan sinyal untuk melanjutkan.
-
-> [!IMPORTANT]
-> **INSTRUKSI USER**: Kerjakan SEMUA issue dulu secara berurutan. **JANGAN** rombak UI di akhir phase.
-> UI Overhaul akan dilakukan setelah seluruh issue Phase 5–8 selesai dikerjakan.
-
+### 📊 FILE SUMMARY PHASE 8:
+**Backend CMS Migrations (#091):**
+- `backend/app/Modules/CMS/Migrations/2024_01_01_000001_create_cms_foundation_tables.php` (cms_categories, cms_website, cms_kepala, cms_menus)
+- `backend/app/Modules/CMS/Migrations/2024_01_01_000002_create_cms_content_tables.php` (cms_informasi, cms_profil, cms_kawasan, cms_tsl)
+- `backend/app/Modules/CMS/Migrations/2024_01_01_000003_create_cms_media_tables.php` (cms_photos, cms_videos, cms_pesan, cms_links)
+- `backend/app/Modules/CMS/Migrations/2024_01_01_000004_create_cms_publication_tables.php` (cms_jenis, cms_buku, cms_leaflet, cms_regulasi)
 ---
 
 ## Progress Phase 1: Project Init & Foundation (#001–#008)
@@ -163,23 +133,22 @@
 
 ## Progress Phase 7: DeReporting Module (#077–#090)
 
-- [x] #077 — Backend DeReporting Migrations (3 files: 7 master tables + dr_internals + dr_ekternals, GitHub Issue #145, PR #146 merged)
-- [x] #078 — Backend DeReporting Models (9 Eloquent models: Tahun, Bidang, Koordinator, Anggaran, Jenis, Kategori, JenisData, Internal, Ekternal, GitHub Issue #147, PR #148 merged)
+- [x] #077 — Backend DeReporting Migrations (3 files: 7 master tables + dr_internals + dr_eksternals, GitHub Issue #145, PR #146 merged)
+- [x] #078 — Backend DeReporting Models (9 Eloquent models: Tahun, Bidang, Koordinator, Anggaran, Jenis, Kategori, JenisData, Internal, Eksternal, GitHub Issue #147, PR #148 merged)
 - [x] #079 — Backend DeReporting Service Provider (DeReportingServiceProvider + Routes/api.php ping + providers.php, GitHub Issue #149, PR #150 merged)
 - [x] #080 — Backend DeReporting Master Controller (Dynamic model mapping for 7 tables in 1 controller, GitHub Issue #151, PR #152 merged)
 - [x] #081 — Backend DeReporting Internal Controller (InternalController: CRUD + 8-relation eager load + private storage + UUID masking, GitHub Issue #153, PR #154 merged)
-- [x] #082 — Backend DeReporting Ekternal Controller (EkternalController: throttle:10,1 + IP forensic + admin review, GitHub Issue #155, PR #156 merged)
+- [x] #082 — Backend DeReporting Eksternal Controller (EksternalController: throttle:10,1 + IP forensic + admin review, GitHub Issue #155, PR #156 merged)
 - [x] #083 — Backend DeReporting Operator Controller (OperatorController: CRUD operator delegation via User IAM mutation, Migration add dereporting columns to users, GitHub Issue #83, PR #158 merged)
 - [x] #084 — Backend DeReporting Routes (Strict RBAC routing: Public Zone, Employee Zone, Admin Zone nested middleware, GitHub Issue #159, PR #160 merged)
 - [x] #085 — Backend DeReporting Form Requests (StoreInternalRequest & StoreEksternalRequest + Controller refactoring, GitHub Issue #161, PR #162 merged)
 - [x] #086 — Frontend DeReporting Public Form (Public whistleblower form at /lapor with bare axios, GitHub Issue #86, PR #163 merged)
 - [x] #087 — Frontend DeReporting Dashboard (Analytics dashboard with Recharts + 4 stat cards, GitHub Issue #87, PR #164 merged)
-- [ ] #085 — Backend DeReporting Form Requests
-- [ ] #086 — Frontend DeReporting Public Form
-- [ ] #087 — Frontend DeReporting Dashboard
-- [ ] #088 — Frontend DeReporting Internal
-- [ ] #089 — Frontend DeReporting Sub Pages
-- [ ] #090 — Frontend DeReporting Types
+- [x] #088 — Frontend DeReporting Internal (Cascading 4-tier dropdowns with React Query, GitHub Issue #88, PR #165 merged)
+- [x] #089 — Frontend DeReporting Sub Pages (Polymorphic filtered sub-pages with shared reusable table, GitHub Issue #89, PR #166 merged)
+- [x] #090 — Frontend DeReporting Types (Comprehensive TypeScript interface contracts for all module entities, GitHub Issue #90, PR #167 merged)
+
+**Status: ✅ Phase 7 SELESAI (100%)**
 
 ### File yang Dibuat/Diubah (Phase 7 - DeReporting) #083
 ```
