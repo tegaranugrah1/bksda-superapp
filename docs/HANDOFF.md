@@ -546,6 +546,21 @@ frontend/src/lib/bmn-utils.ts                                                   
 
 **Status: 11/17 issues completed**
 
+### File yang Dibuat/Diubah (Phase 9 - #118, #119)
+
+```
+# BACKEND — Issue #118 (Storage Config)
+backend/config/filesystems.php                     ← [UPDATED] #118 - added supabase disk (S3-compatible)
+backend/app/Services/SupabaseStorageService.php   ← [NEW] #118 - upload(), delete(), publicUrl() methods
+backend/.env                                     ← [UPDATED] #118 - added SUPABASE_* credentials
+backend/.env.example                             ← [UPDATED] #118 - added SUPABASE_* placeholder documentation
+
+# FRONTEND — Issue #119 (NextJS Config)
+frontend/next.config.ts                          ← [UPDATED] #119 - rewrites, security headers, image whitelist
+frontend/src/app/(website)/informasi/page.tsx    ← [UPDATED] #119 - fixed setState-in-effect error
+frontend/src/components/ui/employee-select.tsx    ← [UPDATED] #119 - fixed setState-in-effect error
+```
+
 ---
 
 ## Progress Phase 4: Surat Tugas Module (#035–#045c)
