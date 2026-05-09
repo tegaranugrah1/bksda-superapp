@@ -1,123 +1,178 @@
 # BKSDA SuperApp
 
-> Sistem Informasi Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur
+> Sistem informasi terintegrasi untuk **Balai Konservasi Sumber Daya Alam (BKSDA) Kalimantan Timur**.
+> Mengelola website publik, aset negara (BMN), inventaris barang, surat tugas, dan pelaporan dalam satu platform.
+
+---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Backend** | Laravel 12, PHP 8.3, Sanctum, Spatie Permission |
-| **Frontend** | Next.js 16, React 19, TypeScript, TailwindCSS 4, shadcn/ui |
-| **Database** | PostgreSQL 15 |
-| **Storage** | Supabase Storage (S3-compatible) |
-| **Deployment** | Vercel (FE + BE) + Supabase (DB) |
+| Layer | Technology | Version |
+|-------|------------|---------|
+| **Backend** | Laravel (PHP) | 11.x |
+| **Frontend** | Next.js + React + TypeScript | 16.x + 19.x |
+| **UI** | Tailwind CSS + shadcn/ui | 4.x |
+| **Database** | PostgreSQL (Supabase) | 15.x |
+| **Storage** | Supabase Storage (S3-compatible) | - |
+| **Auth** | Laravel Sanctum (Bearer Token) | - |
+| **Deployment** | Vercel (Frontend + Backend) | - |
+
+---
 
 ## Modules
 
-| Module | Prefix API | Deskripsi |
-|--------|-----------|-----------|
-| **Core** | `/api/` | Auth, Dashboard, User Profile |
-| **Kepegawaian** | `/api/kepegawaian/` | Manajemen Pegawai |
-| **Surat Tugas** | `/api/surat-tugas/` | Surat Tugas & Disposisi |
-| **BMN** | `/api/bmn/` | Barang Milik Negara (aset pemerintah) |
-| **Inventory** | `/api/inventory/` | Persediaan & stok barang |
-| **DeReporting** | `/api/dereporting/` | Laporan data internal & eksternal |
-| **CMS** | `/api/cms/` | Content Management System website |
+| Module | Prefix API | Description |
+|--------|------------|-------------|
+| **Kepegawaian** | `/api/kepegawaian/` | Employee management |
+| **Surat Tugas** | `/api/surat-tugas/` | Assignment letters |
+| **BMN** | `/api/bmn/` | Barang Milik Negara (government assets) |
+| **Inventory** | `/api/inventory/` | Inventory & stock management |
+| **DeReporting** | `/api/dereporting/` | Internal & external reporting |
+| **CMS** | `/api/cms/` | Website content management |
 
-## Quick Start (Local Development)
+---
+
+## Quick Start (5 Minutes)
 
 ### Prerequisites
 
-- PHP 8.3+
-- Composer
-- Node.js 20+
-- Docker (untuk PostgreSQL)
+- PHP 8.2+ & Composer
+- Node.js 20+ & npm
+- PostgreSQL (local via Docker, or Supabase)
 
-### 1. Clone & Setup
+### 1. Clone & Install
 
 ```bash
-git clone https://github.com/{owner}/bksda-superapp.git
+git clone https://github.com/tegaranugrah1/bksda-superapp.git
 cd bksda-superapp
-```
 
-### 2. Start Database
-
-```bash
-docker compose up -d
-```
-
-### 3. Backend
-
-```bash
-cd backend
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
-php artisan serve
-```
-
-### 4. Frontend
-
-```bash
+# Frontend
 cd frontend
 npm install
 cp .env.example .env.local
+
+# Backend
+cd ../backend
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+
+### 2. Database Setup
+
+```bash
+# Start PostgreSQL (if local)
+docker compose up -d
+
+# Run migrations & seed
+php artisan migrate
+php artisan db:seed
+```
+
+### 3. Run
+
+```bash
+# Terminal 1: Backend
+cd backend
+php artisan serve
+
+# Terminal 2: Frontend
+cd frontend
 npm run dev
 ```
 
-### 5. Access
-
+Access:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000/api
+
+### 4. Login
+
+Default super admin credentials:
+- **NIP**: `198001012005011001`
+- **Password**: `Bksda2026!@#`
+
+---
 
 ## Project Structure
 
 ```
 bksda-superapp/
-├── backend/                    # Laravel 12 API
-│   ├── app/
-│   │   ├── Http/Middleware/    # Auth, Role, Module, Audit
-│   │   ├── Models/             # User model
-│   │   └── Modules/            # Modular architecture
-│   │       ├── Kepegawaian/    # Manajemen Pegawai
-│   │       ├── SuratTugas/     # Surat Tugas
-│   │       ├── BMN/            # Barang Milik Negara
-│   │       ├── Inventory/      # Persediaan
-│   │       ├── DeReporting/    # Laporan Data
-│   │       └── CMS/            # Website Management
-│   ├── config/
-│   ├── database/migrations/
-│   └── routes/
-├── frontend/                   # Next.js 16
+├── frontend/                    # Next.js (Vercel)
 │   ├── src/
-│   │   ├── app/                # Pages (App Router)
-│   │   ├── components/         # Reusable components
-│   │   ├── lib/                # API client, utils
-│   │   └── types/              # TypeScript interfaces
-│   └── public/assets/          # Static assets
-├── docker/                     # Docker configs
-├── docs/                       # Documentation & issues
-│   ├── issues/                 # Issue tracking MDs
-│   └── HANDOFF.md              # AI model handoff tracker
-├── .editorconfig
-├── .gitignore
-├── RULES.md                    # Coding standards
-└── README.md                   # This file
+│   │   ├── app/               # Pages (App Router)
+│   │   │   ├── (website)/     # Public pages (homepage, news, kawasan, etc.)
+│   │   │   ├── (dashboard)/   # Admin dashboard pages
+│   │   │   └── login/         # Login page
+│   │   ├── components/
+│   │   │   ├── ui/            # shadcn/ui components
+│   │   │   └── custom/        # Custom components
+│   │   └── lib/
+│   │       ├── api.ts          # Axios instance with Bearer token
+│   │       └── utils.ts        # Utilities (cn, formatDate, etc.)
+│   └── public/
+│
+├── backend/                     # Laravel (Vercel Serverless)
+│   ├── app/
+│   │   ├── Models/            # User model
+│   │   └── Modules/           # Modular architecture
+│   │       ├── Kepegawaian/   # Employee management
+│   │       ├── SuratTugas/    # Assignment letters
+│   │       ├── BMN/           # Government assets
+│   │       ├── Inventory/     # Stock management
+│   │       ├── DeReporting/   # Reporting
+│   │       └── CMS/           # Content management
+│   ├── config/                # Laravel configs
+│   ├── database/
+│   │   ├── migrations/        # Database migrations
+│   │   └── seeders/          # Database seeders
+│   └── routes/                # API routes
+│
+├── docs/                       # Documentation
+│   ├── issues/                # Issue specifications (125 files)
+│   └── HANDOFF.md            # AI handoff protocol
+├── docker/                    # Docker Compose for PostgreSQL
+└── docker-compose.yml
 ```
+
+---
+
+## Documentation
+
+| Document | Location |
+|----------|----------|
+| API Endpoints | `backend/README.md` |
+| Frontend Guide | `frontend/README.md` |
+| Coding Standards | `RULES.md` |
+| Issue Specifications | `docs/issues/*.md` |
+| AI Handoff | `docs/HANDOFF.md` |
+
+---
 
 ## Deployment
 
 ### Phase 1 (Current)
 - **Database**: Supabase (PostgreSQL managed)
 - **Frontend**: Vercel
-- **Backend**: Vercel (via `vercel.json` + `nixpacks.toml`)
+- **Backend**: Vercel (via `vercel.json`)
 
 ### Phase 2 (Future)
-- **VPS**: Self-hosted dengan Docker Compose
+- **VPS**: Self-hosted with Docker Compose
 
-## Documentation
+---
 
-- [RULES.md](./RULES.md) — Coding standards & project rules
-- [docs/issues/](./docs/issues/) — Issue tracker
-- [docs/HANDOFF.md](./docs/HANDOFF.md) — AI model handoff protocol
+## Contributing
+
+1. Create a branch: `git checkout -b issue/XXX-description`
+2. Follow RULES.md coding standards
+3. Run IDE checks before commit:
+   ```bash
+   cd frontend && npm run lint -- --max-warnings=0
+   cd frontend && npx tsc --noEmit
+   ```
+4. Create PR and assign reviewers
+
+---
+
+## License
+
+MIT
