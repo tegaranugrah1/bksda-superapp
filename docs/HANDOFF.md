@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | Debt #2: BMN Reports Excel Endpoints (GH #204, PR #205) |
-| **Issue Selanjutnya** | Debt #3: API Resource Classes |
+| **Issue Terakhir Selesai** | Debt #3: BMN API Resource Classes (GH #206, PR #207) |
+| **Issue Selanjutnya** | Debt #4: Return Type Hints |
 | **Branch Aktif** | `main` (clean) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:30:00+08:00 |
-| **GitHub Issue** | #204 (PR #205 merged) |
+| **GitHub Issue** | #206 (PR #207 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -515,7 +515,7 @@ frontend/src/lib/bmn-utils.ts                                                   
 |---|-------|-----------|----------|--------|
 | 1 | Phase 6 (BMN) | **BMN Dashboard** (`/bmn`) masih pakai **mock data**. Endpoint `/api/bmn/dashboard/stats` **BELUM DIBUAT** di backend. | 🟡 MEDIUM | ✅ DONE (GH #202, PR #203) |
 | 2 | Phase 6 (BMN) | **BMN Reports** (`/bmn/reports`) — 3 tombol download Excel memanggil endpoint `/export` yang **BELUM ADA** di backend. UI placeholder only. | 🟡 MEDIUM | ✅ DONE (GH #204, PR #205) |
-| 3 | ALL (Audit) | **API Resource classes** (`JsonResource`) belum ada di semua module. Semua controller return model langsung (Rule 5.6, 8.10). | 🟡 MEDIUM | ❌ Pending |
+| 3 | ALL (Audit) | **API Resource classes** (`JsonResource`) belum ada di semua module. Semua controller return model langsung (Rule 5.6, 8.10). | 🟡 MEDIUM | ✅ DONE BMN only (GH #206, PR #207) |
 | 4 | ALL (Audit) | **Return type hints** missing di semua Controllers kecuali Kepegawaian (Rule 8.12). | 🟢 LOW | ❌ Pending |
 | 5 | ALL (Audit) | **PHP Enum** belum dipakai untuk status values — masih magic strings (Rule 8.11). | 🟡 MEDIUM | ❌ Pending |
 | 6 | DeReporting | **OperatorController.store()** pakai `Request` bukan `FormRequest` (Rule 8.9). | 🟢 LOW | ❌ Pending |
