@@ -4,8 +4,8 @@ namespace App\Modules\Bmn\Services;
 
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetLoan;
-use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class LoanService
 {
@@ -27,6 +27,7 @@ class LoanService
             ]);
 
             $asset->update(['employee_id' => $employeeId]);
+
             return $loan;
         });
     }
@@ -43,11 +44,12 @@ class LoanService
             $loan->update([
                 'status' => 'dikembalikan',
                 'tanggal_kembali' => $data['tanggal_kembali'] ?? now()->toDateString(),
-                'keterangan' => ($loan->keterangan ? $loan->keterangan . ' | ' : '') . ($data['catatan_pengembalian'] ?? 'Telah dikembalikan.'),
+                'keterangan' => ($loan->keterangan ? $loan->keterangan.' | ' : '').($data['catatan_pengembalian'] ?? 'Telah dikembalikan.'),
             ]);
 
             $asset = Asset::findOrFail($loan->asset_id);
             $asset->update(['employee_id' => null]);
+
             return $loan;
         });
     }

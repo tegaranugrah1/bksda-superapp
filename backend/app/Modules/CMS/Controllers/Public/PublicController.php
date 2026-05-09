@@ -3,24 +3,23 @@
 namespace App\Modules\CMS\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-// Import Model CMS
-use App\Modules\CMS\Models\Informasi;
-use App\Modules\CMS\Models\Category;
-use App\Modules\CMS\Models\Profil;
-use App\Modules\CMS\Models\Kawasan;
-use App\Modules\CMS\Models\Tsl;
-use App\Modules\CMS\Models\Photo;
-use App\Modules\CMS\Models\Video;
-use App\Modules\CMS\Models\Link;
 use App\Modules\CMS\Models\Buku;
-use App\Modules\CMS\Models\Leaflet;
-use App\Modules\CMS\Models\Poster;
-use App\Modules\CMS\Models\Regulasi;
-use App\Modules\CMS\Models\Website;
+// Import Model CMS
+use App\Modules\CMS\Models\Category;
+use App\Modules\CMS\Models\Informasi;
+use App\Modules\CMS\Models\Kawasan;
 use App\Modules\CMS\Models\Kepala;
+use App\Modules\CMS\Models\Leaflet;
+use App\Modules\CMS\Models\Link;
 use App\Modules\CMS\Models\Menu;
+use App\Modules\CMS\Models\Photo;
+use App\Modules\CMS\Models\Poster;
+use App\Modules\CMS\Models\Profil;
+use App\Modules\CMS\Models\Regulasi;
+use App\Modules\CMS\Models\Tsl;
+use App\Modules\CMS\Models\Video;
+use App\Modules\CMS\Models\Website;
+use Illuminate\Http\Request;
 
 class PublicController extends Controller
 {
@@ -35,6 +34,7 @@ class PublicController extends Controller
     public function website()
     {
         $data = Website::first();
+
         return response()->json(['data' => $data]);
     }
 
@@ -45,6 +45,7 @@ class PublicController extends Controller
     public function kepala()
     {
         $data = Kepala::active()->first();
+
         return response()->json(['data' => $data]);
     }
 
@@ -83,12 +84,12 @@ class PublicController extends Controller
 
         // Filter per Kategori (jika pengunjung klik tab "Siaran Pers")
         if ($request->filled('category_slug')) {
-            $query->whereHas('category', fn($q) => $q->where('slug', $request->category_slug));
+            $query->whereHas('category', fn ($q) => $q->where('slug', $request->category_slug));
         }
 
         // Pencarian Judul
         if ($request->filled('search')) {
-            $query->where('judul', 'ilike', '%' . $request->search . '%');
+            $query->where('judul', 'ilike', '%'.$request->search.'%');
         }
 
         return response()->json($query->paginate(12));
@@ -150,6 +151,7 @@ class PublicController extends Controller
     public function profilShow(string $slug)
     {
         $data = Profil::where('is_published', true)->where('slug', $slug)->firstOrFail();
+
         return response()->json(['data' => $data]);
     }
 
@@ -176,6 +178,7 @@ class PublicController extends Controller
     public function kawasanShow(string $slug)
     {
         $data = Kawasan::where('is_published', true)->where('slug', $slug)->firstOrFail();
+
         return response()->json(['data' => $data]);
     }
 
@@ -204,6 +207,7 @@ class PublicController extends Controller
     public function tslShow(string $slug)
     {
         $data = Tsl::where('is_published', true)->where('slug', $slug)->firstOrFail();
+
         return response()->json(['data' => $data]);
     }
 

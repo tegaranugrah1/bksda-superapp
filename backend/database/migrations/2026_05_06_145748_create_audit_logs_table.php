@@ -15,15 +15,15 @@ return new class extends Migration
             $table->id();
             // user_id nullable karena bisa jadi aktivitas dilakukan oleh Guest (belum login)
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            
+
             $table->string('method'); // POST, PUT, DELETE
             $table->text('url'); // Path yang diakses
             $table->string('ip_address')->nullable();
             $table->integer('status_code'); // Contoh: 200 (OK), 403 (Forbidden)
-            
+
             // Simpan body request (apa saja yang dikirim oleh user)
-            $table->json('payload')->nullable(); 
-            
+            $table->json('payload')->nullable();
+
             // Kita hanya butuh created_at (kapan dicatat). Tidak butuh updated_at.
             $table->timestamp('created_at')->useCurrent();
         });

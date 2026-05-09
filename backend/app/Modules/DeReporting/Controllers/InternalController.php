@@ -3,12 +3,11 @@
 namespace App\Modules\DeReporting\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\DeReporting\Models\Internal;
+use App\Modules\DeReporting\Requests\StoreInternalRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
-use App\Modules\DeReporting\Models\Internal;
-use App\Modules\DeReporting\Requests\StoreInternalRequest;
 
 class InternalController extends Controller
 {
@@ -27,14 +26,14 @@ class InternalController extends Controller
             'kategori',
             'jenisData',
             'koordinator',
-            'anggaran'
+            'anggaran',
         ])->latest();
 
         // Implementasi Fitur Pencarian Cerdas
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where('judul_laporan', 'ilike', "%{$search}%")
-                  ->orWhere('keterangan', 'ilike', "%{$search}%");
+                ->orWhere('keterangan', 'ilike', "%{$search}%");
         }
 
         // Tembak menggunakan aturan Project Rule 3.1: Wajib Paging
@@ -52,28 +51,28 @@ class InternalController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             // Menghancurkan nama asli, menggantinya dengan Enkripsi Acak UUID (Rule 4.3)
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
             // Mengubur file ke dalam Brankas Privat (Rule 4.4)
             $filePath = $file->storeAs('private/dereporting/internals', $filename);
         }
 
         $report = Internal::create([
-            'user_id'        => $request->user()->id,
-            'tahun_id'       => $request->tahun_id,
-            'bidang_id'      => $request->bidang_id,
-            'jenis_id'       => $request->jenis_id,
-            'kategori_id'    => $request->kategori_id,
-            'jenis_data_id'  => $request->jenis_data_id,
+            'user_id' => $request->user()->id,
+            'tahun_id' => $request->tahun_id,
+            'bidang_id' => $request->bidang_id,
+            'jenis_id' => $request->jenis_id,
+            'kategori_id' => $request->kategori_id,
+            'jenis_data_id' => $request->jenis_data_id,
             'koordinator_id' => $request->koordinator_id,
-            'anggaran_id'    => $request->anggaran_id,
-            'judul_laporan'  => $request->judul_laporan,
-            'keterangan'     => $request->keterangan,
-            'file_path'      => $filePath,
+            'anggaran_id' => $request->anggaran_id,
+            'judul_laporan' => $request->judul_laporan,
+            'keterangan' => $request->keterangan,
+            'file_path' => $filePath,
         ]);
 
         return response()->json([
             'message' => 'Laporan berhasil disandikan dan dikunci dalam brankas.',
-            'data'    => $report
+            'data' => $report,
         ], 201);
     }
 
@@ -85,11 +84,11 @@ class InternalController extends Controller
     {
         $report = Internal::findOrFail($id);
 
-        if (!$report->file_path || !Storage::exists($report->file_path)) {
+        if (! $report->file_path || ! Storage::exists($report->file_path)) {
             return response()->json(['message' => 'Berkas fisik tidak ditemukan di dalam brankas server.'], 404);
         }
 
-        return Storage::download($report->file_path, $report->judul_laporan . '.' . pathinfo($report->file_path, PATHINFO_EXTENSION));
+        return Storage::download($report->file_path, $report->judul_laporan.'.'.pathinfo($report->file_path, PATHINFO_EXTENSION));
     }
 
     /**
@@ -104,7 +103,7 @@ class InternalController extends Controller
         $report->delete();
 
         return response()->json([
-            'message' => 'Laporan telah ditarik dari peredaran publik (Archived).'
+            'message' => 'Laporan telah ditarik dari peredaran publik (Archived).',
         ]);
     }
 }

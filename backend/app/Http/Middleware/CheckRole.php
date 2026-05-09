@@ -14,7 +14,7 @@ class CheckRole
      * Mengecek apakah role User yang sedang login diperbolehkan
      * mengakses rute ini.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      * @param  string  ...$roles  Daftar role yang diizinkan (contoh: 'admin', 'pimpinan')
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
@@ -22,10 +22,10 @@ class CheckRole
         $user = $request->user();
 
         // 1. EARLY RETURN: Pastikan user terautentikasi (Lapis ganda)
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'error' => 'Unauthenticated',
-                'message' => 'Silakan login terlebih dahulu.'
+                'message' => 'Silakan login terlebih dahulu.',
             ], 401);
         }
 
@@ -36,12 +36,12 @@ class CheckRole
         }
 
         // 3. VALIDASI UTAMA: Apakah role user ada di dalam daftar role yang diizinkan?
-        if (!in_array($user->role, $roles)) {
+        if (! in_array($user->role, $roles)) {
             // Jika tidak cocok, tolak dengan format error terstandar
             return response()->json([
                 'error' => 'Forbidden',
                 'message' => 'Hak akses (Role) Anda tidak mencukupi untuk operasi ini.',
-                'code' => 'ROLE_ACCESS_DENIED'
+                'code' => 'ROLE_ACCESS_DENIED',
             ], 403);
         }
 

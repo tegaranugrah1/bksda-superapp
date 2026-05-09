@@ -2,12 +2,12 @@
 
 namespace App\Modules\Inventory\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Modules\Kepegawaian\Models\Employee;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Office extends Model
 {
@@ -18,7 +18,7 @@ class Office extends Model
     protected $fillable = [
         'nama_kantor',
         'lokasi',
-        'penanggung_jawab_id'
+        'penanggung_jawab_id',
     ];
 
     public function penanggungJawab(): BelongsTo

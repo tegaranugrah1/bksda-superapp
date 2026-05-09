@@ -2,8 +2,8 @@
 
 namespace App\Modules\Inventory\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InventoryStock extends Model
@@ -15,7 +15,7 @@ class InventoryStock extends Model
     protected $fillable = [
         'office_id',
         'item_id',
-        'quantity'
+        'quantity',
     ];
 
     public function office(): BelongsTo

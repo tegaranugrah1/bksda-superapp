@@ -2,8 +2,8 @@
 
 namespace App\Modules\Kepegawaian\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
 
 class KepegawaianServiceProvider extends ServiceProvider
 {

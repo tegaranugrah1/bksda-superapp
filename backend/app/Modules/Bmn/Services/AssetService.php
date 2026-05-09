@@ -5,7 +5,6 @@ namespace App\Modules\Bmn\Services;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetUpdate;
 use Illuminate\Support\Facades\DB;
-use Exception;
 
 class AssetService
 {
@@ -32,7 +31,7 @@ class AssetService
                         'field_changed' => 'nilai_perolehan',
                         'old_value' => (string) $oldNilai,
                         'new_value' => (string) $newNilai,
-                        'alasan_perubahan' => $data['keterangan_audit'] ?? 'Penyusutan Tahunan atau Revisi Nilai'
+                        'alasan_perubahan' => $data['keterangan_audit'] ?? 'Penyusutan Tahunan atau Revisi Nilai',
                     ]);
                 }
             }
@@ -44,11 +43,12 @@ class AssetService
                     'field_changed' => 'kondisi',
                     'old_value' => $asset->kondisi,
                     'new_value' => $data['kondisi'],
-                    'alasan_perubahan' => 'Pembaruan kondisi fisik aset'
+                    'alasan_perubahan' => 'Pembaruan kondisi fisik aset',
                 ]);
             }
 
             $asset->update($data);
+
             return $asset;
         });
     }
@@ -64,10 +64,11 @@ class AssetService
                 'field_changed' => 'STATUS_ASET',
                 'old_value' => 'Aktif',
                 'new_value' => 'Dihapus/Pemutihan',
-                'alasan_perubahan' => $alasan
+                'alasan_perubahan' => $alasan,
             ]);
 
             $asset->delete();
+
             return true;
         });
     }

@@ -1,11 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Modules\Bmn\Controllers\AssetController;
-use App\Modules\Bmn\Controllers\LoanController;
-use App\Modules\Bmn\Controllers\MaintenanceController;
 use App\Modules\Bmn\Controllers\DashboardController;
 use App\Modules\Bmn\Controllers\ExportController;
+use App\Modules\Bmn\Controllers\LoanController;
+use App\Modules\Bmn\Controllers\MaintenanceController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,7 +22,7 @@ Route::get('/ping', function () {
     return response()->json([
         'status' => 'success',
         'module' => 'BMN',
-        'message' => '🏛️ Sirkuit Keuangan Barang Milik Negara Aktif & Terlindungi!'
+        'message' => '🏛️ Sirkuit Keuangan Barang Milik Negara Aktif & Terlindungi!',
     ]);
 });
 

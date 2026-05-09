@@ -3,10 +3,11 @@
 namespace App\Modules\Kepegawaian\Models;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -17,10 +18,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property string|null $satuan_kerja Contoh: SKW I / Resor Konservasi Wilayah
  * @property bool $is_active Apakah pegawai masih aktif bekerja
  * @property string|null $foto_profil
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read User|null $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee newQuery()
@@ -39,6 +41,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Employee extends Model

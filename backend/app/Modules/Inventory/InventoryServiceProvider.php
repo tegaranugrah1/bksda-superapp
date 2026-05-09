@@ -2,8 +2,8 @@
 
 namespace App\Modules\Inventory;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
 
 class InventoryServiceProvider extends ServiceProvider
 {
@@ -14,7 +14,7 @@ class InventoryServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // 1. Deklarasikan Lokasi Folder Cetak Biru (Migrations)
-        $this->loadMigrationsFrom(__DIR__ . '/Migrations');
+        $this->loadMigrationsFrom(__DIR__.'/Migrations');
 
         // 2. Deklarasikan Lokasi Jalur Akses (Routes)
         $this->registerRoutes();
@@ -29,6 +29,6 @@ class InventoryServiceProvider extends ServiceProvider
     {
         Route::prefix('api/inventory')
             ->middleware(['api', 'auth:sanctum', 'module.access:inventory'])
-            ->group(__DIR__ . '/Routes/api.php');
+            ->group(__DIR__.'/Routes/api.php');
     }
 }

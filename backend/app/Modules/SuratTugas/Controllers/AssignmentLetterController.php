@@ -5,10 +5,10 @@ namespace App\Modules\SuratTugas\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
 use App\Modules\SuratTugas\Requests\AssignmentLetterRequest;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Exception;
 
 class AssignmentLetterController extends Controller
 {
@@ -18,7 +18,7 @@ class AssignmentLetterController extends Controller
 
         if ($search = $request->query('search')) {
             $query->where('tempat_tujuan', 'ilike', "%{$search}%")
-                  ->orWhere('maksud_tujuan', 'ilike', "%{$search}%");
+                ->orWhere('maksud_tujuan', 'ilike', "%{$search}%");
         }
 
         if ($status = $request->query('status')) {
@@ -38,7 +38,7 @@ class AssignmentLetterController extends Controller
                 'last_page' => $letters->lastPage(),
                 'per_page' => $letters->perPage(),
                 'total' => $letters->total(),
-            ]
+            ],
         ]);
     }
 
@@ -74,18 +74,20 @@ class AssignmentLetterController extends Controller
 
             return response()->json([
                 'message' => 'Pengajuan Surat Tugas berhasil direkam.',
-                'data' => $surat
+                'data' => $surat,
             ], 201);
 
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Terjadi kegagalan sistem: ' . $e->getMessage()], 500);
+
+            return response()->json(['message' => 'Terjadi kegagalan sistem: '.$e->getMessage()], 500);
         }
     }
 
     public function show(string $id)
     {
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees'])->findOrFail($id);
+
         return response()->json(['data' => $surat]);
     }
 
@@ -123,12 +125,13 @@ class AssignmentLetterController extends Controller
 
             return response()->json([
                 'message' => 'Data Surat Tugas berhasil diperbarui.',
-                'data' => $surat
+                'data' => $surat,
             ]);
 
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Terjadi kegagalan sistem: ' . $e->getMessage()], 500);
+
+            return response()->json(['message' => 'Terjadi kegagalan sistem: '.$e->getMessage()], 500);
         }
     }
 
@@ -136,7 +139,7 @@ class AssignmentLetterController extends Controller
     {
         $request->validate([
             'status' => 'required|in:approved,rejected,completed',
-            'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,' . $id
+            'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
         ]);
 
         $surat = AssignmentLetter::findOrFail($id);
@@ -150,8 +153,8 @@ class AssignmentLetterController extends Controller
         $surat->save();
 
         return response()->json([
-            'message' => 'Status Surat Tugas telah diperbarui menjadi ' . strtoupper($request->status),
-            'data' => $surat
+            'message' => 'Status Surat Tugas telah diperbarui menjadi '.strtoupper($request->status),
+            'data' => $surat,
         ]);
     }
 
@@ -159,6 +162,7 @@ class AssignmentLetterController extends Controller
     {
         $surat = AssignmentLetter::findOrFail($id);
         $surat->delete();
+
         return response()->json(['message' => 'Dokumen dipindahkan ke Arsip Sampah.']);
     }
 
@@ -166,6 +170,7 @@ class AssignmentLetterController extends Controller
     {
         $surat = AssignmentLetter::onlyTrashed()->findOrFail($id);
         $surat->restore();
+
         return response()->json(['message' => 'Dokumen berhasil dipulihkan.']);
     }
 
@@ -178,6 +183,7 @@ class AssignmentLetterController extends Controller
         }
 
         $surat->forceDelete();
+
         return response()->json(['message' => 'Dokumen dihapus permanen dari arsip.']);
     }
 
@@ -185,13 +191,13 @@ class AssignmentLetterController extends Controller
     {
         $surat = AssignmentLetter::withTrashed()->findOrFail($id);
 
-        if (!$surat->file_surat_path || !Storage::exists($surat->file_surat_path)) {
+        if (! $surat->file_surat_path || ! Storage::exists($surat->file_surat_path)) {
             return response()->json(['message' => 'Berkas PDF fisik tidak ditemukan di brankas server.'], 404);
         }
 
         return Storage::download(
             $surat->file_surat_path,
-            'ST_BKSDA_' . ($surat->nomor_surat ?? 'Draft') . '.pdf'
+            'ST_BKSDA_'.($surat->nomor_surat ?? 'Draft').'.pdf'
         );
     }
 
@@ -202,7 +208,7 @@ class AssignmentLetterController extends Controller
         if ($surat->status !== 'approved' && $surat->status !== 'completed') {
             return response()->json([
                 'valid' => false,
-                'message' => 'Dokumen ini tidak memiliki ketetapan hukum yang sah atau statusnya belum disetujui.'
+                'message' => 'Dokumen ini tidak memiliki ketetapan hukum yang sah atau statusnya belum disetujui.',
             ], 403);
         }
 
@@ -212,10 +218,10 @@ class AssignmentLetterController extends Controller
             'data' => [
                 'nomor_surat' => $surat->nomor_surat,
                 'maksud_tujuan' => $surat->maksud_tujuan,
-                'tanggal_berlaku' => $surat->tanggal_mulai->format('d M Y') . ' s/d ' . $surat->tanggal_selesai->format('d M Y'),
+                'tanggal_berlaku' => $surat->tanggal_mulai->format('d M Y').' s/d '.$surat->tanggal_selesai->format('d M Y'),
                 'tempat_tujuan' => $surat->tempat_tujuan,
-                'personil' => $surat->employees->pluck('nama_lengkap')
-            ]
+                'personil' => $surat->employees->pluck('nama_lengkap'),
+            ],
         ]);
     }
 }

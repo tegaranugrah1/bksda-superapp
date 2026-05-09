@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Modules\Inventory\Controllers\DashboardController;
-use App\Modules\Inventory\Controllers\OfficeController;
 use App\Modules\Inventory\Controllers\ItemController;
+use App\Modules\Inventory\Controllers\OfficeController;
 use App\Modules\Inventory\Controllers\StockController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,9 +18,9 @@ use App\Modules\Inventory\Controllers\StockController;
 
 Route::get('/ping', function () {
     return response()->json([
-        'status'    => 'success',
-        'message'   => '🛡️ BKSDA Inventory API is actively routing traffic!',
-        'timestamp' => now()
+        'status' => 'success',
+        'message' => '🛡️ BKSDA Inventory API is actively routing traffic!',
+        'timestamp' => now(),
     ]);
 });
 

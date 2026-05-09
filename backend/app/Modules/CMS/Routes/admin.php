@@ -1,25 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-// Import seluruh 17 Controller Admin
-use App\Modules\CMS\Controllers\Admin\InformasiController;
-use App\Modules\CMS\Controllers\Admin\CategoryController;
-use App\Modules\CMS\Controllers\Admin\ProfilController;
-use App\Modules\CMS\Controllers\Admin\KawasanController;
-use App\Modules\CMS\Controllers\Admin\TslController;
-use App\Modules\CMS\Controllers\Admin\PhotoController;
-use App\Modules\CMS\Controllers\Admin\VideoController;
-use App\Modules\CMS\Controllers\Admin\LinkController;
 use App\Modules\CMS\Controllers\Admin\BukuController;
-use App\Modules\CMS\Controllers\Admin\LeafletController;
-use App\Modules\CMS\Controllers\Admin\PosterController;
-use App\Modules\CMS\Controllers\Admin\RegulasiController;
+// Import seluruh 17 Controller Admin
+use App\Modules\CMS\Controllers\Admin\CategoryController;
+use App\Modules\CMS\Controllers\Admin\InformasiController;
 use App\Modules\CMS\Controllers\Admin\JenisController;
-use App\Modules\CMS\Controllers\Admin\WebsiteController;
+use App\Modules\CMS\Controllers\Admin\KawasanController;
 use App\Modules\CMS\Controllers\Admin\KepalaController;
+use App\Modules\CMS\Controllers\Admin\LeafletController;
+use App\Modules\CMS\Controllers\Admin\LinkController;
 use App\Modules\CMS\Controllers\Admin\MenuController;
 use App\Modules\CMS\Controllers\Admin\PesanController;
+use App\Modules\CMS\Controllers\Admin\PhotoController;
+use App\Modules\CMS\Controllers\Admin\PosterController;
+use App\Modules\CMS\Controllers\Admin\ProfilController;
+use App\Modules\CMS\Controllers\Admin\RegulasiController;
+use App\Modules\CMS\Controllers\Admin\TslController;
+use App\Modules\CMS\Controllers\Admin\VideoController;
+use App\Modules\CMS\Controllers\Admin\WebsiteController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------

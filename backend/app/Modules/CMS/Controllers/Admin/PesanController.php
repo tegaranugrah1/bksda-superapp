@@ -25,6 +25,7 @@ class PesanController extends Controller
     {
         $pesan = Pesan::findOrFail($id);
         $pesan->update(['is_read' => true]);
+
         return response()->json(['message' => 'Pesan ditandai sudah dibaca.', 'data' => $pesan]);
     }
 
@@ -32,6 +33,7 @@ class PesanController extends Controller
     public function destroy(string $id)
     {
         Pesan::findOrFail($id)->delete();
+
         return response()->json(['message' => 'Pesan dihapus.']);
     }
 }

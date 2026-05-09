@@ -10,11 +10,11 @@ class CheckModuleAccess
 {
     /**
      * Handle an incoming request.
-     * 
-     * Sebagai "Satpam" yang bertugas mengecek apakah User punya tiket (hak) 
+     *
+     * Sebagai "Satpam" yang bertugas mengecek apakah User punya tiket (hak)
      * untuk masuk ke Modul tertentu.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      * @param  string  $moduleName  Nama modul (contoh: 'kepegawaian', 'inventory')
      */
     public function handle(Request $request, Closure $next, string $moduleName): Response
@@ -23,10 +23,10 @@ class CheckModuleAccess
 
         // 1. EARLY RETURN: Pastikan user terautentikasi
         // (Walaupun biasanya auth:sanctum sudah menangani ini, ini sebagai lapis keamanan ganda)
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'error' => 'Unauthenticated',
-                'message' => 'Silakan login terlebih dahulu.'
+                'message' => 'Silakan login terlebih dahulu.',
             ], 401);
         }
 
@@ -41,12 +41,12 @@ class CheckModuleAccess
         $accessModules = $user->access_modules ?? [];
 
         // 4. VALIDASI UTAMA: Apakah $moduleName ada di dalam kantong tiket ($accessModules)?
-        if (!in_array($moduleName, $accessModules)) {
+        if (! in_array($moduleName, $accessModules)) {
             // Jika tidak ada, tolak dengan 403 Forbidden sesuai Rule 5.2 (Standar Error Format)
             return response()->json([
                 'error' => 'Forbidden',
                 'message' => 'Anda tidak memiliki hak akses ke modul ini.',
-                'code' => 'MODULE_ACCESS_DENIED'
+                'code' => 'MODULE_ACCESS_DENIED',
             ], 403);
         }
 

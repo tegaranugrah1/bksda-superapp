@@ -2,10 +2,10 @@
 
 namespace App\Modules\Bmn\Models;
 
+use App\Modules\Kepegawaian\Models\Employee;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use App\Modules\Kepegawaian\Models\Employee;
 
 class Asset extends Model
 {
@@ -16,13 +16,13 @@ class Asset extends Model
     protected $fillable = [
         'kode_barang', 'nup', 'nama_barang', 'merk_tipe',
         'tahun_perolehan', 'kondisi', 'nilai_perolehan', 'nilai_buku',
-        'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan'
+        'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
     ];
 
     protected $casts = [
         'nilai_perolehan' => 'decimal:2',
         'nilai_buku' => 'decimal:2',
-        'tahun_perolehan' => 'integer'
+        'tahun_perolehan' => 'integer',
     ];
 
     public function penanggungJawab()

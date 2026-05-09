@@ -9,7 +9,7 @@ enum LoanStatus: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Dipinjam => 'Dipinjam',
             self::Dikembalikan => 'Dikembalikan',
         };

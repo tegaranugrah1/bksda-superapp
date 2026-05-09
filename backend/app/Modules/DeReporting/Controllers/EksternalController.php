@@ -3,12 +3,11 @@
 namespace App\Modules\DeReporting\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\DeReporting\Models\Ekternal;
+use App\Modules\DeReporting\Requests\StoreEksternalRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
-use App\Modules\DeReporting\Models\Ekternal;
-use App\Modules\DeReporting\Requests\StoreEksternalRequest;
 
 class EksternalController extends Controller
 {
@@ -34,8 +33,8 @@ class EksternalController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where('judul_laporan', 'ilike', "%{$search}%")
-                  ->orWhere('nama_pelapor', 'ilike', "%{$search}%")
-                  ->orWhere('instansi', 'ilike', "%{$search}%");
+                ->orWhere('nama_pelapor', 'ilike', "%{$search}%")
+                ->orWhere('instansi', 'ilike', "%{$search}%");
         }
 
         // Filter Berdasarkan Status (Cari yang 'Menunggu Tinjauan')
@@ -57,19 +56,19 @@ class EksternalController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             // Menghancurkan nama asli (Mencegah serangan skrip .php.pdf)
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
             // Mengarantina file di dalam Brankas Isolasi Publik
             $filePath = $file->storeAs('private/dereporting/eksternals', $filename);
         }
 
         $report = Ekternal::create([
-            'nama_pelapor'  => $request->nama_pelapor,
-            'instansi'      => $request->instansi,
-            'email'         => $request->email,
-            'no_hp'         => $request->no_hp,
+            'nama_pelapor' => $request->nama_pelapor,
+            'instansi' => $request->instansi,
+            'email' => $request->email,
+            'no_hp' => $request->no_hp,
             'judul_laporan' => $request->judul_laporan,
-            'deskripsi'     => $request->deskripsi,
-            'file_path'     => $filePath,
+            'deskripsi' => $request->deskripsi,
+            'file_path' => $filePath,
         ]);
 
         // JEJAK FORENSIK RAHASIA (Rule 4.6) — diisi oleh sistem, bukan fillable
@@ -80,7 +79,7 @@ class EksternalController extends Controller
         return response()->json([
             'message' => 'Laporan Anda berhasil dikirim ke Markas BKSDA. Kami telah mencatat tiket Anda.',
             // JANGAN mengirimkan IP Address balik ke layar pengguna!
-            'data'    => $report->only(['id', 'nama_pelapor', 'status', 'created_at'])
+            'data' => $report->only(['id', 'nama_pelapor', 'status', 'created_at']),
         ], 201);
     }
 
@@ -99,7 +98,7 @@ class EksternalController extends Controller
 
         return response()->json([
             'message' => "Status laporan berhasil diubah menjadi: {$request->status}",
-            'data'    => $report
+            'data' => $report,
         ]);
     }
 
@@ -111,11 +110,11 @@ class EksternalController extends Controller
     {
         $report = Ekternal::findOrFail($id);
 
-        if (!$report->file_path || !Storage::exists($report->file_path)) {
+        if (! $report->file_path || ! Storage::exists($report->file_path)) {
             return response()->json(['message' => 'Berkas laporan gagal ditemukan di karantina.'], 404);
         }
 
-        return Storage::download($report->file_path, $report->judul_laporan . '_Pelapor_Eksternal.' . pathinfo($report->file_path, PATHINFO_EXTENSION));
+        return Storage::download($report->file_path, $report->judul_laporan.'_Pelapor_Eksternal.'.pathinfo($report->file_path, PATHINFO_EXTENSION));
     }
 
     /**
@@ -130,7 +129,7 @@ class EksternalController extends Controller
         $report->delete();
 
         return response()->json([
-            'message' => 'Laporan eksternal telah ditarik dari peredaran (Archived).'
+            'message' => 'Laporan eksternal telah ditarik dari peredaran (Archived).',
         ]);
     }
 }

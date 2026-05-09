@@ -13,6 +13,7 @@ class WebsiteController extends Controller
     public function show()
     {
         $data = Website::firstOrCreate([], ['nama_instansi' => 'BKSDA']);
+
         return response()->json(['data' => $data]);
     }
 
@@ -25,12 +26,13 @@ class WebsiteController extends Controller
         foreach (['logo' => 'logo_path', 'favicon' => 'favicon_path'] as $input => $col) {
             if ($request->hasFile($input)) {
                 $file = $request->file($input);
-                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
                 $data[$col] = $file->storeAs('private/cms', $filename);
             }
         }
 
         $website->update($data);
+
         return response()->json(['message' => 'Pengaturan website berhasil diperbarui.', 'data' => $website]);
     }
 }

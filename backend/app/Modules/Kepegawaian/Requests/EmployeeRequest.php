@@ -25,7 +25,7 @@ class EmployeeRequest extends FormRequest
 
         return [
             // NIP harus unique. Jika sedang Update, abaikan NIP miliknya sendiri
-            'nip' => 'required|string|max:50|unique:kpg_employees,nip,' . $employeeId,
+            'nip' => 'required|string|max:50|unique:kpg_employees,nip,'.$employeeId,
             'nama_lengkap' => 'required|string|max:255',
             'jabatan' => 'nullable|string|max:255',
             'pangkat_golongan' => 'nullable|string|max:255',

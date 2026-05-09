@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Modules\Kepegawaian\Controllers\EmployeeController;
 use App\Modules\Kepegawaian\Controllers\EmployeeAccessController;
+use App\Modules\Kepegawaian\Controllers\EmployeeController;
+use Illuminate\Support\Facades\Route;
 
 // Semua route di bawah ini otomatis memiliki prefix /api/kepegawaian/
 

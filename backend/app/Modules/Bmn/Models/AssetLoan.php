@@ -2,9 +2,9 @@
 
 namespace App\Modules\Bmn\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Modules\Kepegawaian\Models\Employee;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 
 class AssetLoan extends Model
 {
@@ -14,12 +14,12 @@ class AssetLoan extends Model
 
     protected $fillable = [
         'asset_id', 'employee_id', 'tanggal_pinjam',
-        'tanggal_kembali', 'status', 'keterangan'
+        'tanggal_kembali', 'status', 'keterangan',
     ];
 
     protected $casts = [
         'tanggal_pinjam' => 'date',
-        'tanggal_kembali' => 'date'
+        'tanggal_kembali' => 'date',
     ];
 
     public function asset()

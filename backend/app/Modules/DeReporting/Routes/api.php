@@ -1,12 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-// Import 4 Pengendali Raksasa kita
-use App\Modules\DeReporting\Controllers\MasterDataController;
-use App\Modules\DeReporting\Controllers\InternalController;
 use App\Modules\DeReporting\Controllers\EksternalController;
+// Import 4 Pengendali Raksasa kita
+use App\Modules\DeReporting\Controllers\InternalController;
+use App\Modules\DeReporting\Controllers\MasterDataController;
 use App\Modules\DeReporting\Controllers\OperatorController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------

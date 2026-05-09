@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Modules\SuratTugas\Controllers\AssignmentLetterController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/verify/{id}', [AssignmentLetterController::class, 'verify'])
     ->name('surat-tugas.verify');

@@ -29,7 +29,7 @@ class StockOutRequest extends FormRequest
     {
         return [
             'employee_id.required' => 'Wajib memilih siapa Pegawai BKSDA yang mengambil barang ini!',
-            'employee_id.exists' => 'Data Pegawai tidak ditemukan di dalam sistem BKSDA.'
+            'employee_id.exists' => 'Data Pegawai tidak ditemukan di dalam sistem BKSDA.',
         ];
     }
 }

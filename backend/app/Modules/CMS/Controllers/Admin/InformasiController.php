@@ -3,8 +3,8 @@
 namespace App\Modules\CMS\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Modules\CMS\Traits\AdminCrudTrait;
 use App\Modules\CMS\Models\Informasi;
+use App\Modules\CMS\Traits\AdminCrudTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -22,7 +22,7 @@ class InformasiController extends Controller
         $query = Informasi::with('category:id,nama', 'author:id,name')->latest();
 
         if ($request->filled('search')) {
-            $query->where('judul', 'ilike', '%' . $request->search . '%');
+            $query->where('judul', 'ilike', '%'.$request->search.'%');
         }
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
@@ -42,9 +42,9 @@ class InformasiController extends Controller
             'thumbnail' => 'nullable|file|max:5120|mimes:jpg,jpeg,png,webp',
         ]);
 
-        $data = $request->only((new Informasi())->getFillable());
+        $data = $request->only((new Informasi)->getFillable());
         $data['user_id'] = $request->user()->id;
-        $data['slug'] = Str::slug($data['judul']) . '-' . Str::random(5);
+        $data['slug'] = Str::slug($data['judul']).'-'.Str::random(5);
 
         // Jika langsung dipublikasi
         if ($request->boolean('is_published')) {
@@ -56,7 +56,7 @@ class InformasiController extends Controller
 
         return response()->json([
             'message' => 'Berita berhasil disimpan.',
-            'data' => $record
+            'data' => $record,
         ], 201);
     }
 
@@ -67,11 +67,12 @@ class InformasiController extends Controller
     {
         $berita = Informasi::findOrFail($id);
         $berita->update([
-            'is_published' => !$berita->is_published,
-            'published_at' => !$berita->is_published ? now() : $berita->published_at,
+            'is_published' => ! $berita->is_published,
+            'published_at' => ! $berita->is_published ? now() : $berita->published_at,
         ]);
 
         $status = $berita->is_published ? 'diterbitkan' : 'ditarik dari publikasi';
+
         return response()->json(['message' => "Berita berhasil {$status}.", 'data' => $berita]);
     }
 }

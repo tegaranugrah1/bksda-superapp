@@ -12,8 +12,8 @@ class OfficeController extends Controller
     {
         // Pagination Wajib (Rule 3.1) + Relasi Penanggung Jawab (Lompat Modul)
         $offices = Office::with('penanggungJawab:id,nama_lengkap,nip')
-                         ->orderBy('created_at', 'desc')
-                         ->paginate(15);
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         return response()->json($offices);
     }
@@ -24,7 +24,7 @@ class OfficeController extends Controller
 
         return response()->json([
             'message' => 'Kantor penyimpanan baru sukses dibentuk.',
-            'data' => $office
+            'data' => $office,
         ], 201);
     }
 }

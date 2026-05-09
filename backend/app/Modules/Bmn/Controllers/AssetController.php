@@ -3,15 +3,15 @@
 namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use App\Modules\Bmn\Models\Asset;
-use App\Modules\Bmn\Services\AssetService;
+use App\Modules\Bmn\Requests\DisposeAssetRequest;
 use App\Modules\Bmn\Requests\StoreAssetRequest;
 use App\Modules\Bmn\Requests\UpdateAssetRequest;
-use App\Modules\Bmn\Requests\DisposeAssetRequest;
 use App\Modules\Bmn\Resources\AssetResource;
+use App\Modules\Bmn\Services\AssetService;
 use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class AssetController extends Controller
 {
@@ -29,8 +29,8 @@ class AssetController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama_barang', 'ilike', "%{$search}%")
-                  ->orWhere('kode_barang', 'ilike', "%{$search}%")
-                  ->orWhere('nup', 'ilike', "%{$search}%");
+                    ->orWhere('kode_barang', 'ilike', "%{$search}%")
+                    ->orWhere('nup', 'ilike', "%{$search}%");
             });
         }
 
@@ -41,6 +41,7 @@ class AssetController extends Controller
     {
         try {
             $asset = $this->assetService->storeAsset($request->validated());
+
             return response()->json(['message' => 'Aset BMN resmi tercatat.', 'data' => new AssetResource($asset)], 201);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
@@ -51,6 +52,7 @@ class AssetController extends Controller
     {
         $asset = Asset::with(['penanggungJawab', 'loans.borrower', 'maintenances', 'historyUpdates.author'])
             ->findOrFail($id);
+
         return response()->json(['data' => new AssetResource($asset)]);
     }
 
@@ -58,6 +60,7 @@ class AssetController extends Controller
     {
         try {
             $asset = $this->assetService->updateAsset($id, $request->validated(), $request->user()->id);
+
             return response()->json(['message' => 'Perubahan aset berhasil direkam.', 'data' => new AssetResource($asset)]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
@@ -68,6 +71,7 @@ class AssetController extends Controller
     {
         try {
             $this->assetService->disposeAsset($id, $request->user()->id, $request->alasan_pemutihan);
+
             return response()->json(['message' => 'Aset berhasil diistirahatkan dari operasional aktif.']);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);

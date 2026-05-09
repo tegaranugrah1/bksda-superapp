@@ -3,10 +3,10 @@
 namespace App\Modules\Inventory\Services;
 
 use App\Modules\Inventory\Models\InventoryStock;
-use App\Modules\Inventory\Models\StockTransaction;
 use App\Modules\Inventory\Models\Item;
-use Illuminate\Support\Facades\DB;
+use App\Modules\Inventory\Models\StockTransaction;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class InventoryService
 {
@@ -24,7 +24,7 @@ class InventoryService
                     'item_id' => $data['item_id'],
                 ],
                 [
-                    'quantity' => 0 // Inisiasi jumlah 0 jika ini barang baru datang
+                    'quantity' => 0, // Inisiasi jumlah 0 jika ini barang baru datang
                 ]
             );
 
@@ -57,13 +57,13 @@ class InventoryService
         return DB::transaction(function () use ($data) {
             // 1. Kunci Baris Tabel (Pessimistic Locking) agar tidak terjadi bentrok jika diakses bersamaan
             $stock = InventoryStock::where('office_id', $data['office_id'])
-                                   ->where('item_id', $data['item_id'])
-                                   ->lockForUpdate() // Cegah Race Condition
-                                   ->first();
+                ->where('item_id', $data['item_id'])
+                ->lockForUpdate() // Cegah Race Condition
+                ->first();
 
             // 2. Cek Eksistensi: Apakah barang tersebut memang ada di Kantor ini?
-            if (!$stock) {
-                throw new Exception("Barang tidak ditemukan di Kantor/Penyimpanan yang dipilih.");
+            if (! $stock) {
+                throw new Exception('Barang tidak ditemukan di Kantor/Penyimpanan yang dipilih.');
             }
 
             // 3. Validasi Defisit: Apakah saldo cukup untuk dikeluarkan?

@@ -30,7 +30,7 @@ class Informasi extends Model
     protected $casts = [
         'is_published' => 'boolean',
         'published_at' => 'datetime',
-        'views_count'  => 'integer',
+        'views_count' => 'integer',
     ];
 
     /** Kategori Berita (Siaran Pers, dll) */

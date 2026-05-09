@@ -2,10 +2,10 @@
 
 namespace App\Modules\Inventory\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
@@ -15,7 +15,7 @@ class Category extends Model
 
     protected $fillable = [
         'nama_kategori',
-        'deskripsi'
+        'deskripsi',
     ];
 
     public function items(): HasMany

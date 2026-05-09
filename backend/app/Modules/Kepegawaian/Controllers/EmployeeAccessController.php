@@ -2,11 +2,11 @@
 
 namespace App\Modules\Kepegawaian\Controllers;
 
-use App\Models\User;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
+use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Requests\EmployeeAccessRequest;
+use Illuminate\Http\JsonResponse;
 
 class EmployeeAccessController extends Controller
 {
@@ -19,10 +19,10 @@ class EmployeeAccessController extends Controller
         $employee = Employee::with('user')->findOrFail($id);
 
         // Jika pegawai ini belum punya akun untuk login
-        if (!$employee->user) {
+        if (! $employee->user) {
             return response()->json([
                 'message' => 'Pegawai ini belum memiliki akses ke aplikasi.',
-                'data' => null
+                'data' => null,
             ]);
         }
 
@@ -33,7 +33,7 @@ class EmployeeAccessController extends Controller
                 'username' => $employee->user->username,
                 'role' => $employee->user->role,
                 'access_modules' => $employee->user->access_modules,
-            ]
+            ],
         ]);
     }
 
@@ -48,11 +48,11 @@ class EmployeeAccessController extends Controller
         $user = $employee->user;
 
         // SKENARIO A: Pegawai belum punya Akun, kita buatkan!
-        if (!$user) {
+        if (! $user) {
             // Pembuatan akun perdana WAJIB diiringi pembuatan password
             if (empty($validated['password'])) {
                 return response()->json([
-                    'message' => 'Password wajib diisi untuk pembuatan akun baru.'
+                    'message' => 'Password wajib diisi untuk pembuatan akun baru.',
                 ], 422);
             }
 
@@ -76,7 +76,7 @@ class EmployeeAccessController extends Controller
             ];
 
             // Jika dikirimi password (berarti admin ingin mereset password stafnya)
-            if (!empty($validated['password'])) {
+            if (! empty($validated['password'])) {
                 $updateData['password'] = $validated['password'];
             }
 
@@ -90,7 +90,7 @@ class EmployeeAccessController extends Controller
                 'username' => $user->username,
                 'role' => $user->role,
                 'access_modules' => $user->access_modules,
-            ]
+            ],
         ]);
     }
 }

@@ -10,7 +10,7 @@ enum AssetCondition: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Baik => 'Baik',
             self::RusakRingan => 'Rusak Ringan',
             self::RusakBerat => 'Rusak Berat',
