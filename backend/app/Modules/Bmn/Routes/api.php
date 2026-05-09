@@ -5,6 +5,7 @@ use App\Modules\Bmn\Controllers\AssetController;
 use App\Modules\Bmn\Controllers\LoanController;
 use App\Modules\Bmn\Controllers\MaintenanceController;
 use App\Modules\Bmn\Controllers\DashboardController;
+use App\Modules\Bmn\Controllers\ExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,3 +38,8 @@ Route::post('loans/{loan}/return', [LoanController::class, 'return']);
 // 3. REKAM MEDIS PEMELIHARAAN (MAINTENANCE)
 Route::get('maintenances', [MaintenanceController::class, 'index']);
 Route::post('assets/{asset}/maintenances', [MaintenanceController::class, 'record']);
+
+// 4. EXPORT EXCEL
+Route::get('assets/export', [ExportController::class, 'assets']);
+Route::get('loans/export', [ExportController::class, 'loans']);
+Route::get('maintenances/export', [ExportController::class, 'maintenances']);
