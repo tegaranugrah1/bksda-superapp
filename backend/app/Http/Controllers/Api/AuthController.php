@@ -75,12 +75,17 @@ class AuthController extends Controller
         // Load active loans for this employee
         $loans = collect();
         if ($employee) {
-            $loans = AssetLoan::where('employee_id', $employee->id)
-                ->whereNotNull('tanggal_kembali')
-                ->with('asset')
-                ->orderByDesc('tanggal_pinjam')
-                ->limit(20)
-                ->get();
+            try {
+                $loans = AssetLoan::where('employee_id', $employee->id)
+                    ->whereNotNull('tanggal_kembali')
+                    ->with('asset')
+                    ->orderByDesc('tanggal_pinjam')
+                    ->limit(20)
+                    ->get();
+            } catch (\Exception $e) {
+                // Table might not exist yet - return empty collection
+                $loans = collect();
+            }
         }
 
         // Eager load for resource
