@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Resources\MeDashboardResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Modules\Bmn\Models\AssetLoan;
+use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -55,6 +58,41 @@ class AuthController extends Controller
     {
         return response()->json([
             'data' => new UserResource($request->user()),
+        ]);
+    }
+
+    /**
+     * Endpoint: GET /api/me/dashboard
+     * Returns dashboard data for the authenticated user including employee info and my_assets
+     */
+    public function dashboard(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Load employee via username = nip
+        $employee = Employee::where('nip', $user->username)->first();
+
+        // Load active loans for this employee
+        $loans = collect();
+        if ($employee) {
+            $loans = AssetLoan::where('employee_id', $employee->id)
+                ->whereNotNull('tanggal_kembali')
+                ->with('asset')
+                ->orderByDesc('tanggal_pinjam')
+                ->limit(20)
+                ->get();
+        }
+
+        // Eager load for resource
+        $user->load(['employee' => function ($query) use ($user) {
+            $query->where('nip', $user->username);
+        }]);
+
+        // Manually set loans for resource
+        $user->setRelation('loans', $loans);
+
+        return response()->json([
+            'data' => new MeDashboardResource($user),
         ]);
     }
 

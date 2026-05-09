@@ -30,6 +30,7 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected Auth Routes (wajib bawa Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
+    Route::get('/me/dashboard', [AuthController::class, 'dashboard']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
 });
