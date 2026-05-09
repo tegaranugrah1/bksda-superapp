@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | Debt #6: DeReporting OperatorController FormRequest (GH #212, PR #213) |
-| **Issue Selanjutnya** | Debt #7: Laravel Pint |
+| **Issue Terakhir Selesai** | Debt #7: Laravel Pint Formatting (GH #214, PR #215) |
+| **Issue Selanjutnya** | Debt #8: Response Format Consistency |
 | **Branch Aktif** | `main` (clean) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:30:00+08:00 |
-| **GitHub Issue** | #212 (PR #213 merged) |
+| **GitHub Issue** | #214 (PR #215 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -519,7 +519,7 @@ frontend/src/lib/bmn-utils.ts                                                   
 | 4 | ALL (Audit) | **Return type hints** missing di semua Controllers kecuali Kepegawaian (Rule 8.12). | 🟢 LOW | ✅ DONE BMN only (GH #208, PR #209) |
 | 5 | ALL (Audit) | **PHP Enum** belum dipakai untuk status values — masih magic strings (Rule 8.11). | 🟡 MEDIUM | ✅ DONE BMN only (GH #210, PR #211) |
 | 6 | DeReporting | **OperatorController.store()** pakai `Request` bukan `FormRequest` (Rule 8.9). | 🟢 LOW | ✅ DONE (GH #212, PR #213) |
-| 7 | ALL (Audit) | **Laravel Pint** belum pernah dijalankan (Rule 9.9). | 🟢 LOW | ❌ Pending |
+| 7 | ALL (Audit) | **Laravel Pint** belum pernah dijalankan (Rule 9.9). | 🟢 LOW | ✅ DONE (GH #214, PR #215) |
 | 8 | ALL (Audit) | **Response format** tidak konsisten — beberapa wrapped `{data, message}`, lain raw paginate (Rule 5.1). | 🟢 LOW | ❌ Pending |
 
 ---
