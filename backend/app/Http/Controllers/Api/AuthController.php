@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Resources\MeDashboardResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Modules\Bmn\Models\AssetLoan;
@@ -88,16 +87,45 @@ class AuthController extends Controller
             }
         }
 
-        // Eager load for resource
-        $user->load(['employee' => function ($query) use ($user) {
-            $query->where('nip', $user->username);
-        }]);
-
-        // Manually set loans for resource
-        $user->setRelation('loans', $loans);
+        // Create a dashboard data object instead of using resource with relations
+        $dashboardData = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'role' => $user->role,
+                'access_modules' => $user->access_modules ?? [],
+            ],
+            'employee' => $employee ? [
+                'id' => $employee->id,
+                'nip' => $employee->nip,
+                'name' => $employee->nama_lengkap,
+                'position' => $employee->jabatan,
+                'department' => $employee->satuan_kerja,
+                'email' => $employee->email,
+                'phone' => $employee->no_telepon ?? null,
+                'photo' => $employee->foto_profil,
+                'rank' => $employee->pangkat_golongan,
+                'rank_level' => 0,
+                'is_active' => $employee->is_active,
+            ] : null,
+            'my_assets' => $loans->map(function ($loan) {
+                return [
+                    'id' => $loan->asset->id,
+                    'nama_barang' => $loan->asset->nama_barang,
+                    'kode_barang' => $loan->asset->kode_barang,
+                    'nup' => $loan->asset->nup,
+                    'loan_date' => $loan->tanggal_pinjam?->toIso8601String(),
+                    'due_date' => $loan->tanggal_kembali?->toIso8601String(),
+                    'status' => $loan->status,
+                    'merk' => $loan->asset->merk_tipe,
+                ];
+            }),
+        ];
 
         return response()->json([
-            'data' => new MeDashboardResource($user),
+            'data' => $dashboardData,
         ]);
     }
 
