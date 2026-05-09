@@ -4,7 +4,6 @@ namespace App\Modules\CMS\Traits;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * TRAIT SERBAGUNA UNTUK ADMIN CRUD
@@ -28,7 +27,7 @@ trait AdminCrudTrait
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'ilike', "%{$search}%")
-                  ->orWhere('nama', 'ilike', "%{$search}%");
+                    ->orWhere('nama', 'ilike', "%{$search}%");
             });
         }
 
@@ -41,6 +40,7 @@ trait AdminCrudTrait
     public function show(string $id)
     {
         $record = $this->model::findOrFail($id);
+
         return response()->json(['data' => $record]);
     }
 
@@ -49,12 +49,12 @@ trait AdminCrudTrait
      */
     public function store(Request $request)
     {
-        $modelInstance = new $this->model();
+        $modelInstance = new $this->model;
         $data = $request->only($modelInstance->getFillable());
 
         // Auto-generate slug jika ada kolom 'judul'
-        if (isset($data['judul']) && !isset($data['slug'])) {
-            $data['slug'] = Str::slug($data['judul']) . '-' . Str::random(5);
+        if (isset($data['judul']) && ! isset($data['slug'])) {
+            $data['slug'] = Str::slug($data['judul']).'-'.Str::random(5);
         }
 
         // Handle file upload jika ada
@@ -64,7 +64,7 @@ trait AdminCrudTrait
 
         return response()->json([
             'message' => 'Data berhasil ditambahkan.',
-            'data' => $record
+            'data' => $record,
         ], 201);
     }
 
@@ -78,7 +78,7 @@ trait AdminCrudTrait
 
         // Regenerate slug jika judul berubah
         if (isset($data['judul']) && $data['judul'] !== $record->judul) {
-            $data['slug'] = Str::slug($data['judul']) . '-' . Str::random(5);
+            $data['slug'] = Str::slug($data['judul']).'-'.Str::random(5);
         }
 
         $data = $this->handleFileUpload($request, $data);
@@ -86,7 +86,7 @@ trait AdminCrudTrait
 
         return response()->json([
             'message' => 'Data berhasil diperbarui.',
-            'data' => $record
+            'data' => $record,
         ]);
     }
 
@@ -99,10 +99,11 @@ trait AdminCrudTrait
 
         try {
             $record->delete();
+
             return response()->json(['message' => 'Data berhasil dihapus.']);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Data tidak dapat dihapus karena masih terkait data lain.'
+                'error' => 'Data tidak dapat dihapus karena masih terkait data lain.',
             ], 422);
         }
     }
@@ -114,18 +115,18 @@ trait AdminCrudTrait
     protected function handleFileUpload(Request $request, array $data): array
     {
         $fileFields = [
-            'thumbnail'  => 'thumbnail_path',
-            'file'       => 'file_path',
-            'foto'       => 'foto_path',
-            'cover'      => 'cover_path',
-            'logo'       => 'logo_path',
-            'favicon'    => 'favicon_path',
+            'thumbnail' => 'thumbnail_path',
+            'file' => 'file_path',
+            'foto' => 'foto_path',
+            'cover' => 'cover_path',
+            'logo' => 'logo_path',
+            'favicon' => 'favicon_path',
         ];
 
         foreach ($fileFields as $inputName => $dbColumn) {
             if ($request->hasFile($inputName)) {
                 $file = $request->file($inputName);
-                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
                 $path = $file->storeAs('private/cms', $filename);
                 $data[$dbColumn] = $path;
             }

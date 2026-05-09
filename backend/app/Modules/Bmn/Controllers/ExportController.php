@@ -14,7 +14,7 @@ class ExportController extends Controller
 {
     public function assets(): Response
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Katalog Aset BMN');
 
@@ -37,7 +37,7 @@ class ExportController extends Controller
                 $asset->nilai_perolehan,
                 $asset->nilai_buku,
                 $asset->lokasi_spesifik,
-                $asset->penanggungJawab?->nama ?? '-'
+                $asset->penanggungJawab?->nama ?? '-',
             ];
         }
         $sheet->fromArray($rows, null, 'A2');
@@ -49,22 +49,22 @@ class ExportController extends Controller
 
         $writer = new Xlsx($spreadsheet);
         $filename = 'Katalog_Aset_BKSDA.xlsx';
-        $tempPath = storage_path('app/temp/' . $filename);
+        $tempPath = storage_path('app/temp/'.$filename);
 
-        if (!is_dir(dirname($tempPath))) {
+        if (! is_dir(dirname($tempPath))) {
             mkdir(dirname($tempPath), 0755, true);
         }
 
         $writer->save($tempPath);
 
         return response()->download($tempPath, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ])->deleteFileAfterSend(true);
     }
 
     public function loans(): Response
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Riwayat Pinjam Pakai');
 
@@ -83,7 +83,7 @@ class ExportController extends Controller
                 $loan->tanggal_pinjam?->format('Y-m-d'),
                 $loan->tanggal_kembali?->format('Y-m-d'),
                 $loan->status,
-                $loan->keterangan ?? '-'
+                $loan->keterangan ?? '-',
             ];
         }
         $sheet->fromArray($rows, null, 'A2');
@@ -94,22 +94,22 @@ class ExportController extends Controller
 
         $writer = new Xlsx($spreadsheet);
         $filename = 'Lalu_Lintas_Peminjaman_BMN.xlsx';
-        $tempPath = storage_path('app/temp/' . $filename);
+        $tempPath = storage_path('app/temp/'.$filename);
 
-        if (!is_dir(dirname($tempPath))) {
+        if (! is_dir(dirname($tempPath))) {
             mkdir(dirname($tempPath), 0755, true);
         }
 
         $writer->save($tempPath);
 
         return response()->download($tempPath, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ])->deleteFileAfterSend(true);
     }
 
     public function maintenances(): Response
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Riwayat Pemeliharaan');
 
@@ -127,7 +127,7 @@ class ExportController extends Controller
                 $m->jenis_maintenance ?? '-',
                 $m->biaya ?? 0,
                 $m->vendor ?? '-',
-                $m->keterangan ?? '-'
+                $m->keterangan ?? '-',
             ];
         }
         $sheet->fromArray($rows, null, 'A2');
@@ -138,16 +138,16 @@ class ExportController extends Controller
 
         $writer = new Xlsx($spreadsheet);
         $filename = 'Laporan_Biaya_Servis_BMN.xlsx';
-        $tempPath = storage_path('app/temp/' . $filename);
+        $tempPath = storage_path('app/temp/'.$filename);
 
-        if (!is_dir(dirname($tempPath))) {
+        if (! is_dir(dirname($tempPath))) {
             mkdir(dirname($tempPath), 0755, true);
         }
 
         $writer->save($tempPath);
 
         return response()->download($tempPath, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ])->deleteFileAfterSend(true);
     }
 }

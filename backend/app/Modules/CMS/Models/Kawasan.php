@@ -26,9 +26,9 @@ class Kawasan extends Model
     ];
 
     protected $casts = [
-        'latitude'     => 'float',
-        'longitude'    => 'float',
-        'luas_ha'      => 'float',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'luas_ha' => 'float',
         'is_published' => 'boolean',
     ];
 }

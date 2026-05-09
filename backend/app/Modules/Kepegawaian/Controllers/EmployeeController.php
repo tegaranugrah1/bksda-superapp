@@ -3,19 +3,16 @@
 namespace App\Modules\Kepegawaian\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Requests\EmployeeRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
 {
     /**
      * Rule 3.1: Wajib Pagination dan Search
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -24,7 +21,7 @@ class EmployeeController extends Controller
         // Ambil parameter pencarian dari URL (?search=...)
         $searchTerm = $request->input('search');
 
-        if (!empty($searchTerm)) {
+        if (! empty($searchTerm)) {
             // Gunakan ILIKE (PostgreSQL) agar pencarian case-insensitive
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('nama_lengkap', 'ilike', "%{$searchTerm}%")
@@ -49,8 +46,8 @@ class EmployeeController extends Controller
                 'current_page' => $employees->currentPage(),
                 'last_page' => $employees->lastPage(),
                 'per_page' => $employees->perPage(),
-                'total' => $employees->total()
-            ]
+                'total' => $employees->total(),
+            ],
         ]);
     }
 
@@ -75,7 +72,7 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Data pegawai berhasil ditambahkan.',
-            'data' => $employee
+            'data' => $employee,
         ], 201);
     }
 
@@ -88,7 +85,7 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Detail pegawai ditemukan.',
-            'data' => $employee
+            'data' => $employee,
         ]);
     }
 
@@ -116,11 +113,11 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Data pegawai berhasil diperbarui.',
-            'data' => $employee
+            'data' => $employee,
         ]);
     }
 
-/**
+    /**
      * Rule 3.6: Soft Delete
      */
     public function destroy($id): JsonResponse
@@ -131,7 +128,7 @@ class EmployeeController extends Controller
         $employee->delete();
 
         return response()->json([
-            'message' => 'Data pegawai berhasil dihapus (soft delete).'
+            'message' => 'Data pegawai berhasil dihapus (soft delete).',
         ]);
     }
 
@@ -145,7 +142,7 @@ class EmployeeController extends Controller
 
         $query = Employee::query()->where('is_active', true);
 
-        if (!empty($searchTerm)) {
+        if (! empty($searchTerm)) {
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('nama_lengkap', 'ilike', "%{$searchTerm}%")
                     ->orWhere('nip', 'ilike', "%{$searchTerm}%");
@@ -165,7 +162,7 @@ class EmployeeController extends Controller
                     'department' => $emp->unit_kerja,
                     'position' => $emp->jabatan,
                 ];
-            })
+            }),
         ]);
     }
 }

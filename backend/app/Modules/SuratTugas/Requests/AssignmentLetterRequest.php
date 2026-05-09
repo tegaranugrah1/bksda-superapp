@@ -37,7 +37,7 @@ class AssignmentLetterRequest extends FormRequest
             'employees.min' => 'Surat Tugas tidak sah jika tidak ada pegawai yang berangkat.',
             'tanggal_selesai.after_or_equal' => 'Tanggal kembali tidak boleh mendahului tanggal keberangkatan.',
             'file_surat.mimes' => 'Berkas pindaian surat wajib berformat PDF.',
-            'file_surat.max' => 'Ukuran berkas PDF tidak boleh melebihi 10 Megabyte.'
+            'file_surat.max' => 'Ukuran berkas PDF tidak boleh melebihi 10 Megabyte.',
         ];
     }
 }

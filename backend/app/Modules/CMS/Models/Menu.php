@@ -24,7 +24,7 @@ class Menu extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'urutan'    => 'integer',
+        'urutan' => 'integer',
     ];
 
     /** Induk menu (jika ini adalah sub-menu) */

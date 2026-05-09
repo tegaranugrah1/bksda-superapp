@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\ChangePasswordRequest;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -22,13 +22,13 @@ class AuthController extends Controller
         $user = User::where('username', $request->username)->first();
 
         // Cek user ada, password cocok, dan akun masih aktif (Rule 6.1)
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'username' => ['Username atau password salah.'],
             ]);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             throw ValidationException::withMessages([
                 'username' => ['Akun Anda sudah dinonaktifkan.'],
             ]);
@@ -44,7 +44,7 @@ class AuthController extends Controller
         return response()->json([
             'data' => new UserResource($user),
             'token' => $token,
-            'message' => 'Login berhasil'
+            'message' => 'Login berhasil',
         ]);
     }
 
@@ -54,7 +54,7 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return response()->json([
-            'data' => new UserResource($request->user())
+            'data' => new UserResource($request->user()),
         ]);
     }
 
@@ -67,7 +67,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logout berhasil'
+            'message' => 'Logout berhasil',
         ]);
     }
 
@@ -77,13 +77,13 @@ class AuthController extends Controller
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $user->update([
-            'password' => Hash::make($request->new_password)
+            'password' => Hash::make($request->new_password),
         ]);
 
         return response()->json([
-            'message' => 'Password berhasil diubah'
+            'message' => 'Password berhasil diubah',
         ]);
     }
 }

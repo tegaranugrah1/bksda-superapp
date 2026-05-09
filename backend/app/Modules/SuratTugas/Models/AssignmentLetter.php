@@ -4,11 +4,11 @@ namespace App\Modules\SuratTugas\Models;
 
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AssignmentLetter extends Model
 {
@@ -52,8 +52,8 @@ class AssignmentLetter extends Model
             'assignment_letter_id',
             'employee_id'
         )
-        ->using(AssignmentLetterEmployee::class)
-        ->withPivot('peran')
-        ->withTimestamps();
+            ->using(AssignmentLetterEmployee::class)
+            ->withPivot('peran')
+            ->withTimestamps();
     }
 }

@@ -18,7 +18,7 @@ class StoreItemRequest extends FormRequest
 
         return [
             'category_id' => ['required', 'uuid', 'exists:inv_categories,id'],
-            'kode_barang' => ['required', 'string', 'max:100', 'unique:inv_items,kode_barang,' . $itemId],
+            'kode_barang' => ['required', 'string', 'max:100', 'unique:inv_items,kode_barang,'.$itemId],
             'nama_barang' => ['required', 'string', 'max:255'],
             'satuan' => ['required', 'string', 'max:50'],
             'min_stock' => ['nullable', 'integer', 'min:0'],

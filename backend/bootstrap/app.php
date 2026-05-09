@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\AuditLogMiddleware;
+use App\Http\Middleware\CheckModuleAccess;
+use App\Http\Middleware\CheckRole;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,17 +17,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        
+
         // 1. Mendaftarkan Alias (Agar bisa dipanggil di route misal: middleware('role:admin'))
         $middleware->alias([
-            'module.access' => \App\Http\Middleware\CheckModuleAccess::class,
-            'role'          => \App\Http\Middleware\CheckRole::class,
+            'module.access' => CheckModuleAccess::class,
+            'role' => CheckRole::class,
         ]);
 
         // 2. Mendaftarkan Global API Middleware (Berjalan otomatis di seluruh rute /api/*)
         // Kita masukkan AuditLog ke grup 'api' agar kita tidak pernah lupa me-log aktivitas
         $middleware->api(append: [
-            \App\Http\Middleware\AuditLogMiddleware::class,
+            AuditLogMiddleware::class,
         ]);
 
     })

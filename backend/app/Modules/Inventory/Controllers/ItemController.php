@@ -11,8 +11,8 @@ class ItemController extends Controller
     public function index()
     {
         $items = Item::with('category:id,nama_kategori')
-                     ->orderBy('nama_barang', 'asc')
-                     ->paginate(20);
+            ->orderBy('nama_barang', 'asc')
+            ->paginate(20);
 
         return response()->json($items);
     }
@@ -23,7 +23,7 @@ class ItemController extends Controller
 
         return response()->json([
             'message' => 'Barang logistik baru sukses ditambahkan ke katalog.',
-            'data' => $item
+            'data' => $item,
         ], 201);
     }
 }

@@ -3,16 +3,15 @@
 namespace App\Modules\DeReporting\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-// Panggil seluruh 7 Jaringan Otak Eloquent
 use App\Modules\DeReporting\Models\Anggaran;
+// Panggil seluruh 7 Jaringan Otak Eloquent
 use App\Modules\DeReporting\Models\Bidang;
 use App\Modules\DeReporting\Models\Jenis;
 use App\Modules\DeReporting\Models\JenisData;
 use App\Modules\DeReporting\Models\Kategori;
 use App\Modules\DeReporting\Models\Koordinator;
 use App\Modules\DeReporting\Models\Tahun;
+use Illuminate\Http\Request;
 
 class MasterDataController extends Controller
 {
@@ -35,9 +34,10 @@ class MasterDataController extends Controller
      */
     private function resolveModel(string $type): string
     {
-        if (!array_key_exists($type, $this->modelMap)) {
+        if (! array_key_exists($type, $this->modelMap)) {
             abort(404, "Tipe Master Data '{$type}' tidak dikenali oleh sistem BKSDA.");
         }
+
         return $this->modelMap[$type];
     }
 
@@ -64,7 +64,7 @@ class MasterDataController extends Controller
         // Jika Frontend memaksa tanpa Paging (Untuk Dropdown <select>)
         if ($request->query('paginate') === 'false') {
             return response()->json([
-                'data' => $query->latest()->get()
+                'data' => $query->latest()->get(),
             ]);
         }
 
@@ -81,14 +81,14 @@ class MasterDataController extends Controller
         $modelClass = $this->resolveModel($type);
 
         // Filter Sanitasi Ekstrem: Hanya membiarkan kolom yang ada di $fillable model masuk!
-        $modelInstance = new $modelClass();
+        $modelInstance = new $modelClass;
         $fillableAttributes = $request->only($modelInstance->getFillable());
 
         $record = $modelClass::create($fillableAttributes);
 
         return response()->json([
             'message' => "Master Data {$type} berhasil diciptakan.",
-            'data' => $record
+            'data' => $record,
         ], 201);
     }
 
@@ -106,7 +106,7 @@ class MasterDataController extends Controller
 
         return response()->json([
             'message' => "Master Data {$type} berhasil dimutakhirkan.",
-            'data' => $record
+            'data' => $record,
         ]);
     }
 
@@ -121,14 +121,15 @@ class MasterDataController extends Controller
 
         try {
             $record->delete(); // Akan memicu SoftDeletes jika tersetting
+
             return response()->json([
-                'message' => "Master Data {$type} telah diputihkan."
+                'message' => "Master Data {$type} telah diputihkan.",
             ]);
         } catch (\Exception $e) {
             // Menangkap potensi Error Integrity Constraint (onDelete restrict dari Issue 077)
             return response()->json([
                 'error' => 'Restriction Protocol',
-                'message' => "Tidak dapat menghapus data {$type} ini karena masih terkait dengan laporan masyarakat."
+                'message' => "Tidak dapat menghapus data {$type} ini karena masih terkait dengan laporan masyarakat.",
             ], 422);
         }
     }

@@ -19,17 +19,17 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            
+
             // Kolom otorisasi (RBAC & MBAC) - Rule 2.1 & 2.3
             $table->string('role')->default('user')->comment('super_admin, admin, user');
             $table->json('access_modules')->nullable()->comment('Daftar modul yang bisa diakses');
-            
+
             // Kolom status
             $table->boolean('is_active')->default(true);
-            
+
             $table->rememberToken();
             $table->timestamps();
-            
+
             // Menambahkan soft deletes (Rule 3.6)
             $table->softDeletes();
         });

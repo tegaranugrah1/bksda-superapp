@@ -2,9 +2,9 @@
 
 namespace App\Modules\Bmn\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 
 class AssetUpdate extends Model
 {
@@ -14,7 +14,7 @@ class AssetUpdate extends Model
 
     protected $fillable = [
         'asset_id', 'user_id', 'field_changed',
-        'old_value', 'new_value', 'alasan_perubahan'
+        'old_value', 'new_value', 'alasan_perubahan',
     ];
 
     public function asset()

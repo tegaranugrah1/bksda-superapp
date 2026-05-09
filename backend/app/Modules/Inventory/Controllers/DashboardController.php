@@ -5,7 +5,6 @@ namespace App\Modules\Inventory\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Models\Item;
 use App\Modules\Inventory\Models\StockTransaction;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -16,8 +15,8 @@ class DashboardController extends Controller
 
         // 2. Transaksi Mutasi Bulan Ini
         $mutasiBulanIni = StockTransaction::whereMonth('created_at', now()->month)
-                                        ->whereYear('created_at', now()->year)
-                                        ->count();
+            ->whereYear('created_at', now()->year)
+            ->count();
 
         // 3. Peringatan Krisis! Barang yang stok gabungannya jatuh di bawah batas minimum
         $lowStocks = Item::withSum('stocks', 'quantity')
@@ -31,8 +30,8 @@ class DashboardController extends Controller
             'data' => [
                 'total_items' => $totalItems,
                 'mutasi_bulan_ini' => $mutasiBulanIni,
-                'krisis_stok' => $lowStocks
-            ]
+                'krisis_stok' => $lowStocks,
+            ],
         ]);
     }
 }

@@ -2,11 +2,11 @@
 
 namespace App\Modules\Inventory\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StockTransaction extends Model
 {
@@ -22,7 +22,7 @@ class StockTransaction extends Model
         'remaining_stock',  // WAJIB: Mencatat jumlah sisa saat itu
         'keterangan',
         'user_id',          // Siapa admin yang klik simpan
-        'employee_id'       // Siapa pegawai yang minta barang
+        'employee_id',       // Siapa pegawai yang minta barang
     ];
 
     public function office(): BelongsTo

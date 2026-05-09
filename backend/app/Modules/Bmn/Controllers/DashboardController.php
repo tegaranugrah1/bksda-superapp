@@ -3,11 +3,11 @@
 namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetLoan;
 use App\Modules\Bmn\Models\AssetMaintenance;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -31,9 +31,9 @@ class DashboardController extends Controller
             ->orderByDesc('total')
             ->limit(10)
             ->get()
-            ->map(fn($row) => [
+            ->map(fn ($row) => [
                 'kode_barang' => $row->kode_barang,
-                'total' => $row->total
+                'total' => $row->total,
             ]);
 
         // Transaksi terakhir (peminjaman + pemeliharaan)
@@ -41,25 +41,25 @@ class DashboardController extends Controller
             ->latest()
             ->limit(5)
             ->get()
-            ->map(fn($loan) => [
+            ->map(fn ($loan) => [
                 'type' => 'loan',
                 'id' => $loan->id,
                 'asset' => $loan->asset?->nama_barang,
                 'borrower' => $loan->borrower?->nama,
                 'tanggal' => $loan->tanggal_pinjam?->toDateString(),
-                'status' => $loan->status
+                'status' => $loan->status,
             ]);
 
         $recentMaintenances = AssetMaintenance::with('asset:id,nama_barang,kode_barang')
             ->latest()
             ->limit(5)
             ->get()
-            ->map(fn($m) => [
+            ->map(fn ($m) => [
                 'type' => 'maintenance',
                 'id' => $m->id,
                 'asset' => $m->asset?->nama_barang,
                 'tanggal' => $m->tanggal_maintenance?->toDateString(),
-                'keterangan' => $m->keterangan
+                'keterangan' => $m->keterangan,
             ]);
 
         // Gabungkan dan urutkan berdasarkan tanggal
@@ -73,7 +73,7 @@ class DashboardController extends Controller
             'total_asset_value' => (float) $totalAssetValue,
             'asset_by_condition' => $assetByCondition,
             'asset_by_category' => $assetByCategory,
-            'recent_transactions' => $recentTransactions
+            'recent_transactions' => $recentTransactions,
         ]);
     }
 }

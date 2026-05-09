@@ -3,11 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Laravel\Sanctum\HasApiTokens;
+use App\Modules\DeReporting\Models\Bidang;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -63,6 +64,6 @@ class User extends Authenticatable
      */
     public function dereportingBidang()
     {
-        return $this->belongsTo(\App\Modules\DeReporting\Models\Bidang::class, 'dereporting_bidang_id');
+        return $this->belongsTo(Bidang::class, 'dereporting_bidang_id');
     }
 }
