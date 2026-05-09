@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Modules\Bmn\Models\AssetMaintenance;
 use App\Modules\Bmn\Services\MaintenanceService;
 use App\Modules\Bmn\Requests\StoreAssetMaintenanceRequest;
+use App\Modules\Bmn\Resources\AssetMaintenanceResource;
 use Exception;
 
 class MaintenanceController extends Controller
@@ -16,14 +17,14 @@ class MaintenanceController extends Controller
     public function index(Request $request)
     {
         $query = AssetMaintenance::with('asset')->latest();
-        return response()->json($query->paginate(20));
+        return AssetMaintenanceResource::collection($query->paginate(20));
     }
 
     public function record(StoreAssetMaintenanceRequest $request, string $assetId)
     {
         try {
             $maintenance = $this->maintenanceService->recordMaintenance($assetId, $request->validated());
-            return response()->json(['message' => 'Nota Servis aset telah dicatat.', 'data' => $maintenance], 201);
+            return response()->json(['message' => 'Nota Servis aset telah dicatat.', 'data' => new AssetMaintenanceResource($maintenance)], 201);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
