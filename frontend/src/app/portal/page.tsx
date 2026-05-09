@@ -106,6 +106,7 @@ export default function PersonalDashboard() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>('pinjaman');
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,7 +138,7 @@ export default function PersonalDashboard() {
       if (err.response?.status === 401) {
         router.push("/login");
       } else {
-        toast.error("Gagal memuat data dashboard.");
+        setFetchError("Gagal memuat data dashboard. Pastikan backend sudah running.");
       }
     } finally {
       setLoading(false);
@@ -303,7 +304,26 @@ export default function PersonalDashboard() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#f7f8fa] relative overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-linear-to-br from-red-200/40 to-orange-200/30 rounded-full blur-[150px]"></div>
+        </div>
+        <div className="relative z-10 flex flex-col items-center gap-5">
+          <div className="w-16 h-16 rounded-2xl bg-red-500 flex items-center justify-center shadow-xl shadow-red-200/50">
+            <span className="text-3xl">!</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-slate-700 font-bold text-sm tracking-tight">{fetchError || "Gagal memuat data"}</p>
+            <Button onClick={() => fetchDashboard()} className="mt-2">
+              Coba Lagi
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isActive = data.employee?.is_active !== false;
   const greeting = getGreeting();
