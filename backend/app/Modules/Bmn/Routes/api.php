@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Modules\Bmn\Controllers\AssetController;
 use App\Modules\Bmn\Controllers\LoanController;
 use App\Modules\Bmn\Controllers\MaintenanceController;
+use App\Modules\Bmn\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,8 @@ use App\Modules\Bmn\Controllers\MaintenanceController;
 | Perlindungan: auth:sanctum, module.access:bmn
 |--------------------------------------------------------------------------
 */
+
+Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
 Route::get('/ping', function () {
     return response()->json([
