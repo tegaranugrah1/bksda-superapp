@@ -3,6 +3,7 @@
 namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Modules\Bmn\Models\AssetLoan;
 use App\Modules\Bmn\Services\LoanService;
@@ -14,13 +15,13 @@ class LoanController extends Controller
 {
     public function __construct(private LoanService $loanService) {}
 
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = AssetLoan::with(['asset', 'borrower'])->latest();
         return AssetLoanResource::collection($query->paginate(20));
     }
 
-    public function borrow(StoreAssetLoanRequest $request, string $assetId)
+    public function borrow(StoreAssetLoanRequest $request, string $assetId): JsonResponse
     {
         try {
             $loan = $this->loanService->borrowAsset($assetId, $request->employee_id, $request->validated());
@@ -30,7 +31,7 @@ class LoanController extends Controller
         }
     }
 
-    public function return(Request $request, string $loanId)
+    public function return(Request $request, string $loanId): JsonResponse
     {
         try {
             $loan = $this->loanService->returnAsset($loanId, $request->all());
