@@ -3,6 +3,7 @@
 namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Services\AssetService;
@@ -16,7 +17,7 @@ class AssetController extends Controller
 {
     public function __construct(private AssetService $assetService) {}
 
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Asset::with('penanggungJawab')->latest();
 
@@ -36,7 +37,7 @@ class AssetController extends Controller
         return AssetResource::collection($query->paginate(20));
     }
 
-    public function store(StoreAssetRequest $request)
+    public function store(StoreAssetRequest $request): JsonResponse
     {
         try {
             $asset = $this->assetService->storeAsset($request->validated());
@@ -46,14 +47,14 @@ class AssetController extends Controller
         }
     }
 
-    public function show(string $id)
+    public function show(string $id): JsonResponse
     {
         $asset = Asset::with(['penanggungJawab', 'loans.borrower', 'maintenances', 'historyUpdates.author'])
             ->findOrFail($id);
         return response()->json(['data' => new AssetResource($asset)]);
     }
 
-    public function update(UpdateAssetRequest $request, string $id)
+    public function update(UpdateAssetRequest $request, string $id): JsonResponse
     {
         try {
             $asset = $this->assetService->updateAsset($id, $request->validated(), $request->user()->id);
@@ -63,7 +64,7 @@ class AssetController extends Controller
         }
     }
 
-    public function dispose(DisposeAssetRequest $request, string $id)
+    public function dispose(DisposeAssetRequest $request, string $id): JsonResponse
     {
         try {
             $this->assetService->disposeAsset($id, $request->user()->id, $request->alasan_pemutihan);

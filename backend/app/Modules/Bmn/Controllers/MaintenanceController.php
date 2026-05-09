@@ -3,6 +3,7 @@
 namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Modules\Bmn\Models\AssetMaintenance;
 use App\Modules\Bmn\Services\MaintenanceService;
@@ -14,13 +15,13 @@ class MaintenanceController extends Controller
 {
     public function __construct(private MaintenanceService $maintenanceService) {}
 
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = AssetMaintenance::with('asset')->latest();
         return AssetMaintenanceResource::collection($query->paginate(20));
     }
 
-    public function record(StoreAssetMaintenanceRequest $request, string $assetId)
+    public function record(StoreAssetMaintenanceRequest $request, string $assetId): JsonResponse
     {
         try {
             $maintenance = $this->maintenanceService->recordMaintenance($assetId, $request->validated());
