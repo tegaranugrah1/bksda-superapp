@@ -2,19 +2,23 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import { useEffect, useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [restoreKey, setRestoreKey] = useState(0);
   // Gunakan useState agar QueryClient tidak dibuat ulang setiap kali render
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 60 * 1000,
-        retry: 1,
-      },
-    },
-  }));
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000,
+            retry: 1,
+          },
+        },
+      }),
+  );
 
   useEffect(() => {
     const restoreActiveState = () => {
@@ -50,9 +54,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         enableSystem
         disableTransitionOnChange
       >
-        <div key={restoreKey} className="contents">
-          {children}
-        </div>
+        <ConfirmDialogProvider>
+          <div key={restoreKey} className="contents">
+            {children}
+          </div>
+        </ConfirmDialogProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
