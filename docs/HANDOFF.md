@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | Debt #4: BMN Return Type Hints (GH #208, PR #209) |
-| **Issue Selanjutnya** | Debt #5: PHP Enum for Status |
+| **Issue Terakhir Selesai** | Debt #5: BMN PHP Enums (GH #210, PR #211) |
+| **Issue Selanjutnya** | Debt #6: OperatorController FormRequest |
 | **Branch Aktif** | `main` (clean) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:30:00+08:00 |
-| **GitHub Issue** | #208 (PR #209 merged) |
+| **GitHub Issue** | #210 (PR #211 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -517,7 +517,7 @@ frontend/src/lib/bmn-utils.ts                                                   
 | 2 | Phase 6 (BMN) | **BMN Reports** (`/bmn/reports`) — 3 tombol download Excel memanggil endpoint `/export` yang **BELUM ADA** di backend. UI placeholder only. | 🟡 MEDIUM | ✅ DONE (GH #204, PR #205) |
 | 3 | ALL (Audit) | **API Resource classes** (`JsonResource`) belum ada di semua module. Semua controller return model langsung (Rule 5.6, 8.10). | 🟡 MEDIUM | ✅ DONE BMN only (GH #206, PR #207) |
 | 4 | ALL (Audit) | **Return type hints** missing di semua Controllers kecuali Kepegawaian (Rule 8.12). | 🟢 LOW | ✅ DONE BMN only (GH #208, PR #209) |
-| 5 | ALL (Audit) | **PHP Enum** belum dipakai untuk status values — masih magic strings (Rule 8.11). | 🟡 MEDIUM | ❌ Pending |
+| 5 | ALL (Audit) | **PHP Enum** belum dipakai untuk status values — masih magic strings (Rule 8.11). | 🟡 MEDIUM | ✅ DONE BMN only (GH #210, PR #211) |
 | 6 | DeReporting | **OperatorController.store()** pakai `Request` bukan `FormRequest` (Rule 8.9). | 🟢 LOW | ❌ Pending |
 | 7 | ALL (Audit) | **Laravel Pint** belum pernah dijalankan (Rule 9.9). | 🟢 LOW | ❌ Pending |
 | 8 | ALL (Audit) | **Response format** tidak konsisten — beberapa wrapped `{data, message}`, lain raw paginate (Rule 5.1). | 🟢 LOW | ❌ Pending |
