@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('cms_informasi', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('category_id')->nullable()->constrained('cms_categories')->onDelete('set null');
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('judul', 500);
             $table->string('slug', 520)->unique();
             $table->text('konten');                  // Konten HTML dari Rich Text Editor

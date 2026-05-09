@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Modules\Inventory\Models\Category;
 use App\Modules\Inventory\Models\Item;
-use App\Modules\Inventory\Models\Warehouse;
+use App\Modules\Inventory\Models\Office;
 use App\Modules\Inventory\Services\InventoryService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,16 +21,16 @@ class RealDataSeeder extends Seeder
         \App\Modules\Inventory\Models\InventoryStock::truncate();
         Item::truncate();
         Category::truncate();
-        Warehouse::truncate();
+        Office::truncate();
         Schema::enableForeignKeyConstraints();
 
         // 2. Setup Base Data
-        $samarinda = Warehouse::firstOrCreate(['name' => 'Samarinda'], ['location' => 'Samarinda']);
-        Warehouse::firstOrCreate(['name' => 'Tenggarong'], ['location' => 'Tenggarong']);
-        Warehouse::firstOrCreate(['name' => 'Berau'], ['location' => 'Berau']);
+        $samarinda = Office::firstOrCreate(['nama_kantor' => 'Samarinda'], ['lokasi' => 'Samarinda']);
+        Office::firstOrCreate(['nama_kantor' => 'Tenggarong'], ['lokasi' => 'Tenggarong']);
+        Office::firstOrCreate(['nama_kantor' => 'Berau'], ['lokasi' => 'Berau']);
 
-        $catATK = Category::firstOrCreate(['slug' => 'atk'], ['name' => 'Alat Tulis Kantor', 'type' => 'consumable']);
-        $catElektronik = Category::firstOrCreate(['slug' => 'elektronik'], ['name' => 'Elektronik', 'type' => 'asset']);
+        $catATK = Category::firstOrCreate(['nama_kategori' => 'ATK'], ['deskripsi' => 'Alat Tulis Kantor']);
+        $catElektronik = Category::firstOrCreate(['nama_kategori' => 'Elektronik'], ['deskripsi' => 'Barang Elektronik']);
 
         $inventoryService = app(InventoryService::class);
 

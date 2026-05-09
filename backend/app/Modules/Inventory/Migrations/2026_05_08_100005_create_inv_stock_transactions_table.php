@@ -21,10 +21,10 @@ return new class extends Migration
             $table->text('keterangan')->nullable();
 
             // Siapa Admin yang mengetik transaksi ini (Sistem Keamanan)
-            $table->foreignUuid('user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
 
             // Jika barang keluar, dicatat Pegawai siapa yang meminta/mengambilnya (Lintas Modul)
-            $table->foreignUuid('employee_id')->nullable()->constrained('kpg_employees')->nullOnDelete();
+            $table->foreignId('employee_id')->nullable()->constrained('kpg_employees')->nullOnDelete();
 
             $table->timestamps();
         });
