@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | Debt #8: Response Format (via API Resources pattern) |
-| **Issue Selanjutnya** | Issue #217 onwards - New Features |
+| **Issue Terakhir Selesai** | #109: Frontend Interactive KawasanMap (GH #217, PR #218) |
+| **Issue Selanjutnya** | #110: Frontend shadcn Base Components |
 | **Branch Aktif** | `main` (clean) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:30:00+08:00 |
-| **GitHub Issue** | #216 (Debt #8 closed) |
+| **GitHub Issue** | #217 (PR #218 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -521,6 +521,30 @@ frontend/src/lib/bmn-utils.ts                                                   
 | 6 | DeReporting | **OperatorController.store()** pakai `Request` bukan `FormRequest` (Rule 8.9). | 🟢 LOW | ✅ DONE (GH #212, PR #213) |
 | 7 | ALL (Audit) | **Laravel Pint** belum pernah dijalankan (Rule 9.9). | 🟢 LOW | ✅ DONE (GH #214, PR #215) |
 | 8 | ALL (Audit) | **Response format** tidak konsisten — beberapa wrapped `{data, message}`, lain raw paginate (Rule 5.1). | 🟢 LOW | ✅ DONE via API Resources (GH #206, PR #207) |
+
+---
+
+## Progress Phase 9: Frontend Enhancements & Deployment Prep (#109–#125)
+
+- [x] #109 — Frontend Interactive KawasanMap (Marker Clustering, Rich Popups, Layer Switcher, Fullscreen, Color Legend, GitHub Issue #217, PR #218 merged)
+- [ ] #110 — Frontend shadcn Base Components
+- [ ] #111 — Frontend Dialog Overlay Guide
+- [ ] #112 — Frontend Data Display Guide
+- [ ] #113 — Frontend Form Components Guide
+- [ ] #114 — Frontend Custom Components Guide
+- [ ] #115 — Frontend Utility Functions
+- [ ] #116 — Backend CORS Sanctum Config
+- [ ] #117 — Backend Logging Error Handling
+- [ ] #118 — Backend Storage Config
+- [ ] #119 — Frontend NextJS Config
+- [ ] #120 — Frontend Error Pages
+- [ ] #121 — Deployment Vercel Frontend
+- [ ] #122 — Deployment Vercel Backend
+- [ ] #123 — Deployment Supabase DB Setup
+- [ ] #124 — Seed Data
+- [ ] #125 — Documentation API Docs README
+
+**Status: 1/17 issues completed**
 
 ---
 
