@@ -124,9 +124,7 @@ class AuthController extends Controller
             }),
         ];
 
-        return response()->json([
-            'data' => $dashboardData,
-        ]);
+        return response()->json($dashboardData);
     }
 
     /**

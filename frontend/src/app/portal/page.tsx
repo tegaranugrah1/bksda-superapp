@@ -129,7 +129,7 @@ export default function PersonalDashboard() {
     try {
       const response = await api.get("/me/dashboard");
       setData(response.data);
-      if (response.data.user) {
+      if (response.data?.user) {
         localStorage.setItem("bksda_user", JSON.stringify(response.data.user));
       }
     } catch (error: unknown) {
