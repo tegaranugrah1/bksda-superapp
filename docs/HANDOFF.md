@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #124: Seed Data (GH #248, PR #249) |
-| **Issue Selanjutnya** | #125: Documentation API Docs README |
+| **Issue Terakhir Selesai** | #125: Documentation API Docs README (GH #250, PR #251) |
+| **Issue Selanjutnya** | UI Overhaul (Phase 10) |
 | **Branch Aktif** | `main` (clean) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T12:30:00+08:00 |
-| **GitHub Issue** | #248 (PR #249 merged) |
+| **Timestamp** | 2026-05-09T12:45:00+08:00 |
+| **GitHub Issue** | #250 (PR #251 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -539,13 +539,14 @@ frontend/src/lib/bmn-utils.ts                                                   
 - [x] #119 — Frontend NextJS Config (GitHub Issue #244, PR #245 merged)
 - [x] #120 — Frontend Error Pages (GitHub Issue #246, PR #247 merged)
 - [x] #124 — Seed Data (GitHub Issue #248, PR #249 merged)
+- [x] #125 — Documentation API Docs README (GitHub Issue #250, PR #251 merged)
 - [ ] #121 — Deployment Vercel Frontend (skip - Vercel belum ada)
 - [ ] #122 — Deployment Vercel Backend
 - [ ] #123 — Deployment Supabase DB Setup
 - [ ] #124 — Seed Data
 - [ ] #125 — Documentation API Docs README
 
-**Status: 13/17 issues completed**
+**Status: 14/17 issues completed** (3 skipped: #121-123 deployment - Vercel/Supabase not ready)
 
 ### File yang Dibuat/Diubah (Phase 9 - #118-#120)
 
@@ -578,6 +579,11 @@ backend/database/seeders/CleanupBidangSeeder.php ← [NEW] #124 - cleanup bidang
 backend/database/seeders/UpdateAssetLocationSeeder.php ← [NEW] #124 - update asset locations
 backend/database/seeders/UpdateEmployeeDepartmentsSeeder.php ← [NEW] #124 - update employee departments
 backend/app/Modules/DeReporting/Database/Seeders/InitDataSeeder.php ← [NEW] #124 - DeReporting master data
+
+# DOCUMENTATION — Issue #125 (API Docs README)
+README.md                                           ← [UPDATED] #125 - project overview, tech stack, quick start
+backend/README.md                                  ← [UPDATED] #125 - complete API endpoint documentation
+frontend/README.md                                 ← [UPDATED] #125 - project structure, scripts, API pattern
 ```
 
 ---
