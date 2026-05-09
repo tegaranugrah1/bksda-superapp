@@ -8,12 +8,9 @@ export const metadata = {
 
 export default function InventoryLayout({ children }: { children: ReactNode }) {
     return (
-        <div className="flex h-screen w-full bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
-            {/* Memanggil Komponen Sidebar di sisi Kiri */}
+        <div className="flex h-screen w-full bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 overflow-hidden font-sans">
             <InventorySidebar />
-
-            {/* Merender isi spesifik setiap Halaman di sisi Kanan */}
-            <main className="flex-1 overflow-y-auto relative">{children}</main>
+            <main className="flex-1 overflow-y-auto relative bg-zinc-50 dark:bg-black">{children}</main>
         </div>
     );
 }
