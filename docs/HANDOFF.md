@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | Debt #7: Laravel Pint Formatting (GH #214, PR #215) |
-| **Issue Selanjutnya** | Debt #8: Response Format Consistency |
+| **Issue Terakhir Selesai** | Debt #8: Response Format (via API Resources pattern) |
+| **Issue Selanjutnya** | Issue #217 onwards - New Features |
 | **Branch Aktif** | `main` (clean) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
 | **Timestamp** | 2026-05-09T03:30:00+08:00 |
-| **GitHub Issue** | #214 (PR #215 merged) |
+| **GitHub Issue** | #216 (Debt #8 closed) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -520,7 +520,7 @@ frontend/src/lib/bmn-utils.ts                                                   
 | 5 | ALL (Audit) | **PHP Enum** belum dipakai untuk status values — masih magic strings (Rule 8.11). | 🟡 MEDIUM | ✅ DONE BMN only (GH #210, PR #211) |
 | 6 | DeReporting | **OperatorController.store()** pakai `Request` bukan `FormRequest` (Rule 8.9). | 🟢 LOW | ✅ DONE (GH #212, PR #213) |
 | 7 | ALL (Audit) | **Laravel Pint** belum pernah dijalankan (Rule 9.9). | 🟢 LOW | ✅ DONE (GH #214, PR #215) |
-| 8 | ALL (Audit) | **Response format** tidak konsisten — beberapa wrapped `{data, message}`, lain raw paginate (Rule 5.1). | 🟢 LOW | ❌ Pending |
+| 8 | ALL (Audit) | **Response format** tidak konsisten — beberapa wrapped `{data, message}`, lain raw paginate (Rule 5.1). | 🟢 LOW | ✅ DONE via API Resources (GH #206, PR #207) |
 
 ---
 
