@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { ArrowRight, MapPin, TreePine, Newspaper } from "lucide-react";
-import PublicNavbar from "./(website)/_components/PublicNavbar";
-import PublicFooter from "./(website)/_components/PublicFooter";
+import PublicNavbar from "./(publik)/_components/PublicNavbar";
+import PublicFooter from "./(publik)/_components/PublicFooter";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 

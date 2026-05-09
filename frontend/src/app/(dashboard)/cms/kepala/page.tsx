@@ -1,3 +1,5 @@
+"use client";
+
 import { UserCircle } from "lucide-react";
 import CrudPageFactory from "../_components/CrudPageFactory";
 import type { CrudPageConfig } from "../_components/types";

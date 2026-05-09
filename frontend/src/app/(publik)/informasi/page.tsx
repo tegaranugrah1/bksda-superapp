@@ -42,19 +42,11 @@ interface QueryParams {
   category_slug?: string;
 }
 
-interface ListState {
-  berita: BeritaItem[];
-  lastPage: number;
-  loading: boolean;
-}
-
 export default function InformasiListPage() {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
-  const [state, setState] = useState<ListState>({
-    berita: [],
-    lastPage: 1,
-    loading: true,
-  });
+  const [berita, setBerita] = useState<BeritaItem[]>([]);
+  const [lastPage, setLastPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
@@ -73,20 +65,27 @@ export default function InformasiListPage() {
     if (search) params.search = search;
     if (activeCategory) params.category_slug = activeCategory;
 
-    setState((s) => ({ ...s, loading: true }));
+    const controller = new AbortController();
 
-    axios
-      .get<PaginatedResponse>(`${API}/cms/public/informasi`, { params })
-      .then((r) => {
-        setState({
-          berita: r.data?.data || [],
-          lastPage: r.data?.last_page || 1,
-          loading: false,
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const r = await axios.get<PaginatedResponse>(`${API}/cms/public/informasi`, {
+          params,
+          signal: controller.signal,
         });
-      })
-      .catch(() => {
-        setState((s) => ({ ...s, loading: false }));
-      });
+        setBerita(r.data?.data || []);
+        setLastPage(r.data?.last_page || 1);
+      } catch (_e) {
+        setBerita([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    return () => controller.abort();
   }, [page, search, activeCategory]);
 
   // Debounce pencarian (tunggu 500ms setelah berhenti mengetik)
@@ -166,18 +165,18 @@ export default function InformasiListPage() {
       </div>
 
       {/* Grid Berita */}
-      {state.loading ? (
+      {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-green-600" />
         </div>
-      ) : state.berita.length === 0 ? (
+      ) : berita.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <Newspaper className="w-12 h-12 mx-auto mb-3 text-gray-200" />
           <p>Tidak ada berita yang ditemukan.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {state.berita.map((item) => (
+          {berita.map((item) => (
             <Link
               key={item.id}
               href={`/informasi/${item.slug}`}
@@ -213,7 +212,7 @@ export default function InformasiListPage() {
                   {item.judul}
                 </h3>
                 <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
-                  👁️ {item.views_count || 0} kali dibaca
+                  &#x1F441;&#xFE0F; {item.views_count || 0} kali dibaca
                 </p>
               </div>
             </Link>
@@ -222,7 +221,7 @@ export default function InformasiListPage() {
       )}
 
       {/* Pagination */}
-      {state.lastPage > 1 && (
+      {lastPage > 1 && (
         <div className="flex items-center justify-center gap-2 pt-4">
           <button
             disabled={page === 1}
@@ -232,10 +231,10 @@ export default function InformasiListPage() {
             <ChevronLeft className="w-4 h-4" /> Sebelumnya
           </button>
           <span className="px-4 py-2 text-sm text-gray-500">
-            Hal. {page} / {state.lastPage}
+            Hal. {page} / {lastPage}
           </span>
           <button
-            disabled={page >= state.lastPage}
+            disabled={page >= lastPage}
             onClick={() => setPage((p) => p + 1)}
             className="flex items-center gap-1 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-all"
           >

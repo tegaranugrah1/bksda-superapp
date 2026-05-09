@@ -1,3 +1,5 @@
+"use client";
+
 import { Video } from "lucide-react";
 import CrudPageFactory from "../_components/CrudPageFactory";
 import type { CrudPageConfig } from "../_components/types";

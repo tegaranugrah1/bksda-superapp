@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
-const STORAGE = process.env.NEXT_PUBLIC_STORAGE_URL;
 
 // Konfigurasi 4 Tab
 const TABS = [

@@ -1,3 +1,5 @@
+"use client";
+
 import { Building2 } from "lucide-react";
 import CrudPageFactory from "../_components/CrudPageFactory";
 import type { CrudPageConfig } from "../_components/types";

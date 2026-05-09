@@ -85,21 +85,9 @@ interface KawasanMapProps {
 // TYPE EXTENSIONS
 // ══════════════════════════════════════════════════
 
-declare module "leaflet" {
-  interface MarkerClusterGroupOptions {
-    maxClusterRadius?: number;
-    spiderfyOnMaxZoom?: boolean;
-    showCoverageOnHover?: boolean;
-  }
-
-  interface Map {
-    markerClusterGroup(options?: MarkerClusterGroupOptions): MarkerClusterGroup;
-  }
-}
-
 interface MarkerClusterGroup {
-  addLayer(layer: Marker): void;
-  addTo(map: Map): void;
+  addLayer(layer: L.Marker): void;
+  addTo(map: L.Map): void;
 }
 
 // ══════════════════════════════════════════════════

@@ -64,10 +64,24 @@ export function EmployeeSelect({
 
     // Effect for debounced search
     React.useEffect(() => {
-        if (open) {
-            fetchEmployees(debouncedSearch);
-        }
-    }, [debouncedSearch, open, fetchEmployees]);
+        if (!open) return;
+
+        const controller = new AbortController();
+
+        api.get("/employees/select", {
+            params: { search: debouncedSearch },
+            signal: controller.signal,
+        })
+            .then(response => {
+                setEmployees(response.data);
+            })
+            .catch(error => {
+                console.error("Failed to fetch employees:", error);
+                setEmployees([]);
+            });
+
+        return () => controller.abort();
+    }, [debouncedSearch, open]);
 
     const selectedEmployee = value
         // If we have employees loaded, try to find it there

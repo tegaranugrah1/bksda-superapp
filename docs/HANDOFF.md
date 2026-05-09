@@ -9,13 +9,39 @@
 ## Status Saat Ini
 
 | Field | Value |
-|-------|---------|
-| **Issue Terakhir Selesai** | #125: Documentation API Docs README (GH #250, PR #251) |
-| **Issue Selanjutnya** | UI Overhaul (Phase 10) |
+|-------|-------|
+| **Issue Terakhir Selesai** | Phase 10: UI Overhaul - Route Restructure + Error Fixes |
+| **Issue Selanjutnya** | Phase 10: Add Missing Components (ModuleSwitcher, RouteGuard, dll) |
 | **Branch Aktif** | `main` (clean) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T12:45:00+08:00 |
-| **GitHub Issue** | #250 (PR #251 merged) |
+| **Timestamp** | 2026-05-09T13:30:00+08:00 |
+| **GitHub Issue** | In Progress |
+
+### URL Structure (After Phase 10 Restructure)
+
+```
+# Public Website (route group: (publik))
+localhost:3000/                        → Landing page
+localhost:3000/informasi/              → Berita
+localhost:3000/kawasan/                → Kawasan
+localhost:3000/tsl/                    → TSL
+localhost:3000/galeri/                 → Galeri
+localhost:3000/publikasi/               → Publikasi
+localhost:3000/hubungi-kami/           → Kontak
+
+# CMS Admin
+localhost:3000/cms/                    → CMS Dashboard
+localhost:3000/cms/informasi/           → CRUD Berita
+localhost:3000/cms/kawasan/            → CRUD Kawasan
+dst...
+
+# Portal Admin (SETELAH LOGIN)
+localhost:3000/portal/                  → Portal Dashboard
+localhost:3000/portal/bmn/             → Modul BMN
+localhost:3000/portal/inventory/        → Modul Inventory
+localhost:3000/portal/dereporting/     → Modul DeReporting
+localhost:3000/portal/kepegawaian/     → Modul Kepegawaian
+```
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -547,6 +573,76 @@ frontend/src/lib/bmn-utils.ts                                                   
 - [ ] #125 — Documentation API Docs README
 
 **Status: 14/17 issues completed** (3 skipped: #121-123 deployment - Vercel/Supabase not ready)
+
+## Progress Phase 10: UI Overhaul & Feature Parity (#126+)
+
+### ✅ SELESAI (Phase 10 - Ongoing):
+**Route Restructure:**
+- Rename `(website)` → `(publik)` untuk URL cleaner
+- Move BMN, Inventory, Kepegawaian, DeReporting ke `/portal/...`
+- CMS tetap di `/cms/...`
+- Public pages di root `/`
+
+**Error Fixes:**
+- ESLint: 0 errors (fixed employee-select.tsx setState-in-effect)
+- TypeScript: 0 errors (fixed FilteredReportTable, internal/page, KawasanMap)
+
+### File yang Dibuat/Diubah (Phase 10):
+
+```
+# FRONTEND — Route Restructure
+frontend/src/app/(website)/     → frontend/src/app/(publik)/  [RENAME]
+frontend/src/app/(dashboard)/bmn/     → frontend/src/app/portal/bmn/  [MOVE]
+frontend/src/app/(dashboard)/inventory/ → frontend/src/app/portal/inventory/  [MOVE]
+frontend/src/app/(dashboard)/kepegawaian/ → frontend/src/app/portal/kepegawaian/  [MOVE]
+frontend/src/app/(dashboard)/dereporting/ → frontend/src/app/portal/dereporting/  [MOVE]
+
+# FRONTEND — Error Fixes
+frontend/src/components/ui/employee-select.tsx         ← [FIXED] ESLint setState-in-effect error
+frontend/src/app/(dashboard)/dereporting/_components/FilteredReportTable.tsx ← [FIXED] TypeScript response type
+frontend/src/app/(dashboard)/dereporting/internal/page.tsx ← [FIXED] TypeScript response type
+frontend/src/app/(website)/kawasan/_components/KawasanMap.tsx ← [FIXED] Leaflet type conflicts
+```
+
+### TODO (Phase 10 - Remaining):
+
+| # | Task | Priority |
+|---|-------|----------|
+| 1 | ModuleSwitcher Component | HIGH |
+| 2 | EmployeeAccessSheet Component | HIGH |
+| 3 | RouteGuard Component | HIGH |
+| 4 | AuthSync Component | MEDIUM |
+| 5 | InteractiveKawasanMap Upgrade | MEDIUM |
+| 6 | letter-utils.ts | LOW |
+| 7 | Upgrade BMN Import/Export | HIGH |
+| 8 | Upgrade Inventory Bulk Operations | HIGH |
+| 9 | Upgrade Inventory Trash/Restore | MEDIUM |
+
+### URL Structure (Final):
+```
+# Public Website
+localhost:3000/                     → Landing page
+localhost:3000/informasi/            → Berita
+localhost:3000/kawasan/              → Kawasan
+localhost:3000/tsl/                  → TSL
+localhost:3000/galeri/               → Galeri
+localhost:3000/publikasi/            → Publikasi
+localhost:3000/hubungi-kami/        → Kontak
+localhost:3000/verifikasi/surat-tugas/[id]/ → QR Verification
+
+# CMS Admin
+localhost:3000/cms/                 → Dashboard CMS
+localhost:3000/cms/informasi/       → CRUD Berita
+localhost:3000/cms/kawasan/         → CRUD Kawasan
+dst...
+
+# Portal Admin (SETELAH LOGIN)
+localhost:3000/portal/                → Portal Dashboard
+localhost:3000/portal/bmn/          → Modul BMN
+localhost:3000/portal/inventory/     → Modul Inventory
+localhost:3000/portal/dereporting/  → Modul DeReporting
+localhost:3000/portal/kepegawaian/  → Modul Kepegawaian
+```
 
 ### File yang Dibuat/Diubah (Phase 9 - #118-#120)
 

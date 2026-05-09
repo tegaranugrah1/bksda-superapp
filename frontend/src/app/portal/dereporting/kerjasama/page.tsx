@@ -1,3 +1,5 @@
+"use client";
+
 import { Handshake } from "lucide-react";
 import FilteredReportTable from "../_components/FilteredReportTable";
 
