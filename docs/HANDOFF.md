@@ -10,37 +10,51 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 10: UI Overhaul - Route Restructure + Error Fixes |
-| **Issue Selanjutnya** | Phase 10: Add Missing Components (ModuleSwitcher, RouteGuard, dll) |
-| **Branch Aktif** | `main` (clean) |
+| **Issue Terakhir Selesai** | Phase 10: Route Restructure - Portal standalone + Modules di root |
+| **Issue Selanjutnya** | Phase 10: Remaining components (RouteGuard, AuthSync, dll) |
+| **Branch Aktif** | `issue/121-frontend-route-restructure-phase10` |
+| **Commit** | `7ec9652` - feat(frontend): route restructure |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T13:30:00+08:00 |
-| **GitHub Issue** | In Progress |
+| **Timestamp** | 2026-05-09T15:20:00+08:00 |
+| **GitHub Issue** | PR pending - branch pushed |
 
-### URL Structure (After Phase 10 Restructure)
+### URL Structure (After Phase 10 Route Restructure)
 
 ```
-# Public Website (route group: (publik))
-localhost:3000/                        → Landing page
-localhost:3000/informasi/              → Berita
-localhost:3000/kawasan/                → Kawasan
-localhost:3000/tsl/                    → TSL
-localhost:3000/galeri/                 → Galeri
-localhost:3000/publikasi/               → Publikasi
-localhost:3000/hubungi-kami/           → Kontak
+# Landing Page
+localhost:3000/                        → Landing page BKSDA
+
+# Login
+localhost:3000/login/                  → Login page → redirect ke /portal/
+
+# Portal Admin (Personal Dashboard - SETELAH LOGIN)
+localhost:3000/portal/                  → Personal Dashboard
+  - Module grid cards berdasarkan access_modules user
+  - Tab: Pinjaman Aktif, Aset Saya
+  - Profile sidebar dengan edit profile & change password
+  - Greeting berdasarkan waktu
+
+# Modules (ROOT LEVEL - standalone)
+localhost:3000/bmn/                    → BMN Module
+localhost:3000/inventory/              → Inventory Module
+localhost:3000/dereporting/           → DeReporting Module
+localhost:3000/kepegawaian/           → Kepegawaian Module
+localhost:3000/surat-tugas/           → Surat Tugas (admin)
 
 # CMS Admin
 localhost:3000/cms/                    → CMS Dashboard
-localhost:3000/cms/informasi/           → CRUD Berita
-localhost:3000/cms/kawasan/            → CRUD Kawasan
+localhost:3000/cms/informasi/          → CRUD Berita
+localhost:3000/cms/kawasan/           → CRUD Kawasan
 dst...
 
-# Portal Admin (SETELAH LOGIN)
-localhost:3000/portal/                  → Portal Dashboard
-localhost:3000/portal/bmn/             → Modul BMN
-localhost:3000/portal/inventory/        → Modul Inventory
-localhost:3000/portal/dereporting/     → Modul DeReporting
-localhost:3000/portal/kepegawaian/     → Modul Kepegawaian
+# Public Website (route group: (publik))
+localhost:3000/informasi/              → Berita
+localhost:3000/kawasan/               → Kawasan
+localhost:3000/tsl/                    → TSL
+localhost:3000/galeri/                → Galeri
+localhost:3000/publikasi/             → Publikasi
+localhost:3000/hubungi-kami/          → Kontak
+localhost:3000/verifikasi/surat-tugas/[id]/ → QR Verification
 ```
 
 ---
@@ -576,72 +590,91 @@ frontend/src/lib/bmn-utils.ts                                                   
 
 ## Progress Phase 10: UI Overhaul & Feature Parity (#126+)
 
-### ✅ SELESAI (Phase 10 - Ongoing):
-**Route Restructure:**
-- Rename `(website)` → `(publik)` untuk URL cleaner
-- Move BMN, Inventory, Kepegawaian, DeReporting ke `/portal/...`
-- CMS tetap di `/cms/...`
-- Public pages di root `/`
+### ✅ SELESAI (Phase 10 - Route Restructure - commit 7ec9652):
 
-**Error Fixes:**
-- ESLint: 0 errors (fixed employee-select.tsx setState-in-effect)
-- TypeScript: 0 errors (fixed FilteredReportTable, internal/page, KawasanMap)
+**Route Restructure - Modules dipindahkan ke root level:**
+- Moved `/portal/bmn/` → `/bmn/`
+- Moved `/portal/inventory/` → `/inventory/`
+- Moved `/portal/dereporting/` → `/dereporting/`
+- Moved `/portal/kepegawaian/` → `/kepegawaian/`
+- Created new `/portal/page.tsx` - Personal Dashboard (like superapp-inventory)
 
-### File yang Dibuat/Diubah (Phase 10):
+**Portal Page Features (NEW):**
+- Module grid cards (BMN, Inventory, DeReporting, CMS) berdasarkan access_modules user
+- Tab: Pinjaman Aktif, Aset Saya
+- Profile sidebar dengan edit profile & change password dialogs
+- Greeting berdasarkan waktu (Selamat Pagi/Siang/Sore/Malam)
+- Ambient background gradient effects
+
+**Updated Files:**
+- Login redirect: `/` → `/portal/`
+- ModuleSwitcher: Portal link ke `/portal/`
+- Renamed `(website)` → `(publik)` untuk cleaner URL (done previously)
+
+**Build Status:**
+- ESLint: 0 errors, 15 warnings (warnings from public pages img tags)
+- TypeScript: 0 errors
+- Build: Success
+
+### File yang Dibuat/Diubah (Phase 10 - Route Restructure):
 
 ```
-# FRONTEND — Route Restructure
-frontend/src/app/(website)/     → frontend/src/app/(publik)/  [RENAME]
-frontend/src/app/(dashboard)/bmn/     → frontend/src/app/portal/bmn/  [MOVE]
-frontend/src/app/(dashboard)/inventory/ → frontend/src/app/portal/inventory/  [MOVE]
-frontend/src/app/(dashboard)/kepegawaian/ → frontend/src/app/portal/kepegawaian/  [MOVE]
-frontend/src/app/(dashboard)/dereporting/ → frontend/src/app/portal/dereporting/  [MOVE]
+# FRONTEND — Route Restructure (commit 7ec9652)
+frontend/src/app/portal/page.tsx                         ← [NEW] Personal Dashboard
+frontend/src/app/(auth)/login/page.tsx                   ← [UPDATED] redirect to /portal
+frontend/src/components/module-switcher.tsx              ← [UPDATED] Portal link to /portal
 
-# FRONTEND — Error Fixes
-frontend/src/components/ui/employee-select.tsx         ← [FIXED] ESLint setState-in-effect error
-frontend/src/app/(dashboard)/dereporting/_components/FilteredReportTable.tsx ← [FIXED] TypeScript response type
-frontend/src/app/(dashboard)/dereporting/internal/page.tsx ← [FIXED] TypeScript response type
-frontend/src/app/(website)/kawasan/_components/KawasanMap.tsx ← [FIXED] Leaflet type conflicts
+# MOVED modules to root level:
+frontend/src/app/bmn/                                   ← [MOVED] from /portal/bmn/
+frontend/src/app/inventory/                             ← [MOVED] from /portal/inventory/
+frontend/src/app/dereporting/                           ← [MOVED] from /portal/dereporting/
+frontend/src/app/kepegawaian/                           ← [MOVED] from /portal/kepegawaian/
 ```
 
 ### TODO (Phase 10 - Remaining):
 
 | # | Task | Priority |
 |---|-------|----------|
-| 1 | ModuleSwitcher Component | HIGH |
-| 2 | EmployeeAccessSheet Component | HIGH |
-| 3 | RouteGuard Component | HIGH |
-| 4 | AuthSync Component | MEDIUM |
-| 5 | InteractiveKawasanMap Upgrade | MEDIUM |
-| 6 | letter-utils.ts | LOW |
-| 7 | Upgrade BMN Import/Export | HIGH |
-| 8 | Upgrade Inventory Bulk Operations | HIGH |
-| 9 | Upgrade Inventory Trash/Restore | MEDIUM |
+| 1 | RouteGuard Component (access_modules check) | HIGH |
+| 2 | AuthSync Component (cross-tab session) | MEDIUM |
+| 3 | EmployeeAccessSheet Component | HIGH |
+| 4 | InteractiveKawasanMap Upgrade | MEDIUM |
+| 5 | letter-utils.ts | LOW |
+| 6 | Upgrade BMN Import/Export | HIGH |
+| 7 | Upgrade Inventory Bulk Operations | HIGH |
+| 8 | Upgrade Inventory Trash/Restore | MEDIUM |
 
-### URL Structure (Final):
+### URL Structure (Current - Updated):
 ```
-# Public Website
-localhost:3000/                     → Landing page
-localhost:3000/informasi/            → Berita
-localhost:3000/kawasan/              → Kawasan
-localhost:3000/tsl/                  → TSL
-localhost:3000/galeri/               → Galeri
-localhost:3000/publikasi/            → Publikasi
-localhost:3000/hubungi-kami/        → Kontak
-localhost:3000/verifikasi/surat-tugas/[id]/ → QR Verification
+# Landing Page
+localhost:3000/                        → Landing page BKSDA
+
+# Login
+localhost:3000/login/                  → Login page → redirect ke /portal/
+
+# Portal Admin (Personal Dashboard)
+localhost:3000/portal/                  → Personal Dashboard
+  - Module grid cards berdasarkan access_modules
+  - Tab: Pinjaman Aktif, Aset Saya
+  - Profile sidebar + edit/change password
+
+# Modules (ROOT LEVEL)
+localhost:3000/bmn/                    → BMN Module
+localhost:3000/inventory/              → Inventory Module
+localhost:3000/dereporting/           → DeReporting Module
+localhost:3000/kepegawaian/           → Kepegawaian Module
 
 # CMS Admin
-localhost:3000/cms/                 → Dashboard CMS
-localhost:3000/cms/informasi/       → CRUD Berita
-localhost:3000/cms/kawasan/         → CRUD Kawasan
-dst...
+localhost:3000/cms/                    → CMS Dashboard
 
-# Portal Admin (SETELAH LOGIN)
-localhost:3000/portal/                → Portal Dashboard
-localhost:3000/portal/bmn/          → Modul BMN
-localhost:3000/portal/inventory/     → Modul Inventory
-localhost:3000/portal/dereporting/  → Modul DeReporting
-localhost:3000/portal/kepegawaian/  → Modul Kepegawaian
+# Public Website
+localhost:3000/informasi/              → Berita
+localhost:3000/kawasan/               → Kawasan
+localhost:3000/tsl/                   → TSL
+localhost:3000/galeri/               → Galeri
+localhost:3000/publikasi/            → Publikasi
+localhost:3000/hubungi-kami/          → Kontak
+localhost:3000/verifikasi/surat-tugas/[id]/ → QR Verification
 ```
 
 ### File yang Dibuat/Diubah (Phase 9 - #118-#120)
