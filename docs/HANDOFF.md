@@ -10,12 +10,12 @@
 
 | Field | Value |
 |-------|---------|
-| **Issue Terakhir Selesai** | #119: Frontend NextJS Config (GH #244, PR #245) |
-| **Issue Selanjutnya** | #120: Frontend Error Pages |
+| **Issue Terakhir Selesai** | #120: Frontend Error Pages (GH #246, PR #247) |
+| **Issue Selanjutnya** | #121: Deployment Vercel Frontend |
 | **Branch Aktif** | `main` (clean) |
 | **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T12:00:00+08:00 |
-| **GitHub Issue** | #244 (PR #245 merged) |
+| **Timestamp** | 2026-05-09T12:15:00+08:00 |
+| **GitHub Issue** | #246 (PR #247 merged) |
 
 ---
 ## ⚠️ STATUS TERKINI (Phase 8 CMS Module)
@@ -537,16 +537,16 @@ frontend/src/lib/bmn-utils.ts                                                   
 - [x] #117 — Backend Logging Error Handling (GitHub Issue #233, PR #241 merged)
 - [x] #118 — Backend Storage Config (GitHub Issue #242, PR #243 merged)
 - [x] #119 — Frontend NextJS Config (GitHub Issue #244, PR #245 merged)
-- [ ] #120 — Frontend Error Pages
+- [x] #120 — Frontend Error Pages (GitHub Issue #246, PR #247 merged)
 - [ ] #121 — Deployment Vercel Frontend
 - [ ] #122 — Deployment Vercel Backend
 - [ ] #123 — Deployment Supabase DB Setup
 - [ ] #124 — Seed Data
 - [ ] #125 — Documentation API Docs README
 
-**Status: 11/17 issues completed**
+**Status: 12/17 issues completed**
 
-### File yang Dibuat/Diubah (Phase 9 - #118, #119)
+### File yang Dibuat/Diubah (Phase 9 - #118-#120)
 
 ```
 # BACKEND — Issue #118 (Storage Config)
@@ -559,6 +559,11 @@ backend/.env.example                             ← [UPDATED] #118 - added SUPA
 frontend/next.config.ts                          ← [UPDATED] #119 - rewrites, security headers, image whitelist
 frontend/src/app/(website)/informasi/page.tsx    ← [UPDATED] #119 - fixed setState-in-effect error
 frontend/src/components/ui/employee-select.tsx    ← [UPDATED] #119 - fixed setState-in-effect error
+
+# FRONTEND — Issue #120 (Error Pages)
+frontend/src/app/not-found.tsx                   ← [NEW] #120 - 404 halaman tidak ditemukan
+frontend/src/app/error.tsx                       ← [NEW] #120 - error boundary per halaman
+frontend/src/app/global-error.tsx                ← [NEW] #120 - fatal error dengan html/body sendiri
 ```
 
 ---
