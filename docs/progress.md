@@ -1,13 +1,18 @@
 # Progress - Phase 10: Route Restructure & Portal Dashboard
 
 > Document created: 2026-05-09
-> Last updated: 2026-05-09
+> Last updated: 2026-05-09 21:00
 
 ---
 
 ## Summary
 
 Phase 10 focuses on restructuring routes and creating a standalone Portal Dashboard, aligning bksda-superapp with superapp-inventory patterns.
+
+**Today's Updates:**
+- Added ThemeToggle (dark/light mode) to all module layouts
+- Added User Profile info (avatar, name, role badge) in sidebar footer
+- Refactored layout: ThemeToggle in header, User profile above logout button
 
 ---
 
@@ -74,6 +79,38 @@ Phase 10 focuses on restructuring routes and creating a standalone Portal Dashbo
 
 - Portal Utama link changed from `/` → `/portal`
 - Now points to Personal Dashboard
+
+### 5. Module Layouts - ThemeToggle & User Profile ✅
+
+**Added to all module layouts (BMN, Inventory, Kepegawaian, DeReporting):**
+
+**Layout Structure:**
+```
+┌─────────────────────────────┐
+│ [Logo] BKSDA    [🌙/☀️]     │  ← ThemeToggle in header (right side)
+│        [Module Switcher]    │
+├─────────────────────────────┤
+│  Nav 1                      │
+│  Nav 2                      │
+│  Nav 3                      │
+│  ...                        │
+├─────────────────────────────┤
+│ [Avatar] Nama User          │  ← User info in footer
+│          Role               │     positioned above logout
+│        [Logout]             │
+└─────────────────────────────┘
+```
+
+**Components Added:**
+- `ThemeToggle` - dark/light mode switch button
+- User info card with avatar initial, name, role badge
+- `LogoutButton` at bottom
+
+**Files Updated:**
+- `frontend/src/app/bmn/layout.tsx`
+- `frontend/src/app/inventory/_components/InventorySidebar.tsx`
+- `frontend/src/app/kepegawaian/layout.tsx`
+- `frontend/src/app/dereporting/layout.tsx`
 
 ---
 
@@ -156,6 +193,8 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 | `900e9b8` | fix(backend): handle missing bmn_asset_loans table gracefully |
 | `bd155bf` | fix(backend): dashboard endpoint - don't use undefined relationship |
 | `917abcc` | fix(portal): align API response with frontend expectations |
+| `fe74b09` | Add dark mode toggle and user info to all module layouts |
+| `b28c9f1` | Refactor sidebar layout: ThemeToggle next to header, user profile above logout |
 
 ---
 
