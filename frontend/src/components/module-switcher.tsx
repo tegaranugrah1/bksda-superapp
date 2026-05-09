@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const modules = [
-  { name: "Portal Utama", icon: LayoutGrid, href: "/", color: "bg-zinc-100 text-zinc-900" },
+  { name: "Portal Utama", icon: LayoutGrid, href: "/portal", color: "bg-zinc-100 text-zinc-900" },
   { name: "Kepegawaian", icon: Users, href: "/kepegawaian", color: "bg-emerald-100 text-emerald-700" },
   { name: "BMN & Aset", icon: Box, href: "/bmn", color: "bg-blue-100 text-blue-700" },
   { name: "Inventory", icon: Archive, href: "/inventory", color: "bg-orange-100 text-orange-700" },

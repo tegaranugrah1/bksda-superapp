@@ -53,7 +53,7 @@ export default function LoginPage() {
       authStore.login(token, data);
       
       toast.success("Login berhasil!");
-      router.push("/");
+      router.push("/portal");
       
     } catch (error: unknown) {
       const errorData = axios.isAxiosError(error) ? error.response?.data : undefined;
