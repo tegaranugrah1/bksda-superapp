@@ -3,7 +3,9 @@
 namespace App\Modules\DeReporting\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Modules\DeReporting\Requests\StoreOperatorRequest;
 
 // KUNCI ARSITEKTUR: Kita memanggil Model Pusat IAM, bukan model DeReporting!
 use App\Models\User;
@@ -15,7 +17,7 @@ class OperatorController extends Controller
      * GET /api/dereporting/operators
      * Menampilkan daftar Pegawai yang telah diangkat menjadi Operator Laporan
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         // 1. Ambil HANYA User yang memiliki jabatan Operator DeReporting
         // 2. Gunakan Eager Loading (with) untuk menempelkan nama Bidang tugasnya
@@ -37,14 +39,8 @@ class OperatorController extends Controller
      * POST /api/dereporting/operators
      * Mengangkat Pegawai Menjadi Operator Bidang
      */
-    public function store(Request $request)
+    public function store(StoreOperatorRequest $request): JsonResponse
     {
-        // Validasi: Pastikan User ID dan Bidang ID benar-benar eksis di Database
-        $request->validate([
-            'user_id'   => 'required|uuid|exists:users,id',
-            'bidang_id' => 'required|uuid|exists:dr_bidang,id',
-        ]);
-
         $user = User::findOrFail($request->user_id);
 
         // Manuver Promosi Jabatan (Promote)
@@ -63,14 +59,14 @@ class OperatorController extends Controller
      * PUT /api/dereporting/operators/{id}
      * Memutasi (Memindah) Operator ke Bidang Lain
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id): JsonResponse
     {
         $request->validate([
             'bidang_id' => 'required|uuid|exists:dr_bidang,id',
         ]);
 
         $user = User::findOrFail($id);
-        
+
         // Peringatan Keamanan: Pastikan yang diupdate memang benar seorang operator
         if ($user->dereporting_role !== 'operator') {
             return response()->json(['message' => 'Pegawai ini bukan seorang operator.'], 403);
@@ -90,7 +86,7 @@ class OperatorController extends Controller
      * DELETE /api/dereporting/operators/{id}
      * Mencabut Jabatan Operator (Pemecatan Damai)
      */
-    public function destroy(string $id)
+    public function destroy(string $id): JsonResponse
     {
         $user = User::findOrFail($id);
 
