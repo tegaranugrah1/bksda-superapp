@@ -9,6 +9,7 @@ use App\Modules\Bmn\Services\AssetService;
 use App\Modules\Bmn\Requests\StoreAssetRequest;
 use App\Modules\Bmn\Requests\UpdateAssetRequest;
 use App\Modules\Bmn\Requests\DisposeAssetRequest;
+use App\Modules\Bmn\Resources\AssetResource;
 use Exception;
 
 class AssetController extends Controller
@@ -32,14 +33,14 @@ class AssetController extends Controller
             });
         }
 
-        return response()->json($query->paginate(20));
+        return AssetResource::collection($query->paginate(20));
     }
 
     public function store(StoreAssetRequest $request)
     {
         try {
             $asset = $this->assetService->storeAsset($request->validated());
-            return response()->json(['message' => 'Aset BMN resmi tercatat.', 'data' => $asset], 201);
+            return response()->json(['message' => 'Aset BMN resmi tercatat.', 'data' => new AssetResource($asset)], 201);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
@@ -49,14 +50,14 @@ class AssetController extends Controller
     {
         $asset = Asset::with(['penanggungJawab', 'loans.borrower', 'maintenances', 'historyUpdates.author'])
             ->findOrFail($id);
-        return response()->json(['data' => $asset]);
+        return response()->json(['data' => new AssetResource($asset)]);
     }
 
     public function update(UpdateAssetRequest $request, string $id)
     {
         try {
             $asset = $this->assetService->updateAsset($id, $request->validated(), $request->user()->id);
-            return response()->json(['message' => 'Perubahan aset berhasil direkam.', 'data' => $asset]);
+            return response()->json(['message' => 'Perubahan aset berhasil direkam.', 'data' => new AssetResource($asset)]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
