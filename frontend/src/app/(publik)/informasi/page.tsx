@@ -70,13 +70,16 @@ export default function InformasiListPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const r = await axios.get<PaginatedResponse>(`${API}/cms/public/informasi`, {
-          params,
-          signal: controller.signal,
-        });
+        const r = await axios.get<PaginatedResponse>(
+          `${API}/cms/public/informasi`,
+          {
+            params,
+            signal: controller.signal,
+          },
+        );
         setBerita(r.data?.data || []);
         setLastPage(r.data?.last_page || 1);
-      } catch (_e) {
+      } catch (_err) {
         setBerita([]);
       } finally {
         setLoading(false);
