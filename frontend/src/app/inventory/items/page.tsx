@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { PackageSearch, Plus, Loader2, Save, Trash2, Edit } from "lucide-react";
+import { PackageSearch, Plus, Loader2, Save, Trash2, Edit, Download } from "lucide-react";
+import { InventoryImportDialog } from "../_components/InventoryImportDialog";
+import { Button } from "@/components/ui/button";
 
 interface IItem {
     id: string;
@@ -74,6 +76,16 @@ export default function ItemsManagementPage() {
                     <p className="text-zinc-400 mt-2">
                         Daftarkan dan kelola master rujukan logistik negara.
                     </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <InventoryImportDialog onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ["inventory-items"] })} />
+                    <Button
+                        variant="outline"
+                        onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/inventory/export/items`, "_blank")}
+                        className="flex items-center gap-2 bg-zinc-950 border-zinc-800 hover:bg-zinc-900 text-zinc-300 hover:text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg"
+                    >
+                        <Download className="w-4 h-4 text-blue-500" /> Ekspor Excel
+                    </Button>
                 </div>
             </div>
 

@@ -42,8 +42,13 @@ Route::middleware(['role:admin,super_admin'])->group(function () {
     // Master Data
     Route::post('/offices', [OfficeController::class, 'store']);
     Route::post('/items', [ItemController::class, 'store']);
+    Route::post('/items/import', [ItemController::class, 'import']);
 
     // Mesin Mutasi Stok Fisik (Jantung BKSDA)
     Route::post('/stock/in', [StockController::class, 'stockIn']);
     Route::post('/stock/out', [StockController::class, 'stockOut']);
+
+    // Laporan Excel (Ekspor)
+    Route::get('/export/items', [\App\Modules\Inventory\Controllers\ExportController::class, 'items']);
+    Route::get('/export/transactions', [\App\Modules\Inventory\Controllers\ExportController::class, 'transactions']);
 });
