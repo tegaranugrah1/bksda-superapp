@@ -56,8 +56,8 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | InteractiveKawasanMap Upgrade (✅ MERGED) |
-| **Issue Selanjutnya** | Inventory Trash/Restore upgrade |
+| **Issue Terakhir Selesai** | Inventory Trash/Restore Upgrade (✅ MERGED) |
+| **Issue Selanjutnya** | letter-utils.ts Refactoring |
 | **Branch Aktif** | `main` |
 | **Commit** | `[NEW_COMMIT_ID]` - feat(inventory): bulk operations excel import/export |
 | **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
@@ -83,7 +83,8 @@ git push origin main
 | HIGH | Inventory Bulk Operations upgrade | ✅ DONE (PR #259) |
 | MEDIUM | AuthSync Component (cross-tab session) | ✅ DONE |
 | MEDIUM | InteractiveKawasanMap Upgrade | ✅ DONE |
-| MEDIUM | Inventory Trash/Restore upgrade | PENDING |
+| MEDIUM | Inventory Trash/Restore upgrade | ✅ DONE |
+| LOW | letter-utils.ts | PENDING |
  
  ### ✅ EmployeeAccessSheet Implementation (Issue #255)
  

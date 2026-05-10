@@ -39,4 +39,44 @@ class ItemController extends Controller
             'message' => 'Data katalog barang sukses diimpor secara massal.'
         ]);
     }
+
+    public function trash()
+    {
+        $items = Item::onlyTrashed()
+            ->with('category:id,nama_kategori')
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(20);
+
+        return response()->json($items);
+    }
+
+    public function destroy($id)
+    {
+        $item = Item::findOrFail($id);
+        $item->delete();
+
+        return response()->json([
+            'message' => 'Barang berhasil dipindahkan ke tempat sampah.'
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $item = Item::onlyTrashed()->findOrFail($id);
+        $item->restore();
+
+        return response()->json([
+            'message' => 'Barang berhasil dikembalikan ke katalog aktif.'
+        ]);
+    }
+
+    public function forceDelete($id)
+    {
+        $item = Item::onlyTrashed()->findOrFail($id);
+        $item->forceDelete();
+
+        return response()->json([
+            'message' => 'Barang telah dihapus secara permanen dari basis data.'
+        ]);
+    }
 }
