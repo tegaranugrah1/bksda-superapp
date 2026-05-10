@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import { useEffect, useState } from "react";
+import { AuthSync } from "@/components/AuthSync";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [restoreKey, setRestoreKey] = useState(0);
@@ -55,6 +56,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         disableTransitionOnChange
       >
         <ConfirmDialogProvider>
+          <AuthSync />
           <div key={restoreKey} className="contents">
             {children}
           </div>
