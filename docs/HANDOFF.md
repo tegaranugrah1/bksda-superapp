@@ -56,13 +56,13 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | BMN Import/Export Upgrade (PR #258 IN REVIEW ⏳) |
+| **Issue Terakhir Selesai** | BMN Import/Export Upgrade (✅ MERGED) |
 | **Issue Selanjutnya** | Inventory Bulk Operations Upgrade |
-| **Branch Aktif** | `feat/bmn-import-export-upgrade` |
-| **Commit** | `3f2a1b9` - fix(frontend): support Next.js 15 async params in BmnAssetFormPage |
+| **Branch Aktif** | `main` |
+| **Commit** | `a05bb96` - Merge branch 'feat/bmn-import-export-upgrade' |
 | **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
-| **Timestamp** | 2026-05-10T14:15:00+08:00 |
-| **GitHub PR** | [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - **IN REVIEW ⏳** |
+| **Timestamp** | 2026-05-10T14:20:00+08:00 |
+| **GitHub PR** | [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - ✅ MERGED |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ### ✅ Phase 10 Completed Tasks
@@ -124,24 +124,26 @@ git push origin main
 - Build: Success
 - ESLint: 0 errors (13 pre-existing warnings in public pages - out of scope)
 
-### ✅ BMN Import/Export Bugfixes (Issue #259)
+### ✅ BMN Import/Export Upgrade (Phase 13 - Issue #258)
 
-**Files Modified:**
-- `frontend/src/app/bmn/assets/page.tsx`: Fixed 'Cannot find module' error by using absolute import alias `@/app/bmn/_components/AssetImportDialog`.
-- `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx`: Fixed 'Cannot find name cn' by importing `cn` from `@/lib/utils`.
+**Backend Integration (`maatwebsite/excel`):**
+- **Exports**: Refactored `ExportController` using dedicated Export classes (`AssetExport`, `LoanExport`, `MaintenanceExport`) for cleaner architecture.
+- **Imports**: Implemented `AssetImport` with `ToModel` and `WithValidation` to handle bulk BMN asset registration via Excel.
+- **API**: Registered `POST /api/bmn/assets/import` with file upload support.
+
+**Frontend UI (`shadcn/ui`):**
+- **Components**: Created `AssetImportDialog.tsx` in `src/app/bmn/_components/` with progress tracking and error handling.
+- **Integration**: Added "Impor Excel" button to `BmnAssetsPage` for seamless bulk operations.
+
+**Bugfixes & Compatibility:**
+- **Module Resolution**: Fixed 'Cannot find module' error in `page.tsx` using absolute path aliases.
+- **Missing Utilities**: Restored `cn` import in `EmployeeAccessSheet.tsx` to fix build errors.
+- **Next.js 15 Support**: Updated `BmnAssetFormPage` to support asynchronous `params` prop using `React.use()`.
 
 **Validation:**
-- TypeScript: 0 errors ✅
-- ESLint: 0 errors (in modified files) ✅
-
-### ✅ Next.js 15 Async Params Fix (Issue #260)
-
-**Files Modified:**
-- `frontend/src/app/bmn/assets/[id]/page.tsx`: Updated to unwrap `params` Promise using `React.use()` to comply with Next.js 15 breaking changes for dynamic APIs.
-
-**Validation:**
-- TypeScript: 0 errors ✅
-- Console: Sync dynamic API error resolved ✅
+- **TypeScript**: 0 errors (Verified via `npx tsc --noEmit` ✅)
+- **Import/Export**: Verified functional with Excel files.
+- **Git**: Merged into `main` branch. ✅
 
 ### URL Structure (After Phase 10 Route Restructure)
 

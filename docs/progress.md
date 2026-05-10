@@ -83,8 +83,8 @@ Phase 11 implemented RouteGuard Component. Phase 12 focuses on EmployeeAccessShe
 
 - **Phase 13 Update:**
 - Branch: `feat/bmn-import-export-upgrade`
-- Commits: 1 commit pushed
-- PR: [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - **IN REVIEW ⏳**
+- Commits: 4 commits pushed
+- PR: [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - **MERGED ✅**
 - Status: COMPLETED ✅
 
 ---
@@ -98,11 +98,18 @@ Phase 11 implemented RouteGuard Component. Phase 12 focuses on EmployeeAccessShe
 - Created `AssetExport`, `LoanExport`, `MaintenanceExport` classes.
 - Created `AssetImport` with validation rules.
 - Integrated methods into `AssetController` and `ExportController`.
+- Registered `POST /api/bmn/assets/import` endpoint.
 
 **Frontend:**
-- Added "Impor Excel" button to `BmnAssetsPage`.
 - Created `AssetImportDialog.tsx` with file upload logic and format guidelines.
-- Integrated with Sonner for toast notifications.
+- Integrated "Impor Excel" button to `BmnAssetsPage`.
+- Fixed Module Resolution issues in `page.tsx` using absolute aliases.
+- Restored missing `cn` import in `EmployeeAccessSheet.tsx`.
+- Updated `BmnAssetFormPage` for Next.js 15 Async Params compatibility.
+
+**Verification:**
+- Verified 0 TypeScript errors via `npx tsc --noEmit`. ✅
+- Pushed to `main` and merged. ✅
 
 ### EmployeeAccessSheet Implementation (Phase 12) ✅
 
