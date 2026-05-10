@@ -56,13 +56,13 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 11: RouteGuard Component (PR #254 MERGED ✅) |
-| **Issue Selanjutnya** | EmployeeAccessSheet Component |
-| **Branch Aktif** | `main` |
-| **Commit** | `69b5f24` - docs: update HANDOFF.md and progress.md - add Git Workflow at top, Phase 11 status |
-| **Model Terakhir** | MiniMax 2.5 |
-| **Timestamp** | 2026-05-10T01:15:00+08:00 |
-| **GitHub PR** | [#254](https://github.com/tegaranugrah1/bksda-superapp/pull/254) - **MERGED ✅** |
+| **Issue Terakhir Selesai** | Phase 12: EmployeeAccessSheet Component (READY FOR PR 🚀) |
+| **Issue Selanjutnya** | BMN Import/Export Upgrade |
+| **Branch Aktif** | `issue/255-employee-access-sheet` |
+| **Commit** | `5ca9040` - feat(kepegawaian): add EmployeeAccessSheet for granular module access management (#255) |
+| **Model Terakhir** | Gemini 1.5 Pro |
+| **Timestamp** | 2026-05-10T12:00:00+08:00 |
+| **GitHub PR** | [Pending] - Branch ready for PR |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ### ✅ Phase 10 Completed Tasks
@@ -75,17 +75,29 @@ git push origin main
 | 4 | ModuleSwitcher Update (→ `/portal`) | ✅ DONE | PR #252 |
 | 5 | ThemeToggle + User Profile di semua layouts | ✅ DONE | PR #252 |
 
-### ⏳ Pending TODOs (After Phase 10)
+### ⏳ Pending TODOs (After Phase 11)
 
 | Priority | Task | Status |
 |----------|------|--------|
-| HIGH | RouteGuard Component (access_modules check) | **IN REVIEW** (PR #254) |
-| HIGH | EmployeeAccessSheet Component | PENDING |
 | HIGH | BMN Import/Export upgrade | PENDING |
 | HIGH | Inventory Bulk Operations upgrade | PENDING |
 | MEDIUM | AuthSync Component (cross-tab session) | PENDING |
 | MEDIUM | InteractiveKawasanMap Upgrade | PENDING |
 | MEDIUM | Inventory Trash/Restore upgrade | PENDING |
+ 
+ ### ✅ EmployeeAccessSheet Implementation (Issue #255)
+ 
+ **Files Created:**
+ - `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx` - NEW side-panel component
+   - Features: Role Selection, Multi-module access, Password reset/set.
+ 
+ **Files Modified:**
+ - `frontend/src/app/kepegawaian/page.tsx` - Integrated sheet with "UserCog" button.
+ 
+ **Validation:**
+ - TypeScript: 0 errors
+ - ESLint: 0 errors in new component
+ - Build: Success (Dry run)
 
 ### ✅ RouteGuard Implementation (Issue #253)
 

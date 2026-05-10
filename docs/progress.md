@@ -51,18 +51,18 @@ git push origin main
 
 ---
 
-## Current Phase: Phase 11 - RouteGuard Component
+## Current Phase: Phase 12 - EmployeeAccessSheet Component
 
-### Status: **IN REVIEW** (PR #254)
+### Status: **COMPLETED** ✅
 
-> Document created: 2026-05-09
-> Last updated: 2026-05-10 01:00
+> Document created: 2026-05-10
+> Last updated: 2026-05-10 11:25
 
 ---
 
 ## Summary
 
-Phase 11 implements RouteGuard Component to check user `access_modules` before rendering protected modules.
+Phase 11 implemented RouteGuard Component. Phase 12 focuses on EmployeeAccessSheet for granular module access management.
 
 **Changes in PR #254:**
 - Created `frontend/src/components/RouteGuard.tsx`
@@ -73,15 +73,34 @@ Phase 11 implements RouteGuard Component to check user `access_modules` before r
 - Fixed ModuleSwitcher: shows active module name/icon based on current route
 
 **Branch Status:**
-- Branch: `issue/253-route-guard-component`
-- PR: #254 - IN REVIEW
 - Commits: 4 commits pushed
+ 
+- **Phase 12 Update:**
+- Branch: `issue/255-employee-access-sheet`
+- Commits: 1 commit pushed (`5ca9040`)
+- Status: READY FOR PR 🚀
 
 ---
 
 ## Completed Tasks
 
-### RouteGuard Implementation ✅
+### EmployeeAccessSheet Implementation (Phase 12) ✅
+
+**Created:**
+- `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx`
+  - Features:
+    - Side-sliding sheet for access management.
+    - Role selection (super_admin, admin, user).
+    - Multi-select module checkboxes (Kepegawaian, BMN, Inventory, D-Reporting, CMS).
+    - Password reset functionality (On-the-Fly account creation support).
+    - Integration with `react-query` for fetching/updating.
+
+**Modified:**
+- `frontend/src/app/kepegawaian/page.tsx`
+  - Added `EmployeeAccessSheet` integration.
+  - Connected "UserCog" button to open the access management sheet for specific employee.
+
+### RouteGuard Implementation (Phase 11) ✅
 
 **Created:**
 - `frontend/src/components/RouteGuard.tsx` - NEW component
@@ -227,6 +246,12 @@ localhost:3000/verifikasi/surat-tugas/[id]/ → QR Verification
 | `9ef3e20` | fix: redirect authenticated /login to /portal, add /portal and /cms to protected routes |
 | `92a8b83` | feat(cms): add CMS to ModuleSwitcher and add ModuleSwitcher+ThemeToggle to CMS layout |
 
+### Phase 12 (EmployeeAccessSheet)
+
+| Commit | Description |
+|--------|-------------|
+| `5ca9040` | feat(kepegawaian): add EmployeeAccessSheet for granular module access management (#255) |
+
 ### Phase 10 (Route Restructure - PR #252)
 
 | Commit | Description |
@@ -252,13 +277,11 @@ localhost:3000/verifikasi/surat-tugas/[id]/ → QR Verification
 
 | # | Task | Priority | Status |
 |---|-------|----------|--------|
-| 1 | RouteGuard Component | HIGH | **IN REVIEW** (PR #254) |
-| 2 | EmployeeAccessSheet Component | HIGH | PENDING |
-| 3 | BMN Import/Export upgrade | HIGH | PENDING |
-| 4 | Inventory Bulk Operations upgrade | HIGH | PENDING |
-| 5 | AuthSync Component (cross-tab session) | MEDIUM | PENDING |
-| 6 | InteractiveKawasanMap Upgrade | MEDIUM | PENDING |
-| 7 | Inventory Trash/Restore upgrade | MEDIUM | PENDING |
+| 1 | BMN Import/Export upgrade | HIGH | PENDING |
+| 2 | Inventory Bulk Operations upgrade | HIGH | PENDING |
+| 3 | AuthSync Component (cross-tab session) | MEDIUM | PENDING |
+| 4 | InteractiveKawasanMap Upgrade | MEDIUM | PENDING |
+| 5 | Inventory Trash/Restore upgrade | MEDIUM | PENDING |
 
 ---
 
@@ -280,7 +303,7 @@ localhost:3000/verifikasi/surat-tugas/[id]/ → QR Verification
 
 - **PR:** https://github.com/tegaranugrah1/bksda-superapp/pull/254
 - **Branch:** `issue/253-route-guard-component`
-- **Status:** Open, IN REVIEW
+- **Status:** MERGED ✅
 
 ---
 
