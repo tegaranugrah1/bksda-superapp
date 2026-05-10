@@ -8,8 +8,8 @@ export default function proxy(request: NextRequest) {
 
   // 1. Abaikan internal & aset
   if (
-    pathname.startsWith("/_next") || 
-    pathname.startsWith("/api") || 
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
     pathname.includes(".") ||
     pathname === "/favicon.ico"
   ) {
@@ -19,18 +19,20 @@ export default function proxy(request: NextRequest) {
   // 2. Proteksi Halaman Login
   if (pathname === "/login") {
     if (token && userStr) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/portal", request.url));
     }
     return NextResponse.next();
   }
 
   // 3. Proteksi Halaman Privat
-  const isPrivateRoute = 
-    pathname === "/" || 
-    pathname.startsWith("/kepegawaian") || 
-    pathname.startsWith("/bmn") || 
-    pathname.startsWith("/inventory") || 
-    pathname.startsWith("/dereporting");
+  const isPrivateRoute =
+    pathname === "/" ||
+    pathname === "/portal" ||
+    pathname.startsWith("/kepegawaian") ||
+    pathname.startsWith("/bmn") ||
+    pathname.startsWith("/inventory") ||
+    pathname.startsWith("/dereporting") ||
+    pathname.startsWith("/cms");
 
   if (isPrivateRoute) {
     if (!token || !userStr) {
@@ -43,7 +45,7 @@ export default function proxy(request: NextRequest) {
     try {
       const user = JSON.parse(decodeURIComponent(userStr));
       const requiredModule = getRequiredModuleFromPath(pathname);
-      
+
       if (requiredModule && user.role !== "super_admin") {
         const modules = user.access_modules || [];
         if (!modules.includes(requiredModule)) {
@@ -73,10 +75,13 @@ export const config = {
   matcher: [
     "/",
     "/login",
+    "/portal",
+    "/portal/:path*",
     "/kepegawaian/:path*",
     "/bmn/:path*",
     "/inventory/:path*",
     "/dereporting/:path*",
-    "/403"
+    "/cms/:path*",
+    "/403",
   ],
 };
