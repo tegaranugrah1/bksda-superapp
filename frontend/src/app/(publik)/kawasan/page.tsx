@@ -45,6 +45,9 @@ export default function KawasanListPage() {
       lng: Number(k.longitude),
       nama: k.nama,
       slug: k.slug,
+      tipe_kawasan: k.tipe_kawasan,
+      luas_ha: k.luas_ha ? Number(k.luas_ha) : undefined,
+      thumbnail_path: k.thumbnail_path,
     }));
 
   if (loading) {
