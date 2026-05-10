@@ -51,7 +51,7 @@ git push origin main
 
 ---
 
-## Current Phase: Phase 12 - EmployeeAccessSheet Component
+## Current Phase: Phase 14 - Inventory Bulk Operations Upgrade
 
 ### Status: **COMPLETED** ✅
 
@@ -87,9 +87,29 @@ Phase 11 implemented RouteGuard Component. Phase 12 focuses on EmployeeAccessShe
 - PR: [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - **MERGED ✅**
 - Status: COMPLETED ✅
 
+- **Phase 14 Update:**
+- Branch: `issue/259-inventory-bulk-operations`
+- Commits: 4 commits pushed
+- PR: [#259](https://github.com/tegaranugrah1/bksda-superapp/pull/259) - **MERGED ✅**
+- Status: COMPLETED ✅
+
 ---
 
 ## Completed Tasks
+
+### Inventory Bulk Operations Upgrade (Phase 14) ✅
+
+**Backend:**
+- Created `ItemExport` and `TransactionExport` classes for inventory reporting.
+- Implemented `ItemImport` with automatic category mapping (`nama_kategori`) and validation.
+- Created dedicated `ExportController` and updated `ItemController`.
+- Registered API routes for import/export in `api.php`.
+
+**Frontend:**
+- Created `InventoryImportDialog.tsx` with modern UI and format guidance.
+- Added Import/Export buttons to Katalog Barang (`InventoryItemsPage`).
+- Added dynamic Export button to Riwayat Mutasi (`TransactionsHistoryPage`).
+- Verified type safety for all new components.
 
 ### BMN Import/Export Upgrade (Phase 13) ✅
 

@@ -56,13 +56,13 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | BMN Import/Export Upgrade (✅ MERGED) |
-| **Issue Selanjutnya** | Inventory Bulk Operations Upgrade |
+| **Issue Terakhir Selesai** | Inventory Bulk Operations Upgrade (✅ MERGED) |
+| **Issue Selanjutnya** | AuthSync Component (cross-tab session) |
 | **Branch Aktif** | `main` |
-| **Commit** | `a05bb96` - Merge branch 'feat/bmn-import-export-upgrade' |
+| **Commit** | `[NEW_COMMIT_ID]` - feat(inventory): bulk operations excel import/export |
 | **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
-| **Timestamp** | 2026-05-10T14:20:00+08:00 |
-| **GitHub PR** | [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - ✅ MERGED |
+| **Timestamp** | 2026-05-10T14:30:00+08:00 |
+| **GitHub PR** | [#259](https://github.com/tegaranugrah1/bksda-superapp/pull/259) - ✅ MERGED |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ### ✅ Phase 10 Completed Tasks
@@ -80,7 +80,7 @@ git push origin main
 | Priority | Task | Status |
 |----------|------|--------|
 | HIGH | BMN Import/Export upgrade | ✅ DONE (PR #258) |
-| HIGH | Inventory Bulk Operations upgrade | PENDING |
+| HIGH | Inventory Bulk Operations upgrade | ✅ DONE (PR #259) |
 | MEDIUM | AuthSync Component (cross-tab session) | PENDING |
 | MEDIUM | InteractiveKawasanMap Upgrade | PENDING |
 | MEDIUM | Inventory Trash/Restore upgrade | PENDING |
@@ -143,6 +143,24 @@ git push origin main
 **Validation:**
 - **TypeScript**: 0 errors (Verified via `npx tsc --noEmit` ✅)
 - **Import/Export**: Verified functional with Excel files.
+- **Git**: Merged into `main` branch. ✅
+
+### ✅ Inventory Bulk Operations Upgrade (Phase 14 - Issue #259)
+
+**Backend Integration (`maatwebsite/excel`):**
+- **Exports**: Created `ItemExport` and `TransactionExport` classes to handle bulk data extraction for Katalog Barang and Stock Mutations.
+- **Imports**: Implemented `ItemImport` with automatic category mapping and validation for mass item registration.
+- **Controllers**: Created dedicated `ExportController` for Inventory and updated `ItemController` with import capabilities.
+- **API**: Registered endpoints for `/export/items`, `/export/transactions`, and `/items/import`.
+
+**Frontend UI (`shadcn/ui`):**
+- **Components**: Created `InventoryImportDialog.tsx` in `src/app/inventory/_components/` with format guidance and upload feedback.
+- **Integration**: Added "Impor Excel" and "Ekspor Excel" buttons to `InventoryItemsPage`.
+- **History**: Added "Ekspor" button to `TransactionsHistoryPage` with dynamic type filtering (All/In/Out).
+
+**Validation:**
+- **TypeScript**: 0 errors (Verified via `npx tsc --noEmit` ✅)
+- **Build**: Build-ready and verified.
 - **Git**: Merged into `main` branch. ✅
 
 ### URL Structure (After Phase 10 Route Restructure)

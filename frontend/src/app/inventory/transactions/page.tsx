@@ -9,8 +9,10 @@ import {
     ArrowDownToLine,
     ArrowUpFromLine,
     Filter,
+    Download,
 } from "lucide-react";
 import dayjs from "dayjs";
+import { Button } from "@/components/ui/button";
 
 interface ITransaction {
     id: string;
@@ -91,6 +93,17 @@ export default function TransactionsHistoryPage() {
                     >
                         Distribusi Keluar
                     </button>
+                    
+                    <div className="w-px h-6 bg-zinc-800 mx-2 hidden md:block" />
+                    
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/inventory/export/transactions?type=${filterType}`, "_blank")}
+                        className="text-zinc-400 hover:text-white hover:bg-zinc-800 gap-2 font-bold px-4"
+                    >
+                        <Download className="w-4 h-4 text-blue-500" /> Ekspor
+                    </Button>
                 </div>
             </div>
 

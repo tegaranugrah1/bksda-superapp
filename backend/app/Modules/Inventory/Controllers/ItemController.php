@@ -26,4 +26,17 @@ class ItemController extends Controller
             'data' => $item,
         ], 201);
     }
+
+    public function import(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        \Maatwebsite\Excel\Facades\Excel::import(new \App\Modules\Inventory\Imports\ItemImport, $request->file('file'));
+
+        return response()->json([
+            'message' => 'Data katalog barang sukses diimpor secara massal.'
+        ]);
+    }
 }
