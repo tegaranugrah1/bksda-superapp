@@ -23,6 +23,7 @@ class Asset extends Model
         'nilai_perolehan' => 'decimal:2',
         'nilai_buku' => 'decimal:2',
         'tahun_perolehan' => 'integer',
+        'kondisi' => \App\Modules\Bmn\Enums\AssetCondition::class,
     ];
 
     public function penanggungJawab()

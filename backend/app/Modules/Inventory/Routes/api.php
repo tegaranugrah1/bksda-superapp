@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Inventory\Controllers\DashboardController;
+use App\Modules\Inventory\Controllers\ExportController;
 use App\Modules\Inventory\Controllers\ItemController;
 use App\Modules\Inventory\Controllers\OfficeController;
 use App\Modules\Inventory\Controllers\StockController;
@@ -53,6 +54,6 @@ Route::middleware(['role:admin,super_admin'])->group(function () {
     Route::post('/stock/out', [StockController::class, 'stockOut']);
 
     // Laporan Excel (Ekspor)
-    Route::get('/export/items', [\App\Modules\Inventory\Controllers\ExportController::class, 'items']);
-    Route::get('/export/transactions', [\App\Modules\Inventory\Controllers\ExportController::class, 'transactions']);
+    Route::get('/export/items', [ExportController::class, 'items']);
+    Route::get('/export/transactions', [ExportController::class, 'transactions']);
 });

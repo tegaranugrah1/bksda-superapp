@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Modules\Core\Models\Employee;
+use Illuminate\Database\Seeder;
 
 class UpdateEmployeeDepartmentsSeeder extends Seeder
 {
@@ -149,8 +149,8 @@ class UpdateEmployeeDepartmentsSeeder extends Seeder
         }
 
         $this->command->info("Updated {$updated} employees.");
-        if (!empty($notFound)) {
-            $this->command->warn("Not found (" . count($notFound) . "): " . implode(', ', $notFound));
+        if (! empty($notFound)) {
+            $this->command->warn('Not found ('.count($notFound).'): '.implode(', ', $notFound));
         }
     }
 }

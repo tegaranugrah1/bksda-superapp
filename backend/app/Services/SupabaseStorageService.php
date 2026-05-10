@@ -7,7 +7,9 @@ use Illuminate\Http\UploadedFile;
 class SupabaseStorageService
 {
     private string $supabaseUrl;
+
     private string $serviceRoleKey;
+
     private string $bucket;
 
     public function __construct()
@@ -20,7 +22,7 @@ class SupabaseStorageService
     public function upload(UploadedFile $file, string $folder = ''): string
     {
         $extension = $file->getClientOriginalExtension();
-        $filename = uniqid() . '_' . time() . '.' . $extension;
+        $filename = uniqid().'_'.time().'.'.$extension;
 
         $storagePath = $folder ? "{$folder}/{$filename}" : $filename;
 
@@ -34,7 +36,7 @@ class SupabaseStorageService
             CURLOPT_HTTPHEADER => [
                 "Authorization: Bearer {$this->serviceRoleKey}",
                 "Content-Type: {$file->getMimeType()}",
-                "x-upsert: true",
+                'x-upsert: true',
             ],
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_TIMEOUT => 30,
@@ -55,7 +57,9 @@ class SupabaseStorageService
 
     public function delete(string $path): void
     {
-        if (!$path) return;
+        if (! $path) {
+            return;
+        }
 
         $url = "{$this->supabaseUrl}/storage/v1/object/{$this->bucket}/{$path}";
 
@@ -76,7 +80,9 @@ class SupabaseStorageService
 
     public static function publicUrl(?string $path): ?string
     {
-        if (!$path) return null;
+        if (! $path) {
+            return null;
+        }
 
         if (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path;
@@ -84,6 +90,7 @@ class SupabaseStorageService
 
         $baseUrl = env('SUPABASE_PROJECT_URL', 'https://xxx.supabase.co');
         $bucket = env('SUPABASE_BUCKET', 'cms');
+
         return "{$baseUrl}/storage/v1/object/public/{$bucket}/{$path}";
     }
 }

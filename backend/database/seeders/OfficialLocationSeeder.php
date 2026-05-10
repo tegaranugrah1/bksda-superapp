@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use App\Modules\BMN\Models\Asset;
 use App\Modules\Core\Models\Employee;
+use Illuminate\Database\Seeder;
 
 class OfficialLocationSeeder extends Seeder
 {
@@ -117,9 +116,9 @@ class OfficialLocationSeeder extends Seeder
 
             // Create Asset
             Asset::create([
-                'kode_barang' => $item['kode'] . str_pad($i + 1, 3, '0', STR_PAD_LEFT),
+                'kode_barang' => $item['kode'].str_pad($i + 1, 3, '0', STR_PAD_LEFT),
                 'nup' => $i + 10,
-                'nama_barang' => $item['nama'] . ' - Unit ' . ($i + 1),
+                'nama_barang' => $item['nama'].' - Unit '.($i + 1),
                 'jenis_bmn' => $item['jenis'],
                 'kondisi' => ['Baik', 'Rusak Ringan'][rand(0, 1)],
                 'status_bmn' => 'Aktif',

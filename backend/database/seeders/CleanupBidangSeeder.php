@@ -28,15 +28,16 @@ class CleanupBidangSeeder extends Seeder
             'LAIN-LAIN' => [
                 'Lain - Lain',
                 'Lain-Lain',
-            ]
+            ],
         ];
 
         foreach ($mapping as $targetName => $oldNames) {
             // Find target ID
             $target = DB::table('dr_bidangs')->where('bidang', $targetName)->first();
 
-            if (!$target) {
+            if (! $target) {
                 echo "Target '$targetName' not found. Skipping.\n";
+
                 continue;
             }
 

@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Modules\BMN\Models\Asset;
+use Illuminate\Database\Seeder;
 
 class BMNSeeder extends Seeder
 {

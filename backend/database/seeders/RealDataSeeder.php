@@ -2,14 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Modules\Inventory\Models\Category;
+use App\Modules\Inventory\Models\InventoryStock;
 use App\Modules\Inventory\Models\Item;
 use App\Modules\Inventory\Models\Office;
+use App\Modules\Inventory\Models\StockTransaction;
 use App\Modules\Inventory\Services\InventoryService;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema; // Added this import
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
+
+ // Added this import
 
 class RealDataSeeder extends Seeder
 {
@@ -17,8 +19,8 @@ class RealDataSeeder extends Seeder
     {
         // 1. Reset Database
         Schema::disableForeignKeyConstraints();
-        \App\Modules\Inventory\Models\StockTransaction::truncate();
-        \App\Modules\Inventory\Models\InventoryStock::truncate();
+        StockTransaction::truncate();
+        InventoryStock::truncate();
         Item::truncate();
         Category::truncate();
         Office::truncate();
@@ -46,7 +48,7 @@ class RealDataSeeder extends Seeder
                     ['code' => '1.01.03.06.001.000006', 'name' => 'KABEL BELDEN', 'qty' => 5, 'unit' => 'METER', 'price' => 10000, 'buy_date' => '2025-02-03'],
                     ['code' => '1.01.03.06.999.000006', 'name' => 'LY921 TERMINAL', 'qty' => 2, 'unit' => 'BUAH', 'price' => 15000, 'buy_date' => '2025-02-03'],
                     ['code' => '1.01.03.06.999.000011', 'name' => 'STEKER', 'qty' => 2, 'unit' => 'BUAH', 'price' => 10000, 'buy_date' => '2025-02-03'],
-                ]
+                ],
             ],
             // Doc 00002
             [
@@ -58,7 +60,7 @@ class RealDataSeeder extends Seeder
                     ['code' => '1.01.03.04.004.000019', 'name' => 'REFIL 85 A', 'qty' => 2, 'unit' => 'BUAH', 'price' => 115000, 'buy_date' => '2025-02-10'],
                     ['code' => '1.01.03.04.004.000053', 'name' => 'REFILL HP 107', 'qty' => 2, 'unit' => 'BHN', 'price' => 150000, 'buy_date' => '2025-02-04'],
                     ['code' => '1.01.03.04.004.000022', 'name' => 'REFIL 12 A', 'qty' => 2, 'unit' => 'BUAH', 'price' => 75000, 'buy_date' => '2025-02-04'],
-                ]
+                ],
             ],
             // Doc 00003
             [
@@ -67,7 +69,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catATK,
                 'items' => [
                     ['code' => '1.01.03.02.001.000018', 'name' => 'KERTAS A4 75 gr', 'qty' => 25, 'unit' => 'RIM', 'price' => 57500, 'buy_date' => '2025-01-24'],
-                ]
+                ],
             ],
             // Doc 00004
             [
@@ -76,7 +78,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catATK,
                 'items' => [
                     ['code' => '1.01.03.02.001.000001', 'name' => 'KERTAS A4 70 gr', 'qty' => 4, 'unit' => 'RIM', 'price' => 55000, 'buy_date' => '2025-01-23'],
-                ]
+                ],
             ],
             // Doc 00005
             [
@@ -85,7 +87,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catATK,
                 'items' => [
                     ['code' => '1.01.03.99.999.000250', 'name' => 'DOUBLE TAPE', 'qty' => 1, 'unit' => 'BUAH', 'price' => 45000, 'buy_date' => '2025-02-11'],
-                ]
+                ],
             ],
             // Doc 00006
             [
@@ -94,7 +96,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catElektronik,
                 'items' => [
                     ['code' => '1.01.03.04.006.000007', 'name' => 'USB HUB', 'qty' => 1, 'unit' => 'BUAH', 'price' => 99750, 'buy_date' => '2025-02-24'],
-                ]
+                ],
             ],
             // Doc 00007
             [
@@ -103,7 +105,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catATK,
                 'items' => [
                     ['code' => '1.01.03.09.003.000001', 'name' => 'TRODAT STEMPEL', 'qty' => 4, 'unit' => 'BUAH', 'price' => 50000, 'buy_date' => '2025-01-06'],
-                ]
+                ],
             ],
             // Doc 00008
             [
@@ -115,7 +117,7 @@ class RealDataSeeder extends Seeder
                     ['code' => '1.01.03.04.004.000029', 'name' => 'DATA PRINT DP 27', 'qty' => 1, 'unit' => 'BUAH', 'price' => 8400, 'buy_date' => '2025-02-04'],
                     ['code' => '1.01.03.04.004.000030', 'name' => 'DATAPRINT DP 28', 'qty' => 1, 'unit' => 'BUAH', 'price' => 9850, 'buy_date' => '2025-02-04'],
                     ['code' => '1.01.03.04.004.000031', 'name' => 'TINTA E PRINT HITAM 200 ML', 'qty' => 5, 'unit' => 'BOTOL', 'price' => 48300, 'buy_date' => '2025-02-04'],
-                ]
+                ],
             ],
             // Doc 00009
             [
@@ -125,7 +127,7 @@ class RealDataSeeder extends Seeder
                 'items' => [
                     ['code' => '1.01.03.02.001.000004', 'name' => 'KERTAS A4 70 gr', 'qty' => 5, 'unit' => 'RIM', 'price' => 55000, 'buy_date' => '2025-03-03'],
                     ['code' => '1.01.03.02.001.000004', 'name' => 'KERTAS A4 80 gr', 'qty' => 5, 'unit' => 'RIM', 'price' => 65000, 'buy_date' => '2025-02-17'],
-                ]
+                ],
             ],
             // Doc 00010
             [
@@ -136,7 +138,7 @@ class RealDataSeeder extends Seeder
                     ['code' => '1.01.03.99.999.000192', 'name' => 'SABUN CUCI PIRING MAMA LEMON', 'qty' => 3, 'unit' => 'BUAH', 'price' => 8900, 'buy_date' => '2025-02-11'],
                     ['code' => '1.01.03.99.999.000008', 'name' => 'CLING PEMBERSIH KACA', 'qty' => 3, 'unit' => 'BUAH', 'price' => 8300, 'buy_date' => '2025-02-11'],
                     ['code' => '1.01.03.99.999.000185', 'name' => "NICE FACIAL TISSUE 200'S/40", 'qty' => 3, 'unit' => 'BUAH', 'price' => 33500, 'buy_date' => '2025-02-11'],
-                ]
+                ],
             ],
             // Doc 00011
             [
@@ -145,7 +147,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catATK,
                 'items' => [
                     ['code' => '1.01.03.99.999.000211', 'name' => 'SABUN CUCI', 'qty' => 3, 'unit' => 'BKS', 'price' => 17800, 'buy_date' => '2025-02-11'],
-                ]
+                ],
             ],
             // Doc 00012
             [
@@ -158,7 +160,7 @@ class RealDataSeeder extends Seeder
                     ['code' => '1.01.03.01.014.000008', 'name' => 'Karcis Masuk Pengunjung Nusantara', 'qty' => 5, 'unit' => 'BKS', 'price' => 65000, 'buy_date' => '2025-02-28'],
                     ['code' => '1.01.03.01.014.000009', 'name' => 'Karcis Masuk Pengunjung Mancanegara', 'qty' => 25, 'unit' => 'BKS', 'price' => 65000, 'buy_date' => '2025-02-28'],
                     ['code' => '1.01.03.01.014.000022', 'name' => 'Karcis Masuk Pengunjung Nusantara', 'qty' => 5, 'unit' => 'BKS', 'price' => 65000, 'buy_date' => null],
-                ]
+                ],
             ],
             // Doc 00013
             [
@@ -167,7 +169,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catATK,
                 'items' => [
                     ['code' => '1.01.03.04.004.000019', 'name' => 'REFIL 85 A', 'qty' => 1, 'unit' => 'BUAH', 'price' => 290000, 'buy_date' => '2025-03-06'],
-                ]
+                ],
             ],
             // Doc 00014
             [
@@ -176,7 +178,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catElektronik,
                 'items' => [
                     ['code' => '1.01.03.06.002.000007', 'name' => 'lampu 5 watt', 'qty' => 13, 'unit' => 'BKS', 'price' => 10000, 'buy_date' => '2025-01-21'],
-                ]
+                ],
             ],
             // Doc 00015
             [
@@ -185,7 +187,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catElektronik,
                 'items' => [
                     ['code' => '1.01.03.06.002.000010', 'name' => 'LAMPU PHILIP', 'qty' => 2, 'unit' => 'BKS', 'price' => 27000, 'buy_date' => '2025-01-20'],
-                ]
+                ],
             ],
             // Doc 00016
             [
@@ -196,7 +198,7 @@ class RealDataSeeder extends Seeder
                     ['code' => '1.01.03.06.001.000021', 'name' => 'KABEL', 'qty' => 5, 'unit' => 'METER', 'price' => 15000, 'buy_date' => '2025-01-20'],
                     ['code' => '1.01.03.06.999.000006', 'name' => 'LY921 TERMINAL', 'qty' => 1, 'unit' => 'BUAH', 'price' => 35000, 'buy_date' => '2025-01-20'],
                     ['code' => '1.01.03.06.999.000011', 'name' => 'STEKER', 'qty' => 1, 'unit' => 'BUAH', 'price' => 15000, 'buy_date' => '2025-01-20'],
-                ]
+                ],
             ],
             // Doc 00017
             [
@@ -207,7 +209,7 @@ class RealDataSeeder extends Seeder
                     ['code' => '1.01.03.06.999.000006', 'name' => 'LY921 TERMINAL', 'qty' => 1, 'unit' => 'BUAH', 'price' => 42000, 'buy_date' => '2025-01-17'],
                     ['code' => '1.01.03.99.999.000252', 'name' => 'MIC', 'qty' => 1, 'unit' => 'BUAH', 'price' => 248500, 'buy_date' => '2025-01-17'],
                     ['code' => '1.01.03.99.999.000253', 'name' => 'KABEL MIC', 'qty' => 1, 'unit' => 'BUAH', 'price' => 70000, 'buy_date' => '2025-01-17'],
-                ]
+                ],
             ],
             // Doc 00018
             [
@@ -217,7 +219,7 @@ class RealDataSeeder extends Seeder
                 'items' => [
                     ['code' => '1.01.03.99.999.000029', 'name' => 'PENGHARUM TOILET', 'qty' => 1, 'unit' => 'BUAH', 'price' => 27500, 'buy_date' => '2025-02-22'],
                     ['code' => '1.01.03.99.999.000220', 'name' => 'GLADE SEMPROT', 'qty' => 1, 'unit' => 'BUAH', 'price' => 42000, 'buy_date' => '2025-02-22'],
-                ]
+                ],
             ],
             // Doc 00019
             [
@@ -226,7 +228,7 @@ class RealDataSeeder extends Seeder
                 'cat' => $catATK,
                 'items' => [
                     ['code' => '1.01.03.99.999.000251', 'name' => 'SABUN CUCI SIRIH', 'qty' => 1, 'unit' => 'BUAH', 'price' => 26900, 'buy_date' => '2025-03-17'],
-                ]
+                ],
             ],
             // Doc 00020
             [
@@ -238,7 +240,7 @@ class RealDataSeeder extends Seeder
                     ['code' => '1.01.03.01.999.000185', 'name' => 'BORNEO LINEN', 'qty' => 1, 'unit' => 'BUAH', 'price' => 7000, 'buy_date' => '2025-01-16'],
                     ['code' => '1.01.03.01.999.000187', 'name' => 'HIGHLIGHTER', 'qty' => 2, 'unit' => 'BUAH', 'price' => 15000, 'buy_date' => '2025-02-17'],
                     ['code' => '1.01.03.02.004.000002', 'name' => 'AMPLOP PUTIH BESAR', 'qty' => 1, 'unit' => 'KOTAK', 'price' => 61000, 'buy_date' => '2025-02-17'],
-                ]
+                ],
             ],
         ];
 

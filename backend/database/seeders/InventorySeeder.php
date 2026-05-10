@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Modules\Inventory\Models\Category;
+use App\Modules\Inventory\Models\InventoryStock;
 use App\Modules\Inventory\Models\Item;
 use App\Modules\Inventory\Models\Warehouse;
-use App\Modules\Inventory\Models\InventoryStock;
+use Illuminate\Database\Seeder;
 
 class InventorySeeder extends Seeder
 {
@@ -20,17 +20,17 @@ class InventorySeeder extends Seeder
         // 2. Create Categories
         $catAtk = Category::firstOrCreate(['slug' => 'atk'], [
             'name' => 'Alat Tulis Kantor',
-            'type' => 'consumable'
+            'type' => 'consumable',
         ]);
 
         $catElektronik = Category::firstOrCreate(['slug' => 'elektronik'], [
             'name' => 'Elektronik',
-            'type' => 'asset'
+            'type' => 'asset',
         ]);
 
         $catKebersihan = Category::firstOrCreate(['slug' => 'kebersihan'], [
             'name' => 'Alat Kebersihan',
-            'type' => 'consumable'
+            'type' => 'consumable',
         ]);
 
         // 3. Create Items
@@ -56,7 +56,7 @@ class InventorySeeder extends Seeder
             'unit' => 'Unit',
             'min_stock' => 2,
             'current_stock' => 5,
-            'description' => 'Laptop Inventaris Kantor'
+            'description' => 'Laptop Inventaris Kantor',
         ]);
 
         // 4. Distribute Stock (Example)

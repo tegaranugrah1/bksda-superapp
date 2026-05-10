@@ -3,23 +3,22 @@
 namespace App\Modules\Inventory\Exports;
 
 use App\Modules\Inventory\Models\StockTransaction;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
 class TransactionExport implements FromCollection, WithHeadings, WithMapping
 {
-    public function __construct(protected ?string $type = null)
-    {
-    }
+    public function __construct(protected ?string $type = null) {}
 
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return Collection
+     */
     public function collection()
     {
         $query = StockTransaction::with(['item', 'office', 'recipient', 'admin']);
-        
+
         if ($this->type) {
             $query->where('type', $this->type);
         }

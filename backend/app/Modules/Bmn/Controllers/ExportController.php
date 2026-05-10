@@ -3,10 +3,6 @@
 namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Bmn\Models\Asset;
-use App\Modules\Bmn\Models\AssetLoan;
-use App\Modules\Bmn\Models\AssetMaintenance;
-use Illuminate\Http\Response;
 use App\Modules\Bmn\Exports\AssetExport;
 use App\Modules\Bmn\Exports\LoanExport;
 use App\Modules\Bmn\Exports\MaintenanceExport;

@@ -22,9 +22,10 @@ class MeDashboardResource extends JsonResource
                 'access_modules' => $this->access_modules ?? [],
             ],
             'employee' => $this->whenLoaded('employee', function () {
-                if (!$this->employee) {
+                if (! $this->employee) {
                     return null;
                 }
+
                 return [
                     'id' => $this->employee->id,
                     'nip' => $this->employee->nip,

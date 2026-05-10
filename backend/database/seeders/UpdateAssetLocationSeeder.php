@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Modules\BMN\Models\Asset;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Seeder;
 
 class UpdateAssetLocationSeeder extends Seeder
 {
@@ -135,13 +134,13 @@ class UpdateAssetLocationSeeder extends Seeder
         $updatedCount = 0;
         $notFoundCount = 0;
 
-        $this->command->info("Starting update for " . count($data) . " assets...");
+        $this->command->info('Starting update for '.count($data).' assets...');
 
         foreach ($data as $item) {
             $kodeBarang = $item[0];
             $nup = $item[1];
 
-            /** @var \App\Modules\BMN\Models\Asset|null $asset */
+            /** @var Asset|null $asset */
             $asset = Asset::where('kode_barang', $kodeBarang)
                 ->where('nup', $nup)
                 ->first();
@@ -150,7 +149,7 @@ class UpdateAssetLocationSeeder extends Seeder
                 // Update nama_satker and clear lokasi_ruang
                 $asset->update([
                     'nama_satker' => $targetLocation,
-                    'lokasi_ruang' => null
+                    'lokasi_ruang' => null,
                 ]);
                 $this->command->info("Updated: {$kodeBarang} - NUP {$nup}");
                 $updatedCount++;
@@ -160,7 +159,7 @@ class UpdateAssetLocationSeeder extends Seeder
             }
         }
 
-        $this->command->info("Update Complete.");
+        $this->command->info('Update Complete.');
         $this->command->info("Updated: {$updatedCount}");
         $this->command->info("Not Found: {$notFoundCount}");
 

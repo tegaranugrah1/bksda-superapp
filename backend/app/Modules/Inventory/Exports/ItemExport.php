@@ -3,6 +3,7 @@
 namespace App\Modules\Inventory\Exports;
 
 use App\Modules\Inventory\Models\Item;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -10,8 +11,8 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 class ItemExport implements FromCollection, WithHeadings, WithMapping
 {
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return Collection
+     */
     public function collection()
     {
         return Item::with('category', 'stocks')->get();
@@ -35,7 +36,9 @@ class ItemExport implements FromCollection, WithHeadings, WithMapping
     {
         $currentStock = $item->stocks->sum('quantity');
         $status = $currentStock <= $item->min_stock ? 'LOW' : 'NORMAL';
-        if ($currentStock <= 0) $status = 'OUT OF STOCK';
+        if ($currentStock <= 0) {
+            $status = 'OUT OF STOCK';
+        }
 
         return [
             $item->id,

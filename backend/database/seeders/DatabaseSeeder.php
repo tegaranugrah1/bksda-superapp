@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\DeReporting\Database\Seeders\InitDataSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,10 +13,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            \Database\Seeders\SuperAdminSeeder::class,
-            \Database\Seeders\RealDataSeeder::class,
-            \Database\Seeders\EmployeeSeeder::class,
-            \App\Modules\DeReporting\Database\Seeders\InitDataSeeder::class,
+            SuperAdminSeeder::class,
+            RealDataSeeder::class,
+            EmployeeSeeder::class,
+            InitDataSeeder::class,
         ]);
     }
 }

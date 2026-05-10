@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useEffect, useState } from "react";
 import { BarChart3, FileText, Globe, Clock, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
@@ -9,6 +10,12 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 const CHART_COLORS = ["#8b5cf6", "#6366f1", "#a78bfa", "#7c3aed", "#818cf8", "#c4b5fd"];
 
 export default function DeReportingDashboardPage() {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Penarikan Data Statistik dari Backend
     const { data: stats, isLoading } = useQuery({
         queryKey: ["dr-dashboard-stats"],
@@ -83,18 +90,24 @@ export default function DeReportingDashboardPage() {
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
                         <h3 className="text-lg font-bold text-white mb-6">Distribusi Laporan Internal per Bidang</h3>
                         {stats?.bidangCounts?.length ? (
-                            <ResponsiveContainer width="100%" height={320}>
-                                <BarChart data={stats.bidangCounts} margin={{ top: 5, right: 20, left: 0, bottom: 40 }}>
-                                    <XAxis dataKey="nama" tick={{ fill: "#71717a", fontSize: 11 }} angle={-25} textAnchor="end" interval={0} />
-                                    <YAxis tick={{ fill: "#71717a", fontSize: 12 }} allowDecimals={false} />
-                                    <Tooltip contentStyle={{ backgroundColor: "#18181b", border: "1px solid #3f3f46", borderRadius: "12px", color: "#fff" }} />
-                                    <Bar dataKey="total" radius={[8, 8, 0, 0]}>
-                                        {stats.bidangCounts.map((_: { nama: string; total: number }, i: number) => (
-                                            <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="h-[320px] w-full">
+                                {mounted ? (
+                                    <ResponsiveContainer width="100%" height={320} minWidth={0} debounce={50}>
+                                        <BarChart data={stats.bidangCounts} margin={{ top: 5, right: 20, left: 0, bottom: 40 }}>
+                                            <XAxis dataKey="nama" tick={{ fill: "#71717a", fontSize: 11 }} angle={-25} textAnchor="end" interval={0} />
+                                            <YAxis tick={{ fill: "#71717a", fontSize: 12 }} allowDecimals={false} />
+                                            <Tooltip contentStyle={{ backgroundColor: "#18181b", border: "1px solid #3f3f46", borderRadius: "12px", color: "#fff" }} />
+                                            <Bar dataKey="total" radius={[8, 8, 0, 0]}>
+                                                {stats.bidangCounts.map((_: { nama: string; total: number }, i: number) => (
+                                                    <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="w-full h-full bg-zinc-800/50 animate-pulse rounded-xl" />
+                                )}
+                            </div>
                         ) : (
                             <p className="text-zinc-500 text-sm text-center py-12">Belum ada data laporan untuk divisualisasikan.</p>
                         )}

@@ -18,6 +18,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { useEffect, useState } from "react";
 
 const formatRupiah = (angka: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -40,6 +41,12 @@ const mockChartData = [
 ];
 
 export default function BmnDashboardPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div>
@@ -130,41 +137,45 @@ export default function BmnDashboardPage() {
             Fisik BMN
           </h3>
           <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={mockChartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <XAxis
-                  dataKey="name"
-                  stroke="#52525b"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#52525b"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  cursor={{ fill: "#27272a", opacity: 0.4 }}
-                  contentStyle={{
-                    backgroundColor: "#09090b",
-                    borderColor: "#27272a",
-                    borderRadius: "12px",
-                    fontWeight: "bold",
-                  }}
-                  itemStyle={{ color: "#fff" }}
-                />
-                <Bar dataKey="total" radius={[6, 6, 0, 0]}>
-                  {mockChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {mounted ? (
+              <ResponsiveContainer width="100%" height={288} minWidth={0} debounce={50}>
+                <BarChart
+                  data={mockChartData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <XAxis
+                    dataKey="name"
+                    stroke="#52525b"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="#52525b"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "#27272a", opacity: 0.4 }}
+                    contentStyle={{
+                      backgroundColor: "#09090b",
+                      borderColor: "#27272a",
+                      borderRadius: "12px",
+                      fontWeight: "bold",
+                    }}
+                    itemStyle={{ color: "#fff" }}
+                  />
+                  <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+                    {mockChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full bg-zinc-900/50 animate-pulse rounded-xl" />
+            )}
           </div>
         </div>
 

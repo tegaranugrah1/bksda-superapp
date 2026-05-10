@@ -3,6 +3,8 @@
 namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Bmn\Exports\AssetExport;
+use App\Modules\Bmn\Imports\AssetImport;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Requests\DisposeAssetRequest;
 use App\Modules\Bmn\Requests\StoreAssetRequest;
@@ -10,11 +12,9 @@ use App\Modules\Bmn\Requests\UpdateAssetRequest;
 use App\Modules\Bmn\Resources\AssetResource;
 use App\Modules\Bmn\Services\AssetService;
 use Exception;
-use App\Modules\Bmn\Exports\AssetExport;
-use App\Modules\Bmn\Imports\AssetImport;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AssetController extends Controller
@@ -98,7 +98,7 @@ class AssetController extends Controller
 
             return response()->json(['message' => 'Impor Aset BMN berhasil diproses.']);
         } catch (Exception $e) {
-            return response()->json(['error' => 'Gagal mengimpor data: ' . $e->getMessage()], 422);
+            return response()->json(['error' => 'Gagal mengimpor data: '.$e->getMessage()], 422);
         }
     }
 }

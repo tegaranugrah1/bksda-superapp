@@ -2,15 +2,16 @@
 
 namespace App\Modules\DeReporting\Database\Seeders;
 
+use App\Models\User;
+use App\Modules\DeReporting\Models\Anggaran;
+use App\Modules\DeReporting\Models\Bidang;
+use App\Modules\DeReporting\Models\Jenis;
+use App\Modules\DeReporting\Models\JenisData;
+use App\Modules\DeReporting\Models\Kategori;
+use App\Modules\DeReporting\Models\Koordinator;
+use App\Modules\DeReporting\Models\Tahun;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use App\Modules\DeReporting\Models\Anggaran;
-use App\Modules\DeReporting\Models\Tahun;
-use App\Modules\DeReporting\Models\Koordinator;
-use App\Modules\DeReporting\Models\JenisData;
-use App\Modules\DeReporting\Models\Jenis;
-use App\Modules\DeReporting\Models\Bidang;
-use App\Modules\DeReporting\Models\Kategori;
 
 class InitDataSeeder extends Seeder
 {
@@ -30,7 +31,7 @@ class InitDataSeeder extends Seeder
     {
         $nipAdmin = '198001012005011001';
 
-        \App\Models\User::updateOrCreate(
+        User::updateOrCreate(
             ['username' => $nipAdmin],
             [
                 'name' => 'Administrator',
@@ -38,33 +39,33 @@ class InitDataSeeder extends Seeder
                 'password' => 'Bksda2026!@#',
                 'role' => 'super_admin',
                 'access_modules' => ['kepegawaian', 'bmn', 'inventory', 'dereporting'],
-                'jabatan' => 'Super Administrator'
+                'jabatan' => 'Super Administrator',
             ]
         );
 
         $tegarNip = '199907072025061006';
-        \App\Models\User::updateOrCreate(
+        User::updateOrCreate(
             ['username' => $tegarNip],
             [
                 'name' => 'Tegar Anugrah, A.Md.Kom.',
-                'email' => $tegarNip . '@gmail.com',
+                'email' => $tegarNip.'@gmail.com',
                 'password' => Str::random(16),
                 'role' => 'user',
                 'access_modules' => ['bmn', 'inventory'],
-                'jabatan' => 'Pranata Komputer Terampil'
+                'jabatan' => 'Pranata Komputer Terampil',
             ]
         );
 
         $bowoNip = '198305282001121001';
-        \App\Models\User::updateOrCreate(
+        User::updateOrCreate(
             ['username' => $bowoNip],
             [
                 'name' => 'Heryanto Sumanbowo, S.Hut.',
-                'email' => $bowoNip . '@gmail.com',
+                'email' => $bowoNip.'@gmail.com',
                 'password' => Str::random(16),
                 'role' => 'user',
                 'access_modules' => ['bmn'],
-                'jabatan' => 'Pengendali Ekosistem Hutan Ahli Muda'
+                'jabatan' => 'Pengendali Ekosistem Hutan Ahli Muda',
             ]
         );
 
@@ -76,10 +77,10 @@ class InitDataSeeder extends Seeder
         ];
 
         foreach ($dereportingNips as $nip) {
-            $user = \App\Models\User::where('username', $nip)->first();
+            $user = User::where('username', $nip)->first();
             if ($user) {
                 $currentModules = $user->access_modules ?? [];
-                if (!in_array('dereporting', $currentModules)) {
+                if (! in_array('dereporting', $currentModules)) {
                     $currentModules[] = 'dereporting';
                     $user->access_modules = $currentModules;
                     $user->save();
@@ -120,7 +121,7 @@ class InitDataSeeder extends Seeder
             ['koordinator' => 'Perlindungan'],
             ['koordinator' => 'IKN'],
             ['koordinator' => 'NONDIPA'],
-            ['koordinator' => 'PKS']
+            ['koordinator' => 'PKS'],
         ];
         foreach ($data as $value) {
             Koordinator::updateOrCreate(['koordinator' => $value['koordinator']], $value);
