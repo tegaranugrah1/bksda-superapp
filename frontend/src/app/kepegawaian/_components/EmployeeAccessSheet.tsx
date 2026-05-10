@@ -34,6 +34,7 @@ import { Shield, KeyRound, Loader2, AlertCircle, Info } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 // 1. Validation Schema (Rule 2.4 - Min 1 module)
 const accessSchema = z.object({

@@ -81,9 +81,28 @@ Phase 11 implemented RouteGuard Component. Phase 12 focuses on EmployeeAccessShe
 - PR: [#256](https://github.com/tegaranugrah1/bksda-superapp/pull/256) - **MERGED ✅**
 - Status: COMPLETED ✅
 
+- **Phase 13 Update:**
+- Branch: `feat/bmn-import-export-upgrade`
+- Commits: 1 commit pushed
+- PR: [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - **IN REVIEW ⏳**
+- Status: COMPLETED ✅
+
 ---
 
 ## Completed Tasks
+
+### BMN Import/Export Upgrade (Phase 13) ✅
+
+**Backend:**
+- Installed `maatwebsite/excel` (resolved PHP 8.5 conflicts).
+- Created `AssetExport`, `LoanExport`, `MaintenanceExport` classes.
+- Created `AssetImport` with validation rules.
+- Integrated methods into `AssetController` and `ExportController`.
+
+**Frontend:**
+- Added "Impor Excel" button to `BmnAssetsPage`.
+- Created `AssetImportDialog.tsx` with file upload logic and format guidelines.
+- Integrated with Sonner for toast notifications.
 
 ### EmployeeAccessSheet Implementation (Phase 12) ✅
 
@@ -278,7 +297,7 @@ localhost:3000/verifikasi/surat-tugas/[id]/ → QR Verification
 
 | # | Task | Priority | Status |
 |---|-------|----------|--------|
-| 1 | BMN Import/Export upgrade | HIGH | PENDING |
+| 1 | BMN Import/Export upgrade | HIGH | COMPLETED ✅ |
 | 2 | Inventory Bulk Operations upgrade | HIGH | PENDING |
 | 3 | AuthSync Component (cross-tab session) | MEDIUM | PENDING |
 | 4 | InteractiveKawasanMap Upgrade | MEDIUM | PENDING |

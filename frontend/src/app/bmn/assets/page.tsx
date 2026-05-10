@@ -16,7 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
-import { AssetImportDialog } from "../_components/AssetImportDialog";
+import { AssetImportDialog } from "@/app/bmn/_components/AssetImportDialog";
 
 const formatRupiah = (angka: number) =>
   new Intl.NumberFormat("id-ID", {

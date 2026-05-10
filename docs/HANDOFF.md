@@ -56,13 +56,13 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 12: EmployeeAccessSheet Component (PR #256 MERGED ✅) |
-| **Issue Selanjutnya** | BMN Import/Export Upgrade |
-| **Branch Aktif** | `main` |
-| **Commit** | `b9dd375` - Merge pull request #256 from issue/255-employee-access-sheet |
-| **Model Terakhir** | Gemini 1.5 Pro |
-| **Timestamp** | 2026-05-10T12:05:00+08:00 |
-| **GitHub PR** | [#256](https://github.com/tegaranugrah1/bksda-superapp/pull/256) - **MERGED ✅** |
+| **Issue Terakhir Selesai** | BMN Import/Export Upgrade (PR #258 IN REVIEW ⏳) |
+| **Issue Selanjutnya** | Inventory Bulk Operations Upgrade |
+| **Branch Aktif** | `feat/bmn-import-export-upgrade` |
+| **Commit** | `6a4d7b2` - fix(frontend): resolve module resolution and missing cn imports |
+| **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
+| **Timestamp** | 2026-05-10T14:12:00+08:00 |
+| **GitHub PR** | [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - **IN REVIEW ⏳** |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ### ✅ Phase 10 Completed Tasks
@@ -79,7 +79,7 @@ git push origin main
 
 | Priority | Task | Status |
 |----------|------|--------|
-| HIGH | BMN Import/Export upgrade | PENDING |
+| HIGH | BMN Import/Export upgrade | ✅ DONE (PR #258) |
 | HIGH | Inventory Bulk Operations upgrade | PENDING |
 | MEDIUM | AuthSync Component (cross-tab session) | PENDING |
 | MEDIUM | InteractiveKawasanMap Upgrade | PENDING |
@@ -120,9 +120,19 @@ git push origin main
 - Fixed /cms: now protected route with ModuleSwitcher
 
 **Validation:**
-- TypeScript: 0 errors
+- TypeScript: 0 errors (Verified via npx tsc --noEmit ✅)
 - Build: Success
 - ESLint: 0 errors (13 pre-existing warnings in public pages - out of scope)
+
+### ✅ BMN Import/Export Bugfixes (Issue #259)
+
+**Files Modified:**
+- `frontend/src/app/bmn/assets/page.tsx`: Fixed 'Cannot find module' error by using absolute import alias `@/app/bmn/_components/AssetImportDialog`.
+- `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx`: Fixed 'Cannot find name cn' by importing `cn` from `@/lib/utils`.
+
+**Validation:**
+- TypeScript: 0 errors ✅
+- ESLint: 0 errors (in modified files) ✅
 
 ### URL Structure (After Phase 10 Route Restructure)
 
