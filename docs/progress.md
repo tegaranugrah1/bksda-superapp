@@ -78,7 +78,8 @@ Phase 11 implemented RouteGuard Component. Phase 12 focuses on EmployeeAccessShe
 - **Phase 12 Update:**
 - Branch: `issue/255-employee-access-sheet`
 - Commits: 1 commit pushed (`5ca9040`)
-- Status: READY FOR PR 🚀
+- PR: [#256](https://github.com/tegaranugrah1/bksda-superapp/pull/256) - **READY FOR REVIEW** 🚀
+- Status: PENDING MERGE ⏳
 
 ---
 
