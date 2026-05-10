@@ -51,6 +51,12 @@ git push origin main
 
 ---
 
+## Phase 17: Inventory Trash/Restore Upgrade
+
+### Status: **COMPLETED** ✅
+
+---
+
 ## Phase 16: InteractiveKawasanMap Integration
 
 ### Status: **COMPLETED** ✅
