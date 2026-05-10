@@ -59,9 +59,9 @@ git push origin main
 | **Issue Terakhir Selesai** | BMN Import/Export Upgrade (PR #258 IN REVIEW ⏳) |
 | **Issue Selanjutnya** | Inventory Bulk Operations Upgrade |
 | **Branch Aktif** | `feat/bmn-import-export-upgrade` |
-| **Commit** | `6a4d7b2` - fix(frontend): resolve module resolution and missing cn imports |
+| **Commit** | `3f2a1b9` - fix(frontend): support Next.js 15 async params in BmnAssetFormPage |
 | **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
-| **Timestamp** | 2026-05-10T14:12:00+08:00 |
+| **Timestamp** | 2026-05-10T14:15:00+08:00 |
 | **GitHub PR** | [#258](https://github.com/tegaranugrah1/bksda-superapp/pull/258) - **IN REVIEW ⏳** |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
@@ -133,6 +133,15 @@ git push origin main
 **Validation:**
 - TypeScript: 0 errors ✅
 - ESLint: 0 errors (in modified files) ✅
+
+### ✅ Next.js 15 Async Params Fix (Issue #260)
+
+**Files Modified:**
+- `frontend/src/app/bmn/assets/[id]/page.tsx`: Updated to unwrap `params` Promise using `React.use()` to comply with Next.js 15 breaking changes for dynamic APIs.
+
+**Validation:**
+- TypeScript: 0 errors ✅
+- Console: Sync dynamic API error resolved ✅
 
 ### URL Structure (After Phase 10 Route Restructure)
 

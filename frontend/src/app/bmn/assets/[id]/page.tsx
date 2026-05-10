@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -33,9 +33,9 @@ interface FormData {
 export default function BmnAssetFormPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id: assetId } = params;
+  const { id: assetId } = use(params);
   const isEditMode = assetId !== "create";
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
