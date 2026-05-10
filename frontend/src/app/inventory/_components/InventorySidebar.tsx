@@ -46,6 +46,9 @@ export function InventorySidebar() {
               <h2 className="font-bold text-zinc-900 dark:text-white">
                 Inventory
               </h2>
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                Inventaris & Stok
+              </p>
             </div>
           </div>
           <ThemeToggle />
