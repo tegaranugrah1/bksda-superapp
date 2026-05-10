@@ -43,6 +43,10 @@ Route::middleware(['role:admin,super_admin'])->group(function () {
     Route::post('/offices', [OfficeController::class, 'store']);
     Route::post('/items', [ItemController::class, 'store']);
     Route::post('/items/import', [ItemController::class, 'import']);
+    Route::get('/items/trash', [ItemController::class, 'trash']);
+    Route::delete('/items/{id}', [ItemController::class, 'destroy']);
+    Route::post('/items/{id}/restore', [ItemController::class, 'restore']);
+    Route::delete('/items/{id}/force', [ItemController::class, 'forceDelete']);
 
     // Mesin Mutasi Stok Fisik (Jantung BKSDA)
     Route::post('/stock/in', [StockController::class, 'stockIn']);

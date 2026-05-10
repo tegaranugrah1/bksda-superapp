@@ -56,8 +56,8 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Inventory Trash/Restore Upgrade (✅ MERGED) |
-| **Issue Selanjutnya** | letter-utils.ts Refactoring |
+| **Issue Terakhir Selesai** | letter-utils.ts Refactoring (✅ MERGED) |
+| **Issue Selanjutnya** | Audit Middleware (Next.js Middleware migration) |
 | **Branch Aktif** | `main` |
 | **Commit** | `[NEW_COMMIT_ID]` - feat(inventory): bulk operations excel import/export |
 | **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
@@ -84,7 +84,8 @@ git push origin main
 | MEDIUM | AuthSync Component (cross-tab session) | ✅ DONE |
 | MEDIUM | InteractiveKawasanMap Upgrade | ✅ DONE |
 | MEDIUM | Inventory Trash/Restore upgrade | ✅ DONE |
-| LOW | letter-utils.ts | PENDING |
+| LOW | letter-utils.ts | ✅ DONE |
+| HIGH | Audit Middleware | ✅ DONE (Phase 19) |
  
  ### ✅ EmployeeAccessSheet Implementation (Issue #255)
  
@@ -787,8 +788,8 @@ frontend/src/app/kepegawaian/                           ← [MOVED] from /portal
 | 4 | InteractiveKawasanMap Upgrade | PENDING |
 | 5 | letter-utils.ts | PENDING |
 | 6 | Upgrade BMN Import/Export | ✅ DONE (Phase 13) |
-| 7 | Upgrade Inventory Bulk Operations | PENDING |
-| 8 | Upgrade Inventory Trash/Restore | PENDING |
+| 7 | Upgrade Inventory Bulk Operations | ✅ DONE |
+| 8 | Upgrade Inventory Trash/Restore | ✅ DONE |
 
 ### URL Structure (Current - Updated):
 ```
