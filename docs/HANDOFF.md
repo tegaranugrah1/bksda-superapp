@@ -762,14 +762,14 @@ frontend/src/app/kepegawaian/                           ← [MOVED] from /portal
 
 | # | Task | Priority |
 |---|-------|----------|
-| 1 | RouteGuard Component (access_modules check) | HIGH |
-| 2 | AuthSync Component (cross-tab session) | MEDIUM |
-| 3 | EmployeeAccessSheet Component | HIGH |
-| 4 | InteractiveKawasanMap Upgrade | MEDIUM |
-| 5 | letter-utils.ts | LOW |
-| 6 | Upgrade BMN Import/Export | HIGH |
-| 7 | Upgrade Inventory Bulk Operations | HIGH |
-| 8 | Upgrade Inventory Trash/Restore | MEDIUM |
+| 1 | RouteGuard Component (access_modules check) | ✅ DONE (Phase 11) |
+| 2 | AuthSync Component (cross-tab session) | PENDING |
+| 3 | EmployeeAccessSheet Component | ✅ DONE (Phase 12) |
+| 4 | InteractiveKawasanMap Upgrade | PENDING |
+| 5 | letter-utils.ts | PENDING |
+| 6 | Upgrade BMN Import/Export | ✅ DONE (Phase 13) |
+| 7 | Upgrade Inventory Bulk Operations | PENDING |
+| 8 | Upgrade Inventory Trash/Restore | PENDING |
 
 ### URL Structure (Current - Updated):
 ```
