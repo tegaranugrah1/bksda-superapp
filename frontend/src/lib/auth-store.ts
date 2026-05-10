@@ -87,6 +87,16 @@ export const authStore = {
     window.dispatchEvent(new Event("auth-change"));
   },
 
+  // Update User Data only
+  updateUser(userData: unknown) {
+    if (typeof window === "undefined") return;
+
+    localStorage.setItem("bksda_user", JSON.stringify(userData));
+    document.cookie = `bksda_user=${encodeURIComponent(JSON.stringify(userData))}; path=/; max-age=604800; SameSite=Lax`;
+
+    window.dispatchEvent(new Event("auth-change"));
+  },
+
   // Fungsi Logout Sentral
   logout() {
     if (typeof window === "undefined") return;

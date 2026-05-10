@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -131,7 +131,7 @@ export default function PersonalDashboard() {
       const response = await api.get("/me/dashboard");
       setData(response.data);
       if (response.data?.user) {
-        localStorage.setItem("bksda_user", JSON.stringify(response.data.user));
+        authStore.updateUser(response.data.user);
       }
     } catch (error: unknown) {
       const err = error as { response?: { status?: number } };
