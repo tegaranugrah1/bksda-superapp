@@ -8,6 +8,7 @@ import {
     Printer, Info, Calendar as CalendarIcon, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { formatDateIndonesian, formatNIP } from "@/lib/letter-utils";
 import { EmployeePicker, Employee } from "@/components/custom/EmployeePicker";
 
 interface ApiError extends Error {
@@ -21,22 +22,6 @@ interface Personil {
     peran: string;
 }
 
-function formatDateIndonesian(dateStr: string): string {
-    if (!dateStr) return '.............';
-    const months = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
-    const d = new Date(dateStr);
-    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function formatNIP(nip: string): string {
-    if (!nip) return '.............';
-    const cleaned = nip.replace(/\s/g, '');
-    if (cleaned.length !== 18) return nip;
-    return `${cleaned.substring(0, 8)} ${cleaned.substring(8, 14)} ${cleaned.substring(14, 15)} ${cleaned.substring(15)}`;
-}
 
 export default function CreateSuratTugasPage() {
     const router = useRouter();

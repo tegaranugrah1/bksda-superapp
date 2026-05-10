@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { Printer, X } from "lucide-react";
 import QRCode from "react-qr-code";
+import { formatDateIndonesian, formatNIP, daysBetween, numberToWords } from "@/lib/letter-utils";
 
 interface PreviewProps {
   data: {
@@ -151,7 +152,7 @@ export default function AssignmentLetterPreview({
                         <td className="align-top font-bold uppercase py-1">
                           : {emp.nama_lengkap} <br />
                           <span className="font-normal normal-case">
-                            : {emp.nip}
+                            : {formatNIP(emp.nip)}
                           </span>{" "}
                           <br />
                           <span className="font-normal normal-case">
@@ -177,8 +178,13 @@ export default function AssignmentLetterPreview({
               <div className="w-30 font-bold tracking-widest">Waktu</div>
               <div className="w-4 font-bold">:</div>
               <div className="flex-1">
-                {data.tanggal_mulai} <span className="mx-2 font-bold">s/d</span>{" "}
-                {data.tanggal_selesai}
+                {formatDateIndonesian(data.tanggal_mulai)} <span className="mx-2 font-bold">s/d</span>{" "}
+                {formatDateIndonesian(data.tanggal_selesai)}
+                {data.tanggal_mulai && data.tanggal_selesai && (
+                  <span className="ml-2 italic text-zinc-600">
+                    ({daysBetween(data.tanggal_mulai, data.tanggal_selesai)} / {numberToWords(daysBetween(data.tanggal_mulai, data.tanggal_selesai))} hari)
+                  </span>
+                )}
               </div>
             </div>
 
@@ -216,11 +222,7 @@ export default function AssignmentLetterPreview({
                 Pada Tanggal{" "}
                 <span className="ml-3">
                   :{" "}
-                  {new Date().toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {formatDateIndonesian(new Date().toISOString())}
                 </span>
               </p>
 
