@@ -6,17 +6,63 @@
 
 ---
 
+## ⚠️ GIT WORKFLOW — WAJIB DIIKUTI SETIAP ISSUE
+
+> **DILARANG SHORTCUT!** Setiap issue WAJIB mengikuti flow ini TANPA PENGECUALIAN:
+
+```bash
+# STEP 0 — Buat GitHub Issue (jika belum ada)
+gh issue create --title "feat(module): nama issue" --body "deskripsi" --label "frontend" # atau backend
+
+# STEP 1 — Ambil state terbaru & buat branch
+git pull origin main
+git checkout -b issue/XXX-nama-issue
+
+# STEP 2 — Kerjakan kode sesuai spec di docs/issues/XXX-*.md
+
+# STEP 3 — CEK IDE WARNINGS (WAJIB! 2-3x sebelum commit)
+cd frontend; npm run lint -- --max-warnings=0   # wajib 0
+cd frontend; npx tsc --noEmit                   # wajib 0 error
+cd frontend; npm run build                       # wajib clean
+# Periksa juga IDE Warning All di VS Code Problems tab (Ctrl+Shift+M)!
+# Tailwind v4: bg-gradient-to-* → bg-linear-to-*, flex-shrink-0 → shrink-0, dll
+
+# STEP 4 — Commit (HINDARI git add . — selalu specify folder)
+git add frontend/src/components/ frontend/src/app/bmn/ # contoh
+git commit -m "feat(module): deskripsi (#<nomor_gh_issue>)"
+
+# STEP 5 — Push & PR
+git push -u origin issue/XXX-nama-issue
+gh pr create --title "feat(module): deskripsi (#XXX)" --body "Closes #<nomor_gh_issue>" --base main
+
+# STEP 6 — Merge & cleanup (setelah PR di-test & di-approve)
+gh pr merge <PR_NUMBER> --merge --delete-branch
+git checkout main; git pull origin main
+
+# STEP 7 — Update HANDOFF.md & progress.md lalu push
+git add docs/HANDOFF.md docs/progress.md
+git commit -m "docs: update HANDOFF.md and progress.md - issue #XXX selesai"
+git push origin main
+```
+
+> ❌ **DILARANG** mulai mengerjakan issue tanpa `gh issue create` terlebih dahulu!
+> ❌ **DILARANG** skip cek IDE warning — Tailwind v4 warnings **harus 0** sebelum commit!
+> ❌ **DILARANG** commit langsung ke `main` tanpa PR!
+> ❌ **DILARANG** `git add .` — selalu specify folder (`frontend/src/...` atau `backend/...`)!
+
+---
+
 ## Status Saat Ini
 
 | Field | Value |
 |-------|-------|
 | **Issue Terakhir Selesai** | Phase 10: Route Restructure + Portal Dashboard + ThemeToggle + User Profile (MERGED ✅) |
-| **Issue Selanjutnya** | Implement RouteGuard Component (access_modules check) |
-| **Branch Aktif** | `main` |
-| **Commit** | `1c6121a` - fix(inventory): add subtitle 'Inventaris & Stok' to sidebar header |
+| **Issue Selanjutnya** | RouteGuard Component - PR #254 Testing |
+| **Branch Aktif** | `issue/253-route-guard-component` |
+| **Commit** | `92a8b83` - feat(cms): add CMS to ModuleSwitcher and add ModuleSwitcher+ThemeToggle to CMS layout |
 | **Model Terakhir** | MiniMax 2.5 |
-| **Timestamp** | 2026-05-09T23:00:00+08:00 |
-| **GitHub PR** | [#252](https://github.com/tegaranugrah1/bksda-superapp/pull/252) - **MERGED ✅** |
+| **Timestamp** | 2026-05-10T01:00:00+08:00 |
+| **GitHub PR** | [#254](https://github.com/tegaranugrah1/bksda-superapp/pull/254) - **IN REVIEW** |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ### ✅ Phase 10 Completed Tasks
@@ -33,13 +79,38 @@
 
 | Priority | Task | Status |
 |----------|------|--------|
-| HIGH | RouteGuard Component (access_modules check) | PENDING |
+| HIGH | RouteGuard Component (access_modules check) | **IN REVIEW** (PR #254) |
 | HIGH | EmployeeAccessSheet Component | PENDING |
 | HIGH | BMN Import/Export upgrade | PENDING |
 | HIGH | Inventory Bulk Operations upgrade | PENDING |
 | MEDIUM | AuthSync Component (cross-tab session) | PENDING |
 | MEDIUM | InteractiveKawasanMap Upgrade | PENDING |
 | MEDIUM | Inventory Trash/Restore upgrade | PENDING |
+
+### ✅ RouteGuard Implementation (Issue #253)
+
+**Files Created:**
+- `frontend/src/components/RouteGuard.tsx` - NEW component with useMemo-based access checking
+
+**Files Modified:**
+- `frontend/src/app/bmn/layout.tsx` - Added RouteGuard (requiredModule="bmn")
+- `frontend/src/app/inventory/layout.tsx` - Added RouteGuard (requiredModule="inventory")
+- `frontend/src/app/kepegawaian/layout.tsx` - Added RouteGuard (requiredModule="kepegawaian")
+- `frontend/src/app/dereporting/layout.tsx` - Added RouteGuard (requiredModule="dereporting")
+- `frontend/src/app/cms/layout.tsx` - Added RouteGuard (requiredModule="cms") + ModuleSwitcher + ThemeToggle
+- `frontend/src/components/module-switcher.tsx` - Added CMS Panel option, fixed active state, removed unused imports
+- `frontend/src/proxy.ts` - Fixed authenticated /login redirect to /portal, added /portal and /cms to protected routes
+
+**Bug Fixes:**
+- Fixed ModuleSwitcher: shows active module name and icon based on current route
+- Fixed /login redirect: authenticated users → /portal (not /)
+- Fixed /portal: now protected route
+- Fixed /cms: now protected route with ModuleSwitcher
+
+**Validation:**
+- TypeScript: 0 errors
+- Build: Success
+- ESLint: 0 errors (13 pre-existing warnings in public pages - out of scope)
 
 ### URL Structure (After Phase 10 Route Restructure)
 
