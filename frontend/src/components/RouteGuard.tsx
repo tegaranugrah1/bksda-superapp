@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -55,12 +55,26 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
     return "allowed";
   }, [user, isAuthenticated, pathname, requiredModule]);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
   // Handle redirect for denied access
   useEffect(() => {
+    if (!mounted) return;
+
+    // Tunggu sampai store sinkron dengan localStorage (isAuthenticated tidak lagi di state awal server)
+    if (isAuthenticated === false) {
+      router.replace("/login");
+      return;
+    }
+
     if (accessStatus === "denied") {
       router.replace("/portal?unauthorized=1");
     }
-  }, [accessStatus, router]);
+  }, [mounted, accessStatus, isAuthenticated, router]);
 
   // Show loading spinner while checking auth
   if (accessStatus === "loading" || accessStatus === "denied") {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -28,6 +28,7 @@ import {
   ArrowRight,
   Search,
 } from "lucide-react";
+import { RouteGuard } from "@/components/RouteGuard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -335,7 +336,8 @@ export default function PersonalDashboard() {
   ];
 
   return (
-    <div className="h-screen bg-[#f7f8fa] font-sans relative overflow-hidden flex flex-col">
+    <RouteGuard>
+      <div className="h-screen bg-[#f7f8fa] font-sans relative overflow-hidden flex flex-col">
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-15%] left-[-5%] w-[45%] h-[45%] bg-linear-to-br from-emerald-300/25 to-cyan-300/15 rounded-full blur-[130px]"></div>
         <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-linear-to-br from-violet-300/15 to-blue-300/10 rounded-full blur-[130px]"></div>
@@ -699,5 +701,6 @@ export default function PersonalDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+    </RouteGuard>
   );
 }

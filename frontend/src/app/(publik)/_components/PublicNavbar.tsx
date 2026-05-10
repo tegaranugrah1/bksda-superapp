@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -57,7 +58,6 @@ export default function PublicNavbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo + Nama */}
           <Link href="/" className="flex items-center gap-3 shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/logo_bksda.png"
               alt="Logo BKSDA"
@@ -144,3 +144,8 @@ export default function PublicNavbar() {
     </header>
   );
 }
+
+
+
+
+

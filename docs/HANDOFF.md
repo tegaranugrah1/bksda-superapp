@@ -81,7 +81,7 @@ git push origin main
 |----------|------|--------|
 | HIGH | BMN Import/Export upgrade | ✅ DONE (PR #258) |
 | HIGH | Inventory Bulk Operations upgrade | ✅ DONE (PR #259) |
-| MEDIUM | AuthSync Component (cross-tab session) | DONE |
+| MEDIUM | AuthSync Component (cross-tab session) | ✅ DONE |
 | MEDIUM | InteractiveKawasanMap Upgrade | PENDING |
 | MEDIUM | Inventory Trash/Restore upgrade | PENDING |
  
@@ -781,7 +781,7 @@ frontend/src/app/kepegawaian/                           ← [MOVED] from /portal
 | # | Task | Priority |
 |---|-------|----------|
 | 1 | RouteGuard Component (access_modules check) | ✅ DONE (Phase 11) |
-| 2 | AuthSync Component (cross-tab session) | PENDING |
+| 2 | AuthSync Component (cross-tab session) | ✅ DONE (Bugfix applied) |
 | 3 | EmployeeAccessSheet Component | ✅ DONE (Phase 12) |
 | 4 | InteractiveKawasanMap Upgrade | PENDING |
 | 5 | letter-utils.ts | PENDING |
@@ -1199,3 +1199,18 @@ Setelah semua command clean:
 - Validasi browser yang sudah dijalankan: login dengan akun seeder, buka `/kepegawaian`, buka module switcher ke `/bmn`, klik browser Back, data pegawai tetap tampil, user tetap `Administrator Pusat BKSDA / super_admin`, tombol sidebar `Keluar Sistem` membuka modal konfirmasi.
 - Jika AI baru melanjutkan setelah percakapan ini ditutup: mulai dari `git checkout main && git pull`, baca `HANDOFF.md` dan `ONBOARDING.md`, pastikan issue #64 dan PR terkait sudah closed/merged, lalu lanjut ke Phase 4 Surat Tugas (`docs/issues/035-*.md` sampai `045-*.md`).
 - Catatan lokal dev: frontend memakai `http://localhost:3000`, backend Laravel lokal perlu hidup di `http://127.0.0.1:8000`, dan database lokal `.env` backend mengarah ke PostgreSQL `127.0.0.1:5435`.
+
+**UPDATE SESI #259 (2026-05-10):**
+- **GitHub Issue**: `#258 fix(auth): resolve AuthSync hydration race condition`
+- **Branch**: `fix/auth-hydration-issue`
+- **PR**: `https://github.com/tegaranugrah1/bksda-superapp/pull/new/fix/auth-hydration-issue`
+- **Objective**: Fix aggressive initial redirection and hydration-safe route protection.
+- **Changes**:
+  - `frontend/src/components/AuthSync.tsx`: Removed aggressive initial redirect on mount; component now focuses on cross-tab synchronization.
+  - `frontend/src/components/RouteGuard.tsx`: Implemented `mounted` state to ensure hydration safety; redirects only trigger after component is mounted on the client.
+  - `frontend/src/app/portal/page.tsx`: Wrapped the Personal Dashboard with `RouteGuard` for consistent protection.
+- **Build Verification**:
+  - `npm run lint -- --max-warnings=0` ✅ (Cleaned up 13 pre-existing warnings in public pages and fixed broken TSX syntax).
+  - `npx tsc --noEmit` ✅ (No type errors).
+  - `npm run dev` ✅ (Verified manual loading and direct navigation).
+- **Handoff**: The auth synchronization and route protection are now stable. Next step is to proceed with the next feature module or refine existing ones.
