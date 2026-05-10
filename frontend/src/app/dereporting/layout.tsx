@@ -29,35 +29,20 @@ export default function DeReportingLayout({ children }: { children: React.ReactN
             {/* Sidebar Navigasi */}
             <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800/50">
                 {/* Header */}
-                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800/50">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                            <BarChart3 className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="font-bold text-lg text-zinc-900 dark:text-white tracking-tight">DeReporting</h2>
-                            <p className="text-[10px] text-violet-600 dark:text-violet-400 uppercase tracking-widest"> pelaporan & Data</p>
-                        </div>
-                    </div>
-                    <ModuleSwitcher />
-                </div>
-
-                {/* User Info */}
-                <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-900/50">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                            {user?.name?.charAt(0) || "U"}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
-                                {user?.name || user?.nama_lengkap || "User"}
-                            </p>
-                            <Badge variant="secondary" className="text-[10px] mt-0.5">
-                                {user?.role || "Pegawai"}
-                            </Badge>
+                <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                                <BarChart3 className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="font-bold text-lg text-zinc-900 dark:text-white tracking-tight">DeReporting</h2>
+                                <p className="text-[10px] text-violet-600 dark:text-violet-400 uppercase tracking-widest">Pelaporan & Data</p>
+                            </div>
                         </div>
                         <ThemeToggle />
                     </div>
+                    <ModuleSwitcher />
                 </div>
 
                 {/* Navigation */}
@@ -79,7 +64,20 @@ export default function DeReportingLayout({ children }: { children: React.ReactN
                 </nav>
 
                 {/* Footer */}
-                <div className="p-3 border-t border-zinc-200 dark:border-zinc-800/50">
+                <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/50">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                            {user?.name?.charAt(0) || "U"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
+                                {user?.name || user?.nama_lengkap || "User"}
+                            </p>
+                            <Badge variant="secondary" className="text-[10px]">
+                                {user?.role || "Pegawai"}
+                            </Badge>
+                        </div>
+                    </div>
                     <LogoutButton />
                 </div>
             </aside>

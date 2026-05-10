@@ -10,14 +10,36 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 10: Add ThemeToggle & User Profile to all module layouts |
-| **Issue Selanjutnya** | Test portal page, verify all modules, RouteGuard implementation |
+| **Issue Terakhir Selesai** | Phase 10: Route Restructure + Portal Dashboard + ThemeToggle + User Profile (COMPLETED ✅) |
+| **Issue Selanjutnya** | Test Phase 10 → Merge PR #252 → RouteGuard Component |
 | **Branch Aktif** | `issue/121-frontend-route-restructure-phase10` |
 | **Commit** | `fe74b09` - Add dark mode toggle and user info to all module layouts |
-| **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash |
-| **Timestamp** | 2026-05-09T21:00:00+08:00 |
-| **GitHub Issue** | PR #252 pending |
+| **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash / MiniMax 2.5 |
+| **Timestamp** | 2026-05-09T22:00:00+08:00 |
+| **GitHub PR** | [#252](https://github.com/tegaranugrah1/bksda-superapp/pull/252) - PENDING TESTING |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
+
+### ✅ Phase 10 Completed Tasks
+
+| # | Task | Status | GitHub |
+|---|------|--------|--------|
+| 1 | Route Restructure (move modules to root level) | ✅ DONE | PR #252 |
+| 2 | Portal Dashboard (`/portal`) | ✅ DONE | PR #252 |
+| 3 | Backend API `/api/me/dashboard` | ✅ DONE | PR #252 |
+| 4 | ModuleSwitcher Update (→ `/portal`) | ✅ DONE | PR #252 |
+| 5 | ThemeToggle + User Profile di semua layouts | ✅ DONE | PR #252 |
+
+### ⏳ Pending TODOs (After Phase 10)
+
+| Priority | Task | Status |
+|----------|------|--------|
+| HIGH | RouteGuard Component (access_modules check) | PENDING |
+| HIGH | EmployeeAccessSheet Component | PENDING |
+| HIGH | BMN Import/Export upgrade | PENDING |
+| HIGH | Inventory Bulk Operations upgrade | PENDING |
+| MEDIUM | AuthSync Component (cross-tab session) | PENDING |
+| MEDIUM | InteractiveKawasanMap Upgrade | PENDING |
+| MEDIUM | Inventory Trash/Restore upgrade | PENDING |
 
 ### URL Structure (After Phase 10 Route Restructure)
 
