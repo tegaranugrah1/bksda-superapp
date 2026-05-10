@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { PackageSearch, Plus, Loader2, Save, Trash2, Edit, Download } from "lucide-react";
 import { InventoryImportDialog } from "../_components/InventoryImportDialog";
+import { InventoryTrashDialog } from "../_components/InventoryTrashDialog";
 import { Button } from "@/components/ui/button";
 
 interface IItem {
@@ -59,6 +60,20 @@ export default function ItemsManagementPage() {
         },
     });
 
+    // 3. Mesin Penghapus Barang (Soft Delete)
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            await api.delete(`/inventory/items/${id}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+            alert("Barang berhasil dipindahkan ke tempat sampah.");
+        },
+        onError: (err: { response?: { data?: { message?: string } } }) => {
+            alert(err.response?.data?.message || "Gagal menghapus barang.");
+        },
+    });
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!form.kode_barang || !form.nama_barang)
@@ -78,6 +93,7 @@ export default function ItemsManagementPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <InventoryTrashDialog onActionSuccess={() => queryClient.invalidateQueries({ queryKey: ["inventory-items"] })} />
                     <InventoryImportDialog onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ["inventory-items"] })} />
                     <Button
                         variant="outline"
@@ -266,7 +282,14 @@ export default function ItemsManagementPage() {
                                                         <button className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors">
                                                             <Edit className="w-4 h-4" />
                                                         </button>
-                                                        <button className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm(`Yakin ingin membuang ${item.nama_barang} ke tempat sampah?`)) {
+                                                                    deleteMutation.mutate(item.id);
+                                                                }
+                                                            }}
+                                                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                        >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     </div>
