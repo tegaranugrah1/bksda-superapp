@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Map route paths to module names
+const MODULE_ROUTES: Record<string, string> = {
+  "bmn": "bmn",
+  "inventory": "inventory",
+  "kepegawaian": "kepegawaian",
+  "dereporting": "dereporting",
+  "cms": "cms",
+};
+
 export default function proxy(request: NextRequest) {
-  const token = request.cookies.get("bksda_token")?.value;
-  const userStr = request.cookies.get("bksda_user")?.value;
   const { pathname } = request.nextUrl;
+  const token = request.cookies.get('bksda_token')?.value;
+  const userCookie = request.cookies.get('bksda_user')?.value;
 
   // 1. Abaikan internal & aset
   if (
@@ -16,72 +25,80 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Proteksi Halaman Login
+  // 2. Proteksi Halaman Login (Redirect jika sudah login)
   if (pathname === "/login") {
-    if (token && userStr) {
+    if (token && userCookie) {
       return NextResponse.redirect(new URL("/portal", request.url));
     }
     return NextResponse.next();
   }
 
-  // 3. Proteksi Halaman Privat
-  const isPrivateRoute =
+  // 3. Define protected routes
+  const isProtectedRoute = 
     pathname === "/" ||
-    pathname === "/portal" ||
-    pathname.startsWith("/kepegawaian") ||
-    pathname.startsWith("/bmn") ||
-    pathname.startsWith("/inventory") ||
-    pathname.startsWith("/dereporting") ||
-    pathname.startsWith("/cms");
+    pathname.startsWith('/portal') ||
+    pathname.startsWith('/bmn') ||
+    pathname.startsWith('/inventory') ||
+    pathname.startsWith('/kepegawaian') ||
+    pathname.startsWith('/dereporting') ||
+    pathname.startsWith('/cms');
 
-  if (isPrivateRoute) {
-    if (!token || !userStr) {
-      const response = NextResponse.redirect(new URL("/login", request.url));
-      response.cookies.delete("bksda_token");
-      response.cookies.delete("bksda_user");
-      return response;
+  if (!isProtectedRoute) {
+    return NextResponse.next();
+  }
+
+  // 4. Check for token
+  if (!token || !userCookie) {
+    const url = new URL('/login', request.url);
+    const response = NextResponse.redirect(url);
+    // Cleanup invalid cookies if any
+    response.cookies.delete("bksda_token");
+    response.cookies.delete("bksda_user");
+    return response;
+  }
+
+  try {
+    const user = JSON.parse(decodeURIComponent(userCookie));
+    
+    // Super admin bypasses all checks
+    if (user.role === 'super_admin') {
+      return NextResponse.next();
     }
 
-    try {
-      const user = JSON.parse(decodeURIComponent(userStr));
-      const requiredModule = getRequiredModuleFromPath(pathname);
+    // Identify which module the user is trying to access
+    const segments = pathname.split('/');
+    const firstSegment = segments[1]; 
 
-      if (requiredModule && user.role !== "super_admin") {
-        const modules = user.access_modules || [];
-        if (!modules.includes(requiredModule)) {
-          return NextResponse.redirect(new URL("/403", request.url));
-        }
+    const moduleToCheck = MODULE_ROUTES[firstSegment];
+
+    if (moduleToCheck) {
+      const userModules = user.access_modules || [];
+      if (!userModules.includes(moduleToCheck)) {
+        // Unauthorized for this specific module - Redirect to portal with warning
+        return NextResponse.redirect(new URL('/portal?unauthorized=1', request.url));
       }
-    } catch {
-      const response = NextResponse.redirect(new URL("/login", request.url));
-      response.cookies.delete("bksda_token");
-      response.cookies.delete("bksda_user");
-      return response;
     }
+
+  } catch (error) {
+    console.error('Proxy auth parsing error:', error);
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.delete("bksda_token");
+    response.cookies.delete("bksda_user");
+    return response;
   }
 
   return NextResponse.next();
 }
 
-function getRequiredModuleFromPath(pathname: string): string | null {
-  if (pathname.startsWith("/kepegawaian")) return "kepegawaian";
-  if (pathname.startsWith("/bmn")) return "bmn";
-  if (pathname.startsWith("/inventory")) return "inventory";
-  if (pathname.startsWith("/dereporting")) return "dereporting";
-  return null;
-}
-
 export const config = {
   matcher: [
-    "/",
-    "/login",
-    "/portal",
-    "/portal/:path*",
-    "/kepegawaian/:path*",
-    "/bmn/:path*",
-    "/inventory/:path*",
-    "/dereporting/:path*",
-    "/cms/:path*",
-    "/403",
+    '/',
+    '/login',
+    '/portal/:path*',
+    '/bmn/:path*',
+    '/inventory/:path*',
+    '/kepegawaian/:path*',
+    '/dereporting/:path*',
+    '/cms/:path*',
   ],
 };

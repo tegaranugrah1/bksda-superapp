@@ -54,6 +54,7 @@ git push origin main
 ## Phase 19: Audit Middleware (Next.js Middleware migration)
 
 ### Status: **COMPLETED** ✅
+*Note: Logic implemented in `src/proxy.ts` to match project conventions and avoid conflict with middleware.ts.*
 
 ---
 
