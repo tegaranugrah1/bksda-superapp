@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { formatDateIndonesian } from "@/lib/letter-utils";
 import { Printer, Plus, ChevronLeft, ShieldCheck, Trash2, RefreshCcw, Filter } from "lucide-react";
 import Link from "next/link";
 import AssignmentLetterPreview from "./_components/AssignmentLetterPreview";
@@ -157,7 +158,7 @@ export default function SuratTugasPage() {
                                         </td>
                                         <td className="px-6 py-4 text-zinc-400 text-xs">{item.tempat_tujuan}</td>
                                         <td className="px-6 py-4 text-zinc-400 text-xs">
-                                            {item.tanggal_mulai} s/d {item.tanggal_selesai}
+                                            {formatDateIndonesian(item.tanggal_mulai)} s/d {formatDateIndonesian(item.tanggal_selesai)}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_COLORS[item.status] ?? "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}>
