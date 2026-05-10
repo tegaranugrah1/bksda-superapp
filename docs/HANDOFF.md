@@ -56,8 +56,8 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Inventory Bulk Operations Upgrade (✅ MERGED) |
-| **Issue Selanjutnya** | InteractiveKawasanMap Upgrade |
+| **Issue Terakhir Selesai** | InteractiveKawasanMap Upgrade (✅ MERGED) |
+| **Issue Selanjutnya** | Inventory Trash/Restore upgrade |
 | **Branch Aktif** | `main` |
 | **Commit** | `[NEW_COMMIT_ID]` - feat(inventory): bulk operations excel import/export |
 | **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
@@ -82,7 +82,7 @@ git push origin main
 | HIGH | BMN Import/Export upgrade | ✅ DONE (PR #258) |
 | HIGH | Inventory Bulk Operations upgrade | ✅ DONE (PR #259) |
 | MEDIUM | AuthSync Component (cross-tab session) | ✅ DONE |
-| MEDIUM | InteractiveKawasanMap Upgrade | PENDING |
+| MEDIUM | InteractiveKawasanMap Upgrade | ✅ DONE |
 | MEDIUM | Inventory Trash/Restore upgrade | PENDING |
  
  ### ✅ EmployeeAccessSheet Implementation (Issue #255)
