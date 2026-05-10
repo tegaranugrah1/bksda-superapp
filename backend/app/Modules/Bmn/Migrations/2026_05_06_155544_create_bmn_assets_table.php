@@ -27,7 +27,7 @@ return new class extends Migration
 
             // Keberadaan
             $table->string('lokasi_spesifik')->nullable();
-            $table->foreignUuid('employee_id')->nullable()->constrained('kpg_employees')->nullOnDelete();
+            $table->foreignId('employee_id')->nullable()->constrained('kpg_employees')->nullOnDelete();
 
             // Bukti Visual
             $table->string('foto_url', 1000)->nullable();

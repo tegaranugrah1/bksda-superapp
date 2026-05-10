@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
 
             $table->foreignUuid('asset_id')->constrained('bmn_assets')->cascadeOnDelete();
-            $table->foreignUuid('employee_id')->constrained('kpg_employees')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('kpg_employees')->cascadeOnDelete();
 
             $table->date('tanggal_pinjam');
             $table->date('tanggal_kembali')->nullable()->comment('Kosong jika belum dikembalikan');

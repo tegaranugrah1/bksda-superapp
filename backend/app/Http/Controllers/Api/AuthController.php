@@ -7,6 +7,8 @@ use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Modules\Bmn\Models\AssetLoan;
+use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -56,6 +58,73 @@ class AuthController extends Controller
         return response()->json([
             'data' => new UserResource($request->user()),
         ]);
+    }
+
+    /**
+     * Endpoint: GET /api/me/dashboard
+     * Returns dashboard data for the authenticated user including employee info and my_assets
+     */
+    public function dashboard(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Load employee via username = nip
+        $employee = Employee::where('nip', $user->username)->first();
+
+        // Load active loans for this employee
+        $loans = collect();
+        if ($employee) {
+            try {
+                $loans = AssetLoan::where('employee_id', $employee->id)
+                    ->whereNotNull('tanggal_kembali')
+                    ->with('asset')
+                    ->orderByDesc('tanggal_pinjam')
+                    ->limit(20)
+                    ->get();
+            } catch (\Exception $e) {
+                // Table might not exist yet - return empty collection
+                $loans = collect();
+            }
+        }
+
+        // Create a dashboard data object instead of using resource with relations
+        $dashboardData = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'role' => $user->role,
+                'access_modules' => $user->access_modules ?? [],
+            ],
+            'employee' => $employee ? [
+                'id' => $employee->id,
+                'nip' => $employee->nip,
+                'name' => $employee->nama_lengkap,
+                'position' => $employee->jabatan,
+                'department' => $employee->satuan_kerja,
+                'email' => $employee->email,
+                'phone' => $employee->no_telepon ?? null,
+                'photo' => $employee->foto_profil,
+                'rank' => $employee->pangkat_golongan,
+                'rank_level' => 0,
+                'is_active' => $employee->is_active,
+            ] : null,
+            'my_assets' => $loans->map(function ($loan) {
+                return [
+                    'id' => $loan->asset->id,
+                    'nama_barang' => $loan->asset->nama_barang,
+                    'kode_barang' => $loan->asset->kode_barang,
+                    'nup' => $loan->asset->nup,
+                    'loan_date' => $loan->tanggal_pinjam?->toIso8601String(),
+                    'due_date' => $loan->tanggal_kembali?->toIso8601String(),
+                    'status' => $loan->status,
+                    'merk' => $loan->asset->merk_tipe,
+                ];
+            }),
+        ];
+
+        return response()->json($dashboardData);
     }
 
     /**

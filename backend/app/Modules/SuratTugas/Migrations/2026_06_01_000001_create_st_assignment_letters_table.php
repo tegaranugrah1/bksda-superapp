@@ -24,8 +24,8 @@ return new class extends Migration
             $table->string('file_surat_path')->nullable()->comment('Path PDF arsip final');
 
             // Audit Trails (Foreign ke UUID tabel users di Fase 1)
-            $table->foreignUuid('created_by')->constrained('users')->onDelete('restrict');
-            $table->foreignUuid('approved_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
+            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
 
             $table->timestamps();
             $table->softDeletes(); // Wajib SoftDeletes (Rule 3.6)

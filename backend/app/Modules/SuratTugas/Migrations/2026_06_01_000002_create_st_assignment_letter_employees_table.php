@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignUuid('assignment_letter_id')->constrained('st_assignment_letters')->onDelete('cascade');
 
             // Relasi ke Lintas-Modul (Kepegawaian)
-            $table->foreignUuid('employee_id')->constrained('kpg_employees')->onDelete('cascade');
+            $table->foreignId('employee_id')->constrained('kpg_employees')->onDelete('cascade');
 
             $table->string('peran')->nullable()->comment('Contoh: Ketua Tim, Anggota');
             $table->timestamps();

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('nama_kantor'); // Misal: Kantor Seksi Wilayah I
             $table->string('lokasi')->nullable();
             // Relasi ke penanggung jawab kantor (Mengarah ke Modul Kepegawaian)
-            $table->foreignUuid('penanggung_jawab_id')->nullable()->constrained('kpg_employees')->nullOnDelete();
+            $table->foreignId('penanggung_jawab_id')->nullable()->constrained('kpg_employees')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

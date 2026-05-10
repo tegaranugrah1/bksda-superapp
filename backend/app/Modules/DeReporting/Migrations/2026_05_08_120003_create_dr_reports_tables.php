@@ -13,7 +13,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
 
             // Identitas Uploader
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('restrict');
+            $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
 
             // Rantai Klasifikasi
             $table->foreignUuid('tahun_id')->constrained('dr_tahun')->onDelete('restrict');

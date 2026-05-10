@@ -57,13 +57,11 @@ return new class extends Migration
             $table->string('label', 100);          // Teks yang ditampilkan
             $table->string('url', 500);             // Link tujuan
             $table->string('posisi', 20)->default('header'); // header, footer
-            $table->uuid('parent_id')->nullable();  // Sub-menu (self-referencing)
+            $table->uuid('parent_id')->nullable();   // Self-referencing sub-menu (FK handled at app level)
             $table->integer('urutan')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('parent_id')->references('id')->on('cms_menus')->onDelete('set null');
         });
     }
 
