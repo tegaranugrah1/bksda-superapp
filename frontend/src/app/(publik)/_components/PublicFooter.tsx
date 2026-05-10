@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -47,7 +48,6 @@ export default function PublicFooter() {
         {/* Kolom 1: Tentang */}
         <div>
           <div className="flex items-center gap-3 mb-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/logo_bksda.png"
               alt="Logo"
@@ -124,7 +124,6 @@ export default function PublicFooter() {
                   className="text-sm text-green-200 hover:text-white transition-colors flex items-center gap-2"
                 >
                   {link.logo_path && (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={`${process.env.NEXT_PUBLIC_STORAGE_URL}/${link.logo_path}`}
                       alt=""
@@ -149,3 +148,9 @@ export default function PublicFooter() {
     </footer>
   );
 }
+
+
+
+
+
+

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -79,7 +80,7 @@ export default function InformasiListPage() {
         );
         setBerita(r.data?.data || []);
         setLastPage(r.data?.last_page || 1);
-      } catch (_err) {
+      } catch {
         setBerita([]);
       } finally {
         setLoading(false);
@@ -248,3 +249,9 @@ export default function InformasiListPage() {
     </div>
   );
 }
+
+
+
+
+
+

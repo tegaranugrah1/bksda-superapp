@@ -42,18 +42,10 @@ export function AuthSync() {
   useEffect(() => {
     // Inisialisasi pada mount pertama
     if (prevAuth.current === null) {
+      // Kita hanya inisialisasi state awal. JANGAN lakukan redirect di sini
+      // karena berisiko race condition dengan hidrasi Next.js.
+      // Proteksi awal biarkan ditangani oleh RouteGuard di level layout/page.
       prevAuth.current = isAuthenticated;
-      
-      // Jika tidak auth dan bukan di halaman publik, redirect ke login (opsional, karena RouteGuard juga menangani)
-      // Namun untuk /portal yang tidak punya RouteGuard, ini sangat membantu.
-      const isPublic = 
-        pathname === "/" || 
-        PUBLIC_ROUTES.includes(pathname) || 
-        PUBLIC_PREFIXES.some(prefix => pathname.startsWith(prefix));
-        
-      if (!isAuthenticated && !isPublic) {
-        router.push("/login");
-      }
       return;
     }
 

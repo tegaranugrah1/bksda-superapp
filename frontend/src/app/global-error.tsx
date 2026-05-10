@@ -3,7 +3,6 @@
 import { AlertOctagon, RefreshCcw } from "lucide-react";
 
 export default function GlobalError({
-  _error,
   reset,
 }: {
   _error: Error & { digest?: string };

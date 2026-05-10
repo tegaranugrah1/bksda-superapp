@@ -140,6 +140,7 @@ export default function KawasanMap({ center, markers = [], height = "500px" }: I
 
         // ── Mode Daftar: Cluster Banyak Marker ──
         if (markers.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const clusterGroup = (L as any).markerClusterGroup({
                 maxClusterRadius: 50,
                 spiderfyOnMaxZoom: true,
@@ -224,3 +225,9 @@ export default function KawasanMap({ center, markers = [], height = "500px" }: I
         </div>
     );
 }
+
+
+
+
+
+
