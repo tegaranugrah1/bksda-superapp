@@ -1,7 +1,7 @@
 # Progress - Phase 10: Route Restructure & Portal Dashboard
 
 > Document created: 2026-05-09
-> Last updated: 2026-05-09 21:00
+> Last updated: 2026-05-09 22:30
 
 ---
 
@@ -13,6 +13,13 @@ Phase 10 focuses on restructuring routes and creating a standalone Portal Dashbo
 - Added ThemeToggle (dark/light mode) to all module layouts
 - Added User Profile info (avatar, name, role badge) in sidebar footer
 - Refactored layout: ThemeToggle in header, User profile above logout button
+- Committed and pushed all changes (commit `31f0777`)
+- Updated HANDOFF.md and progress.md for Phase 10 completion
+
+**Branch Status:**
+- Branch: `issue/121-frontend-route-restructure-phase10`
+- Commits pushed to origin
+- PR #252 open and pending testing
 
 ---
 
@@ -195,6 +202,7 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 | `917abcc` | fix(portal): align API response with frontend expectations |
 | `fe74b09` | Add dark mode toggle and user info to all module layouts |
 | `b28c9f1` | Refactor sidebar layout: ThemeToggle next to header, user profile above logout |
+| `31f0777` | refactor: update sidebar layouts with ThemeToggle and user profile placement |
 
 ---
 
