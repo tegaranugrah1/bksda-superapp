@@ -84,11 +84,7 @@ interface KawasanMapProps {
 // ══════════════════════════════════════════════════
 // TYPE EXTENSIONS
 // ══════════════════════════════════════════════════
-
-interface MarkerClusterGroup {
-  addLayer(layer: L.Marker): void;
-  addTo(map: L.Map): void;
-}
+// Note: Using L.MarkerClusterGroup from @types/leaflet
 
 // ══════════════════════════════════════════════════
 // KOMPONEN UTAMA

@@ -6,6 +6,7 @@ import { Search, Plus, UserCog, Edit, Trash2, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import Link from "next/link";
+import { EmployeeAccessSheet } from "./_components/EmployeeAccessSheet";
 
 // 1. Tipe Data (TypeScript Interfaces) - Sesuai dengan respons Issue #025
 interface Employee {
@@ -32,6 +33,10 @@ export default function EmployeeListPage() {
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Access Sheet State
+  const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; nip: string; nama_lengkap: string } | null>(null);
+  const [accessSheetOpen, setAccessSheetOpen] = useState(false);
 
 
 
@@ -184,7 +189,18 @@ export default function EmployeeListPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                       <button className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-xl transition-colors" title="Manajemen Hak Akses (IAM)">
+                       <button 
+                         onClick={() => {
+                           setSelectedEmployee({
+                             id: emp.id,
+                             nip: emp.nip,
+                             nama_lengkap: emp.nama_lengkap
+                           });
+                           setAccessSheetOpen(true);
+                         }}
+                         className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-xl transition-colors" 
+                         title="Manajemen Hak Akses (IAM)"
+                       >
                          <UserCog className="w-[18px] h-[18px]" />
                        </button>
                        <button className="p-2 text-zinc-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/20 rounded-xl transition-colors" title="Edit Biodata">
@@ -229,6 +245,13 @@ export default function EmployeeListPage() {
           </div>
         )}
       </div>
+
+      {/* ACCESS MANAGEMENT SHEET */}
+      <EmployeeAccessSheet 
+        employee={selectedEmployee}
+        open={accessSheetOpen}
+        onOpenChange={setAccessSheetOpen}
+      />
     </div>
   );
 }
