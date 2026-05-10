@@ -7,10 +7,7 @@ import {
   Box,
   Archive,
   FileText,
-  Building2,
-  Package,
-  ClipboardList,
-  Shield,
+  Settings,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -53,6 +50,13 @@ const moduleDefinitions = [
     href: "/dereporting",
     color: "bg-purple-100 text-purple-700",
   },
+  {
+    name: "CMS Panel",
+    slug: "cms",
+    icon: Settings,
+    href: "/cms",
+    color: "bg-teal-100 text-teal-700",
+  },
 ];
 
 // Get module by pathname
@@ -62,8 +66,8 @@ function getActiveModule(pathname: string) {
   const segment = cleanPath.split("/")[1] || "portal";
 
   // Find matching module
-  const module = moduleDefinitions.find((m) => m.slug === segment);
-  return module || moduleDefinitions[0]; // Default to portal
+  const foundModule = moduleDefinitions.find((m) => m.slug === segment);
+  return foundModule || moduleDefinitions[0]; // Default to portal
 }
 
 export function ModuleSwitcher() {
