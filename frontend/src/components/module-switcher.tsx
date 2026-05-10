@@ -7,10 +7,6 @@ import {
   Box,
   Archive,
   FileText,
-  Building2,
-  Package,
-  ClipboardList,
-  Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -62,8 +58,8 @@ function getActiveModule(pathname: string) {
   const segment = cleanPath.split("/")[1] || "portal";
 
   // Find matching module
-  const module = moduleDefinitions.find((m) => m.slug === segment);
-  return module || moduleDefinitions[0]; // Default to portal
+  const foundModule = moduleDefinitions.find((m) => m.slug === segment);
+  return foundModule || moduleDefinitions[0]; // Default to portal
 }
 
 export function ModuleSwitcher() {
