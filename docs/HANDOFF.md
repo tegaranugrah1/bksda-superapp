@@ -10,13 +10,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 10: Route Restructure + Portal Dashboard + ThemeToggle + User Profile (COMPLETED ✅) |
-| **Issue Selanjutnya** | Test Phase 10 → Merge PR #252 → RouteGuard Component |
-| **Branch Aktif** | `issue/121-frontend-route-restructure-phase10` |
-| **Commit** | `31f0777` - refactor: update sidebar layouts with ThemeToggle and user profile placement |
-| **Model Terakhir** | Claude Sonnet / Gemini 2.5 Flash / MiniMax 2.5 |
-| **Timestamp** | 2026-05-09T22:30:00+08:00 |
-| **GitHub PR** | [#252](https://github.com/tegaranugrah1/bksda-superapp/pull/252) - PENDING TESTING |
+| **Issue Terakhir Selesai** | Phase 10: Route Restructure + Portal Dashboard + ThemeToggle + User Profile (MERGED ✅) |
+| **Issue Selanjutnya** | Implement RouteGuard Component (access_modules check) |
+| **Branch Aktif** | `main` |
+| **Commit** | `1c6121a` - fix(inventory): add subtitle 'Inventaris & Stok' to sidebar header |
+| **Model Terakhir** | MiniMax 2.5 |
+| **Timestamp** | 2026-05-09T23:00:00+08:00 |
+| **GitHub PR** | [#252](https://github.com/tegaranugrah1/bksda-superapp/pull/252) - **MERGED ✅** |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ### ✅ Phase 10 Completed Tasks
