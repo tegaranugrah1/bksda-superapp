@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { AssetImportDialog } from "../_components/AssetImportDialog";
 
 const formatRupiah = (angka: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -89,6 +90,7 @@ export default function BmnAssetsPage() {
               className="pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all w-64"
             />
           </div>
+          <AssetImportDialog onImportSuccess={() => setPage(1)} />
           <Link
             href="/bmn/assets/create"
             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/20"

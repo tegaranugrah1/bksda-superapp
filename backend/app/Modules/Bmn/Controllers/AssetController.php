@@ -10,8 +10,12 @@ use App\Modules\Bmn\Requests\UpdateAssetRequest;
 use App\Modules\Bmn\Resources\AssetResource;
 use App\Modules\Bmn\Services\AssetService;
 use Exception;
+use App\Modules\Bmn\Exports\AssetExport;
+use App\Modules\Bmn\Imports\AssetImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AssetController extends Controller
 {
@@ -75,6 +79,26 @@ class AssetController extends Controller
             return response()->json(['message' => 'Aset berhasil diistirahatkan dari operasional aktif.']);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function export(): BinaryFileResponse
+    {
+        return Excel::download(new AssetExport, 'Katalog_Aset_BKSDA.xlsx');
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            Excel::import(new AssetImport, $request->file('file'));
+
+            return response()->json(['message' => 'Impor Aset BMN berhasil diproses.']);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Gagal mengimpor data: ' . $e->getMessage()], 422);
         }
     }
 }

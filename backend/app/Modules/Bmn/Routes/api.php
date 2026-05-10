@@ -28,6 +28,7 @@ Route::get('/ping', function () {
 
 // 1. JALUR MASTER ASET
 Route::apiResource('assets', AssetController::class)->except(['destroy']);
+Route::post('assets/import', [AssetController::class, 'import']);
 Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose']);
 
 // 2. LALU LINTAS PEMINJAMAN (LOAN)
