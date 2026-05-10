@@ -7,6 +7,7 @@ import {
   Box,
   Archive,
   FileText,
+  Settings,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -48,6 +49,13 @@ const moduleDefinitions = [
     icon: FileText,
     href: "/dereporting",
     color: "bg-purple-100 text-purple-700",
+  },
+  {
+    name: "CMS Panel",
+    slug: "cms",
+    icon: Settings,
+    href: "/cms",
+    color: "bg-teal-100 text-teal-700",
   },
 ];
 

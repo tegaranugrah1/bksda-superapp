@@ -21,6 +21,8 @@ import {
   Inbox,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
+import { ModuleSwitcher } from "@/components/module-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // Definisi Navigasi dengan Kelompok Bertema
 const SIDEBAR_SECTIONS = [
@@ -70,11 +72,17 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
         {/* Sidebar Navigasi Raksasa */}
         <aside className="hidden md:flex flex-col w-64 bg-zinc-900/50 border-r border-zinc-800 p-4 gap-0.5 overflow-y-auto">
           {/* Header Modul */}
-          <div className="flex items-center gap-3 px-3 py-4 mb-2">
-            <Settings className="w-7 h-7 text-teal-500" />
-            <h2 className="text-lg font-black text-white tracking-tight">
-              CMS Panel
-            </h2>
+          <div className="flex items-center justify-between px-3 py-4 mb-2">
+            <div className="flex items-center gap-3">
+              <Settings className="w-7 h-7 text-teal-500" />
+              <h2 className="text-lg font-black text-white tracking-tight">
+                CMS Panel
+              </h2>
+            </div>
+            <ThemeToggle />
+          </div>
+          <div className="mb-4">
+            <ModuleSwitcher />
           </div>
 
           {/* Render Kelompok Navigasi */}
