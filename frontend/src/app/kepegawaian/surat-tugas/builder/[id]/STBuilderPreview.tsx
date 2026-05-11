@@ -10,6 +10,7 @@ import {
 interface Employee {
   id: string;
   nama_lengkap: string;
+  name?: string;
   nip: string;
   jabatan: string;
 }
@@ -168,7 +169,7 @@ export default function STBuilderPreview({
                                         <tr>
                                           <td style={{ width: "70px", padding: "1px 0" }}>Nama</td>
                                           <td style={{ width: "20px", padding: "1px 0" }}>:</td>
-                                          <td style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap}</td>
+                                          <td style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
                                         </tr>
                                         <tr>
                                           <td style={{ width: "70px", padding: "1px 0" }}>NIP</td>
