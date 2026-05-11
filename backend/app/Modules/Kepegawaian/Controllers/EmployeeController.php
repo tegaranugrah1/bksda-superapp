@@ -151,7 +151,7 @@ class EmployeeController extends Controller
 
         $employees = $query->orderBy('nama_lengkap', 'asc')
             ->limit(50)
-            ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'unit_kerja']);
+            ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'satuan_kerja']);
 
         return response()->json([
             'data' => $employees->map(function ($emp) {
@@ -159,10 +159,34 @@ class EmployeeController extends Controller
                     'id' => $emp->id,
                     'name' => $emp->nama_lengkap,
                     'nip' => $emp->nip,
-                    'department' => $emp->unit_kerja,
+                    'department' => $emp->satuan_kerja,
                     'position' => $emp->jabatan,
                 ];
             }),
+        ]);
+    }
+
+    /**
+     * GET /api/kepegawaian/employees/{id}/assignment-letters
+     * Mengambil riwayat surat tugas khusus untuk pegawai ini
+     */
+    public function assignmentLetters(string $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+
+        $letters = $employee->assignmentLetters()
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'message' => 'Riwayat penugasan berhasil diambil.',
+            'data' => $letters->items(),
+            'meta' => [
+                'current_page' => $letters->currentPage(),
+                'last_page' => $letters->lastPage(),
+                'per_page' => $letters->perPage(),
+                'total' => $letters->total(),
+            ],
         ]);
     }
 }

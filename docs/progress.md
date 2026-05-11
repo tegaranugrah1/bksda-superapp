@@ -1,9 +1,21 @@
-# Progress - Phase 10: Route Restructure & Portal Dashboard
+# Progress - Phase 20: Surat Tugas Standardization (Inbox & Builder)
 
-> Document created: 2026-05-09
-> Last updated: 2026-05-10 01:00
+> Document updated: 2026-05-11 10:15
+> Status: **COMPLETED** ✅
 
 ---
+
+## Phase 20: Surat Tugas Standardization (Inbox & Builder)
+
+### Accomplishments:
+- [x] **Inbox UI Unification**: Restored `max-w-7xl` container and standardized header to match the administrative design system (History module).
+- [x] **PDF Template Engineering**: Reconstructed the Surat Tugas layout with fixed-width labels for perfect colon alignment and justify perataan.
+- [x] **Print Reliability Engine**: Injected self-contained CSS into the print window to ensure 100% visual parity between screen preview and PDF output.
+- [x] **Signatory Alignment**: Fixed signatory (TTD) positioning to be right-aligned in print using robust margin offsets.
+
+---
+
+# Progress - Phase 10: Route Restructure & Portal Dashboard
 
 ## ⚠️ GIT WORKFLOW — WAJIB DIIKUTI SETIAP ISSUE
 
@@ -626,3 +638,30 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - **PR:** https://github.com/tegaranugrah1/bksda-superapp/pull/252
 - **Branch:** `issue/121-frontend-route-restructure-phase10`
 - **Status:** Open, testing in progress
+
+# Progress Log: Modul Kepegawaian & Surat Tugas
+
+## [2026-05-10] Sesi Konsolidasi & Restrukturisasi
+
+### Completed (Selesai)
+- [x] Pindahkan fitur Tambah Pegawai ke `/kepegawaian/employees/create`.
+- [x] Pindahkan fitur Detail Pegawai ke `/kepegawaian/employees/[id]`.
+- [x] Pindahkan operasional Surat Tugas ke `/kepegawaian/surat-tugas/*`.
+- [x] Update Sidebar Global agar flat (langsung akses Inbox, Buat Surat, dan Riwayat).
+- [x] Perbaikan Error 404 pada navigasi `KepegawaianLayout`.
+- [x] Fix Linting: Ganti `any` dengan interface di `EmployeeCreatePage`.
+- [x] Fix Linting: Ganti `<img>` dengan `next/image`.
+- [x] Fix Linting: Update `rounded-[2rem]` menjadi `rounded-4xl`.
+- [x] Riset & Bedah Flow Referensi dari `superapp-inventory`.
+
+### In Progress (Sedang Berjalan)
+- [/] Sinkronisasi komponen `AssignmentLetterPreview` agar tidak tergantung folder lama.
+
+### Next Steps (Rencana Besok)
+- [ ] **Implementasi ST Builder Premium**:
+    - [ ] Buat UI Builder dengan Sidebar Form & Main Preview.
+    - [ ] Implementasi Auto-parsing kalimat (Asal, Tujuan, Rangka).
+    - [ ] Penomoran surat otomatis (ST.XXX/Code/MM/YYYY).
+    - [ ] Fitur Print langsung dari browser.
+- [ ] **Integrasi Inbox -> Builder**: Klik "Setujui" di Inbox langsung lempar data ke Builder.
+- [ ] **Cleanup**: Hapus folder `src/app/(dashboard)/admin/surat-tugas` (Didepresiasi).

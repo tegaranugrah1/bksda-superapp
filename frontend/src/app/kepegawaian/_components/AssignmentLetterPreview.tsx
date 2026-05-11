@@ -42,7 +42,7 @@ export default function AssignmentLetterPreview({
       : "";
 
   return (
-    <div className="fixed inset-0 z-100 flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto">
       <div className="sticky top-0 w-full z-10 flex items-center justify-between px-6 py-4 bg-zinc-900/95 border-b border-zinc-800 shadow-2xl print:hidden backdrop-blur-md">
         <div className="text-white font-medium flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
           <span className="text-sm text-zinc-400 uppercase tracking-widest font-bold">
@@ -80,7 +80,7 @@ export default function AssignmentLetterPreview({
             <img
               src="/assets/kemenhut.png"
               alt="Kemenhut"
-              className="w-21.25 object-contain"
+              className="w-[85px] object-contain"
             />
             <div className="text-center flex-1 px-4 tracking-tight">
               <h1 className="text-base font-bold uppercase tracking-wider">
@@ -104,7 +104,7 @@ export default function AssignmentLetterPreview({
             <img
               src="/assets/logo_bksda.png"
               alt="BKSDA"
-              className="w-21.25 object-contain"
+              className="w-[85px] object-contain"
             />
           </div>
           <div className="border-b-2 border-black mb-8"></div>
@@ -201,7 +201,7 @@ export default function AssignmentLetterPreview({
                 {data.status === "approved" || data.status === "completed" ? (
                   <QRCode value={verifyUrl} size={90} level="M" />
                 ) : (
-                  <div className="w-22.5 h-22.5 flex items-center justify-center bg-zinc-100 text-[10px] text-zinc-400 font-bold border border-dashed border-zinc-300 text-center leading-tight">
+                  <div className="w-[90px] h-[90px] flex items-center justify-center bg-zinc-100 text-[10px] text-zinc-400 font-bold border border-dashed border-zinc-300 text-center leading-tight">
                     BELUM
                     <br />
                     DISETUJUI

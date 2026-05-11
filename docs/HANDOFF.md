@@ -56,14 +56,34 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | letter-utils.ts Refactoring (✅ MERGED) |
-| **Issue Selanjutnya** | Audit Middleware (Next.js Middleware migration) |
+| **Issue Terakhir Selesai** | Surat Tugas Inbox & PDF Standardization (✅ DONE) |
+| **Issue Selanjutnya** | Multi-page Testing & Signature Integration |
 | **Branch Aktif** | `main` |
-| **Commit** | `[NEW_COMMIT_ID]` - feat(inventory): bulk operations excel import/export |
+| **Commit** | `[NEW_COMMIT_ID]` - feat(surat-tugas): standardized inbox and pdf template |
 | **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
-| **Timestamp** | 2026-05-10T14:30:00+08:00 |
-| **GitHub PR** | [#259](https://github.com/tegaranugrah1/bksda-superapp/pull/259) - ✅ MERGED |
+| **Timestamp** | 2026-05-11T10:20:00+08:00 |
+| **GitHub PR** | [#315](https://github.com/tegaranugrah1/bksda-superapp/pull/315) - ⏳ PENDING |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
+
+---
+
+**UPDATE SESI #315 (2026-05-11):**
+- **Objective**: Standardizing Surat Tugas Inbox and PDF Template.
+- **Accomplishments**:
+  - **Inbox UI**: Restored `max-w-7xl` wrapper, `rounded-[2.5rem]` card design, and standardized header typography.
+  - **PDF Builder**:
+    - Re-engineered the template for perfect colon (`:`) alignment using a fixed-width (100px) label system.
+    - Implemented high-fidelity header (Kop Surat) with negative margins for full-width bleed.
+    - Enforced `text-align: justify` and `text-justify: inter-word` globally for formal document aesthetics.
+    - Standardized Employee formatting: **Bold** names and correctly formatted NIP.
+  - **Print Fixes**:
+    - Injected self-contained CSS into the `handlePrint` function to solve the absence of Tailwind in the print window.
+    - Forced the signatory block (TTD) to the right using `margin-left: 9cm` in the print CSS.
+    - Added semantic classes (`label-col`, `signatory-block`, `header-container`) as a bridge between React and print CSS.
+- **Key Files**: `STBuilderPreview.tsx`, `builder/[id]/page.tsx`, `inbox/page.tsx`.
+- **Handoff**: The PDF preview and physical print output are now perfectly synchronized. Next step: multi-page testing and dynamic signature integration.
+
+---
 
 ### ✅ Phase 10 Completed Tasks
 
@@ -1157,10 +1177,10 @@ Setelah semua command clean:
 **WAJIB** update file `HANDOFF.md` ini dengan status terakhir!
 
 ---
-**STATUS TERAKHIR (2026-05-07):**
-- **Rollback dilakukan**: Seluruh skrip navigasi eksperimental (BFCache watchdog & Hard Navigation) dihapus.
-- **Kondisi**: Kembali ke "Phase 3 UI Overhaul" yang stabil secara tampilan.
-- **Fokus Selanjutnya**: Mencari solusi navigasi yang lebih "Next.js Native" tanpa merusak performa.
+**STATUS TERAKHIR (2026-05-11):**
+- **Surat Tugas Inbox**: UI telah disatukan dengan modul History, menggunakan layout master-detail yang responsif.
+- **Engineering Template PDF**: Struktur dokumen dibangun ulang dengan fixed-width label untuk presisi titik dua (`:`) dan justify alignment.
+- **Print Reliability**: Injeksi CSS mandiri ke jendela cetak untuk menjamin hasil print/PDF 100% identik dengan preview layar.
 
 **UPDATE SESI (2026-05-07):**
 - Investigasi BFCache Zombie state pada alur `/kepegawaian` -> `/bmn` -> browser Back.

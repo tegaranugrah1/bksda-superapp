@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, LayoutDashboard, Settings, Menu, FileText, Inbox } from "lucide-react";
+import { Users, LayoutDashboard, Settings, Menu, FileText, Inbox, History, Plus } from "lucide-react";
 import { useState } from "react";
 import { LogoutButton } from "@/components/logout-button";
 
 // Daftar Menu (Bisa ditambahkan nanti)
 const menuItems = [
   { name: "Portal Modul", href: "/", icon: LayoutDashboard },
-  { name: "Kepegawaian", href: "/kepegawaian", icon: Users },
-  { name: "Surat Tugas", href: "/admin/surat-tugas", icon: Inbox },
-  { name: "Buat Surat Tugas", href: "/admin/surat-tugas/create", icon: FileText, indent: true },
+  { name: "Daftar Pegawai", href: "/kepegawaian", icon: Users },
+  { name: "Tambah Pegawai", href: "/kepegawaian/employees/create", icon: Plus, indent: true },
+  { name: "Surat Tugas Masuk", href: "/kepegawaian/surat-tugas/inbox", icon: Inbox },
+  { name: "Buat Surat Tugas", href: "/kepegawaian/surat-tugas/create", icon: FileText, indent: true },
+  { name: "Daftar Surat Tugas", href: "/kepegawaian/surat-tugas/history", icon: History, indent: true },
   { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 

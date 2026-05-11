@@ -19,8 +19,10 @@ class AssignmentLetterRequest extends FormRequest
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'tempat_tujuan' => 'required|string|max:255',
+            'sumber_dana' => 'required|string',
+            'sumber_dana_other' => 'nullable|string',
             'employees' => 'required|array|min:1',
-            'employees.*.id' => 'required|uuid|exists:kpg_employees,id',
+            'employees.*.id' => 'required|numeric|exists:kpg_employees,id',
             'employees.*.peran' => 'nullable|string|max:100',
         ];
 
