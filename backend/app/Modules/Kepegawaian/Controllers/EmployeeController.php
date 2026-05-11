@@ -150,7 +150,7 @@ class EmployeeController extends Controller
         }
 
         $employees = $query->orderBy('nama_lengkap', 'asc')
-            ->limit(50)
+            ->limit(200)
             ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'satuan_kerja']);
 
         return response()->json([
