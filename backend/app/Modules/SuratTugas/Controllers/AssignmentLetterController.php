@@ -56,7 +56,10 @@ class AssignmentLetterController extends Controller
                 'tempat_tujuan' => $validated['tempat_tujuan'],
                 'sumber_dana' => $validated['sumber_dana'] ?? 'dipa',
                 'sumber_dana_other' => $validated['sumber_dana_other'] ?? null,
-                'status' => 'pending',
+                'nama_plh' => $request->input('nama_plh'),
+                'has_seksi_employee' => (bool) $request->input('has_seksi_employee', false),
+                'tanda_setuju' => $request->input('tanda_setuju'),
+                'status' => 'draft',
                 'created_by' => auth()->id() ? (int) auth()->id() : null,
             ]);
 
