@@ -321,7 +321,7 @@ export default function SuratTugasInbox() {
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <MapPin className="w-3 h-3 text-slate-400" />
-                                                <span className="truncate max-w-[80px]">{l.tempat_tujuan.split(',')[0]}</span>
+                                                <span className="truncate max-w-[80px]">{l.tempat_tujuan?.split(',')[0] || '-'}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
