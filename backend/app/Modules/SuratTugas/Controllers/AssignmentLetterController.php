@@ -14,7 +14,7 @@ class AssignmentLetterController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap']);
+        $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
 
         if ($search = $request->query('search')) {
             $query->where('tempat_tujuan', 'ilike', "%{$search}%")

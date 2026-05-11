@@ -385,7 +385,7 @@ export default function SuratTugasInbox() {
                                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Lokasi</span>
                                             <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
                                                 <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-                                                {selectedLetter.tempat_tujuan}
+                                                {selectedLetter.tempat_tujuan || "-"}
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800/50 space-y-1">
@@ -412,7 +412,7 @@ export default function SuratTugasInbox() {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-xs font-black text-slate-800 dark:text-zinc-200 truncate leading-none mb-1">{emp.nama_lengkap}</p>
-                                                    <p className="text-[9px] font-bold text-slate-400 dark:text-zinc-500 truncate tracking-widest leading-none">NIP. {emp.nip}</p>
+                                                    <p className="text-[9px] font-bold text-slate-400 dark:text-zinc-500 truncate tracking-widest leading-none">NIP. {emp.nip?.startsWith("MMP-") ? "-" : (emp.nip || "-")}</p>
                                                 </div>
                                             </div>
                                         ))}
