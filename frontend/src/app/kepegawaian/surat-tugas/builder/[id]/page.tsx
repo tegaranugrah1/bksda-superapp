@@ -8,7 +8,7 @@ import {
   Trash2,
   Search,
   Loader2,
-  CheckCircle,
+  Send,
   X,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -100,7 +100,7 @@ export default function STBuilderPage() {
 
   // --- Form State ---
   const [stNumber, setStNumber] = useState("");
-  const [stCode, setStCode] = useState("K.18/TU/KSA.0X.0X/B");
+  const [stCode, setStCode] = useState("");
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const currentYear = new Date().getFullYear().toString();
 
@@ -203,26 +203,47 @@ export default function STBuilderPage() {
 
   // Initial Fetch & Parse
   useEffect(() => {
-    const fetchNextNumber = async () => {
-      try {
-        const res = await api.get("/surat-tugas/utils/next-number");
-        if (!stNumber) setStNumber(res.data.next_number);
-      } catch (err) { console.error(err); }
-    };
-
     const fetchAndParse = async (id: string) => {
       try {
         const res = await api.get(`/surat-tugas/${id}`);
         const data = res.data.data;
+
+        // Parse nomor surat: "ST.001/K.18/TU/KSA.0X.0X/B/05/2026"
+        if (data.nomor_surat) {
+          const nomorMatch = data.nomor_surat.match(/^ST\.(.+?)\/(.+)\/(\d{2})\/(\d{4})$/);
+          if (nomorMatch) {
+            setStNumber(nomorMatch[1]);
+            setStCode(nomorMatch[2]);
+          } else {
+            // Fallback: just put the whole thing in stNumber
+            setStNumber(data.nomor_surat.replace(/^ST\./, ""));
+          }
+        }
+        if (data.kode_surat) {
+          setStCode(data.kode_surat);
+        }
+
+        if (data.tanggal_surat) {
+          setTanggalSurat(data.tanggal_surat.split("T")[0]);
+        }
 
         setTanggalMulai(data.tanggal_mulai?.split("T")[0] || "");
         setTanggalSelesai(data.tanggal_selesai?.split("T")[0] || "");
         
         const funding = data.sumber_dana || "dipa";
         setSumberDana(funding);
+        if (data.sumber_dana_other) setSumberDanaOther(data.sumber_dana_other);
         
         setSelectedEmployees(data.employees || []);
         setKotaTujuan(data.tempat_tujuan || "");
+
+        // Parse menimbang & dasar if saved
+        if (data.menimbang && Array.isArray(data.menimbang) && data.menimbang.length > 0) {
+          setMenimbangItems(data.menimbang);
+        }
+        if (data.dasar && Array.isArray(data.dasar) && data.dasar.length > 0) {
+          setDasarItems(data.dasar);
+        }
 
         const activityStr = data.maksud_tujuan || "";
         const diRegex = /(.*)\s+di\s+(.*)$/i;
@@ -251,12 +272,19 @@ export default function STBuilderPage() {
           }
         }
 
-        // Manually trigger Dasar update after parsing
-        updateDasarFromFunding(funding, new Date().toISOString().substring(0, 10));
+        // Only update Dasar from funding if no saved dasar
+        if (!data.dasar || !Array.isArray(data.dasar) || data.dasar.length === 0) {
+          updateDasarFromFunding(funding, new Date().toISOString().substring(0, 10));
+        }
 
         toast.success("Data berhasil diurai.");
       } catch (err) {
         console.error(err);
+        if (isAxiosError(err) && err.response?.status === 404) {
+          toast.error("Surat Tugas tidak ditemukan atau sudah dihapus.");
+          router.push("/kepegawaian/surat-tugas/inbox");
+          return;
+        }
         toast.error("Gagal memuat data.");
       } finally {
         setIsInitializing(false);
@@ -265,32 +293,99 @@ export default function STBuilderPage() {
 
     if (id) {
       fetchAndParse(id);
-      fetchNextNumber();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Handlers
-  const handleApprove = async () => {
+  // Simpan draft — save semua data tanpa ubah status
+  const handleSave = async () => {
+    try {
+      const fullNomorSurat = stNumber && stCode 
+        ? `ST.${stNumber}/${stCode}/${currentMonth}/${currentYear}` 
+        : "";
+      const payload = {
+        nomor_surat: fullNomorSurat || null,
+        kode_surat: stCode || null,
+        nama_kegiatan: buildUntukText(),
+        tanggal_surat: tanggalSurat || null,
+        sumber_dana: sumberDana,
+        sumber_dana_other: sumberDanaOther,
+        menimbang: menimbangItems,
+        dasar: dasarItems,
+        employee_ids: selectedEmployees.map(e => e.id),
+        tanggal_mulai: tanggalMulai || null,
+        tanggal_selesai: tanggalSelesai || null,
+      };
+      await api.put(`/surat-tugas/${id}/approve`, payload);
+      toast.success("Draft berhasil disimpan!");
+    } catch (err: unknown) {
+      console.error(err);
+      let errorMessage = "Gagal menyimpan draft.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
+  // Ajukan persetujuan — ubah status ke "pending" (menunggu persetujuan kasubag)
+  const handleSubmitForApproval = async () => {
+    if (!stNumber) return toast.error("Nomor surat harus diisi.");
+    if (!stCode) return toast.error("Kode surat harus diisi.");
+    if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
+    if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
+
     try {
       const fullNomorSurat = `ST.${stNumber}/${stCode}/${currentMonth}/${currentYear}`;
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
+        nama_kegiatan: buildUntukText(),
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
         menimbang: menimbangItems,
         dasar: dasarItems,
         employee_ids: selectedEmployees.map(e => e.id),
-        maksud_tujuan: buildUntukText() + "\n" + buildBiayaText(),
-        tempat_tujuan: kotaTujuan,
         tanggal_mulai: tanggalMulai,
-        tanggal_selesai: tanggalSelesai
+        tanggal_selesai: tanggalSelesai,
+        status: "pending"
+      };
+      await api.put(`/surat-tugas/${id}/approve`, payload);
+      toast.success("Surat Tugas berhasil diajukan! Menunggu persetujuan Kasubag.");
+      router.push("/kepegawaian/surat-tugas/history");
+    } catch (err: unknown) {
+      console.error(err);
+      let errorMessage = "Gagal mengajukan ST.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
+  // Setujui — ubah status ke "approved" (hanya kasubag/admin)
+  const handleApprove = async () => {
+    try {
+      const fullNomorSurat = `ST.${stNumber}/${stCode}/${currentMonth}/${currentYear}`;
+      const payload = {
+        nomor_surat: fullNomorSurat,
+        kode_surat: stCode,
+        nama_kegiatan: buildUntukText(),
+        tanggal_surat: tanggalSurat,
+        sumber_dana: sumberDana,
+        sumber_dana_other: sumberDanaOther,
+        menimbang: menimbangItems,
+        dasar: dasarItems,
+        employee_ids: selectedEmployees.map(e => e.id),
+        tanggal_mulai: tanggalMulai,
+        tanggal_selesai: tanggalSelesai,
+        status: "approved"
       };
       await api.put(`/surat-tugas/${id}/approve`, payload);
       toast.success("Surat Tugas berhasil diterbitkan!");
-      router.push("/kepegawaian/surat-tugas/inbox");
+      router.push("/kepegawaian/surat-tugas/history");
     } catch (err: unknown) {
       console.error(err);
       let errorMessage = "Gagal menerbitkan ST.";
@@ -315,58 +410,17 @@ export default function STBuilderPage() {
           body { 
             font-family: 'Bookman Old Style', 'Georgia', serif; 
             font-size: 11pt; 
-            line-height: 1.15; 
+            line-height: 1.25; 
             color: #000; 
             margin: 0; 
-            padding: 0;
+            padding: 0.4cm 1cm 1cm 3cm; 
+            text-align: justify; 
           }
-          #surat-preview-doc { 
-            padding: 0.4cm 1cm 1cm 3cm !important; 
-            box-sizing: border-box;
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            text-align: justify !important;
-            text-justify: inter-word !important;
-          }
-          
-          /* Force justify for all p and td */
-          p, td { text-align: justify !important; text-justify: inter-word !important; }
-          .text-center { text-align: center !important; }
-          
-          table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-          td { vertical-align: top; padding: 1px 0; }
-          
-          /* Specific alignments for labels and colons */
-          .label-col { width: 100px !important; text-align: left !important; }
-          .colon-col { width: 12px !important; text-align: center !important; }
-          
-          /* Kepada sub-labels */
-          .sub-label-col { width: 80px !important; font-weight: bold; }
-          
-          /* Formatting Utilities */
-          .font-bold { font-weight: bold !important; }
-          .uppercase { text-transform: uppercase !important; }
-          .underline { text-decoration: underline !important; }
-          
-          /* Signatory block - using float/margins for reliability in print */
-          .signatory-block { 
-            margin-top: 32px;
-            margin-left: 9cm !important;
-            width: 8cm !important;
-            text-align: left !important;
-          }
-
-          /* Kop Surat adjustment for print */
-          .header-container {
-             margin-top: -15px !important;
-             margin-left: -1.5cm !important;
-             margin-right: -1cm !important;
-             margin-bottom: 12px !important;
-          }
-          
+          table { width: 100%; border-collapse: collapse; }
+          td { vertical-align: top; padding: 2px 0; font-size: 11pt; }
           tr { page-break-inside: avoid; }
-          img { width: 100% !important; height: auto !important; display: block !important; }
+          thead { display: table-header-group; }
+          img { max-width: none !important; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -547,9 +601,10 @@ export default function STBuilderPage() {
           </FormSection>
         </div>
 
-        <footer className="p-6 border-t bg-white sticky bottom-0">
-          <Button onClick={handleApprove} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold mb-3"><CheckCircle className="w-5 h-5 mr-2" /> Terbitkan</Button>
-          <Button variant="outline" onClick={handlePrint} className="w-full h-12 rounded-xl font-bold text-slate-600"><Printer className="w-5 h-5 mr-2" /> Cetak</Button>
+        <footer className="p-6 border-t bg-white sticky bottom-0 space-y-2">
+          <Button onClick={handleSave} variant="outline" className="w-full h-10 rounded-xl font-bold text-slate-600 border-slate-200"><FileText className="w-4 h-4 mr-2" /> Simpan Draft</Button>
+          <Button onClick={handleSubmitForApproval} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold"><Send className="w-5 h-5 mr-2" /> Ajukan Persetujuan</Button>
+          <Button variant="outline" onClick={handlePrint} className="w-full h-10 rounded-xl font-bold text-slate-600 border-slate-200"><Printer className="w-5 h-5 mr-2" /> Cetak / Download</Button>
         </footer>
       </aside>
 

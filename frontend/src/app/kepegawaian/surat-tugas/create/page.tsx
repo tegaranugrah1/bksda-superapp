@@ -98,7 +98,7 @@ export default function STCreatePremiumPage() {
 
   // --- Form State ---
   const [stNumber, setStNumber] = useState("");
-  const [stCode, setStCode] = useState("K.18/TU/KSA.0X.0X/B");
+  const [stCode, setStCode] = useState("");
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const currentYear = new Date().getFullYear().toString();
 
@@ -199,19 +199,9 @@ export default function STCreatePremiumPage() {
     }
   };
 
-  // Initial Fetch for next number
+  // Initial setup - nomor surat dikosongkan, diisi manual oleh user
   useEffect(() => {
-    const fetchNextNumber = async () => {
-      try {
-        const res = await api.get("/surat-tugas/utils/next-number");
-        setStNumber(res.data.next_number);
-        setIsInitializing(false);
-      } catch (err) { 
-        console.error(err);
-        setIsInitializing(false);
-      }
-    };
-    fetchNextNumber();
+    setIsInitializing(false);
   }, []);
 
   // Handlers

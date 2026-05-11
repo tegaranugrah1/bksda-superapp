@@ -1,3 +1,54 @@
+# Progress - Phase 21: Surat Tugas Builder Flow & Print Fix
+
+> Document updated: 2026-05-11 14:00
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 21: Surat Tugas Builder Flow & Print Fix
+
+### Accomplishments:
+- [x] **Print Template Rewrite**: Complete rewrite of `STBuilderPreview.tsx` to match `superapp-inventory` reference exactly — Bookman Old Style 11pt, `table-layout: fixed`, inline styles, kop surat in `<thead>` for multi-page repeat.
+- [x] **Print CSS Simplified**: Minimal print CSS (`@page margin: 0`, body padding `0.4cm 1cm 1cm 3cm`) — no complex class overrides needed since all styles are inline.
+- [x] **Builder 3-Button Flow**: Replaced single "Terbitkan" button with "Simpan Draft" + "Ajukan Persetujuan" + "Cetak / Download".
+- [x] **Backend Approve Endpoint Flex**: Made all fields nullable, status optional (no status = don't change status, `pending` = waiting approval, `approved` = published).
+- [x] **Backend updateStatus**: Now accepts `pending` as valid status.
+- [x] **History Page Upgrade**: Added `draft` status, "Setujui & Terbitkan" button for pending items, updated labels.
+- [x] **Inbox Page Upgrade**: Added `draft` status, updated labels ("Menunggu Persetujuan", "Diterbitkan"), auto-refresh with `staleTime: 0`.
+- [x] **Nomor Surat Empty by Default**: Removed auto-fetch of next number in both builder and create pages.
+- [x] **Nomor Surat Parsing**: Builder now parses `nomor_surat` and `kode_surat` from API response when editing existing ST.
+- [x] **404 Graceful Handling**: Builder redirects to inbox if ST is deleted/not found.
+- [x] **Public /surat-tugas Verified**: Confirmed identical flow with `superapp-inventory` reference.
+
+### Files Modified:
+```
+frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx  ← REWRITE
+frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx             ← flow + print CSS
+frontend/src/app/kepegawaian/surat-tugas/create/page.tsx                   ← nomor surat kosong
+frontend/src/app/kepegawaian/_components/AssignmentHistoryTab.tsx           ← status + approve btn
+frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx                    ← labels + auto-refresh
+backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php  ← approve + updateStatus
+```
+
+### Surat Tugas Flow (Final):
+```
+Pegawai submit (/surat-tugas) → status: draft
+→ Masuk Inbox Admin (/kepegawaian/surat-tugas/inbox) → klik "Proses"
+→ Builder (/kepegawaian/surat-tugas/builder/[id])
+→ Admin isi nomor, detail → "Simpan Draft" (save tanpa ubah status)
+→ Admin cetak → kirim ke Kasubag via WA
+→ Admin klik "Ajukan Persetujuan" → status: pending
+→ Di History (/kepegawaian/surat-tugas/history): badge "Menunggu Persetujuan"
+→ Kasubag ACC → Admin klik ✓ di History → status: approved ("Diterbitkan")
+```
+
+### Next Steps:
+- [ ] Tembusan field di builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration (digital/scan)
+
+---
+
 # Progress - Phase 20: Surat Tugas Standardization (Inbox & Builder)
 
 > Document updated: 2026-05-11 10:15

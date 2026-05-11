@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import {
   formatDateIndonesian,
   formatNIP,
@@ -52,160 +51,207 @@ export default function STBuilderPreview({
   return (
     <div
       id="surat-preview-doc"
-      className="w-[210mm] min-h-[297mm] bg-white shadow-2xl p-[0.4cm_1cm_1cm_3cm] text-black font-serif text-[11pt] leading-tight selection:bg-blue-100"
-      style={{ fontFamily: "'Bookman Old Style', 'Georgia', serif", textAlign: 'justify', textJustify: 'inter-word' }}
+      className="w-[210mm] min-h-[297mm] bg-white shadow-2xl selection:bg-blue-100"
+      style={{
+        padding: "0.4cm 1cm 1cm 3cm",
+        fontFamily: "'Bookman Old Style', 'Georgia', serif",
+        fontSize: "11pt",
+        lineHeight: "1.25",
+        color: "#000",
+        textAlign: "justify",
+        boxSizing: "border-box",
+      }}
     >
-      {/* Kop Surat - Perfectly aligned using offsets */}
-      <div className="header-container" style={{ marginTop: '-15px', marginBottom: '12px', marginLeft: '-1.5cm', marginRight: '-1cm' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img 
-          src="/header-new.png" 
-          alt="Kop Surat" 
-          style={{ width: '100%', height: 'auto', display: 'block' }}
-        />
-      </div>
+      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+        <colgroup>
+          <col style={{ width: "100%" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <td>
+              {/* === KOP SURAT === */}
+              <div style={{ marginTop: "-10px", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/header-new.png"
+                  alt="Kop Surat"
+                  style={{ width: "18.8cm", height: "auto", display: "block" }}
+                />
+              </div>
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              {/* === JUDUL === */}
+              <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "11pt", margin: "0 0 2px" }}>
+                SURAT TUGAS
+              </p>
+              <p style={{ textAlign: "center", fontSize: "11pt", margin: "0 0 16px" }}>
+                Nomor : ST.{stNumber || "..."}/{stCode || "..."}/{currentMonth}/{currentYear}
+              </p>
 
-      {/* Judul & Nomor - Centered */}
-      <div className="text-center mb-6" style={{ textAlign: 'center' }}>
-        <h2 className="font-bold uppercase text-[12pt] mb-0 tracking-tight">
-          SURAT TUGAS
-        </h2>
-        <p className="text-[11pt] m-0">
-          Nomor : ST. &nbsp;&nbsp; {stNumber || "........"}/{stCode || "........"}/{currentMonth}/{currentYear}
-        </p>
-      </div>
+              {/* === KEPALA BALAI === */}
+              <p style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>KEPALA BALAI,</p>
 
-      {/* Jabatan Pembuat */}
-      <div className="text-center font-bold mb-4 uppercase" style={{ textAlign: 'center' }}>
-        KEPALA BALAI,
-      </div>
-
-      <div className="space-y-4">
-        {/* Row Builder for structured sections */}
-        <SectionRow label="Menimbang">
-          <table className="w-full border-collapse table-fixed">
-            <tbody>
-              {menimbangItems.map((item, idx) => (
-                <tr key={item.id}>
-                  <td className="w-[24px] align-top py-[1px]">{indexToLetter(idx)}</td>
-                  <td className="align-top py-[1px]" style={{ textAlign: 'justify', textJustify: 'inter-word' }}>{item.text || '...'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </SectionRow>
-
-        <SectionRow label="Dasar">
-          <table className="w-full border-collapse table-fixed">
-            <tbody>
-              {dasarItems.map((item, idx) => (
-                <tr key={item.id}>
-                  <td className="w-[24px] align-top py-[1px]">{idx + 1}.</td>
-                  <td className="align-top py-[1px]" style={{ textAlign: 'justify', textJustify: 'inter-word' }}>{item.text || '...'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </SectionRow>
-
-        <div className="text-center font-bold my-4 uppercase tracking-wider" style={{ textAlign: 'center' }}>MEMBERI TUGAS,</div>
-
-        <SectionRow label="Kepada">
-          <table className="w-full border-collapse table-fixed">
-            <tbody>
-              {selectedEmployees.length === 0 ? (
-                <tr>
-                  <td colSpan={2} className="py-1 italic text-slate-400">( Belum ada pegawai dipilih )</td>
-                </tr>
-              ) : (
-                selectedEmployees.map((emp, idx) => (
-                  <React.Fragment key={emp.id}>
-                    <tr>
-                      <td className="w-[24px] align-top py-[1px] font-bold">{idx + 1}.</td>
-                      <td className="py-[1px]">
-                        <table className="w-full border-collapse table-fixed">
-                          <tbody>
-                            <tr>
-                              <td className="w-[80px] sub-label-col py-px font-bold">Nama</td>
-                              <td className="w-[12px] colon-col py-px">:</td>
-                              <td className="font-bold py-px uppercase">{emp.nama_lengkap}</td>
+              {/* === MENIMBANG === */}
+              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Menimbang</td>
+                    <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
+                    <td style={{ verticalAlign: "top", padding: "2px 0" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                        <tbody>
+                          {menimbangItems.map((m, idx) => (
+                            <tr key={m.id}>
+                              <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0" }}>{indexToLetter(idx)}</td>
+                              <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>{m.text || "..."}</td>
                             </tr>
-                            <tr>
-                              <td className="sub-label-col py-px">NIP</td>
-                              <td className="w-[12px] colon-col py-px">:</td>
-                              <td className="py-px">{formatNIP(emp.nip)}</td>
+                          ))}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              {/* === DASAR === */}
+              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Dasar</td>
+                    <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
+                    <td style={{ verticalAlign: "top", padding: "2px 0" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                        <tbody>
+                          {dasarItems.map((d, idx) => (
+                            <tr key={d.id}>
+                              <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
+                              <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{d.text || "..."}</td>
                             </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              {/* === MEMBERI TUGAS === */}
+              <p style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>MEMBERI TUGAS,</p>
+
+              {/* === KEPADA === */}
+              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px", marginLeft: "0", tableLayout: "fixed" }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Kepada</td>
+                    <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
+                    <td style={{ verticalAlign: "top", padding: "2px 0" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                        <tbody>
+                          {selectedEmployees.length === 0 ? (
                             <tr>
-                              <td className="sub-label-col py-px">Jabatan</td>
-                              <td className="w-[12px] colon-col py-px">:</td>
-                              <td className="py-px">{emp.jabatan}</td>
+                              <td colSpan={2} style={{ padding: "4px 0", fontStyle: "italic", color: "#999" }}>
+                                ( Belum ada pegawai dipilih )
+                              </td>
                             </tr>
-                          </tbody>
-                        </table>
-                      </td>
-                    </tr>
-                    {idx < selectedEmployees.length - 1 && <tr className="h-2"></tr>}
-                  </React.Fragment>
-                ))
-              )}
-            </tbody>
-          </table>
-        </SectionRow>
+                          ) : (
+                            selectedEmployees.map((emp, idx) => (
+                              <React.Fragment key={emp.id}>
+                                <tr>
+                                  <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
+                                  <td style={{ padding: "2px 0" }}>
+                                    <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
+                                      <tbody>
+                                        <tr>
+                                          <td style={{ width: "70px", padding: "1px 0" }}>Nama</td>
+                                          <td style={{ width: "20px", padding: "1px 0" }}>:</td>
+                                          <td style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap}</td>
+                                        </tr>
+                                        <tr>
+                                          <td style={{ width: "70px", padding: "1px 0" }}>NIP</td>
+                                          <td style={{ width: "20px", padding: "1px 0" }}>:</td>
+                                          <td style={{ padding: "1px 0" }}>{formatNIP(emp.nip)}</td>
+                                        </tr>
+                                        <tr>
+                                          <td style={{ width: "70px", padding: "1px 0" }}>Jabatan</td>
+                                          <td style={{ width: "20px", padding: "1px 0" }}>:</td>
+                                          <td style={{ padding: "1px 0" }}>{emp.jabatan}</td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                                {idx < selectedEmployees.length - 1 && (
+                                  <tr><td colSpan={2} style={{ padding: "4px 0" }}></td></tr>
+                                )}
+                              </React.Fragment>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-        <SectionRow label="Untuk">
-          <table className="w-full border-collapse table-fixed">
-            <tbody>
-              <tr>
-                <td className="w-[24px] align-top py-[1px]">1.</td>
-                <td className="align-top py-[1px]" style={{ textAlign: 'justify', textJustify: 'inter-word' }}>{buildUntukText()}</td>
-              </tr>
-              <tr>
-                <td className="w-[24px] align-top py-[1px]">2.</td>
-                <td className="align-top py-[1px]" style={{ textAlign: 'justify', textJustify: 'inter-word' }}>{buildBiayaText()}</td>
-              </tr>
-              <tr>
-                <td className="w-[24px] align-top py-[1px]">3.</td>
-                <td className="align-top py-[1px]" style={{ textAlign: 'justify', textJustify: 'inter-word' }}>
-                  Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </SectionRow>
+              {/* === UNTUK === */}
+              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Untuk</td>
+                    <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
+                    <td style={{ verticalAlign: "top", padding: "2px 0" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>1.</td>
+                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
+                              {buildUntukText()}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>2.</td>
+                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
+                              {buildBiayaText()}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>3.</td>
+                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
+                              Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-        {/* Penutup */}
-        <p className="mt-8 mb-4" style={{ textAlign: 'justify', textJustify: 'inter-word' }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
+              {/* === PENUTUP === */}
+              <p style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
 
-        {/* Signatory Section */}
-        <div className="flex mt-8" style={{ display: 'flex' }}>
-          <div className="ml-auto w-[8cm] signatory-block text-left" style={{ marginLeft: 'auto' }}>
-            <p className="m-0">{kotaSurat || '...'}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : '... ............. ....'}</p>
-            <p className="m-0 mb-4">Kepala Balai,</p>
-            
-            <div className="h-20 flex items-center italic text-slate-300 text-xs" style={{ height: '80px', display: 'flex', alignItems: 'center' }}>
-              ${"{ttd_pengirim}"}
-            </div>
-
-            <p className="m-0 font-bold uppercase underline underline-offset-4 decoration-1 font-bold">{kepalaBalai.name}</p>
-            <p className="m-0">NIP. {formatNIP(kepalaBalai.nip)}</p>
-          </div>
-        </div>
-      </div>
+              {/* === TANDA TANGAN === */}
+              <div style={{ display: "flex", marginTop: "14px" }}>
+                <div style={{ marginLeft: "9.2cm", textAlign: "left" }}>
+                  <p style={{ margin: 0 }}>
+                    {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
+                  </p>
+                  <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
+                  <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
+                    ${"{ttd_pengirim}"}
+                  </p>
+                  <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
+                  <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  );
-}
-
-// Helper component for aligned rows
-function SectionRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <table className="w-full border-collapse table-fixed">
-      <tbody>
-        <tr>
-          <td className="w-[100px] label-col align-top py-[1px] font-normal">{label}</td>
-          <td className="w-[12px] colon-col align-top py-[1px] text-center">:</td>
-          <td className="align-top py-[1px]">{children}</td>
-        </tr>
-      </tbody>
-    </table>
   );
 }

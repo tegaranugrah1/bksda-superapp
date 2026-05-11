@@ -140,13 +140,16 @@ class AssignmentLetterController extends Controller
     public function updateStatus(Request $request, string $id)
     {
         $request->validate([
-            'status' => 'required|in:approved,rejected,completed',
+            'status' => 'required|in:pending,approved,rejected,completed',
             'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
         ]);
 
         $surat = AssignmentLetter::findOrFail($id);
         $surat->status = $request->status;
-        $surat->approved_by = (int) auth()->id();
+        
+        if (in_array($request->status, ['approved', 'completed'])) {
+            $surat->approved_by = (int) auth()->id();
+        }
 
         if ($request->has('nomor_surat')) {
             $surat->nomor_surat = $request->nomor_surat;
@@ -230,24 +233,27 @@ class AssignmentLetterController extends Controller
     public function approve(Request $request, string $id)
     {
         $request->validate([
-            'nomor_surat' => 'required|string|unique:st_assignment_letters,nomor_surat,'.$id,
+            'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
             'kode_surat' => 'nullable|string',
-            'nama_kegiatan' => 'required|string',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date',
-            'tanggal_surat' => 'required|date',
-            'sumber_dana' => 'required|string',
+            'nama_kegiatan' => 'nullable|string',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date',
+            'tanggal_surat' => 'nullable|date',
+            'sumber_dana' => 'nullable|string',
             'sumber_dana_other' => 'nullable|string',
             'menimbang' => 'nullable|array',
             'dasar' => 'nullable|array',
-            'employee_ids' => 'required|array',
+            'employee_ids' => 'nullable|array',
+            'status' => 'nullable|in:pending,approved',
         ]);
 
         $surat = AssignmentLetter::findOrFail($id);
 
+        $targetStatus = $request->input('status'); // null if not provided
+
         DB::beginTransaction();
         try {
-            $surat->update([
+            $updateData = array_filter([
                 'nomor_surat' => $request->nomor_surat,
                 'kode_surat' => $request->kode_surat,
                 'maksud_tujuan' => $request->nama_kegiatan,
@@ -258,21 +264,32 @@ class AssignmentLetterController extends Controller
                 'sumber_dana_other' => $request->sumber_dana_other,
                 'menimbang' => $request->menimbang,
                 'dasar' => $request->dasar,
-                'status' => 'approved',
-                'approved_by' => auth()->id(),
-            ]);
+            ], fn($v) => $v !== null);
 
-            $surat->employees()->sync($request->employee_ids);
+            // Only update status if explicitly provided
+            if ($targetStatus) {
+                $updateData['status'] = $targetStatus;
+                if ($targetStatus === 'approved') {
+                    $updateData['approved_by'] = auth()->id();
+                }
+            }
+
+            $surat->update($updateData);
+
+            if ($request->has('employee_ids') && is_array($request->employee_ids)) {
+                $surat->employees()->sync($request->employee_ids);
+            }
 
             DB::commit();
 
+            $statusLabel = $targetStatus === 'pending' ? 'diajukan untuk persetujuan' : ($targetStatus === 'approved' ? 'berhasil diterbitkan' : 'berhasil disimpan');
             return response()->json([
-                'message' => 'Surat Tugas berhasil diterbitkan.',
+                'message' => "Surat Tugas {$statusLabel}.",
                 'data' => $surat->load('employees'),
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Gagal menyetujui surat: '.$e->getMessage()], 500);
+            return response()->json(['message' => 'Gagal memproses surat: '.$e->getMessage()], 500);
         }
     }
 

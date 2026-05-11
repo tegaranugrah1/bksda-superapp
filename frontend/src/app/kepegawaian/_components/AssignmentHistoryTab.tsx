@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatDateIndonesian } from "@/lib/letter-utils";
-import { Printer, Trash2, Filter, FileText, RefreshCcw } from "lucide-react";
+import { Printer, Trash2, Filter, FileText, RefreshCcw, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface SuratTugasItem {
     id: string;
@@ -18,6 +19,7 @@ interface SuratTugasItem {
 }
 
 const STATUS_COLORS: Record<string, string> = {
+    draft: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20",
     pending: "bg-amber-500/10 text-amber-600 border-amber-500/20",
     approved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
     rejected: "bg-red-500/10 text-red-600 border-red-500/20",
@@ -25,8 +27,9 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    pending: "Menunggu",
-    approved: "Disetujui",
+    draft: "Draft",
+    pending: "Menunggu Persetujuan",
+    approved: "Diterbitkan",
     rejected: "Ditolak",
     completed: "Selesai",
 };
@@ -58,6 +61,15 @@ export function AssignmentHistoryTab() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] }),
     });
 
+    const approveMutation = useMutation({
+        mutationFn: (id: string) => api.put(`/surat-tugas/${id}/approve`, { status: "approved" }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+            toast.success("Surat Tugas berhasil diterbitkan!");
+        },
+        onError: () => toast.error("Gagal menerbitkan ST."),
+    });
+
     const items = data?.data ?? [];
 
     return (
@@ -73,8 +85,9 @@ export function AssignmentHistoryTab() {
                             onChange={(e) => setFilterStatus(e.target.value)}
                         >
                             <option value="">Semua Status</option>
-                            <option value="pending">Menunggu</option>
-                            <option value="approved">Disetujui</option>
+                            <option value="draft">Draft</option>
+                            <option value="pending">Menunggu Persetujuan</option>
+                            <option value="approved">Diterbitkan</option>
                             <option value="rejected">Ditolak</option>
                         </select>
                     </div>
@@ -144,11 +157,20 @@ export function AssignmentHistoryTab() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {!isTrashMode && item.status === "pending" && (
+                                                    <button
+                                                        onClick={() => approveMutation.mutate(item.id)}
+                                                        className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-all"
+                                                        title="Setujui & Terbitkan"
+                                                    >
+                                                        <CheckCircle className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                                 {!isTrashMode && (
                                                     <button
                                                         onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${item.id}`)}
-                                                        className="p-2 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-all"
-                                                        title="Cetak Surat"
+                                                        className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all"
+                                                        title="Buka Builder"
                                                     >
                                                         <Printer className="w-4 h-4" />
                                                     </button>

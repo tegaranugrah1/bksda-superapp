@@ -31,7 +31,7 @@ interface AssignmentLetter {
   sumber_dana: string;
   sumber_dana_other: string | null;
   file_surat_path: string | null;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'completed';
   nomor_surat: string | null;
   tanggal_surat: string | null;
   created_at: string;
@@ -77,7 +77,9 @@ export default function SuratTugasInbox() {
             }
 
             return fetchedLetters;
-        }
+        },
+        staleTime: 0,
+        refetchOnWindowFocus: true,
     });
 
     const letters = data || [];
@@ -180,6 +182,7 @@ export default function SuratTugasInbox() {
 
     const getStatusStyle = (status: string) => {
         switch(status) {
+            case 'draft': return 'bg-slate-50 text-slate-500 border-slate-200';
             case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
             case 'approved': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
             case 'completed': return 'bg-blue-50 text-blue-600 border-blue-100';
@@ -190,8 +193,9 @@ export default function SuratTugasInbox() {
 
     const getStatusLabel = (status: string) => {
         switch(status) {
-            case 'pending': return 'Menunggu';
-            case 'approved': return 'Disetujui';
+            case 'draft': return 'Draft';
+            case 'pending': return 'Menunggu Persetujuan';
+            case 'approved': return 'Diterbitkan';
             case 'completed': return 'Selesai';
             case 'rejected': return 'Ditolak';
             default: return status;
@@ -259,8 +263,9 @@ export default function SuratTugasInbox() {
                                     className="w-full appearance-none pl-9 pr-3 py-2 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-[10px] font-bold text-slate-600 dark:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10"
                                 >
                                     <option value="all">Semua Status</option>
-                                    <option value="pending">Menunggu</option>
-                                    <option value="approved">Disetujui</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="pending">Menunggu Persetujuan</option>
+                                    <option value="approved">Diterbitkan</option>
                                     <option value="rejected">Ditolak</option>
                                 </select>
                             </div>
