@@ -66,9 +66,11 @@ export function daysBetween(start: string, end: string): number {
 /**
  * Format NIP pegawai sesuai standar pemerintah.
  * formatNIP("198504132010011001") → "19850413 201001 1 001"
+ * NIP placeholder (MMP-xxx) akan ditampilkan sebagai "-"
  */
 export function formatNIP(nip: string | null | undefined): string {
     if (!nip) return '...';
+    if (nip.startsWith('MMP-')) return '-';
     const cleaned = nip.replace(/\s/g, '');
     if (cleaned.length !== 18) return cleaned;
     return `${cleaned.substring(0, 8)} ${cleaned.substring(8, 14)} ${cleaned.substring(14, 15)} ${cleaned.substring(15)}`;

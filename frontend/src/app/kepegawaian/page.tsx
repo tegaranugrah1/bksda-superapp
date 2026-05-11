@@ -116,7 +116,7 @@ export default function EmployeeListPage() {
                       </Link>
                       <p className="text-[11px] text-zinc-500">{emp.satuan_kerja || "Satuan Kerja Belum Diatur"}</p>
                     </td>
-                    <td className="px-6 py-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">{emp.nip}</td>
+                    <td className="px-6 py-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">{emp.nip?.startsWith("MMP-") ? "-" : emp.nip}</td>
                     <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">{emp.jabatan || "-"}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
