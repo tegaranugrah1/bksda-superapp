@@ -260,6 +260,7 @@ class AssignmentLetterController extends Controller
                 'nomor_surat' => $request->nomor_surat,
                 'kode_surat' => $request->kode_surat,
                 'maksud_tujuan' => $request->nama_kegiatan,
+                'tempat_tujuan' => $request->tempat_tujuan,
                 'tanggal_mulai' => $request->tanggal_mulai,
                 'tanggal_selesai' => $request->tanggal_selesai,
                 'tanggal_surat' => $request->tanggal_surat,
