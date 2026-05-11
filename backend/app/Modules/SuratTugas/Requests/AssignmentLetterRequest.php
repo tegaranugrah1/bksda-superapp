@@ -18,7 +18,7 @@ class AssignmentLetterRequest extends FormRequest
             'dasar_hukum' => 'nullable|string',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'tempat_tujuan' => 'required|string|max:255',
+            'tempat_tujuan' => 'nullable|string|max:255',
             'sumber_dana' => 'required|string',
             'sumber_dana_other' => 'nullable|string',
             'employees' => 'required|array|min:1',

@@ -50,7 +50,6 @@ export default function SuratTugasForm() {
         tanggal_selesai: '',
         sumber_dana: '',
         sumber_dana_other: '',
-        tempat_tujuan: '',
         keterangan: ''
     });
     const [namaPlh, setNamaPlh] = useState('');
@@ -127,7 +126,6 @@ export default function SuratTugasForm() {
             submitData.append('maksud_tujuan', formData.nama_kegiatan);
             submitData.append('tanggal_mulai', formData.tanggal_mulai);
             submitData.append('tanggal_selesai', formData.tanggal_selesai);
-            submitData.append('tempat_tujuan', formData.tempat_tujuan);
             submitData.append('sumber_dana', formData.sumber_dana);
             
             if (formData.sumber_dana === 'other') {
@@ -340,20 +338,6 @@ export default function SuratTugasForm() {
                                 />
                             </div>
                         </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            Tempat Tujuan <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            required
-                            value={formData.tempat_tujuan}
-                            onChange={e => setFormData({...formData, tempat_tujuan: e.target.value})}
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
-                            placeholder="Contoh: Kecamatan Melville, Kabupaten Kutai Barat"
-                        />
                     </div>
 
                     <div className="space-y-3">

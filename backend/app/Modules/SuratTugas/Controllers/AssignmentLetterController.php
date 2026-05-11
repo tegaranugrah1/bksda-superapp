@@ -53,7 +53,7 @@ class AssignmentLetterController extends Controller
                 'dasar_hukum' => $validated['dasar_hukum'] ?? null,
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
-                'tempat_tujuan' => $validated['tempat_tujuan'],
+                'tempat_tujuan' => $validated['tempat_tujuan'] ?? null,
                 'sumber_dana' => $validated['sumber_dana'] ?? 'dipa',
                 'sumber_dana_other' => $validated['sumber_dana_other'] ?? null,
                 'nama_plh' => $request->input('nama_plh'),
