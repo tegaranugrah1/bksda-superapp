@@ -56,13 +56,13 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Surat Tugas Builder Flow & Print Fix (✅ DONE) |
-| **Issue Selanjutnya** | Tembusan, Multi-page Testing, Signature Integration |
-| **Branch Aktif** | `main` |
-| **Commit** | `[UNCOMMITTED]` - feat(surat-tugas): builder flow + print template fix |
+| **Issue Terakhir Selesai** | Surat Tugas Builder Flow & Print Fix + Seed 151 Pegawai (✅ DONE) |
+| **Issue Selanjutnya** | PLH & Tanda Setuju field di form /surat-tugas + Tembusan |
+| **Branch Aktif** | `issue/275-seed-data-pegawai` |
+| **Commit** | `930faf8` - fix(kepegawaian): increase employee select limit |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-11T14:00:00+08:00 |
-| **GitHub PR** | Belum dibuat — perlu commit & push |
+| **Timestamp** | 2026-05-11T15:00:00+08:00 |
+| **GitHub PR** | [#276](https://github.com/tegaranugrah1/bksda-superapp/pull/276) - ⏳ PENDING |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ---
@@ -108,7 +108,57 @@ git push origin main
   → Di History: badge "Menunggu Persetujuan" (kuning)
   → Kasubag ACC → Admin klik ✓ di History → status: approved ("Diterbitkan")
   ```
-- **Handoff**: Print template sudah match reference. Flow approval sudah 3-step (draft → pending → approved). Next: tembusan field, multi-page testing, signature integration.
+- **Handoff**: Print template sudah match reference. Flow approval sudah 3-step (draft → pending → approved). Next: PLH & Tanda Setuju field, tembusan, multi-page testing, signature integration.
+
+---
+
+**UPDATE SESI KIRO #275 (2026-05-11 Sore - Seed Pegawai):**
+- **Objective**: Seed 151 data pegawai BKSDA Kaltim ke database.
+- **Accomplishments**:
+  - Seed 118 PNS + 33 MMP (total 151 pegawai).
+  - 33 MMP tanpa NIP → generate placeholder `MMP-001` s/d `MMP-033`, hidden di frontend.
+  - Tambah kolom `resor` (nullable) di `kpg_employees` untuk detail penempatan.
+  - Fix employee select limit: 50 → 200 agar semua pegawai muncul di form publik.
+  - Merge branch `issue/274-st-builder-premium` ke branch ini agar semua fitur ST tersedia.
+  - Restore sidebar navigation kepegawaian (Inbox, Buat ST, Riwayat).
+- **Struktur Organisasi BKSDA Kaltim**:
+  ```
+  Kantor Balai KSDA Kalimantan Timur
+  ├── Urusan Umum dan Perlengkapan
+  ├── Urusan Kepegawaian
+  ├── Urusan Program dan Perencanaan
+  ├── Urusan Keuangan
+  ├── Urusan Evlab
+  ├── Urusan Teknis
+  ├── Urusan Perlindungan
+  └── Urusan IKN
+  
+  Seksi KSDA Wilayah I (Berau)
+  ├── Resor 01. Berau
+  ├── Resor 02. Pulau Semama dan Pulau Sangalaki
+  ├── Resor 03. Tanjung Selor
+  └── Resor 04. Tarakan
+  
+  Seksi KSDA Wilayah II (Tenggarong)
+  ├── Resor 05. Samarinda
+  ├── Resor 06. Padang Luway
+  ├── Resor 07. Muara Kaman Sedulang
+  ├── Resor 08. Sangatta
+  └── Resor 09. Suaka Badak Kelian
+  
+  Seksi KSDA Wilayah III (Balikpapan)
+  ├── Resor 10. Balikpapan
+  ├── Resor 11. Teluk Adang
+  ├── Resor 12. Teluk Apar
+  ├── Resor 13. Paser
+  └── Resor 14. Ibu Kota Nusantara
+  ```
+- **Next Steps**:
+  - Tambah field `nama_plh` dan `tanda_setuju` di form publik `/surat-tugas`
+  - Update backend store endpoint + migration
+  - Update inbox admin untuk tampilkan PLH & tanda setuju
+  - Tembusan field di builder & preview
+- **GitHub**: Issue #275, PR #276 (pending merge)
 
 ---
 
