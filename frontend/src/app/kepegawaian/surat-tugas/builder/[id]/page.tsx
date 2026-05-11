@@ -30,8 +30,11 @@ import {
 interface Employee {
   id: string;
   nama_lengkap: string;
+  name?: string;
   nip: string;
   jabatan: string;
+  department?: string;
+  position?: string;
 }
 
 interface DasarItem {
@@ -142,7 +145,7 @@ export default function STBuilderPage() {
 
   const searchResults = allEmployees
     .filter((emp: Employee) => 
-      (emp.nama_lengkap?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || 
+      (emp.nama_lengkap?.toLowerCase() || emp.name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || 
       (emp.nip?.toLowerCase() || "").includes(searchQuery.toLowerCase())
     )
     .slice(0, 50);
@@ -563,7 +566,7 @@ export default function STBuilderPage() {
                   <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute w-full mt-1 bg-white border rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
                     {searchResults.map((emp: Employee) => (
                       <button key={emp.id} onClick={() => { setSelectedEmployees([...selectedEmployees, emp]); setSearchQuery(""); setShowDropdown(false); }} className="w-full px-4 py-2 text-left hover:bg-slate-50 border-b last:border-0">
-                        <p className="text-sm font-bold">{emp.nama_lengkap}</p>
+                        <p className="text-sm font-bold">{emp.nama_lengkap || emp.name}</p>
                         <p className="text-[10px] text-slate-400">{emp.nip}</p>
                       </button>
                     ))}
