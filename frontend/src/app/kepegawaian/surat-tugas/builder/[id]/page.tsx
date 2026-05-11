@@ -154,13 +154,22 @@ export default function STBuilderPage() {
     const mulaiFormatted = formatDateIndonesian(tanggalMulai);
     const selesaiFormatted = formatDateIndonesian(tanggalSelesai);
 
-    let text = `${activityPrefix} dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
-    if (namaKegiatan) {
-      text += ` dalam rangka ${namaKegiatan}`;
+    let text = "";
+
+    if (activityPrefix && kotaAsal) {
+      // Structured mode: prefix + dari + ke + dalam rangka + kegiatan
+      text = `${activityPrefix} dari ${kotaAsal} ke ${kotaTujuan || "..."}`;
+      if (namaKegiatan) {
+        text += ` dalam rangka ${namaKegiatan}`;
+      }
+      if (tempatKegiatan) {
+        text += ` di ${tempatKegiatan}`;
+      }
+    } else {
+      // Freeform mode: namaKegiatan already contains the full text
+      text = namaKegiatan || "...";
     }
-    if (tempatKegiatan) {
-      text += ` di ${tempatKegiatan}`;
-    }
+
     if (days > 0) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
     } else {
@@ -246,30 +255,31 @@ export default function STBuilderPage() {
         }
 
         const activityStr = data.maksud_tujuan || "";
-        const diRegex = /(.*)\s+di\s+(.*)$/i;
-        const regex = /^(Melaksanakan\s+)?(Perjalanan\s+Dinas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+        // Try to parse structured activity text: "[Melaksanakan] Perjalanan Dinas dari X ke Y [dalam rangka Z] [di W]"
+        const regex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const match = activityStr.match(regex);
 
         if (match) {
-          setActivityPrefix(match[2]);
-          setKotaAsal(match[3].trim());
-          setKotaTujuan(match[4].trim());
-          const rest = match[5].trim();
+          setActivityPrefix(match[1]);
+          setKotaAsal(match[2].trim());
+          setKotaTujuan(match[3].trim());
+          const rest = match[4].trim();
+          const diRegex = /(.*)\s+di\s+([^,;]+)$/i;
           const diMatch = rest.match(diRegex);
           if (diMatch) {
             setNamaKegiatan(diMatch[1].trim());
             setTempatKegiatan(diMatch[2].trim());
           } else {
-            setNamaKegiatan(rest);
+            // Remove trailing punctuation
+            setNamaKegiatan(rest.replace(/[;,.]$/, '').trim());
           }
         } else {
-          const diMatch = activityStr.match(diRegex);
-          if (diMatch) {
-            setNamaKegiatan(diMatch[1].trim());
-            setTempatKegiatan(diMatch[2].trim());
-          } else {
-            setNamaKegiatan(activityStr);
-          }
+          // Text doesn't match structured pattern — put entire text as namaKegiatan
+          // and clear prefix/kota so buildUntukText just outputs namaKegiatan directly
+          setActivityPrefix("");
+          setKotaAsal("");
+          setKotaTujuan("");
+          setNamaKegiatan(activityStr);
         }
 
         // Only update Dasar from funding if no saved dasar
