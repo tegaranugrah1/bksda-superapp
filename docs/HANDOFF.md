@@ -56,13 +56,13 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Surat Tugas Builder Flow & Print Fix + Seed 151 Pegawai (✅ DONE) |
-| **Issue Selanjutnya** | PLH & Tanda Setuju field di form /surat-tugas + Tembusan |
-| **Branch Aktif** | `issue/275-seed-data-pegawai` |
-| **Commit** | `930faf8` - fix(kepegawaian): increase employee select limit |
+| **Issue Terakhir Selesai** | Seed 151 Pegawai + PLH/Tanda Setuju + Builder Fixes (✅ DONE - PR #276 MERGED) |
+| **Issue Selanjutnya** | Tembusan field, Multi-page Testing, Signature Integration |
+| **Branch Aktif** | `main` |
+| **Commit** | `[MERGED]` - feat(kepegawaian): seed 151 pegawai + surat tugas improvements |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-11T15:00:00+08:00 |
-| **GitHub PR** | [#276](https://github.com/tegaranugrah1/bksda-superapp/pull/276) - ⏳ PENDING |
+| **Timestamp** | 2026-05-11T16:30:00+08:00 |
+| **GitHub PR** | [#276](https://github.com/tegaranugrah1/bksda-superapp/pull/276) - ✅ MERGED |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ---
@@ -154,11 +154,10 @@ git push origin main
   └── Resor 14. Ibu Kota Nusantara
   ```
 - **Next Steps**:
-  - Tambah field `nama_plh` dan `tanda_setuju` di form publik `/surat-tugas`
-  - Update backend store endpoint + migration
-  - Update inbox admin untuk tampilkan PLH & tanda setuju
-  - Tembusan field di builder & preview
-- **GitHub**: Issue #275, PR #276 (pending merge)
+  - Tambah field tembusan di builder & preview
+  - Multi-page testing (surat panjang)
+  - Signature integration (digital/scan)
+- **GitHub**: Issue #275, PR #276 ✅ MERGED
 
 ---
 

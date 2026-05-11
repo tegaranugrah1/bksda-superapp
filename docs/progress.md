@@ -47,6 +47,21 @@ Pegawai submit (/surat-tugas) → status: draft
 - [ ] Multi-page testing (surat panjang)
 - [ ] Signature integration (digital/scan)
 
+### Additional Fixes (same session):
+- [x] **PLH & Tanda Setuju**: Added to public form `/surat-tugas` — PLH shows when Kasubag/Kaseksi selected, Tanda Setuju shows when Seksi employee selected.
+- [x] **Backend migration**: Added `nama_plh`, `has_seksi_employee`, `tanda_setuju` columns to `st_assignment_letters`.
+- [x] **Route move**: `/surat-tugas` moved from `(publik)` to dedicated route with minimal layout (no navbar/footer).
+- [x] **Logo unified**: All logo references → `/logo_bksda.png`.
+- [x] **Tempat Tujuan removed**: From public form (nullable in DB), but saved from builder's "Tujuan" field.
+- [x] **Toaster added**: `<Toaster />` was missing from Providers — all toast notifications now work.
+- [x] **Employee search fix**: Builder + Create pages now handle `name` vs `nama_lengkap` field mismatch from API.
+- [x] **Employee normalize**: When adding from search, `nama_lengkap` and `jabatan` populated from `name`/`position`.
+- [x] **Nomor surat width**: Fixed `/05/2026` being cut off in both builder and create pages.
+- [x] **Double text fix**: Strip "selama X hari..." suffix when re-parsing saved `maksud_tujuan`.
+- [x] **Smart parsing**: Detect full freeform text vs structured "Perjalanan Dinas dari X ke Y" — no more double prefix.
+- [x] **tempat_tujuan saved**: Builder now sends `kotaTujuan` as `tempat_tujuan` to backend.
+- [x] **Inbox NIP**: Backend now loads `nip,jabatan` for employees in index query.
+
 ---
 
 # Progress - Phase 20: Surat Tugas Standardization (Inbox & Builder)
