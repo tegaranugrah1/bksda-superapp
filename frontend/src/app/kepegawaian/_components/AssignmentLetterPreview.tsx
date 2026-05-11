@@ -102,7 +102,7 @@ export default function AssignmentLetterPreview({
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/assets/logo_bksda.png"
+              src="/logo_bksda.png"
               alt="BKSDA"
               className="w-[85px] object-contain"
             />

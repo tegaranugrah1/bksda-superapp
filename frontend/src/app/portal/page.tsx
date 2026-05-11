@@ -350,7 +350,7 @@ export default function PersonalDashboard() {
             <div className="flex items-center gap-4">
               <div className="p-1.5 bg-white shadow-sm border border-slate-100 rounded-xl">
                 <Image
-                  src="/assets/images/logo/logo_bksda.png"
+                  src="/logo_bksda.png"
                   alt="Logo BKSDA"
                   width={32}
                   height={32}

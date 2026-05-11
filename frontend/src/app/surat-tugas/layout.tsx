@@ -12,7 +12,7 @@ export default function SuratTugasLayout({
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center p-1">
-              <Image src="/assets/images/logo/logo_bksda.png" alt="Logo" width={40} height={40} className="w-full h-full object-contain" />
+              <Image src="/logo_bksda.png" alt="Logo" width={40} height={40} className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="font-bold text-slate-900 leading-tight">Pengajuan Surat Tugas</h1>
