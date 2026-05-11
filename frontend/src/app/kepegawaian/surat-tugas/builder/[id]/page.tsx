@@ -466,11 +466,11 @@ export default function STBuilderPage() {
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
           <FormSection title="Nomor Surat">
             <div className="flex items-stretch bg-slate-50 border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/10">
-              <div className="bg-slate-100 px-3 flex items-center border-r border-slate-200"><span className="text-xs font-bold">ST.</span></div>
-              <input value={stNumber} onChange={e => setStNumber(e.target.value)} className="w-16 px-3 py-2 text-sm font-bold bg-transparent outline-none" />
-              <div className="px-1 flex items-center text-slate-300">/</div>
-              <input value={stCode} onChange={e => setStCode(e.target.value)} className="flex-1 px-3 py-2 text-xs font-medium bg-transparent outline-none" />
-              <div className="bg-slate-100 px-3 flex items-center border-l border-slate-200"><span className="text-xs font-bold">/{currentMonth}/{currentYear}</span></div>
+              <div className="bg-slate-100 px-3 flex items-center border-r border-slate-200 shrink-0"><span className="text-xs font-bold">ST.</span></div>
+              <input value={stNumber} onChange={e => setStNumber(e.target.value)} placeholder="001" className="w-14 px-2 py-2 text-sm font-bold bg-transparent outline-none text-center" />
+              <div className="px-0.5 flex items-center text-slate-300 shrink-0">/</div>
+              <input value={stCode} onChange={e => setStCode(e.target.value)} placeholder="K.18/TU/KSA.0X.0X/B" className="flex-1 min-w-0 px-2 py-2 text-xs font-medium bg-transparent outline-none" />
+              <div className="bg-slate-100 px-2 flex items-center border-l border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/{currentMonth}/{currentYear}</span></div>
             </div>
           </FormSection>
 

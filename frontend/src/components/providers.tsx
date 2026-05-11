@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
+import { Toaster } from "@/components/ui/sonner";
 import { useEffect, useState } from "react";
 import { AuthSync } from "@/components/AuthSync";
 
@@ -57,6 +58,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         <ConfirmDialogProvider>
           <AuthSync />
+          <Toaster position="top-right" richColors closeButton />
           <div key={restoreKey} className="contents">
             {children}
           </div>
