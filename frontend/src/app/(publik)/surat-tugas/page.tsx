@@ -122,11 +122,11 @@ export default function SuratTugasForm() {
             if (formData.keterangan) submitData.append('keterangan', formData.keterangan);
             
             if (selectedFile) {
-                submitData.append('dasar_surat', selectedFile);
+                submitData.append('file_surat', selectedFile);
             }
 
             selectedEmployees.forEach((emp, index) => {
-                submitData.append(`employee_ids[${index}]`, emp.id);
+                submitData.append(`employees[${index}][id]`, emp.id);
             });
 
             await api.post('/surat-tugas', submitData, {

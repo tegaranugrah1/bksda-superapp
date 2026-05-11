@@ -56,14 +56,79 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | letter-utils.ts Refactoring (✅ MERGED) |
-| **Issue Selanjutnya** | Audit Middleware (Next.js Middleware migration) |
+| **Issue Terakhir Selesai** | Surat Tugas Builder Flow & Print Fix (✅ DONE) |
+| **Issue Selanjutnya** | Tembusan, Multi-page Testing, Signature Integration |
 | **Branch Aktif** | `main` |
-| **Commit** | `[NEW_COMMIT_ID]` - feat(inventory): bulk operations excel import/export |
-| **Model Terakhir** | Antigravity (Gemini 2.0 Flash Thinking) |
-| **Timestamp** | 2026-05-10T14:30:00+08:00 |
-| **GitHub PR** | [#259](https://github.com/tegaranugrah1/bksda-superapp/pull/259) - ✅ MERGED |
+| **Commit** | `[UNCOMMITTED]` - feat(surat-tugas): builder flow + print template fix |
+| **Model Terakhir** | Claude Opus 4.6 (Kiro) |
+| **Timestamp** | 2026-05-11T14:00:00+08:00 |
+| **GitHub PR** | Belum dibuat — perlu commit & push |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
+
+---
+
+**UPDATE SESI KIRO (2026-05-11 Sore):**
+- **Objective**: Fix Surat Tugas print template + Builder approval flow.
+- **Accomplishments**:
+  - **Print Template Fix (STBuilderPreview.tsx)**:
+    - Rewrite total mengikuti reference `superapp-inventory` — pakai `table-layout: fixed`, `tableLayout: "fixed"`, inline styles.
+    - Font: Bookman Old Style 11pt, line-height 1.25.
+    - Padding: `0.4cm 1cm 1cm 3cm` (match reference).
+    - Kop surat di `<thead>` agar repeat di multi-page.
+    - "SURAT TUGAS" tanpa underline, "M. Ari Wibawanto" tanpa underline.
+    - `${ttd_pengirim}` placeholder visible (tidak italic).
+    - Label "Nama" tidak bold, hanya value nama pegawai yang bold.
+    - Nomor surat format: `ST.{nomor}/{kode}/{bulan}/{tahun}`.
+  - **Builder Approval Flow (3 tombol)**:
+    - **Simpan Draft** — save data via `PUT /surat-tugas/{id}/approve` tanpa ubah status.
+    - **Ajukan Persetujuan** — set status `pending` (Menunggu Persetujuan Kasubag).
+    - **Cetak / Download** — print window untuk download/kirim via WA.
+  - **Backend `approve` endpoint** — semua field nullable, status opsional (default: tidak ubah status).
+  - **Backend `updateStatus`** — sekarang terima `pending` sebagai status valid.
+  - **History page** — tambah status `draft`, tombol "Setujui & Terbitkan" (✓) untuk item pending.
+  - **Inbox page** — tambah status `draft`, label update ("Menunggu Persetujuan", "Diterbitkan").
+  - **Nomor surat kosong** — builder & create page tidak auto-fill nomor surat (user isi manual).
+  - **Nomor surat terbawa** — fetchAndParse sekarang parse `nomor_surat` dan `kode_surat` dari API.
+  - **404 handling** — builder redirect ke inbox jika surat sudah dihapus.
+  - **Inbox auto-refresh** — `staleTime: 0` + `refetchOnWindowFocus: true`.
+- **Key Files Modified**:
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx` — REWRITE
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx` — flow + print CSS
+  - `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx` — nomor surat kosong
+  - `frontend/src/app/kepegawaian/_components/AssignmentHistoryTab.tsx` — status + approve button
+  - `frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx` — status labels + auto-refresh
+  - `backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php` — approve + updateStatus
+- **Flow Surat Tugas (Final)**:
+  ```
+  Pegawai submit (/surat-tugas) → status: draft
+  → Masuk Inbox Admin → klik "Proses" → Builder
+  → Admin isi nomor, detail → "Simpan Draft" (save tanpa ubah status)
+  → Admin cetak → kirim ke Kasubag via WA
+  → Admin klik "Ajukan Persetujuan" → status: pending
+  → Di History: badge "Menunggu Persetujuan" (kuning)
+  → Kasubag ACC → Admin klik ✓ di History → status: approved ("Diterbitkan")
+  ```
+- **Handoff**: Print template sudah match reference. Flow approval sudah 3-step (draft → pending → approved). Next: tembusan field, multi-page testing, signature integration.
+
+---
+
+**UPDATE SESI #315 (2026-05-11):**
+- **Objective**: Standardizing Surat Tugas Inbox and PDF Template.
+- **Accomplishments**:
+  - **Inbox UI**: Restored `max-w-7xl` wrapper, `rounded-[2.5rem]` card design, and standardized header typography.
+  - **PDF Builder**:
+    - Re-engineered the template for perfect colon (`:`) alignment using a fixed-width (100px) label system.
+    - Implemented high-fidelity header (Kop Surat) with negative margins for full-width bleed.
+    - Enforced `text-align: justify` and `text-justify: inter-word` globally for formal document aesthetics.
+    - Standardized Employee formatting: **Bold** names and correctly formatted NIP.
+  - **Print Fixes**:
+    - Injected self-contained CSS into the `handlePrint` function to solve the absence of Tailwind in the print window.
+    - Forced the signatory block (TTD) to the right using `margin-left: 9cm` in the print CSS.
+    - Added semantic classes (`label-col`, `signatory-block`, `header-container`) as a bridge between React and print CSS.
+- **Key Files**: `STBuilderPreview.tsx`, `builder/[id]/page.tsx`, `inbox/page.tsx`.
+- **Handoff**: The PDF preview and physical print output are now perfectly synchronized. Next step: multi-page testing and dynamic signature integration.
+
+---
 
 ### ✅ Phase 10 Completed Tasks
 
@@ -1157,10 +1222,10 @@ Setelah semua command clean:
 **WAJIB** update file `HANDOFF.md` ini dengan status terakhir!
 
 ---
-**STATUS TERAKHIR (2026-05-07):**
-- **Rollback dilakukan**: Seluruh skrip navigasi eksperimental (BFCache watchdog & Hard Navigation) dihapus.
-- **Kondisi**: Kembali ke "Phase 3 UI Overhaul" yang stabil secara tampilan.
-- **Fokus Selanjutnya**: Mencari solusi navigasi yang lebih "Next.js Native" tanpa merusak performa.
+**STATUS TERAKHIR (2026-05-11):**
+- **Surat Tugas Inbox**: UI telah disatukan dengan modul History, menggunakan layout master-detail yang responsif.
+- **Engineering Template PDF**: Struktur dokumen dibangun ulang dengan fixed-width label untuk presisi titik dua (`:`) dan justify alignment.
+- **Print Reliability**: Injeksi CSS mandiri ke jendela cetak untuk menjamin hasil print/PDF 100% identik dengan preview layar.
 
 **UPDATE SESI (2026-05-07):**
 - Investigasi BFCache Zombie state pada alur `/kepegawaian` -> `/bmn` -> browser Back.

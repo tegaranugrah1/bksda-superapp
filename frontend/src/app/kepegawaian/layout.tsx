@@ -12,10 +12,10 @@ import { RouteGuard } from "@/components/RouteGuard";
 
 const SIDEBAR_ITEMS = [
   { href: "/kepegawaian", label: "Daftar Pegawai", icon: Users },
-  { href: "/kepegawaian/create", label: "Tambah Pegawai", icon: UserPlus },
-  { href: "/kepegawaian/surat-tugas/inbox", label: "ST Inbox", icon: Inbox },
+  { href: "/kepegawaian/employees/create", label: "Tambah Pegawai", icon: UserPlus },
+  { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox },
   { href: "/kepegawaian/surat-tugas/create", label: "Buat Surat Tugas", icon: FileText },
-  { href: "/kepegawaian/surat-tugas/history", label: "ST Riwayat", icon: History },
+  { href: "/kepegawaian/surat-tugas/history", label: "Riwayat Surat Tugas", icon: History },
 ];
 
 export default function KepegawaianLayout({
