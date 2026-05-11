@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, UserPlus } from "lucide-react";
+import { Users, UserPlus, Inbox, FileText, History } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,9 @@ import { RouteGuard } from "@/components/RouteGuard";
 const SIDEBAR_ITEMS = [
   { href: "/kepegawaian", label: "Daftar Pegawai", icon: Users },
   { href: "/kepegawaian/create", label: "Tambah Pegawai", icon: UserPlus },
+  { href: "/kepegawaian/surat-tugas/inbox", label: "ST Inbox", icon: Inbox },
+  { href: "/kepegawaian/surat-tugas/create", label: "Buat Surat Tugas", icon: FileText },
+  { href: "/kepegawaian/surat-tugas/history", label: "ST Riwayat", icon: History },
 ];
 
 export default function KepegawaianLayout({
@@ -52,7 +55,7 @@ export default function KepegawaianLayout({
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {SIDEBAR_ITEMS.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
