@@ -255,9 +255,13 @@ export default function STBuilderPage() {
         }
 
         const activityStr = data.maksud_tujuan || "";
+        // Strip "selama X hari terhitung..." suffix that buildUntukText appends
+        const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*hari\s+terhitung.*$/i;
+        const cleanedActivity = activityStr.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
+        
         // Try to parse structured activity text: "[Melaksanakan] Perjalanan Dinas dari X ke Y [dalam rangka Z] [di W]"
         const regex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
-        const match = activityStr.match(regex);
+        const match = cleanedActivity.match(regex);
 
         if (match) {
           setActivityPrefix(match[1]);
@@ -279,7 +283,7 @@ export default function STBuilderPage() {
           setActivityPrefix("");
           setKotaAsal("");
           setKotaTujuan("");
-          setNamaKegiatan(activityStr);
+          setNamaKegiatan(cleanedActivity);
         }
 
         // Only update Dasar from funding if no saved dasar
