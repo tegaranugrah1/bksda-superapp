@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, LayoutDashboard, Settings, Menu, FileText, Inbox } from "lucide-react";
+import { Users, LayoutDashboard, Settings, Menu, FileText, Inbox, History, Plus } from "lucide-react";
 import { useState } from "react";
 import { LogoutButton } from "@/components/logout-button";
 
 // Daftar Menu (Bisa ditambahkan nanti)
 const menuItems = [
   { name: "Portal Modul", href: "/", icon: LayoutDashboard },
-  { name: "Kepegawaian", href: "/kepegawaian", icon: Users },
-  { name: "Surat Tugas", href: "/admin/surat-tugas", icon: Inbox },
-  { name: "Buat Surat Tugas", href: "/admin/surat-tugas/create", icon: FileText, indent: true },
+  { name: "Daftar Pegawai", href: "/kepegawaian", icon: Users },
+  { name: "Tambah Pegawai", href: "/kepegawaian/employees/create", icon: Plus, indent: true },
+  { name: "Surat Tugas Masuk", href: "/kepegawaian/surat-tugas/inbox", icon: Inbox },
+  { name: "Buat Surat Tugas", href: "/kepegawaian/surat-tugas/create", icon: FileText, indent: true },
+  { name: "Daftar Surat Tugas", href: "/kepegawaian/surat-tugas/history", icon: History, indent: true },
   { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 
@@ -42,11 +44,12 @@ export function Sidebar() {
           {/* Logo BKSDA Premium */}
           <div className="p-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
              <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center">
-                 <span className="text-white font-extrabold text-lg">B</span>
+               <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center p-1">
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                 <img src="/logo_bksda.png" alt="Logo BKSDA" className="w-full h-full object-contain" />
                </div>
                <div>
-                  <h1 className="font-bold text-lg tracking-tight leading-none text-zinc-900 dark:text-white">SuperApp</h1>
+                  <h1 className="font-bold text-lg tracking-tight leading-none text-zinc-900 dark:text-white">BKSDA</h1>
                   <p className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400 mt-1 tracking-wider">Kalimantan Timur</p>
                </div>
              </div>

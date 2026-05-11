@@ -50,11 +50,24 @@ export default function SuratTugasForm() {
         tanggal_selesai: '',
         sumber_dana: '',
         sumber_dana_other: '',
-        tempat_tujuan: '',
         keterangan: ''
     });
+    const [namaPlh, setNamaPlh] = useState('');
+    const [tandaSetuju, setTandaSetuju] = useState<'sudah' | 'belum' | ''>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Deteksi apakah ada pejabat struktural (Kasubag TU / Kepala Seksi) yang ikut perjalanan
+    const hasPejabatStruktural = selectedEmployees.some((emp) => {
+        const pos = (emp.position || '').toLowerCase();
+        return pos.includes('kepala seksi') || pos.includes('kepala subbagian') || pos.includes('kasubag');
+    });
+
+    // Deteksi apakah ada pegawai dari Seksi (bukan Kantor Balai)
+    const hasSeksiEmployee = selectedEmployees.some((emp) => {
+        const dept = (emp.department || '').toLowerCase();
+        return dept.includes('seksi konservasi');
+    });
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -113,20 +126,22 @@ export default function SuratTugasForm() {
             submitData.append('maksud_tujuan', formData.nama_kegiatan);
             submitData.append('tanggal_mulai', formData.tanggal_mulai);
             submitData.append('tanggal_selesai', formData.tanggal_selesai);
-            submitData.append('tempat_tujuan', formData.tempat_tujuan);
             submitData.append('sumber_dana', formData.sumber_dana);
             
             if (formData.sumber_dana === 'other') {
                 submitData.append('sumber_dana_other', formData.sumber_dana_other);
             }
             if (formData.keterangan) submitData.append('keterangan', formData.keterangan);
+            if (namaPlh) submitData.append('nama_plh', namaPlh);
+            if (tandaSetuju) submitData.append('tanda_setuju', tandaSetuju);
+            submitData.append('has_seksi_employee', hasSeksiEmployee ? '1' : '0');
             
             if (selectedFile) {
-                submitData.append('dasar_surat', selectedFile);
+                submitData.append('file_surat', selectedFile);
             }
 
             selectedEmployees.forEach((emp, index) => {
-                submitData.append(`employee_ids[${index}]`, emp.id);
+                submitData.append(`employees[${index}][id]`, emp.id);
             });
 
             await api.post('/surat-tugas', submitData, {
@@ -325,20 +340,6 @@ export default function SuratTugasForm() {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            Tempat Tujuan <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            required
-                            value={formData.tempat_tujuan}
-                            onChange={e => setFormData({...formData, tempat_tujuan: e.target.value})}
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
-                            placeholder="Contoh: Kecamatan Melville, Kabupaten Kutai Barat"
-                        />
-                    </div>
-
                     <div className="space-y-3">
                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">
                             Sumber Dana <span className="text-red-500">*</span>
@@ -392,6 +393,93 @@ export default function SuratTugasForm() {
                             </div>
                         )}
                     </div>
+
+                    {/* PLH - muncul jika ada Kasubag TU / Kepala Seksi yang ikut perjalanan */}
+                    {hasPejabatStruktural && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Nama PLH <span className="text-red-500">*</span>
+                            </label>
+                            <p className="text-xs text-amber-600 font-medium bg-amber-50 border border-amber-100 rounded-xl px-4 py-2">
+                                Wajib diisi karena Kepala Subbagian Tata Usaha atau Kepala Seksi melaksanakan perjalanan dinas.
+                            </p>
+                            <input
+                                type="text"
+                                required
+                                value={namaPlh}
+                                onChange={e => setNamaPlh(e.target.value)}
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
+                                placeholder="Nama lengkap Pelaksana Harian (PLH)"
+                            />
+                        </div>
+                    )}
+
+                    {/* Tanda Setuju - muncul jika ada pegawai dari Seksi */}
+                    {hasSeksiEmployee && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Tanda Setuju <span className="text-red-500">*</span>
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label className={cn(
+                                    "flex items-center p-4 border rounded-xl cursor-pointer transition-all",
+                                    tandaSetuju === 'sudah'
+                                        ? "bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500/20"
+                                        : "bg-white border-slate-200 hover:bg-slate-50"
+                                )}>
+                                    <input
+                                        type="radio"
+                                        name="tanda_setuju"
+                                        value="sudah"
+                                        required
+                                        className="sr-only"
+                                        checked={tandaSetuju === 'sudah'}
+                                        onChange={() => setTandaSetuju('sudah')}
+                                    />
+                                    <div className={cn(
+                                        "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
+                                        tandaSetuju === 'sudah' ? "border-emerald-500" : "border-slate-300"
+                                    )}>
+                                        {tandaSetuju === 'sudah' && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />}
+                                    </div>
+                                    <span className={cn(
+                                        "text-sm font-semibold transition-colors",
+                                        tandaSetuju === 'sudah' ? "text-emerald-900" : "text-slate-600"
+                                    )}>
+                                        Sudah disetujui Kepala Seksi
+                                    </span>
+                                </label>
+                                <label className={cn(
+                                    "flex items-center p-4 border rounded-xl cursor-pointer transition-all",
+                                    tandaSetuju === 'belum'
+                                        ? "bg-amber-50 border-amber-500 ring-1 ring-amber-500/20"
+                                        : "bg-white border-slate-200 hover:bg-slate-50"
+                                )}>
+                                    <input
+                                        type="radio"
+                                        name="tanda_setuju"
+                                        value="belum"
+                                        required
+                                        className="sr-only"
+                                        checked={tandaSetuju === 'belum'}
+                                        onChange={() => setTandaSetuju('belum')}
+                                    />
+                                    <div className={cn(
+                                        "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
+                                        tandaSetuju === 'belum' ? "border-amber-500" : "border-slate-300"
+                                    )}>
+                                        {tandaSetuju === 'belum' && <div className="w-2.5 h-2.5 bg-amber-500 rounded-full" />}
+                                    </div>
+                                    <span className={cn(
+                                        "text-sm font-semibold transition-colors",
+                                        tandaSetuju === 'belum' ? "text-amber-900" : "text-slate-600"
+                                    )}>
+                                        Belum disetujui Kepala Seksi
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-3">
                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">

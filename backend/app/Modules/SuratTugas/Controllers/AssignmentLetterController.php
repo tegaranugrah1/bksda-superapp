@@ -14,7 +14,7 @@ class AssignmentLetterController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap']);
+        $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
 
         if ($search = $request->query('search')) {
             $query->where('tempat_tujuan', 'ilike', "%{$search}%")
@@ -53,9 +53,14 @@ class AssignmentLetterController extends Controller
                 'dasar_hukum' => $validated['dasar_hukum'] ?? null,
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
-                'tempat_tujuan' => $validated['tempat_tujuan'],
-                'status' => 'pending',
-                'created_by' => (int) auth()->id(),
+                'tempat_tujuan' => $validated['tempat_tujuan'] ?? null,
+                'sumber_dana' => $validated['sumber_dana'] ?? 'dipa',
+                'sumber_dana_other' => $validated['sumber_dana_other'] ?? null,
+                'nama_plh' => $request->input('nama_plh'),
+                'has_seksi_employee' => (bool) $request->input('has_seksi_employee', false),
+                'tanda_setuju' => $request->input('tanda_setuju'),
+                'status' => 'draft',
+                'created_by' => auth()->id() ? (int) auth()->id() : null,
             ]);
 
             $pivotData = [];
@@ -138,13 +143,16 @@ class AssignmentLetterController extends Controller
     public function updateStatus(Request $request, string $id)
     {
         $request->validate([
-            'status' => 'required|in:approved,rejected,completed',
+            'status' => 'required|in:pending,approved,rejected,completed',
             'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
         ]);
 
         $surat = AssignmentLetter::findOrFail($id);
         $surat->status = $request->status;
-        $surat->approved_by = (int) auth()->id();
+        
+        if (in_array($request->status, ['approved', 'completed'])) {
+            $surat->approved_by = (int) auth()->id();
+        }
 
         if ($request->has('nomor_surat')) {
             $surat->nomor_surat = $request->nomor_surat;
@@ -223,5 +231,139 @@ class AssignmentLetterController extends Controller
                 'personil' => $surat->employees->pluck('nama_lengkap'),
             ],
         ]);
+    }
+
+    public function approve(Request $request, string $id)
+    {
+        $request->validate([
+            'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
+            'kode_surat' => 'nullable|string',
+            'nama_kegiatan' => 'nullable|string',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date',
+            'tanggal_surat' => 'nullable|date',
+            'sumber_dana' => 'nullable|string',
+            'sumber_dana_other' => 'nullable|string',
+            'menimbang' => 'nullable|array',
+            'dasar' => 'nullable|array',
+            'employee_ids' => 'nullable|array',
+            'status' => 'nullable|in:pending,approved',
+        ]);
+
+        $surat = AssignmentLetter::findOrFail($id);
+
+        $targetStatus = $request->input('status'); // null if not provided
+
+        DB::beginTransaction();
+        try {
+            $updateData = array_filter([
+                'nomor_surat' => $request->nomor_surat,
+                'kode_surat' => $request->kode_surat,
+                'maksud_tujuan' => $request->nama_kegiatan,
+                'tempat_tujuan' => $request->tempat_tujuan,
+                'tanggal_mulai' => $request->tanggal_mulai,
+                'tanggal_selesai' => $request->tanggal_selesai,
+                'tanggal_surat' => $request->tanggal_surat,
+                'sumber_dana' => $request->sumber_dana,
+                'sumber_dana_other' => $request->sumber_dana_other,
+                'menimbang' => $request->menimbang,
+                'dasar' => $request->dasar,
+            ], fn($v) => $v !== null);
+
+            // Only update status if explicitly provided
+            if ($targetStatus) {
+                $updateData['status'] = $targetStatus;
+                if ($targetStatus === 'approved') {
+                    $updateData['approved_by'] = auth()->id();
+                }
+            }
+
+            $surat->update($updateData);
+
+            if ($request->has('employee_ids') && is_array($request->employee_ids)) {
+                $surat->employees()->sync($request->employee_ids);
+            }
+
+            DB::commit();
+
+            $statusLabel = $targetStatus === 'pending' ? 'diajukan untuk persetujuan' : ($targetStatus === 'approved' ? 'berhasil diterbitkan' : 'berhasil disimpan');
+            return response()->json([
+                'message' => "Surat Tugas {$statusLabel}.",
+                'data' => $surat->load('employees'),
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal memproses surat: '.$e->getMessage()], 500);
+        }
+    }
+
+    public function getNextNumber()
+    {
+        $year = now()->year;
+        $lastLetter = AssignmentLetter::whereYear('tanggal_surat', $year)
+            ->orWhereYear('created_at', $year)
+            ->whereNotNull('nomor_surat')
+            ->orderBy('nomor_surat', 'desc')
+            ->first();
+
+        $nextNumber = 1;
+        if ($lastLetter && preg_match('/ST\.(\d+)/', $lastLetter->nomor_surat, $matches)) {
+            $nextNumber = (int) $matches[1] + 1;
+        }
+
+        return response()->json([
+            'next_number' => str_pad($nextNumber, 3, '0', STR_PAD_LEFT),
+            'current_year' => $year,
+        ]);
+    }
+
+    public function directStore(Request $request)
+    {
+        $request->validate([
+            'nomor_surat' => 'required|string|unique:st_assignment_letters,nomor_surat',
+            'kode_surat' => 'nullable|string',
+            'maksud_tujuan' => 'required|string',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date',
+            'tanggal_surat' => 'required|date',
+            'tempat_tujuan' => 'required|string',
+            'sumber_dana' => 'required|string',
+            'sumber_dana_other' => 'nullable|string',
+            'menimbang' => 'nullable|array',
+            'dasar' => 'nullable|array',
+            'employee_ids' => 'required|array',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $surat = AssignmentLetter::create([
+                'nomor_surat' => $request->nomor_surat,
+                'kode_surat' => $request->kode_surat,
+                'maksud_tujuan' => $request->maksud_tujuan,
+                'tanggal_mulai' => $request->tanggal_mulai,
+                'tanggal_selesai' => $request->tanggal_selesai,
+                'tanggal_surat' => $request->tanggal_surat,
+                'tempat_tujuan' => $request->tempat_tujuan,
+                'sumber_dana' => $request->sumber_dana,
+                'sumber_dana_other' => $request->sumber_dana_other,
+                'menimbang' => $request->menimbang,
+                'dasar' => $request->dasar,
+                'status' => 'approved',
+                'created_by' => (int) auth()->id(),
+                'approved_by' => (int) auth()->id(),
+            ]);
+
+            $surat->employees()->sync($request->employee_ids);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Surat Tugas berhasil diterbitkan langsung.',
+                'data' => $surat->load('employees'),
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal menerbitkan surat: '.$e->getMessage()], 500);
+        }
     }
 }

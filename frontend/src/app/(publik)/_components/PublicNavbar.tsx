@@ -59,7 +59,7 @@ export default function PublicNavbar() {
           {/* Logo + Nama */}
           <Link href="/" className="flex items-center gap-3 shrink-0">
             <img
-              src="/assets/logo_bksda.png"
+              src="/logo_bksda.png"
               alt="Logo BKSDA"
               className="h-10 w-10 object-contain"
             />

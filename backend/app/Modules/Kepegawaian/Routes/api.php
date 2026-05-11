@@ -15,6 +15,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     // --- MANAJEMEN DATA PEGAWAI (CRUD) ---
     Route::get('/employees', [EmployeeController::class, 'index']);
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
+    Route::get('/employees/{employee}/assignment-letters', [EmployeeController::class, 'assignmentLetters']);
 
     // Operasi tulis/hapus hanya untuk Admin/SuperAdmin
     Route::middleware('role:super_admin,admin')->group(function () {

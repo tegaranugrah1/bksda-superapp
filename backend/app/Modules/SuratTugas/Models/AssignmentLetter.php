@@ -18,6 +18,7 @@ class AssignmentLetter extends Model
 
     protected $fillable = [
         'nomor_surat',
+        'kode_surat',
         'dasar_hukum',
         'maksud_tujuan',
         'tanggal_mulai',
@@ -25,6 +26,14 @@ class AssignmentLetter extends Model
         'tempat_tujuan',
         'status',
         'file_surat_path',
+        'tanggal_surat',
+        'sumber_dana',
+        'sumber_dana_other',
+        'nama_plh',
+        'has_seksi_employee',
+        'tanda_setuju',
+        'menimbang',
+        'dasar',
         'created_by',
         'approved_by',
     ];
@@ -32,6 +41,10 @@ class AssignmentLetter extends Model
     protected $casts = [
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
+        'tanggal_surat' => 'date',
+        'menimbang' => 'array',
+        'dasar' => 'array',
+        'has_seksi_employee' => 'boolean',
     ];
 
     public function creator(): BelongsTo

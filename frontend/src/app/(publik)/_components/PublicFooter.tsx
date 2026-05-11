@@ -49,7 +49,7 @@ export default function PublicFooter() {
         <div>
           <div className="flex items-center gap-3 mb-4">
             <img
-              src="/assets/logo_bksda.png"
+              src="/logo_bksda.png"
               alt="Logo"
               className="h-10 w-10 object-contain brightness-200"
             />

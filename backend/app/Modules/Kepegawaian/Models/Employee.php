@@ -91,4 +91,21 @@ class Employee extends Model
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * RELASI: Riwayat Penugasan (Surat Tugas)
+     * Mengambil daftar surat tugas yang melibatkan pegawai ini.
+     */
+    public function assignmentLetters(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Modules\SuratTugas\Models\AssignmentLetter::class,
+            'st_assignment_letter_employees',
+            'employee_id',
+            'assignment_letter_id'
+        )
+            ->using(\App\Modules\SuratTugas\Models\AssignmentLetterEmployee::class)
+            ->withPivot('peran')
+            ->withTimestamps();
+    }
 }

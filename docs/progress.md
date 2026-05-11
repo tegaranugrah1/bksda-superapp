@@ -1,9 +1,87 @@
-# Progress - Phase 10: Route Restructure & Portal Dashboard
+# Progress - Phase 21: Surat Tugas Builder Flow & Print Fix
 
-> Document created: 2026-05-09
-> Last updated: 2026-05-10 01:00
+> Document updated: 2026-05-11 14:00
+> Status: **COMPLETED** ✅
 
 ---
+
+## Phase 21: Surat Tugas Builder Flow & Print Fix
+
+### Accomplishments:
+- [x] **Print Template Rewrite**: Complete rewrite of `STBuilderPreview.tsx` to match `superapp-inventory` reference exactly — Bookman Old Style 11pt, `table-layout: fixed`, inline styles, kop surat in `<thead>` for multi-page repeat.
+- [x] **Print CSS Simplified**: Minimal print CSS (`@page margin: 0`, body padding `0.4cm 1cm 1cm 3cm`) — no complex class overrides needed since all styles are inline.
+- [x] **Builder 3-Button Flow**: Replaced single "Terbitkan" button with "Simpan Draft" + "Ajukan Persetujuan" + "Cetak / Download".
+- [x] **Backend Approve Endpoint Flex**: Made all fields nullable, status optional (no status = don't change status, `pending` = waiting approval, `approved` = published).
+- [x] **Backend updateStatus**: Now accepts `pending` as valid status.
+- [x] **History Page Upgrade**: Added `draft` status, "Setujui & Terbitkan" button for pending items, updated labels.
+- [x] **Inbox Page Upgrade**: Added `draft` status, updated labels ("Menunggu Persetujuan", "Diterbitkan"), auto-refresh with `staleTime: 0`.
+- [x] **Nomor Surat Empty by Default**: Removed auto-fetch of next number in both builder and create pages.
+- [x] **Nomor Surat Parsing**: Builder now parses `nomor_surat` and `kode_surat` from API response when editing existing ST.
+- [x] **404 Graceful Handling**: Builder redirects to inbox if ST is deleted/not found.
+- [x] **Public /surat-tugas Verified**: Confirmed identical flow with `superapp-inventory` reference.
+
+### Files Modified:
+```
+frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx  ← REWRITE
+frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx             ← flow + print CSS
+frontend/src/app/kepegawaian/surat-tugas/create/page.tsx                   ← nomor surat kosong
+frontend/src/app/kepegawaian/_components/AssignmentHistoryTab.tsx           ← status + approve btn
+frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx                    ← labels + auto-refresh
+backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php  ← approve + updateStatus
+```
+
+### Surat Tugas Flow (Final):
+```
+Pegawai submit (/surat-tugas) → status: draft
+→ Masuk Inbox Admin (/kepegawaian/surat-tugas/inbox) → klik "Proses"
+→ Builder (/kepegawaian/surat-tugas/builder/[id])
+→ Admin isi nomor, detail → "Simpan Draft" (save tanpa ubah status)
+→ Admin cetak → kirim ke Kasubag via WA
+→ Admin klik "Ajukan Persetujuan" → status: pending
+→ Di History (/kepegawaian/surat-tugas/history): badge "Menunggu Persetujuan"
+→ Kasubag ACC → Admin klik ✓ di History → status: approved ("Diterbitkan")
+```
+
+### Next Steps:
+- [ ] Tembusan field di builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration (digital/scan)
+
+### Additional Fixes (same session):
+- [x] **PLH & Tanda Setuju**: Added to public form `/surat-tugas` — PLH shows when Kasubag/Kaseksi selected, Tanda Setuju shows when Seksi employee selected.
+- [x] **Backend migration**: Added `nama_plh`, `has_seksi_employee`, `tanda_setuju` columns to `st_assignment_letters`.
+- [x] **Route move**: `/surat-tugas` moved from `(publik)` to dedicated route with minimal layout (no navbar/footer).
+- [x] **Logo unified**: All logo references → `/logo_bksda.png`.
+- [x] **Tempat Tujuan removed**: From public form (nullable in DB), but saved from builder's "Tujuan" field.
+- [x] **Toaster added**: `<Toaster />` was missing from Providers — all toast notifications now work.
+- [x] **Employee search fix**: Builder + Create pages now handle `name` vs `nama_lengkap` field mismatch from API.
+- [x] **Employee normalize**: When adding from search, `nama_lengkap` and `jabatan` populated from `name`/`position`.
+- [x] **Nomor surat width**: Fixed `/05/2026` being cut off in both builder and create pages.
+- [x] **Double text fix**: Strip "selama X hari..." suffix when re-parsing saved `maksud_tujuan`.
+- [x] **Smart parsing**: Detect full freeform text vs structured "Perjalanan Dinas dari X ke Y" — no more double prefix.
+- [x] **tempat_tujuan saved**: Builder now sends `kotaTujuan` as `tempat_tujuan` to backend.
+- [x] **Inbox NIP**: Backend now loads `nip,jabatan` for employees in index query.
+
+---
+
+# Progress - Phase 20: Surat Tugas Standardization (Inbox & Builder)
+
+> Document updated: 2026-05-11 10:15
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 20: Surat Tugas Standardization (Inbox & Builder)
+
+### Accomplishments:
+- [x] **Inbox UI Unification**: Restored `max-w-7xl` container and standardized header to match the administrative design system (History module).
+- [x] **PDF Template Engineering**: Reconstructed the Surat Tugas layout with fixed-width labels for perfect colon alignment and justify perataan.
+- [x] **Print Reliability Engine**: Injected self-contained CSS into the print window to ensure 100% visual parity between screen preview and PDF output.
+- [x] **Signatory Alignment**: Fixed signatory (TTD) positioning to be right-aligned in print using robust margin offsets.
+
+---
+
+# Progress - Phase 10: Route Restructure & Portal Dashboard
 
 ## ⚠️ GIT WORKFLOW — WAJIB DIIKUTI SETIAP ISSUE
 
@@ -626,3 +704,30 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - **PR:** https://github.com/tegaranugrah1/bksda-superapp/pull/252
 - **Branch:** `issue/121-frontend-route-restructure-phase10`
 - **Status:** Open, testing in progress
+
+# Progress Log: Modul Kepegawaian & Surat Tugas
+
+## [2026-05-10] Sesi Konsolidasi & Restrukturisasi
+
+### Completed (Selesai)
+- [x] Pindahkan fitur Tambah Pegawai ke `/kepegawaian/employees/create`.
+- [x] Pindahkan fitur Detail Pegawai ke `/kepegawaian/employees/[id]`.
+- [x] Pindahkan operasional Surat Tugas ke `/kepegawaian/surat-tugas/*`.
+- [x] Update Sidebar Global agar flat (langsung akses Inbox, Buat Surat, dan Riwayat).
+- [x] Perbaikan Error 404 pada navigasi `KepegawaianLayout`.
+- [x] Fix Linting: Ganti `any` dengan interface di `EmployeeCreatePage`.
+- [x] Fix Linting: Ganti `<img>` dengan `next/image`.
+- [x] Fix Linting: Update `rounded-[2rem]` menjadi `rounded-4xl`.
+- [x] Riset & Bedah Flow Referensi dari `superapp-inventory`.
+
+### In Progress (Sedang Berjalan)
+- [/] Sinkronisasi komponen `AssignmentLetterPreview` agar tidak tergantung folder lama.
+
+### Next Steps (Rencana Besok)
+- [ ] **Implementasi ST Builder Premium**:
+    - [ ] Buat UI Builder dengan Sidebar Form & Main Preview.
+    - [ ] Implementasi Auto-parsing kalimat (Asal, Tujuan, Rangka).
+    - [ ] Penomoran surat otomatis (ST.XXX/Code/MM/YYYY).
+    - [ ] Fitur Print langsung dari browser.
+- [ ] **Integrasi Inbox -> Builder**: Klik "Setujui" di Inbox langsung lempar data ke Builder.
+- [ ] **Cleanup**: Hapus folder `src/app/(dashboard)/admin/surat-tugas` (Didepresiasi).
