@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -62,7 +62,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
 
   const form = useForm<AccessFormValues>({
     resolver: zodResolver(accessSchema),
-    defaultValues: { role: "user", access_modules: ["kepegawaian"], password: "" },
+    defaultValues: { role: "user", access_modules: [], password: "" },
   });
 
   const accessModules = useWatch({ control: form.control, name: "access_modules", defaultValue: [] });
@@ -74,13 +74,28 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
     staleTime: 0,
   });
 
+  const hasSynced = useRef(false);
+
   useEffect(() => {
-    if (open && currentAccess) {
-      form.reset({ role: (currentAccess.role as "super_admin" | "admin" | "user") || "user", access_modules: currentAccess.access_modules || [], password: "" });
-    } else if (open && !isLoading && !currentAccess) {
-      form.reset({ role: "user", access_modules: ["kepegawaian"], password: "" });
+    if (!open) {
+      hasSynced.current = false;
+      return;
     }
-  }, [currentAccess, open, isLoading, form]);
+    if (hasSynced.current) return;
+
+    if (currentAccess) {
+      form.reset({
+        role: (currentAccess.role as "super_admin" | "admin" | "user") || "user",
+        access_modules: currentAccess.access_modules || [],
+        password: "",
+      });
+      hasSynced.current = true;
+    } else if (!isLoading) {
+      form.reset({ role: "user", access_modules: [], password: "" });
+      hasSynced.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAccess, open, isLoading]);
 
   const mutation = useMutation({
     mutationFn: async (values: AccessFormValues) => { const { data } = await api.put(`/kepegawaian/employees/${employee?.id}/access`, values); return data; },
