@@ -7,6 +7,7 @@ import * as z from "zod";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -26,10 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Shield, KeyRound, Loader2, AlertCircle, Info } from "lucide-react";
+import { Shield, KeyRound, Loader2, AlertCircle, Info, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -117,6 +117,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
             </div>
             Manajemen Hak Akses
           </DialogTitle>
+          <DialogDescription className="sr-only">Atur role dan modul akses pegawai</DialogDescription>
         </DialogHeader>
 
         {/* Employee Info Card */}
@@ -183,7 +184,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                       <div
                         key={module.id}
                         className={cn(
-                          "flex flex-row items-center space-x-3 rounded-xl border p-3 transition-all cursor-pointer",
+                          "flex flex-row items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer select-none",
                           isSelected ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-100 hover:border-slate-200"
                         )}
                         onClick={() => {
@@ -194,19 +195,12 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                           form.setValue("access_modules", updated, { shouldValidate: true });
                         }}
                       >
-                        <Checkbox
-                          checked={isSelected}
-                          className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
-                          tabIndex={-1}
-                          onClick={(e) => e.stopPropagation()}
-                          onCheckedChange={(checked) => {
-                            const current = form.getValues("access_modules") || [];
-                            const updated = checked
-                              ? [...current, module.id]
-                              : current.filter((v) => v !== module.id);
-                            form.setValue("access_modules", updated, { shouldValidate: true });
-                          }}
-                        />
+                        <div className={cn(
+                          "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
+                          isSelected ? "bg-emerald-600 border-emerald-600" : "border-slate-300"
+                        )}>
+                          {isSelected && <Check className="w-3 h-3 text-white" />}
+                        </div>
                         <div className="flex-1">
                           <p className={cn("text-sm font-semibold", isSelected ? "text-emerald-700" : "text-slate-700")}>{module.label}</p>
                           <p className="text-[10px] text-slate-500">{module.description}</p>
