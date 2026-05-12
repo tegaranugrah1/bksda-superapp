@@ -5,17 +5,18 @@ import { usePathname } from "next/navigation";
 import { Users, UserPlus, Inbox, FileText, History } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/logout-button";
 import { ModuleSwitcher } from "@/components/module-switcher";
 import { RouteGuard } from "@/components/RouteGuard";
 
 const SIDEBAR_ITEMS = [
-  { href: "/kepegawaian", label: "Daftar Pegawai", icon: Users },
-  { href: "/kepegawaian/employees/create", label: "Tambah Pegawai", icon: UserPlus },
-  { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox },
-  { href: "/kepegawaian/surat-tugas/create", label: "Buat Surat Tugas", icon: FileText },
-  { href: "/kepegawaian/surat-tugas/history", label: "Riwayat Surat Tugas", icon: History },
+  { href: "/kepegawaian", label: "Daftar Pegawai", icon: Users, minRole: "user" as const },
+  { href: "/kepegawaian/employees/create", label: "Tambah Pegawai", icon: UserPlus, minRole: "admin" as const },
+  { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox, minRole: "admin" as const },
+  { href: "/kepegawaian/surat-tugas/create", label: "Buat Surat Tugas", icon: FileText, minRole: "admin" as const },
+  { href: "/kepegawaian/surat-tugas/history", label: "Riwayat Surat Tugas", icon: History, minRole: "user" as const },
 ];
 
 export default function KepegawaianLayout({
@@ -25,6 +26,13 @@ export default function KepegawaianLayout({
 }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { canWrite } = useRole();
+
+  const visibleItems = SIDEBAR_ITEMS.filter(item => {
+    if (item.minRole === "user") return true;
+    if (item.minRole === "admin") return canWrite;
+    return false;
+  });
 
   return (
     <RouteGuard requiredModule="kepegawaian">
@@ -53,7 +61,7 @@ export default function KepegawaianLayout({
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-            {SIDEBAR_ITEMS.map((item) => {
+            {visibleItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href));
               return (
