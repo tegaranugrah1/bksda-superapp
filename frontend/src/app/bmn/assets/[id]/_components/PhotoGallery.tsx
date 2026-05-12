@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon } from "lucide-react";
+import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ function driveToThumbnail(url: string): string | null {
 export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
   const [geotagInput, setGeotagInput] = useState("");
   const [showGeotagInput, setShowGeotagInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -155,7 +156,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
                       const thumb = driveToThumbnail(url);
                       return thumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={thumb} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <img src={thumb} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" referrerPolicy="no-referrer" onClick={() => setLightbox({ url: thumb.replace('sz=w400', 'sz=w1200'), label: slot.label })} />
                       ) : (
                         <div className="flex flex-col items-center gap-2 p-3 text-center">
                           <ExternalLink className="w-6 h-6 text-emerald-600" />
@@ -165,7 +166,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
                     })()
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={url} alt={slot.label} className="w-full h-full object-cover" />
+                    <img src={url} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => setLightbox({ url, label: slot.label })} />
                   )
                 ) : (
                   <div className="flex flex-col items-center gap-1 p-3 text-center">
@@ -232,6 +233,24 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
 
       {uploading && (
         <div className="px-5 pb-4 text-xs text-emerald-600 font-medium animate-pulse">Mengupload foto {uploading}...</div>
+      )}
+
+      {/* Lightbox Modal */}
+      {lightbox && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
+          <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors" onClick={() => setLightbox(null)}>
+            <X className="w-6 h-6" />
+          </button>
+          <p className="absolute top-4 left-4 text-white/70 text-sm font-medium">{lightbox.label}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightbox.url}
+            alt={lightbox.label}
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            referrerPolicy="no-referrer"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );
