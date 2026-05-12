@@ -103,7 +103,7 @@ export default function STBuilderPage() {
 
   // --- Form State ---
   const [stNumber, setStNumber] = useState("");
-  const [stCode, setStCode] = useState("");
+  const [klasifikasi, setKlasifikasi] = useState("KSA.0X.0X");
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const currentYear = new Date().getFullYear().toString();
 
@@ -220,19 +220,32 @@ export default function STBuilderPage() {
         const res = await api.get(`/surat-tugas/${id}`);
         const data = res.data.data;
 
-        // Parse nomor surat: "ST.001/K.18/TU/KSA.0X.0X/B/05/2026"
+        // Parse nomor surat: "ST.001/K.18/TU/KSA.03.01/B/05/2026"
         if (data.nomor_surat) {
-          const nomorMatch = data.nomor_surat.match(/^ST\.(.+?)\/(.+)\/(\d{2})\/(\d{4})$/);
+          // Extract number: ST.{number}/K.18/TU/{klasifikasi}/B/{mm}/{yyyy}
+          const nomorMatch = data.nomor_surat.match(/^ST\.(.+?)\/K\.18\/TU\/(.+?)\/B\/(\d{2})\/(\d{4})$/);
           if (nomorMatch) {
             setStNumber(nomorMatch[1]);
-            setStCode(nomorMatch[2]);
+            setKlasifikasi(nomorMatch[2]);
           } else {
-            // Fallback: just put the whole thing in stNumber
-            setStNumber(data.nomor_surat.replace(/^ST\./, ""));
+            // Legacy fallback: ST.{number}/{code}/{mm}/{yyyy}
+            const legacyMatch = data.nomor_surat.match(/^ST\.(.+?)\/(.+)\/(\d{2})\/(\d{4})$/);
+            if (legacyMatch) {
+              setStNumber(legacyMatch[1]);
+              // Try to extract klasifikasi from code like "K.18/TU/KSA.03.01/B"
+              const codeMatch = legacyMatch[2].match(/K\.18\/TU\/(.+?)\/B/);
+              setKlasifikasi(codeMatch ? codeMatch[1] : legacyMatch[2]);
+            } else {
+              setStNumber(data.nomor_surat.replace(/^ST\./, ""));
+            }
           }
         }
         if (data.kode_surat) {
-          setStCode(data.kode_surat);
+          // Extract klasifikasi from kode_surat like "K.18/TU/KSA.03.01/B"
+          const codeMatch = data.kode_surat.match(/K\.18\/TU\/(.+?)\/B/);
+          if (codeMatch) {
+            setKlasifikasi(codeMatch[1]);
+          }
         }
 
         // Tanggal surat: default hari ini, bisa diganti manual
@@ -314,12 +327,29 @@ export default function STBuilderPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Auto-fill klasifikasi & menimbang based on nama kegiatan keywords
+  const handleNamaKegiatanChange = (value: string) => {
+    setNamaKegiatan(value);
+    const lower = value.toLowerCase();
+    if (lower.includes("konflik")) {
+      setKlasifikasi("KSA.03.01");
+      setMenimbangItems(prev => {
+        const newItems = [...prev];
+        if (newItems.length > 0) {
+          newItems[0] = { ...newItems[0], text: "bahwa dalam rangka kegiatan penanganan konflik satwa, perlu penyelamatan;" };
+        }
+        return newItems;
+      });
+    }
+  };
+
   // Handlers
   // Simpan draft — save semua data tanpa ubah status
   const handleSave = async () => {
     try {
-      const fullNomorSurat = stNumber && stCode 
-        ? `ST.${stNumber}/${stCode}/${currentMonth}/${currentYear}` 
+      const stCode = `K.18/TU/${klasifikasi}/B`;
+      const fullNomorSurat = stNumber && klasifikasi 
+        ? `ST.${stNumber}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}` 
         : "";
       const payload = {
         nomor_surat: fullNomorSurat || null,
@@ -350,12 +380,13 @@ export default function STBuilderPage() {
   // Ajukan persetujuan — ubah status ke "pending" (menunggu persetujuan kasubag)
   const handleSubmitForApproval = async () => {
     if (!stNumber) return toast.error("Nomor surat harus diisi.");
-    if (!stCode) return toast.error("Kode surat harus diisi.");
+    if (!klasifikasi) return toast.error("Klasifikasi harus diisi.");
     if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
     if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
 
     try {
-      const fullNomorSurat = `ST.${stNumber}/${stCode}/${currentMonth}/${currentYear}`;
+      const stCode = `K.18/TU/${klasifikasi}/B`;
+      const fullNomorSurat = `ST.${stNumber}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`;
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
@@ -385,9 +416,11 @@ export default function STBuilderPage() {
   };
 
   // Setujui — ubah status ke "approved" (hanya kasubag/admin)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleApprove = async () => {
     try {
-      const fullNomorSurat = `ST.${stNumber}/${stCode}/${currentMonth}/${currentYear}`;
+      const stCode = `K.18/TU/${klasifikasi}/B`;
+      const fullNomorSurat = `ST.${stNumber}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`;
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
@@ -478,9 +511,9 @@ export default function STBuilderPage() {
             <div className="flex items-stretch bg-slate-50 border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/10">
               <div className="bg-slate-100 px-3 flex items-center border-r border-slate-200 shrink-0"><span className="text-xs font-bold">ST.</span></div>
               <input value={stNumber} onChange={e => setStNumber(e.target.value)} placeholder="001" className="w-14 px-2 py-2 text-sm font-bold bg-transparent outline-none text-center" />
-              <div className="px-0.5 flex items-center text-slate-300 shrink-0">/</div>
-              <input value={stCode} onChange={e => setStCode(e.target.value)} placeholder="K.18/TU/KSA.0X.0X/B" className="flex-1 min-w-0 px-2 py-2 text-xs font-medium bg-transparent outline-none" />
-              <div className="bg-slate-100 px-2 flex items-center border-l border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/{currentMonth}/{currentYear}</span></div>
+              <div className="bg-slate-100 px-2 flex items-center border-x border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/K.18/TU/</span></div>
+              <input value={klasifikasi} onChange={e => setKlasifikasi(e.target.value)} placeholder="KSA.0X.0X" className="flex-1 min-w-0 px-2 py-2 text-xs font-medium bg-transparent outline-none" />
+              <div className="bg-slate-100 px-2 flex items-center border-l border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/B/{currentMonth}/{currentYear}</span></div>
             </div>
           </FormSection>
 
@@ -611,7 +644,7 @@ export default function STBuilderPage() {
                 <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
                 <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
               </div>
-              <textarea value={namaKegiatan} onChange={e => setNamaKegiatan(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm min-h-[60px] outline-none" />
+              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm min-h-[60px] outline-none" />
               <input value={tempatKegiatan} onChange={e => setTempatKegiatan(e.target.value)} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
@@ -635,7 +668,7 @@ export default function STBuilderPage() {
 
       <main className="flex-1 overflow-y-auto p-12 flex justify-center bg-slate-200/50">
         <STBuilderPreview 
-          stNumber={stNumber} stCode={stCode} currentMonth={currentMonth} currentYear={currentYear}
+          stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
           menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
           buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
           kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
