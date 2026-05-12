@@ -1,18 +1,17 @@
 "use client";
 
 import Image from "next/image";
-
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, User, FileText, Shield, MapPin, Briefcase, Users } from "lucide-react";
+import { ArrowLeft, User, FileText, Shield, Briefcase, Building2, BadgeCheck, Hash } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssignmentLetterHistory } from "../../_components/AssignmentLetterHistory";
 import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
+import { cn } from "@/lib/utils";
 
 interface Employee {
   id: string;
@@ -23,12 +22,14 @@ interface Employee {
   satuan_kerja: string | null;
   is_active: boolean;
   foto_url: string | null;
+  resor: string | null;
 }
 
 export default function EmployeeDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"history" | "biodata">("history");
   const { canManageAccess } = useRole();
 
   const { data: employee, isLoading, isError } = useQuery({
@@ -40,168 +41,150 @@ export default function EmployeeDetailPage() {
   });
 
   if (isLoading) {
-    return <div className="max-w-5xl mx-auto py-10 space-y-6 animate-pulse">
-        <div className="h-10 w-48 bg-zinc-200 dark:bg-zinc-800 rounded-lg" />
-        <div className="h-64 bg-zinc-100 dark:bg-zinc-800/50 rounded-3xl" />
-    </div>;
+    return (
+      <div className="max-w-5xl mx-auto p-6 space-y-6 animate-pulse">
+        <div className="h-8 w-32 bg-slate-200 rounded-lg" />
+        <div className="h-48 bg-slate-100 rounded-2xl" />
+      </div>
+    );
   }
 
   if (isError || !employee) {
-    return <div className="max-w-5xl mx-auto py-20 text-center">
-        <h2 className="text-xl font-bold">Pegawai tidak ditemukan</h2>
+    return (
+      <div className="max-w-5xl mx-auto py-20 text-center">
+        <User className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+        <h2 className="text-lg font-bold text-slate-700">Pegawai tidak ditemukan</h2>
         <Button variant="link" onClick={() => router.push("/kepegawaian")}>Kembali ke daftar</Button>
-    </div>;
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-            <Link
-                href="/kepegawaian"
-                className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-emerald-600 transition-all shadow-sm"
-            >
-                <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div>
-                <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 rounded-md bg-emerald-600 flex items-center justify-center text-white">
-                        <Users className="w-4 h-4" />
-                    </div>
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Detail Kepegawaian</h2>
-                </div>
-                <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{employee.nama_lengkap}</h1>
-            </div>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Back + Actions */}
+      <div className="flex items-center justify-between">
+        <Link href="/kepegawaian" className="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          Kembali
+        </Link>
+        {canManageAccess && (
+          <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => setAccessSheetOpen(true)}>
+            <Shield className="w-4 h-4 text-emerald-500" />
+            Kelola Akses
+          </Button>
+        )}
+      </div>
+
+      {/* Profile Card */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="h-24 bg-emerald-600 relative">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9zdmc+')] opacity-50" />
         </div>
-        <div className="flex items-center gap-3">
-            {canManageAccess && (
-              <Button 
-                  variant="outline" 
-                  className="rounded-2xl border-zinc-200 dark:border-zinc-800 gap-2 h-11 px-6 shadow-sm"
-                  onClick={() => setAccessSheetOpen(true)}
-              >
-                  <Shield className="w-4 h-4 text-emerald-500" />
-                  <span className="font-bold text-sm">Kelola Akses</span>
-              </Button>
-            )}
+        <div className="px-6 pb-6 -mt-12">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+            {/* Avatar */}
+            <div className="w-24 h-24 rounded-2xl border-4 border-white bg-white shadow-lg overflow-hidden shrink-0">
+              {employee.foto_url ? (
+                <Image src={employee.foto_url} alt={employee.nama_lengkap} width={96} height={96} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                  <span className="text-3xl font-black text-emerald-600">{employee.nama_lengkap.charAt(0)}</span>
+                </div>
+              )}
+            </div>
+            {/* Name + Status */}
+            <div className="flex-1 min-w-0 pb-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl font-bold text-slate-900 truncate">{employee.nama_lengkap}</h1>
+                <span className={cn(
+                  "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
+                  employee.is_active ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
+                )}>
+                  <BadgeCheck className="w-3 h-3" />
+                  {employee.is_active ? "Aktif" : "Non-Aktif"}
+                </span>
+              </div>
+              <p className="text-sm text-slate-500 font-mono mt-0.5">{employee.nip}</p>
+            </div>
+          </div>
+
+          {/* Info Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+            <InfoCard icon={<Briefcase className="w-4 h-4 text-blue-500" />} label="Jabatan" value={employee.jabatan || "-"} />
+            <InfoCard icon={<Building2 className="w-4 h-4 text-violet-500" />} label="Unit Kerja" value={employee.satuan_kerja || "-"} />
+            <InfoCard icon={<Hash className="w-4 h-4 text-amber-500" />} label="Pangkat/Gol" value={employee.pangkat_golongan || "-"} />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Sidebar Profile Card */}
-        <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-8 text-center space-y-6 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-2 bg-emerald-600" />
-                <div className="relative aspect-3/4 w-full max-w-[220px] mx-auto rounded-3xl overflow-hidden border-8 border-zinc-50 dark:border-zinc-800 shadow-2xl group-hover:scale-[1.02] transition-transform duration-500">
-                    {employee.foto_url ? (
-                        <Image src={employee.foto_url} alt={employee.nama_lengkap} fill className="object-cover" />
-                    ) : (
-                        <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                            <User className="w-16 h-16 text-zinc-300" />
-                        </div>
-                    )}
-                </div>
-                <div>
-                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white leading-tight">{employee.nama_lengkap}</h2>
-                    <p className="text-sm font-mono text-zinc-500 mt-2 bg-zinc-50 dark:bg-zinc-800/50 py-1.5 rounded-full inline-block px-4">{employee.nip}</p>
-                </div>
-                <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                    employee.is_active
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                    : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
-                }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full mr-2 ${employee.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
-                    {employee.is_active ? 'Aktif Bertugas' : 'Non-Aktif'}
-                </div>
-            </div>
-
-            <div className="bg-zinc-900 dark:bg-white rounded-[2.5rem] p-8 text-white dark:text-zinc-900 space-y-6 shadow-2xl">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Informasi Jabatan</h3>
-                <div className="space-y-6">
-                    <div className="flex gap-4 items-start">
-                        <div className="w-10 h-10 rounded-xl bg-white/10 dark:bg-zinc-100 flex items-center justify-center shrink-0">
-                            <Briefcase className="w-5 h-5 opacity-70" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] uppercase font-black opacity-40 mb-1">Jabatan Sekarang</p>
-                            <p className="text-sm font-bold leading-tight">{employee.jabatan || "-"}</p>
-                        </div>
-                    </div>
-                    <div className="flex gap-4 items-start">
-                        <div className="w-10 h-10 rounded-xl bg-white/10 dark:bg-zinc-100 flex items-center justify-center shrink-0">
-                            <MapPin className="w-5 h-5 opacity-70" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] uppercase font-black opacity-40 mb-1">Satuan Kerja</p>
-                            <p className="text-sm font-bold leading-tight">{employee.satuan_kerja || "-"}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      {/* Tabs */}
+      <div>
+        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit mb-4">
+          <button
+            onClick={() => setActiveTab("history")}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+              activeTab === "history" ? "bg-emerald-600 text-white" : "text-slate-500 hover:bg-slate-50"
+            )}
+          >
+            <FileText className="w-4 h-4" /> Riwayat Penugasan
+          </button>
+          <button
+            onClick={() => setActiveTab("biodata")}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+              activeTab === "biodata" ? "bg-emerald-600 text-white" : "text-slate-500 hover:bg-slate-50"
+            )}
+          >
+            <User className="w-4 h-4" /> Biodata
+          </button>
         </div>
 
-        {/* Main Content Tabs */}
-        <div className="lg:col-span-8">
-            <Tabs defaultValue="history" className="w-full space-y-6">
-                <div className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md p-1.5 border border-zinc-200 dark:border-zinc-800 rounded-2xl inline-flex shadow-sm">
-                    <TabsList className="bg-transparent h-auto p-0 flex gap-1">
-                        <TabsTrigger value="history" className="px-6 py-2.5 rounded-xl text-xs font-bold gap-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all">
-                            <FileText className="w-4 h-4" />
-                            Riwayat Penugasan
-                        </TabsTrigger>
-                        <TabsTrigger value="biodata" className="px-6 py-2.5 rounded-xl text-xs font-bold gap-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all">
-                            <User className="w-4 h-4" />
-                            Biodata Lengkap
-                        </TabsTrigger>
-                    </TabsList>
-                </div>
+        {activeTab === "history" && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6">
+            <AssignmentLetterHistory employeeId={employee.id} />
+          </div>
+        )}
 
-                <TabsContent value="history" className="mt-0 outline-none">
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-8 shadow-sm min-h-[500px]">
-                        <AssignmentLetterHistory employeeId={employee.id} />
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="biodata" className="mt-0 outline-none">
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-10 shadow-sm space-y-10">
-                        <div>
-                            <h3 className="text-xl font-black mb-8 flex items-center gap-3">
-                                <div className="w-2 h-8 bg-emerald-600 rounded-full" />
-                                Identitas Kepegawaian
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8">
-                                <InfoItem label="NIP Induk" value={employee.nip} />
-                                <InfoItem label="Nama Lengkap" value={employee.nama_lengkap} />
-                                <InfoItem label="Pangkat / Golongan" value={employee.pangkat_golongan || "-"} />
-                                <InfoItem label="Jabatan" value={employee.jabatan || "-"} />
-                                <div className="sm:col-span-2">
-                                    <InfoItem label="Unit Kerja / Penempatan" value={employee.satuan_kerja || "-"} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </TabsContent>
-            </Tabs>
-        </div>
+        {activeTab === "biodata" && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 mb-4">Identitas Kepegawaian</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <BioItem label="NIP" value={employee.nip} />
+              <BioItem label="Nama Lengkap" value={employee.nama_lengkap} />
+              <BioItem label="Jabatan" value={employee.jabatan || "-"} />
+              <BioItem label="Pangkat / Golongan" value={employee.pangkat_golongan || "-"} />
+              <BioItem label="Unit Kerja" value={employee.satuan_kerja || "-"} />
+              <BioItem label="Status" value={employee.is_active ? "Aktif Bertugas" : "Non-Aktif"} />
+            </div>
+          </div>
+        )}
       </div>
 
       {canManageAccess && (
-        <EmployeeAccessSheet 
-          employee={employee}
-          open={accessSheetOpen}
-          onOpenChange={setAccessSheetOpen}
-        />
+        <EmployeeAccessSheet employee={employee} open={accessSheetOpen} onOpenChange={setAccessSheetOpen} />
       )}
     </div>
   );
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="group">
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 group-hover:text-emerald-600 transition-colors">{label}</p>
-            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 group-hover:border-emerald-500/20 transition-all">{value}</p>
-        </div>
-    )
+function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+      <div className="shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+        <p className="text-xs font-semibold text-slate-700 truncate">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function BioItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</p>
+      <p className="text-sm font-semibold text-slate-800">{value}</p>
+    </div>
+  );
 }
