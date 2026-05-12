@@ -83,6 +83,7 @@ class AssignmentLetterController extends Controller
             try {
                 $sheetsService = new \App\Services\GoogleSheetsService();
                 $sheetsService->appendSuratTugas([
+                    'id' => $surat->id,
                     'unit_kerja' => $surat->employees->first()?->satuan_kerja ?? '',
                     'employees' => $surat->employees->map(fn($e) => ['nama_lengkap' => $e->nama_lengkap])->toArray(),
                     'nama_plh' => $surat->nama_plh ?? '',
@@ -306,6 +307,27 @@ class AssignmentLetterController extends Controller
             }
 
             DB::commit();
+
+            // Sync to Google Sheets (update existing row or append new)
+            try {
+                $surat->load('employees');
+                $sheetsService = new \App\Services\GoogleSheetsService();
+                $sheetsService->updateSuratTugas([
+                    'id' => $surat->id,
+                    'unit_kerja' => $surat->employees->first()?->satuan_kerja ?? '',
+                    'employees' => $surat->employees->map(fn($e) => ['nama_lengkap' => $e->nama_lengkap])->toArray(),
+                    'nama_plh' => $surat->nama_plh ?? '',
+                    'nama_kegiatan' => $surat->maksud_tujuan ?? '',
+                    'tanggal_mulai' => $surat->tanggal_mulai?->format('Y-m-d') ?? '',
+                    'tanggal_selesai' => $surat->tanggal_selesai?->format('Y-m-d') ?? '',
+                    'sumber_dana' => $surat->sumber_dana ?? '',
+                    'file_path' => $surat->file_surat_path ?? '',
+                    'keterangan' => $surat->keterangan ?? '',
+                    'tanda_setuju' => $surat->tanda_setuju ?? '',
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('GoogleSheets update sync failed: ' . $e->getMessage());
+            }
 
             $statusLabel = $targetStatus === 'pending' ? 'diajukan untuk persetujuan' : ($targetStatus === 'approved' ? 'berhasil diterbitkan' : 'berhasil disimpan');
             return response()->json([

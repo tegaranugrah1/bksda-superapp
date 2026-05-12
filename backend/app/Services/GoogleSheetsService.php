@@ -20,20 +20,48 @@ class GoogleSheetsService
     }
 
     /**
-     * Append a row to the Google Spreadsheet.
+     * Build row data from surat tugas.
      * Mapping:
-     * A: Timestamp
-     * B: Unit Kerja
-     * C-F: Nama Pegawai (max 4 kolom)
-     * G: Nama Pegawai overflow (koma separated)
-     * H: Nama PLH
-     * P: Nama Kegiatan
-     * Q: Tanggal dari
-     * R: Tanggal sampai
-     * S: Sumber Dana
-     * T: Upload Dasar Surat (link/path)
-     * U: Keterangan
-     * V: Tanda Setuju
+     * A(0): Timestamp | B(1): Unit Kerja | C-F(2-5): Nama Pegawai 1-4
+     * G(6): Nama Pegawai overflow | H(7): Nama PLH
+     * I-O(8-14): skip
+     * P(15): Nama Kegiatan | Q(16): Tanggal dari | R(17): Tanggal sampai
+     * S(18): Sumber Dana | T(19): Upload Dasar Surat | U(20): Keterangan
+     * V(21): Tanda Setuju | W(22): skip | X(23): skip
+     * Y(24): UUID Surat Tugas (ID unik untuk update)
+     */
+    private function buildRow(array $data): array
+    {
+        $employees = $data['employees'] ?? [];
+        $employeeNames = array_map(fn($e) => $e['nama_lengkap'] ?? $e['name'] ?? '', $employees);
+
+        // Build row: A to Y (25 columns)
+        $row = array_fill(0, 25, '');
+        $row[0] = $data['timestamp'] ?? now()->format('Y-m-d H:i:s'); // A: Timestamp
+        $row[1] = $data['unit_kerja'] ?? ''; // B: Unit Kerja
+        // C-F: First 4 employees
+        for ($i = 0; $i < min(4, count($employeeNames)); $i++) {
+            $row[2 + $i] = $employeeNames[$i];
+        }
+        // G: All employees comma separated
+        $row[6] = implode(', ', $employeeNames);
+        $row[7] = $data['nama_plh'] ?? ''; // H: Nama PLH
+        // I-O: skip
+        $row[15] = $data['nama_kegiatan'] ?? ''; // P: Nama Kegiatan
+        $row[16] = $data['tanggal_mulai'] ?? ''; // Q: Tanggal dari
+        $row[17] = $data['tanggal_selesai'] ?? ''; // R: Tanggal sampai
+        $row[18] = $data['sumber_dana'] ?? ''; // S: Sumber Dana
+        $row[19] = $data['file_path'] ?? ''; // T: Upload Dasar Surat
+        $row[20] = $data['keterangan'] ?? ''; // U: Keterangan
+        $row[21] = $data['tanda_setuju'] ?? ''; // V: Tanda Setuju
+        // W, X: skip
+        $row[24] = $data['id'] ?? ''; // Y: UUID Surat Tugas
+
+        return $row;
+    }
+
+    /**
+     * Append a new row (saat pertama kali submit).
      */
     public function appendSuratTugas(array $data): bool
     {
@@ -44,72 +72,104 @@ class GoogleSheetsService
                 return false;
             }
 
-            $employees = $data['employees'] ?? [];
-            $employeeNames = array_map(fn($e) => $e['nama_lengkap'] ?? $e['name'] ?? '', $employees);
+            $row = $this->buildRow($data);
+            $range = "{$this->sheetName}!A:Y";
+            $url = "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/values/{$range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS";
 
-            // Build row: A to V (22 columns)
-            $row = array_fill(0, 22, '');
-            $row[0] = now()->format('Y-m-d H:i:s'); // A: Timestamp
-            $row[1] = $data['unit_kerja'] ?? ''; // B: Unit Kerja
-            // C-F: First 4 employees
-            for ($i = 0; $i < min(4, count($employeeNames)); $i++) {
-                $row[2 + $i] = $employeeNames[$i]; // C=2, D=3, E=4, F=5
-            }
-            // G: Overflow employees (5th onwards, comma separated)
-            if (count($employeeNames) > 4) {
-                $row[6] = implode(', ', array_slice($employeeNames, 4));
-            } elseif (count($employeeNames) > 0 && count($employeeNames) <= 4) {
-                // If <= 4, put all in G as well for easy reading
-                $row[6] = implode(', ', $employeeNames);
-            }
-            $row[7] = $data['nama_plh'] ?? ''; // H: Nama PLH
-            // I-O: skip (empty)
-            $row[15] = $data['nama_kegiatan'] ?? ''; // P: Nama Kegiatan
-            $row[16] = $data['tanggal_mulai'] ?? ''; // Q: Tanggal dari
-            $row[17] = $data['tanggal_selesai'] ?? ''; // R: Tanggal sampai
-            $row[18] = $data['sumber_dana'] ?? ''; // S: Sumber Dana
-            $row[19] = $data['file_path'] ?? ''; // T: Upload Dasar Surat
-            $row[20] = $data['keterangan'] ?? ''; // U: Keterangan
-            $row[21] = $data['tanda_setuju'] ?? ''; // V: Tanda Setuju
-
-            $range = "{$this->sheetName}!A:V";
-            $url = "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/values/{$range}:append";
-
-            $response = Http::withToken($token)
-                ->post($url, [
-                    'range' => $range,
-                    'majorDimension' => 'ROWS',
-                    'values' => [$row],
-                ], [
-                    'query' => [
-                        'valueInputOption' => 'USER_ENTERED',
-                        'insertDataOption' => 'INSERT_ROWS',
-                    ],
-                ]);
-
-            // Google Sheets API needs query params in URL
-            $response = Http::withToken($token)
-                ->post($url . '?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS', [
-                    'range' => $range,
-                    'majorDimension' => 'ROWS',
-                    'values' => [$row],
-                ]);
+            $response = Http::withToken($token)->post($url, [
+                'range' => $range,
+                'majorDimension' => 'ROWS',
+                'values' => [$row],
+            ]);
 
             if ($response->successful()) {
-                Log::info('GoogleSheets: Row appended successfully');
+                Log::info('GoogleSheets: Row appended', ['id' => $data['id'] ?? '']);
                 return true;
             }
 
-            Log::error('GoogleSheets: Failed to append row', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
+            Log::error('GoogleSheets: Append failed', ['status' => $response->status(), 'body' => $response->body()]);
             return false;
 
         } catch (\Exception $e) {
-            Log::error('GoogleSheets: Exception', ['message' => $e->getMessage()]);
+            Log::error('GoogleSheets: Append exception', ['message' => $e->getMessage()]);
             return false;
         }
+    }
+
+    /**
+     * Update existing row by searching UUID in column Y.
+     * If not found, append as new row.
+     */
+    public function updateSuratTugas(array $data): bool
+    {
+        try {
+            $token = $this->getAccessToken();
+            if (!$token) {
+                Log::error('GoogleSheets: Failed to get access token');
+                return false;
+            }
+
+            $id = $data['id'] ?? '';
+            if (!$id) {
+                return $this->appendSuratTugas($data);
+            }
+
+            // Search for existing row by UUID in column Y
+            $rowNumber = $this->findRowById($token, $id);
+
+            if ($rowNumber) {
+                // Update existing row
+                $row = $this->buildRow($data);
+                $range = "{$this->sheetName}!A{$rowNumber}:Y{$rowNumber}";
+                $url = "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/values/{$range}?valueInputOption=USER_ENTERED";
+
+                $response = Http::withToken($token)->put($url, [
+                    'range' => $range,
+                    'majorDimension' => 'ROWS',
+                    'values' => [$row],
+                ]);
+
+                if ($response->successful()) {
+                    Log::info('GoogleSheets: Row updated', ['id' => $id, 'row' => $rowNumber]);
+                    return true;
+                }
+
+                Log::error('GoogleSheets: Update failed', ['status' => $response->status(), 'body' => $response->body()]);
+                return false;
+            }
+
+            // Not found — append as new
+            return $this->appendSuratTugas($data);
+
+        } catch (\Exception $e) {
+            Log::error('GoogleSheets: Update exception', ['message' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /**
+     * Find row number by UUID in column Y.
+     * Returns row number (1-indexed) or null if not found.
+     */
+    private function findRowById(string $token, string $id): ?int
+    {
+        $range = "{$this->sheetName}!Y:Y";
+        $url = "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/values/{$range}";
+
+        $response = Http::withToken($token)->get($url);
+
+        if (!$response->successful()) {
+            return null;
+        }
+
+        $values = $response->json('values') ?? [];
+        foreach ($values as $index => $row) {
+            if (isset($row[0]) && $row[0] === $id) {
+                return $index + 1; // 1-indexed
+            }
+        }
+
+        return null;
     }
 
     private function getAccessToken(): ?string
