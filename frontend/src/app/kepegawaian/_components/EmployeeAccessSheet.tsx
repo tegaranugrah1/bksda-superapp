@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 
 const accessSchema = z.object({
   role: z.enum(["super_admin", "admin", "user"]),
-  access_modules: z.array(z.string()).min(1, "Wajib memilih minimal 1 modul"),
+  access_modules: z.array(z.string()),
   password: z.string().min(8, "Password minimal 8 karakter").optional().or(z.literal("")),
 });
 
