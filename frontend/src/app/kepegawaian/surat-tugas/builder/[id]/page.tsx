@@ -424,7 +424,7 @@ export default function STBuilderPage() {
     printWindow.document.write(`
       <html>
       <head>
-        <title>ST.${stNumber}-${namaKegiatan.replace(/[/\\?%*:|"<>]/g, '-').substring(0, 100)}</title>
+        <title>ST.${stNumber}-${namaKegiatan.replace(/[/\\?%*:|"<>]/g, '-')}</title>
         <style>
           @page { size: A4; margin: 0; }
           body { 
