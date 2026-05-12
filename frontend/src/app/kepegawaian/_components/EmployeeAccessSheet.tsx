@@ -20,13 +20,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Shield, KeyRound, Loader2, AlertCircle, Info, Check } from "lucide-react";
@@ -157,18 +150,17 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-bold">Peran Sistem (Role)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-10 rounded-xl">
-                          <SelectValue placeholder="Pilih Role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="user">User (Pegawai Biasa)</SelectItem>
-                        <SelectItem value="admin">Admin (Pengelola Modul)</SelectItem>
-                        <SelectItem value="super_admin">Super Admin (Akses Penuh)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <select
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                      >
+                        <option value="user">User (Pegawai Biasa)</option>
+                        <option value="admin">Admin (Pengelola Modul)</option>
+                        <option value="super_admin">Super Admin (Akses Penuh)</option>
+                      </select>
+                    </FormControl>
                     <FormMessage className="text-[11px]" />
                   </FormItem>
                 )}
