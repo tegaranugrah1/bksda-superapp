@@ -135,7 +135,7 @@ export default function PersonalDashboard() {
 
   const modules = useMemo(() => {
     if (!data) return [];
-    return ["admin", "super_admin"].includes(data.user.role) || (data.user.access_modules?.includes("*"))
+    return data.user.role === "super_admin" || (data.user.access_modules?.includes("*"))
       ? ["kepegawaian", "bmn", "inventory", "dereporting", "cms"]
       : (data.user.access_modules || []);
   }, [data]);
