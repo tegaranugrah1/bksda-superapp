@@ -104,7 +104,7 @@ class BmnAssetSeeder extends Seeder
             'BY' => 'no_stnk',
             'BZ' => 'nama_pengguna_bmn',
             'CA' => 'status_pmk',
-            'CB' => 'status_foto_geotag',
+            'CB' => 'foto_geotag_url',
         ];
 
         // Date columns
