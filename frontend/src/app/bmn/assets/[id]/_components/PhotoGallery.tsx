@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,27 @@ function driveToThumbnail(url: string): string | null {
 export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
-  const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
+  const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
+
+  // Get all available photos for navigation
+  const availablePhotos = PHOTO_SLOTS.map((slot) => {
+    const url = photos[slot.key];
+    if (!url) return null;
+    const isGeotag = slot.type === "link";
+    const displayUrl = isGeotag ? driveToThumbnail(url)?.replace("sz=w400", "sz=w1200") || url : url;
+    return { key: slot.key, label: slot.label, url: displayUrl };
+  }).filter(Boolean) as { key: string; label: string; url: string }[];
+
+  const openLightbox = (key: string) => {
+    const idx = availablePhotos.findIndex(p => p.key === key);
+    if (idx >= 0) setLightbox({ url: availablePhotos[idx].url, label: availablePhotos[idx].label, index: idx });
+  };
+
+  const navigateLightbox = (dir: 1 | -1) => {
+    if (!lightbox || availablePhotos.length <= 1) return;
+    const next = (lightbox.index + dir + availablePhotos.length) % availablePhotos.length;
+    setLightbox({ url: availablePhotos[next].url, label: availablePhotos[next].label, index: next });
+  };
   const [geotagInput, setGeotagInput] = useState("");
   const [showGeotagInput, setShowGeotagInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -156,7 +176,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
                       const thumb = driveToThumbnail(url);
                       return thumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={thumb} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" referrerPolicy="no-referrer" onClick={() => setLightbox({ url: thumb.replace('sz=w400', 'sz=w1200'), label: slot.label })} />
+                        <img src={thumb} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" referrerPolicy="no-referrer" onClick={() => openLightbox(slot.key)} />
                       ) : (
                         <div className="flex flex-col items-center gap-2 p-3 text-center">
                           <ExternalLink className="w-6 h-6 text-emerald-600" />
@@ -166,7 +186,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
                     })()
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={url} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => setLightbox({ url, label: slot.label })} />
+                    <img src={url} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => openLightbox(slot.key)} />
                   )
                 ) : (
                   <div className="flex flex-col items-center gap-1 p-3 text-center">
@@ -237,21 +257,74 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
 
       {/* Lightbox Modal */}
       {lightbox && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
-          <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors" onClick={() => setLightbox(null)}>
-            <X className="w-6 h-6" />
-          </button>
-          <p className="absolute top-4 left-4 text-white/70 text-sm font-medium">{lightbox.label}</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightbox.url}
-            alt={lightbox.label}
-            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-            referrerPolicy="no-referrer"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+        <Lightbox
+          url={lightbox.url}
+          label={lightbox.label}
+          index={lightbox.index}
+          total={availablePhotos.length}
+          onClose={() => setLightbox(null)}
+          onPrev={() => navigateLightbox(-1)}
+          onNext={() => navigateLightbox(1)}
+        />
       )}
+    </div>
+  );
+}
+
+function Lightbox({ url, label, index, total, onClose, onPrev, onNext }: {
+  url: string; label: string; index: number; total: number;
+  onClose: () => void; onPrev: () => void; onNext: () => void;
+}) {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") onClose();
+    if (e.key === "ArrowLeft") onPrev();
+    if (e.key === "ArrowRight") onNext();
+  }, [onClose, onPrev, onNext]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [handleKeyDown]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={onClose}>
+      {/* Close */}
+      <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10" onClick={onClose}>
+        <X className="w-6 h-6" />
+      </button>
+
+      {/* Label + Counter */}
+      <div className="absolute top-4 left-4 text-white/70 text-sm font-medium z-10">
+        {label} <span className="text-white/40 ml-2">{index + 1} / {total}</span>
+      </div>
+
+      {/* Prev Arrow */}
+      {total > 1 && (
+        <button className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10" onClick={(e) => { e.stopPropagation(); onPrev(); }}>
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Next Arrow */}
+      {total > 1 && (
+        <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10" onClick={(e) => { e.stopPropagation(); onNext(); }}>
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Image */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt={label}
+        className="max-w-[85vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
+        referrerPolicy="no-referrer"
+        onClick={(e) => e.stopPropagation()}
+      />
     </div>
   );
 }
