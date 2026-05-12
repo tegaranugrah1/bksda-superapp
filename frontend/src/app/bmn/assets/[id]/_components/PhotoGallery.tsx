@@ -28,6 +28,13 @@ const PHOTO_SLOTS = [
   { key: "kanan", label: "Tampak Kanan", type: "upload" },
 ] as const;
 
+/** Convert Google Drive share link to embeddable thumbnail URL */
+function driveToThumbnail(url: string): string | null {
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (!match) return null;
+  return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
+}
+
 export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
@@ -144,10 +151,18 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
               )}>
                 {url ? (
                   isGeotag ? (
-                    <div className="flex flex-col items-center gap-2 p-3 text-center">
-                      <ExternalLink className="w-6 h-6 text-emerald-600" />
-                      <p className="text-[9px] text-emerald-700 font-bold">Link Tersedia</p>
-                    </div>
+                    (() => {
+                      const thumb = driveToThumbnail(url);
+                      return thumb ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={thumb} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 p-3 text-center">
+                          <ExternalLink className="w-6 h-6 text-emerald-600" />
+                          <p className="text-[9px] text-emerald-700 font-bold">Link Tersedia</p>
+                        </div>
+                      );
+                    })()
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={url} alt={slot.label} className="w-full h-full object-cover" />
