@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, UserCog, Trash2, AlertCircle, Users } from "lucide-react";
+import { Search, Plus, UserCog, Trash2, Users } from "lucide-react";
 import { api } from "@/lib/api";
-import { toast } from "sonner";
 import Link from "next/link";
 import { EmployeeAccessSheet } from "./_components/EmployeeAccessSheet";
+import { useRole } from "@/hooks/useRole";
 
 interface Employee {
   id: string;
@@ -27,6 +27,7 @@ interface ApiResponse {
 }
 
 export default function EmployeeListPage() {
+  const { canWrite, canManageAccess } = useRole();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -41,7 +42,7 @@ export default function EmployeeListPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['employees', page, debouncedSearch],
     queryFn: async () => {
       const { data } = await api.get<ApiResponse>(`/kepegawaian/employees`, {
@@ -77,12 +78,14 @@ export default function EmployeeListPage() {
               className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all md:w-[300px] shadow-sm"
             />
           </div>
-          <Link href="/kepegawaian/employees/create">
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl">
-              <Plus className="w-4 h-4" />
-              <span>Tambah Pegawai</span>
-            </button>
-          </Link>
+          {canWrite && (
+            <Link href="/kepegawaian/employees/create">
+              <button className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl">
+                <Plus className="w-4 h-4" />
+                <span>Tambah Pegawai</span>
+              </button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -128,8 +131,12 @@ export default function EmployeeListPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Link href={`/kepegawaian/employees/${emp.id}`} className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl text-emerald-600"><Search className="w-4 h-4" /></Link>
-                        <button onClick={() => { setSelectedEmployee(emp); setAccessSheetOpen(true); }} className="p-2 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl text-amber-600"><UserCog className="w-4 h-4" /></button>
-                        <button className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-600"><Trash2 className="w-4 h-4" /></button>
+                        {canManageAccess && (
+                          <button onClick={() => { setSelectedEmployee(emp); setAccessSheetOpen(true); }} className="p-2 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl text-amber-600"><UserCog className="w-4 h-4" /></button>
+                        )}
+                        {canWrite && (
+                          <button className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-600"><Trash2 className="w-4 h-4" /></button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -150,7 +157,9 @@ export default function EmployeeListPage() {
         )}
       </div>
 
-      <EmployeeAccessSheet employee={selectedEmployee} open={accessSheetOpen} onOpenChange={setAccessSheetOpen} />
+      {canManageAccess && (
+        <EmployeeAccessSheet employee={selectedEmployee} open={accessSheetOpen} onOpenChange={setAccessSheetOpen} />
+      )}
     </div>
   );
 }
