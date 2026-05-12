@@ -16,6 +16,7 @@ interface SuratTugasItem {
     tanggal_mulai: string;
     tanggal_selesai: string;
     status: string;
+    employees?: { id: string; nama_lengkap: string; nip: string }[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -114,6 +115,7 @@ export function AssignmentHistoryTab() {
                             <tr>
                                 <th className="px-6 py-4">Nomor Surat</th>
                                 <th className="px-6 py-4">Maksud / Tugas</th>
+                                <th className="px-6 py-4">Personil</th>
                                 <th className="px-6 py-4">Tanggal & Tempat</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4 text-right">Aksi</th>
@@ -123,12 +125,12 @@ export function AssignmentHistoryTab() {
                             {isLoading ? (
                                 [...Array(5)].map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan={5} className="px-6 py-4"><div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl w-full" /></td>
+                                        <td colSpan={6} className="px-6 py-4"><div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl w-full" /></td>
                                     </tr>
                                 ))
                             ) : items.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-16 text-center text-zinc-500">
+                                    <td colSpan={6} className="px-6 py-16 text-center text-zinc-500">
                                         <FileText className="w-12 h-12 mx-auto mb-3 opacity-10" />
                                         <p className="text-sm">Tidak ada data surat tugas.</p>
                                     </td>
@@ -143,6 +145,19 @@ export function AssignmentHistoryTab() {
                                         </td>
                                         <td className="px-6 py-4 max-w-xs">
                                             <p className="text-zinc-900 dark:text-zinc-200 text-xs font-semibold line-clamp-2 leading-relaxed">{item.maksud_tujuan}</p>
+                                        </td>
+                                        <td className="px-6 py-4 max-w-[200px]">
+                                            <div className="flex flex-wrap gap-1">
+                                                {item.employees && item.employees.length > 0 ? (
+                                                    item.employees.map((emp) => (
+                                                        <span key={emp.id} className="inline-block text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md truncate max-w-[180px]">
+                                                            {emp.nama_lengkap}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-[10px] text-zinc-400">-</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="space-y-1">
