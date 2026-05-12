@@ -307,18 +307,16 @@ export default function STBuilderPage() {
           updateDasarFromFunding(funding, new Date().toISOString().substring(0, 10));
         }
 
-        // Auto-fill klasifikasi & menimbang if kegiatan contains "konflik" and not already set
+        // Auto-fill klasifikasi & menimbang if kegiatan contains "konflik"
         const parsedKegiatan = cleanedActivity.toLowerCase();
-        if (parsedKegiatan.includes("konflik") && (!data.kode_surat || !data.nomor_surat)) {
+        if (parsedKegiatan.includes("konflik")) {
           setKlasifikasi("KSA.03.01");
+          // Only override menimbang if not already saved from a previous session
           if (!data.menimbang || !Array.isArray(data.menimbang) || data.menimbang.length === 0) {
-            setMenimbangItems(prev => {
-              const newItems = [...prev];
-              if (newItems.length > 0) {
-                newItems[0] = { ...newItems[0], text: "bahwa dalam rangka kegiatan penanganan konflik satwa, perlu penyelamatan;" };
-              }
-              return newItems;
-            });
+            setMenimbangItems([
+              { id: "1", text: "bahwa dalam rangka kegiatan penanganan konflik satwa, perlu penyelamatan;" },
+              { id: "2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
+            ]);
           }
         }
 
