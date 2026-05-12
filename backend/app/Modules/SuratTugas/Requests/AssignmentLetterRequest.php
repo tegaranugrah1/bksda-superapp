@@ -22,7 +22,7 @@ class AssignmentLetterRequest extends FormRequest
             'sumber_dana' => 'required|string',
             'sumber_dana_other' => 'nullable|string',
             'employees' => 'required|array|min:1',
-            'employees.*.id' => 'required|numeric|exists:kpg_employees,id',
+            'employees.*.id' => 'required|exists:kpg_employees,id',
             'employees.*.peran' => 'nullable|string|max:100',
         ];
 
