@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/verify/{id}', [AssignmentLetterController::class, 'verify'])
     ->name('surat-tugas.verify');
 
-Route::post('/', [AssignmentLetterController::class, 'store'])
+Route::post('/submit', [AssignmentLetterController::class, 'store'])
     ->middleware('throttle:10,1'); // Public submit - rate limit 10 per menit
 
 Route::middleware(['auth:sanctum', 'module.access:surat_tugas'])->group(function () {

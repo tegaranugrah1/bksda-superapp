@@ -1,3 +1,77 @@
+# Progress - Phase 22: Google Sheets Integration + Bug Fixes + Route Fix
+
+> Document updated: 2026-05-12 10:00
+> Status: **IN PROGRESS** 🔄 (route fix pending commit)
+
+---
+
+## Phase 22: Google Sheets Integration + Bug Fixes
+
+### Accomplishments:
+- [x] **Google Sheets Integration**: Created `GoogleSheetsService.php` — append row on public submit, update row on approve via UUID search in column Y.
+- [x] **Service Account Setup**: `service-account.json` at project root (gitignored), `google/auth` composer package installed.
+- [x] **Column Mapping**: A=Timestamp, B=Unit Kerja, C-F=Pegawai 1-4, G=overflow comma-separated, H=PLH, P=Kegiatan, Q=Tgl dari, R=Tgl sampai, S=Sumber Dana, T=Upload path, U=Keterangan, V=Tanda Setuju, Y=UUID.
+- [x] **Route Fix**: Public form submit changed from `POST /surat-tugas` to `POST /surat-tugas/submit` to avoid conflict with auth route.
+- [x] **Print Title**: Now shows `ST.{nomor}-{nama kegiatan}` with no length limit.
+- [x] **Tanggal Surat**: Always defaults to today's date.
+- [x] **Keterangan Column**: Added to inbox display.
+- [x] **File Upload**: Accept jpg/png/webp (not just pdf), fix download endpoint.
+- [x] **Employee ID Validation**: Removed numeric constraint (FormData sends strings).
+- [x] **History Personil**: Added column showing employee names in history tab.
+- [x] **History Pagination**: 5 items per page.
+- [x] **Sumber Dana Options**: 11 options (DIPA, KJA, MJA, COP, Tjiwi Kimia, BOSF, CAN, ALeRT, FOLU, DL1, Lainnya).
+- [x] **PLH/Tanda Setuju in Inbox**: Now displayed in inbox detail.
+- [x] **PLH Autocomplete**: Searchable from employee list in public form.
+- [x] **Toaster Fix**: `<Toaster />` was missing from Providers — all toast notifications now work.
+- [x] **Employee Search Fix**: Builder + Create handle `name` vs `nama_lengkap` field mismatch.
+- [x] **Double Text Fix**: Strip "selama X hari..." suffix when re-parsing saved text.
+- [x] **Nomor Surat Width**: Fixed `/05/2026` being cut off.
+- [x] **Smart Parsing**: Detect full freeform text vs structured format.
+
+### Pending:
+- [ ] Commit route fix (`POST /submit` for public, frontend calls `/surat-tugas/submit`)
+- [ ] Test public form submission end-to-end
+- [ ] Verify Google Sheets append/update works with service account
+
+### Files Modified:
+```
+backend/app/Services/GoogleSheetsService.php                               ← NEW
+backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php  ← Sheets integration
+backend/app/Modules/SuratTugas/Routes/api.php                              ← POST /submit route
+backend/config/services.php                                                 ← google_sheets config
+backend/composer.json                                                       ← google/auth dependency
+frontend/src/app/surat-tugas/page.tsx                                       ← route fix + PLH + sumber dana
+frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx                    ← keterangan + PLH + tanda setuju
+frontend/src/app/kepegawaian/_components/AssignmentHistoryTab.tsx           ← pagination + personil
+frontend/src/components/providers.tsx                                        ← Toaster added
+frontend/src/lib/letter-utils.ts                                            ← smart parsing fix
+frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx             ← tanggal default + print title
+frontend/src/app/kepegawaian/surat-tugas/create/page.tsx                   ← nomor surat width
+```
+
+### Commits (after PR #276 merged, direct to main):
+```
+2dfa71c feat(sheets): robust update via UUID in column Y + append on submit
+ac4a9d5 feat(surat-tugas): integrate Google Sheets API - append row on submit
+0703a53 feat(history): add pagination (5 per page)
+209d1fe feat(history): add personil column showing employee names
+679a8c5 fix(validation): remove numeric constraint on employee id
+c2b3e68 fix(surat-tugas): add keterangan column + fix file download + accept image uploads
+1dbab92 fix(builder): tanggal surat always defaults to today
+0b0f679 fix(builder): no limit on print title length
+5fa7626 fix(builder): increase print title length to 100 chars
+1fdedae fix(builder): print title includes nama kegiatan
+90d27a6 feat(surat-tugas): add all sumber dana options to public form
+87ffb1d fix(surat-tugas): fix plhSearchQuery declaration order + add PLH/tanda_setuju to inbox
+```
+
+### Next Steps:
+- [ ] Tembusan field di builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration (digital/scan)
+
+---
+
 # Progress - Phase 21: Surat Tugas Builder Flow & Print Fix
 
 > Document updated: 2026-05-11 14:00

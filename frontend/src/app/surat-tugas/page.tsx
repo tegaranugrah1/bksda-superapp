@@ -157,7 +157,7 @@ export default function SuratTugasForm() {
                 submitData.append(`employees[${index}][id]`, emp.id);
             });
 
-            await api.post('/surat-tugas', submitData, {
+            await api.post('/surat-tugas/submit', submitData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
@@ -166,10 +166,14 @@ export default function SuratTugasForm() {
 
         } catch (error: unknown) {
             console.error('Submit failed:', error);
-            const msg = error instanceof Error 
-                ? error.message 
-                : (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengirim pengajuan surat tugas.';
-            toast.error(msg);
+            const axiosErr = error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+            if (axiosErr?.response?.data?.errors) {
+                const firstError = Object.values(axiosErr.response.data.errors)[0]?.[0];
+                toast.error(firstError || 'Validasi gagal.');
+            } else {
+                const msg = axiosErr?.response?.data?.message || 'Gagal mengirim pengajuan surat tugas.';
+                toast.error(msg);
+            }
         } finally {
             setIsSubmitting(false);
         }
