@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, Package, FileText, Banknote, MapPin, Building2, Car, Landmark, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DetailSection, DetailRow, CurrencyRow, AreaRow, BadgeRow } from "./_components/DetailSection";
+import { PhotoGallery } from "./_components/PhotoGallery";
 
 export default function BmnAssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -23,7 +24,7 @@ export default function BmnAssetDetailPage({ params }: { params: Promise<{ id: s
 }
 
 function AssetDetail({ assetId }: { assetId: string }) {
-  const { data: asset, isLoading, isError } = useQuery({
+  const { data: asset, isLoading, isError, refetch } = useQuery({
     queryKey: ["bmn-asset", assetId],
     queryFn: async () => {
       const res = await api.get(`/bmn/assets/${assetId}`);
@@ -103,6 +104,19 @@ function AssetDetail({ assetId }: { assetId: string }) {
           </div>
         </div>
       </div>
+
+      {/* Photo Gallery */}
+      <PhotoGallery
+        assetId={assetId}
+        assetName={asset.nama_barang}
+        nup={asset.nup}
+        fotoGeotagUrl={asset.foto_geotag_url}
+        fotoDepanUrl={asset.foto_depan_url}
+        fotoBelakangUrl={asset.foto_belakang_url}
+        fotoKiriUrl={asset.foto_kiri_url}
+        fotoKananUrl={asset.foto_kanan_url}
+        onRefresh={refetch}
+      />
 
       {/* Tab Navigation */}
       <div className="flex items-center gap-1 bg-white rounded-xl ring-1 ring-slate-200/60 p-1 overflow-x-auto">

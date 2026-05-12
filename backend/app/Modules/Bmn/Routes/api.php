@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Bmn\Controllers\AssetController;
+use App\Modules\Bmn\Controllers\AssetPhotoController;
 use App\Modules\Bmn\Controllers\DashboardController;
 use App\Modules\Bmn\Controllers\ExportController;
 use App\Modules\Bmn\Controllers\LoanController;
@@ -30,6 +31,13 @@ Route::get('/ping', function () {
 Route::apiResource('assets', AssetController::class)->except(['destroy']);
 Route::post('assets/import', [AssetController::class, 'import']);
 Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose']);
+
+// 5. FOTO ASET
+Route::post('assets/{asset}/photo', [AssetPhotoController::class, 'upload']);
+Route::put('assets/{asset}/geotag', [AssetPhotoController::class, 'updateGeotag']);
+Route::delete('assets/{asset}/photo/{type}', [AssetPhotoController::class, 'delete']);
+Route::get('assets/{asset}/photo/{type}/download', [AssetPhotoController::class, 'download']);
+Route::get('assets/{asset}/photos/download-all', [AssetPhotoController::class, 'downloadAll']);
 
 // 2. LALU LINTAS PEMINJAMAN (LOAN)
 Route::get('loans', [LoanController::class, 'index']);
