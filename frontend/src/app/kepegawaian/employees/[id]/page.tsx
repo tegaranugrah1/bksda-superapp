@@ -77,23 +77,18 @@ export default function EmployeeDetailPage() {
 
       {/* Profile Card */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        <div className="h-24 bg-emerald-600 relative">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9zdmc+')] opacity-50" />
-        </div>
-        <div className="px-6 pb-6 -mt-12">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+        <div className="px-6 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* Avatar */}
-            <div className="w-24 h-24 rounded-2xl border-4 border-white bg-white shadow-lg overflow-hidden shrink-0">
+            <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
               {employee.foto_url ? (
-                <Image src={employee.foto_url} alt={employee.nama_lengkap} width={96} height={96} className="w-full h-full object-cover" />
+                <Image src={employee.foto_url} alt={employee.nama_lengkap} width={64} height={64} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                  <span className="text-3xl font-black text-emerald-600">{employee.nama_lengkap.charAt(0)}</span>
-                </div>
+                <span className="text-2xl font-bold text-slate-400">{employee.nama_lengkap.charAt(0)}</span>
               )}
             </div>
             {/* Name + Status */}
-            <div className="flex-1 min-w-0 pb-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-bold text-slate-900 truncate">{employee.nama_lengkap}</h1>
                 <span className={cn(
