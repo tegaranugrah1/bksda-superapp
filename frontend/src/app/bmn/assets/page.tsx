@@ -20,6 +20,8 @@ interface IAsset {
   id: string;
   kode_barang: string;
   nup: string;
+  nup_lama?: string;
+  jenis_bmn?: string;
   nama_barang: string;
   merk_tipe?: string;
   tahun_perolehan?: number;
@@ -237,6 +239,8 @@ export default function BmnAssetsPage() {
                     <td className="px-4 py-3">
                       <p className="text-xs font-mono font-bold text-emerald-700">{asset.kode_barang}</p>
                       <p className="text-[10px] text-slate-400 font-mono">NUP: {asset.nup}</p>
+                      {asset.nup_lama && <p className="text-[10px] text-slate-300 font-mono">NUP Lama: {asset.nup_lama}</p>}
+                      {asset.jenis_bmn && <p className="text-[10px] text-blue-500 mt-0.5">{asset.jenis_bmn}</p>}
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm font-semibold text-slate-800 max-w-[200px] truncate">{asset.nama_barang}</p>
