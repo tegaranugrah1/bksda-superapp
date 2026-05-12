@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useRole } from "@/hooks/useRole";
 
 interface AssignmentLetter {
   id: string;
@@ -30,6 +31,7 @@ interface ApiResponse {
 }
 
 export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) {
+  const { canWrite } = useRole();
   const { data, isLoading } = useQuery({
     queryKey: ["employee-assignments", employeeId],
     queryFn: async () => {
@@ -50,12 +52,14 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Riwayat Penugasan</h3>
-        <Link href={`/surat-tugas/create?employee_id=${employeeId}`}>
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
-                <Plus className="w-4 h-4" />
-                Buat Surat Tugas
-            </Button>
-        </Link>
+        {canWrite && (
+          <Link href={`/surat-tugas/create?employee_id=${employeeId}`}>
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
+                  <Plus className="w-4 h-4" />
+                  Buat Surat Tugas
+              </Button>
+          </Link>
+        )}
       </div>
 
       {assignments.length === 0 ? (
