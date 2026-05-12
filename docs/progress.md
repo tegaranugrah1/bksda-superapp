@@ -1,3 +1,40 @@
+# Progress - Phase 24: Portal Dashboard Redesign
+
+> Document updated: 2026-05-12 13:00
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 24: Portal Dashboard Redesign
+
+### Accomplishments:
+- [x] **Complete UI Rewrite**: Modern, clean portal dashboard replacing old cluttered design.
+- [x] **Welcome Banner**: Emerald gradient with time-based greeting + date.
+- [x] **Module Grid**: 5 modul (Kepegawaian, BMN, Persediaan, DeReporting, CMS) — auto-filtered by user access.
+- [x] **Sidebar Profile**: Avatar, status, NIP, jabatan, unit kerja, email, telepon, ganti password.
+- [x] **Tab Surat Tugas** (NEW): View + Download surat tugas yang sudah approved.
+- [x] **Scalable**: Modul baru cukup tambah 1 entry di array.
+
+### Files Modified:
+```
+frontend/src/app/portal/page.tsx  ← REWRITE (295 lines, was 707 lines)
+```
+
+### Commits:
+```
+0923c36 feat(portal): redesign dashboard UI/UX with module grid + surat tugas tab (#283) [PR #284]
+```
+
+### GitHub Issues & PRs:
+- Issue #283 → PR #284 ✅ MERGED
+
+### Next Steps:
+- [ ] Tembusan field di builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration (digital/scan)
+
+---
+
 # Progress - Phase 23: Nomor Surat Format + Auto-Klasifikasi + Template + State Fix
 
 > Document updated: 2026-05-12 12:00

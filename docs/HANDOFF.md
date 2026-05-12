@@ -56,14 +56,48 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 23: Nomor Surat Format + Auto-Klasifikasi + Template Dasar + Inbox State Fix (✅ DONE) |
+| **Issue Terakhir Selesai** | Phase 24: Portal Dashboard Redesign (✅ DONE) |
 | **Issue Selanjutnya** | Tembusan field, Multi-page Testing, Signature Integration |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `d5a5c3f` - fix(surat-tugas): auto-refresh detail panel after delete (#281) |
+| **Commit Terakhir** | `0923c36` - feat(portal): redesign dashboard UI/UX (#283) [PR #284] |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
+| **Timestamp** | 2026-05-12T13:00:00+08:00 |
+| **GitHub Issues** | #283 (portal redesign) |
+| **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 | **Timestamp** | 2026-05-12T12:00:00+08:00 |
 | **GitHub Issues** | #277 (auto-klasifikasi), #279 (template dasar), #281 (inbox state) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
+
+---
+
+**UPDATE SESI KIRO (2026-05-12 - Phase 24: Portal Dashboard Redesign):**
+- **Objective**: Redesign portal dashboard UI/UX — modern, clean, functional.
+- **Accomplishments**:
+  - **Complete UI Rewrite** (`/portal`):
+    - Header: minimal dengan logo, user info, logout.
+    - Sidebar Profile: avatar, status aktif, NIP, jabatan, unit kerja, email, telepon, ganti password.
+    - Welcome Banner: gradient emerald, greeting berdasarkan waktu, tanggal hari ini.
+    - Module Grid: 5 modul (Kepegawaian, BMN, Persediaan, DeReporting, CMS) — compact cards, filtered by `access_modules`.
+    - 3 Tabs: Pinjaman Aktif, Aset Saya, **Surat Tugas** (NEW).
+  - **Tab Surat Tugas** (baru):
+    - Fetch ST dengan status `approved` dari API `/surat-tugas`.
+    - Tampilkan nomor surat, maksud tujuan, tanggal.
+    - Tombol **View** (link ke `/verifikasi/surat-tugas/[id]`).
+    - Tombol **Download** (unduh file jika tersedia).
+  - **Scalable Module Grid**:
+    - Modul baru cukup tambah 1 entry di array `moduleCards`.
+    - Auto-filter berdasarkan `access_modules` user.
+    - Super admin → semua modul tampil.
+- **Key Files Modified**:
+  - `frontend/src/app/portal/page.tsx` — REWRITE (295 lines, was 707 lines)
+- **Commits**:
+  ```
+  0923c36 feat(portal): redesign dashboard UI/UX with module grid + surat tugas tab (#283) [PR #284]
+  ```
+- **Next Steps**:
+  - Tembusan field di builder & preview
+  - Multi-page testing (surat panjang)
+  - Signature integration (digital/scan)
 
 ---
 
