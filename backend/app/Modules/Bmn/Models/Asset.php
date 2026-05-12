@@ -14,16 +14,38 @@ class Asset extends Model
     protected $table = 'bmn_assets';
 
     protected $fillable = [
-        'kode_barang', 'nup', 'nama_barang', 'merk_tipe',
-        'tahun_perolehan', 'kondisi', 'nilai_perolehan', 'nilai_buku',
-        'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
+        'jenis_bmn', 'kode_satker', 'nama_satker', 'kode_barang', 'nup', 'nup_lama',
+        'nama_barang', 'status_bmn', 'merk', 'tipe', 'merk_tipe', 'kondisi', 'umur_aset',
+        'intra_extra', 'henti_guna', 'status_sbsn', 'status_bmn_idle', 'status_kemitraan',
+        'bpybds', 'usulan_barang_hilang', 'usulan_barang_rb', 'usul_hapus', 'hibah_dktp',
+        'konsensi_jasa', 'properti_investasi', 'jenis_dokumen', 'no_dokumen', 'no_bpkp',
+        'no_polisi', 'status_sertifikasi', 'jenis_sertipikat', 'no_sertifikat', 'nama_pemilik',
+        'tanggal_buku_pertama', 'tanggal_perolehan', 'tanggal_pengapusan',
+        'nilai_perolehan_pertama', 'nilai_mutasi', 'nilai_perolehan', 'nilai_penyusutan', 'nilai_buku',
+        'luas_tanah_seluruhnya', 'luas_tanah_bangunan', 'luas_tanah_sarana', 'luas_lahan_kosong',
+        'luas_bangunan', 'luas_tapak_bangunan', 'luas_pemanfaatan', 'jumlah_lantai', 'jumlah_foto',
+        'status_penggunaan', 'no_psp', 'tanggal_psp', 'alamat', 'rt_rw', 'kelurahan_desa',
+        'kecamatan', 'kab_kota', 'kode_kab_kota', 'provinsi', 'kode_provinsi', 'kode_pos',
+        'sbsk', 'optimalisasi', 'penghuni', 'pengguna', 'kode_kpknl', 'uraian_kpknl',
+        'uraian_kanwil_djkn', 'nama_kl', 'nama_e1', 'nama_korwil', 'kode_register', 'lokasi_ruang',
+        'jenis_identitas', 'no_identitas', 'no_stnk', 'nama_pengguna_bmn', 'status_pmk',
+        'status_foto_geotag', 'tahun_perolehan', 'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
     ];
 
     protected $casts = [
         'nilai_perolehan' => 'decimal:2',
         'nilai_buku' => 'decimal:2',
+        'nilai_penyusutan' => 'decimal:2',
+        'nilai_perolehan_pertama' => 'decimal:2',
+        'nilai_mutasi' => 'decimal:2',
         'tahun_perolehan' => 'integer',
-        'kondisi' => \App\Modules\Bmn\Enums\AssetCondition::class,
+        'umur_aset' => 'integer',
+        'jumlah_lantai' => 'integer',
+        'jumlah_foto' => 'integer',
+        'tanggal_perolehan' => 'date',
+        'tanggal_buku_pertama' => 'date',
+        'tanggal_pengapusan' => 'date',
+        'tanggal_psp' => 'date',
     ];
 
     public function penanggungJawab()
