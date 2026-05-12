@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { Search, Plus, Loader2, Eye, Trash2, Package, Download } from "lucide-react";
@@ -39,6 +39,7 @@ export default function BmnAssetsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const debouncedSearch = useDebounce(searchTerm, 400);
   const { canWrite } = useRole();
+  const queryClient = useQueryClient();
 
   const { data: response, isLoading, isFetching } = useQuery<IResponse>({
     queryKey: ["bmn-assets", debouncedSearch, page, kondisiFilter],
@@ -71,6 +72,7 @@ export default function BmnAssetsPage() {
     try {
       await api.delete(`/bmn/assets/${id}/dispose`);
       toast.success("Aset berhasil di-dispose.");
+      queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
     } catch { toast.error("Gagal dispose aset."); }
   };
 
@@ -81,6 +83,7 @@ export default function BmnAssetsPage() {
       await api.post("/bmn/assets/bulk-dispose", { ids: Array.from(selectedIds) });
       toast.success(`${selectedIds.size} aset berhasil di-dispose.`);
       setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
     } catch { toast.error("Gagal bulk dispose."); }
   };
 
@@ -119,7 +122,7 @@ export default function BmnAssetsPage() {
           </Button>
           {canWrite && (
             <>
-              <AssetImportDialog onImportSuccess={() => setPage(1)} />
+              <AssetImportDialog onImportSuccess={() => { setPage(1); queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }); }} />
               <Link href="/bmn/assets/create">
                 <Button size="sm" className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-500">
                   <Plus className="w-3.5 h-3.5" /> Tambah Aset
