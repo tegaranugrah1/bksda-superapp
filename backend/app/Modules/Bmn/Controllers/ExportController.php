@@ -6,14 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Exports\AssetExport;
 use App\Modules\Bmn\Exports\LoanExport;
 use App\Modules\Bmn\Exports\MaintenanceExport;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportController extends Controller
 {
-    public function assets(): BinaryFileResponse
+    public function assets(Request $request): BinaryFileResponse
     {
-        return Excel::download(new AssetExport, 'Katalog_Aset_BKSDA.xlsx');
+        $includeNupLama = $request->boolean('include_nup_lama', true);
+        return Excel::download(new AssetExport($includeNupLama), 'Katalog_Aset_BKSDA.xlsx');
     }
 
     public function loans(): BinaryFileResponse

@@ -9,42 +9,143 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class AssetExport implements FromCollection, WithHeadings, WithMapping
 {
+    private bool $includeNupLama;
+    private int $rowNumber = 0;
+
+    public function __construct(bool $includeNupLama = true)
+    {
+        $this->includeNupLama = $includeNupLama;
+    }
+
     public function collection()
     {
-        return Asset::with('penanggungJawab')->latest()->get();
+        return Asset::latest()->get();
     }
 
     public function headings(): array
     {
-        return [
-            'ID',
-            'Kode Barang',
-            'NUP',
-            'Nama Barang',
-            'Merk/Tipe',
-            'Tahun Perolehan',
-            'Kondisi',
-            'Nilai Perolehan',
-            'Lokasi Spesifik',
-            'Penanggung Jawab',
-            'Tanggal Dicatat',
+        $headers = [
+            'No', 'Jenis BMN', 'Kode Satker', 'Nama Satker', 'Kode Barang', 'NUP',
         ];
+
+        if ($this->includeNupLama) {
+            $headers[] = 'NUP LAMA';
+        }
+
+        return array_merge($headers, [
+            'Nama Barang', 'Status BMN', 'Merk', 'Tipe', 'Kondisi', 'Umur Aset',
+            'Intra / Extra', 'Henti Guna', 'Status SBSN', 'Status BMN Idle',
+            'Status Kemitraan', 'BPYBDS', 'Usulan Barang Hilang', 'Usulan Barang RB',
+            'Usul Hapus', 'Hibah DKTP', 'Konsensi Jasa', 'Properti Investasi',
+            'Jenis Dokumen', 'No Dokumen', 'No BPKP', 'No Polisi',
+            'Status Sertifikasi', 'Jenis Sertipikat', 'No Sertifikat', 'Nama',
+            'Tanggal Buku Pertama', 'Tanggal Perolehan', 'Tanggal Pengapusan',
+            'Nilai Perolehan Pertama', 'Nilai Mutasi', 'Nilai Perolehan',
+            'Nilai Penyusutan', 'Nilai Buku', 'Luas Tanah Seluruhnya',
+            'Luas Tanah Untuk Bangunan', 'Luas Tanah Untuk Sarana Lingkungan',
+            'Luas Lahan Kosong', 'Luas Bangunan', 'Luas Tapak Bangunan',
+            'Luas Pemanfataan', 'Jumlah Lantai', 'Jumlah Foto',
+            'Status Penggunaan', 'No PSP', 'Tanggal PSP', 'Alamat', 'RT/RW',
+            'Kelurahan/Desa', 'Kecamatan', 'Kab/Kota', 'Kode Kab/Kota',
+            'Provinsi', 'Kode Provinsi', 'Kode Pos', 'SBSK', 'Optimalisasi',
+            'Penghuni', 'Pengguna', 'Kode KPKNL', 'Uraian KPKNL',
+            'Uraian Kanwil DJKN', 'Nama K/L', 'Nama E1', 'Nama Korwil',
+            'Kode Register', 'Lokasi Ruang', 'Jenis Identitas', 'No Identitas',
+            'No STNK', 'Nama Pengguna', 'Status PMK', 'Foto Ber-geotag',
+        ]);
     }
 
     public function map($asset): array
     {
-        return [
-            $asset->id,
+        $this->rowNumber++;
+
+        $row = [
+            $this->rowNumber,
+            $asset->jenis_bmn,
+            $asset->kode_satker,
+            $asset->nama_satker,
             $asset->kode_barang,
             $asset->nup,
-            $asset->nama_barang,
-            $asset->merk_tipe,
-            $asset->tahun_perolehan,
-            $asset->kondisi,
-            $asset->nilai_perolehan,
-            $asset->lokasi_spesifik,
-            $asset->penanggungJawab ? $asset->penanggungJawab->nama_lengkap : 'N/A',
-            $asset->created_at->format('d/m/Y H:i'),
         ];
+
+        if ($this->includeNupLama) {
+            $row[] = $asset->nup_lama;
+        }
+
+        return array_merge($row, [
+            $asset->nama_barang,
+            $asset->status_bmn,
+            $asset->merk,
+            $asset->tipe,
+            $asset->kondisi,
+            $asset->umur_aset,
+            $asset->intra_extra,
+            $asset->henti_guna,
+            $asset->status_sbsn,
+            $asset->status_bmn_idle,
+            $asset->status_kemitraan,
+            $asset->bpybds,
+            $asset->usulan_barang_hilang,
+            $asset->usulan_barang_rb,
+            $asset->usul_hapus,
+            $asset->hibah_dktp,
+            $asset->konsensi_jasa,
+            $asset->properti_investasi,
+            $asset->jenis_dokumen,
+            $asset->no_dokumen,
+            $asset->no_bpkp,
+            $asset->no_polisi,
+            $asset->status_sertifikasi,
+            $asset->jenis_sertipikat,
+            $asset->no_sertifikat,
+            $asset->nama_pemilik,
+            $asset->tanggal_buku_pertama?->format('Y-m-d'),
+            $asset->tanggal_perolehan?->format('Y-m-d'),
+            $asset->tanggal_pengapusan?->format('Y-m-d'),
+            $asset->nilai_perolehan_pertama,
+            $asset->nilai_mutasi,
+            $asset->nilai_perolehan,
+            $asset->nilai_penyusutan,
+            $asset->nilai_buku,
+            $asset->luas_tanah_seluruhnya,
+            $asset->luas_tanah_bangunan,
+            $asset->luas_tanah_sarana,
+            $asset->luas_lahan_kosong,
+            $asset->luas_bangunan,
+            $asset->luas_tapak_bangunan,
+            $asset->luas_pemanfaatan,
+            $asset->jumlah_lantai,
+            $asset->jumlah_foto,
+            $asset->status_penggunaan,
+            $asset->no_psp,
+            $asset->tanggal_psp?->format('Y-m-d'),
+            $asset->alamat,
+            $asset->rt_rw,
+            $asset->kelurahan_desa,
+            $asset->kecamatan,
+            $asset->kab_kota,
+            $asset->kode_kab_kota,
+            $asset->provinsi,
+            $asset->kode_provinsi,
+            $asset->kode_pos,
+            $asset->sbsk,
+            $asset->optimalisasi,
+            $asset->penghuni,
+            $asset->pengguna,
+            $asset->kode_kpknl,
+            $asset->uraian_kpknl,
+            $asset->uraian_kanwil_djkn,
+            $asset->nama_kl,
+            $asset->nama_e1,
+            $asset->nama_korwil,
+            $asset->kode_register,
+            $asset->lokasi_ruang,
+            $asset->jenis_identitas,
+            $asset->no_identitas,
+            $asset->no_stnk,
+            $asset->nama_pengguna_bmn,
+            $asset->status_pmk,
+            $asset->foto_geotag_url,
+        ]);
     }
 }

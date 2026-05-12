@@ -80,9 +80,9 @@ export default function BmnAssetsPage() {
     placeholderData: (prev) => prev,
   });
 
-  const handleExport = async () => {
+  const handleExport = async (includeNupLama: boolean) => {
     try {
-      const res = await api.get("/bmn/assets/export", { responseType: "blob" });
+      const res = await api.get("/bmn/assets/export", { responseType: "blob", params: { include_nup_lama: includeNupLama ? 1 : 0 } });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -93,6 +93,8 @@ export default function BmnAssetsPage() {
       toast.success("Export berhasil!");
     } catch { toast.error("Gagal export data."); }
   };
+
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const handleDispose = async (id: string) => {
     if (!confirm("Yakin ingin menghapus/dispose aset ini?")) return;
@@ -144,9 +146,24 @@ export default function BmnAssetsPage() {
           <p className="text-sm text-slate-500 mt-0.5">Katalog seluruh Barang Milik Negara.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" size="sm" className="rounded-xl gap-2 text-xs" onClick={handleExport}>
-            <Download className="w-3.5 h-3.5" /> Export
-          </Button>
+          <div className="relative">
+            <Button variant="outline" size="sm" className="rounded-xl gap-2 text-xs" onClick={() => setShowExportMenu(!showExportMenu)}>
+              <Download className="w-3.5 h-3.5" /> Export
+            </Button>
+            {showExportMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
+                <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 w-56 p-1">
+                  <button onClick={() => { handleExport(true); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg">
+                    Dengan NUP Lama (80 kolom)
+                  </button>
+                  <button onClick={() => { handleExport(false); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg">
+                    Tanpa NUP Lama (79 kolom)
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           {canWrite && (
             <>
               <AssetImportDialog onImportSuccess={() => { setPage(1); queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }); }} />
