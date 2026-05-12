@@ -110,13 +110,17 @@ class AssetController extends Controller
     public function import(Request $request): JsonResponse
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+            'file' => 'required|mimes:xlsx,xls,csv|max:20480',
         ]);
 
         try {
-            Excel::import(new AssetImport, $request->file('file'));
+            $import = new AssetImport;
+            Excel::import($import, $request->file('file'));
 
-            return response()->json(['message' => 'Impor Aset BMN berhasil diproses.']);
+            return response()->json([
+                'message' => "Impor berhasil! {$import->getImportedCount()} aset BMN diproses.",
+                'count' => $import->getImportedCount(),
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => 'Gagal mengimpor data: '.$e->getMessage()], 422);
         }
