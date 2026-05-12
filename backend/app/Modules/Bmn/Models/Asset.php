@@ -14,7 +14,7 @@ class Asset extends Model
     protected $table = 'bmn_assets';
 
     protected $fillable = [
-        'jenis_bmn', 'kode_satker', 'nama_satker', 'kode_barang', 'nup', 'nup_lama',
+        'id', 'jenis_bmn', 'kode_satker', 'nama_satker', 'kode_barang', 'nup', 'nup_lama',
         'nama_barang', 'status_bmn', 'merk', 'tipe', 'merk_tipe', 'kondisi', 'umur_aset',
         'intra_extra', 'henti_guna', 'status_sbsn', 'status_bmn_idle', 'status_kemitraan',
         'bpybds', 'usulan_barang_hilang', 'usulan_barang_rb', 'usul_hapus', 'hibah_dktp',

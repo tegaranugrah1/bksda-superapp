@@ -3,6 +3,7 @@
 namespace App\Modules\Bmn\Imports;
 
 use App\Modules\Bmn\Models\Asset;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
@@ -32,6 +33,7 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
         $this->imported++;
 
         return new Asset([
+            'id' => (string) Str::uuid(),
             'jenis_bmn' => $row['jenis_bmn'] ?? null,
             'kode_satker' => $row['kode_satker'] ?? null,
             'nama_satker' => $row['nama_satker'] ?? null,
