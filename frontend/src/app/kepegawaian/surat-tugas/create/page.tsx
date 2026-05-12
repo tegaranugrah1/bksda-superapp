@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
   FileText,
   Printer,
@@ -101,7 +101,7 @@ export default function STCreatePremiumPage() {
 
   // --- Form State ---
   const [stNumber, setStNumber] = useState("");
-  const [stCode, setStCode] = useState("");
+  const [klasifikasi, setKlasifikasi] = useState("KSA.0X.0X");
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const currentYear = new Date().getFullYear().toString();
 
@@ -131,7 +131,6 @@ export default function STCreatePremiumPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder-create"],
@@ -202,10 +201,21 @@ export default function STCreatePremiumPage() {
     }
   };
 
-  // Initial setup - nomor surat dikosongkan, diisi manual oleh user
-  useEffect(() => {
-    setIsInitializing(false);
-  }, []);
+  // Auto-fill klasifikasi & menimbang based on nama kegiatan keywords
+  const handleNamaKegiatanChange = (value: string) => {
+    setNamaKegiatan(value);
+    const lower = value.toLowerCase();
+    if (lower.includes("konflik")) {
+      setKlasifikasi("KSA.03.01");
+      setMenimbangItems(prev => {
+        const newItems = [...prev];
+        if (newItems.length > 0) {
+          newItems[0] = { ...newItems[0], text: "bahwa dalam rangka kegiatan penanganan konflik satwa, perlu penyelamatan;" };
+        }
+        return newItems;
+      });
+    }
+  };
 
   // Handlers
   const handleApprove = async () => {
@@ -213,10 +223,10 @@ export default function STCreatePremiumPage() {
     if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
 
     try {
-      const fullNomorSurat = `ST.${stNumber}/${stCode}/${currentMonth}/${currentYear}`;
+      const fullNomorSurat = `ST.${stNumber}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`;
       const payload = {
         nomor_surat: fullNomorSurat,
-        kode_surat: stCode,
+        kode_surat: `K.18/TU/${klasifikasi}/B`,
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
@@ -249,7 +259,7 @@ export default function STCreatePremiumPage() {
     printWindow.document.write(`
       <html>
       <head>
-        <title>ST.${stNumber}</title>
+        <title>ST.${stNumber}/K.18/TU/${klasifikasi}/B</title>
         <style>
           @page { size: A4; margin: 0; }
           body { font-family: 'Bookman Old Style', serif; font-size: 11pt; line-height: 1.25; color: #000; margin: 0; padding: 0; }
@@ -265,15 +275,6 @@ export default function STCreatePremiumPage() {
     printWindow.focus();
     setTimeout(() => printWindow.print(), 500);
   };
-
-  if (isInitializing) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-slate-50">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
-        <p className="text-sm font-bold text-slate-800 uppercase tracking-widest">Inisialisasi Builder...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden">
@@ -293,9 +294,9 @@ export default function STCreatePremiumPage() {
             <div className="flex items-stretch bg-slate-50 border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500/10">
               <div className="bg-slate-100 px-3 flex items-center border-r border-slate-200 shrink-0"><span className="text-xs font-bold">ST.</span></div>
               <input value={stNumber} onChange={e => setStNumber(e.target.value)} placeholder="001" className="w-14 px-2 py-2 text-sm font-bold bg-transparent outline-none text-center" />
-              <div className="px-0.5 flex items-center text-slate-300 shrink-0">/</div>
-              <input value={stCode} onChange={e => setStCode(e.target.value)} placeholder="K.18/TU/KSA.0X.0X/B" className="flex-1 min-w-0 px-2 py-2 text-xs font-medium bg-transparent outline-none" />
-              <div className="bg-slate-100 px-2 flex items-center border-l border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/{currentMonth}/{currentYear}</span></div>
+              <div className="bg-slate-100 px-2 flex items-center border-x border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/K.18/TU/</span></div>
+              <input value={klasifikasi} onChange={e => setKlasifikasi(e.target.value)} placeholder="KSA.0X.0X" className="flex-1 min-w-0 px-2 py-2 text-xs font-medium bg-transparent outline-none" />
+              <div className="bg-slate-100 px-2 flex items-center border-l border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/B/{currentMonth}/{currentYear}</span></div>
             </div>
           </FormSection>
 
@@ -426,7 +427,7 @@ export default function STCreatePremiumPage() {
                 <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
                 <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
               </div>
-              <textarea value={namaKegiatan} onChange={e => setNamaKegiatan(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm min-h-[60px] outline-none" />
+              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm min-h-[60px] outline-none" />
               <input value={tempatKegiatan} onChange={e => setTempatKegiatan(e.target.value)} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
@@ -449,7 +450,7 @@ export default function STCreatePremiumPage() {
 
       <main className="flex-1 overflow-y-auto p-12 flex justify-center bg-slate-200/50">
         <STBuilderPreview 
-          stNumber={stNumber} stCode={stCode} currentMonth={currentMonth} currentYear={currentYear}
+          stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
           menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
           buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
           kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
