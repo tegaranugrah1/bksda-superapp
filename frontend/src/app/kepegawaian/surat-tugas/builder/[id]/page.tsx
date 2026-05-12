@@ -235,9 +235,9 @@ export default function STBuilderPage() {
           setStCode(data.kode_surat);
         }
 
-        if (data.tanggal_surat) {
-          setTanggalSurat(data.tanggal_surat.split("T")[0]);
-        }
+        // Tanggal surat: default hari ini, bisa diganti manual
+        // Hanya load dari API jika sudah pernah disimpan (bukan tanggal lama dari pengajuan)
+        setTanggalSurat(new Date().toISOString().substring(0, 10));
 
         setTanggalMulai(data.tanggal_mulai?.split("T")[0] || "");
         setTanggalSelesai(data.tanggal_selesai?.split("T")[0] || "");
