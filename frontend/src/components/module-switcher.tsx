@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 // Module definitions with paths
 const moduleDefinitions = [
@@ -73,7 +74,15 @@ function getActiveModule(pathname: string) {
 export function ModuleSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
   const activeModule = getActiveModule(pathname);
+
+  // Filter modules based on user access
+  const visibleModules = moduleDefinitions.filter((mod) => {
+    if (mod.slug === "portal") return true; // Portal always visible
+    if (user?.role === "super_admin") return true; // Super admin sees all
+    return user?.access_modules?.includes(mod.slug);
+  });
 
   useEffect(() => {
     const close = () => setIsOpen(false);
@@ -121,7 +130,7 @@ export function ModuleSwitcher() {
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-            {moduleDefinitions.map((mod) => (
+            {visibleModules.map((mod) => (
               <Link
                 key={mod.slug}
                 href={mod.href}
