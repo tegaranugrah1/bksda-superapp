@@ -171,67 +171,54 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
               />
 
               {/* Module Access */}
-              <FormField
-                control={form.control}
-                name="access_modules"
-                render={() => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-sm font-bold">Akses Modul</FormLabel>
-                      <Badge variant="outline" className="text-[10px] font-bold">{accessModules.length} Terpilih</Badge>
-                    </div>
-                    <div className="grid gap-2">
-                      {AVAILABLE_MODULES.map((module) => (
-                        <FormField
-                          key={module.id}
-                          control={form.control}
-                          name="access_modules"
-                          render={({ field }) => {
-                            const isSelected = field.value?.includes(module.id);
-                            const toggle = () => {
-                              field.onChange(
-                                isSelected
-                                  ? field.value?.filter((v) => v !== module.id)
-                                  : [...(field.value || []), module.id]
-                              );
-                            };
-                            return (
-                              <FormItem
-                                key={module.id}
-                                className={cn(
-                                  "flex flex-row items-center space-x-3 space-y-0 rounded-xl border p-3 transition-all cursor-pointer",
-                                  isSelected ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-100 hover:border-slate-200"
-                                )}
-                                onClick={toggle}
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={isSelected}
-                                    className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
-                                    onCheckedChange={(checked) => {
-                                      field.onChange(
-                                        checked
-                                          ? [...(field.value || []), module.id]
-                                          : field.value?.filter((v) => v !== module.id)
-                                      );
-                                    }}
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                </FormControl>
-                                <div className="flex-1">
-                                  <p className={cn("text-sm font-semibold", isSelected ? "text-emerald-700" : "text-slate-700")}>{module.label}</p>
-                                  <p className="text-[10px] text-slate-500">{module.description}</p>
-                                </div>
-                              </FormItem>
-                            );
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold">Akses Modul</label>
+                  <Badge variant="outline" className="text-[10px] font-bold">{accessModules.length} Terpilih</Badge>
+                </div>
+                <div className="grid gap-2">
+                  {AVAILABLE_MODULES.map((module) => {
+                    const isSelected = accessModules.includes(module.id);
+                    return (
+                      <div
+                        key={module.id}
+                        className={cn(
+                          "flex flex-row items-center space-x-3 rounded-xl border p-3 transition-all cursor-pointer",
+                          isSelected ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-100 hover:border-slate-200"
+                        )}
+                        onClick={() => {
+                          const current = form.getValues("access_modules") || [];
+                          const updated = isSelected
+                            ? current.filter((v) => v !== module.id)
+                            : [...current, module.id];
+                          form.setValue("access_modules", updated, { shouldValidate: true });
+                        }}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                          tabIndex={-1}
+                          onClick={(e) => e.stopPropagation()}
+                          onCheckedChange={(checked) => {
+                            const current = form.getValues("access_modules") || [];
+                            const updated = checked
+                              ? [...current, module.id]
+                              : current.filter((v) => v !== module.id);
+                            form.setValue("access_modules", updated, { shouldValidate: true });
                           }}
                         />
-                      ))}
-                    </div>
-                    <FormMessage className="text-[11px]" />
-                  </FormItem>
+                        <div className="flex-1">
+                          <p className={cn("text-sm font-semibold", isSelected ? "text-emerald-700" : "text-slate-700")}>{module.label}</p>
+                          <p className="text-[10px] text-slate-500">{module.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {form.formState.errors.access_modules && (
+                  <p className="text-[11px] text-red-500">{form.formState.errors.access_modules.message}</p>
                 )}
-              />
+              </div>
 
               {/* Password */}
               <FormField
