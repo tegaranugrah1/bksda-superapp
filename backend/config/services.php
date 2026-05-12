@@ -37,7 +37,7 @@ return [
 
     'google_sheets' => [
         'spreadsheet_id' => env('GOOGLE_SHEETS_SPREADSHEET_ID', '11Hv27vqC_pvk9YqcT3vzkEkP5RqdVFTmI4-dNs8EjLQ'),
-        'sheet_name' => env('GOOGLE_SHEETS_SHEET_NAME', 'Sheet1'),
+        'sheet_name' => env('GOOGLE_SHEETS_SHEET_NAME', 'Form Responses 1'),
     ],
 
 ];

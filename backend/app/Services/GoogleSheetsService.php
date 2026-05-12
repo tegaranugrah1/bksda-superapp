@@ -15,8 +15,8 @@ class GoogleSheetsService
     public function __construct()
     {
         $this->spreadsheetId = config('services.google_sheets.spreadsheet_id', '11Hv27vqC_pvk9YqcT3vzkEkP5RqdVFTmI4-dNs8EjLQ');
-        $this->sheetName = config('services.google_sheets.sheet_name', 'Sheet1');
-        $this->credentialsPath = base_path('service-account.json');
+        $this->sheetName = config('services.google_sheets.sheet_name', 'Form Responses 1');
+        $this->credentialsPath = base_path('../service-account.json');
     }
 
     /**
@@ -76,7 +76,7 @@ class GoogleSheetsService
             $range = "{$this->sheetName}!A:Y";
             $url = "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/values/{$range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS";
 
-            $response = Http::withToken($token)->post($url, [
+            $response = Http::withoutVerifying()->withToken($token)->post($url, [
                 'range' => $range,
                 'majorDimension' => 'ROWS',
                 'values' => [$row],
@@ -123,7 +123,7 @@ class GoogleSheetsService
                 $range = "{$this->sheetName}!A{$rowNumber}:Y{$rowNumber}";
                 $url = "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/values/{$range}?valueInputOption=USER_ENTERED";
 
-                $response = Http::withToken($token)->put($url, [
+                $response = Http::withoutVerifying()->withToken($token)->put($url, [
                     'range' => $range,
                     'majorDimension' => 'ROWS',
                     'values' => [$row],
@@ -156,7 +156,7 @@ class GoogleSheetsService
         $range = "{$this->sheetName}!Y:Y";
         $url = "https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/values/{$range}";
 
-        $response = Http::withToken($token)->get($url);
+        $response = Http::withoutVerifying()->withToken($token)->get($url);
 
         if (!$response->successful()) {
             return null;
@@ -184,7 +184,13 @@ class GoogleSheetsService
             $this->credentialsPath
         );
 
-        $token = $credentials->fetchAuthToken();
+        $httpHandler = function ($request, $options = []) {
+            $options['verify'] = false;
+            $client = new \GuzzleHttp\Client();
+            return $client->send($request, $options);
+        };
+
+        $token = $credentials->fetchAuthToken($httpHandler);
         return $token['access_token'] ?? null;
     }
 }
