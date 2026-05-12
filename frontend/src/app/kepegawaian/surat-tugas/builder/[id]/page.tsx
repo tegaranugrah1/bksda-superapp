@@ -307,6 +307,21 @@ export default function STBuilderPage() {
           updateDasarFromFunding(funding, new Date().toISOString().substring(0, 10));
         }
 
+        // Auto-fill klasifikasi & menimbang if kegiatan contains "konflik" and not already set
+        const parsedKegiatan = cleanedActivity.toLowerCase();
+        if (parsedKegiatan.includes("konflik") && (!data.kode_surat || !data.nomor_surat)) {
+          setKlasifikasi("KSA.03.01");
+          if (!data.menimbang || !Array.isArray(data.menimbang) || data.menimbang.length === 0) {
+            setMenimbangItems(prev => {
+              const newItems = [...prev];
+              if (newItems.length > 0) {
+                newItems[0] = { ...newItems[0], text: "bahwa dalam rangka kegiatan penanganan konflik satwa, perlu penyelamatan;" };
+              }
+              return newItems;
+            });
+          }
+        }
+
         toast.success("Data berhasil diurai.");
       } catch (err) {
         console.error(err);
