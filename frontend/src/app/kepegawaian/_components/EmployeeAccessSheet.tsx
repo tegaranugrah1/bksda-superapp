@@ -188,6 +188,13 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                           name="access_modules"
                           render={({ field }) => {
                             const isSelected = field.value?.includes(module.id);
+                            const toggle = () => {
+                              field.onChange(
+                                isSelected
+                                  ? field.value?.filter((v) => v !== module.id)
+                                  : [...(field.value || []), module.id]
+                              );
+                            };
                             return (
                               <FormItem
                                 key={module.id}
@@ -195,10 +202,21 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                                   "flex flex-row items-center space-x-3 space-y-0 rounded-xl border p-3 transition-all cursor-pointer",
                                   isSelected ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-100 hover:border-slate-200"
                                 )}
-                                onClick={() => { field.onChange(isSelected ? field.value?.filter((v) => v !== module.id) : [...field.value, module.id]); }}
+                                onClick={toggle}
                               >
                                 <FormControl>
-                                  <Checkbox checked={isSelected} className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600" onCheckedChange={() => {}} />
+                                  <Checkbox
+                                    checked={isSelected}
+                                    className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                                    onCheckedChange={(checked) => {
+                                      field.onChange(
+                                        checked
+                                          ? [...(field.value || []), module.id]
+                                          : field.value?.filter((v) => v !== module.id)
+                                      );
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
                                 </FormControl>
                                 <div className="flex-1">
                                   <p className={cn("text-sm font-semibold", isSelected ? "text-emerald-700" : "text-slate-700")}>{module.label}</p>
