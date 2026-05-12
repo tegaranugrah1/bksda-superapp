@@ -311,8 +311,11 @@ export default function STBuilderPage() {
         const parsedKegiatan = cleanedActivity.toLowerCase();
         if (parsedKegiatan.includes("konflik")) {
           setKlasifikasi("KSA.03.01");
-          // Only override menimbang if not already saved from a previous session
-          if (!data.menimbang || !Array.isArray(data.menimbang) || data.menimbang.length === 0) {
+          // Override menimbang if it's still the default template (not yet customized by user)
+          const currentMenimbang = data.menimbang && Array.isArray(data.menimbang) ? data.menimbang : [];
+          const isDefaultTemplate = currentMenimbang.length === 0 || 
+            (currentMenimbang[0]?.text === "bahwa dalam rangka , perlu ;");
+          if (isDefaultTemplate) {
             setMenimbangItems([
               { id: "1", text: "bahwa dalam rangka kegiatan penanganan konflik satwa, perlu penyelamatan;" },
               { id: "2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
