@@ -21,7 +21,7 @@ class AssetController extends Controller
 {
     public function __construct(private AssetService $assetService) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $query = Asset::with('penanggungJawab')->latest();
 
@@ -34,8 +34,18 @@ class AssetController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('nama_barang', 'ilike', "%{$search}%")
                     ->orWhere('kode_barang', 'ilike', "%{$search}%")
-                    ->orWhere('nup', 'ilike', "%{$search}%");
+                    ->orWhere('nup', 'ilike', "%{$search}%")
+                    ->orWhere('merk', 'ilike', "%{$search}%")
+                    ->orWhere('no_polisi', 'ilike', "%{$search}%");
             });
+        }
+
+        if ($request->filled('kondisi')) {
+            $query->where('kondisi', $request->kondisi);
+        }
+
+        if ($request->filled('jenis_bmn')) {
+            $query->where('jenis_bmn', $request->jenis_bmn);
         }
 
         return AssetResource::collection($query->paginate(20));
