@@ -79,6 +79,25 @@ class AssignmentLetterController extends Controller
             DB::commit();
             $surat->load('employees');
 
+            // Append to Google Sheets (fire and forget - don't block response)
+            try {
+                $sheetsService = new \App\Services\GoogleSheetsService();
+                $sheetsService->appendSuratTugas([
+                    'unit_kerja' => $surat->employees->first()?->satuan_kerja ?? '',
+                    'employees' => $surat->employees->map(fn($e) => ['nama_lengkap' => $e->nama_lengkap])->toArray(),
+                    'nama_plh' => $surat->nama_plh ?? '',
+                    'nama_kegiatan' => $surat->maksud_tujuan ?? '',
+                    'tanggal_mulai' => $surat->tanggal_mulai?->format('Y-m-d') ?? '',
+                    'tanggal_selesai' => $surat->tanggal_selesai?->format('Y-m-d') ?? '',
+                    'sumber_dana' => $surat->sumber_dana ?? '',
+                    'file_path' => $surat->file_surat_path ?? '',
+                    'keterangan' => $surat->keterangan ?? '',
+                    'tanda_setuju' => $surat->tanda_setuju ?? '',
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('GoogleSheets sync failed: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'message' => 'Pengajuan Surat Tugas berhasil direkam.',
                 'data' => $surat,
