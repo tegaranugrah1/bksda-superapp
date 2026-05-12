@@ -31,6 +31,7 @@ Route::get('/ping', function () {
 Route::apiResource('assets', AssetController::class)->except(['destroy']);
 Route::post('assets/import', [AssetController::class, 'import']);
 Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose']);
+Route::post('assets/bulk-dispose', [AssetController::class, 'bulkDispose']);
 
 // 5. FOTO ASET
 Route::post('assets/{asset}/photo', [AssetPhotoController::class, 'upload']);

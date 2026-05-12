@@ -92,6 +92,16 @@ class AssetController extends Controller
         }
     }
 
+    public function bulkDispose(Request $request): JsonResponse
+    {
+        $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'string']);
+
+        $count = Asset::whereIn('id', $request->ids)->count();
+        Asset::whereIn('id', $request->ids)->delete();
+
+        return response()->json(['message' => "{$count} aset berhasil di-dispose."]);
+    }
+
     public function export(): BinaryFileResponse
     {
         return Excel::download(new AssetExport, 'Katalog_Aset_BKSDA.xlsx');

@@ -36,6 +36,7 @@ export default function BmnAssetsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [kondisiFilter, setKondisiFilter] = useState("Semua");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const debouncedSearch = useDebounce(searchTerm, 400);
   const { canWrite } = useRole();
 
@@ -72,6 +73,37 @@ export default function BmnAssetsPage() {
       toast.success("Aset berhasil di-dispose.");
     } catch { toast.error("Gagal dispose aset."); }
   };
+
+  const handleBulkDispose = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Yakin ingin menghapus ${selectedIds.size} aset yang dipilih?`)) return;
+    try {
+      await api.post("/bmn/assets/bulk-dispose", { ids: Array.from(selectedIds) });
+      toast.success(`${selectedIds.size} aset berhasil di-dispose.`);
+      setSelectedIds(new Set());
+    } catch { toast.error("Gagal bulk dispose."); }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!response?.data) return;
+    const allIds = response.data.map(a => a.id);
+    const allSelected = allIds.every(id => selectedIds.has(id));
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(allIds));
+    }
+  };
+
+  const allSelected = response?.data ? response.data.length > 0 && response.data.every(a => selectedIds.has(a.id)) : false;
 
   return (
     <div className="p-6 md:p-8 space-y-6">
@@ -126,6 +158,17 @@ export default function BmnAssetsPage() {
         </div>
       </div>
 
+      {/* Bulk Action Bar */}
+      {canWrite && selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+          <span className="text-sm font-semibold text-red-700">{selectedIds.size} aset dipilih</span>
+          <Button size="sm" variant="destructive" className="rounded-lg gap-1 text-xs" onClick={handleBulkDispose}>
+            <Trash2 className="w-3.5 h-3.5" /> Hapus Terpilih
+          </Button>
+          <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={() => setSelectedIds(new Set())}>Batal</Button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden relative">
         {isFetching && !isLoading && (
@@ -137,6 +180,11 @@ export default function BmnAssetsPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50">
+                {canWrite && (
+                  <th className="px-3 py-3 w-10">
+                    <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                  </th>
+                )}
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kode / NUP</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Barang</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kondisi</th>
@@ -147,12 +195,17 @@ export default function BmnAssetsPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {isLoading ? (
-                <tr><td colSpan={6} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" /><p className="text-sm text-slate-400">Memuat data...</p></td></tr>
+                <tr><td colSpan={canWrite ? 7 : 5} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" /><p className="text-sm text-slate-400">Memuat data...</p></td></tr>
               ) : response?.data?.length === 0 ? (
-                <tr><td colSpan={6} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-slate-200" /><p className="text-sm text-slate-400">Tidak ada data ditemukan</p></td></tr>
+                <tr><td colSpan={canWrite ? 7 : 5} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-slate-200" /><p className="text-sm text-slate-400">Tidak ada data ditemukan</p></td></tr>
               ) : (
                 response?.data?.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <tr key={asset.id} className={cn("hover:bg-slate-50/50 transition-colors group", selectedIds.has(asset.id) && "bg-emerald-50/30")}>
+                    {canWrite && (
+                      <td className="px-3 py-3">
+                        <input type="checkbox" checked={selectedIds.has(asset.id)} onChange={() => toggleSelect(asset.id)} className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                      </td>
+                    )}
                     <td className="px-4 py-3">
                       <p className="text-xs font-mono font-bold text-emerald-700">{asset.kode_barang}</p>
                       <p className="text-[10px] text-slate-400 font-mono">NUP: {asset.nup}</p>
