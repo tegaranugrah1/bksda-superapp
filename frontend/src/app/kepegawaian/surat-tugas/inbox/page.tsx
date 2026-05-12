@@ -37,6 +37,7 @@ interface AssignmentLetter {
   nama_plh: string | null;
   has_seksi_employee: boolean;
   tanda_setuju: 'sudah' | 'belum' | null;
+  keterangan: string | null;
   created_at: string;
   employees: Employee[];
 }
@@ -436,6 +437,16 @@ export default function SuratTugasInbox() {
                                                 </div>
                                             </div>
                                         )}
+                                    </div>
+                                )}
+
+                                {/* Keterangan Section */}
+                                {selectedLetter.keterangan && (
+                                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 space-y-2">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Keterangan Lainnya</span>
+                                        <p className="text-xs font-medium text-slate-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                                            {selectedLetter.keterangan}
+                                        </p>
                                     </div>
                                 )}
 

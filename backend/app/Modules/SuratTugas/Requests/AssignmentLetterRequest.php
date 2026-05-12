@@ -27,7 +27,7 @@ class AssignmentLetterRequest extends FormRequest
         ];
 
         if ($this->isMethod('post') || $this->hasFile('file_surat')) {
-            $rules['file_surat'] = 'nullable|file|mimes:pdf|max:10240';
+            $rules['file_surat'] = 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240';
         }
 
         return $rules;
@@ -38,7 +38,7 @@ class AssignmentLetterRequest extends FormRequest
         return [
             'employees.min' => 'Surat Tugas tidak sah jika tidak ada pegawai yang berangkat.',
             'tanggal_selesai.after_or_equal' => 'Tanggal kembali tidak boleh mendahului tanggal keberangkatan.',
-            'file_surat.mimes' => 'Berkas pindaian surat wajib berformat PDF.',
+            'file_surat.mimes' => 'Berkas wajib berformat PDF, JPG, atau PNG.',
             'file_surat.max' => 'Ukuran berkas PDF tidak boleh melebihi 10 Megabyte.',
         ];
     }

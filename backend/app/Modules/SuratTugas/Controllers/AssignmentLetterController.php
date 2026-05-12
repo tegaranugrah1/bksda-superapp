@@ -59,6 +59,7 @@ class AssignmentLetterController extends Controller
                 'nama_plh' => $request->input('nama_plh'),
                 'has_seksi_employee' => (bool) $request->input('has_seksi_employee', false),
                 'tanda_setuju' => $request->input('tanda_setuju'),
+                'keterangan' => $request->input('keterangan'),
                 'status' => 'draft',
                 'created_by' => auth()->id() ? (int) auth()->id() : null,
             ]);
@@ -200,13 +201,13 @@ class AssignmentLetterController extends Controller
         $surat = AssignmentLetter::withTrashed()->findOrFail($id);
 
         if (! $surat->file_surat_path || ! Storage::exists($surat->file_surat_path)) {
-            return response()->json(['message' => 'Berkas PDF fisik tidak ditemukan di brankas server.'], 404);
+            return response()->json(['message' => 'Berkas tidak ditemukan di server.'], 404);
         }
 
-        return Storage::download(
-            $surat->file_surat_path,
-            'ST_BKSDA_'.($surat->nomor_surat ?? 'Draft').'.pdf'
-        );
+        $ext = pathinfo($surat->file_surat_path, PATHINFO_EXTENSION) ?: 'pdf';
+        $filename = 'ST_BKSDA_'.($surat->nomor_surat ?? 'Draft').'.'.$ext;
+
+        return Storage::download($surat->file_surat_path, $filename);
     }
 
     public function verify(string $id)

@@ -32,6 +32,7 @@ class AssignmentLetter extends Model
         'nama_plh',
         'has_seksi_employee',
         'tanda_setuju',
+        'keterangan',
         'menimbang',
         'dasar',
         'created_by',
