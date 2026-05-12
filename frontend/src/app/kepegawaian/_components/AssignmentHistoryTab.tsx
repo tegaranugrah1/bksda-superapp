@@ -39,14 +39,17 @@ export function AssignmentHistoryTab() {
     const router = useRouter();
     const [filterStatus, setFilterStatus] = useState("");
     const [isTrashMode, setIsTrashMode] = useState(false);
+    const [page, setPage] = useState(1);
     const queryClient = useQueryClient();
 
     const { data, isLoading } = useQuery({
-        queryKey: ["surat-tugas-history", filterStatus, isTrashMode],
+        queryKey: ["surat-tugas-history", filterStatus, isTrashMode, page],
         queryFn: async () => {
             const params = new URLSearchParams();
             if (filterStatus) params.append("status", filterStatus);
             if (isTrashMode) params.append("trashed", "true");
+            params.append("page", page.toString());
+            params.append("per_page", "5");
             const res = await api.get(`/surat-tugas?${params.toString()}`);
             return res.data;
         },
@@ -72,6 +75,7 @@ export function AssignmentHistoryTab() {
     });
 
     const items = data?.data ?? [];
+    const meta = data?.meta ?? { current_page: 1, last_page: 1, total: 0 };
 
     return (
         <div className="space-y-6">
@@ -217,6 +221,31 @@ export function AssignmentHistoryTab() {
                     </table>
                 </div>
             </div>
+
+            {/* Pagination */}
+            {meta.last_page > 1 && (
+                <div className="flex items-center justify-between px-2">
+                    <p className="text-xs text-zinc-500">
+                        Halaman {meta.current_page} dari {meta.last_page} ({meta.total} data)
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page <= 1}
+                            className="px-3 py-1.5 text-xs font-bold rounded-lg border border-zinc-200 dark:border-zinc-700 disabled:opacity-40 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                            Sebelumnya
+                        </button>
+                        <button
+                            onClick={() => setPage(p => Math.min(meta.last_page, p + 1))}
+                            disabled={page >= meta.last_page}
+                            className="px-3 py-1.5 text-xs font-bold rounded-lg border border-zinc-200 dark:border-zinc-700 disabled:opacity-40 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                            Selanjutnya
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

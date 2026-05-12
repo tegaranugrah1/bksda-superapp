@@ -29,7 +29,8 @@ class AssignmentLetterController extends Controller
             $query->onlyTrashed();
         }
 
-        $letters = $query->latest()->paginate(10);
+        $perPage = min((int) $request->query('per_page', 10), 50);
+        $letters = $query->latest()->paginate($perPage);
 
         return response()->json([
             'data' => $letters->items(),
