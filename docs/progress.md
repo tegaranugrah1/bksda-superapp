@@ -1,3 +1,52 @@
+# Progress - Phase 25: RBAC + Employee Accounts + Access Dialog Fix
+
+> Document updated: 2026-05-12 14:30
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 25: RBAC + Employee Accounts + Access Dialog Fix
+
+### Accomplishments:
+- [x] **useRole hook**: Reusable `canWrite`, `canManageAccess`, `isAdmin`, `isSuperAdmin` across all modules.
+- [x] **Kepegawaian RBAC**: Sidebar + buttons filtered by role (User=view only, Admin=CRUD, Super Admin=+manage access).
+- [x] **Employee Accounts Seeded**: 151 accounts (NIP/mmpX as username, password=123, role=user, modules=[]).
+- [x] **EmployeeAccessSheet → Dialog**: Converted from Sheet to centered Dialog modal.
+- [x] **Fix hydration error**: `<div>` inside `<p>` (SheetDescription renders `<p>`).
+- [x] **Fix infinite loop on open**: useRef `hasSynced` to prevent repeated form.reset.
+- [x] **Fix infinite loop on checkbox click**: Removed nested FormField pattern, use `form.setValue` directly.
+
+### Files Created/Modified:
+```
+frontend/src/hooks/useRole.ts                                              ← NEW
+frontend/src/app/kepegawaian/layout.tsx                                    ← sidebar filtered by role
+frontend/src/app/kepegawaian/page.tsx                                      ← buttons conditional
+frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx            ← REWRITE
+backend/database/seeders/EmployeeUserSeeder.php                            ← NEW
+```
+
+### Commits:
+```
+25c2ff4 fix(kepegawaian): rewrite module checkboxes without nested FormField (#287)
+4053f3c fix(kepegawaian): fix checkbox infinite loop - stopPropagation (#287)
+5f64504 fix(kepegawaian): fix infinite loop in EmployeeAccessSheet dialog (#287) [PR #288]
+ba2f821 feat(rbac): role-based access control within modules (#285) [PR #286]
+b10bd2f fix(kepegawaian): convert EmployeeAccessSheet from Sheet to Dialog
+3c79174 feat(kepegawaian): seed user accounts for all employees
+```
+
+### GitHub Issues & PRs:
+- Issue #285 → PR #286 ✅ MERGED (RBAC)
+- Issue #287 → PR #288 ✅ MERGED (dialog fix) + 2 hotfixes to main
+
+### Next Steps:
+- [ ] Tembusan field di builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration (digital/scan)
+- [ ] Apply RBAC to other modules (BMN, Inventory, DeReporting, CMS)
+
+---
+
 # Progress - Phase 24: Portal Dashboard Redesign
 
 > Document updated: 2026-05-12 13:00

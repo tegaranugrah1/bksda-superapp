@@ -56,17 +56,65 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 24: Portal Dashboard Redesign (✅ DONE) |
+| **Issue Terakhir Selesai** | Phase 25: RBAC + Employee Accounts + Access Dialog Fix (✅ DONE) |
 | **Issue Selanjutnya** | Tembusan field, Multi-page Testing, Signature Integration |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `0923c36` - feat(portal): redesign dashboard UI/UX (#283) [PR #284] |
+| **Commit Terakhir** | `25c2ff4` - fix(kepegawaian): rewrite module checkboxes - fix infinite loop (#287) |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-12T13:00:00+08:00 |
-| **GitHub Issues** | #283 (portal redesign) |
+| **Timestamp** | 2026-05-12T14:30:00+08:00 |
+| **GitHub Issues** | #283, #285, #287 |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
-| **Timestamp** | 2026-05-12T12:00:00+08:00 |
-| **GitHub Issues** | #277 (auto-klasifikasi), #279 (template dasar), #281 (inbox state) |
-| **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
+
+---
+
+**UPDATE SESI KIRO (2026-05-12 - Phase 25: RBAC + Employee Accounts + Access Dialog Fix):**
+- **Objective**: Implement role-based access control, seed user accounts for all employees, fix EmployeeAccessSheet bugs.
+- **Accomplishments**:
+  - **RBAC Implementation** (Issue #285, PR #286):
+    - Created `useRole` hook (`frontend/src/hooks/useRole.ts`) — reusable across all modules.
+    - Permissions: `canWrite` (admin/super_admin), `canManageAccess` (super_admin only).
+    - Kepegawaian sidebar: filtered by role (User hanya lihat Daftar Pegawai + Riwayat ST).
+    - Tombol "Tambah Pegawai" + "Hapus" hanya tampil untuk admin/super_admin.
+    - Tombol "Manajemen Akses" (UserCog) hanya tampil untuk super_admin.
+  - **Employee User Accounts** (seeder):
+    - 151 pegawai sekarang punya akun login.
+    - PNS: username = NIP, password = `123`.
+    - MMP: username = `mmp1`-`mmp33`, password = `123`.
+    - Default role: `user`, access_modules: `[]` (hanya portal).
+    - Admin (`198001012005011001`) tidak terpengaruh (tetap super_admin).
+  - **EmployeeAccessSheet Fix** (Issue #287, PR #288):
+    - Converted dari Sheet (sidebar) → Dialog (modal tengah).
+    - Fix hydration error (`<div>` inside `<p>`).
+    - Fix infinite loop saat open dialog (useRef `hasSynced`).
+    - Fix infinite loop saat klik checkbox modul (rewrite tanpa nested FormField, pakai `form.setValue` langsung).
+- **Key Files Created/Modified**:
+  - `frontend/src/hooks/useRole.ts` — NEW (reusable role hook)
+  - `frontend/src/app/kepegawaian/layout.tsx` — sidebar filtered by role
+  - `frontend/src/app/kepegawaian/page.tsx` — buttons conditional by role
+  - `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx` — REWRITE (Sheet→Dialog, fix loops)
+  - `backend/database/seeders/EmployeeUserSeeder.php` — NEW (seed 151 accounts)
+- **Commits**:
+  ```
+  25c2ff4 fix(kepegawaian): rewrite module checkboxes without nested FormField - fix infinite loop (#287)
+  4053f3c fix(kepegawaian): fix checkbox infinite loop - stopPropagation on click (#287)
+  5f64504 fix(kepegawaian): fix infinite loop in EmployeeAccessSheet dialog (#287) [PR #288]
+  ba2f821 feat(rbac): role-based access control within modules (#285) [PR #286]
+  b10bd2f fix(kepegawaian): convert EmployeeAccessSheet from Sheet to Dialog - fix hydration error
+  3c79174 feat(kepegawaian): seed user accounts for all employees - user=nip pass=123 modules=empty
+  ```
+- **Role Matrix**:
+  | Fitur | User | Admin | Super Admin |
+  |-------|------|-------|-------------|
+  | Lihat Daftar Pegawai | ✅ | ✅ | ✅ |
+  | Tambah/Hapus Pegawai | ❌ | ✅ | ✅ |
+  | Inbox/Buat Surat Tugas | ❌ | ✅ | ✅ |
+  | Riwayat Surat Tugas | ✅ | ✅ | ✅ |
+  | Manajemen Akses | ❌ | ❌ | ✅ |
+- **Next Steps**:
+  - Tembusan field di builder & preview
+  - Multi-page testing (surat panjang)
+  - Signature integration (digital/scan)
+  - Apply RBAC to other modules (BMN, Inventory, DeReporting, CMS)
 
 ---
 
