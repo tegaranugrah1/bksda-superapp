@@ -48,7 +48,7 @@ class AssetController extends Controller
             $query->where('jenis_bmn', $request->jenis_bmn);
         }
 
-        return AssetResource::collection($query->paginate(20));
+        return AssetResource::collection($query->paginate($request->integer('per_page', 10)));
     }
 
     public function store(StoreAssetRequest $request): JsonResponse

@@ -35,6 +35,7 @@ const KONDISI_OPTIONS = ["Semua", "Baik", "Rusak Ringan", "Rusak Berat"];
 export default function BmnAssetsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const [kondisiFilter, setKondisiFilter] = useState("Semua");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const debouncedSearch = useDebounce(searchTerm, 400);
@@ -42,9 +43,9 @@ export default function BmnAssetsPage() {
   const queryClient = useQueryClient();
 
   const { data: response, isLoading, isFetching } = useQuery<IResponse>({
-    queryKey: ["bmn-assets", debouncedSearch, page, kondisiFilter],
+    queryKey: ["bmn-assets", debouncedSearch, page, perPage, kondisiFilter],
     queryFn: async () => {
-      const params: Record<string, string | number | undefined> = { page };
+      const params: Record<string, string | number | undefined> = { page, per_page: perPage === 0 ? 9999 : perPage };
       if (debouncedSearch) params.search = debouncedSearch;
       if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
       const res = await api.get("/bmn/assets", { params });
@@ -247,10 +248,23 @@ export default function BmnAssetsPage() {
         </div>
         {/* Pagination */}
         <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between text-sm">
-          <span className="text-slate-400 text-xs">{response?.data?.length || 0} item ditampilkan</span>
+          <div className="flex items-center gap-3">
+            <span className="text-slate-400 text-xs">{response?.data?.length || 0} item ditampilkan</span>
+            <select
+              value={perPage}
+              onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
+              className="h-7 px-2 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value={10}>10 / halaman</option>
+              <option value={50}>50 / halaman</option>
+              <option value={100}>100 / halaman</option>
+              <option value={0}>Semua</option>
+            </select>
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="text-xs rounded-lg">Prev</Button>
-            <Button variant="outline" size="sm" disabled={page === response?.last_page} onClick={() => setPage(p => p + 1)} className="text-xs rounded-lg">Next</Button>
+            <span className="flex items-center text-xs text-slate-500 px-2">Hal {page}{response?.last_page ? ` / ${response.last_page}` : ""}</span>
+            <Button variant="outline" size="sm" disabled={page === response?.last_page || perPage === 0} onClick={() => setPage(p => p + 1)} className="text-xs rounded-lg">Next</Button>
           </div>
         </div>
       </div>
