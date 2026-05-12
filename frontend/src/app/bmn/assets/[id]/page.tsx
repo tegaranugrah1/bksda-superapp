@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import React, { use, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
@@ -12,15 +12,18 @@ import { PhotoGallery } from "./_components/PhotoGallery";
 
 export default function BmnAssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
 
-  // Redirect to create page if id is "create"
   if (id === "create") {
-    router.replace("/bmn/assets/create");
-    return null;
+    return <CreateRedirect />;
   }
 
   return <AssetDetail assetId={id} />;
+}
+
+function CreateRedirect() {
+  const router = useRouter();
+  React.useEffect(() => { router.replace("/bmn/assets/create"); }, [router]);
+  return null;
 }
 
 function AssetDetail({ assetId }: { assetId: string }) {
