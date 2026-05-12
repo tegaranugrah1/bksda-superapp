@@ -27,6 +27,11 @@ Route::get('/ping', function () {
     ]);
 });
 
+// 4. EXPORT EXCEL (harus sebelum apiResource agar tidak conflict)
+Route::get('assets/export', [ExportController::class, 'assets']);
+Route::get('loans/export', [ExportController::class, 'loans']);
+Route::get('maintenances/export', [ExportController::class, 'maintenances']);
+
 // 1. JALUR MASTER ASET
 Route::apiResource('assets', AssetController::class)->except(['destroy']);
 Route::post('assets/import', [AssetController::class, 'import']);
@@ -48,8 +53,3 @@ Route::post('loans/{loan}/return', [LoanController::class, 'return']);
 // 3. REKAM MEDIS PEMELIHARAAN (MAINTENANCE)
 Route::get('maintenances', [MaintenanceController::class, 'index']);
 Route::post('assets/{asset}/maintenances', [MaintenanceController::class, 'record']);
-
-// 4. EXPORT EXCEL
-Route::get('assets/export', [ExportController::class, 'assets']);
-Route::get('loans/export', [ExportController::class, 'loans']);
-Route::get('maintenances/export', [ExportController::class, 'maintenances']);
