@@ -74,14 +74,16 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
     staleTime: 0,
   });
 
-  const hasSynced = useRef(false);
+  const lastSyncedId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!open) {
-      hasSynced.current = false;
+    if (!open || !employee) {
+      lastSyncedId.current = null;
       return;
     }
-    if (hasSynced.current) return;
+
+    // Already synced for this employee
+    if (lastSyncedId.current === employee.id) return;
 
     if (currentAccess) {
       form.reset({
@@ -89,13 +91,14 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
         access_modules: currentAccess.access_modules || [],
         password: "",
       });
-      hasSynced.current = true;
+      lastSyncedId.current = employee.id;
     } else if (!isLoading) {
+      // No access data (new account)
       form.reset({ role: "user", access_modules: [], password: "" });
-      hasSynced.current = true;
+      lastSyncedId.current = employee.id;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentAccess, open, isLoading]);
+  }, [currentAccess, open, isLoading, employee?.id]);
 
   const mutation = useMutation({
     mutationFn: async (values: AccessFormValues) => { const { data } = await api.put(`/kepegawaian/employees/${employee?.id}/access`, values); return data; },
