@@ -53,6 +53,16 @@ export default function SuratTugasForm() {
         keterangan: ''
     });
     const [namaPlh, setNamaPlh] = useState('');
+    const [plhSearchQuery, setPlhSearchQuery] = useState('');
+    const [showPlhDropdown, setShowPlhDropdown] = useState(false);
+    const plhDropdownRef = useRef<HTMLDivElement>(null);
+
+    const plhSearchResults = allEmployees
+        .filter((emp: Employee) => 
+            emp.name.toLowerCase().includes(plhSearchQuery.toLowerCase()) || 
+            (emp.nip && emp.nip.toLowerCase().includes(plhSearchQuery.toLowerCase()))
+        )
+        .slice(0, 50);
     const [tandaSetuju, setTandaSetuju] = useState<'sudah' | 'belum' | ''>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,6 +83,9 @@ export default function SuratTugasForm() {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowDropdown(false);
+            }
+            if (plhDropdownRef.current && !plhDropdownRef.current.contains(event.target as Node)) {
+                setShowPlhDropdown(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
@@ -403,14 +416,67 @@ export default function SuratTugasForm() {
                             <p className="text-xs text-amber-600 font-medium bg-amber-50 border border-amber-100 rounded-xl px-4 py-2">
                                 Wajib diisi karena Kepala Subbagian Tata Usaha atau Kepala Seksi melaksanakan perjalanan dinas.
                             </p>
-                            <input
-                                type="text"
-                                required
-                                value={namaPlh}
-                                onChange={e => setNamaPlh(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
-                                placeholder="Nama lengkap Pelaksana Harian (PLH)"
-                            />
+                            <div className="relative" ref={plhDropdownRef}>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Search className="h-4 w-4 text-slate-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        required={!namaPlh}
+                                        value={plhSearchQuery || namaPlh}
+                                        onChange={(e) => {
+                                            setPlhSearchQuery(e.target.value);
+                                            setNamaPlh(e.target.value);
+                                            setShowPlhDropdown(true);
+                                        }}
+                                        onFocus={() => setShowPlhDropdown(true)}
+                                        className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
+                                        placeholder="Cari nama atau NIP Pelaksana Harian (PLH)..."
+                                    />
+                                </div>
+                                {showPlhDropdown && plhSearchQuery.length >= 2 && plhSearchResults.length > 0 && (
+                                    <div className="absolute mt-2 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden max-h-60 overflow-y-auto z-30">
+                                        <ul className="py-2">
+                                            {plhSearchResults.map((emp: Employee) => (
+                                                <li key={emp.id}>
+                                                    <button
+                                                        type="button"
+                                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between transition-colors"
+                                                        onClick={() => {
+                                                            setNamaPlh(emp.name);
+                                                            setPlhSearchQuery('');
+                                                            setShowPlhDropdown(false);
+                                                        }}
+                                                    >
+                                                        <div className="flex flex-col overflow-hidden">
+                                                            <span className="text-sm font-semibold truncate text-slate-700">
+                                                                {emp.name}
+                                                            </span>
+                                                            <span className="text-xs text-slate-500 truncate mt-0.5">
+                                                                {emp.department && emp.department !== '-' ? emp.department : emp.nip}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                            {namaPlh && (
+                                <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
+                                    <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+                                    <span className="text-sm font-bold text-blue-900 flex-1 truncate">{namaPlh}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setNamaPlh(''); setPlhSearchQuery(''); }}
+                                        className="text-blue-400 hover:text-red-500 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 

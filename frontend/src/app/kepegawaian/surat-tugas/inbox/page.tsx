@@ -34,6 +34,9 @@ interface AssignmentLetter {
   status: 'draft' | 'pending' | 'approved' | 'rejected' | 'completed';
   nomor_surat: string | null;
   tanggal_surat: string | null;
+  nama_plh: string | null;
+  has_seksi_employee: boolean;
+  tanda_setuju: 'sudah' | 'belum' | null;
   created_at: string;
   employees: Employee[];
 }
@@ -397,6 +400,44 @@ export default function SuratTugasInbox() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* PLH & Tanda Setuju Section */}
+                                {(selectedLetter.nama_plh || selectedLetter.has_seksi_employee) && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {selectedLetter.nama_plh && (
+                                            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 space-y-1">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 block">Nama PLH</span>
+                                                <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
+                                                    <UserIcon className="w-3.5 h-3.5 text-blue-500" />
+                                                    {selectedLetter.nama_plh}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {selectedLetter.has_seksi_employee && (
+                                            <div className={`p-4 rounded-2xl border space-y-1 ${
+                                                selectedLetter.tanda_setuju === 'sudah'
+                                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800'
+                                                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'
+                                            }`}>
+                                                <span className={`text-[9px] font-black uppercase tracking-widest block ${
+                                                    selectedLetter.tanda_setuju === 'sudah'
+                                                        ? 'text-emerald-600 dark:text-emerald-400'
+                                                        : 'text-amber-600 dark:text-amber-400'
+                                                }`}>Persetujuan Kepala Seksi</span>
+                                                <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full shadow-sm ${
+                                                        selectedLetter.tanda_setuju === 'sudah' ? 'bg-emerald-500' : 'bg-amber-500'
+                                                    }`} />
+                                                    {selectedLetter.tanda_setuju === 'sudah' 
+                                                        ? 'Sudah disetujui' 
+                                                        : selectedLetter.tanda_setuju === 'belum'
+                                                            ? 'Belum disetujui'
+                                                            : 'Tidak ada informasi'}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* Personil Section */}
                                 <div className="space-y-4">
