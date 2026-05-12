@@ -39,6 +39,20 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
+  const [geotagInput, setGeotagInput] = useState("");
+  const [showGeotagInput, setShowGeotagInput] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadTarget, setUploadTarget] = useState<string | null>(null);
+
+  const photos: Record<string, string | null> = {
+    geotag: fotoGeotagUrl,
+    depan: fotoDepanUrl,
+    belakang: fotoBelakangUrl,
+    kiri: fotoKiriUrl,
+    kanan: fotoKananUrl,
+  };
+
+  const hasAnyPhoto = Object.values(photos).some(Boolean);
 
   // Get all available photos for navigation
   const availablePhotos = PHOTO_SLOTS.map((slot) => {
@@ -59,20 +73,6 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
     const next = (lightbox.index + dir + availablePhotos.length) % availablePhotos.length;
     setLightbox({ url: availablePhotos[next].url, label: availablePhotos[next].label, index: next });
   };
-  const [geotagInput, setGeotagInput] = useState("");
-  const [showGeotagInput, setShowGeotagInput] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadTarget, setUploadTarget] = useState<string | null>(null);
-
-  const photos: Record<string, string | null> = {
-    geotag: fotoGeotagUrl,
-    depan: fotoDepanUrl,
-    belakang: fotoBelakangUrl,
-    kiri: fotoKiriUrl,
-    kanan: fotoKananUrl,
-  };
-
-  const hasAnyPhoto = Object.values(photos).some(Boolean);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
