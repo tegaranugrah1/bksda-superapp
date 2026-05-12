@@ -216,6 +216,7 @@ export default function BmnAssetsPage() {
                   </th>
                 )}
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kode / NUP</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Jenis BMN</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Barang</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kondisi</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Nilai Perolehan</th>
@@ -225,9 +226,9 @@ export default function BmnAssetsPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {isLoading ? (
-                <tr><td colSpan={canWrite ? 7 : 5} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" /><p className="text-sm text-slate-400">Memuat data...</p></td></tr>
+                <tr><td colSpan={canWrite ? 8 : 6} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" /><p className="text-sm text-slate-400">Memuat data...</p></td></tr>
               ) : response?.data?.length === 0 ? (
-                <tr><td colSpan={canWrite ? 7 : 5} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-slate-200" /><p className="text-sm text-slate-400">Tidak ada data ditemukan</p></td></tr>
+                <tr><td colSpan={canWrite ? 8 : 6} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-slate-200" /><p className="text-sm text-slate-400">Tidak ada data ditemukan</p></td></tr>
               ) : (
                 response?.data?.map((asset) => (
                   <tr key={asset.id} className={cn("hover:bg-slate-50/50 transition-colors group", selectedIds.has(asset.id) && "bg-emerald-50/30")}>
@@ -240,7 +241,9 @@ export default function BmnAssetsPage() {
                       <p className="text-xs font-mono font-bold text-emerald-700">{asset.kode_barang}</p>
                       <p className="text-[10px] text-slate-400 font-mono">NUP: {asset.nup}</p>
                       {asset.nup_lama && <p className="text-[10px] text-slate-300 font-mono">NUP Lama: {asset.nup_lama}</p>}
-                      {asset.jenis_bmn && <p className="text-[10px] text-blue-500 mt-0.5">{asset.jenis_bmn}</p>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-xs font-semibold text-slate-600">{asset.jenis_bmn || "-"}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm font-semibold text-slate-800 max-w-[200px] truncate">{asset.nama_barang}</p>
