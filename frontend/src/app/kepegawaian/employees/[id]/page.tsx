@@ -12,6 +12,7 @@ import { AssignmentLetterHistory } from "../../_components/AssignmentLetterHisto
 import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useRole } from "@/hooks/useRole";
 
 interface Employee {
   id: string;
@@ -28,6 +29,7 @@ export default function EmployeeDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+  const { canManageAccess } = useRole();
 
   const { data: employee, isLoading, isError } = useQuery({
     queryKey: ["employee", id],
@@ -73,14 +75,16 @@ export default function EmployeeDetailPage() {
             </div>
         </div>
         <div className="flex items-center gap-3">
-            <Button 
-                variant="outline" 
-                className="rounded-2xl border-zinc-200 dark:border-zinc-800 gap-2 h-11 px-6 shadow-sm"
-                onClick={() => setAccessSheetOpen(true)}
-            >
-                <Shield className="w-4 h-4 text-emerald-500" />
-                <span className="font-bold text-sm">Kelola Akses</span>
-            </Button>
+            {canManageAccess && (
+              <Button 
+                  variant="outline" 
+                  className="rounded-2xl border-zinc-200 dark:border-zinc-800 gap-2 h-11 px-6 shadow-sm"
+                  onClick={() => setAccessSheetOpen(true)}
+              >
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  <span className="font-bold text-sm">Kelola Akses</span>
+              </Button>
+            )}
         </div>
       </div>
 
@@ -182,11 +186,13 @@ export default function EmployeeDetailPage() {
         </div>
       </div>
 
-      <EmployeeAccessSheet 
-        employee={employee}
-        open={accessSheetOpen}
-        onOpenChange={setAccessSheetOpen}
-      />
+      {canManageAccess && (
+        <EmployeeAccessSheet 
+          employee={employee}
+          open={accessSheetOpen}
+          onOpenChange={setAccessSheetOpen}
+        />
+      )}
     </div>
   );
 }
