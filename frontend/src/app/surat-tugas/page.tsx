@@ -360,6 +360,15 @@ export default function SuratTugasForm() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {[
                                 { id: 'dipa', label: 'DIPA' },
+                                { id: 'kja', label: 'Dana Kerjasama KJA' },
+                                { id: 'mja', label: 'Dana Kerjasama MJA' },
+                                { id: 'cop', label: 'Dana Kerjasama COP' },
+                                { id: 'tjiwi_kimia', label: 'Dana Kerjasama PT. Tjiwi Kimia Tbk.' },
+                                { id: 'bosf', label: 'Dana Kerjasama BOSF' },
+                                { id: 'can', label: 'Dana Kerjasama CAN' },
+                                { id: 'alert', label: 'Dana Kerjasama ALeRT' },
+                                { id: 'folu', label: 'Dana Kerjasama FOLU' },
+                                { id: 'dl1', label: 'DL 1 / Tidak ada biaya' },
                                 { id: 'other', label: 'Lainnya' },
                             ].map((opt) => (
                                 <label key={opt.id} className={cn(
