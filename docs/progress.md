@@ -1,7 +1,59 @@
+# Progress - Phase 23: Nomor Surat Format + Auto-Klasifikasi + Template + State Fix
+
+> Document updated: 2026-05-12 12:00
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 23: Nomor Surat Format + Auto-Klasifikasi + Template Dasar + Inbox State
+
+### Accomplishments:
+- [x] **Public Form 500 Fix**: Migration `created_by` + `tempat_tujuan` → nullable.
+- [x] **Google Sheets Fix**: Path (`../service-account.json`), SSL (`withoutVerifying`), sheet name (`Form Responses 1`).
+- [x] **Sumber Dana Labels**: Public form now sends full label ("DIPA", "Dana Kerjasama KJA") instead of lowercase id.
+- [x] **Nomor Surat Format**: `ST.{nomor}/K.18/TU/{klasifikasi}/B/{bulan}/{tahun}` — K.18/TU dan /B fixed.
+- [x] **Auto-Klasifikasi**: Jika kegiatan mengandung "konflik" → klasifikasi = KSA.03.01, menimbang auto-fill.
+- [x] **Template Dasar Update**: Peraturan Menteri Kehutanan Nomor 4 Tahun 2025, DIPA tanggal 24 April 2026, "and" → "dan".
+- [x] **Inbox State Fix**: Detail panel auto-clear/auto-select after delete/restore/forceDelete.
+
+### Files Modified:
+```
+backend/app/Modules/SuratTugas/Migrations/2026_05_12_110000_make_created_by_nullable_on_st_assignment_letters.php  ← NEW
+backend/app/Services/GoogleSheetsService.php                               ← path + SSL + sheet name
+backend/config/services.php                                                 ← sheet name default
+frontend/src/app/surat-tugas/page.tsx                                       ← sumber dana labels
+frontend/src/app/kepegawaian/surat-tugas/create/page.tsx                   ← nomor format + klasifikasi + template
+frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx             ← nomor format + klasifikasi + template + konflik detect
+frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx                    ← state management fix
+```
+
+### Commits:
+```
+d5a5c3f fix(surat-tugas): auto-refresh detail panel after delete (#281) [PR #282]
+a1b266c fix(surat-tugas): detect default menimbang template and override for konflik
+771a32b fix(surat-tugas): force menimbang auto-fill for konflik
+2f87acc fix(surat-tugas): auto-fill klasifikasi on builder load (#277)
+077768f fix(surat-tugas): update template Dasar sesuai data terbaru (#279) [PR #280]
+3970231 feat(surat-tugas): auto-fill klasifikasi + fix nomor surat format (#277) [PR #278]
+3925d16 fix(surat-tugas): fix public submit 500 error + Google Sheets integration + sumber dana labels
+```
+
+### GitHub Issues & PRs:
+- Issue #277 → PR #278 ✅ MERGED (auto-klasifikasi + nomor surat format)
+- Issue #279 → PR #280 ✅ MERGED (template dasar update)
+- Issue #281 → PR #282 ✅ MERGED (inbox state fix)
+
+### Next Steps:
+- [ ] Tembusan field di builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration (digital/scan)
+
+---
+
 # Progress - Phase 22: Google Sheets Integration + Bug Fixes + Route Fix
 
 > Document updated: 2026-05-12 10:00
-> Status: **IN PROGRESS** 🔄 (route fix pending commit)
+> Status: **COMPLETED** ✅
 
 ---
 

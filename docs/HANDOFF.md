@@ -56,80 +56,65 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Google Sheets Integration + Bug Fixes + Route Fix (✅ DONE - committed to main) |
+| **Issue Terakhir Selesai** | Phase 23: Nomor Surat Format + Auto-Klasifikasi + Template Dasar + Inbox State Fix (✅ DONE) |
 | **Issue Selanjutnya** | Tembusan field, Multi-page Testing, Signature Integration |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `2dfa71c` - feat(sheets): robust update via UUID in column Y + append on submit |
+| **Commit Terakhir** | `d5a5c3f` - fix(surat-tugas): auto-refresh detail panel after delete (#281) |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-12T10:00:00+08:00 |
-| **GitHub PR** | Direct commits to main (hotfixes + Google Sheets integration) |
+| **Timestamp** | 2026-05-12T12:00:00+08:00 |
+| **GitHub Issues** | #277 (auto-klasifikasi), #279 (template dasar), #281 (inbox state) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ---
 
-**UPDATE SESI KIRO (2026-05-12 - Google Sheets + Bug Fixes + Route Fix):**
-- **Objective**: Integrasi Google Sheets API, fix berbagai bug, dan fix route conflict public form.
+**UPDATE SESI KIRO (2026-05-12 - Phase 23: Nomor Surat + Klasifikasi + Template + State Fix):**
+- **Objective**: Fix public form 500 error, Google Sheets integration, nomor surat format, auto-klasifikasi, template dasar update, inbox state management.
 - **Accomplishments**:
-  - **Google Sheets Integration**:
-    - Created `GoogleSheetsService.php` — append row saat submit, update row saat approve.
-    - Robust update via UUID di kolom Y (search dulu row yang punya ID, baru update).
-    - Service account: `googledrivebksda@gen-lang-client-0092119532.iam.gserviceaccount.com`
-    - Spreadsheet ID: `11Hv27vqC_pvk9YqcT3vzkEkP5RqdVFTmI4-dNs8EjLQ`
-    - Column mapping: A=Timestamp, B=Unit Kerja, C-F=Pegawai 1-4, G=overflow, H=PLH, P=Kegiatan, Q=Tgl dari, R=Tgl sampai, S=Sumber Dana, T=Upload, U=Keterangan, V=Tanda Setuju, Y=UUID.
-    - `google/auth` package installed via composer.
-    - `service-account.json` di root project (GITIGNORED — JANGAN COMMIT).
-  - **Route Fix (Public Form 422 Error)**:
-    - Public form submit berubah dari `POST /surat-tugas` → `POST /surat-tugas/submit` (menghindari conflict dengan auth route).
-    - Frontend `page.tsx` diupdate: `api.post('/surat-tugas/submit', ...)`.
-    - Backend `api.php`: `Route::post('/submit', ...)` di luar auth group.
-  - **Bug Fixes (committed to main)**:
-    - `fix(builder): print title includes nama kegiatan` — judul cetak: `ST.{nomor}-{nama kegiatan}`.
-    - `fix(builder): no limit on print title length` — tidak ada batas panjang judul.
-    - `fix(builder): tanggal surat always defaults to today` — tanggal surat otomatis hari ini.
-    - `fix(surat-tugas): add keterangan column + fix file download + accept image uploads` — kolom keterangan di inbox, file download fix, accept jpg/png/webp.
-    - `fix(validation): remove numeric constraint on employee id` — FormData sends strings.
-    - `feat(history): add personil column showing employee names` — kolom personil di history.
-    - `feat(history): add pagination (5 per page)` — pagination 5 item per halaman.
-    - `feat(surat-tugas): add all sumber dana options to public form` — 11 opsi sumber dana (DIPA, KJA, MJA, COP, Tjiwi Kimia, BOSF, CAN, ALeRT, FOLU, DL1, Lainnya).
-    - `fix(surat-tugas): fix plhSearchQuery declaration order + add PLH/tanda_setuju to inbox` — PLH & Tanda Setuju tampil di inbox.
-  - **Toaster Fix**: `<Toaster />` ditambahkan ke Providers (sebelumnya toast tidak pernah muncul).
-  - **Employee Search Fix**: Builder + Create pages handle `name` vs `nama_lengkap` field mismatch dari API.
-  - **Double Text Fix**: Strip "selama X hari..." suffix saat re-parsing saved `maksud_tujuan`.
-  - **Nomor Surat Width**: Fixed `/05/2026` terpotong di builder dan create.
-  - **Smart Parsing**: Detect full freeform text vs structured "Perjalanan Dinas dari X ke Y".
-  - **PLH Autocomplete**: PLH field di public form sekarang searchable dari employee list.
+  - **Public Form 500 Fix**:
+    - Migration: `created_by` → nullable (public form tanpa auth).
+    - Migration: `tempat_tujuan` → nullable.
+  - **Google Sheets Integration Fix**:
+    - Path fix: `base_path('../service-account.json')` (file di root, bukan backend/).
+    - SSL fix: `Http::withoutVerifying()` + custom httpHandler (Windows dev environment).
+    - Sheet name fix: "Form Responses 1" (bukan "Sheet1").
+    - Config `services.php` updated.
+  - **Sumber Dana Labels** (public form):
+    - Value yang dikirim sekarang label lengkap: "DIPA", "Dana Kerjasama KJA", dll (bukan lowercase id).
+  - **Nomor Surat Format** (Issue #277, PR #278):
+    - Format: `ST.{nomor}/K.18/TU/{klasifikasi}/B/{bulan}/{tahun}`
+    - `K.18/TU` dan `/B` fixed (tidak bisa diedit), user hanya isi `nomor` dan `klasifikasi`.
+    - Auto-fill: jika nama kegiatan mengandung "konflik" → klasifikasi = `KSA.03.01`.
+    - Auto-fill: menimbang[a] = "bahwa dalam rangka kegiatan penanganan konflik satwa, perlu penyelamatan;"
+    - Applied to Create page + Builder page.
+    - Builder: auto-detect saat load dari inbox (cek `maksud_tujuan` + default menimbang template).
+  - **Template Dasar Update** (Issue #279, PR #280):
+    - Peraturan Menteri: "Nomor 13 Tahun 2021" → "**Nomor 4 Tahun 2025**"
+    - "Lingkungan Hidup dan Kehutanan" → "**Kehutanan**"
+    - DIPA tanggal: "23 Desember 2025" → "**24 April 2026**"
+    - Semua "and" → "dan" (bahasa Indonesia).
+  - **Inbox State Fix** (Issue #281, PR #282):
+    - Detail panel sekarang auto-clear/auto-select setelah delete/restore/forceDelete.
+    - `useMemo` untuk sync `selectedLetter` dengan list aktual.
+    - Cleanup unused imports.
 - **Key Files Modified**:
-  - `backend/app/Services/GoogleSheetsService.php` — NEW (Google Sheets integration)
-  - `backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php` — append/update Sheets
-  - `backend/app/Modules/SuratTugas/Routes/api.php` — `POST /submit` route untuk public
-  - `backend/config/services.php` — google_sheets config
-  - `frontend/src/app/surat-tugas/page.tsx` — route fix + PLH autocomplete + sumber dana options
-  - `frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx` — keterangan + PLH + tanda setuju
-  - `frontend/src/app/kepegawaian/_components/AssignmentHistoryTab.tsx` — pagination + personil
-  - `frontend/src/components/providers.tsx` — Toaster added
-  - `frontend/src/lib/letter-utils.ts` — smart parsing fix
-- **Commits (setelah PR #276 merged)**:
+  - `backend/app/Modules/SuratTugas/Migrations/2026_05_12_110000_make_created_by_nullable_on_st_assignment_letters.php` — NEW
+  - `backend/app/Services/GoogleSheetsService.php` — path + SSL + sheet name fix
+  - `backend/config/services.php` — sheet name default
+  - `frontend/src/app/surat-tugas/page.tsx` — sumber dana labels
+  - `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx` — nomor surat format + auto-klasifikasi + template dasar
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx` — nomor surat format + auto-klasifikasi + template dasar + konflik detection on load
+  - `frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx` — state management fix
+- **Commits**:
   ```
-  2dfa71c feat(sheets): robust update via UUID in column Y + append on submit
-  ac4a9d5 feat(surat-tugas): integrate Google Sheets API - append row on submit
-  0703a53 feat(history): add pagination (5 per page)
-  209d1fe feat(history): add personil column showing employee names
-  679a8c5 fix(validation): remove numeric constraint on employee id
-  c2b3e68 fix(surat-tugas): add keterangan column + fix file download + accept image uploads
-  1dbab92 fix(builder): tanggal surat always defaults to today
-  0b0f679 fix(builder): no limit on print title length
-  5fa7626 fix(builder): increase print title length to 100 chars
-  1fdedae fix(builder): print title includes nama kegiatan
-  90d27a6 feat(surat-tugas): add all sumber dana options to public form
-  87ffb1d fix(surat-tugas): fix plhSearchQuery declaration order + add PLH/tanda_setuju to inbox
+  d5a5c3f fix(surat-tugas): auto-refresh detail panel after delete (#281)
+  a1b266c fix(surat-tugas): detect default menimbang template and override for konflik
+  771a32b fix(surat-tugas): force menimbang auto-fill for konflik - remove kode_surat condition
+  2f87acc fix(surat-tugas): auto-fill klasifikasi on builder load when kegiatan contains konflik (#277)
+  077768f fix(surat-tugas): update template Dasar sesuai data terbaru (#279) [PR #280]
+  3970231 feat(surat-tugas): auto-fill klasifikasi + fix nomor surat format (#277) [PR #278]
+  3925d16 fix(surat-tugas): fix public submit 500 error + Google Sheets integration + sumber dana labels
   ```
-- **Pending (belum committed)**:
-  - `backend/app/Modules/SuratTugas/Routes/api.php` — route `POST /submit` (public form fix)
-  - `frontend/src/app/surat-tugas/page.tsx` — call `/surat-tugas/submit` instead of `/surat-tugas`
 - **Next Steps**:
-  - Commit & push route fix (`POST /submit`)
-  - Test public form submission end-to-end
-  - Verify Google Sheets append/update works
   - Tembusan field di builder & preview
   - Multi-page testing (surat panjang)
   - Signature integration (digital/scan)
