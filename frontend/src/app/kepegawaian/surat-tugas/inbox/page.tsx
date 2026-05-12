@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { 
-  Inbox, Search, Filter, RefreshCw, CheckCircle2, 
-  XCircle, Clock, FileText, Download, User as UserIcon, AlertCircle, Users, Trash2, Undo2,
-  MapPin, Calendar, Briefcase, ChevronRight, Hash, History
+  Inbox, Search, Filter, RefreshCw, 
+  FileText, Download, User as UserIcon, AlertCircle, Users, Trash2, Undo2,
+  MapPin, Calendar, Briefcase, Hash, History
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -72,21 +72,25 @@ export default function SuratTugasInbox() {
                     trashed: isTrashView ? 'true' : 'false'
                 }
             });
-            const fetchedLetters = resp.data.data;
-            
-            if (fetchedLetters.length > 0 && !selectedLetter) {
-                setSelectedLetter(fetchedLetters[0]);
-            } else if (fetchedLetters.length === 0) {
-                setSelectedLetter(null);
-            }
-
-            return fetchedLetters;
+            return resp.data.data as AssignmentLetter[];
         },
         staleTime: 0,
         refetchOnWindowFocus: true,
     });
 
-    const letters = data || [];
+    const letters: AssignmentLetter[] = React.useMemo(() => data || [], [data]);
+
+    // Sync selectedLetter with current list — if selected item no longer exists, pick first
+    const resolvedSelected = React.useMemo(() => {
+        if (letters.length === 0) return null;
+        if (selectedLetter && letters.find(l => l.id === selectedLetter.id)) return selectedLetter;
+        return letters[0];
+    }, [letters, selectedLetter]);
+
+    // Keep selectedLetter in sync (only update if different to avoid infinite loop)
+    if (resolvedSelected?.id !== selectedLetter?.id) {
+        setSelectedLetter(resolvedSelected);
+    }
 
     const handleUpdateStatus = async (id: string, newStatus: string) => {
         setUpdatingStatus(true);
@@ -115,6 +119,7 @@ export default function SuratTugasInbox() {
                 try {
                     await api.delete(`/surat-tugas/${id}`);
                     toast.success('Berhasil memindahkan ke sampah');
+                    if (selectedLetter?.id === id) setSelectedLetter(null);
                     fetchLetters();
                 } catch (error) {
                     console.error('Delete failed', error);
@@ -134,6 +139,7 @@ export default function SuratTugasInbox() {
                 try {
                     await api.post(`/surat-tugas/${id}/restore`);
                     toast.success('Berhasil memulihkan surat tugas');
+                    if (selectedLetter?.id === id) setSelectedLetter(null);
                     fetchLetters();
                 } catch (error) {
                     console.error('Restore failed', error);
@@ -153,6 +159,7 @@ export default function SuratTugasInbox() {
                 try {
                     await api.delete(`/surat-tugas/${id}/force`);
                     toast.success('Berhasil menghapus permanen');
+                    if (selectedLetter?.id === id) setSelectedLetter(null);
                     fetchLetters();
                 } catch (error) {
                     console.error('Force delete failed', error);
@@ -332,7 +339,7 @@ export default function SuratTugasInbox() {
                                             <button 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    isTrashView ? handleRestore(l.id) : handleDelete(l.id);
+                                                    if (isTrashView) { handleRestore(l.id); } else { handleDelete(l.id); }
                                                 }}
                                                 className={cn(
                                                     "p-1.5 rounded-lg",
