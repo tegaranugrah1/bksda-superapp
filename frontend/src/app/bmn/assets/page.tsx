@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Plus, Loader2, Eye, Trash2, Package, Download } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { AssetImportDialog } from "@/app/bmn/_components/AssetImportDialog";
@@ -33,14 +34,37 @@ interface IResponse { data: IAsset[]; last_page: number; total?: number }
 const KONDISI_OPTIONS = ["Semua", "Baik", "Rusak Ringan", "Rusak Berat"];
 
 export default function BmnAssetsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialPage = Number(searchParams.get("page")) || 1;
+  const initialPerPage = Number(searchParams.get("per_page")) || 10;
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+  const [page, setPageState] = useState(initialPage);
+  const [perPage, setPerPageState] = useState(initialPerPage);
   const [kondisiFilter, setKondisiFilter] = useState("Semua");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const debouncedSearch = useDebounce(searchTerm, 400);
   const { canWrite } = useRole();
   const queryClient = useQueryClient();
+
+  const setPage = (p: number | ((prev: number) => number)) => {
+    const newPage = typeof p === "function" ? p(page) : p;
+    setPageState(newPage);
+    const params = new URLSearchParams(window.location.search);
+    params.set("page", String(newPage));
+    params.set("per_page", String(perPage));
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  const setPerPage = (pp: number) => {
+    setPerPageState(pp);
+    setPageState(1);
+    const params = new URLSearchParams(window.location.search);
+    params.set("page", "1");
+    params.set("per_page", String(pp));
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
 
   const { data: response, isLoading, isFetching } = useQuery<IResponse>({
     queryKey: ["bmn-assets", debouncedSearch, page, perPage, kondisiFilter],
@@ -252,7 +276,7 @@ export default function BmnAssetsPage() {
             <span className="text-slate-400 text-xs">{response?.data?.length || 0} item ditampilkan</span>
             <select
               value={perPage}
-              onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => { setPerPage(Number(e.target.value)); }}
               className="h-7 px-2 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
               <option value={10}>10 / halaman</option>
