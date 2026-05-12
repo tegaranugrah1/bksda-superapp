@@ -56,65 +56,42 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 25: RBAC + Employee Accounts + Access Dialog Fix (✅ DONE) |
-| **Issue Selanjutnya** | Tembusan field, Multi-page Testing, Signature Integration |
+| **Issue Terakhir Selesai** | Phase 26: BMN Module Full Upgrade (✅ DONE - Issue #289) |
+| **Issue Sedang Dikerjakan** | BMN Create Page (form dinamis per jenis BMN) + STNK Kendaraan |
+| **Issue Selanjutnya** | Tembusan ST, Multi-page Testing, Signature Integration |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `25c2ff4` - fix(kepegawaian): rewrite module checkboxes - fix infinite loop (#287) |
+| **Commit Terakhir** | `7c79506` - feat(bmn): move Jenis BMN to separate column |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-12T14:30:00+08:00 |
-| **GitHub Issues** | #283, #285, #287 |
+| **Timestamp** | 2026-05-12T18:00:00+08:00 |
+| **GitHub Issues** | #289 (BMN upgrade) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ---
 
-**UPDATE SESI KIRO (2026-05-12 - Phase 25: RBAC + Employee Accounts + Access Dialog Fix):**
-- **Objective**: Implement role-based access control, seed user accounts for all employees, fix EmployeeAccessSheet bugs.
+**UPDATE SESI KIRO (2026-05-12 - Phase 26: BMN Module Full Upgrade):**
+- **Objective**: Upgrade BMN module — dashboard, 80 kolom, photo gallery, bulk ops, export/import.
 - **Accomplishments**:
-  - **RBAC Implementation** (Issue #285, PR #286):
-    - Created `useRole` hook (`frontend/src/hooks/useRole.ts`) — reusable across all modules.
-    - Permissions: `canWrite` (admin/super_admin), `canManageAccess` (super_admin only).
-    - Kepegawaian sidebar: filtered by role (User hanya lihat Daftar Pegawai + Riwayat ST).
-    - Tombol "Tambah Pegawai" + "Hapus" hanya tampil untuk admin/super_admin.
-    - Tombol "Manajemen Akses" (UserCog) hanya tampil untuk super_admin.
-  - **Employee User Accounts** (seeder):
-    - 151 pegawai sekarang punya akun login.
-    - PNS: username = NIP, password = `123`.
-    - MMP: username = `mmp1`-`mmp33`, password = `123`.
-    - Default role: `user`, access_modules: `[]` (hanya portal).
-    - Admin (`198001012005011001`) tidak terpengaruh (tetap super_admin).
-  - **EmployeeAccessSheet Fix** (Issue #287, PR #288):
-    - Converted dari Sheet (sidebar) → Dialog (modal tengah).
-    - Fix hydration error (`<div>` inside `<p>`).
-    - Fix infinite loop saat open dialog (useRef `hasSynced`).
-    - Fix infinite loop saat klik checkbox modul (rewrite tanpa nested FormField, pakai `form.setValue` langsung).
-- **Key Files Created/Modified**:
-  - `frontend/src/hooks/useRole.ts` — NEW (reusable role hook)
-  - `frontend/src/app/kepegawaian/layout.tsx` — sidebar filtered by role
-  - `frontend/src/app/kepegawaian/page.tsx` — buttons conditional by role
-  - `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx` — REWRITE (Sheet→Dialog, fix loops)
-  - `backend/database/seeders/EmployeeUserSeeder.php` — NEW (seed 151 accounts)
-- **Commits**:
-  ```
-  25c2ff4 fix(kepegawaian): rewrite module checkboxes without nested FormField - fix infinite loop (#287)
-  4053f3c fix(kepegawaian): fix checkbox infinite loop - stopPropagation on click (#287)
-  5f64504 fix(kepegawaian): fix infinite loop in EmployeeAccessSheet dialog (#287) [PR #288]
-  ba2f821 feat(rbac): role-based access control within modules (#285) [PR #286]
-  b10bd2f fix(kepegawaian): convert EmployeeAccessSheet from Sheet to Dialog - fix hydration error
-  3c79174 feat(kepegawaian): seed user accounts for all employees - user=nip pass=123 modules=empty
-  ```
-- **Role Matrix**:
-  | Fitur | User | Admin | Super Admin |
-  |-------|------|-------|-------------|
-  | Lihat Daftar Pegawai | ✅ | ✅ | ✅ |
-  | Tambah/Hapus Pegawai | ❌ | ✅ | ✅ |
-  | Inbox/Buat Surat Tugas | ❌ | ✅ | ✅ |
-  | Riwayat Surat Tugas | ✅ | ✅ | ✅ |
-  | Manajemen Akses | ❌ | ❌ | ✅ |
-- **Next Steps**:
-  - Tembusan field di builder & preview
-  - Multi-page testing (surat panjang)
-  - Signature integration (digital/scan)
-  - Apply RBAC to other modules (BMN, Inventory, DeReporting, CMS)
+  - Dashboard real API, assets table (bulk delete, pagination, filters, export with/without NUP Lama)
+  - Asset detail: hero card + tabs + all 80 columns + photo gallery (lightbox + keyboard nav + ZIP download)
+  - Database: 80 kolom migration + 5 foto kolom + seed 1613 aset dari ASET.xlsx
+  - Import rewrite: handle all 80 columns + auto UUID + batch insert
+  - Export rewrite: all 80 columns + option include/exclude NUP Lama
+  - Photo system: upload 4 sisi + geotag link + download individual/batch ZIP + copy link
+  - All sub-pages rewritten: loans (return action), maintenance, disposal, reports
+  - Route conflict fix, per_page param, page persist in URL
+- **In Progress (belum selesai)**:
+  - [ ] Create page: form dinamis per jenis BMN (Kendaraan/Tanah/Bangunan/Peralatan)
+  - [ ] STNK: tanggal_pajak_stnk + tanggal_ganti_plat + countdown badge
+  - [ ] Dashboard alert: kendaraan pajak expired
+  - [ ] Edit inline di detail page
+- **Data Analysis**:
+  - 8 kolom organisasi LOCKED: Kode Satker, Nama Satker, Kode KPKNL, Uraian KPKNL, Uraian Kanwil DJKN, Nama K/L, Nama E1, Nama Korwil
+  - 4 mode form: Kendaraan (No Polisi, Merk, Tipe, STNK), Tanah (Luas, Sertifikat), Bangunan (Luas, Lantai), Peralatan (Merk, Tipe)
+- **Next Steps (Global)**:
+  - [ ] Tembusan field di ST builder & preview
+  - [ ] Multi-page testing (surat panjang)
+  - [ ] Signature integration
+  - [ ] Apply RBAC to Inventory, DeReporting, CMS
 
 ---
 

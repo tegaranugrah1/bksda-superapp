@@ -1,3 +1,58 @@
+# Progress - Phase 26: BMN Module Full Upgrade
+
+> Document updated: 2026-05-12 18:00
+> Status: **IN PROGRESS** 🔄 (create page + STNK pending)
+
+---
+
+## Phase 26: BMN Module Full Upgrade
+
+### Completed:
+- [x] Dashboard: real API, stat cards, condition bars, category chart, activity feed
+- [x] Layout: light theme, RBAC sidebar
+- [x] Assets table: search, filter kondisi, bulk select/delete, pagination (10/50/100/all), page persist URL, export dropdown
+- [x] Asset detail: hero card, 5 tabs, all 80 columns, glassmorphism sections
+- [x] Photo gallery: 5 slots, Google Drive thumbnail, lightbox + keyboard nav, download/ZIP/copy link
+- [x] Database: 80 columns migration + 5 photo columns + 1613 assets seeded
+- [x] Import: all 80 columns, auto UUID, batch insert, flexible header matching
+- [x] Export: all 80 columns, option with/without NUP Lama
+- [x] Loans: return action, status badges
+- [x] Maintenance: clean table, biaya formatted
+- [x] Disposal: search, admin only
+- [x] Reports: 3 export cards
+- [x] Route conflict fix (export before apiResource)
+- [x] Jenis BMN + NUP Lama shown in table
+
+### In Progress:
+- [ ] Create page: form dinamis per jenis BMN (4 mode)
+- [ ] STNK countdown: tanggal_pajak_stnk + tanggal_ganti_plat
+- [ ] Dashboard alert: kendaraan pajak expired
+- [ ] Edit inline di detail page
+
+### Jenis BMN Form Modes (for create page):
+| Mode | Jenis BMN | Field Khusus |
+|------|-----------|--------------|
+| Kendaraan | ALAT ANGKUTAN BERMOTOR | No Polisi, Merk, Tipe, STNK, BPKB |
+| Tanah | TANAH | Semua Luas, Sertifikat Tanah |
+| Bangunan | BANGUNAN DAN GEDUNG, RUMAH NEGARA, BANGUNAN AIR | Luas Bangunan, Lantai, Sertifikat |
+| Peralatan | MESIN TIK, MESIN NON TIK, ALAT BESAR, ALAT PERSENJATAAN | Merk, Tipe |
+
+### Locked Fields (auto-fill, same for all):
+- Kode Satker: `143041600693614000KD`
+- Nama Satker: `Balai KSDA Kalimantan Timur`
+- Kode KPKNL: `13102`
+- Uraian KPKNL: `KPKNL SAMARINDA`
+- Uraian Kanwil DJKN: `KANTOR WILAYAH DJKN KALIMANTAN TIMUR DAN UTARA`
+- Nama K/L: `KEMENTERIAN KEHUTANAN`
+- Nama E1: `Direktorat Jenderal Konservasi SDA dan Ekosistem`
+- Nama Korwil: `Wil. Prov. Kalimantan Timur`
+
+### GitHub Issues & PRs:
+- Issue #289 → PR #290 ✅ MERGED (BMN pages upgrade)
+- Multiple hotfix commits to main (photo, export, import, bulk, pagination)
+
+---
+
 # Progress - Phase 25: RBAC + Employee Accounts + Access Dialog Fix
 
 > Document updated: 2026-05-12 14:30
