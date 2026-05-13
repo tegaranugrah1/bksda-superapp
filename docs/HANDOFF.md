@@ -79,8 +79,11 @@ git push origin main
   - All sub-pages rewritten: loans (return action), maintenance, disposal, reports
   - Route conflict fix, per_page param, page persist in URL
 - **In Progress (belum selesai)**:
-  - [ ] Create page: form dinamis per jenis BMN (Kendaraan/Tanah/Bangunan/Peralatan)
+  - [x] Create page: form dinamis per jenis BMN (Kendaraan/Tanah/Bangunan/Peralatan) ✅ DONE
   - [ ] STNK: tanggal_pajak_stnk + tanggal_ganti_plat + countdown badge
+  - [ ] Import Review/Diff/Approve (upload → compare → approve)
+  - [ ] Dashboard alert: kendaraan pajak expired
+  - [ ] Edit inline di detail page
   - [ ] Dashboard alert: kendaraan pajak expired
   - [ ] Edit inline di detail page
 - **Data Analysis**:
