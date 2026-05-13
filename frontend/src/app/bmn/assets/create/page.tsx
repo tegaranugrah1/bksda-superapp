@@ -189,12 +189,13 @@ export default function BmnCreateAssetPage() {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Luas Tanah Seluruhnya (m²)" value={form.luas_tanah_seluruhnya as number} onChange={v => set("luas_tanah_seluruhnya", Number(v))} type="number" />
-                  <Field label="Luas Tanah Bangunan (m²)" value={form.luas_tanah_bangunan as number} onChange={v => set("luas_tanah_bangunan", Number(v))} type="number" />
+                  <Field label="Luas Tanah Untuk Bangunan (m²)" value={form.luas_tanah_bangunan as number} onChange={v => set("luas_tanah_bangunan", Number(v))} type="number" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Luas Sarana Lingkungan (m²)" value={form.luas_tanah_sarana as number} onChange={v => set("luas_tanah_sarana", Number(v))} type="number" />
+                  <Field label="Luas Tanah Untuk Sarana Lingkungan (m²)" value={form.luas_tanah_sarana as number} onChange={v => set("luas_tanah_sarana", Number(v))} type="number" />
                   <Field label="Luas Lahan Kosong (m²)" value={form.luas_lahan_kosong as number} onChange={v => set("luas_lahan_kosong", Number(v))} type="number" />
                 </div>
+                <Field label="Luas Bangunan (m²)" value={form.luas_bangunan as number} onChange={v => set("luas_bangunan", Number(v))} type="number" />
                 <Field label="Status Sertifikasi" value={form.status_sertifikasi as string} onChange={v => set("status_sertifikasi", v)} placeholder="Bersertipikat atas nama Pemerintah RI" />
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Jenis Sertipikat" value={form.jenis_sertipikat as string} onChange={v => set("jenis_sertipikat", v)} placeholder="Hak Pakai" />
@@ -205,6 +206,10 @@ export default function BmnCreateAssetPage() {
 
             {mode === "bangunan" && (
               <>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Luas Tanah Seluruhnya (m²)" value={form.luas_tanah_seluruhnya as number} onChange={v => set("luas_tanah_seluruhnya", Number(v))} type="number" />
+                  <Field label="Luas Lahan Kosong (m²)" value={form.luas_lahan_kosong as number} onChange={v => set("luas_lahan_kosong", Number(v))} type="number" />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Luas Bangunan (m²)" value={form.luas_bangunan as number} onChange={v => set("luas_bangunan", Number(v))} type="number" />
                   <Field label="Luas Tapak Bangunan (m²)" value={form.luas_tapak_bangunan as number} onChange={v => set("luas_tapak_bangunan", Number(v))} type="number" />
