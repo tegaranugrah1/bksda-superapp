@@ -56,12 +56,12 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 27: BMN Import Review/Diff/Approve (✅ DONE) |
-| **Issue Selanjutnya** | STNK Countdown, Tembusan ST, Edit Inline |
+| **Issue Terakhir Selesai** | Phase 28: STNK Countdown + Edit Inline + Filters (✅ DONE - PR #293, #294) |
+| **Issue Selanjutnya** | Tembusan ST, Multi-page testing, Signature, RBAC |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | (belum commit — perlu PR) |
+| **Commit Terakhir** | `8a0c3ad` - feat(bmn): STNK countdown + edit inline + filters (#294) |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-13T15:00:00+08:00 |
+| **Timestamp** | 2026-05-13T16:00:00+08:00 |
 | **GitHub Issues** | #289 (BMN upgrade), #291 (create page) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 

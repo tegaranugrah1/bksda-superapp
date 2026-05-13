@@ -1,3 +1,36 @@
+# Progress - Phase 28: STNK Countdown + Edit Inline + Filters
+
+> Document updated: 2026-05-13 16:00
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 28: STNK Countdown + Edit Inline + Filters
+
+### Completed:
+- [x] STNK Countdown: kolom tanggal_pajak_stnk + tanggal_ganti_plat, badge di tabel + detail, alert dashboard
+- [x] Edit inline: semua tab editable (kecuali Organisasi), klik → input → save
+- [x] Filters: dropdown Jenis BMN + Lokasi Ruang di halaman aset
+- [x] Lokasi Ruang: EditableSelectRow dropdown di detail page
+- [x] Import timeout: 120s untuk file besar
+- [x] Penghuni/Pengguna/Nama Pengguna dipindah ke tab Dokumen
+- [x] Create form: tanggal pajak STNK + ganti plat untuk Kendaraan
+- [x] router.back(): kembali dari detail mempertahankan page number
+- [x] UpdateAssetRequest: semua field optional (support inline edit 1 field)
+
+### Commits:
+```
+8a0c3ad feat(bmn): STNK countdown + edit inline + filters (#294) [PR #294]
+```
+
+### Next Steps:
+- [ ] Tembusan field di ST builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration
+- [ ] Apply RBAC to Inventory, DeReporting, CMS
+
+---
+
 # Progress - Phase 27: BMN Import Review/Diff/Approve + Fixes
 
 > Document updated: 2026-05-13 15:00
