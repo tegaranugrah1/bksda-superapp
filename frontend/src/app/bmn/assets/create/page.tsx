@@ -180,7 +180,7 @@ export default function BmnCreateAssetPage() {
                   <Field label="No Polisi" value={form.no_polisi as string} onChange={v => set("no_polisi", v)} placeholder="KT 1234 AB" />
                   <Field label="No STNK" value={form.no_stnk as string} onChange={v => set("no_stnk", v)} />
                 </div>
-                <Field label="No Dokumen (BPKB)" value={form.no_dokumen as string} onChange={v => set("no_dokumen", v)} />
+                <Field label="No BPKB (No Dokumen)" value={form.no_dokumen as string} onChange={v => set("no_dokumen", v)} />
                 <Field label="Nama Pemilik" value={form.nama_pemilik as string} onChange={v => set("nama_pemilik", v)} placeholder="Pemerintah RI" />
               </>
             )}
@@ -195,10 +195,10 @@ export default function BmnCreateAssetPage() {
                   <Field label="Luas Sarana Lingkungan (m²)" value={form.luas_tanah_sarana as number} onChange={v => set("luas_tanah_sarana", Number(v))} type="number" />
                   <Field label="Luas Lahan Kosong (m²)" value={form.luas_lahan_kosong as number} onChange={v => set("luas_lahan_kosong", Number(v))} type="number" />
                 </div>
-                <Field label="Status Sertifikasi" value={form.status_sertifikasi as string} onChange={v => set("status_sertifikasi", v)} placeholder="Bersertipikat" />
+                <Field label="Status Sertifikasi" value={form.status_sertifikasi as string} onChange={v => set("status_sertifikasi", v)} placeholder="Bersertipikat atas nama Pemerintah RI" />
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Jenis Sertipikat" value={form.jenis_sertipikat as string} onChange={v => set("jenis_sertipikat", v)} />
-                  <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => set("no_sertifikat", v)} />
+                  <Field label="Jenis Sertipikat" value={form.jenis_sertipikat as string} onChange={v => set("jenis_sertipikat", v)} placeholder="Hak Pakai" />
+                  <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => { set("no_sertifikat", v); set("no_dokumen", v); }} placeholder="16010607400505" />
                 </div>
               </>
             )}
@@ -210,8 +210,8 @@ export default function BmnCreateAssetPage() {
                   <Field label="Luas Tapak Bangunan (m²)" value={form.luas_tapak_bangunan as number} onChange={v => set("luas_tapak_bangunan", Number(v))} type="number" />
                 </div>
                 <Field label="Jumlah Lantai" value={form.jumlah_lantai as number} onChange={v => set("jumlah_lantai", Number(v))} type="number" />
-                <Field label="Status Sertifikasi" value={form.status_sertifikasi as string} onChange={v => set("status_sertifikasi", v)} />
-                <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => set("no_sertifikat", v)} />
+                <Field label="Status Sertifikasi" value={form.status_sertifikasi as string} onChange={v => set("status_sertifikasi", v)} placeholder="Bersertipikat" />
+                <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => { set("no_sertifikat", v); set("no_dokumen", v); }} />
               </>
             )}
 
