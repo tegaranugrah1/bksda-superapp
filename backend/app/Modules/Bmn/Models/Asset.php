@@ -19,7 +19,7 @@ class Asset extends Model
         'intra_extra', 'henti_guna', 'status_sbsn', 'status_bmn_idle', 'status_kemitraan',
         'bpybds', 'usulan_barang_hilang', 'usulan_barang_rb', 'usul_hapus', 'hibah_dktp',
         'konsensi_jasa', 'properti_investasi', 'jenis_dokumen', 'no_dokumen', 'no_bpkp',
-        'no_polisi', 'status_sertifikasi', 'jenis_sertipikat', 'no_sertifikat', 'nama_pemilik',
+        'no_polisi', 'status_sertifikasi', 'jenis_sertipikat', 'no_sertifikat', 'nama',
         'tanggal_buku_pertama', 'tanggal_perolehan', 'tanggal_pengapusan',
         'nilai_perolehan_pertama', 'nilai_mutasi', 'nilai_perolehan', 'nilai_penyusutan', 'nilai_buku',
         'luas_tanah_seluruhnya', 'luas_tanah_bangunan', 'luas_tanah_sarana', 'luas_lahan_kosong',
@@ -28,7 +28,7 @@ class Asset extends Model
         'kecamatan', 'kab_kota', 'kode_kab_kota', 'provinsi', 'kode_provinsi', 'kode_pos',
         'sbsk', 'optimalisasi', 'penghuni', 'pengguna', 'kode_kpknl', 'uraian_kpknl',
         'uraian_kanwil_djkn', 'nama_kl', 'nama_e1', 'nama_korwil', 'kode_register', 'lokasi_ruang',
-        'jenis_identitas', 'no_identitas', 'no_stnk', 'nama_pengguna_bmn', 'status_pmk',
+        'jenis_identitas', 'no_identitas', 'no_stnk', 'nama_pengguna', 'status_pmk',
         'status_foto_geotag', 'foto_geotag_url', 'foto_depan_path', 'foto_belakang_path',
         'foto_kiri_path', 'foto_kanan_path', 'tahun_perolehan', 'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
     ];

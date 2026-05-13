@@ -4,6 +4,7 @@ use App\Modules\Bmn\Controllers\AssetController;
 use App\Modules\Bmn\Controllers\AssetPhotoController;
 use App\Modules\Bmn\Controllers\DashboardController;
 use App\Modules\Bmn\Controllers\ExportController;
+use App\Modules\Bmn\Controllers\ImportReviewController;
 use App\Modules\Bmn\Controllers\LoanController;
 use App\Modules\Bmn\Controllers\MaintenanceController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,18 @@ Route::apiResource('assets', AssetController::class)->except(['destroy']);
 Route::post('assets/import', [AssetController::class, 'import']);
 Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose']);
 Route::post('assets/bulk-dispose', [AssetController::class, 'bulkDispose']);
+Route::post('assets/bulk-restore', [AssetController::class, 'bulkRestore']);
+Route::post('assets/bulk-force-delete', [AssetController::class, 'bulkForceDelete']);
+
+// 6. IMPORT REVIEW/DIFF/APPROVE
+Route::prefix('import-review')->group(function () {
+    Route::get('/', [ImportReviewController::class, 'index']);
+    Route::post('/upload', [ImportReviewController::class, 'upload']);
+    Route::get('/{batchId}', [ImportReviewController::class, 'show']);
+    Route::post('/{batchId}/approve', [ImportReviewController::class, 'approve']);
+    Route::post('/{batchId}/reject', [ImportReviewController::class, 'reject']);
+    Route::post('/toggle-selection', [ImportReviewController::class, 'toggleSelection']);
+});
 
 // 5. FOTO ASET
 Route::post('assets/{asset}/photo', [AssetPhotoController::class, 'upload']);

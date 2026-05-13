@@ -17,6 +17,7 @@ import { Upload, Loader2, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 
 interface AssetImportDialogProps {
   onImportSuccess?: () => void;
@@ -26,6 +27,7 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -44,15 +46,24 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
     formData.append("file", file);
 
     try {
-      await api.post("/bmn/assets/import", formData, {
+      const res = await api.post("/bmn/import-review/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      toast.success("Impor Aset BMN berhasil diproses.");
+      toast.success(res.data.message || "File berhasil diproses. Redirecting ke halaman review...");
       setOpen(false);
+      setFile(null);
       onImportSuccess?.();
+
+      // Redirect to review page
+      const batchId = res.data.batch?.id;
+      if (batchId) {
+        router.push(`/bmn/import-review/${batchId}`);
+      } else {
+        router.push("/bmn/import-review");
+      }
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ error: string }>;
       const message = axiosError.response?.data?.error || "Gagal mengimpor data aset.";
@@ -78,7 +89,7 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
             <Upload className="w-5 h-5 text-emerald-500" /> Impor Massal Aset
           </DialogTitle>
           <DialogDescription className="text-zinc-400">
-            Unggah file Excel (.xlsx) atau CSV untuk memasukkan data aset BMN secara massal ke dalam sistem.
+            Unggah file Excel (.xlsx) lalu review perubahan sebelum diterapkan ke database.
           </DialogDescription>
         </DialogHeader>
 
@@ -103,8 +114,9 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
             <ul className="text-[10px] text-zinc-400 list-disc list-inside space-y-1">
               <li>Header kolom wajib ada di baris pertama.</li>
               <li>Kolom wajib: <code className="text-emerald-500">kode_barang</code>, <code className="text-emerald-500">nup</code>, <code className="text-emerald-500">nama_barang</code>.</li>
-              <li>Kolom opsional: <code className="text-zinc-300">merk_tipe</code>, <code className="text-zinc-300">tahun_perolehan</code>, <code className="text-zinc-300">kondisi</code>.</li>
-              <li>Maksimal ukuran file: 10MB.</li>
+              <li>Data akan di-review dulu sebelum masuk database.</li>
+              <li>Aset yang sudah ada akan ditandai sebagai &quot;update&quot;.</li>
+              <li>Maksimal ukuran file: 20MB.</li>
             </ul>
           </div>
         </div>
@@ -127,7 +139,7 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Memproses...
               </>
             ) : (
-              "Mulai Impor"
+              "Upload & Review"
             )}
           </Button>
         </DialogFooter>

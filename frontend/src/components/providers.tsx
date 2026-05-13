@@ -58,7 +58,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         <ConfirmDialogProvider>
           <AuthSync />
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster position="bottom-right" richColors closeButton />
           <div key={restoreKey} className="contents">
             {children}
           </div>

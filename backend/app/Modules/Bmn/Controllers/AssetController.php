@@ -102,6 +102,26 @@ class AssetController extends Controller
         return response()->json(['message' => "{$count} aset berhasil di-dispose."]);
     }
 
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'string']);
+
+        $count = Asset::onlyTrashed()->whereIn('id', $request->ids)->count();
+        Asset::onlyTrashed()->whereIn('id', $request->ids)->restore();
+
+        return response()->json(['message' => "{$count} aset berhasil di-restore."]);
+    }
+
+    public function bulkForceDelete(Request $request): JsonResponse
+    {
+        $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'string']);
+
+        $count = Asset::onlyTrashed()->whereIn('id', $request->ids)->count();
+        Asset::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+
+        return response()->json(['message' => "{$count} aset dihapus permanen."]);
+    }
+
     public function export(): BinaryFileResponse
     {
         return Excel::download(new AssetExport, 'Katalog_Aset_BKSDA.xlsx');

@@ -56,14 +56,86 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 26: BMN Create Page + Fixes (✅ DONE - Issue #291 PR #292) |
-| **Issue Selanjutnya** | BMN Import Review/Diff/Approve, STNK Countdown, Tembusan ST |
+| **Issue Terakhir Selesai** | Phase 27: BMN Import Review/Diff/Approve (✅ DONE) |
+| **Issue Selanjutnya** | STNK Countdown, Tembusan ST, Edit Inline |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `f4d6824` - fix(bmn): remove Umur Aset from form - auto-calculated |
+| **Commit Terakhir** | (belum commit — perlu PR) |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-13T09:00:00+08:00 |
+| **Timestamp** | 2026-05-13T15:00:00+08:00 |
 | **GitHub Issues** | #289 (BMN upgrade), #291 (create page) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
+
+---
+
+**UPDATE SESI KIRO (2026-05-13 - Phase 27: BMN Import Review/Diff/Approve + Fixes):**
+- **Objective**: Implement Import Review/Diff/Approve flow + fix create form + disposal page upgrade.
+- **Accomplishments**:
+  - **Import Review/Diff/Approve** (full feature):
+    - Backend: staging table (`bmn_import_batches` + `bmn_import_staging`), `ImportReviewController` (6 endpoints), `AssetStagingImport` class
+    - Frontend: `/bmn/import-review` (upload + batch history), `/bmn/import-review/[batchId]` (diff table, select/deselect, approve/reject)
+    - Diff detection: compare ALL 80 fields, normalize numbers (no false positive .00), detect soft-deleted assets as "update" (restore)
+    - Approve: upsert logic (restore trashed + update, or insert new)
+    - After approve → redirect to `/bmn/assets` with cache invalidation
+  - **DB Rename** (migration):
+    - `nama_pemilik` → `nama` (match Excel header "Nama")
+    - `nama_pengguna_bmn` → `nama_pengguna` (match Excel header "Nama Pengguna")
+  - **AssetImportDialog** rewritten → now uses import-review flow (upload → redirect to review page)
+  - **Disposal Page** upgraded:
+    - Checkbox select (single + all)
+    - Bulk Restore button
+    - Bulk Force Delete button (with confirmation)
+    - Pagination (10/50/100 per page)
+  - **Confirm Dialog**: Replaced all `window.confirm()` with `useConfirm()` hook (proper modal)
+  - **Toast position**: Moved from top-right to bottom-right (less intrusive)
+  - **Create Form** improvements:
+    - Added: NUP Lama (optional), Tipe for Kendaraan, No BPKB for Kendaraan
+    - Added: Step 5 "Foto" — link geotag URL + upload 4 sisi (depan/belakang/kiri/kanan)
+    - Auto-fill on save: `merk_tipe`, `tahun_perolehan`, `nilai_perolehan_pertama`, `nama`, 9x "Tidak" defaults
+    - Removed: "Keterangan" field (not in 80 columns)
+    - Removed: duplicate "Nama Pengguna" from Step 3
+    - Added: "Intra/Extra" dropdown in Step 3
+  - **Detail Page**: Added missing fields — `nama`, `tahun_perolehan`, `kode_kab_kota`, `kode_provinsi`, `nama_pengguna` (separate from pengguna)
+- **Key Files Created**:
+  - `backend/app/Modules/Bmn/Migrations/2026_05_13_120000_create_bmn_import_batches_table.php`
+  - `backend/app/Modules/Bmn/Migrations/2026_05_13_130000_rename_nama_pemilik_and_nama_pengguna_bmn.php`
+  - `backend/app/Modules/Bmn/Models/ImportBatch.php`
+  - `backend/app/Modules/Bmn/Models/ImportStaging.php`
+  - `backend/app/Modules/Bmn/Controllers/ImportReviewController.php`
+  - `backend/app/Modules/Bmn/Imports/AssetStagingImport.php`
+  - `frontend/src/app/bmn/import-review/page.tsx`
+  - `frontend/src/app/bmn/import-review/[batchId]/page.tsx`
+- **Key Files Modified**:
+  - `backend/app/Modules/Bmn/Routes/api.php` — 6 new routes + bulk-restore + bulk-force-delete
+  - `backend/app/Modules/Bmn/Controllers/AssetController.php` — bulkRestore, bulkForceDelete
+  - `backend/app/Modules/Bmn/Models/Asset.php` — renamed fields
+  - `backend/app/Modules/Bmn/Resources/AssetResource.php` — renamed fields
+  - `backend/app/Modules/Bmn/Imports/AssetImport.php` — renamed fields
+  - `backend/app/Modules/Bmn/Exports/AssetExport.php` — renamed fields
+  - `backend/app/Modules/Bmn/Requests/StoreAssetRequest.php` — renamed fields
+  - `backend/database/seeders/BmnAssetSeeder.php` — renamed field
+  - `frontend/src/app/bmn/layout.tsx` — added Import Review sidebar link
+  - `frontend/src/app/bmn/assets/page.tsx` — useConfirm + invalidate disposal cache
+  - `frontend/src/app/bmn/assets/[id]/page.tsx` — added missing fields in detail
+  - `frontend/src/app/bmn/assets/create/page.tsx` — full rewrite (5 steps, foto, auto-fill)
+  - `frontend/src/app/bmn/disposal/page.tsx` — full rewrite (select, restore, force delete, pagination)
+  - `frontend/src/app/bmn/_components/AssetImportDialog.tsx` — redirect to import-review
+  - `frontend/src/components/providers.tsx` — toast position bottom-right
+- **API Endpoints (new)**:
+  - `GET /api/bmn/import-review` — list batches
+  - `POST /api/bmn/import-review/upload` — upload & parse to staging
+  - `GET /api/bmn/import-review/{batchId}` — batch detail + rows
+  - `POST /api/bmn/import-review/{batchId}/approve` — apply selected rows
+  - `POST /api/bmn/import-review/{batchId}/reject` — discard batch
+  - `POST /api/bmn/import-review/toggle-selection` — select/deselect rows
+  - `POST /api/bmn/assets/bulk-restore` — restore soft-deleted assets
+  - `POST /api/bmn/assets/bulk-force-delete` — permanently delete assets
+- **Next Steps**:
+  - [ ] STNK Countdown — tanggal_pajak_stnk + tanggal_ganti_plat + countdown badge
+  - [ ] Edit inline di detail page
+  - [ ] Tembusan field di ST builder & preview
+  - [ ] Multi-page testing (surat panjang)
+  - [ ] Signature integration
+  - [ ] Apply RBAC to Inventory, DeReporting, CMS
 
 ---
 

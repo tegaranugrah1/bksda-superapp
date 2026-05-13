@@ -146,8 +146,10 @@ function AssetDetail({ assetId }: { assetId: string }) {
             <DetailRow label="Status BMN" value={asset.status_bmn} />
             <DetailRow label="Merk" value={asset.merk} />
             <DetailRow label="Tipe" value={asset.tipe} />
+            <DetailRow label="Nama" value={asset.nama} />
             <BadgeRow label="Kondisi" value={asset.kondisi} variant={kondisiVariant} />
             <DetailRow label="Umur Aset" value={asset.umur_aset ? `${asset.umur_aset} tahun` : null} />
+            <DetailRow label="Tahun Perolehan" value={asset.tahun_perolehan} />
             <DetailRow label="Intra/Extra" value={asset.intra_extra} />
             <DetailRow label="Henti Guna" value={asset.henti_guna} />
           </DetailSection>
@@ -158,7 +160,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
             <DetailRow label="Status Sertifikasi" value={asset.status_sertifikasi} />
             <DetailRow label="Jenis Sertipikat" value={asset.jenis_sertipikat} />
             <DetailRow label="No Sertifikat" value={asset.no_sertifikat} />
-            <DetailRow label="Nama Pemilik" value={asset.nama_pemilik} />
+            <DetailRow label="Nama" value={asset.nama} />
             <DetailRow label="Jenis Identitas" value={asset.jenis_identitas} />
             <DetailRow label="No Identitas" value={asset.no_identitas} />
             <DetailRow label="Status Foto Geotag" value={asset.status_foto_geotag} />
@@ -222,7 +224,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
           <DetailRow label="Kelurahan/Desa" value={asset.kelurahan_desa} />
           <DetailRow label="Kecamatan" value={asset.kecamatan} />
           <DetailRow label="Kab/Kota" value={asset.kab_kota} />
+          <DetailRow label="Kode Kab/Kota" value={asset.kode_kab_kota} />
           <DetailRow label="Provinsi" value={asset.provinsi} />
+          <DetailRow label="Kode Provinsi" value={asset.kode_provinsi} />
           <DetailRow label="Kode Pos" value={asset.kode_pos} />
           <DetailRow label="Lokasi Ruang" value={asset.lokasi_ruang} />
           <DetailRow label="SBSK" value={asset.sbsk} />
@@ -236,7 +240,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
           <DetailRow label="Nama Satker" value={asset.nama_satker} />
           <DetailRow label="Penghuni" value={asset.penghuni} />
           <DetailRow label="Pengguna" value={asset.pengguna} />
-          <DetailRow label="Nama Pengguna BMN" value={asset.nama_pengguna_bmn} />
+          <DetailRow label="Nama Pengguna" value={asset.nama_pengguna} />
           <DetailRow label="Kode KPKNL" value={asset.kode_kpknl} />
           <DetailRow label="Uraian KPKNL" value={asset.uraian_kpknl} />
           <DetailRow label="Uraian Kanwil DJKN" value={asset.uraian_kanwil_djkn} />
