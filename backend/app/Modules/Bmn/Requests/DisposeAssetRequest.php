@@ -14,7 +14,7 @@ class DisposeAssetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'alasan_pemutihan' => ['required', 'string', 'min:10', 'max:1000'],
+            'alasan_pemutihan' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
