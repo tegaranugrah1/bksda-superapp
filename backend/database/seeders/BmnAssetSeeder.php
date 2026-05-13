@@ -57,7 +57,7 @@ class BmnAssetSeeder extends Seeder
             'AD' => 'status_sertifikasi',
             'AE' => 'jenis_sertipikat',
             'AF' => 'no_sertifikat',
-            'AG' => 'nama_pemilik',
+            'AG' => 'merk',
             'AH' => 'tanggal_buku_pertama',
             'AI' => 'tanggal_perolehan',
             'AJ' => 'tanggal_pengapusan',
