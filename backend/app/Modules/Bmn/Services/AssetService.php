@@ -53,7 +53,7 @@ class AssetService
         });
     }
 
-    public function disposeAsset(string $assetId, string $userId, string $alasan)
+    public function disposeAsset(string $assetId, string $userId, ?string $alasan)
     {
         return DB::transaction(function () use ($assetId, $userId, $alasan) {
             $asset = Asset::findOrFail($assetId);
@@ -64,7 +64,7 @@ class AssetService
                 'field_changed' => 'STATUS_ASET',
                 'old_value' => 'Aktif',
                 'new_value' => 'Dihapus/Pemutihan',
-                'alasan_perubahan' => $alasan,
+                'alasan_perubahan' => $alasan ?? 'Dispose aset',
             ]);
 
             $asset->delete();
