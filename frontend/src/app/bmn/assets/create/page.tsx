@@ -109,7 +109,6 @@ export default function BmnCreateAssetPage() {
     jenis_sertipikat: "",
     no_sertifikat: "",
     nama_pemilik: "",
-    umur_aset: 0,
     penghuni: "",
     pengguna: "",
     no_identitas: "",
@@ -215,16 +214,13 @@ export default function BmnCreateAssetPage() {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Merk" value={form.merk as string} onChange={v => set("merk", v)} placeholder="Honda" />
-                  <Field label="Umur Aset (tahun)" value={form.umur_aset as number} onChange={v => set("umur_aset", Number(v))} type="number" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
                   <Field label="No Polisi" value={form.no_polisi as string} onChange={v => set("no_polisi", v)} placeholder="KT 1234 AB" />
-                  <Field label="No STNK" value={form.no_stnk as string} onChange={v => set("no_stnk", v)} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
+                  <Field label="No STNK" value={form.no_stnk as string} onChange={v => set("no_stnk", v)} />
                   <Field label="No BPKB (No Dokumen)" value={form.no_dokumen as string} onChange={v => set("no_dokumen", v)} />
-                  <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => set("no_sertifikat", v)} />
                 </div>
+                <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => set("no_sertifikat", v)} />
               </>
             )}
 
@@ -286,7 +282,6 @@ export default function BmnCreateAssetPage() {
                 {hasTipe(form.jenis_bmn as string) && (
                   <Field label="Tipe" value={form.tipe as string} onChange={v => set("tipe", v)} placeholder="320D / EOS R5" />
                 )}
-                <Field label="Umur Aset (tahun)" value={form.umur_aset as number} onChange={v => set("umur_aset", Number(v))} type="number" />
               </>
             )}
 
