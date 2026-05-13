@@ -50,6 +50,7 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 120000,
       });
 
       toast.success(res.data.message || "File berhasil diproses. Redirecting ke halaman review...");

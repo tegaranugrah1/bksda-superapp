@@ -31,6 +31,7 @@ class Asset extends Model
         'jenis_identitas', 'no_identitas', 'no_stnk', 'nama_pengguna', 'status_pmk',
         'status_foto_geotag', 'foto_geotag_url', 'foto_depan_path', 'foto_belakang_path',
         'foto_kiri_path', 'foto_kanan_path', 'tahun_perolehan', 'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
+        'tanggal_pajak_stnk', 'tanggal_ganti_plat',
     ];
 
     protected $casts = [
@@ -47,6 +48,8 @@ class Asset extends Model
         'tanggal_buku_pertama' => 'date',
         'tanggal_pengapusan' => 'date',
         'tanggal_psp' => 'date',
+        'tanggal_pajak_stnk' => 'date',
+        'tanggal_ganti_plat' => 'date',
     ];
 
     public function penanggungJawab()

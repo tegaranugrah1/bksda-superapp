@@ -99,6 +99,8 @@ class StoreAssetRequest extends FormRequest
             'jenis_identitas' => ['nullable', 'string'],
             'no_identitas' => ['nullable', 'string'],
             'no_stnk' => ['nullable', 'string'],
+            'tanggal_pajak_stnk' => ['nullable', 'date'],
+            'tanggal_ganti_plat' => ['nullable', 'date'],
             'nama_pengguna' => ['nullable', 'string'],
             'status_pmk' => ['nullable', 'string'],
             'status_foto_geotag' => ['nullable', 'string'],

@@ -55,6 +55,7 @@ export default function ImportReviewPage() {
     try {
       const res = await api.post("/bmn/import-review/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        timeout: 120000,
       });
       toast.success(res.data.message);
       setFile(null);

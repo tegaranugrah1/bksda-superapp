@@ -12,6 +12,11 @@ interface DashboardData {
   asset_by_condition: Record<string, number>;
   asset_by_category: { kode_barang: string; total: number }[];
   recent_transactions: { type: string; id: number; asset: string; tanggal: string; status?: string; borrower?: string; keterangan?: string }[];
+  stnk_alerts?: {
+    expired: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_pajak_stnk: string }[];
+    expiring_soon: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_pajak_stnk: string }[];
+    plat_expired: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_ganti_plat: string }[];
+  };
 }
 
 const formatCurrency = (val: number) =>
@@ -66,6 +71,45 @@ export default function BmnDashboardPage() {
         <StatCard icon={<HandCoins className="w-5 h-5" />} label="Sedang Dipinjam" value="-" color="amber" sub="Lihat peminjaman" />
         <StatCard icon={<ShieldAlert className="w-5 h-5" />} label="Rusak Berat" value={rusakBerat.toString()} color="red" sub="Perlu perhatian" />
       </div>
+
+      {/* STNK Alerts */}
+      {data?.stnk_alerts && (data.stnk_alerts.expired.length > 0 || data.stnk_alerts.expiring_soon.length > 0 || data.stnk_alerts.plat_expired.length > 0) && (
+        <div className="bg-white border border-red-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <ShieldAlert className="w-5 h-5 text-red-500" />
+            <h3 className="text-sm font-bold text-slate-800">Peringatan STNK & Plat Kendaraan</h3>
+          </div>
+          <div className="space-y-2">
+            {data.stnk_alerts.expired.map((v) => (
+              <Link key={v.id} href={`/bmn/assets/${v.id}`} className="flex items-center justify-between p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors">
+                <div>
+                  <p className="text-xs font-semibold text-slate-800">{v.nama_barang} <span className="text-slate-400">({v.merk})</span></p>
+                  <p className="text-[10px] text-slate-500">{v.no_polisi || "Tanpa Polisi"}</p>
+                </div>
+                <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-1 rounded-lg">🚨 Pajak Expired ({v.tanggal_pajak_stnk})</span>
+              </Link>
+            ))}
+            {data.stnk_alerts.expiring_soon.map((v) => (
+              <Link key={v.id} href={`/bmn/assets/${v.id}`} className="flex items-center justify-between p-3 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors">
+                <div>
+                  <p className="text-xs font-semibold text-slate-800">{v.nama_barang} <span className="text-slate-400">({v.merk})</span></p>
+                  <p className="text-[10px] text-slate-500">{v.no_polisi || "Tanpa Polisi"}</p>
+                </div>
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">⚠️ Pajak {v.tanggal_pajak_stnk}</span>
+              </Link>
+            ))}
+            {data.stnk_alerts.plat_expired.map((v) => (
+              <Link key={v.id} href={`/bmn/assets/${v.id}`} className="flex items-center justify-between p-3 rounded-xl bg-orange-50 hover:bg-orange-100 transition-colors">
+                <div>
+                  <p className="text-xs font-semibold text-slate-800">{v.nama_barang} <span className="text-slate-400">({v.merk})</span></p>
+                  <p className="text-[10px] text-slate-500">{v.no_polisi || "Tanpa Polisi"}</p>
+                </div>
+                <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-1 rounded-lg">🔄 Ganti Plat ({v.tanggal_ganti_plat})</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Middle Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
