@@ -84,6 +84,9 @@ function getMode(jenis: string): "kendaraan" | "tanah" | "bangunan" | "peralatan
   return "peralatan";
 }
 
+function isRumahNegara(jenis: string) { return jenis === "RUMAH NEGARA"; }
+function hasTipe(jenis: string) { return ["ALAT BESAR", "MESIN PERALATAN NON TIK", "BANGUNAN DAN GEDUNG", "RUMAH NEGARA"].includes(jenis); }
+
 export default function BmnCreateAssetPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -106,6 +109,11 @@ export default function BmnCreateAssetPage() {
     jenis_sertipikat: "",
     no_sertifikat: "",
     nama_pemilik: "",
+    umur_aset: 0,
+    penghuni: "",
+    pengguna: "",
+    no_identitas: "",
+    status_pmk: "",
     nilai_perolehan: 0,
     nilai_buku: 0,
     tanggal_perolehan: "",
@@ -207,14 +215,16 @@ export default function BmnCreateAssetPage() {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Merk" value={form.merk as string} onChange={v => set("merk", v)} placeholder="Honda" />
-                  <Field label="Tipe" value={form.tipe as string} onChange={v => set("tipe", v)} placeholder="CRF 150L" />
+                  <Field label="Umur Aset (tahun)" value={form.umur_aset as number} onChange={v => set("umur_aset", Number(v))} type="number" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="No Polisi" value={form.no_polisi as string} onChange={v => set("no_polisi", v)} placeholder="KT 1234 AB" />
                   <Field label="No STNK" value={form.no_stnk as string} onChange={v => set("no_stnk", v)} />
                 </div>
-                <Field label="No BPKB (No Dokumen)" value={form.no_dokumen as string} onChange={v => set("no_dokumen", v)} />
-                <Field label="Nama Pemilik" value={form.nama_pemilik as string} onChange={v => set("nama_pemilik", v)} placeholder="Pemerintah RI" />
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="No BPKB (No Dokumen)" value={form.no_dokumen as string} onChange={v => set("no_dokumen", v)} />
+                  <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => set("no_sertifikat", v)} />
+                </div>
               </>
             )}
 
@@ -229,16 +239,19 @@ export default function BmnCreateAssetPage() {
                   <Field label="Luas Lahan Kosong (m²)" value={form.luas_lahan_kosong as number} onChange={v => set("luas_lahan_kosong", Number(v))} type="number" />
                 </div>
                 <Field label="Luas Bangunan (m²)" value={form.luas_bangunan as number} onChange={v => set("luas_bangunan", Number(v))} type="number" />
-                <Field label="Status Sertifikasi" value={form.status_sertifikasi as string} onChange={v => set("status_sertifikasi", v)} placeholder="Bersertipikat atas nama Pemerintah RI" />
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Jenis Sertipikat" value={form.jenis_sertipikat as string} onChange={v => set("jenis_sertipikat", v)} placeholder="Hak Pakai" />
-                  <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => { set("no_sertifikat", v); set("no_dokumen", v); }} placeholder="16010607400505" />
+                  <Field label="Jenis Dokumen" value={form.jenis_dokumen as string} onChange={v => set("jenis_dokumen", v)} placeholder="Sertifikat" />
+                  <Field label="No Dokumen / No Sertifikat" value={form.no_sertifikat as string} onChange={v => { set("no_sertifikat", v); set("no_dokumen", v); }} placeholder="16010607400505" />
                 </div>
+                <Field label="Status Sertifikasi" value={form.status_sertifikasi as string} onChange={v => set("status_sertifikasi", v)} placeholder="Bersertipikat atas nama Pemerintah RI" />
               </>
             )}
 
             {mode === "bangunan" && (
               <>
+                {hasTipe(form.jenis_bmn as string) && (
+                  <Field label="Tipe" value={form.tipe as string} onChange={v => set("tipe", v)} placeholder="Permanen / Semi Permanen" />
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Luas Tanah Seluruhnya (m²)" value={form.luas_tanah_seluruhnya as number} onChange={v => set("luas_tanah_seluruhnya", Number(v))} type="number" />
                   <Field label="Luas Lahan Kosong (m²)" value={form.luas_lahan_kosong as number} onChange={v => set("luas_lahan_kosong", Number(v))} type="number" />
@@ -247,19 +260,33 @@ export default function BmnCreateAssetPage() {
                   <Field label="Luas Bangunan (m²)" value={form.luas_bangunan as number} onChange={v => set("luas_bangunan", Number(v))} type="number" />
                   <Field label="Luas Tapak Bangunan (m²)" value={form.luas_tapak_bangunan as number} onChange={v => set("luas_tapak_bangunan", Number(v))} type="number" />
                 </div>
-                <Field label="Jumlah Lantai" value={form.jumlah_lantai as number} onChange={v => set("jumlah_lantai", Number(v))} type="number" />
-                <Field label="Status Sertifikasi" value={form.status_sertifikasi as string} onChange={v => set("status_sertifikasi", v)} placeholder="Bersertipikat" />
-                <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => { set("no_sertifikat", v); set("no_dokumen", v); }} />
+                {(form.jenis_bmn !== "BANGUNAN AIR") && (
+                  <Field label="Jumlah Lantai" value={form.jumlah_lantai as number} onChange={v => set("jumlah_lantai", Number(v))} type="number" />
+                )}
+                {isRumahNegara(form.jenis_bmn as string) && (
+                  <>
+                    <h3 className="text-xs font-bold text-slate-500 uppercase mt-4 pt-4 border-t">Penghuni Rumah Negara</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Penghuni" value={form.penghuni as string} onChange={v => set("penghuni", v)} />
+                      <Field label="Pengguna" value={form.pengguna as string} onChange={v => set("pengguna", v)} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Nama Pengguna" value={form.nama_pengguna_bmn as string} onChange={v => set("nama_pengguna_bmn", v)} />
+                      <Field label="No Identitas" value={form.no_identitas as string} onChange={v => set("no_identitas", v)} />
+                    </div>
+                    <Field label="Status PMK" value={form.status_pmk as string} onChange={v => set("status_pmk", v)} />
+                  </>
+                )}
               </>
             )}
 
             {mode === "peralatan" && (
               <>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Merk" value={form.merk as string} onChange={v => set("merk", v)} placeholder="Caterpillar" />
-                  <Field label="Tipe" value={form.tipe as string} onChange={v => set("tipe", v)} placeholder="320D" />
-                </div>
-                <Field label="Nama Pemilik" value={form.nama_pemilik as string} onChange={v => set("nama_pemilik", v)} placeholder="Pemerintah RI" />
+                <Field label="Merk" value={form.merk as string} onChange={v => set("merk", v)} placeholder="Caterpillar / Canon / HP" />
+                {hasTipe(form.jenis_bmn as string) && (
+                  <Field label="Tipe" value={form.tipe as string} onChange={v => set("tipe", v)} placeholder="320D / EOS R5" />
+                )}
+                <Field label="Umur Aset (tahun)" value={form.umur_aset as number} onChange={v => set("umur_aset", Number(v))} type="number" />
               </>
             )}
 
