@@ -68,12 +68,40 @@ class DashboardController extends Controller
             ->take(10)
             ->values();
 
+        // STNK Alerts: kendaraan yang pajak expired atau hampir expired (30 hari)
+        $today = now()->toDateString();
+        $thirtyDaysLater = now()->addDays(30)->toDateString();
+
+        $stnkExpired = Asset::where('jenis_bmn', 'ALAT ANGKUTAN BERMOTOR')
+            ->whereNotNull('tanggal_pajak_stnk')
+            ->where('tanggal_pajak_stnk', '<', $today)
+            ->select('id', 'nama_barang', 'kode_barang', 'nup', 'merk', 'no_polisi', 'tanggal_pajak_stnk')
+            ->get();
+
+        $stnkExpiringSoon = Asset::where('jenis_bmn', 'ALAT ANGKUTAN BERMOTOR')
+            ->whereNotNull('tanggal_pajak_stnk')
+            ->where('tanggal_pajak_stnk', '>=', $today)
+            ->where('tanggal_pajak_stnk', '<=', $thirtyDaysLater)
+            ->select('id', 'nama_barang', 'kode_barang', 'nup', 'merk', 'no_polisi', 'tanggal_pajak_stnk')
+            ->get();
+
+        $platExpired = Asset::where('jenis_bmn', 'ALAT ANGKUTAN BERMOTOR')
+            ->whereNotNull('tanggal_ganti_plat')
+            ->where('tanggal_ganti_plat', '<', $today)
+            ->select('id', 'nama_barang', 'kode_barang', 'nup', 'merk', 'no_polisi', 'tanggal_ganti_plat')
+            ->get();
+
         return response()->json([
             'total_asset' => $totalAsset,
             'total_asset_value' => (float) $totalAssetValue,
             'asset_by_condition' => $assetByCondition,
             'asset_by_category' => $assetByCategory,
             'recent_transactions' => $recentTransactions,
+            'stnk_alerts' => [
+                'expired' => $stnkExpired,
+                'expiring_soon' => $stnkExpiringSoon,
+                'plat_expired' => $platExpired,
+            ],
         ]);
     }
 }

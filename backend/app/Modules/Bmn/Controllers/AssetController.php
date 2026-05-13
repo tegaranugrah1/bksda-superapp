@@ -48,6 +48,10 @@ class AssetController extends Controller
             $query->where('jenis_bmn', $request->jenis_bmn);
         }
 
+        if ($request->filled('lokasi_ruang')) {
+            $query->where('lokasi_ruang', 'ilike', '%' . $request->lokasi_ruang . '%');
+        }
+
         return AssetResource::collection($query->paginate($request->integer('per_page', 10)));
     }
 

@@ -29,6 +29,9 @@ interface IAsset {
   kondisi: string;
   nilai_perolehan: number;
   lokasi_spesifik?: string;
+  lokasi_ruang?: string;
+  tanggal_pajak_stnk?: string;
+  tanggal_ganti_plat?: string;
   penanggung_jawab?: { nama_lengkap: string };
 }
 
@@ -46,6 +49,8 @@ export default function BmnAssetsPage() {
   const [page, setPageState] = useState(initialPage);
   const [perPage, setPerPageState] = useState(initialPerPage);
   const [kondisiFilter, setKondisiFilter] = useState("Semua");
+  const [jenisFilter, setJenisFilter] = useState("Semua");
+  const [lokasiFilter, setLokasiFilter] = useState("Semua");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const debouncedSearch = useDebounce(searchTerm, 400);
   const { canWrite } = useRole();
@@ -70,11 +75,13 @@ export default function BmnAssetsPage() {
   };
 
   const { data: response, isLoading, isFetching } = useQuery<IResponse>({
-    queryKey: ["bmn-assets", debouncedSearch, page, perPage, kondisiFilter],
+    queryKey: ["bmn-assets", debouncedSearch, page, perPage, kondisiFilter, jenisFilter, lokasiFilter],
     queryFn: async () => {
       const params: Record<string, string | number | undefined> = { page, per_page: perPage === 0 ? 9999 : perPage };
       if (debouncedSearch) params.search = debouncedSearch;
       if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
+      if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
+      if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
       const res = await api.get("/bmn/assets", { params });
       return res.data;
     },
@@ -221,6 +228,45 @@ export default function BmnAssetsPage() {
         </div>
       </div>
 
+      {/* Advanced Filters */}
+      <div className="flex flex-wrap gap-2">
+        <select
+          value={jenisFilter}
+          onChange={(e) => { setJenisFilter(e.target.value); setPage(1); }}
+          className="h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        >
+          <option value="Semua">Semua Jenis BMN</option>
+          <option value="ALAT ANGKUTAN BERMOTOR">Alat Angkutan Bermotor</option>
+          <option value="ALAT BESAR">Alat Besar</option>
+          <option value="ALAT PERSENJATAAN">Alat Persenjataan</option>
+          <option value="BANGUNAN AIR">Bangunan Air</option>
+          <option value="BANGUNAN DAN GEDUNG">Bangunan dan Gedung</option>
+          <option value="MESIN PERALATAN KHUSUS TIK">Mesin Peralatan TIK</option>
+          <option value="MESIN PERALATAN NON TIK">Mesin Peralatan Non TIK</option>
+          <option value="RUMAH NEGARA">Rumah Negara</option>
+          <option value="TANAH">Tanah</option>
+        </select>
+        <select
+          value={lokasiFilter}
+          onChange={(e) => { setLokasiFilter(e.target.value); setPage(1); }}
+          className="h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        >
+          <option value="Semua">Semua Lokasi</option>
+          <option value="Kantor Balai KSDA Kalimantan Timur">Kantor Balai</option>
+          <option value="Seksi KSDA Wilayah I (Berau)">Wilayah I (Berau)</option>
+          <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
+          <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
+        </select>
+        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua") && (
+          <button
+            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setPage(1); }}
+            className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100"
+          >
+            Reset Filter
+          </button>
+        )}
+      </div>
+
       {/* Bulk Action Bar */}
       {canWrite && selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
@@ -294,7 +340,10 @@ export default function BmnAssetsPage() {
                       <p className="text-sm font-bold text-slate-800">{formatRupiah(asset.nilai_perolehan)}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-xs text-slate-500 max-w-[120px] truncate">{asset.lokasi_spesifik || "Gudang Utama"}</p>
+                      <p className="text-xs text-slate-500 max-w-[120px] truncate">{asset.lokasi_ruang || asset.lokasi_spesifik || "-"}</p>
+                      {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.tanggal_pajak_stnk && (
+                        <StnkBadge tanggal={asset.tanggal_pajak_stnk} />
+                      )}
                     </td>
                     {canWrite && (
                       <td className="px-4 py-3 text-center">
@@ -334,4 +383,27 @@ export default function BmnAssetsPage() {
       </div>
     </div>
   );
+}
+
+function StnkBadge({ tanggal }: { tanggal: string }) {
+  const today = new Date();
+  const target = new Date(tanggal);
+  const diffMs = target.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700 mt-1">
+        🚨 Pajak expired {Math.abs(diffDays)} hari
+      </span>
+    );
+  }
+  if (diffDays <= 30) {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 mt-1">
+        ⚠️ Pajak {diffDays} hari lagi
+      </span>
+    );
+  }
+  return null;
 }

@@ -138,6 +138,8 @@ export default function BmnCreateAssetPage() {
     status_penggunaan: "",
     nama_pengguna: "",
     foto_geotag_url: "",
+    tanggal_pajak_stnk: "",
+    tanggal_ganti_plat: "",
   });
 
   const [photoFiles, setPhotoFiles] = useState<{ depan: File | null; belakang: File | null; kiri: File | null; kanan: File | null }>({
@@ -275,6 +277,10 @@ export default function BmnCreateAssetPage() {
                   <Field label="No Dokumen" value={form.no_dokumen as string} onChange={v => set("no_dokumen", v)} />
                 </div>
                 <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => set("no_sertifikat", v)} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Tanggal Pajak STNK" value={form.tanggal_pajak_stnk as string} onChange={v => set("tanggal_pajak_stnk", v)} type="date" />
+                  <Field label="Tanggal Ganti Plat" value={form.tanggal_ganti_plat as string} onChange={v => set("tanggal_ganti_plat", v)} type="date" />
+                </div>
               </>
             )}
 

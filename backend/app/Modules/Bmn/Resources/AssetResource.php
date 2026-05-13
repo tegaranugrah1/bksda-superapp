@@ -88,6 +88,8 @@ class AssetResource extends JsonResource
             'jenis_identitas' => $this->jenis_identitas,
             'no_identitas' => $this->no_identitas,
             'no_stnk' => $this->no_stnk,
+            'tanggal_pajak_stnk' => $this->tanggal_pajak_stnk?->format('Y-m-d'),
+            'tanggal_ganti_plat' => $this->tanggal_ganti_plat?->format('Y-m-d'),
             'nama_pengguna' => $this->nama_pengguna,
             'status_pmk' => $this->status_pmk,
             'status_foto_geotag' => $this->status_foto_geotag,

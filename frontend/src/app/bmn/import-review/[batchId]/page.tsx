@@ -134,7 +134,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const handleApprove = async () => {
     setIsApproving(true);
     try {
-      const res = await api.post(`/bmn/import-review/${batchId}/approve`);
+      const res = await api.post(`/bmn/import-review/${batchId}/approve`, {}, { timeout: 120000 });
       toast.success(res.data.message);
       await queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
       queryClient.invalidateQueries({ queryKey: ["bmn-import-batches"] });
@@ -163,6 +163,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const selectedCount = rows.filter((r) => r.selected && r.diff_status !== "unchanged").length;
+  const totalActionable = (batch?.new_rows || 0) + (batch?.updated_rows || 0);
   const isPending = batch?.status === "pending";
 
   if (isLoading) {
@@ -208,13 +209,13 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
             </Button>
             <Button
               onClick={handleApprove}
-              disabled={isApproving || selectedCount === 0}
+              disabled={isApproving || totalActionable === 0}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
             >
               {isApproving ? (
                 <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Memproses...</>
               ) : (
-                <><CheckCircle2 className="w-4 h-4 mr-1" />Setujui ({selectedCount} baris)</>
+                <><CheckCircle2 className="w-4 h-4 mr-1" />Setujui ({totalActionable} baris)</>
               )}
             </Button>
           </div>
