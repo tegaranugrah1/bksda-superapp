@@ -102,7 +102,7 @@ class BmnAssetSeeder extends Seeder
             'BW' => 'jenis_identitas',
             'BX' => 'no_identitas',
             'BY' => 'no_stnk',
-            'BZ' => 'nama_pengguna_bmn',
+            'BZ' => 'nama_pengguna',
             'CA' => 'status_pmk',
             'CB' => 'foto_geotag_url',
         ];

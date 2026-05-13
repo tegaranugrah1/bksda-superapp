@@ -1,3 +1,57 @@
+# Progress - Phase 27: BMN Import Review/Diff/Approve + Fixes
+
+> Document updated: 2026-05-13 15:00
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 27: BMN Import Review/Diff/Approve
+
+### Completed:
+- [x] Import Review/Diff/Approve — full feature (upload → staging → compare → diff table → approve/reject)
+- [x] Diff detection: all 80 fields, normalize numbers, detect soft-deleted as "update"
+- [x] DB rename: `nama_pemilik` → `nama`, `nama_pengguna_bmn` → `nama_pengguna`
+- [x] AssetImportDialog → redirect to import-review flow
+- [x] Disposal page: checkbox select, bulk restore, bulk force delete, pagination
+- [x] Confirm dialog: replaced window.confirm() with useConfirm() hook
+- [x] Toast position: bottom-right
+- [x] Create form: NUP Lama, Tipe for Kendaraan, No BPKB, Step 5 Foto (geotag link + 4 sisi upload)
+- [x] Create form auto-fill: merk_tipe, tahun_perolehan, nilai_perolehan_pertama, nama, 9x "Tidak"
+- [x] Detail page: added missing fields (nama, tahun_perolehan, kode_kab_kota, kode_provinsi, nama_pengguna)
+- [x] Removed "Keterangan" from create form (not in 80 columns)
+
+### Import Review Flow:
+```
+Upload Excel → Parse to staging table (bmn_import_staging)
+→ Compare each row by kode_barang + nup (including soft-deleted)
+→ Mark as: new / updated / unchanged
+→ Show diff table (old → new per field, red/green)
+→ User can select/deselect individual rows
+→ Approve: insert new + update existing (restore if trashed)
+→ Reject: discard staging data
+→ After approve → redirect to /bmn/assets
+```
+
+### API Endpoints (new):
+- `GET /api/bmn/import-review` — list batches
+- `POST /api/bmn/import-review/upload` — upload & parse
+- `GET /api/bmn/import-review/{batchId}` — batch detail + rows
+- `POST /api/bmn/import-review/{batchId}/approve` — apply
+- `POST /api/bmn/import-review/{batchId}/reject` — discard
+- `POST /api/bmn/import-review/toggle-selection` — select/deselect
+- `POST /api/bmn/assets/bulk-restore` — restore
+- `POST /api/bmn/assets/bulk-force-delete` — permanent delete
+
+### Next Steps (TODO for next session):
+- [ ] **STNK Countdown** — tanggal_pajak_stnk + tanggal_ganti_plat columns, countdown badge, dashboard alert
+- [ ] **Edit inline** di detail page
+- [ ] Tembusan field di ST builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration
+- [ ] Apply RBAC to Inventory, DeReporting, CMS
+
+---
+
 # Progress - Phase 26: BMN Module Full Upgrade
 
 > Document updated: 2026-05-13 09:00

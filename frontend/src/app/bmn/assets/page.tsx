@@ -12,6 +12,7 @@ import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const formatRupiah = (angka: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
@@ -95,24 +96,39 @@ export default function BmnAssetsPage() {
   };
 
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const confirm = useConfirm();
 
   const handleDispose = async (id: string) => {
-    if (!confirm("Yakin ingin menghapus/dispose aset ini?")) return;
+    const ok = await confirm({
+      title: "Dispose Aset",
+      description: "Yakin ingin menghapus/dispose aset ini? Aset akan dipindahkan ke daftar Aset Dihapus.",
+      confirmText: "Ya, Dispose",
+      variant: "danger",
+    });
+    if (!ok) return;
     try {
       await api.delete(`/bmn/assets/${id}/dispose`);
       toast.success("Aset berhasil di-dispose.");
       queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+      queryClient.invalidateQueries({ queryKey: ["bmn-assets-disposed"] });
     } catch { toast.error("Gagal dispose aset."); }
   };
 
   const handleBulkDispose = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Yakin ingin menghapus ${selectedIds.size} aset yang dipilih?`)) return;
+    const ok = await confirm({
+      title: "Bulk Dispose",
+      description: `Yakin ingin menghapus ${selectedIds.size} aset yang dipilih? Semua aset akan dipindahkan ke daftar Aset Dihapus.`,
+      confirmText: `Ya, Hapus ${selectedIds.size} Aset`,
+      variant: "danger",
+    });
+    if (!ok) return;
     try {
       await api.post("/bmn/assets/bulk-dispose", { ids: Array.from(selectedIds) });
       toast.success(`${selectedIds.size} aset berhasil di-dispose.`);
       setSelectedIds(new Set());
       queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+      queryClient.invalidateQueries({ queryKey: ["bmn-assets-disposed"] });
     } catch { toast.error("Gagal bulk dispose."); }
   };
 

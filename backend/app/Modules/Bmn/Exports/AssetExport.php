@@ -98,7 +98,7 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
             $asset->status_sertifikasi,
             $asset->jenis_sertipikat,
             $asset->no_sertifikat,
-            $asset->nama_pemilik,
+            $asset->nama,
             $asset->tanggal_buku_pertama?->format('Y-m-d'),
             $asset->tanggal_perolehan?->format('Y-m-d'),
             $asset->tanggal_pengapusan?->format('Y-m-d'),
@@ -143,7 +143,7 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
             $asset->jenis_identitas,
             $asset->no_identitas,
             $asset->no_stnk,
-            $asset->nama_pengguna_bmn,
+            $asset->nama_pengguna,
             $asset->status_pmk,
             $asset->foto_geotag_url,
         ]);

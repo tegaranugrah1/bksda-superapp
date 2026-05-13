@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, CheckCircle2, Camera } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -73,6 +73,7 @@ const STEPS = [
   { id: "detail", label: "Detail Spesifik" },
   { id: "nilai", label: "Nilai & Tanggal" },
   { id: "lokasi", label: "Lokasi" },
+  { id: "foto", label: "Foto" },
 ];
 
 type FormData = Record<string, string | number | null>;
@@ -95,6 +96,7 @@ export default function BmnCreateAssetPage() {
     jenis_bmn: "",
     kode_barang: "",
     nup: "",
+    nup_lama: "",
     nama_barang: "",
     kondisi: "Baik",
     status_bmn: "Aktif",
@@ -103,12 +105,13 @@ export default function BmnCreateAssetPage() {
     tipe: "",
     no_polisi: "",
     no_stnk: "",
+    no_bpkb: "",
     no_dokumen: "",
     jenis_dokumen: "",
     status_sertifikasi: "",
     jenis_sertipikat: "",
     no_sertifikat: "",
-    nama_pemilik: "",
+    nama: "",
     penghuni: "",
     pengguna: "",
     no_identitas: "",
@@ -133,8 +136,12 @@ export default function BmnCreateAssetPage() {
     kode_pos: "",
     lokasi_ruang: "",
     status_penggunaan: "",
-    nama_pengguna_bmn: "",
-    keterangan: "",
+    nama_pengguna: "",
+    foto_geotag_url: "",
+  });
+
+  const [photoFiles, setPhotoFiles] = useState<{ depan: File | null; belakang: File | null; kiri: File | null; kanan: File | null }>({
+    depan: null, belakang: null, kiri: null, kanan: null,
   });
 
   const set = (key: string, value: string | number) => setForm(prev => ({ ...prev, [key]: value }));
@@ -148,8 +155,50 @@ export default function BmnCreateAssetPage() {
     }
     setSaving(true);
     try {
-      const payload = { ...form, ...ORG_DEFAULTS };
-      await api.post("/bmn/assets", payload);
+      // Auto-fill defaults
+      const payload: FormData = { ...form, ...ORG_DEFAULTS };
+      
+      // Auto-calculate tahun_perolehan from tanggal_perolehan
+      if (form.tanggal_perolehan) {
+        payload.tahun_perolehan = new Date(form.tanggal_perolehan as string).getFullYear();
+      }
+      // Auto-fill nilai_perolehan_pertama = nilai_perolehan if not set
+      if (form.nilai_perolehan && !form.nilai_perolehan_pertama) {
+        payload.nilai_perolehan_pertama = form.nilai_perolehan;
+      }
+      // Auto-fill "Tidak" defaults
+      const tidakDefaults = ['henti_guna', 'status_kemitraan', 'bpybds', 'usulan_barang_hilang', 'usulan_barang_rb', 'usul_hapus', 'hibah_dktp', 'konsensi_jasa', 'properti_investasi'];
+      tidakDefaults.forEach(f => { if (!payload[f]) payload[f] = "Tidak"; });
+      // nama = merk if not set
+      if (!payload.nama && payload.merk) payload.nama = payload.merk;
+      // merk_tipe = merk + tipe combined
+      const merkVal = (payload.merk as string) || '';
+      const tipeVal = (payload.tipe as string) || '';
+      payload.merk_tipe = [merkVal, tipeVal].filter(Boolean).join(' ') || null;
+
+      const res = await api.post("/bmn/assets", payload);
+      const assetId = res.data?.data?.id;
+
+      // Upload photos if any
+      if (assetId) {
+        const photoTypes = ['depan', 'belakang', 'kiri', 'kanan'] as const;
+        for (const type of photoTypes) {
+          const file = photoFiles[type];
+          if (file) {
+            const fd = new FormData();
+            fd.append("photo", file);
+            fd.append("type", type);
+            try {
+              await api.post(`/bmn/assets/${assetId}/photo`, fd, {
+                headers: { "Content-Type": "multipart/form-data" },
+              });
+            } catch {
+              // Non-blocking: photo upload failure doesn't block asset creation
+            }
+          }
+        }
+      }
+
       toast.success("Aset BMN berhasil didaftarkan.");
       router.push("/bmn/assets");
     } catch (err: unknown) {
@@ -198,6 +247,7 @@ export default function BmnCreateAssetPage() {
               <Field label="Kode Barang *" value={form.kode_barang as string} onChange={v => set("kode_barang", v)} placeholder="3010312003" />
               <Field label="NUP *" value={form.nup as string} onChange={v => set("nup", v)} placeholder="1" />
             </div>
+            <Field label="NUP Lama (opsional)" value={form.nup_lama as string} onChange={v => set("nup_lama", v)} placeholder="NUP sebelumnya jika ada" />
             <Field label="Nama Barang *" value={form.nama_barang as string} onChange={v => set("nama_barang", v)} placeholder="Sepeda Motor Patroli" />
             <div className="grid grid-cols-2 gap-4">
               <Field label="Kondisi" value={form.kondisi as string} onChange={v => set("kondisi", v)} type="select" options={KONDISI_OPTIONS} />
@@ -213,12 +263,16 @@ export default function BmnCreateAssetPage() {
             {mode === "kendaraan" && (
               <>
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Merk" value={form.merk as string} onChange={v => set("merk", v)} placeholder="Honda" />
-                  <Field label="No Polisi" value={form.no_polisi as string} onChange={v => set("no_polisi", v)} placeholder="KT 1234 AB" />
+                  <Field label="Merk" value={form.merk as string} onChange={v => { set("merk", v); set("nama", v); }} placeholder="Honda CRF 150L" />
+                  <Field label="Tipe" value={form.tipe as string} onChange={v => set("tipe", v)} placeholder="CRF 150L" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
+                  <Field label="No Polisi" value={form.no_polisi as string} onChange={v => set("no_polisi", v)} placeholder="KT 1234 AB" />
                   <Field label="No STNK" value={form.no_stnk as string} onChange={v => set("no_stnk", v)} />
-                  <Field label="No BPKB (No Dokumen)" value={form.no_dokumen as string} onChange={v => set("no_dokumen", v)} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="No BPKB" value={form.no_bpkb as string} onChange={v => set("no_bpkb", v)} />
+                  <Field label="No Dokumen" value={form.no_dokumen as string} onChange={v => set("no_dokumen", v)} />
                 </div>
                 <Field label="No Sertifikat" value={form.no_sertifikat as string} onChange={v => set("no_sertifikat", v)} />
               </>
@@ -267,7 +321,7 @@ export default function BmnCreateAssetPage() {
                       <Field label="Pengguna" value={form.pengguna as string} onChange={v => set("pengguna", v)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <Field label="Nama Pengguna" value={form.nama_pengguna_bmn as string} onChange={v => set("nama_pengguna_bmn", v)} />
+                      <Field label="Nama Pengguna" value={form.nama_pengguna as string} onChange={v => set("nama_pengguna", v)} />
                       <Field label="No Identitas" value={form.no_identitas as string} onChange={v => set("no_identitas", v)} />
                     </div>
                     <Field label="Status PMK" value={form.status_pmk as string} onChange={v => set("status_pmk", v)} />
@@ -278,14 +332,12 @@ export default function BmnCreateAssetPage() {
 
             {mode === "peralatan" && (
               <>
-                <Field label="Merk" value={form.merk as string} onChange={v => set("merk", v)} placeholder="Caterpillar / Canon / HP" />
+                <Field label="Merk" value={form.merk as string} onChange={v => { set("merk", v); set("nama", v); }} placeholder="Caterpillar / Canon / HP" />
                 {hasTipe(form.jenis_bmn as string) && (
                   <Field label="Tipe" value={form.tipe as string} onChange={v => set("tipe", v)} placeholder="320D / EOS R5" />
                 )}
               </>
             )}
-
-            <Field label="Keterangan" value={form.keterangan as string} onChange={v => set("keterangan", v)} type="textarea" placeholder="Catatan tambahan..." />
           </div>
         )}
 
@@ -300,8 +352,10 @@ export default function BmnCreateAssetPage() {
               <Field label="Tanggal Perolehan" value={form.tanggal_perolehan as string} onChange={v => set("tanggal_perolehan", v)} type="date" />
               <Field label="Tanggal Buku Pertama" value={form.tanggal_buku_pertama as string} onChange={v => set("tanggal_buku_pertama", v)} type="date" />
             </div>
-            <Field label="Status Penggunaan" value={form.status_penggunaan as string} onChange={v => set("status_penggunaan", v)} placeholder="Digunakan sendiri untuk operasional" />
-            <Field label="Nama Pengguna" value={form.nama_pengguna_bmn as string} onChange={v => set("nama_pengguna_bmn", v)} placeholder="Nama pegawai pengguna" />
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Status Penggunaan" value={form.status_penggunaan as string} onChange={v => set("status_penggunaan", v)} placeholder="Digunakan sendiri untuk operasional" />
+              <Field label="Intra / Extra" value={form.intra_extra as string} onChange={v => set("intra_extra", v)} type="select" options={["Intra", "Extra"]} />
+            </div>
           </div>
         )}
 
@@ -320,6 +374,22 @@ export default function BmnCreateAssetPage() {
               <Field label="Kode Pos" value={form.kode_pos as string} onChange={v => set("kode_pos", v)} />
             </div>
             <Field label="Lokasi Ruang" value={form.lokasi_ruang as string} onChange={v => set("lokasi_ruang", v)} type="select" options={LOKASI_RUANG_OPTIONS} />
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-5">
+            <h2 className="text-sm font-bold text-slate-700 mb-4">Foto Aset</h2>
+            <Field label="Link Foto Geotag (Google Drive)" value={form.foto_geotag_url as string} onChange={v => set("foto_geotag_url", v)} placeholder="https://drive.google.com/file/d/..." />
+            <div className="grid grid-cols-2 gap-4">
+              <PhotoInput label="Foto Tampak Depan" value={photoFiles.depan} onChange={(f) => setPhotoFiles(prev => ({ ...prev, depan: f }))} />
+              <PhotoInput label="Foto Tampak Belakang" value={photoFiles.belakang} onChange={(f) => setPhotoFiles(prev => ({ ...prev, belakang: f }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <PhotoInput label="Foto Tampak Kiri" value={photoFiles.kiri} onChange={(f) => setPhotoFiles(prev => ({ ...prev, kiri: f }))} />
+              <PhotoInput label="Foto Tampak Kanan" value={photoFiles.kanan} onChange={(f) => setPhotoFiles(prev => ({ ...prev, kanan: f }))} />
+            </div>
+            <p className="text-xs text-slate-400">Format: JPG, PNG, WebP. Maks 5MB per foto. Foto opsional — bisa diupload nanti di halaman detail.</p>
           </div>
         )}
       </div>
@@ -374,6 +444,27 @@ function Field({ label, value, onChange, type = "text", placeholder, options }: 
     <div className="space-y-1.5">
       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
       <input type={type} value={String(value || "")} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+    </div>
+  );
+}
+
+function PhotoInput({ label, value, onChange }: { label: string; value: File | null; onChange: (f: File | null) => void }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+      <div className="relative">
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={(e) => onChange(e.target.files?.[0] || null)}
+          className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 file:text-emerald-600 file:font-semibold file:mr-3 file:border-0 file:bg-transparent"
+        />
+        {value && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+            <Camera className="w-3 h-3" /> {value.name.slice(0, 15)}...
+          </span>
+        )}
+      </div>
     </div>
   );
 }

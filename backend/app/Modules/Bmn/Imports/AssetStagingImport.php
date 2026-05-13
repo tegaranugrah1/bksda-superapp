@@ -3,46 +3,194 @@
 namespace App\Modules\Bmn\Imports;
 
 use App\Modules\Bmn\Models\Asset;
+use App\Modules\Bmn\Models\ImportBatch;
+use App\Modules\Bmn\Models\ImportStaging;
 use Illuminate\Support\Str;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\ToArray;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
-class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChunkReading
+class AssetStagingImport implements ToArray, WithHeadingRow, WithChunkReading
 {
-    private int $imported = 0;
+    private ImportBatch $batch;
+    private int $newCount = 0;
+    private int $updatedCount = 0;
+    private int $unchangedCount = 0;
 
-    public function model(array $row)
+    // Compare ALL fields in imported data (not just a subset)
+    private const SKIP_FIELDS = ['id', 'created_at', 'updated_at', 'deleted_at', 'employee_id', 'foto_url', 'keterangan'];
+
+    public function __construct(ImportBatch $batch)
     {
-        // Map Excel headers (snake_case from WithHeadingRow) to DB columns
-        $kodeBarang = $row['kode_barang'] ?? null;
-        $nup = $row['nup'] ?? null;
-        $namaBarang = $row['nama_barang'] ?? null;
+        $this->batch = $batch;
+    }
 
-        if (!$kodeBarang || !$nup || !$namaBarang) {
-            return null; // Skip rows without required fields
+    public function array(array $rows): void
+    {
+        $stagingRows = [];
+
+        foreach ($rows as $row) {
+            $kodeBarang = $row['kode_barang'] ?? null;
+            $nup = $row['nup'] ?? null;
+            $namaBarang = $row['nama_barang'] ?? null;
+
+            if (!$kodeBarang || !$nup || !$namaBarang) {
+                continue;
+            }
+
+            $importedData = $this->mapRowToData($row);
+
+            // Find existing asset by kode_barang + nup (include soft-deleted)
+            $existing = Asset::withTrashed()
+                ->where('kode_barang', $kodeBarang)
+                ->where('nup', (string) $nup)
+                ->first();
+
+            if ($existing) {
+                // Compare fields
+                $changedFields = $this->detectChanges($existing, $importedData);
+
+                // If asset is soft-deleted, always mark as "updated" (needs restore)
+                if ($existing->trashed()) {
+                    $this->updatedCount++;
+                    $diffStatus = 'updated';
+                    if (empty($changedFields)) {
+                        $changedFields = ['_restore' => ['old' => 'Dihapus', 'new' => 'Aktif']];
+                    } else {
+                        $changedFields['_restore'] = ['old' => 'Dihapus', 'new' => 'Aktif'];
+                    }
+                } elseif (empty($changedFields)) {
+                    $this->unchangedCount++;
+                    $diffStatus = 'unchanged';
+                } else {
+                    $this->updatedCount++;
+                    $diffStatus = 'updated';
+                }
+
+                $stagingRows[] = [
+                    'id' => (string) Str::uuid(),
+                    'batch_id' => $this->batch->id,
+                    'existing_asset_id' => $existing->id,
+                    'diff_status' => $diffStatus,
+                    'imported_data' => json_encode($importedData),
+                    'changed_fields' => !empty($changedFields) ? json_encode($changedFields) : null,
+                    'selected' => $diffStatus !== 'unchanged',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            } else {
+                $this->newCount++;
+                $stagingRows[] = [
+                    'id' => (string) Str::uuid(),
+                    'batch_id' => $this->batch->id,
+                    'existing_asset_id' => null,
+                    'diff_status' => 'new',
+                    'imported_data' => json_encode($importedData),
+                    'changed_fields' => null,
+                    'selected' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
         }
 
+        // Bulk insert staging rows
+        if (!empty($stagingRows)) {
+            foreach (array_chunk($stagingRows, 200) as $chunk) {
+                ImportStaging::insert($chunk);
+            }
+        }
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
+    }
+
+    public function getSummary(): array
+    {
+        return [
+            'total' => $this->newCount + $this->updatedCount + $this->unchangedCount,
+            'new' => $this->newCount,
+            'updated' => $this->updatedCount,
+            'unchanged' => $this->unchangedCount,
+        ];
+    }
+
+    /**
+     * Detect which fields changed between existing asset and imported data.
+     * Compares ALL fields in imported data (full 80 columns).
+     */
+    private function detectChanges(Asset $existing, array $importedData): array
+    {
+        $changes = [];
+
+        foreach ($importedData as $field => $newValue) {
+            // Skip non-comparable fields
+            if (in_array($field, self::SKIP_FIELDS)) {
+                continue;
+            }
+
+            $oldValue = $existing->{$field};
+
+            // Normalize for comparison
+            $oldNorm = $this->normalize($oldValue);
+            $newNorm = $this->normalize($newValue);
+
+            // Detect change if values differ
+            // Include cases where old has value but new is empty (field cleared)
+            if ($oldNorm !== $newNorm) {
+                $changes[$field] = [
+                    'old' => $oldValue,
+                    'new' => $newValue,
+                ];
+            }
+        }
+
+        return $changes;
+    }
+
+    private function normalize($value): string
+    {
+        if ($value === null || $value === '' || $value === '-') {
+            return '';
+        }
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+        // Normalize numbers: remove trailing .00 decimals
+        if (is_numeric($value)) {
+            $float = (float) $value;
+            if ($float == (int) $float) {
+                return (string) (int) $float;
+            }
+            return (string) $float;
+        }
+        return strtolower(trim((string) $value));
+    }
+
+    /**
+     * Map Excel row to asset data array (same logic as AssetImport).
+     */
+    private function mapRowToData(array $row): array
+    {
         $kondisi = $row['kondisi'] ?? 'Baik';
         if (!in_array($kondisi, ['Baik', 'Rusak Ringan', 'Rusak Berat'])) {
             $kondisi = 'Baik';
         }
 
-        $this->imported++;
-
-        return new Asset([
-            'id' => (string) Str::uuid(),
+        return [
             'jenis_bmn' => $row['jenis_bmn'] ?? null,
             'kode_satker' => $row['kode_satker'] ?? null,
             'nama_satker' => $row['nama_satker'] ?? null,
-            'kode_barang' => $kodeBarang,
-            'nup' => (string) $nup,
+            'kode_barang' => $row['kode_barang'],
+            'nup' => (string) ($row['nup'] ?? ''),
             'nup_lama' => isset($row['nup_lama']) ? (string) $row['nup_lama'] : null,
-            'nama_barang' => $namaBarang,
+            'nama_barang' => $row['nama_barang'],
             'status_bmn' => $row['status_bmn'] ?? null,
             'tipe' => $row['tipe'] ?? null,
+            'merk' => $row['merk'] ?? ($row['nama'] ?? null),
             'merk_tipe' => trim(($row['merk'] ?? ($row['nama'] ?? '')) . ' ' . ($row['tipe'] ?? '')) ?: null,
             'kondisi' => $kondisi,
             'umur_aset' => $this->toInt($row['umur_aset'] ?? null),
@@ -66,7 +214,6 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
             'jenis_sertipikat' => $row['jenis_sertipikat'] ?? null,
             'no_sertifikat' => $row['no_sertifikat'] ?? null,
             'nama' => $row['nama'] ?? ($row['nama_pemilik'] ?? null),
-            'merk' => $row['merk'] ?? ($row['nama'] ?? null),
             'tanggal_buku_pertama' => $this->toDate($row['tanggal_buku_pertama'] ?? null),
             'tanggal_perolehan' => $this->toDate($row['tanggal_perolehan'] ?? null),
             'tanggal_pengapusan' => $this->toDate($row['tanggal_pengapusan'] ?? null),
@@ -116,22 +263,7 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
             'status_pmk' => $row['status_pmk'] ?? null,
             'foto_geotag_url' => $this->extractUrl($row['foto_ber-geotag'] ?? ($row['foto_bergeotag'] ?? ($row['foto_ber_geotag'] ?? null))),
             'tahun_perolehan' => $this->extractYear($row['tanggal_perolehan'] ?? null),
-        ]);
-    }
-
-    public function batchSize(): int
-    {
-        return 200;
-    }
-
-    public function chunkSize(): int
-    {
-        return 500;
-    }
-
-    public function getImportedCount(): int
-    {
-        return $this->imported;
+        ];
     }
 
     private function toDate($value): ?string
