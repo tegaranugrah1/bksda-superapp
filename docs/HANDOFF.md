@@ -56,14 +56,13 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 26: BMN Module Full Upgrade (✅ DONE - Issue #289) |
-| **Issue Sedang Dikerjakan** | BMN Create Page (form dinamis per jenis BMN) + STNK Kendaraan |
-| **Issue Selanjutnya** | Tembusan ST, Multi-page Testing, Signature Integration |
+| **Issue Terakhir Selesai** | Phase 26: BMN Create Page + Fixes (✅ DONE - Issue #291 PR #292) |
+| **Issue Selanjutnya** | BMN Import Review/Diff/Approve, STNK Countdown, Tembusan ST |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `7c79506` - feat(bmn): move Jenis BMN to separate column |
+| **Commit Terakhir** | `f4d6824` - fix(bmn): remove Umur Aset from form - auto-calculated |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-12T18:00:00+08:00 |
-| **GitHub Issues** | #289 (BMN upgrade) |
+| **Timestamp** | 2026-05-13T09:00:00+08:00 |
+| **GitHub Issues** | #289 (BMN upgrade), #291 (create page) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ---

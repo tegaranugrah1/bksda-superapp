@@ -1,7 +1,7 @@
 # Progress - Phase 26: BMN Module Full Upgrade
 
-> Document updated: 2026-05-12 18:00
-> Status: **IN PROGRESS** 🔄 (create page + STNK pending)
+> Document updated: 2026-05-13 09:00
+> Status: **COMPLETED** ✅ (create page done, import review next)
 
 ---
 
@@ -10,46 +10,59 @@
 ### Completed:
 - [x] Dashboard: real API, stat cards, condition bars, category chart, activity feed
 - [x] Layout: light theme, RBAC sidebar
-- [x] Assets table: search, filter kondisi, bulk select/delete, pagination (10/50/100/all), page persist URL, export dropdown
+- [x] Assets table: search, filter, bulk select/delete, pagination (10/50/100/all), page persist URL, export dropdown (with/without NUP Lama), Jenis BMN column, NUP Lama display
 - [x] Asset detail: hero card, 5 tabs, all 80 columns, glassmorphism sections
-- [x] Photo gallery: 5 slots, Google Drive thumbnail, lightbox + keyboard nav, download/ZIP/copy link
+- [x] Photo gallery: 5 slots, Google Drive thumbnail, lightbox + keyboard nav (←→ Esc), download/ZIP/copy link
 - [x] Database: 80 columns migration + 5 photo columns + 1613 assets seeded
-- [x] Import: all 80 columns, auto UUID, batch insert, flexible header matching
-- [x] Export: all 80 columns, option with/without NUP Lama
+- [x] Import: all 80 columns, auto UUID, batch insert, flexible header matching, column AG=Merk fix
+- [x] Export: all 80 columns, option with/without NUP Lama, route conflict fix
+- [x] Create page: multi-step form, 4 dynamic modes (Kendaraan/Tanah/Bangunan/Peralatan), Lokasi Ruang dropdown, 8 org fields auto-filled
+- [x] Dispose: alasan_pemutihan optional, service method nullable fix
+- [x] StoreAssetRequest: expanded to accept all 80 columns
 - [x] Loans: return action, status badges
-- [x] Maintenance: clean table, biaya formatted
-- [x] Disposal: search, admin only
-- [x] Reports: 3 export cards
-- [x] Route conflict fix (export before apiResource)
-- [x] Jenis BMN + NUP Lama shown in table
+- [x] Maintenance, Disposal, Reports: all rewritten
 
-### In Progress:
-- [ ] Create page: form dinamis per jenis BMN (4 mode)
-- [ ] STNK countdown: tanggal_pajak_stnk + tanggal_ganti_plat
-- [ ] Dashboard alert: kendaraan pajak expired
-- [ ] Edit inline di detail page
+### Create Page Form Modes (final):
+| Mode | Jenis BMN | Fields |
+|------|-----------|--------|
+| Kendaraan | ALAT ANGKUTAN BERMOTOR | Merk, No Polisi, No STNK, No BPKB, No Sertifikat |
+| Tanah | TANAH | 5x Luas, Jenis Dokumen, No Dokumen/Sertifikat, Status Sertifikasi |
+| Bangunan | BANGUNAN DAN GEDUNG, RUMAH NEGARA, BANGUNAN AIR | Tipe, Luas Tanah/Bangunan/Tapak, Jumlah Lantai. RUMAH NEGARA: +Penghuni, Pengguna, No Identitas, Status PMK |
+| Peralatan | ALAT BESAR, MESIN TIK, MESIN NON TIK, ALAT PERSENJATAAN | Merk, Tipe (conditional) |
 
-### Jenis BMN Form Modes (for create page):
-| Mode | Jenis BMN | Field Khusus |
-|------|-----------|--------------|
-| Kendaraan | ALAT ANGKUTAN BERMOTOR | No Polisi, Merk, Tipe, STNK, BPKB |
-| Tanah | TANAH | Semua Luas, Sertifikat Tanah |
-| Bangunan | BANGUNAN DAN GEDUNG, RUMAH NEGARA, BANGUNAN AIR | Luas Bangunan, Lantai, Sertifikat |
-| Peralatan | MESIN TIK, MESIN NON TIK, ALAT BESAR, ALAT PERSENJATAAN | Merk, Tipe |
+### Data Insights:
+- Kolom AG (header "Nama") = Merk (same data, mapped to merk field)
+- Umur Aset = auto-calculated from Tanggal Perolehan (removed from form)
+- 8 org fields locked (same for all assets)
+- Lokasi Ruang: dropdown with 4 Seksi + 14 Resor + 8 Urusan
 
-### Locked Fields (auto-fill, same for all):
-- Kode Satker: `143041600693614000KD`
-- Nama Satker: `Balai KSDA Kalimantan Timur`
-- Kode KPKNL: `13102`
-- Uraian KPKNL: `KPKNL SAMARINDA`
-- Uraian Kanwil DJKN: `KANTOR WILAYAH DJKN KALIMANTAN TIMUR DAN UTARA`
-- Nama K/L: `KEMENTERIAN KEHUTANAN`
-- Nama E1: `Direktorat Jenderal Konservasi SDA dan Ekosistem`
-- Nama Korwil: `Wil. Prov. Kalimantan Timur`
+### Next Steps (TODO for next session):
+- [ ] **Import Review/Diff/Approve** — upload Excel → compare with existing → show diff → approve to update
+  - Backend: staging table or temp storage, compare endpoint, approve endpoint
+  - Frontend: review page with diff table (red=old, green=new), checkbox per row
+- [ ] **STNK Countdown** — tanggal_pajak_stnk + tanggal_ganti_plat columns, countdown badge in table, alert in dashboard
+- [ ] **Edit inline** di detail page
+- [ ] Tembusan field di ST builder & preview
+- [ ] Multi-page testing (surat panjang)
+- [ ] Signature integration
+- [ ] Apply RBAC to Inventory, DeReporting, CMS
 
-### GitHub Issues & PRs:
-- Issue #289 → PR #290 ✅ MERGED (BMN pages upgrade)
-- Multiple hotfix commits to main (photo, export, import, bulk, pagination)
+### Commits (this session):
+```
+f4d6824 fix(bmn): remove Umur Aset from form - auto-calculated
+0735ac9 feat(bmn): update create form with correct fields per jenis BMN
+7564d6e feat(bmn): add Lokasi Ruang dropdown with BKSDA Kaltim hierarchy
+c062259 fix(bmn): correct luas fields per jenis
+fe07885 fix(bmn): map column AG (Nama) to merk field
+0534baa fix(bmn): make alasan nullable in disposeAsset service method
+7e27fe4 fix(bmn): make alasan_pemutihan optional for dispose endpoint
+021ed03 fix(bmn): expand StoreAssetRequest validation to accept all 80 columns
+a3a9953 fix(bmn): correct field labels - BPKB for kendaraan
+6f23281 feat(bmn): create asset page - dynamic form per jenis BMN (#291) [PR #292]
+ac83b73 fix(bmn): move export routes before apiResource
+b601a22 feat(bmn): export all 80 columns with option include/exclude NUP Lama
+...and more (see git log)
+```
 
 ---
 
