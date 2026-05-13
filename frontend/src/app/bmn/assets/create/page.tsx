@@ -23,6 +23,39 @@ const JENIS_BMN_OPTIONS = [
 
 const KONDISI_OPTIONS = ["Baik", "Rusak Ringan", "Rusak Berat"];
 
+const LOKASI_RUANG_OPTIONS = [
+  // Kantor Balai
+  "Kantor Balai KSDA Kalimantan Timur",
+  "Urusan Umum dan Perlengkapan",
+  "Urusan Kepegawaian",
+  "Urusan Program dan Perencanaan",
+  "Urusan Keuangan",
+  "Urusan Evlab",
+  "Urusan Teknis",
+  "Urusan Perlindungan",
+  "Urusan IKN",
+  // Wilayah I
+  "Seksi KSDA Wilayah I (Berau)",
+  "Resor 01. Berau",
+  "Resor 02. Pulau Semama dan Pulau Sangalaki",
+  "Resor 03. Tanjung Selor",
+  "Resor 04. Tarakan",
+  // Wilayah II
+  "Seksi KSDA Wilayah II (Tenggarong)",
+  "Resor 05. Samarinda",
+  "Resor 06. Padang Luway",
+  "Resor 07. Muara Kaman Sedulang",
+  "Resor 08. Sangatta",
+  "Resor 09. Suaka Badak Kelian",
+  // Wilayah III
+  "Seksi KSDA Wilayah III (Balikpapan)",
+  "Resor 10. Balikpapan",
+  "Resor 11. Teluk Adang",
+  "Resor 12. Teluk Apar",
+  "Resor 13. Paser",
+  "Resor 14. Ibu Kota Nusantara",
+];
+
 // Locked org fields
 const ORG_DEFAULTS = {
   kode_satker: "143041600693614000KD",
@@ -264,7 +297,7 @@ export default function BmnCreateAssetPage() {
               <Field label="Provinsi" value={form.provinsi as string} onChange={v => set("provinsi", v)} />
               <Field label="Kode Pos" value={form.kode_pos as string} onChange={v => set("kode_pos", v)} />
             </div>
-            <Field label="Lokasi Ruang" value={form.lokasi_ruang as string} onChange={v => set("lokasi_ruang", v)} placeholder="Gudang Utama / Resor KSDA Samarinda" />
+            <Field label="Lokasi Ruang" value={form.lokasi_ruang as string} onChange={v => set("lokasi_ruang", v)} type="select" options={LOKASI_RUANG_OPTIONS} />
           </div>
         )}
       </div>
