@@ -25,14 +25,28 @@ class DashboardController extends Controller
             ->pluck('total', 'kondisi')
             ->toArray();
 
-        // Distribusi per kode barang (kategori)
-        $assetByCategory = Asset::select('kode_barang', DB::raw('count(*) as total'))
-            ->groupBy('kode_barang')
+        // Distribusi per jenis BMN (lebih informatif dari kode_barang)
+        $assetByJenis = Asset::select('jenis_bmn', DB::raw('count(*) as total'), DB::raw('sum(nilai_perolehan) as total_nilai'))
+            ->whereNotNull('jenis_bmn')
+            ->groupBy('jenis_bmn')
+            ->orderByDesc('total')
+            ->get()
+            ->map(fn ($row) => [
+                'jenis_bmn' => $row->jenis_bmn,
+                'total' => $row->total,
+                'total_nilai' => (float) $row->total_nilai,
+            ]);
+
+        // Distribusi per lokasi ruang
+        $assetByLokasi = Asset::select('lokasi_ruang', DB::raw('count(*) as total'))
+            ->whereNotNull('lokasi_ruang')
+            ->where('lokasi_ruang', '!=', '')
+            ->groupBy('lokasi_ruang')
             ->orderByDesc('total')
             ->limit(10)
             ->get()
             ->map(fn ($row) => [
-                'kode_barang' => $row->kode_barang,
+                'lokasi_ruang' => $row->lokasi_ruang,
                 'total' => $row->total,
             ]);
 
@@ -95,7 +109,8 @@ class DashboardController extends Controller
             'total_asset' => $totalAsset,
             'total_asset_value' => (float) $totalAssetValue,
             'asset_by_condition' => $assetByCondition,
-            'asset_by_category' => $assetByCategory,
+            'asset_by_jenis' => $assetByJenis,
+            'asset_by_lokasi' => $assetByLokasi,
             'recent_transactions' => $recentTransactions,
             'stnk_alerts' => [
                 'expired' => $stnkExpired,
