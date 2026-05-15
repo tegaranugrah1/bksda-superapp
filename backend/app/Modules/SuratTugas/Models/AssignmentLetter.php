@@ -35,6 +35,7 @@ class AssignmentLetter extends Model
         'keterangan',
         'menimbang',
         'dasar',
+        'tembusan',
         'created_by',
         'approved_by',
     ];
@@ -45,6 +46,7 @@ class AssignmentLetter extends Model
         'tanggal_surat' => 'date',
         'menimbang' => 'array',
         'dasar' => 'array',
+        'tembusan' => 'array',
         'has_seksi_employee' => 'boolean',
     ];
 

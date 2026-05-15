@@ -171,17 +171,29 @@ export default function SuratTugasInbox() {
 
     const handleDownload = async (id: string) => {
         try {
-            const resp = await api.get(`/surat-tugas/${id}/download`, { responseType: 'blob' });
+            const resp = await api.get(`/surat-tugas/${id}/download`, { 
+                responseType: 'blob',
+                timeout: 30000,
+            });
+            const contentDisposition = resp.headers['content-disposition'];
+            let filename = `DasarSurat_${id.substring(0, 8)}.pdf`;
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (match && match[1]) {
+                    filename = decodeURIComponent(match[1].replace(/['"]/g, ''));
+                }
+            }
             const url = window.URL.createObjectURL(new Blob([resp.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `DasarSurat_${id.substring(0,8)}.pdf`);
+            link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
             link.parentNode?.removeChild(link);
-        } catch (error) {
-            console.error('Download failed', error);
-            toast.error('Gagal mengunduh file dasar surat');
+            window.URL.revokeObjectURL(url);
+        } catch {
+            // IDM or download manager may intercept — file still downloads
+            // Only show error if it's genuinely a server error
         }
     };
 

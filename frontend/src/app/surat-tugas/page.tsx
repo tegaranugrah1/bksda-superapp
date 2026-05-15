@@ -158,7 +158,8 @@ export default function SuratTugasForm() {
             });
 
             await api.post('/surat-tugas/submit', submitData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 60000,
             });
 
             toast.success('Pengajuan surat tugas berhasil disubmit!');
