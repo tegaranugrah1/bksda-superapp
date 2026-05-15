@@ -39,6 +39,16 @@ interface IResponse { data: IAsset[]; last_page: number; total?: number }
 
 const KONDISI_OPTIONS = ["Semua", "Baik", "Rusak Ringan", "Rusak Berat"];
 
+/** Remove duplicate words in merk_tipe (e.g. "Sanyo Sanyo" → "Sanyo") */
+function deduplicateMerkTipe(value?: string): string {
+  if (!value) return "-";
+  const words = value.trim().split(/\s+/);
+  if (words.length === 2 && words[0].toLowerCase() === words[1].toLowerCase()) {
+    return words[0];
+  }
+  return value;
+}
+
 export default function BmnAssetsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -342,7 +352,7 @@ export default function BmnAssetsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm font-semibold text-slate-800 max-w-[200px] truncate">{asset.nama_barang}</p>
-                      <p className="text-[11px] text-slate-400">{asset.merk_tipe || "-"} • {asset.tahun_perolehan || "-"}</p>
+                      <p className="text-[11px] text-slate-400">{deduplicateMerkTipe(asset.merk_tipe)} • {asset.tahun_perolehan || "-"}</p>
                     </td>
                     <td className="px-4 py-3">
                       <span className={cn(
