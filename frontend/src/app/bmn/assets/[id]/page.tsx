@@ -165,6 +165,24 @@ function AssetDetail({ assetId }: { assetId: string }) {
             <QuickStat label="Tahun" value={asset.tahun_perolehan || "-"} />
             <QuickStat label="Status" value={asset.status_bmn || "Aktif"} />
           </div>
+
+          {/* Extra Info: Lokasi, Pengguna, Kendaraan */}
+          {(asset.lokasi_ruang || asset.pengguna || asset.nama_pengguna || asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR") && (
+            <div className="flex flex-wrap gap-x-6 gap-y-1 mt-4 pt-4 border-t border-slate-100">
+              {asset.lokasi_ruang && (
+                <span className="text-xs text-slate-500"><span className="font-semibold text-slate-700">Lokasi:</span> {asset.lokasi_ruang}</span>
+              )}
+              {(asset.pengguna || asset.nama_pengguna) && (
+                <span className="text-xs text-slate-500"><span className="font-semibold text-slate-700">Pengguna:</span> {asset.pengguna || asset.nama_pengguna}</span>
+              )}
+              {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
+                <span className="text-xs text-slate-500"><span className="font-semibold text-slate-700">No Polisi:</span> {asset.no_polisi}</span>
+              )}
+              {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.tanggal_pajak_stnk && (
+                <span className="text-xs text-slate-500"><span className="font-semibold text-slate-700">Pajak STNK:</span> {asset.tanggal_pajak_stnk}</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
