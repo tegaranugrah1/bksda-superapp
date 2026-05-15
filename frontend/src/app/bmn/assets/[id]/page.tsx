@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Package, FileText, Banknote, MapPin, Building2, Car, Landmark, UserCheck, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DetailSection, DetailRow, EditableRow, EditableSelectRow, CurrencyRow, EditableCurrencyRow, AreaRow, BadgeRow } from "./_components/DetailSection";
+import { DetailSection, DetailRow, EditableRow, EditableSelectRow, EditableEmployeeRow, CurrencyRow, EditableCurrencyRow, AreaRow, BadgeRow } from "./_components/DetailSection";
 import { PhotoGallery } from "./_components/PhotoGallery";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "sonner";
@@ -67,6 +67,15 @@ function AssetDetail({ assetId }: { assetId: string }) {
       const res = await api.get(`/bmn/assets/${assetId}`);
       return res.data.data;
     },
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ["employees-select"],
+    queryFn: async () => {
+      const res = await api.get("/kepegawaian/employees/select");
+      return res.data.data || [];
+    },
+    enabled: canWrite,
   });
 
   const [activeTab, setActiveTab] = useState("identitas");
@@ -304,8 +313,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <EditableRow label="Tanggal PSP" value={asset.tanggal_psp} field="tanggal_psp" onSave={handleFieldSave} type="date" />
               <EditableRow label="Status PMK" value={asset.status_pmk} field="status_pmk" onSave={handleFieldSave} />
               <EditableRow label="Penghuni" value={asset.penghuni} field="penghuni" onSave={handleFieldSave} />
-              <EditableRow label="Pengguna" value={asset.pengguna} field="pengguna" onSave={handleFieldSave} />
-              <EditableRow label="Nama Pengguna" value={asset.nama_pengguna} field="nama_pengguna" onSave={handleFieldSave} />
+              <EditableEmployeeRow label="Pengguna" value={asset.pengguna} field="pengguna" onSave={handleFieldSave} employees={employees} />
+              <EditableEmployeeRow label="Nama Pengguna" value={asset.nama_pengguna} field="nama_pengguna" onSave={handleFieldSave} employees={employees} />
             </>
           ) : (
             <>
