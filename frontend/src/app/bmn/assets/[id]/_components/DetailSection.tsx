@@ -6,8 +6,8 @@ import { Pencil, Check, X, Loader2 } from "lucide-react";
 
 export function DetailSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm ring-1 ring-slate-200/60 hover:shadow-md transition-shadow">
-      <div className="px-5 py-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-2.5">
+    <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 hover:shadow-md transition-shadow overflow-visible">
+      <div className="px-5 py-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-2.5 rounded-t-2xl">
         <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">{icon}</span>
         <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">{title}</h3>
       </div>
@@ -308,7 +308,7 @@ export function EditableEmployeeRow({ label, value, field, onSave, employees }: 
     return (
       <div className="flex hover:bg-slate-50/50 transition-colors">
         <div className="w-2/5 px-5 py-2 text-[11px] font-semibold text-slate-500">{label}</div>
-        <div className="w-3/5 px-5 py-1.5 relative">
+        <div className="w-3/5 px-5 py-1.5">
           <div className="flex items-center gap-1.5">
             <input ref={inputRef} type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari pegawai..."
               className="flex-1 h-8 px-2.5 rounded-lg border border-emerald-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
@@ -317,7 +317,7 @@ export function EditableEmployeeRow({ label, value, field, onSave, employees }: 
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="absolute left-5 right-5 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+          <div className="mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
             <button onClick={handleClear} className="w-full text-left px-3 py-2 text-xs text-red-500 hover:bg-red-50 border-b border-slate-100">
               ✕ Kosongkan
             </button>

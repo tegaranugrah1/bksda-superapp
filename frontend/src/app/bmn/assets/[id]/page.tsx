@@ -353,7 +353,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <EditableSelectRow label="Lokasi Ruang" value={asset.lokasi_ruang} field="lokasi_ruang" onSave={handleFieldSave} options={LOKASI_RUANG_OPTIONS} />
               <EditableRow label="SBSK" value={asset.sbsk} field="sbsk" onSave={handleFieldSave} />
               <EditableRow label="Optimalisasi" value={asset.optimalisasi} field="optimalisasi" onSave={handleFieldSave} />
-              <EditableRow label="Penghuni" value={asset.penghuni} field="penghuni" onSave={handleFieldSave} />
+              <EditableEmployeeRow label="Penghuni" value={asset.penghuni} field="penghuni" onSave={handleFieldSave} employees={employees} />
               <EditableEmployeeRow label="Pengguna" value={asset.pengguna} field="pengguna" onSave={handleFieldSave} employees={employees} />
               <EditableEmployeeRow label="Nama Pengguna" value={asset.nama_pengguna} field="nama_pengguna" onSave={handleFieldSave} employees={employees} />
             </>
