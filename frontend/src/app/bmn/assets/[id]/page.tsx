@@ -138,7 +138,6 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
       {/* Hero Card */}
       <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 overflow-hidden">
-        <div className="h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
