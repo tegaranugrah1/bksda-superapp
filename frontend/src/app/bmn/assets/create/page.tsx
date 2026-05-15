@@ -351,8 +351,8 @@ export default function BmnCreateAssetPage() {
           <div className="space-y-5">
             <h2 className="text-sm font-bold text-slate-700 mb-4">Nilai & Tanggal</h2>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Nilai Perolehan (Rp)" value={form.nilai_perolehan as number} onChange={v => set("nilai_perolehan", Number(v))} type="number" />
-              <Field label="Nilai Buku (Rp)" value={form.nilai_buku as number} onChange={v => set("nilai_buku", Number(v))} type="number" />
+              <Field label="Nilai Perolehan (Rp)" value={form.nilai_perolehan as number} onChange={v => set("nilai_perolehan", Number(v))} type="currency" />
+              <Field label="Nilai Buku (Rp)" value={form.nilai_buku as number} onChange={v => set("nilai_buku", Number(v))} type="currency" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Tanggal Perolehan" value={form.tanggal_perolehan as string} onChange={v => set("tanggal_perolehan", v)} type="date" />
@@ -425,7 +425,7 @@ export default function BmnCreateAssetPage() {
 // Reusable field component
 function Field({ label, value, onChange, type = "text", placeholder, options }: {
   label: string; value: string | number; onChange: (v: string) => void;
-  type?: "text" | "number" | "date" | "select" | "textarea"; placeholder?: string; options?: string[];
+  type?: "text" | "number" | "date" | "select" | "textarea" | "currency"; placeholder?: string; options?: string[];
 }) {
   if (type === "select" && options) {
     return (
@@ -443,6 +443,25 @@ function Field({ label, value, onChange, type = "text", placeholder, options }: 
       <div className="space-y-1.5">
         <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
         <textarea value={String(value || "")} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none" />
+      </div>
+    );
+  }
+  if (type === "currency") {
+    const numVal = Number(value) || 0;
+    const displayVal = numVal === 0 ? "" : numVal.toLocaleString("id-ID");
+    return (
+      <div className="space-y-1.5">
+        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+        <div className="flex items-center h-10 px-3 rounded-xl border border-slate-200 bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500">
+          <span className="text-xs text-slate-400 mr-2">Rp</span>
+          <input
+            type="text"
+            value={displayVal}
+            onChange={e => { const raw = e.target.value.replace(/\D/g, ""); onChange(raw); }}
+            placeholder={placeholder || "0"}
+            className="flex-1 text-sm bg-transparent outline-none"
+          />
+        </div>
       </div>
     );
   }

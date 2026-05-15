@@ -136,8 +136,13 @@ export function EditableCurrencyRow({ label, value, field, onSave }: {
   const display = num === 0 ? "-" : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
   const isEmpty = num === 0;
 
+  const formatRibuan = (val: string) => {
+    const raw = val.replace(/\D/g, "");
+    return raw ? Number(raw).toLocaleString("id-ID") : "";
+  };
+
   const startEdit = () => {
-    setEditValue(num === 0 ? "" : String(num));
+    setEditValue(num === 0 ? "" : num.toLocaleString("id-ID"));
     setEditing(true);
   };
 
@@ -151,7 +156,8 @@ export function EditableCurrencyRow({ label, value, field, onSave }: {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await onSave(field, editValue);
+      const rawValue = editValue.replace(/\./g, "").replace(/,/g, "");
+      await onSave(field, rawValue);
       setEditing(false);
     } catch {} finally { setSaving(false); }
   };
@@ -166,8 +172,11 @@ export function EditableCurrencyRow({ label, value, field, onSave }: {
       <div className="flex hover:bg-slate-50/50 transition-colors">
         <div className="w-2/5 px-5 py-2 text-[11px] font-semibold text-slate-500">{label}</div>
         <div className="w-3/5 px-5 py-1.5 flex items-center gap-1.5">
-          <input ref={inputRef} type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} onKeyDown={handleKeyDown}
-            className="flex-1 h-8 px-2.5 rounded-lg border border-emerald-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+          <div className="flex-1 flex items-center h-8 px-2.5 rounded-lg border border-emerald-300 bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
+            <span className="text-xs text-slate-400 mr-1">Rp</span>
+            <input ref={inputRef} type="text" value={editValue} onChange={(e) => setEditValue(formatRibuan(e.target.value))} onKeyDown={handleKeyDown}
+              className="flex-1 text-sm bg-transparent outline-none" />
+          </div>
           <button onClick={handleSave} disabled={saving} className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
           </button>
