@@ -21,7 +21,7 @@ interface PhotoGalleryProps {
 }
 
 const PHOTO_SLOTS = [
-  { key: "geotag", label: "Tampak Depan", type: "link" },
+  { key: "geotag", label: "Tampak Depan (Foto Geotag)", type: "link" },
   { key: "belakang", label: "Tampak Belakang", type: "upload" },
   { key: "kiri", label: "Tampak Kiri", type: "upload" },
   { key: "kanan", label: "Tampak Kanan", type: "upload" },
