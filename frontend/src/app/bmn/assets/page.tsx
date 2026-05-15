@@ -273,9 +273,9 @@ export default function BmnAssetsPage() {
           <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
           <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
         </select>
-        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua") && (
+        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua") && (
           <button
-            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", page: 1 }); }}
+            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setKondisiFilter("Semua"); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", page: 1 }); }}
             className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100"
           >
             Reset Filter
