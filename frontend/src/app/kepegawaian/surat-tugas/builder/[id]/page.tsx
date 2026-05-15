@@ -498,7 +498,13 @@ export default function STBuilderPage() {
           td { vertical-align: top; padding: 2px 0; font-size: 11pt; }
           tr { page-break-inside: avoid; }
           thead { display: table-header-group; }
+          tfoot { display: table-footer-group; }
           img { max-width: none !important; }
+          .ttd-placeholder { height: 80px; }
+          /* Prevent signature + tembusan from being split across pages */
+          div[style*="marginLeft: 9.2cm"], div[style*="margin-left: 9.2cm"] { page-break-inside: avoid; }
+          /* Keep penutup + TTD + tembusan together if possible */
+          p + div[style*="marginTop"] { page-break-before: auto; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -625,24 +631,28 @@ export default function STBuilderPage() {
               <AnimatePresence>
                 {showDropdown && searchQuery && (
                   <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute w-full mt-1 bg-white border rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
-                    {searchResults.map((emp: Employee) => (
-                      <button key={emp.id} onClick={() => { 
+                    {searchResults.map((emp: Employee) => {
+                      const isSelected = selectedEmployees.some(e => e.id === emp.id);
+                      return (
+                      <button key={emp.id} disabled={isSelected} onClick={() => { 
+                        if (isSelected) return;
                         const normalized = { ...emp, nama_lengkap: emp.nama_lengkap || emp.name || "", jabatan: emp.jabatan || emp.position || "" };
                         setSelectedEmployees([...selectedEmployees, normalized]); 
                         setSearchQuery(""); 
                         setShowDropdown(false); 
-                      }} className="w-full px-4 py-2 text-left hover:bg-slate-50 border-b last:border-0">
-                        <p className="text-sm font-bold">{emp.nama_lengkap || emp.name}</p>
+                      }} className={`w-full px-4 py-2 text-left border-b last:border-0 ${isSelected ? "opacity-40 cursor-not-allowed bg-slate-100" : "hover:bg-slate-50"}`}>
+                        <p className={`text-sm font-bold ${isSelected ? "text-slate-400" : ""}`}>{emp.nama_lengkap || emp.name} {isSelected ? "✓" : ""}</p>
                         <p className="text-[10px] text-slate-400">{emp.nip}</p>
                       </button>
-                    ))}
+                      );
+                    })}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
             <div className="space-y-2 mt-3">
               {selectedEmployees.map((emp, idx) => (
-                <div key={emp.id} className="flex items-center gap-2 p-2 bg-slate-50 border rounded-xl group">
+                <div key={`${emp.id}-${idx}`} className="flex items-center gap-2 p-2 bg-slate-50 border rounded-xl group">
                   <span className="text-[10px] font-bold text-slate-400">{idx+1}</span>
                   <div className="flex-1 truncate text-xs font-bold">{emp.nama_lengkap || emp.name}</div>
                   <button onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== emp.id))} className="text-slate-300 hover:text-red-500"><X className="w-4 h-4" /></button>
@@ -721,14 +731,42 @@ export default function STBuilderPage() {
         </footer>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-12 flex justify-center bg-slate-200/50">
-        <STBuilderPreview 
-          stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
-          menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
-          buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
-          kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
-          tembusanItems={tembusanItems}
-        />
+      <main className="flex-1 overflow-y-auto p-12 flex flex-col items-center bg-slate-200/50">
+        <div className="relative">
+          <div
+            id="surat-preview-doc"
+            className="w-[210mm] bg-white shadow-2xl selection:bg-blue-100"
+            style={{
+              padding: "0.4cm 1cm 1cm 3cm",
+              fontFamily: "'Bookman Old Style', 'Georgia', serif",
+              fontSize: "11pt",
+              lineHeight: "1.25",
+              color: "#000",
+              textAlign: "justify",
+              boxSizing: "border-box",
+              minHeight: "297mm",
+            }}
+          >
+            <STBuilderPreview 
+              stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
+              menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
+              buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
+              kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
+              tembusanItems={tembusanItems}
+            />
+          </div>
+          {/* Page break indicators */}
+          <div className="absolute left-0 right-0 pointer-events-none" style={{ top: "297mm" }}>
+            <div className="h-8 bg-slate-300 flex items-center justify-center shadow-inner">
+              <span className="text-[10px] font-bold text-slate-600 tracking-widest">HALAMAN 2</span>
+            </div>
+          </div>
+          <div className="absolute left-0 right-0 pointer-events-none" style={{ top: "calc(297mm * 2 + 32px)" }}>
+            <div className="h-8 bg-slate-300 flex items-center justify-center shadow-inner">
+              <span className="text-[10px] font-bold text-slate-600 tracking-widest">HALAMAN 3</span>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );
