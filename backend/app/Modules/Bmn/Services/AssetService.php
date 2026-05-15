@@ -20,31 +20,27 @@ class AssetService
         return DB::transaction(function () use ($assetId, $data, $userId) {
             $asset = Asset::lockForUpdate()->findOrFail($assetId);
 
-            if (isset($data['nilai_perolehan'])) {
-                $oldNilai = (float) $asset->nilai_perolehan;
-                $newNilai = (float) $data['nilai_perolehan'];
-
-                if ($oldNilai !== $newNilai) {
+            // Track all changed fields
+            $skipFields = ['keterangan_audit', 'employee_id'];
+            foreach ($data as $field => $newValue) {
+                if (in_array($field, $skipFields)) continue;
+                
+                $oldValue = $asset->{$field};
+                
+                // Normalize for comparison
+                $oldNorm = is_null($oldValue) ? '' : (string) $oldValue;
+                $newNorm = is_null($newValue) ? '' : (string) $newValue;
+                
+                if ($oldNorm !== $newNorm) {
                     AssetUpdate::create([
                         'asset_id' => $asset->id,
                         'user_id' => $userId,
-                        'field_changed' => 'nilai_perolehan',
-                        'old_value' => (string) $oldNilai,
-                        'new_value' => (string) $newNilai,
-                        'alasan_perubahan' => $data['keterangan_audit'] ?? 'Penyusutan Tahunan atau Revisi Nilai',
+                        'field_changed' => $field,
+                        'old_value' => $oldNorm ?: null,
+                        'new_value' => $newNorm ?: null,
+                        'alasan_perubahan' => $data['keterangan_audit'] ?? null,
                     ]);
                 }
-            }
-
-            if (isset($data['kondisi']) && $asset->kondisi !== $data['kondisi']) {
-                AssetUpdate::create([
-                    'asset_id' => $asset->id,
-                    'user_id' => $userId,
-                    'field_changed' => 'kondisi',
-                    'old_value' => $asset->kondisi,
-                    'new_value' => $data['kondisi'],
-                    'alasan_perubahan' => 'Pembaruan kondisi fisik aset',
-                ]);
             }
 
             $asset->update($data);
