@@ -15,24 +15,21 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/logout-button";
 import { ModuleSwitcher } from "@/components/module-switcher";
 import { RouteGuard } from "@/components/RouteGuard";
 
 const SIDEBAR_ITEMS = [
-  { href: "/dereporting", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dereporting/internal", label: "Laporan Internal", icon: FileText },
-  { href: "/dereporting/eksternal", label: "Laporan Publik", icon: Globe },
-  { href: "/dereporting/operator", label: "Operator", icon: Users },
-  { href: "/dereporting/bernilai", label: "Data Bernilai", icon: Gem },
-  { href: "/dereporting/kerjasama", label: "Kerjasama", icon: Handshake },
-  {
-    href: "/dereporting/pemegang-izin",
-    label: "Pemegang Izin",
-    icon: ShieldCheck,
-  },
-  { href: "/dereporting/lain", label: "Lainnya", icon: FolderOpen },
+  { href: "/dereporting", label: "Dashboard", icon: LayoutDashboard, minRole: "user" as const },
+  { href: "/dereporting/internal", label: "Laporan Internal", icon: FileText, minRole: "user" as const },
+  { href: "/dereporting/eksternal", label: "Laporan Publik", icon: Globe, minRole: "user" as const },
+  { href: "/dereporting/operator", label: "Operator", icon: Users, minRole: "admin" as const },
+  { href: "/dereporting/bernilai", label: "Data Bernilai", icon: Gem, minRole: "user" as const },
+  { href: "/dereporting/kerjasama", label: "Kerjasama", icon: Handshake, minRole: "user" as const },
+  { href: "/dereporting/pemegang-izin", label: "Pemegang Izin", icon: ShieldCheck, minRole: "user" as const },
+  { href: "/dereporting/lain", label: "Lainnya", icon: FolderOpen, minRole: "user" as const },
 ];
 
 export default function DeReportingLayout({
@@ -42,6 +39,13 @@ export default function DeReportingLayout({
 }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { canWrite } = useRole();
+
+  const visibleItems = SIDEBAR_ITEMS.filter(item => {
+    if (item.minRole === "user") return true;
+    if (item.minRole === "admin") return canWrite;
+    return false;
+  });
 
   return (
     <RouteGuard requiredModule="dereporting">
@@ -71,7 +75,7 @@ export default function DeReportingLayout({
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-            {SIDEBAR_ITEMS.map((item) => {
+            {visibleItems.map((item) => {
               const isActive =
                 pathname === item.href ||
                 (item.href !== "/dereporting" &&

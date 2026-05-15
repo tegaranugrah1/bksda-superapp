@@ -12,26 +12,30 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/logout-button";
 import { ModuleSwitcher } from "@/components/module-switcher";
 
 const menuItems = [
-  { title: "Dashboard", href: "/inventory", icon: LayoutDashboard },
-  { title: "Katalog Barang", href: "/inventory/items", icon: PackageSearch },
-  { title: "Jaringan Kantor", href: "/inventory/offices", icon: Building2 },
-  { title: "Stok Masuk", href: "/inventory/stock-in", icon: ArrowDownToLine },
-  {
-    title: "Distribusi Keluar",
-    href: "/inventory/stock-out",
-    icon: ArrowUpFromLine,
-  },
-  { title: "Riwayat Mutasi", href: "/inventory/transactions", icon: History },
+  { title: "Dashboard", href: "/inventory", icon: LayoutDashboard, minRole: "user" as const },
+  { title: "Katalog Barang", href: "/inventory/items", icon: PackageSearch, minRole: "user" as const },
+  { title: "Jaringan Kantor", href: "/inventory/offices", icon: Building2, minRole: "admin" as const },
+  { title: "Stok Masuk", href: "/inventory/stock-in", icon: ArrowDownToLine, minRole: "admin" as const },
+  { title: "Distribusi Keluar", href: "/inventory/stock-out", icon: ArrowUpFromLine, minRole: "admin" as const },
+  { title: "Riwayat Mutasi", href: "/inventory/transactions", icon: History, minRole: "user" as const },
 ];
 
 export function InventorySidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { canWrite } = useRole();
+
+  const visibleMenus = menuItems.filter(item => {
+    if (item.minRole === "user") return true;
+    if (item.minRole === "admin") return canWrite;
+    return false;
+  });
 
   return (
     <aside className="w-64 shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hidden md:flex flex-col">
@@ -58,7 +62,7 @@ export function InventorySidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        {menuItems.map((item) => {
+        {visibleMenus.map((item) => {
           const isActive = pathname === item.href;
 
           return (
