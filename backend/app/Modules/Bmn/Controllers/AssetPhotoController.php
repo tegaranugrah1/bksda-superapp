@@ -4,6 +4,7 @@ namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Models\Asset;
+use App\Modules\Bmn\Models\AssetUpdate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -27,10 +28,11 @@ class AssetPhotoController extends Controller
         $asset = Asset::findOrFail($assetId);
         $type = $request->input('type');
         $column = "foto_{$type}_path";
+        $oldPath = $asset->$column;
 
         // Delete old photo if exists
-        if ($asset->$column && Storage::disk('public')->exists($asset->$column)) {
-            Storage::disk('public')->delete($asset->$column);
+        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
         }
 
         // Store new photo
@@ -38,6 +40,16 @@ class AssetPhotoController extends Controller
         $path = $request->file('photo')->storeAs('bmn-photos', $filename, 'public');
 
         $asset->update([$column => $path]);
+
+        // Log to history
+        AssetUpdate::create([
+            'asset_id' => $asset->id,
+            'user_id' => $request->user()->id,
+            'field_changed' => $column,
+            'old_value' => $oldPath,
+            'new_value' => $path,
+            'alasan_perubahan' => 'Upload foto ' . $type,
+        ]);
 
         return response()->json([
             'message' => 'Foto berhasil diupload.',
