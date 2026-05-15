@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Exports\AssetExport;
 use App\Modules\Bmn\Imports\AssetImport;
 use App\Modules\Bmn\Models\Asset;
+use App\Modules\Bmn\Models\AssetUpdate;
 use App\Modules\Bmn\Requests\DisposeAssetRequest;
 use App\Modules\Bmn\Requests\StoreAssetRequest;
 use App\Modules\Bmn\Requests\UpdateAssetRequest;
@@ -132,6 +133,16 @@ class AssetController extends Controller
         $asset->update([
             'verified_at' => now(),
             'verified_by' => $request->user()->id,
+        ]);
+
+        // Log to history
+        AssetUpdate::create([
+            'asset_id' => $asset->id,
+            'user_id' => $request->user()->id,
+            'field_changed' => 'verified_at',
+            'old_value' => null,
+            'new_value' => now()->toDateTimeString(),
+            'alasan_perubahan' => 'Verifikasi BMN',
         ]);
 
         return response()->json([

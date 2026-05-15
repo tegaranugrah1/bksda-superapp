@@ -125,7 +125,13 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
   };
 
   const handleDelete = async (type: string) => {
-    if (!confirm("Hapus foto ini?")) return;
+    const ok = await confirm({
+      title: "Hapus Foto",
+      description: "Yakin ingin menghapus foto ini? Tindakan tidak bisa dibatalkan.",
+      confirmText: "Ya, Hapus",
+      variant: "danger",
+    });
+    if (!ok) return;
     try {
       await api.delete(`/bmn/assets/${assetId}/photo/${type}`);
       toast.success("Foto dihapus.");

@@ -73,7 +73,7 @@ class AssetPhotoController extends Controller
     /**
      * Delete a specific photo.
      */
-    public function delete(string $assetId, string $type): JsonResponse
+    public function delete(Request $request, string $assetId, string $type): JsonResponse
     {
         if (!in_array($type, self::VALID_TYPES)) {
             return response()->json(['message' => 'Tipe foto tidak valid.'], 422);
@@ -81,12 +81,25 @@ class AssetPhotoController extends Controller
 
         $asset = Asset::findOrFail($assetId);
         $column = "foto_{$type}_path";
+        $oldPath = $asset->$column;
 
-        if ($asset->$column && Storage::disk('public')->exists($asset->$column)) {
-            Storage::disk('public')->delete($asset->$column);
+        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
         }
 
         $asset->update([$column => null]);
+
+        // Log to history
+        if ($oldPath) {
+            AssetUpdate::create([
+                'asset_id' => $asset->id,
+                'user_id' => $request->user()->id,
+                'field_changed' => $column,
+                'old_value' => $oldPath,
+                'new_value' => null,
+                'alasan_perubahan' => 'Hapus foto ' . $type,
+            ]);
+        }
 
         return response()->json(['message' => 'Foto berhasil dihapus.']);
     }
