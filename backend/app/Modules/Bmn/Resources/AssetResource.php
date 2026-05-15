@@ -107,6 +107,17 @@ class AssetResource extends JsonResource
                 'nama_lengkap' => $this->penanggungJawab->nama_lengkap,
                 'nip' => $this->penanggungJawab->nip,
             ]),
+            'history_updates' => $this->whenLoaded('historyUpdates', fn () => 
+                $this->historyUpdates->sortByDesc('created_at')->values()->map(fn ($u) => [
+                    'id' => $u->id,
+                    'field_changed' => $u->field_changed,
+                    'old_value' => $u->old_value,
+                    'new_value' => $u->new_value,
+                    'alasan_perubahan' => $u->alasan_perubahan,
+                    'created_at' => $u->created_at?->toIso8601String(),
+                    'author' => $u->author ? ['id' => $u->author->id, 'name' => $u->author->name] : null,
+                ])
+            ),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
