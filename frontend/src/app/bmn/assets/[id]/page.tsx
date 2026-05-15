@@ -312,9 +312,6 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <EditableRow label="No PSP" value={asset.no_psp} field="no_psp" onSave={handleFieldSave} />
               <EditableRow label="Tanggal PSP" value={asset.tanggal_psp} field="tanggal_psp" onSave={handleFieldSave} type="date" />
               <EditableRow label="Status PMK" value={asset.status_pmk} field="status_pmk" onSave={handleFieldSave} />
-              <EditableRow label="Penghuni" value={asset.penghuni} field="penghuni" onSave={handleFieldSave} />
-              <EditableEmployeeRow label="Pengguna" value={asset.pengguna} field="pengguna" onSave={handleFieldSave} employees={employees} />
-              <EditableEmployeeRow label="Nama Pengguna" value={asset.nama_pengguna} field="nama_pengguna" onSave={handleFieldSave} employees={employees} />
             </>
           ) : (
             <>
@@ -335,9 +332,6 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <DetailRow label="No PSP" value={asset.no_psp} />
               <DetailRow label="Tanggal PSP" value={asset.tanggal_psp} />
               <DetailRow label="Status PMK" value={asset.status_pmk} />
-              <DetailRow label="Penghuni" value={asset.penghuni} />
-              <DetailRow label="Pengguna" value={asset.pengguna} />
-              <DetailRow label="Nama Pengguna" value={asset.nama_pengguna} />
             </>
           )}
         </DetailSection>
@@ -359,6 +353,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <EditableSelectRow label="Lokasi Ruang" value={asset.lokasi_ruang} field="lokasi_ruang" onSave={handleFieldSave} options={LOKASI_RUANG_OPTIONS} />
               <EditableRow label="SBSK" value={asset.sbsk} field="sbsk" onSave={handleFieldSave} />
               <EditableRow label="Optimalisasi" value={asset.optimalisasi} field="optimalisasi" onSave={handleFieldSave} />
+              <EditableRow label="Penghuni" value={asset.penghuni} field="penghuni" onSave={handleFieldSave} />
+              <EditableEmployeeRow label="Pengguna" value={asset.pengguna} field="pengguna" onSave={handleFieldSave} employees={employees} />
+              <EditableEmployeeRow label="Nama Pengguna" value={asset.nama_pengguna} field="nama_pengguna" onSave={handleFieldSave} employees={employees} />
             </>
           ) : (
             <>
@@ -374,6 +371,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <DetailRow label="Lokasi Ruang" value={asset.lokasi_ruang} />
               <DetailRow label="SBSK" value={asset.sbsk} />
               <DetailRow label="Optimalisasi" value={asset.optimalisasi} />
+              <DetailRow label="Penghuni" value={asset.penghuni} />
+              <DetailRow label="Pengguna" value={asset.pengguna} />
+              <DetailRow label="Nama Pengguna" value={asset.nama_pengguna} />
             </>
           )}
         </DetailSection>
