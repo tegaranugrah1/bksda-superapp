@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Package, FileText, Banknote, MapPin, Building2, Car, Landmark, UserCheck } from "lucide-react";
+import { ArrowLeft, Loader2, Package, FileText, Banknote, MapPin, Building2, Car, Landmark, UserCheck, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DetailSection, DetailRow, EditableRow, EditableSelectRow, CurrencyRow, EditableCurrencyRow, AreaRow, BadgeRow } from "./_components/DetailSection";
 import { PhotoGallery } from "./_components/PhotoGallery";
@@ -112,6 +112,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
     { key: "dokumen", label: "Dokumen" },
     { key: "lokasi", label: "Lokasi" },
     { key: "organisasi", label: "Organisasi" },
+    { key: "riwayat", label: "Riwayat" },
   ];
 
   return (
@@ -382,6 +383,10 @@ function AssetDetail({ assetId }: { assetId: string }) {
           <DetailRow label="Kode Register" value={asset.kode_register} />
         </DetailSection>
       )}
+
+      {activeTab === "riwayat" && (
+        <HistoryTab assetId={assetId} updates={asset.history_updates || []} />
+      )}
     </div>
   );
 }
@@ -426,5 +431,62 @@ function StnkCountdown({ tanggal, label }: { tanggal: string; label: string }) {
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-600">
       ✓ {diffDays} hari lagi
     </span>
+  );
+}
+
+interface HistoryUpdate {
+  id: string;
+  field_changed: string;
+  old_value: string | null;
+  new_value: string | null;
+  alasan_perubahan: string | null;
+  created_at: string;
+  author?: { id: number; name: string };
+}
+
+function HistoryTab({ assetId, updates }: { assetId: string; updates: HistoryUpdate[] }) {
+  if (updates.length === 0) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
+        <History className="w-10 h-10 mx-auto mb-3 text-slate-200" />
+        <p className="text-sm text-slate-400">Belum ada riwayat perubahan untuk aset ini.</p>
+        <p className="text-xs text-slate-300 mt-1">Perubahan akan tercatat saat field diedit.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-2.5">
+        <span className="p-1.5 rounded-lg bg-violet-50 text-violet-600"><History className="w-4 h-4" /></span>
+        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Riwayat Perubahan</h3>
+        <span className="ml-auto text-[10px] text-slate-400">{updates.length} perubahan</span>
+      </div>
+      <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto">
+        {updates.map((update) => (
+          <div key={update.id} className="px-5 py-3 hover:bg-slate-50/50 transition-colors">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">{update.field_changed}</span>
+                  <span className="text-[9px] text-slate-400">oleh {update.author?.name || "System"}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-red-500 line-through truncate max-w-[150px]">{update.old_value || "—"}</span>
+                  <span className="text-slate-300">→</span>
+                  <span className="text-emerald-600 font-medium truncate max-w-[150px]">{update.new_value || "—"}</span>
+                </div>
+                {update.alasan_perubahan && (
+                  <p className="text-[10px] text-slate-400 mt-1 italic">{update.alasan_perubahan}</p>
+                )}
+              </div>
+              <span className="text-[9px] text-slate-400 shrink-0">
+                {new Date(update.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
