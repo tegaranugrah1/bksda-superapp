@@ -126,6 +126,20 @@ class AssetController extends Controller
         return response()->json(['message' => "{$count} aset dihapus permanen."]);
     }
 
+    public function verify(Request $request, string $id): JsonResponse
+    {
+        $asset = Asset::findOrFail($id);
+        $asset->update([
+            'verified_at' => now(),
+            'verified_by' => $request->user()->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Aset berhasil diverifikasi.',
+            'verified_at' => $asset->verified_at->toIso8601String(),
+        ]);
+    }
+
     public function export(): BinaryFileResponse
     {
         return Excel::download(new AssetExport, 'Katalog_Aset_BKSDA.xlsx');

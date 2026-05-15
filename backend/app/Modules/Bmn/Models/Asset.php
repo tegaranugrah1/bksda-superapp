@@ -31,6 +31,7 @@ class Asset extends Model
         'jenis_identitas', 'no_identitas', 'no_stnk', 'nama_pengguna', 'status_pmk',
         'status_foto_geotag', 'foto_geotag_url', 'foto_belakang_path',
         'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path',
+        'verified_at', 'verified_by',
         'tahun_perolehan', 'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
         'tanggal_pajak_stnk', 'tanggal_ganti_plat',
     ];
@@ -51,6 +52,7 @@ class Asset extends Model
         'tanggal_psp' => 'date',
         'tanggal_pajak_stnk' => 'date',
         'tanggal_ganti_plat' => 'date',
+        'verified_at' => 'datetime',
     ];
 
     public function penanggungJawab()

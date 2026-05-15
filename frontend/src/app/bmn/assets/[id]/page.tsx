@@ -196,6 +196,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
         fotoKiriUrl={asset.foto_kiri_url}
         fotoKananUrl={asset.foto_kanan_url}
         fotoLokasiUrl={asset.foto_lokasi_url}
+        verifiedAt={asset.verified_at}
+        verifiedByName={asset.verified_by_name}
         onRefresh={refetch}
       />
 

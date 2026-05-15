@@ -98,6 +98,8 @@ class AssetResource extends JsonResource
             'foto_kiri_url' => $this->foto_kiri_path ? asset('storage/' . $this->foto_kiri_path) : null,
             'foto_kanan_url' => $this->foto_kanan_path ? asset('storage/' . $this->foto_kanan_path) : null,
             'foto_lokasi_url' => $this->foto_lokasi_path ? asset('storage/' . $this->foto_lokasi_path) : null,
+            'verified_at' => $this->verified_at?->toIso8601String(),
+            'verified_by_name' => $this->verified_by ? \App\Models\User::find($this->verified_by)?->name : null,
             'tahun_perolehan' => $this->tahun_perolehan,
             'lokasi_spesifik' => $this->lokasi_spesifik,
             'foto_url' => $this->foto_url,

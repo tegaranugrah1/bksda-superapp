@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ interface PhotoGalleryProps {
   fotoKiriUrl: string | null;
   fotoKananUrl: string | null;
   fotoLokasiUrl: string | null;
+  verifiedAt: string | null;
+  verifiedByName: string | null;
   onRefresh: () => void;
 }
 
@@ -35,7 +37,7 @@ function driveToThumbnail(url: string): string | null {
   return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
 }
 
-export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, onRefresh }: PhotoGalleryProps) {
+export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
@@ -53,6 +55,17 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
   };
 
   const hasAnyPhoto = Object.values(photos).some(Boolean);
+
+  const handleVerify = async () => {
+    if (!confirm("Lakukan verifikasi BMN untuk aset ini?")) return;
+    try {
+      await api.post(`/bmn/assets/${assetId}/verify`);
+      toast.success("Aset berhasil diverifikasi.");
+      onRefresh();
+    } catch {
+      toast.error("Gagal memverifikasi aset.");
+    }
+  };
 
   // Get all available photos for navigation
   const availablePhotos = PHOTO_SLOTS.map((slot) => {
@@ -152,12 +165,30 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
           <span className="p-1.5 rounded-lg bg-violet-50 text-violet-600"><Camera className="w-4 h-4" /></span>
           <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Dokumentasi Foto</h3>
         </div>
-        {hasAnyPhoto && (
-          <Button variant="outline" size="sm" className="text-[10px] rounded-lg h-7 gap-1" onClick={handleDownloadAll}>
-            <ZipIcon className="w-3 h-3" /> Download Semua
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canWrite && (
+            <Button variant="outline" size="sm" className="text-[10px] rounded-lg h-7 gap-1" onClick={handleVerify}>
+              <ShieldCheck className="w-3 h-3" /> Verifikasi BMN
+            </Button>
+          )}
+          {hasAnyPhoto && (
+            <Button variant="outline" size="sm" className="text-[10px] rounded-lg h-7 gap-1" onClick={handleDownloadAll}>
+              <ZipIcon className="w-3 h-3" /> Download Semua
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Verified status */}
+      {verifiedAt && (
+        <div className="px-5 py-2 bg-emerald-50 border-b border-emerald-100 flex items-center gap-2">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="text-[11px] text-emerald-700 font-medium">
+            Telah diverifikasi pada {new Date(verifiedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+            {verifiedByName && ` oleh ${verifiedByName}`}
+          </span>
+        </div>
+      )}
 
       <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {PHOTO_SLOTS.map((slot) => {
