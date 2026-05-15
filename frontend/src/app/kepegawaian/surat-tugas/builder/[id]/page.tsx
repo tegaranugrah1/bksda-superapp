@@ -15,7 +15,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAxiosError } from "axios";
 import STBuilderPreview from "./STBuilderPreview";
@@ -99,6 +99,7 @@ const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
 export default function STBuilderPage() {
   const params = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const id = params.id as string;
 
   // --- Form State ---
@@ -129,6 +130,7 @@ export default function STBuilderPage() {
   const [kepalaBalai, setKepalaBalai] = useState({ name: "M. Ari Wibawanto, S.Hut., M.Sc.", nip: "19740514 199903 1 001" });
   const [tanggalSurat, setTanggalSurat] = useState(new Date().toISOString().substring(0, 10));
   const [kotaSurat, setKotaSurat] = useState("Samarinda");
+  const [tembusanItems, setTembusanItems] = useState<string[]>([]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -269,6 +271,9 @@ export default function STBuilderPage() {
         if (data.dasar && Array.isArray(data.dasar) && data.dasar.length > 0) {
           setDasarItems(data.dasar);
         }
+        if (data.tembusan && Array.isArray(data.tembusan) && data.tembusan.length > 0) {
+          setTembusanItems(data.tembusan);
+        }
 
         const activityStr = data.maksud_tujuan || "";
         // Strip "selama X hari terhitung..." suffix that buildUntukText appends
@@ -377,6 +382,7 @@ export default function STBuilderPage() {
         sumber_dana_other: sumberDanaOther,
         menimbang: menimbangItems,
         dasar: dasarItems,
+        tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         employee_ids: selectedEmployees.map(e => e.id),
         tanggal_mulai: tanggalMulai || null,
         tanggal_selesai: tanggalSelesai || null,
@@ -413,6 +419,7 @@ export default function STBuilderPage() {
         sumber_dana_other: sumberDanaOther,
         menimbang: menimbangItems,
         dasar: dasarItems,
+        tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         employee_ids: selectedEmployees.map(e => e.id),
         tanggal_mulai: tanggalMulai,
         tanggal_selesai: tanggalSelesai,
@@ -420,6 +427,7 @@ export default function STBuilderPage() {
       };
       await api.put(`/surat-tugas/${id}/approve`, payload);
       toast.success("Surat Tugas berhasil diajukan! Menunggu persetujuan Kasubag.");
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas"] });
       router.push("/kepegawaian/surat-tugas/history");
     } catch (err: unknown) {
       console.error(err);
@@ -454,6 +462,7 @@ export default function STBuilderPage() {
       };
       await api.put(`/surat-tugas/${id}/approve`, payload);
       toast.success("Surat Tugas berhasil diterbitkan!");
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas"] });
       router.push("/kepegawaian/surat-tugas/history");
     } catch (err: unknown) {
       console.error(err);
@@ -669,6 +678,36 @@ export default function STBuilderPage() {
             </div>
           </FormSection>
 
+          <FormSection title="Tembusan" action={
+            <button onClick={() => setTembusanItems([...tembusanItems, ""])} className="text-emerald-600 hover:text-emerald-700">
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          }>
+            <div className="space-y-2">
+              {tembusanItems.length === 0 && (
+                <p className="text-[11px] text-slate-400 italic">Belum ada tembusan. Klik + untuk menambah.</p>
+              )}
+              {tembusanItems.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-1">
+                  <span className="text-[10px] text-slate-400 w-4">{idx + 1}.</span>
+                  <input
+                    value={item}
+                    onChange={(e) => {
+                      const updated = [...tembusanItems];
+                      updated[idx] = e.target.value;
+                      setTembusanItems(updated);
+                    }}
+                    placeholder="Nama penerima tembusan..."
+                    className="flex-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none"
+                  />
+                  <button onClick={() => setTembusanItems(tembusanItems.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600 p-1">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </FormSection>
+
           <FormSection title="Penandatangan">
             <input value={kepalaBalai.name} onChange={e => setKepalaBalai({...kepalaBalai, name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm mb-2 outline-none" />
             <input value={kepalaBalai.nip} onChange={e => setKepalaBalai({...kepalaBalai, nip: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
@@ -688,6 +727,7 @@ export default function STBuilderPage() {
           menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
           buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
           kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
+          tembusanItems={tembusanItems}
         />
       </main>
     </div>

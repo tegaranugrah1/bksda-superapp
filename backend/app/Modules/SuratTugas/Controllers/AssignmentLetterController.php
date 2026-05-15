@@ -219,14 +219,21 @@ class AssignmentLetterController extends Controller
 
     public function downloadPdf(string $id)
     {
-        $surat = AssignmentLetter::withTrashed()->findOrFail($id);
+        $surat = AssignmentLetter::withTrashed()->with('employees')->findOrFail($id);
 
         if (! $surat->file_surat_path || ! Storage::exists($surat->file_surat_path)) {
             return response()->json(['message' => 'Berkas tidak ditemukan di server.'], 404);
         }
 
         $ext = pathinfo($surat->file_surat_path, PATHINFO_EXTENSION) ?: 'pdf';
-        $filename = 'ST_BKSDA_'.($surat->nomor_surat ?? 'Draft').'.'.$ext;
+
+        // Filename: Dasar Surat-Nama Personel-Tanggal Upload
+        $dasarSurat = $surat->maksud_tujuan ? substr(preg_replace('/[^a-zA-Z0-9\s]/', '', $surat->maksud_tujuan), 0, 50) : 'Surat Tugas';
+        $namaPersonel = $surat->employees->first()?->nama_lengkap ?? 'Pegawai';
+        $tanggalUpload = $surat->created_at?->format('d-m-Y') ?? date('d-m-Y');
+        $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}") . '.' . $ext;
+        // Sanitize filename
+        $filename = preg_replace('/[\/\\\\:*?"<>|]/', '_', $filename);
 
         return Storage::download($surat->file_surat_path, $filename);
     }
@@ -268,6 +275,7 @@ class AssignmentLetterController extends Controller
             'sumber_dana_other' => 'nullable|string',
             'menimbang' => 'nullable|array',
             'dasar' => 'nullable|array',
+            'tembusan' => 'nullable|array',
             'employee_ids' => 'nullable|array',
             'status' => 'nullable|in:pending,approved',
         ]);
@@ -290,6 +298,7 @@ class AssignmentLetterController extends Controller
                 'sumber_dana_other' => $request->sumber_dana_other,
                 'menimbang' => $request->menimbang,
                 'dasar' => $request->dasar,
+                'tembusan' => $request->tembusan,
             ], fn($v) => $v !== null);
 
             // Only update status if explicitly provided
