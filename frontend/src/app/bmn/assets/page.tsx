@@ -90,7 +90,12 @@ export default function BmnAssetsPage() {
 
   const handleExport = async (includeNupLama: boolean) => {
     try {
-      const res = await api.get("/bmn/assets/export", { responseType: "blob", params: { include_nup_lama: includeNupLama ? 1 : 0 } });
+      const params: Record<string, string | number> = { include_nup_lama: includeNupLama ? 1 : 0 };
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
+      if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
+      if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
+      const res = await api.get("/bmn/assets/export", { responseType: "blob", params, timeout: 60000 });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -171,12 +176,17 @@ export default function BmnAssetsPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Button variant="outline" size="sm" className="rounded-xl gap-2 text-xs" onClick={() => setShowExportMenu(!showExportMenu)}>
-              <Download className="w-3.5 h-3.5" /> Export
+              <Download className="w-3.5 h-3.5" /> Export {(kondisiFilter !== "Semua" || jenisFilter !== "Semua" || lokasiFilter !== "Semua") ? "(filtered)" : ""}
             </Button>
             {showExportMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
                 <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 w-56 p-1">
+                  {(kondisiFilter !== "Semua" || jenisFilter !== "Semua" || lokasiFilter !== "Semua" || debouncedSearch) && (
+                    <p className="px-3 py-1.5 text-[9px] text-emerald-600 font-medium border-b border-slate-100 mb-1">
+                      ✓ Export sesuai filter aktif
+                    </p>
+                  )}
                   <button onClick={() => { handleExport(true); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg">
                     Dengan NUP Lama (80 kolom)
                   </button>
