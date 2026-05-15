@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 interface PhotoGalleryProps {
@@ -55,9 +56,16 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
   };
 
   const hasAnyPhoto = Object.values(photos).some(Boolean);
+  const confirm = useConfirm();
 
   const handleVerify = async () => {
-    if (!confirm("Lakukan verifikasi BMN untuk aset ini?")) return;
+    const ok = await confirm({
+      title: "Verifikasi BMN",
+      description: "Lakukan verifikasi BMN untuk aset ini? Tindakan ini akan mencatat tanggal dan nama verifikator.",
+      confirmText: "Ya, Verifikasi",
+      variant: "default",
+    });
+    if (!ok) return;
     try {
       await api.post(`/bmn/assets/${assetId}/verify`);
       toast.success("Aset berhasil diverifikasi.");
