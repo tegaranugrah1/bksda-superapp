@@ -142,8 +142,8 @@ export default function BmnCreateAssetPage() {
     tanggal_ganti_plat: "",
   });
 
-  const [photoFiles, setPhotoFiles] = useState<{ depan: File | null; belakang: File | null; kiri: File | null; kanan: File | null }>({
-    depan: null, belakang: null, kiri: null, kanan: null,
+  const [photoFiles, setPhotoFiles] = useState<{ belakang: File | null; kiri: File | null; kanan: File | null; lokasi: File | null }>({
+    belakang: null, kiri: null, kanan: null, lokasi: null,
   });
 
   const set = (key: string, value: string | number) => setForm(prev => ({ ...prev, [key]: value }));
@@ -183,7 +183,7 @@ export default function BmnCreateAssetPage() {
 
       // Upload photos if any
       if (assetId) {
-        const photoTypes = ['depan', 'belakang', 'kiri', 'kanan'] as const;
+        const photoTypes = ['belakang', 'kiri', 'kanan', 'lokasi'] as const;
         for (const type of photoTypes) {
           const file = photoFiles[type];
           if (file) {
@@ -386,14 +386,14 @@ export default function BmnCreateAssetPage() {
         {step === 4 && (
           <div className="space-y-5">
             <h2 className="text-sm font-bold text-slate-700 mb-4">Foto Aset</h2>
-            <Field label="Link Foto Geotag (Google Drive)" value={form.foto_geotag_url as string} onChange={v => set("foto_geotag_url", v)} placeholder="https://drive.google.com/file/d/..." />
+            <Field label="Link Tampak Depan (Google Drive)" value={form.foto_geotag_url as string} onChange={v => set("foto_geotag_url", v)} placeholder="https://drive.google.com/file/d/..." />
             <div className="grid grid-cols-2 gap-4">
-              <PhotoInput label="Foto Tampak Depan" value={photoFiles.depan} onChange={(f) => setPhotoFiles(prev => ({ ...prev, depan: f }))} />
               <PhotoInput label="Foto Tampak Belakang" value={photoFiles.belakang} onChange={(f) => setPhotoFiles(prev => ({ ...prev, belakang: f }))} />
+              <PhotoInput label="Foto Tampak Kiri" value={photoFiles.kiri} onChange={(f) => setPhotoFiles(prev => ({ ...prev, kiri: f }))} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <PhotoInput label="Foto Tampak Kiri" value={photoFiles.kiri} onChange={(f) => setPhotoFiles(prev => ({ ...prev, kiri: f }))} />
               <PhotoInput label="Foto Tampak Kanan" value={photoFiles.kanan} onChange={(f) => setPhotoFiles(prev => ({ ...prev, kanan: f }))} />
+              <PhotoInput label="Foto Lokasi Barang" value={photoFiles.lokasi} onChange={(f) => setPhotoFiles(prev => ({ ...prev, lokasi: f }))} />
             </div>
             <p className="text-xs text-slate-400">Format: JPG, PNG, WebP. Maks 5MB per foto. Foto opsional — bisa diupload nanti di halaman detail.</p>
           </div>

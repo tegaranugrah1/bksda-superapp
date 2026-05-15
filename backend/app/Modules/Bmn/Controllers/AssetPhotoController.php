@@ -12,7 +12,7 @@ use ZipArchive;
 
 class AssetPhotoController extends Controller
 {
-    private const VALID_TYPES = ['depan', 'belakang', 'kiri', 'kanan'];
+    private const VALID_TYPES = ['belakang', 'kiri', 'kanan', 'lokasi'];
 
     /**
      * Upload a photo for a specific side.

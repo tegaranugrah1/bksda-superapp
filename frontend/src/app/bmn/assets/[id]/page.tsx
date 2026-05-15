@@ -192,10 +192,10 @@ function AssetDetail({ assetId }: { assetId: string }) {
         assetName={asset.nama_barang}
         nup={asset.nup}
         fotoGeotagUrl={asset.foto_geotag_url}
-        fotoDepanUrl={asset.foto_depan_url}
         fotoBelakangUrl={asset.foto_belakang_url}
         fotoKiriUrl={asset.foto_kiri_url}
         fotoKananUrl={asset.foto_kanan_url}
+        fotoLokasiUrl={asset.foto_lokasi_url}
         onRefresh={refetch}
       />
 

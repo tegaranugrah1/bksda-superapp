@@ -13,19 +13,19 @@ interface PhotoGalleryProps {
   assetName: string;
   nup: string;
   fotoGeotagUrl: string | null;
-  fotoDepanUrl: string | null;
   fotoBelakangUrl: string | null;
   fotoKiriUrl: string | null;
   fotoKananUrl: string | null;
+  fotoLokasiUrl: string | null;
   onRefresh: () => void;
 }
 
 const PHOTO_SLOTS = [
-  { key: "geotag", label: "Foto Geotag", type: "link" },
-  { key: "depan", label: "Tampak Depan", type: "upload" },
+  { key: "geotag", label: "Tampak Depan", type: "link" },
   { key: "belakang", label: "Tampak Belakang", type: "upload" },
   { key: "kiri", label: "Tampak Kiri", type: "upload" },
   { key: "kanan", label: "Tampak Kanan", type: "upload" },
+  { key: "lokasi", label: "Lokasi Barang", type: "upload" },
 ] as const;
 
 /** Convert Google Drive share link to embeddable thumbnail URL */
@@ -35,7 +35,7 @@ function driveToThumbnail(url: string): string | null {
   return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
 }
 
-export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, onRefresh }: PhotoGalleryProps) {
+export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
@@ -46,10 +46,10 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoDepan
 
   const photos: Record<string, string | null> = {
     geotag: fotoGeotagUrl,
-    depan: fotoDepanUrl,
     belakang: fotoBelakangUrl,
     kiri: fotoKiriUrl,
     kanan: fotoKananUrl,
+    lokasi: fotoLokasiUrl,
   };
 
   const hasAnyPhoto = Object.values(photos).some(Boolean);

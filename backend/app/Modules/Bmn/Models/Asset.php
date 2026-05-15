@@ -29,8 +29,9 @@ class Asset extends Model
         'sbsk', 'optimalisasi', 'penghuni', 'pengguna', 'kode_kpknl', 'uraian_kpknl',
         'uraian_kanwil_djkn', 'nama_kl', 'nama_e1', 'nama_korwil', 'kode_register', 'lokasi_ruang',
         'jenis_identitas', 'no_identitas', 'no_stnk', 'nama_pengguna', 'status_pmk',
-        'status_foto_geotag', 'foto_geotag_url', 'foto_depan_path', 'foto_belakang_path',
-        'foto_kiri_path', 'foto_kanan_path', 'tahun_perolehan', 'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
+        'status_foto_geotag', 'foto_geotag_url', 'foto_belakang_path',
+        'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path',
+        'tahun_perolehan', 'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
         'tanggal_pajak_stnk', 'tanggal_ganti_plat',
     ];
 
