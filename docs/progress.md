@@ -1,3 +1,59 @@
+# Progress - Phase 30: BMN Dashboard Charts + Export Filtered + Riwayat + Verifikasi + Foto
+
+> Document updated: 2026-05-13 19:00
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 30: BMN Enhancements
+
+### Completed:
+- [x] **Dashboard charts** (PR #299): donut kondisi (SVG), bar jenis BMN + nilai, bar lokasi, compact layout
+- [x] **Export filtered** (PR #300): export sesuai filter aktif (jenis, lokasi, kondisi, search)
+- [x] **Tab Riwayat** (PR #301): log semua perubahan field (siapa, kapan, old→new)
+- [x] **Persist filters to URL** (PR #302): filter + search + page di-persist, kembali dari detail tidak reset
+- [x] **Deduplicate merk_tipe**: "Sanyo Sanyo" → "Sanyo"
+- [x] **Track all field changes**: AssetService sekarang log semua field (bukan hanya nilai+kondisi)
+- [x] **Currency input**: format ribuan (Rp 1.000.000) di edit inline + create form
+- [x] **Employee picker**: Penghuni, Pengguna, Nama Pengguna pakai search dropdown pegawai
+- [x] **Pengguna sync**: edit Pengguna → Nama Pengguna otomatis ikut (dan sebaliknya)
+- [x] **Hero card cleanup**: hapus gradient bar, tambah info Lokasi + Pengguna + No Polisi + Pajak STNK
+- [x] **No Polisi di tabel**: tampil di subtitle untuk kendaraan (Merk • No Pol • Tahun)
+- [x] **Shorten lokasi**: nama panjang disingkat di tabel (Kantor Balai, Seksi Wil. I, R.01, dll)
+- [x] **Pengguna di tabel**: tampil di bawah lokasi jika ada
+- [x] **Foto rename**: label + DB columns diubah (Tampak Depan=Geotag, Belakang, Kiri, Kanan, Lokasi Barang)
+- [x] **Verifikasi BMN**: tombol + timestamp + log riwayat
+- [x] **Photo history**: upload + delete foto tercatat di riwayat
+- [x] **Disposal pagination**: tambah opsi "Semua"
+- [x] **Reset filter**: termasuk kondisi + search
+- [x] **Confirm dialogs**: semua pakai useConfirm (bukan window.confirm)
+
+### Files Modified (key):
+- `backend/app/Modules/Bmn/Controllers/DashboardController.php` — charts data
+- `backend/app/Modules/Bmn/Controllers/AssetController.php` — verify endpoint
+- `backend/app/Modules/Bmn/Controllers/AssetPhotoController.php` — history logging
+- `backend/app/Modules/Bmn/Controllers/ExportController.php` — filtered export
+- `backend/app/Modules/Bmn/Exports/AssetExport.php` — filter support
+- `backend/app/Modules/Bmn/Services/AssetService.php` — track all fields
+- `backend/app/Modules/Bmn/Resources/AssetResource.php` — verified_at, foto rename
+- `backend/app/Modules/Bmn/Models/Asset.php` — new columns
+- `backend/app/Modules/Bmn/Migrations/2026_05_13_160000_*` — foto rename
+- `backend/app/Modules/Bmn/Migrations/2026_05_13_170000_*` — verification columns
+- `frontend/src/app/bmn/page.tsx` — dashboard rewrite
+- `frontend/src/app/bmn/assets/page.tsx` — filters, export, no_polisi, pengguna, shorten lokasi
+- `frontend/src/app/bmn/assets/[id]/page.tsx` — hero card, employee picker, riwayat tab
+- `frontend/src/app/bmn/assets/[id]/_components/DetailSection.tsx` — EditableEmployeeRow, EditableCurrencyRow
+- `frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx` — rename, verify, confirm dialog
+- `frontend/src/app/bmn/assets/create/page.tsx` — currency input, foto rename
+- `frontend/src/app/bmn/disposal/page.tsx` — pagination "Semua"
+
+### Next Steps (TODO):
+- [ ] Bulk edit (select beberapa aset → update lokasi/kondisi/pengguna sekaligus)
+- [ ] Mobile responsive sidebar
+- [ ] Import: handle foto_geotag_url mapping dari Excel header "Foto Ber-geotag"
+
+---
+
 # Progress - Phase 29: Tembusan ST + Multi-page Preview + RBAC All Modules
 
 > Document updated: 2026-05-13 17:00

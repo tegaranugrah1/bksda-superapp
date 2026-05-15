@@ -56,12 +56,12 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 29: Tembusan ST + Multi-page + RBAC All Modules (✅ DONE - PR #296, #297, #298) |
-| **Issue Selanjutnya** | Semua TODO utama selesai. Next: QoL improvements, bug fixes |
+| **Issue Terakhir Selesai** | Phase 30: BMN Dashboard Charts + Export Filtered + Riwayat + Verifikasi + Foto Rename (✅ DONE - PR #299-302 + hotfixes) |
+| **Issue Selanjutnya** | Bulk edit, mobile responsive, QoL improvements |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `bf4c06d` - feat(rbac): apply role-based sidebar to all modules (#298) |
+| **Commit Terakhir** | `e399969` - feat(bmn): show pengguna below lokasi in table |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-13T17:00:00+08:00 |
+| **Timestamp** | 2026-05-13T19:00:00+08:00 |
 | **GitHub Issues** | #289 (BMN upgrade), #291 (create page) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
@@ -166,8 +166,9 @@ git push origin main
   - [x] ~~Multi-page testing (surat panjang)~~ ✅ PR #297
   - [x] ~~Signature integration~~ ❌ DROPPED (lewat aplikasi lain)
   - [x] ~~Apply RBAC to Inventory, DeReporting, CMS~~ ✅ PR #298
-  - [ ] QoL: mobile responsive sidebar
-  - [ ] QoL: export PDF surat tugas
+  - [ ] Bulk edit (select beberapa aset → update field sekaligus)
+  - [ ] Mobile responsive sidebar
+  - [ ] QoL improvements
 
 ---
 
