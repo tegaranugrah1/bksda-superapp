@@ -82,12 +82,13 @@ export default function BmnAssetsPage() {
 
   const updateUrl = (overrides: Record<string, string | number>) => {
     const params = new URLSearchParams();
-    const state = { page, per_page: perPage, kondisi: kondisiFilter, jenis_bmn: jenisFilter, lokasi_ruang: lokasiFilter, ...overrides };
+    const state = { page, per_page: perPage, kondisi: kondisiFilter, jenis_bmn: jenisFilter, lokasi_ruang: lokasiFilter, search: searchTerm, ...overrides };
     if (state.page && state.page !== 1) params.set("page", String(state.page));
     if (state.per_page && state.per_page !== 10) params.set("per_page", String(state.per_page));
     if (state.kondisi && state.kondisi !== "Semua") params.set("kondisi", String(state.kondisi));
     if (state.jenis_bmn && state.jenis_bmn !== "Semua") params.set("jenis_bmn", String(state.jenis_bmn));
     if (state.lokasi_ruang && state.lokasi_ruang !== "Semua") params.set("lokasi_ruang", String(state.lokasi_ruang));
+    if (state.search) params.set("search", String(state.search));
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   };
@@ -248,7 +249,7 @@ export default function BmnAssetsPage() {
             type="text"
             placeholder="Cari nama, kode, NUP..."
             value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+            onChange={(e) => { setSearchTerm(e.target.value); setPageState(1); updateUrl({ search: e.target.value, page: 1 }); }}
             className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           />
         </div>
@@ -297,9 +298,9 @@ export default function BmnAssetsPage() {
           <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
           <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
         </select>
-        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua") && (
+        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua" || searchTerm) && (
           <button
-            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setKondisiFilter("Semua"); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", page: 1 }); }}
+            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setKondisiFilter("Semua"); setSearchTerm(""); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", search: "", page: 1 }); }}
             className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100"
           >
             Reset Filter
