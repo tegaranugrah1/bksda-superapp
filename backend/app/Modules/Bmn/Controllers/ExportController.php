@@ -15,7 +15,13 @@ class ExportController extends Controller
     public function assets(Request $request): BinaryFileResponse
     {
         $includeNupLama = $request->boolean('include_nup_lama', true);
-        return Excel::download(new AssetExport($includeNupLama), 'Katalog_Aset_BKSDA.xlsx');
+        $filters = [
+            'search' => $request->input('search'),
+            'kondisi' => $request->input('kondisi'),
+            'jenis_bmn' => $request->input('jenis_bmn'),
+            'lokasi_ruang' => $request->input('lokasi_ruang'),
+        ];
+        return Excel::download(new AssetExport($includeNupLama, $filters), 'Katalog_Aset_BKSDA.xlsx');
     }
 
     public function loans(): BinaryFileResponse

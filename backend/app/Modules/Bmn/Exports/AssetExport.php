@@ -10,16 +10,39 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 class AssetExport implements FromCollection, WithHeadings, WithMapping
 {
     private bool $includeNupLama;
+    private array $filters;
     private int $rowNumber = 0;
 
-    public function __construct(bool $includeNupLama = true)
+    public function __construct(bool $includeNupLama = true, array $filters = [])
     {
         $this->includeNupLama = $includeNupLama;
+        $this->filters = $filters;
     }
 
     public function collection()
     {
-        return Asset::latest()->get();
+        $query = Asset::latest();
+
+        if (!empty($this->filters['search'])) {
+            $search = $this->filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_barang', 'ilike', "%{$search}%")
+                    ->orWhere('kode_barang', 'ilike', "%{$search}%")
+                    ->orWhere('nup', 'ilike', "%{$search}%")
+                    ->orWhere('merk', 'ilike', "%{$search}%");
+            });
+        }
+        if (!empty($this->filters['kondisi'])) {
+            $query->where('kondisi', $this->filters['kondisi']);
+        }
+        if (!empty($this->filters['jenis_bmn'])) {
+            $query->where('jenis_bmn', $this->filters['jenis_bmn']);
+        }
+        if (!empty($this->filters['lokasi_ruang'])) {
+            $query->where('lokasi_ruang', 'ilike', '%' . $this->filters['lokasi_ruang'] . '%');
+        }
+
+        return $query->get();
     }
 
     public function headings(): array
