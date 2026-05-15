@@ -53,16 +53,13 @@ export default function STBuilderPreview({
 }: PreviewProps) {
   return (
     <div
-      id="surat-preview-doc"
-      className="w-[210mm] min-h-[297mm] bg-white shadow-2xl selection:bg-blue-100"
+      className="w-full selection:bg-blue-100"
       style={{
-        padding: "0.4cm 1cm 1cm 3cm",
         fontFamily: "'Bookman Old Style', 'Georgia', serif",
         fontSize: "11pt",
         lineHeight: "1.25",
         color: "#000",
         textAlign: "justify",
-        boxSizing: "border-box",
       }}
     >
       <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
@@ -237,37 +234,40 @@ export default function STBuilderPreview({
               {/* === PENUTUP === */}
               <p style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
 
-              {/* === TANDA TANGAN === */}
-              <div style={{ display: "flex", marginTop: "14px" }}>
-                <div style={{ marginLeft: "9.2cm", textAlign: "left" }}>
-                  <p style={{ margin: 0 }}>
-                    {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
-                  </p>
-                  <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
-                  <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
-                    ${"{ttd_pengirim}"}
-                  </p>
-                  <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-                  <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+              {/* === TANDA TANGAN + TEMBUSAN (keep together) === */}
+              <div style={{ pageBreakInside: "avoid" }}>
+                {/* === TANDA TANGAN === */}
+                <div style={{ display: "flex", marginTop: "14px" }}>
+                  <div style={{ marginLeft: "9.2cm", textAlign: "left" }}>
+                    <p style={{ margin: 0 }}>
+                      {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
+                    </p>
+                    <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
+                    <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
+                      ${"{ttd_pengirim}"}
+                    </p>
+                    <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
+                    <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+                  </div>
                 </div>
-              </div>
 
-              {/* === TEMBUSAN === */}
-              {tembusanItems.length > 0 && (
-                <div style={{ marginTop: "24px" }}>
-                  <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
-                  <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                    <tbody>
-                      {tembusanItems.filter(t => t.trim()).map((item, idx) => (
-                        <tr key={idx}>
-                          <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
-                          <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                {/* === TEMBUSAN === */}
+                {tembusanItems.length > 0 && (
+                  <div style={{ marginTop: "24px" }}>
+                    <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
+                    <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                      <tbody>
+                        {tembusanItems.filter(t => t.trim()).map((item, idx) => (
+                          <tr key={idx}>
+                            <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
+                            <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </td>
           </tr>
         </tbody>
