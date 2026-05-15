@@ -31,6 +31,7 @@ interface IAsset {
   lokasi_spesifik?: string;
   lokasi_ruang?: string;
   no_polisi?: string;
+  pengguna?: string;
   tanggal_pajak_stnk?: string;
   tanggal_ganti_plat?: string;
   penanggung_jawab?: { nama_lengkap: string };
@@ -385,7 +386,10 @@ export default function BmnAssetsPage() {
                       <p className="text-sm font-bold text-slate-800">{formatRupiah(asset.nilai_perolehan)}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-xs text-slate-500 max-w-[160px] truncate">{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
+                      <p className="text-xs text-slate-500">{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
+                      {asset.pengguna && (
+                        <p className="text-[10px] text-slate-400">👤 {asset.pengguna}</p>
+                      )}
                       {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.tanggal_pajak_stnk && (
                         <StnkBadge tanggal={asset.tanggal_pajak_stnk} />
                       )}
