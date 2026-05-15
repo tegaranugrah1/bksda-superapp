@@ -45,33 +45,39 @@ export default function BmnAssetsPage() {
   const initialPage = Number(searchParams.get("page")) || 1;
   const initialPerPage = Number(searchParams.get("per_page")) || 10;
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [page, setPageState] = useState(initialPage);
   const [perPage, setPerPageState] = useState(initialPerPage);
-  const [kondisiFilter, setKondisiFilter] = useState("Semua");
-  const [jenisFilter, setJenisFilter] = useState("Semua");
-  const [lokasiFilter, setLokasiFilter] = useState("Semua");
+  const [kondisiFilter, setKondisiFilter] = useState(searchParams.get("kondisi") || "Semua");
+  const [jenisFilter, setJenisFilter] = useState(searchParams.get("jenis_bmn") || "Semua");
+  const [lokasiFilter, setLokasiFilter] = useState(searchParams.get("lokasi_ruang") || "Semua");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const debouncedSearch = useDebounce(searchTerm, 400);
   const { canWrite } = useRole();
   const queryClient = useQueryClient();
 
+  const updateUrl = (overrides: Record<string, string | number>) => {
+    const params = new URLSearchParams();
+    const state = { page, per_page: perPage, kondisi: kondisiFilter, jenis_bmn: jenisFilter, lokasi_ruang: lokasiFilter, ...overrides };
+    if (state.page && state.page !== 1) params.set("page", String(state.page));
+    if (state.per_page && state.per_page !== 10) params.set("per_page", String(state.per_page));
+    if (state.kondisi && state.kondisi !== "Semua") params.set("kondisi", String(state.kondisi));
+    if (state.jenis_bmn && state.jenis_bmn !== "Semua") params.set("jenis_bmn", String(state.jenis_bmn));
+    if (state.lokasi_ruang && state.lokasi_ruang !== "Semua") params.set("lokasi_ruang", String(state.lokasi_ruang));
+    const qs = params.toString();
+    router.replace(qs ? `?${qs}` : "?", { scroll: false });
+  };
+
   const setPage = (p: number | ((prev: number) => number)) => {
     const newPage = typeof p === "function" ? p(page) : p;
     setPageState(newPage);
-    const params = new URLSearchParams(window.location.search);
-    params.set("page", String(newPage));
-    params.set("per_page", String(perPage));
-    router.replace(`?${params.toString()}`, { scroll: false });
+    updateUrl({ page: newPage });
   };
 
   const setPerPage = (pp: number) => {
     setPerPageState(pp);
     setPageState(1);
-    const params = new URLSearchParams(window.location.search);
-    params.set("page", "1");
-    params.set("per_page", String(pp));
-    router.replace(`?${params.toString()}`, { scroll: false });
+    updateUrl({ page: 1, per_page: pp });
   };
 
   const { data: response, isLoading, isFetching } = useQuery<IResponse>({
@@ -226,7 +232,7 @@ export default function BmnAssetsPage() {
           {KONDISI_OPTIONS.map((opt) => (
             <button
               key={opt}
-              onClick={() => { setKondisiFilter(opt); setPage(1); }}
+              onClick={() => { setKondisiFilter(opt); setPageState(1); updateUrl({ kondisi: opt, page: 1 }); }}
               className={cn(
                 "px-3 py-2 rounded-lg text-xs font-semibold transition-all",
                 kondisiFilter === opt ? "bg-emerald-600 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
@@ -242,7 +248,7 @@ export default function BmnAssetsPage() {
       <div className="flex flex-wrap gap-2">
         <select
           value={jenisFilter}
-          onChange={(e) => { setJenisFilter(e.target.value); setPage(1); }}
+          onChange={(e) => { setJenisFilter(e.target.value); setPageState(1); updateUrl({ jenis_bmn: e.target.value, page: 1 }); }}
           className="h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
         >
           <option value="Semua">Semua Jenis BMN</option>
@@ -258,7 +264,7 @@ export default function BmnAssetsPage() {
         </select>
         <select
           value={lokasiFilter}
-          onChange={(e) => { setLokasiFilter(e.target.value); setPage(1); }}
+          onChange={(e) => { setLokasiFilter(e.target.value); setPageState(1); updateUrl({ lokasi_ruang: e.target.value, page: 1 }); }}
           className="h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
         >
           <option value="Semua">Semua Lokasi</option>
@@ -269,7 +275,7 @@ export default function BmnAssetsPage() {
         </select>
         {(jenisFilter !== "Semua" || lokasiFilter !== "Semua") && (
           <button
-            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setPage(1); }}
+            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", page: 1 }); }}
             className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100"
           >
             Reset Filter
