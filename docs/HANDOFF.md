@@ -56,12 +56,12 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 28: STNK Countdown + Edit Inline + Filters (✅ DONE - PR #293, #294) |
-| **Issue Selanjutnya** | Tembusan ST, Multi-page testing, Signature, RBAC |
+| **Issue Terakhir Selesai** | Phase 29: Tembusan ST + Multi-page + RBAC All Modules (✅ DONE - PR #296, #297, #298) |
+| **Issue Selanjutnya** | Semua TODO utama selesai. Next: QoL improvements, bug fixes |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `8a0c3ad` - feat(bmn): STNK countdown + edit inline + filters (#294) |
+| **Commit Terakhir** | `bf4c06d` - feat(rbac): apply role-based sidebar to all modules (#298) |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-13T16:00:00+08:00 |
+| **Timestamp** | 2026-05-13T17:00:00+08:00 |
 | **GitHub Issues** | #289 (BMN upgrade), #291 (create page) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
@@ -162,10 +162,12 @@ git push origin main
   - 8 kolom organisasi LOCKED: Kode Satker, Nama Satker, Kode KPKNL, Uraian KPKNL, Uraian Kanwil DJKN, Nama K/L, Nama E1, Nama Korwil
   - 4 mode form: Kendaraan (No Polisi, Merk, Tipe, STNK), Tanah (Luas, Sertifikat), Bangunan (Luas, Lantai), Peralatan (Merk, Tipe)
 - **Next Steps (Global)**:
-  - [ ] Tembusan field di ST builder & preview
-  - [ ] Multi-page testing (surat panjang)
-  - [ ] Signature integration
-  - [ ] Apply RBAC to Inventory, DeReporting, CMS
+  - [x] ~~Tembusan field di ST builder & preview~~ ✅ PR #296
+  - [x] ~~Multi-page testing (surat panjang)~~ ✅ PR #297
+  - [x] ~~Signature integration~~ ❌ DROPPED (lewat aplikasi lain)
+  - [x] ~~Apply RBAC to Inventory, DeReporting, CMS~~ ✅ PR #298
+  - [ ] QoL: mobile responsive sidebar
+  - [ ] QoL: export PDF surat tugas
 
 ---
 

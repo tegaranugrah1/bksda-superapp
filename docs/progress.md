@@ -1,3 +1,47 @@
+# Progress - Phase 29: Tembusan ST + Multi-page Preview + RBAC All Modules
+
+> Document updated: 2026-05-13 17:00
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 29: Tembusan + Multi-page + RBAC
+
+### Completed:
+- [x] **Tembusan field** (PR #296): kolom JSON di DB, dynamic list di builder, tampil di preview/print di bawah TTD
+- [x] **Download fix**: CORS suppressed, nama file: Dasar Surat-Nama Personel-Tanggal
+- [x] **Submit timeout**: 60s untuk public form (Google Sheets)
+- [x] **Cache invalidation**: history page langsung update setelah ajukan/terbitkan
+- [x] **Multi-page preview** (PR #297): page break indicator (bar HALAMAN 2/3) di posisi 297mm
+- [x] **Prevent duplicate personil**: yang sudah dipilih jadi abu-abu + disabled
+- [x] **TTD + Tembusan**: pageBreakInside:avoid agar tidak terpotong saat cetak
+- [x] **RBAC all modules** (PR #298): Inventory, DeReporting, CMS sidebar filtered by role
+- [x] **Signature integration**: DROPPED (lewat aplikasi lain)
+
+### RBAC Summary:
+| Modul | User (view) | Admin (CRUD) |
+|-------|-------------|--------------|
+| Inventory | Dashboard, Katalog, Riwayat | + Kantor, Stok Masuk, Distribusi |
+| DeReporting | Dashboard, Laporan, Data, Kerjasama, Izin | + Operator |
+| CMS | Dashboard, Berita, Pesan, Kawasan, TSL, Galeri, Publikasi | + Kategori, Profil, Kepala, Link |
+
+### Commits:
+```
+bf4c06d feat(rbac): apply role-based sidebar to Inventory, DeReporting, CMS (#298) [PR #298]
+45223c2 feat(surat-tugas): multi-page preview + prevent duplicate personil (#297) [PR #297]
+54cd40a feat(surat-tugas): tembusan + download fix + timeout (#295) [PR #296]
+```
+
+### All Major TODOs — DONE ✅:
+- [x] Import Review/Diff/Approve (PR #293)
+- [x] STNK Countdown + Edit Inline + Filters (PR #294)
+- [x] Tembusan ST (PR #296)
+- [x] Multi-page testing (PR #297)
+- [x] RBAC all modules (PR #298)
+- [x] Signature — DROPPED
+
+---
+
 # Progress - Phase 28: STNK Countdown + Edit Inline + Filters
 
 > Document updated: 2026-05-13 16:00
