@@ -82,7 +82,12 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
   const handleFieldSave = useCallback(async (field: string, value: string) => {
     try {
-      await api.put(`/bmn/assets/${assetId}`, { [field]: value || null });
+      // Sync pengguna <-> nama_pengguna
+      const payload: Record<string, string | null> = { [field]: value || null };
+      if (field === "pengguna") payload.nama_pengguna = value || null;
+      if (field === "nama_pengguna") payload.pengguna = value || null;
+
+      await api.put(`/bmn/assets/${assetId}`, payload);
       toast.success("Field berhasil diperbarui.");
       queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
       queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
