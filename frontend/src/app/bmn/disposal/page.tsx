@@ -233,6 +233,7 @@ export default function BmnDisposalPage() {
               <option value={10}>10 / halaman</option>
               <option value={50}>50 / halaman</option>
               <option value={100}>100 / halaman</option>
+              <option value={9999}>Semua</option>
             </select>
           </div>
           <div className="flex gap-2">
