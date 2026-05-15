@@ -30,6 +30,7 @@ interface IAsset {
   nilai_perolehan: number;
   lokasi_spesifik?: string;
   lokasi_ruang?: string;
+  no_polisi?: string;
   tanggal_pajak_stnk?: string;
   tanggal_ganti_plat?: string;
   penanggung_jawab?: { nama_lengkap: string };
@@ -47,6 +48,19 @@ function deduplicateMerkTipe(value?: string): string {
     return words[0];
   }
   return value;
+}
+
+/** Shorten lokasi names for display */
+function shortenLokasi(lokasi: string): string {
+  if (!lokasi || lokasi === "-") return "-";
+  return lokasi
+    .replace("Kantor Balai KSDA Kalimantan Timur", "Kantor Balai")
+    .replace("Seksi KSDA Wilayah I (Berau)", "Seksi Wil. I Berau")
+    .replace("Seksi KSDA Wilayah II (Tenggarong)", "Seksi Wil. II Tenggarong")
+    .replace("Seksi KSDA Wilayah III (Balikpapan)", "Seksi Wil. III Balikpapan")
+    .replace("Urusan Umum dan Perlengkapan", "Urusan Umum")
+    .replace("Urusan Program dan Perencanaan", "Urusan Program")
+    .replace("Resor ", "R.");
 }
 
 export default function BmnAssetsPage() {
@@ -352,7 +366,11 @@ export default function BmnAssetsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm font-semibold text-slate-800 max-w-[200px] truncate">{asset.nama_barang}</p>
-                      <p className="text-[11px] text-slate-400">{deduplicateMerkTipe(asset.merk_tipe)} • {asset.tahun_perolehan || "-"}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {deduplicateMerkTipe(asset.merk_tipe)}
+                        {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && asset.no_polisi !== "-" ? ` • ${asset.no_polisi}` : ""}
+                        {" • "}{asset.tahun_perolehan || "-"}
+                      </p>
                     </td>
                     <td className="px-4 py-3">
                       <span className={cn(
@@ -366,7 +384,7 @@ export default function BmnAssetsPage() {
                       <p className="text-sm font-bold text-slate-800">{formatRupiah(asset.nilai_perolehan)}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-xs text-slate-500 max-w-[120px] truncate">{asset.lokasi_ruang || asset.lokasi_spesifik || "-"}</p>
+                      <p className="text-xs text-slate-500 max-w-[160px] truncate">{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
                       {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.tanggal_pajak_stnk && (
                         <StnkBadge tanggal={asset.tanggal_pajak_stnk} />
                       )}
