@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import dynamic from "next/dynamic";
 
 // Dynamic Import: Rich Text Editor hanya dimuat di sisi klien (Menghindari SSR crash)
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
-import "react-quill/dist/quill.snow.css";
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+import "react-quill-new/dist/quill.snow.css";
 
 interface Category {
   id: number;

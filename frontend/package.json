@@ -32,7 +32,6 @@
     "react-hook-form": "^7.75.0",
     "react-leaflet": "^5.0.0",
     "react-qr-code": "^2.0.21",
-    "react-quill": "^2.0.0",
     "react-quill-new": "^3.8.3",
     "recharts": "^3.8.1",
     "shadcn": "^4.7.0",
