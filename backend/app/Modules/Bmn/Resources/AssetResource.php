@@ -110,7 +110,7 @@ class AssetResource extends JsonResource
                 'nip' => $this->penanggungJawab->nip,
             ]),
             'active_loan' => $this->whenLoaded('loans', function () {
-                $activeLoan = $this->loans->first();
+                $activeLoan = $this->loans->firstWhere(fn ($loan) => in_array($loan->status, ['dipinjam', 'terlambat']));
                 if (!$activeLoan) return null;
                 return [
                     'id' => $activeLoan->id,
