@@ -45,7 +45,7 @@ export function InventorySidebar() {
       {/* Tombol Floating Mobile Hamburger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-emerald-600 text-white shadow-2xl hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all duration-300"
+        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-orange-600 text-white shadow-2xl hover:bg-orange-500 hover:scale-105 active:scale-95 transition-all duration-300"
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -63,14 +63,14 @@ export function InventorySidebar() {
         <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-orange-500 to-amber-600 flex items-center justify-center">
               <PackageSearch className="w-5 h-5 text-white" />
             </div>
             <div>
               <h2 className="font-bold text-zinc-900 dark:text-white">
                 Inventory
               </h2>
-              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+              <p className="text-[10px] text-orange-600 dark:text-orange-400 uppercase tracking-widest">
                 Inventaris & Stok
               </p>
             </div>
@@ -92,12 +92,12 @@ export function InventorySidebar() {
               onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 font-medium text-sm ${
                 isActive
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold"
+                  ? "bg-orange-500/10 text-orange-600 dark:text-orange-400 font-semibold"
                   : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white"
               }`}
             >
               <item.icon
-                className={`w-5 h-5 ${isActive ? "text-emerald-500" : "text-zinc-500"}`}
+                className={`w-5 h-5 ${isActive ? "text-orange-500" : "text-zinc-500"}`}
               />
               {item.title}
             </Link>
@@ -108,7 +108,7 @@ export function InventorySidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/50">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+          <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
             {user?.name?.charAt(0) || "U"}
           </div>
           <div className="flex-1 min-w-0">

@@ -281,17 +281,17 @@ export default function STCreatePremiumPage() {
       <aside className="w-[420px] bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col shadow-2xl z-10">
         <header className="p-6 border-b border-slate-100 dark:border-zinc-800">
           <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 bg-emerald-600 rounded-xl">
+            <div className="p-2 bg-blue-600 rounded-xl">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-black text-slate-800 dark:text-white">ST Builder <span className="text-emerald-600 dark:text-emerald-400">Premium</span></h1>
+            <h1 className="text-xl font-black text-slate-800 dark:text-white">ST Builder <span className="text-blue-600 dark:text-blue-400">Premium</span></h1>
           </div>
           <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-[0.2em] mt-1">Direct Issuance Mode</p>
         </header>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
           <FormSection title="Nomor Surat">
-            <div className="flex items-stretch bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500/10">
+            <div className="flex items-stretch bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/10">
               <div className="bg-slate-100 dark:bg-zinc-700 px-3 flex items-center border-r border-slate-200 dark:border-zinc-600 shrink-0"><span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">ST.</span></div>
               <input value={stNumber} onChange={e => setStNumber(e.target.value)} placeholder="001" className="w-14 px-2 py-2 text-sm font-bold bg-transparent outline-none text-center text-zinc-900 dark:text-white" />
               <div className="bg-slate-100 dark:bg-zinc-700 px-2 flex items-center border-x border-slate-200 dark:border-zinc-600 shrink-0"><span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400">/K.18/TU/</span></div>
@@ -346,7 +346,7 @@ export default function STCreatePremiumPage() {
             </div>
           </FormSection>
 
-          <FormSection title="Menimbang" action={<button onClick={() => setMenimbangItems([...menimbangItems, { id: Math.random().toString(), text: "" }])} className="text-[10px] text-emerald-600 font-bold uppercase"><Plus className="w-3 h-3" /> Tambah</button>}>
+          <FormSection title="Menimbang" action={<button onClick={() => setMenimbangItems([...menimbangItems, { id: Math.random().toString(), text: "" }])} className="text-[10px] text-blue-600 font-bold uppercase"><Plus className="w-3 h-3" /> Tambah</button>}>
             <div className="space-y-3">
               {menimbangItems.map((item, idx) => (
                 <div key={item.id} className="flex gap-2">
@@ -358,7 +358,7 @@ export default function STCreatePremiumPage() {
             </div>
           </FormSection>
 
-          <FormSection title="Dasar" action={<button onClick={() => setDasarItems([...dasarItems, { id: Math.random().toString(), text: "" }])} className="text-[10px] text-emerald-600 font-bold uppercase"><Plus className="w-3 h-3" /> Tambah</button>}>
+          <FormSection title="Dasar" action={<button onClick={() => setDasarItems([...dasarItems, { id: Math.random().toString(), text: "" }])} className="text-[10px] text-blue-600 font-bold uppercase"><Plus className="w-3 h-3" /> Tambah</button>}>
             <div className="space-y-3">
               {dasarItems.map((item, idx) => (
                 <div key={item.id} className="flex gap-2">
@@ -374,7 +374,7 @@ export default function STCreatePremiumPage() {
             <div className="relative" ref={dropdownRef}>
               <div className="relative">
                 {isSearching ? (
-                  <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500 animate-spin" />
+                  <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 animate-spin" />
                 ) : (
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 )}
@@ -443,7 +443,7 @@ export default function STCreatePremiumPage() {
         </div>
 
         <footer className="p-6 border-t border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0">
-          <Button onClick={handleApprove} className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold mb-3"><CheckCircle className="w-5 h-5 mr-2" /> Terbitkan & Cetak</Button>
+          <Button onClick={handleApprove} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold mb-3"><CheckCircle className="w-5 h-5 mr-2" /> Terbitkan & Cetak</Button>
           <Button variant="outline" onClick={handlePrint} className="w-full h-12 rounded-xl font-bold text-slate-600 dark:text-zinc-400"><Printer className="w-5 h-5 mr-2" /> Preview Cetak</Button>
         </footer>
       </aside>

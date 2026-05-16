@@ -42,7 +42,7 @@ export default function EmployeeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto p-6 space-y-6 animate-pulse">
+      <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="h-8 w-32 bg-slate-200 rounded-lg" />
         <div className="h-48 bg-slate-100 rounded-2xl" />
       </div>
@@ -51,7 +51,7 @@ export default function EmployeeDetailPage() {
 
   if (isError || !employee) {
     return (
-      <div className="max-w-5xl mx-auto py-20 text-center">
+      <div className="p-6 md:p-10 py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
         <User className="w-12 h-12 mx-auto mb-3 text-slate-300" />
         <h2 className="text-lg font-bold text-slate-700">Pegawai tidak ditemukan</h2>
         <Button variant="link" onClick={() => router.push("/kepegawaian")}>Kembali ke daftar</Button>
@@ -60,16 +60,17 @@ export default function EmployeeDetailPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="max-w-6xl mx-auto space-y-6">
       {/* Back + Actions */}
       <div className="flex items-center justify-between">
-        <Link href="/kepegawaian" className="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+        <Link href="/kepegawaian" className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Kembali
         </Link>
         {canManageAccess && (
           <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => setAccessSheetOpen(true)}>
-            <Shield className="w-4 h-4 text-emerald-500" />
+            <Shield className="w-4 h-4 text-blue-500" />
             Kelola Akses
           </Button>
         )}
@@ -93,7 +94,7 @@ export default function EmployeeDetailPage() {
                 <h1 className="text-xl font-bold text-slate-900 truncate">{employee.nama_lengkap}</h1>
                 <span className={cn(
                   "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
-                  employee.is_active ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
+                  employee.is_active ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-600"
                 )}>
                   <BadgeCheck className="w-3 h-3" />
                   {employee.is_active ? "Aktif" : "Non-Aktif"}
@@ -119,7 +120,7 @@ export default function EmployeeDetailPage() {
             onClick={() => setActiveTab("history")}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
-              activeTab === "history" ? "bg-emerald-600 text-white" : "text-slate-500 hover:bg-slate-50"
+              activeTab === "history" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
             )}
           >
             <FileText className="w-4 h-4" /> Riwayat Penugasan
@@ -128,7 +129,7 @@ export default function EmployeeDetailPage() {
             onClick={() => setActiveTab("biodata")}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
-              activeTab === "biodata" ? "bg-emerald-600 text-white" : "text-slate-500 hover:bg-slate-50"
+              activeTab === "biodata" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
             )}
           >
             <User className="w-4 h-4" /> Biodata
@@ -159,6 +160,7 @@ export default function EmployeeDetailPage() {
       {canManageAccess && (
         <EmployeeAccessSheet employee={employee} open={accessSheetOpen} onOpenChange={setAccessSheetOpen} />
       )}
+      </div>
     </div>
   );
 }

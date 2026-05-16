@@ -54,7 +54,7 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
         <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Riwayat Penugasan</h3>
         {canWrite && (
           <Link href={`/surat-tugas/create?employee_id=${employeeId}`}>
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
                   <Plus className="w-4 h-4" />
                   Buat Surat Tugas
               </Button>
@@ -70,10 +70,10 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
       ) : (
         <div className="grid gap-3">
           {assignments.map((st) => (
-            <div key={st.id} className="group p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-emerald-500/50 transition-all shadow-sm">
+            <div key={st.id} className="group p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-blue-500/50 transition-all shadow-sm">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                  <p className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
                     {st.nomor_surat}
                   </p>
                   <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1">
@@ -91,7 +91,7 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
                   </div>
                 </div>
                 <Link href={`/surat-tugas/${st.id}`}>
-                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-emerald-500">
+                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-blue-500">
                         <ExternalLink className="w-4 h-4" />
                     </Button>
                 </Link>

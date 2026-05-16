@@ -130,7 +130,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
   ];
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="max-w-6xl mx-auto space-y-6">
       {/* Back */}
       <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Kembali ke Katalog
@@ -225,6 +226,10 @@ function AssetDetail({ assetId }: { assetId: string }) {
           </button>
         ))}
       </div>
+
+      {/* Asset Deletion Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      </Dialog>
 
       {/* Tab Content */}
       {activeTab === "identitas" && (
@@ -535,6 +540,7 @@ function HistoryTab({ updates }: { updates: HistoryUpdate[] }) {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

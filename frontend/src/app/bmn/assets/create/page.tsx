@@ -210,7 +210,8 @@ export default function BmnCreateAssetPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/bmn/assets" className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500">

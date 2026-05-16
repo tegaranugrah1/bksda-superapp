@@ -82,7 +82,7 @@ export default function ImportReviewPage() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8">
+    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Import Review</h1>

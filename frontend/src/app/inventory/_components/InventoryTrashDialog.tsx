@@ -96,7 +96,7 @@ export function InventoryTrashDialog({ onActionSuccess }: { onActionSuccess: () 
 
                 <div className="max-h-[400px] overflow-y-auto p-6">
                     {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-emerald-500">
+                        <div className="flex flex-col items-center justify-center py-12 text-orange-500">
                             <Loader2 className="w-8 h-8 animate-spin mb-2" />
                             <span className="text-zinc-500 text-sm">Membuka Tempat Sampah...</span>
                         </div>
@@ -123,7 +123,7 @@ export function InventoryTrashDialog({ onActionSuccess }: { onActionSuccess: () 
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => handleRestore(item.id)}
-                                            className="p-2 text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all"
+                                            className="p-2 text-zinc-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-lg transition-all"
                                             title="Pulihkan"
                                         >
                                             <RotateCcw className="w-5 h-5" />

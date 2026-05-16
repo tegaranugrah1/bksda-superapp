@@ -40,7 +40,7 @@ export default function BmnReportsPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
           <FileText className="w-6 h-6 text-emerald-500" /> Laporan

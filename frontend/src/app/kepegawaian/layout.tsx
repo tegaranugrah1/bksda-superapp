@@ -41,7 +41,7 @@ export default function KepegawaianLayout({
       {/* Tombol Floating Mobile Hamburger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-emerald-600 text-white shadow-2xl hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all duration-300"
+        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-blue-600 text-white shadow-2xl hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all duration-300"
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -60,14 +60,14 @@ export default function KepegawaianLayout({
           <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="font-bold text-lg text-zinc-900 dark:text-white">
                     Kepegawaian
                   </h2>
-                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                  <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-widest">
                     SDM & Employee
                   </p>
                 </div>
@@ -89,7 +89,7 @@ export default function KepegawaianLayout({
                   onClick={() => setIsOpen(false)}
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold"
+                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold"
                       : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white"
                   }`}
                 >
@@ -103,7 +103,7 @@ export default function KepegawaianLayout({
           {/* Footer */}
           <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/50">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
                 {user?.name?.charAt(0) || "U"}
               </div>
               <div className="flex-1 min-w-0">

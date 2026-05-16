@@ -98,7 +98,7 @@ export default function BmnDisposalPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">

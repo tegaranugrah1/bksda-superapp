@@ -87,21 +87,21 @@ export default function EmployeeCreatePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-4">
             <Link
                 href="/kepegawaian"
-                className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-emerald-600 transition-all shadow-sm"
+                className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-blue-600 transition-all shadow-sm"
             >
                 <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
                 <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 rounded-md bg-emerald-600 flex items-center justify-center text-white">
+                    <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center text-white">
                         <Users className="w-4 h-4" />
                     </div>
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Kepegawaian & SDM</h2>
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">Kepegawaian & SDM</h2>
                 </div>
                 <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Tambah Pegawai Baru</h1>
             </div>
@@ -109,13 +109,13 @@ export default function EmployeeCreatePage() {
       </div>
 
       {errorMsg && (
-        <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-semibold animate-in fade-in slide-in-from-top-2 shadow-sm flex items-start gap-3">
+        <div className="max-w-6xl mx-auto w-full p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-semibold animate-in fade-in slide-in-from-top-2 shadow-sm flex items-start gap-3">
           <X className="w-4 h-4 mt-0.5" />
           <div>{errorMsg}</div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col lg:flex-row relative">
+      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col lg:flex-row relative">
         <div className="lg:w-1/3 bg-zinc-50/50 dark:bg-zinc-950/50 p-10 border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-6">
              <div className="w-full text-center">
                 <h3 className="text-xs font-black text-zinc-900 dark:text-white mb-1 uppercase tracking-[0.2em]">Pas Foto</h3>
@@ -133,12 +133,12 @@ export default function EmployeeCreatePage() {
                 ) : (
                     <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="aspect-3/4 w-full max-w-[240px] mx-auto rounded-4xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-emerald-500 hover:bg-emerald-50/30 dark:hover:bg-emerald-500/5 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group"
+                        className="aspect-3/4 w-full max-w-[240px] mx-auto rounded-4xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-500/5 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group"
                     >
-                        <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                            <ImageIcon className="w-8 h-8 text-zinc-400 group-hover:text-emerald-600 transition-colors" />
+                        <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                            <ImageIcon className="w-8 h-8 text-zinc-400 group-hover:text-blue-600 transition-colors" />
                         </div>
-                        <span className="text-xs font-bold text-zinc-400 group-hover:text-emerald-600 transition-colors uppercase tracking-widest">Pilih Foto</span>
+                        <span className="text-xs font-bold text-zinc-400 group-hover:text-blue-600 transition-colors uppercase tracking-widest">Pilih Foto</span>
                     </div>
                 )}
 
@@ -161,7 +161,7 @@ export default function EmployeeCreatePage() {
                         <select
                             value={formData.is_active}
                             onChange={e => setFormData({...formData, is_active: e.target.value})}
-                            className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-bold text-sm appearance-none cursor-pointer"
+                            className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-sm appearance-none cursor-pointer"
                         >
                             <option value="1">🟢 Pegawai Aktif</option>
                             <option value="0">🔴 Non-Aktif</option>
@@ -213,7 +213,7 @@ function InputGroup({ label, value, onChange, placeholder, required = false }: I
                 type="text"
                 value={value}
                 onChange={e => onChange(e.target.value)}
-                className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-bold text-sm"
+                className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-sm"
                 placeholder={placeholder}
             />
         </div>

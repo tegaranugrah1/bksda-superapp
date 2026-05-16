@@ -51,7 +51,7 @@ export default function TransactionsHistoryPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-3">
-                        <History className="w-8 h-8 text-emerald-500" /> Buku Riwayat
+                        <History className="w-8 h-8 text-orange-500" /> Buku Riwayat
                         Mutasi
                     </h1>
                     <p className="text-zinc-500 dark:text-zinc-400 mt-2">
@@ -110,8 +110,8 @@ export default function TransactionsHistoryPage() {
             <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-lg dark:shadow-2xl relative">
                 {/* Indikator Refetch */}
                 {isFetching && !isLoading && (
-                    <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500/20 overflow-hidden">
-                        <div className="h-full bg-emerald-500 animate-pulse w-1/3 rounded-r-full"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-orange-500/20 overflow-hidden">
+                        <div className="h-full bg-orange-500 animate-pulse w-1/3 rounded-r-full"></div>
                     </div>
                 )}
 
@@ -141,7 +141,7 @@ export default function TransactionsHistoryPage() {
                                 <tr>
                                     <td
                                         colSpan={5}
-                                        className="p-10 text-center text-emerald-500"
+                                        className="p-10 text-center text-orange-500"
                                     >
                                         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                                         <span className="text-sm font-medium text-zinc-500">
@@ -163,7 +163,7 @@ export default function TransactionsHistoryPage() {
                                 response?.data?.map((tx) => (
                                     <tr
                                         key={tx.id}
-                                        className="hover:bg-zinc-50 dark:hover:bg-emerald-500/5 transition-colors"
+                                        className="hover:bg-zinc-50 dark:hover:bg-orange-500/5 transition-colors"
                                     >
                                         <td className="p-4">
                                             <p className="font-mono text-sm text-zinc-800 dark:text-zinc-300">

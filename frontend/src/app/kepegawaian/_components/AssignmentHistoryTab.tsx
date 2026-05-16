@@ -110,7 +110,7 @@ export function AssignmentHistoryTab() {
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 w-full sm:w-auto justify-center ${
                         isTrashMode
                             ? "bg-red-500/10 text-red-600 border border-red-200 shadow-sm"
-                            : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+                            : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400"
                     }`}
                 >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -213,7 +213,7 @@ export function AssignmentHistoryTab() {
                                                 {isTrashMode && (
                                                     <button
                                                         onClick={() => restoreMutation.mutate(item.id)}
-                                                        className="p-2 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-all"
+                                                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all"
                                                         title="Pulihkan"
                                                     >
                                                         <RefreshCcw className="w-4 h-4" />

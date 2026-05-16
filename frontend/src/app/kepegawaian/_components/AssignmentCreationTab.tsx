@@ -98,7 +98,7 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                 <div className="space-y-6">
                     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm space-y-5">
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
                                 <FileText className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Detail Kegiatan</h3>
@@ -108,7 +108,7 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                             <div>
                                 <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">Maksud / Tujuan Penugasan</label>
                                 <textarea
-                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all min-h-[100px] resize-none"
+                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all min-h-[100px] resize-none"
                                     placeholder="Contoh: Melakukan koordinasi terkait pengelolaan kawasan konservasi..."
                                     value={maksud_tujuan}
                                     onChange={(e) => setMaksudTujuan(e.target.value)}
@@ -120,7 +120,7 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                                 <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">Dasar Hukum (Opsional)</label>
                                 <input
                                     type="text"
-                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                     placeholder="Nomor SK atau peraturan terkait"
                                     value={dasar_hukum}
                                     onChange={(e) => setDasarHukum(e.target.value)}
@@ -134,7 +134,7 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                                         <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
                                         <input
                                             type="date"
-                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-11 pr-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-11 pr-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                             value={tanggal_mulai}
                                             onChange={(e) => setTanggalMulai(e.target.value)}
                                             required
@@ -147,7 +147,7 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                                         <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
                                         <input
                                             type="date"
-                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-11 pr-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-11 pr-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                             value={tanggal_selesai}
                                             onChange={(e) => setTanggalSelesai(e.target.value)}
                                             required
@@ -162,7 +162,7 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
                                     <input
                                         type="text"
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-11 pr-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-11 pr-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                         placeholder="Lokasi pelaksanaan tugas"
                                         value={tempat_tujuan}
                                         onChange={(e) => setTempatTujuan(e.target.value)}
@@ -227,9 +227,9 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                                 </div>
                             ) : (
                                 personil.map((p) => (
-                                    <div key={p.id} className="group flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-2xl hover:border-emerald-500/30 transition-all">
+                                    <div key={p.id} className="group flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-2xl hover:border-blue-500/30 transition-all">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+                                            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
                                                 {p.nama_lengkap.charAt(0)}
                                             </div>
                                             <div>
@@ -239,7 +239,7 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <select
-                                                className="bg-transparent text-[10px] font-black uppercase tracking-widest text-emerald-600 outline-none cursor-pointer"
+                                                className="bg-transparent text-[10px] font-black uppercase tracking-widest text-blue-600 outline-none cursor-pointer"
                                                 value={p.peran}
                                                 onChange={(e) => updatePeran(p.id, e.target.value)}
                                             >
@@ -264,7 +264,7 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
                             <button
                                 type="submit"
                                 disabled={!isValid || isSubmitting}
-                                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-200 dark:disabled:bg-zinc-800 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/40 flex items-center justify-center gap-2 group"
+                                className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-200 dark:disabled:bg-zinc-800 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 flex items-center justify-center gap-2 group"
                             >
                                 {isSubmitting ? (
                                     "Memproses..."

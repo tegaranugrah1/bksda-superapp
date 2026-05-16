@@ -119,11 +119,11 @@ export default function StockOutPage() {
             </div>
 
             {isSuccess && (
-                <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-3 text-emerald-400 animate-in fade-in duration-300">
+                <div className="mb-6 p-4 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-center gap-3 text-orange-400 animate-in fade-in duration-300">
                     <CheckCircle2 className="w-6 h-6" />
                     <div>
                         <p className="font-bold">Distribusi Sah!</p>
-                        <p className="text-sm text-emerald-500/80">
+                        <p className="text-sm text-orange-500/80">
                             Barang telah berhasil berpindah tangan dan saldo sistem sukses
                             dipotong.
                         </p>

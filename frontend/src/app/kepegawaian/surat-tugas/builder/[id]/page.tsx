@@ -693,7 +693,7 @@ export default function STBuilderPage() {
           </FormSection>
 
           <FormSection title="Tembusan" action={
-            <button onClick={() => setTembusanItems([...tembusanItems, ""])} className="text-emerald-600 hover:text-emerald-700">
+            <button onClick={() => setTembusanItems([...tembusanItems, ""])} className="text-blue-600 hover:text-blue-700">
               <Plus className="w-3.5 h-3.5" />
             </button>
           }>

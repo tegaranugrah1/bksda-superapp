@@ -69,13 +69,13 @@ export function InventoryImportDialog({ onImportSuccess }: InventoryImportDialog
           variant="outline"
           className="flex items-center gap-2 bg-zinc-950 border-zinc-800 hover:bg-zinc-900 text-zinc-300 hover:text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg"
         >
-          <Upload className="w-4 h-4 text-emerald-500" /> Impor Excel
+          <Upload className="w-4 h-4 text-orange-500" /> Impor Excel
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-black flex items-center gap-2">
-            <Upload className="w-5 h-5 text-emerald-500" /> Impor Katalog
+            <Upload className="w-5 h-5 text-orange-500" /> Impor Katalog
           </DialogTitle>
           <DialogDescription className="text-zinc-400">
             Unggah file Excel untuk mendaftarkan Master Barang secara massal.
@@ -92,7 +92,7 @@ export function InventoryImportDialog({ onImportSuccess }: InventoryImportDialog
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={handleFileChange}
-              className="bg-zinc-900 border-zinc-800 focus:border-emerald-500 transition-all cursor-pointer file:text-emerald-500 file:font-bold file:mr-4"
+              className="bg-zinc-900 border-zinc-800 focus:border-orange-500 transition-all cursor-pointer file:text-orange-500 file:font-bold file:mr-4"
             />
           </div>
 
@@ -111,7 +111,7 @@ export function InventoryImportDialog({ onImportSuccess }: InventoryImportDialog
             type="submit"
             onClick={handleUpload}
             disabled={isUploading || !file}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl py-6 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+            className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl py-6 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
           >
             {isUploading ? (
               <>
