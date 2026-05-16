@@ -54,11 +54,12 @@ export function EmployeeSelect({
 
     api
       .get("/kepegawaian/employees/select", {
-        params: { search: debouncedSearch },
+        params: { q: debouncedSearch },
         signal: controller.signal,
       })
       .then((response) => {
-        setEmployees(response.data);
+        const result = response.data?.data ?? response.data;
+        setEmployees(Array.isArray(result) ? result : []);
       })
       .catch((error) => {
         console.error("Failed to fetch employees:", error);
