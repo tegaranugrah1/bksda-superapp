@@ -24,6 +24,91 @@ use Illuminate\Http\Request;
 class PublicController extends Controller
 {
     // ──────────────────────────────────────────────
+    // HOMEPAGE AGGREGATE
+    // ──────────────────────────────────────────────
+
+    /**
+     * GET /api/cms/public/home
+     * Seluruh data homepage dalam satu request (mengurangi round-trip)
+     */
+    public function home()
+    {
+        // 5 Berita Terbaru (juga jadi banner carousel)
+        $news = Informasi::published()
+            ->with('category:id,nama,slug')
+            ->select(['id', 'category_id', 'judul', 'slug', 'thumbnail_path', 'published_at', 'views_count'])
+            ->latest('published_at')
+            ->limit(5)
+            ->get();
+
+        // TSL Unggulan (6 terbaru)
+        $tsls = Tsl::where('is_published', true)
+            ->select(['id', 'nama_lokal', 'nama_latin', 'slug', 'thumbnail_path', 'deskripsi', 'status_iucn', 'tipe'])
+            ->limit(6)
+            ->get();
+
+        // Kawasan Konservasi (semua)
+        $kawasans = Kawasan::where('is_published', true)
+            ->select(['id', 'nama', 'slug', 'thumbnail_path', 'tipe_kawasan', 'luas_ha'])
+            ->orderBy('nama')
+            ->get();
+
+        // Galeri Foto (8 terbaru — untuk marquee)
+        $photos = Photo::where('is_published', true)
+            ->select(['id', 'judul', 'file_path'])
+            ->latest()
+            ->limit(8)
+            ->get();
+
+        // Video (5 terbaru — untuk carousel YouTube)
+        $videos = Video::where('is_published', true)
+            ->select(['id', 'judul', 'youtube_url', 'thumbnail_path'])
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        // Profil (untuk section "Tentang Kami")
+        $profil = Profil::where('is_published', true)
+            ->orderBy('urutan')
+            ->first(['id', 'judul', 'slug', 'konten', 'thumbnail_path']);
+
+        // Kepala Balai (yang aktif)
+        $kepala = Kepala::active()->first(['id', 'nama', 'nip', 'jabatan', 'foto_path', 'sambutan']);
+
+        // Website settings (logo, alamat, sosmed)
+        $website = Website::first();
+
+        return response()->json([
+            'banners' => $news->take(3),   // 3 berita terbaru jadi hero banner
+            'news' => $news,
+            'tsls' => $tsls,
+            'kawasans' => $kawasans,
+            'photos' => $photos,
+            'videos' => $videos,
+            'profil' => $profil,
+            'kepala' => $kepala,
+            'website' => $website,
+        ]);
+    }
+
+    // ──────────────────────────────────────────────
+    // HALAMAN CMS GENERIK (Sejarah, Organisasi, dll)
+    // ──────────────────────────────────────────────
+
+    /**
+     * GET /api/cms/public/page/{slug}
+     * Render halaman CMS berdasarkan slug profil
+     */
+    public function pageShow(string $slug)
+    {
+        $data = Profil::where('is_published', true)
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        return response()->json(['data' => $data]);
+    }
+
+    // ──────────────────────────────────────────────
     // WEBSITE SETTINGS & NAVIGASI
     // ──────────────────────────────────────────────
 

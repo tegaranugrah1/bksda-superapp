@@ -60,8 +60,21 @@ git push origin main
 | **Issue Selanjutnya** | Preparation for Production / Server Deployments |
 | **Branch Aktif** | `feature/module-themes` |
 | **Commit Terakhir** | (Optimized Portal Asset & ST Security) |
-| **Model Terakhir** | Gemini 3.5 Flash (Antigravity) |
-| **Timestamp** | 2026-05-16T14:40:00+08:00 |
+| **Model Terakhir** | Claude Opus 4.6 (Kiro) |
+| **Timestamp** | 2026-05-16T21:00:00+08:00 |
+
+---
+
+## ⚠️ FITUR YANG DIMATIKAN SEMENTARA
+
+### Google Sheets Sync (Surat Tugas) — DISABLED
+- **File**: `backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php`
+- **Apa yang dimatikan**:
+  1. `appendSuratTugas()` — saat pegawai submit ST baru, data TIDAK lagi dikirim ke Google Sheets.
+  2. `updateSuratTugas()` — saat admin approve/update status ST, data TIDAK lagi di-sync ke Google Sheets.
+- **Alasan**: Dimatikan sementara atas permintaan user (belum dibutuhkan / menghindari error saat dev).
+- **Cara mengaktifkan kembali**: Uncomment kedua blok yang ditandai `[DISABLED] Google Sheets` di file controller di atas.
+- **Service file masih ada**: `backend/app/Services/GoogleSheetsService.php` (tidak dihapus, hanya tidak dipanggil).
 
 ---
 

@@ -51,29 +51,17 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      axios
-        .get(`${API}/cms/public/informasi/terbaru`)
-        .then((r) => r.data?.data || [])
-        .catch(() => []),
-      axios
-        .get(`${API}/cms/public/kawasan`)
-        .then((r) => (r.data?.data || []).slice(0, 3))
-        .catch(() => []),
-      axios
-        .get(`${API}/cms/public/tsl?per_page=6`)
-        .then((r) => r.data?.data?.data || r.data?.data || [])
-        .catch(() => []),
-      axios
-        .get(`${API}/cms/public/kepala`)
-        .then((r) => r.data?.data)
-        .catch(() => null),
-    ])
-      .then(([b, k, t, kp]) => {
-        setBerita(b);
-        setKawasan(k);
-        setTsl(t);
-        setKepala(kp);
+    axios
+      .get(`${API}/cms/public/home`)
+      .then((res) => {
+        const data = res.data;
+        setBerita(data.news || []);
+        setKawasan((data.kawasans || []).slice(0, 3));
+        setTsl((data.tsls || []).slice(0, 6));
+        setKepala(data.kepala || null);
+      })
+      .catch(() => {
+        // Fallback: API belum siap
       })
       .finally(() => setLoading(false));
   }, []);
