@@ -1,3 +1,45 @@
+# Progress - Phase 35: Public Website & CMS Upgrade
+
+> Document updated: 2026-05-16
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 35: Public Website & CMS Upgrade
+
+### Completed:
+- [x] **Backend Public API**: Added `/api/cms/public/home` aggregate endpoint + `/api/cms/public/page/{slug}` generic page renderer (PR #307)
+- [x] **Homepage Premium Design**: Replicated superapp-inventory design — banner carousel, profil section, TSL tabs, video carousel, photo marquee, news grid (PR #308, #310)
+- [x] **Public Pages**: Created `/profil` hub page + `/page/[slug]` CMS page renderer (PR #309)
+- [x] **PublicLayout Component**: Full header (top bar + sticky nav + search + CTA), mobile drawer, 4-column footer, WhatsApp float
+- [x] **Hardcoded Navbar**: Menu items without menu management dependency
+- [x] **Static Assets**: Copied Bootstrap CSS, style.css, responsive.css, flaticon, Font Awesome, theme images from superapp-inventory
+- [x] **CMS Editor Fix**: Replaced `react-quill` → `react-quill-new` (React 19 `findDOMNode` error)
+- [x] **Editor Toolbar**: Added justify alignment (`{ align: [] }`)
+- [x] **Editor Light/Dark Mode**: Proper dual-mode styling for all form elements
+- [x] **Edit Page Data Loading**: Fixed API response unwrap (`res.data.data`)
+- [x] **File Upload Fix**: Changed from `private` disk → `public` disk for accessible URLs
+- [x] **Removed Urutan Field**: From Profil, Links, Categories forms
+- [x] **Toast Confirmations**: Replaced all `window.confirm()` with sonner toast action
+- [x] **Dialog Modal**: Changed CrudFormDrawer from sidebar to centered dialog
+- [x] **Google Sheets Disabled**: Temporarily commented out in ST controller
+- [x] **Portal TS Fix**: Fixed pre-existing string/number id comparison error
+
+### PRs Merged:
+- PR #307: Backend public API endpoints
+- PR #308: Homepage upgrade (carousel, TSL, video, marquee)
+- PR #309: /profil + /page/[slug] pages
+- PR #310: Premium design (Bootstrap theme, PublicLayout, full homepage)
+
+### Next Steps:
+- [ ] Style sub-pages (/informasi, /kawasan, /tsl, /galeri) to match superapp-inventory
+- [ ] Contact form integration on /hubungi-kami
+- [ ] CMS Website settings — populate logo, alamat, sosmed
+- [ ] Seed initial CMS content (profil, kawasan, TSL)
+- [ ] Deployment preparation
+
+---
+
 # Progress - Phase 34: Data Security & Linting Finalization
 
 > Document updated: 2026-05-16

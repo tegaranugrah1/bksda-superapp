@@ -56,12 +56,12 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 34: Portal Dashboard Refinement & Data Integrity (✅ DONE) |
-| **Issue Selanjutnya** | Preparation for Production / Server Deployments |
-| **Branch Aktif** | `feature/module-themes` |
-| **Commit Terakhir** | (Optimized Portal Asset & ST Security) |
+| **Issue Terakhir Selesai** | Phase 35: Public Website & CMS Upgrade (✅ DONE) |
+| **Issue Selanjutnya** | CMS content population, public page polish, sub-page styling |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir** | fix(cms): change form drawer to centered dialog modal |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-16T21:00:00+08:00 |
+| **Timestamp** | 2026-05-16T22:30:00+08:00 |
 
 ---
 
@@ -77,6 +77,74 @@ git push origin main
 - **Service file masih ada**: `backend/app/Services/GoogleSheetsService.php` (tidak dihapus, hanya tidak dipanggil).
 
 ---
+
+**UPDATE SESI KIRO (2026-05-16 Malam - Phase 35: Public Website & CMS Upgrade):**
+- **Objective**: Build public-facing website for bksda-superapp matching superapp-inventory design, fix CMS admin issues.
+- **Accomplishments**:
+  - **Backend Public API**:
+    - Added `GET /api/cms/public/home` — aggregate homepage endpoint (banners, news, tsls, kawasans, photos, videos, profil, kepala, website)
+    - Added `GET /api/cms/public/page/{slug}` — generic CMS page renderer for profil pages (sejarah, organisasi, kepala-balai)
+    - PR #307 ✅ MERGED
+  - **Homepage Premium Design** (matching superapp-inventory):
+    - Full-screen banner carousel (90vh, auto-rotate 6s, CSS animations)
+    - Profil section with Bootstrap grid
+    - TSL tabbed wildlife gallery (circular thumbnails)
+    - YouTube video carousel with thumbnail navigation
+    - Photo marquee gallery (infinite horizontal scroll)
+    - News grid (headline + sidebar layout with gold accent)
+    - Kepala Balai sambutan section
+    - Static assets copied (Bootstrap CSS, style.css, responsive.css, flaticon, Font Awesome, images)
+    - PR #308 ✅ MERGED, PR #310 ✅ MERGED
+  - **Public Pages**:
+    - `/profil` — Hub page with 3 cards (Sejarah, Organisasi, Kepala Balai)
+    - `/page/[slug]` — Generic CMS page renderer with prose styling + breadcrumbs
+    - PR #309 ✅ MERGED
+  - **PublicLayout Component** (`src/components/layout/PublicLayout.tsx`):
+    - Full header: top bar (alamat, jam, telepon, sosmed) + sticky navigation + search + CTA
+    - Mobile drawer menu with accordion sub-items
+    - 4-column dark footer with gold accent, WhatsApp float
+    - Hardcoded menu (tidak pakai menu management)
+  - **Navbar Hardcoded** — Menu items: Beranda, Profil (dropdown: Sejarah, Organisasi, Kepala Balai), TSL, Kawasan, Informasi, Galeri, Publikasi
+  - **CMS Admin Fixes**:
+    - Replaced `react-quill` with `react-quill-new` (React 19 compatibility — `findDOMNode` error fixed)
+    - Added justify alignment to Quill toolbar (`{ align: [] }`)
+    - Fixed editor light/dark mode styling
+    - Fixed edit page not loading data (unwrap API response `res.data.data`)
+    - Fixed file upload: changed from `private` disk to `public` disk (`storage/app/public/cms/`)
+    - Created `.env.local` with `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_STORAGE_URL`
+    - Removed "Urutan" field from Profil, Links, Categories pages
+    - Replaced all `window.confirm()` with toast confirmation (sonner)
+    - Changed CrudFormDrawer from sidebar slide to **centered dialog modal**
+    - Fixed textarea dark-mode-only styling to dual-mode
+  - **Pre-existing Fix**: Portal page TypeScript error (string vs number id comparison)
+  - **Google Sheets Sync**: Disabled temporarily in AssignmentLetterController
+- **Key Files Created/Modified**:
+  - `backend/app/Modules/CMS/Controllers/Public/PublicController.php` — 2 new methods (home, pageShow)
+  - `backend/app/Modules/CMS/Routes/public.php` — 2 new routes
+  - `backend/app/Modules/CMS/Traits/AdminCrudTrait.php` — public disk upload
+  - `frontend/src/components/layout/PublicLayout.tsx` — NEW (full layout component)
+  - `frontend/src/app/page.tsx` — REWRITE (premium homepage)
+  - `frontend/src/app/(publik)/layout.tsx` — uses PublicLayout
+  - `frontend/src/app/(publik)/profil/page.tsx` — NEW
+  - `frontend/src/app/(publik)/page/[slug]/page.tsx` — NEW
+  - `frontend/src/app/(publik)/_components/PublicNavbar.tsx` — hardcoded menu
+  - `frontend/src/app/cms/_components/CrudFormDrawer.tsx` — dialog modal
+  - `frontend/src/app/cms/_components/CrudPageFactory.tsx` — toast confirm
+  - `frontend/src/app/cms/informasi/create/page.tsx` — Quill upgrade + light mode
+  - `frontend/src/app/cms/informasi/[id]/page.tsx` — Quill upgrade + data fix
+  - `frontend/src/app/cms/informasi/page.tsx` — toast confirm
+  - `frontend/src/app/cms/profil/page.tsx` — removed urutan
+  - `frontend/src/app/cms/links/page.tsx` — removed urutan
+  - `frontend/src/app/cms/categories/page.tsx` — removed urutan
+  - `frontend/public/assets/` — CSS, fonts, images (from superapp-inventory)
+- **GitHub PRs**: #307, #308, #309, #310 ✅ ALL MERGED
+- **Next Steps**:
+  - [ ] Style sub-pages (informasi, kawasan, tsl, galeri, publikasi) to match superapp-inventory design
+  - [ ] Public page `/hubungi-kami` — contact form integration
+  - [ ] CMS: Website settings page (logo, alamat, sosmed) — populate data
+  - [ ] CMS: Seed initial content (profil sejarah/organisasi, kawasan, TSL, dll)
+  - [ ] Fix public sub-pages to use PublicLayout (currently some use old PublicNavbar/Footer)
+  - [ ] Deployment preparation
 
 **UPDATE SESI ANTIGRAVITY (2026-05-16 Sore - Phase 34: Portal Dashboard Refinement & Data Integrity):**
 - **Objective**: Refine the BKSDA SuperApp Portal dashboard to ensure accurate asset tracking, data security for Surat Tugas, and a polished user experience.
