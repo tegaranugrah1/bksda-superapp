@@ -201,15 +201,16 @@ export default function LoanCreatePage() {
                                                     <div key={asset.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                                         <div className="flex items-center gap-4">
                                                             <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">{idx + 1}</div>
-                                                            <div>
-                                                                <p className="font-bold text-slate-900">{asset.nama_barang}</p>
-                                                                {(asset.merk || asset.merk_tipe) && <p className="text-[11px] text-slate-600">{asset.merk_tipe || asset.merk}</p>}
-                                                                <p className="text-xs text-slate-500">
-                                                                    NUP: {asset.nup}{asset.nup_lama ? ` (Lama: ${asset.nup_lama})` : ''} | Kode: {asset.kode_barang}
-                                                                    {asset.no_polisi ? ` | No.Pol: ${asset.no_polisi}` : ''}
-                                                                    {asset.pengguna ? ` | 👤 ${asset.pengguna}` : ''}
-                                                                </p>
-                                                                {asset.lokasi_ruang && <p className="text-[10px] text-slate-400">📍 {asset.lokasi_ruang}</p>}
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-bold text-slate-900 truncate">{asset.nama_barang}</p>
+                                                                {(asset.merk || asset.merk_tipe) && <p className="text-[11px] text-slate-500 truncate">{asset.merk_tipe || asset.merk}</p>}
+                                                                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-1.5">
+                                                                    <div className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50">{asset.kode_barang}</div>
+                                                                    <div className="text-[10px] text-slate-500 font-mono">NUP: <span className="font-bold text-slate-700">{asset.nup}</span>{asset.nup_lama && <span className="text-slate-400 font-normal"> (Lama: {asset.nup_lama})</span>}</div>
+                                                                    {asset.no_polisi && <div className="text-[10px] text-blue-600 font-medium">🚗 {asset.no_polisi}</div>}
+                                                                    {asset.pengguna && <div className="text-[10px] text-slate-600">👤 {asset.pengguna}</div>}
+                                                                    {asset.lokasi_ruang && <div className="text-[10px] text-slate-400">📍 {asset.lokasi_ruang}</div>}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-600" onClick={() => setSelectedAssets(selectedAssets.filter(a => a.id !== asset.id))}><X className="w-4 h-4" /></Button>
