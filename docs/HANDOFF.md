@@ -56,13 +56,13 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 30: BMN Dashboard Charts + Export Filtered + Riwayat + Verifikasi + Foto Rename (✅ DONE - PR #299-302 + hotfixes) |
-| **Issue Selanjutnya** | Bulk edit, mobile responsive, QoL improvements |
+| **Issue Terakhir Selesai** | Phase 30: BMN Full Enhancement (✅ DONE - PR #293-302 + hotfixes) |
+| **Issue Selanjutnya** | Mobile responsive, QoL, module-specific improvements |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | `e399969` - feat(bmn): show pengguna below lokasi in table |
+| **Commit Terakhir** | `06f004c` - feat(bmn): editable kondisi select + bulk update kondisi |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-13T19:00:00+08:00 |
-| **GitHub Issues** | #289 (BMN upgrade), #291 (create page) |
+| **Timestamp** | 2026-05-13T20:00:00+08:00 |
+| **GitHub Issues** | #293-302 (BMN + ST enhancements) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 
 ---
@@ -166,9 +166,10 @@ git push origin main
   - [x] ~~Multi-page testing (surat panjang)~~ ✅ PR #297
   - [x] ~~Signature integration~~ ❌ DROPPED (lewat aplikasi lain)
   - [x] ~~Apply RBAC to Inventory, DeReporting, CMS~~ ✅ PR #298
-  - [ ] Bulk edit (select beberapa aset → update field sekaligus)
-  - [ ] Mobile responsive sidebar
-  - [ ] QoL improvements
+  - [x] ~~Bulk edit kondisi~~ ✅ Done
+  - [ ] Mobile responsive sidebar (semua modul)
+  - [ ] Inventory module improvements
+  - [ ] DeReporting module improvements
 
 ---
 

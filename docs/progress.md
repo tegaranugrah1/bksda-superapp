@@ -27,6 +27,8 @@
 - [x] **Disposal pagination**: tambah opsi "Semua"
 - [x] **Reset filter**: termasuk kondisi + search
 - [x] **Confirm dialogs**: semua pakai useConfirm (bukan window.confirm)
+- [x] **Kondisi editable**: dropdown select di detail page (Baik/Rusak Ringan/Rusak Berat)
+- [x] **Bulk update kondisi**: select beberapa aset → ubah kondisi sekaligus + riwayat tercatat
 
 ### Files Modified (key):
 - `backend/app/Modules/Bmn/Controllers/DashboardController.php` — charts data
@@ -48,8 +50,9 @@
 - `frontend/src/app/bmn/disposal/page.tsx` — pagination "Semua"
 
 ### Next Steps (TODO):
-- [ ] Bulk edit (select beberapa aset → update lokasi/kondisi/pengguna sekaligus)
-- [ ] Mobile responsive sidebar
+- [ ] Mobile responsive sidebar (semua modul)
+- [ ] Inventory module improvements
+- [ ] DeReporting module improvements
 - [ ] Import: handle foto_geotag_url mapping dari Excel header "Foto Ber-geotag"
 
 ---
