@@ -11,6 +11,7 @@ import {
   Download, Eye, Users, ClipboardList, Building2,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -143,31 +144,31 @@ export default function PersonalDashboard() {
 
   const moduleCards = useMemo(() => {
     const all: { key: string; href: string; label: string; desc: string; icon: React.ReactNode; color: string; bg: string }[] = [
-      { key: "kepegawaian", href: "/kepegawaian", label: "Kepegawaian", desc: "Surat Tugas & SDM", icon: <Users className="w-6 h-6" />, color: "text-violet-600", bg: "bg-violet-50" },
-      { key: "bmn", href: "/bmn", label: "BMN", desc: "Barang Milik Negara", icon: <Package className="w-6 h-6" />, color: "text-blue-600", bg: "bg-blue-50" },
-      { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: <Boxes className="w-6 h-6" />, color: "text-orange-600", bg: "bg-orange-50" },
-      { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: <FileText className="w-6 h-6" />, color: "text-emerald-600", bg: "bg-emerald-50" },
-      { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: <LayoutGrid className="w-6 h-6" />, color: "text-indigo-600", bg: "bg-indigo-50" },
+      { key: "kepegawaian", href: "/kepegawaian", label: "Kepegawaian", desc: "Surat Tugas & SDM", icon: <Users className="w-6 h-6" />, color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-500/10" },
+      { key: "bmn", href: "/bmn", label: "BMN", desc: "Barang Milik Negara", icon: <Package className="w-6 h-6" />, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-500/10" },
+      { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: <Boxes className="w-6 h-6" />, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-500/10" },
+      { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: <FileText className="w-6 h-6" />, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+      { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: <LayoutGrid className="w-6 h-6" />, color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-500/10" },
     ];
     return all.filter(m => modules.includes(m.key));
   }, [modules]);
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50">
         <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-200/50 mb-4">
           <Sparkles className="h-6 w-6 text-white animate-pulse" />
         </div>
         <Loader2 className="h-5 w-5 animate-spin text-emerald-500 mb-2" />
-        <p className="text-slate-500 text-sm font-medium">Memuat dashboard...</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Memuat dashboard...</p>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50">
-        <p className="text-slate-700 font-bold mb-3">{fetchError || "Gagal memuat data"}</p>
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50">
+        <p className="text-slate-700 dark:text-slate-300 font-bold mb-3">{fetchError || "Gagal memuat data"}</p>
         <Button onClick={fetchDashboard}>Coba Lagi</Button>
       </div>
     );
@@ -185,22 +186,23 @@ export default function PersonalDashboard() {
 
   return (
     <RouteGuard>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900/50">
         {/* Header */}
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60">
+        <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-white shadow-sm border border-slate-100 rounded-xl">
+              <div className="p-1.5 bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800/50 rounded-xl">
                 <Image src="/logo_bksda.png" alt="Logo" width={32} height={32} className="w-8 h-8 object-contain" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-sm font-black text-slate-900 leading-none">BKSDA Kaltim</h1>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">SuperApp Portal</p>
+                <h1 className="text-sm font-black text-slate-900 dark:text-slate-100 leading-none">BKSDA Kaltim</h1>
+                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">SuperApp Portal</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button className="relative p-2 rounded-xl hover:bg-slate-100 transition-colors">
-                <Bell className="w-5 h-5 text-slate-500" />
+              <ThemeToggle />
+              <button className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <Bell className="w-5 h-5 text-slate-500 dark:text-slate-400" />
               </button>
               <button 
                 onClick={() => setMobileProfileOpen(true)}
@@ -208,16 +210,16 @@ export default function PersonalDashboard() {
               >
                 {data.user.name.charAt(0)}
               </button>
-              <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-slate-200">
+              <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-800">
                 <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
                   {data.user.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-800 leading-tight">{data.user.name}</p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-tight">{data.user.name}</p>
                   <p className="text-[10px] text-slate-400">{data.employee?.position || data.user.role}</p>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-red-500 hover:bg-red-50">
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -235,38 +237,38 @@ export default function PersonalDashboard() {
 
           {/* Sidebar Profile */}
           <aside className={cn(
-            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-[280px] sm:w-[320px] lg:w-[280px] bg-slate-50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
+            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-[280px] sm:w-[320px] lg:w-[280px] bg-slate-50 dark:bg-slate-900/50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
             mobileProfileOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
           )}>
-            <div className="bg-white rounded-2xl border border-slate-200/60 p-6 text-center relative">
-              <button onClick={openEditDialog} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors" title="Edit Profil">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-6 text-center relative">
+              <button onClick={openEditDialog} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-emerald-600 transition-colors" title="Edit Profil">
                 <Pencil className="w-3.5 h-3.5" />
               </button>
               <div className="w-20 h-20 rounded-full bg-emerald-600 mx-auto flex items-center justify-center text-white text-2xl font-black mb-3">
                 {data.user.name.charAt(0)}
               </div>
-              <div className={cn("inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full mb-2", isActive ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500")}>
+              <div className={cn("inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full mb-2", isActive ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600" : "bg-slate-100 text-slate-500 dark:text-slate-400")}>
                 <BadgeCheck className="w-3 h-3" /> {isActive ? "Aktif" : "Nonaktif"}
               </div>
-              <h2 className="text-base font-bold text-slate-900">{data.employee?.name || data.user.name}</h2>
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{data.employee?.name || data.user.name}</h2>
               <p className="text-xs text-slate-400 mb-1">NIP {data.employee?.nip || data.user.username}</p>
-              <Badge className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border-none">
+              <Badge className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-none">
                 {data.user.role === "super_admin" ? "Super Admin" : data.user.role === "admin" ? "Administrator" : "Pegawai"}
               </Badge>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/60 p-4 space-y-2">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-4 space-y-2">
               {[
                 { icon: <Fingerprint className="w-4 h-4" />, label: "Jabatan", value: data.employee?.position || "-", color: "text-emerald-500" },
                 { icon: <Building2 className="w-4 h-4" />, label: "Unit Kerja", value: data.employee?.department || "-", color: "text-blue-500" },
                 { icon: <Mail className="w-4 h-4" />, label: "Email", value: data.employee?.email || data.user.email || "-", color: "text-rose-500" },
                 { icon: <Phone className="w-4 h-4" />, label: "Telepon", value: data.employee?.phone || "-", color: "text-teal-500" },
               ].map((item) => (
-                <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+                <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50 transition-colors">
                   <div className={cn("shrink-0", item.color)}>{item.icon}</div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{item.label}</p>
-                    <p className="text-xs font-semibold text-slate-700 truncate">{item.value}</p>
+                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
                   </div>
                 </div>
               ))}
@@ -312,14 +314,14 @@ export default function PersonalDashboard() {
             {/* Module Grid */}
             {moduleCards.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold text-slate-900 mb-3">Modul Akses</h3>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Modul Akses</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   {moduleCards.map((mod) => (
-                    <Link key={mod.key} href={mod.href} className="group bg-white rounded-xl border border-slate-200/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
+                    <Link key={mod.key} href={mod.href} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
                       <div className={cn("w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2", mod.bg, mod.color)}>
                         {mod.icon}
                       </div>
-                      <p className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 transition-colors">{mod.label}</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{mod.label}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{mod.desc}</p>
                     </Link>
                   ))}
@@ -329,19 +331,19 @@ export default function PersonalDashboard() {
 
             {/* Tabs Section */}
             <div>
-              <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-1 bg-white rounded-xl border border-slate-200/60 p-1 mb-4">
+              <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-1 mb-4">
                 {tabs.map((tab) => (
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
-                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50"
                     )}
                   >
                     {tab.icon} {tab.label}
                     {tab.count !== undefined && tab.count > 0 && (
-                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-bold", activeTab === tab.key ? "bg-white/20" : "bg-slate-100")}>{tab.count}</span>
+                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-bold", activeTab === tab.key ? "bg-white/20" : "bg-slate-100 dark:bg-zinc-700")}>{tab.count}</span>
                     )}
                   </button>
                 ))}
@@ -349,21 +351,21 @@ export default function PersonalDashboard() {
 
               {/* Tab: Pinjaman Aktif */}
               {activeTab === "pinjaman" && (
-                <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
                   {data.my_assets.length === 0 ? (
                     <div className="p-12 text-center">
                       <Package className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-                      <p className="text-sm text-slate-500">Tidak ada pinjaman aktif</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Tidak ada pinjaman aktif</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-slate-100 dark:divide-zinc-800">
                       {data.my_assets.map((asset) => (
-                        <div key={asset.id} className="p-4 hover:bg-slate-50/50 transition-colors flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <div key={asset.id} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
                             <Package className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 truncate">{asset.nama_barang}</p>
+                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
                             <p className="text-xs text-slate-400">{asset.kode_barang} • NUP {asset.nup}</p>
                           </div>
                           <Badge variant={new Date(asset.due_date) < new Date() ? "destructive" : "secondary"} className="shrink-0">
@@ -378,15 +380,15 @@ export default function PersonalDashboard() {
 
               {/* Tab: Aset Saya */}
               {activeTab === "aset" && (
-                <div className="bg-white rounded-2xl border border-slate-200/60 p-12 text-center">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-12 text-center">
                   <Briefcase className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-                  <p className="text-sm text-slate-500">Data aset Anda akan muncul di sini</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Data aset Anda akan muncul di sini</p>
                 </div>
               )}
 
               {/* Tab: Surat Tugas */}
               {activeTab === "surat_tugas" && (
-                <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
                   {stLoading ? (
                     <div className="p-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
@@ -395,30 +397,30 @@ export default function PersonalDashboard() {
                   ) : suratTugas.length === 0 ? (
                     <div className="p-12 text-center">
                       <ClipboardList className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-                      <p className="text-sm text-slate-500">Belum ada surat tugas yang diterbitkan</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada surat tugas yang diterbitkan</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-slate-100 dark:divide-zinc-800">
                       {suratTugas.map((st) => (
-                        <div key={st.id} className="p-4 hover:bg-slate-50/50 transition-colors flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <div key={st.id} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
                             <FileText className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 truncate">{st.maksud_tujuan}</p>
+                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{st.maksud_tujuan}</p>
                             <div className="flex items-center gap-2 mt-0.5">
-                              {st.nomor_surat && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{st.nomor_surat}</span>}
+                              {st.nomor_surat && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">{st.nomor_surat}</span>}
                               <span className="text-xs text-slate-400">
                                 {new Date(st.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                               </span>
                             </div>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
-                            <Link href={`/verifikasi/surat-tugas/${st.id}`} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors" title="Lihat">
+                            <Link href={`/verifikasi/surat-tugas/${st.id}`} className="p-2 rounded-lg hover:bg-blue-50 dark:bg-blue-500/10 text-blue-600 transition-colors" title="Lihat">
                               <Eye className="w-4 h-4" />
                             </Link>
                             {st.file_surat_path && (
-                              <button onClick={() => handleDownloadST(st.id)} className="p-2 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors" title="Download">
+                              <button onClick={() => handleDownloadST(st.id)} className="p-2 rounded-lg hover:bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 transition-colors" title="Download">
                                 <Download className="w-4 h-4" />
                               </button>
                             )}

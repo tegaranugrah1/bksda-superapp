@@ -49,20 +49,20 @@ export default function DeReportingDashboardPage() {
 
     // Kartu Statistik Pembantu
     const STAT_CARDS = [
-        { label: "Laporan Internal",    value: stats?.totalInternal ?? 0,     icon: FileText, color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
-        { label: "Laporan Publik",      value: stats?.totalEksternal ?? 0,    icon: Globe,    color: "text-blue-400",   bg: "bg-blue-500/10",   border: "border-blue-500/20" },
-        { label: "Menunggu Tinjauan",   value: stats?.menungguTinjauan ?? 0,  icon: Clock,    color: "text-amber-400",  bg: "bg-amber-500/10",  border: "border-amber-500/20" },
-        { label: "Bidang Aktif",        value: stats?.totalBidang ?? 0,       icon: BarChart3,color: "text-emerald-400",bg: "bg-emerald-500/10",border: "border-emerald-500/20" },
+        { label: "Laporan Internal",    value: stats?.totalInternal ?? 0,     icon: FileText, color: "text-violet-500 dark:text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
+        { label: "Laporan Publik",      value: stats?.totalEksternal ?? 0,    icon: Globe,    color: "text-blue-500 dark:text-blue-400",   bg: "bg-blue-500/10",   border: "border-blue-500/20" },
+        { label: "Menunggu Tinjauan",   value: stats?.menungguTinjauan ?? 0,  icon: Clock,    color: "text-amber-500 dark:text-amber-400",  bg: "bg-amber-500/10",  border: "border-amber-500/20" },
+        { label: "Bidang Aktif",        value: stats?.totalBidang ?? 0,       icon: BarChart3,color: "text-emerald-500 dark:text-emerald-400",bg: "bg-emerald-500/10",border: "border-emerald-500/20" },
     ];
 
     return (
         <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight flex items-center gap-3">
                     <BarChart3 className="w-8 h-8 text-violet-500" /> Pusat Komando Laporan
                 </h1>
-                <p className="text-zinc-400 mt-2 text-sm">Ikhtisar rekapitulasi seluruh laporan internal & publik BKSDA secara real-time.</p>
+                <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">Ikhtisar rekapitulasi seluruh laporan internal & publik BKSDA secara real-time.</p>
             </div>
 
             {/* Grid Kartu Statistik */}
@@ -79,16 +79,16 @@ export default function DeReportingDashboardPage() {
                                     <card.icon className={`w-6 h-6 ${card.color}`} />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-black text-white">{card.value}</p>
-                                    <p className="text-xs text-zinc-400 font-medium mt-0.5">{card.label}</p>
+                                    <p className="text-2xl font-black text-zinc-900 dark:text-white">{card.value}</p>
+                                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">{card.label}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
                     {/* Grafik Batang: Laporan per Bidang */}
-                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-6">Distribusi Laporan Internal per Bidang</h3>
+                    <div className="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
+                        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">Distribusi Laporan Internal per Bidang</h3>
                         {stats?.bidangCounts?.length ? (
                             <div className="h-[320px] w-full">
                                 {mounted ? (
@@ -105,7 +105,7 @@ export default function DeReportingDashboardPage() {
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
-                                    <div className="w-full h-full bg-zinc-800/50 animate-pulse rounded-xl" />
+                                    <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800/50 animate-pulse rounded-xl" />
                                 )}
                             </div>
                         ) : (

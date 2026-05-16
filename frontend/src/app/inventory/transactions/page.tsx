@@ -50,25 +50,25 @@ export default function TransactionsHistoryPage() {
         <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-3">
                         <History className="w-8 h-8 text-emerald-500" /> Buku Riwayat
                         Mutasi
                     </h1>
-                    <p className="text-zinc-400 mt-2">
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">
                         Pencatatan utuh (Audit Trail) keluar-masuknya aset persediaan
                         negara.
                     </p>
                 </div>
 
                 {/* Tombol Filter Dinamis */}
-                <div className="flex items-center gap-2 bg-zinc-900/50 p-1.5 rounded-xl border border-zinc-800">
-                    <Filter className="w-4 h-4 text-zinc-500 ml-2" />
+                <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900/50 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                    <Filter className="w-4 h-4 text-zinc-400 dark:text-zinc-500 ml-2" />
                     <button
                         onClick={() => setFilterType("")}
                         className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                             filterType === ""
-                                ? "bg-zinc-800 text-white"
-                                : "text-zinc-400 hover:text-zinc-200"
+                                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                         }`}
                     >
                         Semua
@@ -77,8 +77,8 @@ export default function TransactionsHistoryPage() {
                         onClick={() => setFilterType("in")}
                         className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                             filterType === "in"
-                                ? "bg-blue-500/20 text-blue-400"
-                                : "text-zinc-400 hover:text-blue-300"
+                                ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
+                                : "text-zinc-500 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-300"
                         }`}
                     >
                         Stok Masuk
@@ -87,27 +87,27 @@ export default function TransactionsHistoryPage() {
                         onClick={() => setFilterType("out")}
                         className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                             filterType === "out"
-                                ? "bg-orange-500/20 text-orange-400"
-                                : "text-zinc-400 hover:text-orange-300"
+                                ? "bg-orange-500/20 text-orange-600 dark:text-orange-400"
+                                : "text-zinc-500 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-300"
                         }`}
                     >
                         Distribusi Keluar
                     </button>
                     
-                    <div className="w-px h-6 bg-zinc-800 mx-2 hidden md:block" />
+                    <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 mx-2 hidden md:block" />
                     
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/inventory/export/transactions?type=${filterType}`, "_blank")}
-                        className="text-zinc-400 hover:text-white hover:bg-zinc-800 gap-2 font-bold px-4"
+                        className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 gap-2 font-bold px-4"
                     >
                         <Download className="w-4 h-4 text-blue-500" /> Ekspor
                     </Button>
                 </div>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-lg dark:shadow-2xl relative">
                 {/* Indikator Refetch */}
                 {isFetching && !isLoading && (
                     <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500/20 overflow-hidden">
@@ -118,25 +118,25 @@ export default function TransactionsHistoryPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
-                            <tr className="bg-zinc-950/50 border-b border-zinc-800">
-                                <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                            <tr className="bg-zinc-50 dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-zinc-800">
+                                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                     Tgl / Waktu
                                 </th>
-                                <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                     Aksi
                                 </th>
-                                <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                     Barang &amp; Lokasi
                                 </th>
-                                <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider text-right">
+                                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">
                                     Mutasi (Sisa)
                                 </th>
-                                <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                     Keterlibatan / Aktor
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-800">
+                        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                             {isLoading ? (
                                 <tr>
                                     <td
@@ -163,10 +163,10 @@ export default function TransactionsHistoryPage() {
                                 response?.data?.map((tx) => (
                                     <tr
                                         key={tx.id}
-                                        className="hover:bg-emerald-500/5 transition-colors"
+                                        className="hover:bg-zinc-50 dark:hover:bg-emerald-500/5 transition-colors"
                                     >
                                         <td className="p-4">
-                                            <p className="font-mono text-sm text-zinc-300">
+                                            <p className="font-mono text-sm text-zinc-800 dark:text-zinc-300">
                                                 {dayjs(tx.created_at).format("DD MMM YYYY")}
                                             </p>
                                             <p className="text-xs text-zinc-500">
@@ -186,7 +186,7 @@ export default function TransactionsHistoryPage() {
                                             )}
                                         </td>
                                         <td className="p-4">
-                                            <p className="font-bold text-zinc-200">
+                                            <p className="font-bold text-zinc-800 dark:text-zinc-200">
                                                 {tx.item?.nama_barang || "Barang Dihapus"}
                                             </p>
                                             <p className="text-xs text-zinc-500">
@@ -212,14 +212,14 @@ export default function TransactionsHistoryPage() {
                                             </p>
                                         </td>
                                         <td className="p-4">
-                                            <p className="text-xs font-semibold text-zinc-300">
+                                            <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                                                 Admin:{" "}
                                                 <span className="font-normal text-zinc-400">
                                                     {tx.user?.name || "Sistem"}
                                                 </span>
                                             </p>
                                             {tx.type === "out" && (
-                                                <p className="text-xs font-semibold text-zinc-300 mt-1">
+                                                <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mt-1">
                                                     Penerima:{" "}
                                                     <span className="font-normal text-zinc-400">
                                                         {tx.employee?.nama_lengkap || "-"}
@@ -233,7 +233,7 @@ export default function TransactionsHistoryPage() {
                         </tbody>
                     </table>
                 </div>
-                <div className="p-4 bg-zinc-950/30 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-500 font-medium">
+                <div className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center text-xs text-zinc-500 font-medium">
                     Halaman {response?.current_page || 1} dari{" "}
                     {response?.last_page || 1} Total Arsip
                 </div>

@@ -84,10 +84,10 @@ export default function StockInPage() {
                     <ArrowDownToLine className="w-6 h-6 text-blue-400" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">
+                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
                         Penerimaan Logistik
                     </h1>
-                    <p className="text-zinc-400 mt-1">
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                         Catat pasokan barang baru yang masuk ke jaringan kantor BKSDA.
                     </p>
                 </div>
@@ -107,14 +107,14 @@ export default function StockInPage() {
 
             <form
                 onSubmit={handleSubmit}
-                className="bg-zinc-900/60 backdrop-blur-xl border border-zinc-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden"
+                className="bg-white dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 shadow-lg dark:shadow-2xl relative overflow-hidden"
             >
                 <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl"></div>
 
                 <div className="space-y-6 relative z-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-300">
+                            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                                 Kantor Tujuan <span className="text-red-500">*</span>
                             </label>
                             <select
@@ -122,7 +122,7 @@ export default function StockInPage() {
                                 onChange={(e) =>
                                     setForm({ ...form, office_id: e.target.value })
                                 }
-                                className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
+                                className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
                             >
                                 <option value="">-- Pilih Lokasi Kantor --</option>
                                 {offices?.map((office) => (
@@ -134,7 +134,7 @@ export default function StockInPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-300">
+                            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                                 Nama Barang <span className="text-red-500">*</span>
                             </label>
                             <select
@@ -142,7 +142,7 @@ export default function StockInPage() {
                                 onChange={(e) =>
                                     setForm({ ...form, item_id: e.target.value })
                                 }
-                                className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
+                                className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
                             >
                                 <option value="">-- Pilih Master Barang --</option>
                                 {items?.map((item) => (
@@ -156,7 +156,7 @@ export default function StockInPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-300">
+                            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                                 Jumlah (Kuantitas) <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
@@ -169,13 +169,13 @@ export default function StockInPage() {
                                         setForm({ ...form, quantity: e.target.value })
                                     }
                                     placeholder="Contoh: 50"
-                                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-zinc-300">
+                            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                                 Catatan Pemasok / Bukti Nota
                             </label>
                             <input
@@ -185,17 +185,17 @@ export default function StockInPage() {
                                     setForm({ ...form, keterangan: e.target.value })
                                 }
                                 placeholder="Contoh: Pembelian via SIPLah Bos Afirmasi"
-                                className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
                     </div>
 
-                    <hr className="border-zinc-800 my-4" />
+                    <hr className="border-zinc-200 dark:border-zinc-800 my-4" />
 
                     <div className="flex justify-end gap-3">
                         <Link
                             href="/inventory"
-                            className="px-6 py-3 rounded-xl font-semibold text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-800 transition-all"
+                            className="px-6 py-3 rounded-xl font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all"
                         >
                             Batal
                         </Link>

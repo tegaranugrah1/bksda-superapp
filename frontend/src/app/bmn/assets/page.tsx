@@ -203,8 +203,8 @@ export default function BmnAssetsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Data Aset</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Katalog seluruh Barang Milik Negara.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Data Aset</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Katalog seluruh Barang Milik Negara.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
@@ -214,16 +214,16 @@ export default function BmnAssetsPage() {
             {showExportMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-                <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 w-56 p-1">
+                <div className="absolute right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-50 w-56 p-1">
                   {(kondisiFilter !== "Semua" || jenisFilter !== "Semua" || lokasiFilter !== "Semua" || debouncedSearch) && (
-                    <p className="px-3 py-1.5 text-[9px] text-emerald-600 font-medium border-b border-slate-100 mb-1">
+                    <p className="px-3 py-1.5 text-[9px] text-emerald-600 font-medium border-b border-slate-100 dark:border-slate-800/50 mb-1">
                       ✓ Export sesuai filter aktif
                     </p>
                   )}
-                  <button onClick={() => { handleExport(true); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg">
+                  <button onClick={() => { handleExport(true); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50 rounded-lg">
                     Dengan NUP Lama (80 kolom)
                   </button>
-                  <button onClick={() => { handleExport(false); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg">
+                  <button onClick={() => { handleExport(false); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50 rounded-lg">
                     Tanpa NUP Lama (79 kolom)
                   </button>
                 </div>
@@ -252,7 +252,7 @@ export default function BmnAssetsPage() {
             placeholder="Cari nama, kode, NUP..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setPageState(1); updateUrl({ search: e.target.value, page: 1 }); }}
-            className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           />
         </div>
         <div className="flex gap-1">
@@ -262,7 +262,7 @@ export default function BmnAssetsPage() {
               onClick={() => { setKondisiFilter(opt); setPageState(1); updateUrl({ kondisi: opt, page: 1 }); }}
               className={cn(
                 "px-3 py-2 rounded-lg text-xs font-semibold transition-all",
-                kondisiFilter === opt ? "bg-emerald-600 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                kondisiFilter === opt ? "bg-emerald-600 text-white" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50"
               )}
             >
               {opt}
@@ -276,7 +276,7 @@ export default function BmnAssetsPage() {
         <select
           value={jenisFilter}
           onChange={(e) => { setJenisFilter(e.target.value); setPageState(1); updateUrl({ jenis_bmn: e.target.value, page: 1 }); }}
-          className="h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
         >
           <option value="Semua">Semua Jenis BMN</option>
           <option value="ALAT ANGKUTAN BERMOTOR">Alat Angkutan Bermotor</option>
@@ -292,7 +292,7 @@ export default function BmnAssetsPage() {
         <select
           value={lokasiFilter}
           onChange={(e) => { setLokasiFilter(e.target.value); setPageState(1); updateUrl({ lokasi_ruang: e.target.value, page: 1 }); }}
-          className="h-9 px-3 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
         >
           <option value="Semua">Semua Lokasi</option>
           <option value="Kantor Balai KSDA Kalimantan Timur">Kantor Balai</option>
@@ -303,7 +303,7 @@ export default function BmnAssetsPage() {
         {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua" || searchTerm) && (
           <button
             onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setKondisiFilter("Semua"); setSearchTerm(""); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", search: "", page: 1 }); }}
-            className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100"
+            className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg hover:bg-red-100"
           >
             Reset Filter
           </button>
@@ -312,8 +312,8 @@ export default function BmnAssetsPage() {
 
       {/* Bulk Action Bar */}
       {canWrite && selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-          <span className="text-sm font-semibold text-red-700">{selectedIds.size} aset dipilih</span>
+        <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl">
+          <span className="text-sm font-semibold text-red-700 dark:text-red-400">{selectedIds.size} aset dipilih</span>
           <select
             onChange={async (e) => {
               const newKondisi = e.target.value;
@@ -333,7 +333,7 @@ export default function BmnAssetsPage() {
               } catch { toast.error("Gagal mengubah kondisi."); }
               e.target.value = "";
             }}
-            className="h-8 px-2 text-xs border border-amber-300 rounded-lg bg-white text-slate-700"
+            className="h-8 px-2 text-xs border border-amber-300 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
             defaultValue=""
           >
             <option value="" disabled>Ubah Kondisi...</option>
@@ -349,7 +349,7 @@ export default function BmnAssetsPage() {
       )}
 
       {/* Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden relative">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden relative">
         {isFetching && !isLoading && (
           <div className="absolute top-0 left-0 w-full h-0.5 bg-slate-100 overflow-hidden z-10">
             <div className="h-full bg-emerald-500 animate-pulse w-1/3 rounded-r-full" />
@@ -358,19 +358,19 @@ export default function BmnAssetsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
+              <tr className="border-b border-slate-100 dark:border-slate-800/50 bg-slate-50 dark:bg-slate-900/50">
                 {canWrite && (
                   <th className="px-3 py-3 w-10">
                     <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
                   </th>
                 )}
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kode / NUP</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Jenis BMN</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Barang</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kondisi</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Nilai Perolehan</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lokasi</th>
-                {canWrite && <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Aksi</th>}
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kode / NUP</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Jenis BMN</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nama Barang</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kondisi</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Nilai Perolehan</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lokasi</th>
+                {canWrite && <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Aksi</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -387,15 +387,15 @@ export default function BmnAssetsPage() {
                       </td>
                     )}
                     <td className="px-4 py-3">
-                      <p className="text-xs font-mono font-bold text-emerald-700">{asset.kode_barang}</p>
+                      <p className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">{asset.kode_barang}</p>
                       <p className="text-[10px] text-slate-400 font-mono">NUP: {asset.nup}</p>
                       {asset.nup_lama && <p className="text-[10px] text-slate-300 font-mono">NUP Lama: {asset.nup_lama}</p>}
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-xs font-semibold text-slate-600">{asset.jenis_bmn || "-"}</p>
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{asset.jenis_bmn || "-"}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-sm font-semibold text-slate-800 max-w-[200px] truncate">{asset.nama_barang}</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 max-w-[200px] truncate">{asset.nama_barang}</p>
                       <p className="text-[11px] text-slate-400">
                         {deduplicateMerkTipe(asset.merk_tipe)}
                         {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && asset.no_polisi !== "-" ? ` • ${asset.no_polisi}` : ""}
@@ -405,21 +405,21 @@ export default function BmnAssetsPage() {
                     <td className="px-4 py-3">
                       <span className={cn(
                         "inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold",
-                        asset.kondisi === "Baik" ? "bg-emerald-50 text-emerald-700" :
-                        asset.kondisi === "Rusak Ringan" ? "bg-amber-50 text-amber-700" :
-                        "bg-red-50 text-red-700"
+                        asset.kondisi === "Baik" ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" :
+                        asset.kondisi === "Rusak Ringan" ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400" :
+                        "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400"
                       )}>{asset.kondisi}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <p className="text-sm font-bold text-slate-800">{formatRupiah(asset.nilai_perolehan)}</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{formatRupiah(asset.nilai_perolehan)}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-xs text-slate-500">{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
                       {asset.pengguna && (
                         <p className="text-[10px] text-slate-400">👤 {asset.pengguna}</p>
                       )}
                       {asset.active_loan && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100 mt-1">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-100 mt-1">
                           🤝 Dipinjam: {asset.active_loan.borrower_name}
                         </span>
                       )}
@@ -430,8 +430,8 @@ export default function BmnAssetsPage() {
                     {canWrite && (
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={`/bmn/assets/${asset.id}`} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Eye className="w-4 h-4" /></Link>
-                          <button onClick={() => handleDispose(asset.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 className="w-4 h-4" /></button>
+                          <Link href={`/bmn/assets/${asset.id}`} className="p-1.5 rounded-lg hover:bg-blue-50 dark:bg-blue-500/10 text-blue-600"><Eye className="w-4 h-4" /></Link>
+                          <button onClick={() => handleDispose(asset.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:bg-red-500/10 text-red-500"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </td>
                     )}
@@ -442,13 +442,13 @@ export default function BmnAssetsPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between text-sm">
+        <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-between text-sm">
           <div className="flex items-center gap-3">
             <span className="text-slate-400 text-xs">{response?.data?.length || 0} item ditampilkan</span>
             <select
               value={perPage}
               onChange={(e) => { setPerPage(Number(e.target.value)); }}
-              className="h-7 px-2 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="h-7 px-2 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
               <option value={10}>10 / halaman</option>
               <option value={50}>50 / halaman</option>
@@ -458,7 +458,7 @@ export default function BmnAssetsPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="text-xs rounded-lg">Prev</Button>
-            <span className="flex items-center text-xs text-slate-500 px-2">Hal {page}{response?.last_page ? ` / ${response.last_page}` : ""}</span>
+            <span className="flex items-center text-xs text-slate-500 dark:text-slate-400 px-2">Hal {page}{response?.last_page ? ` / ${response.last_page}` : ""}</span>
             <Button variant="outline" size="sm" disabled={page === response?.last_page || perPage === 0} onClick={() => setPage(p => p + 1)} className="text-xs rounded-lg">Next</Button>
           </div>
         </div>
@@ -475,14 +475,14 @@ function StnkBadge({ tanggal }: { tanggal: string }) {
 
   if (diffDays < 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700 mt-1">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700 dark:text-red-400 mt-1">
         🚨 Pajak expired {Math.abs(diffDays)} hari
       </span>
     );
   }
   if (diffDays <= 30) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 mt-1">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700 dark:text-amber-400 mt-1">
         ⚠️ Pajak {diffDays} hari lagi
       </span>
     );

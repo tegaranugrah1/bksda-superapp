@@ -101,7 +101,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-3" />
-        <p className="text-sm text-slate-400">Memuat data aset...</p>
+        <p className="text-sm text-zinc-400">Memuat data aset...</p>
       </div>
     );
   }
@@ -109,15 +109,15 @@ function AssetDetail({ assetId }: { assetId: string }) {
   if (isError || !asset) {
     return (
       <div className="p-8 text-center">
-        <Package className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-        <p className="text-slate-500 mb-3">Aset tidak ditemukan</p>
+        <Package className="w-12 h-12 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" />
+        <p className="text-slate-500 dark:text-slate-400 mb-3">Aset tidak ditemukan</p>
         <Link href="/bmn/assets"><Button variant="outline" size="sm">Kembali</Button></Link>
       </div>
     );
   }
 
   const kondisiVariant = asset.kondisi === "Baik" ? "success" : asset.kondisi === "Rusak Ringan" ? "warning" : "danger";
-  const kondisiColor = asset.kondisi === "Baik" ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : asset.kondisi === "Rusak Ringan" ? "bg-amber-50 text-amber-700 ring-amber-200" : "bg-red-50 text-red-700 ring-red-200";
+  const kondisiColor = asset.kondisi === "Baik" ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200" : asset.kondisi === "Rusak Ringan" ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-200" : "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 ring-red-200";
   const formatCurrency = (v: number) => v ? new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(v) : "-";
 
   const tabs = [
@@ -132,22 +132,22 @@ function AssetDetail({ assetId }: { assetId: string }) {
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-6xl mx-auto">
       {/* Back */}
-      <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+      <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Kembali ke Katalog
       </button>
 
       {/* Hero Card */}
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm ring-1 ring-zinc-200/60 dark:ring-zinc-800 overflow-hidden">
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
                 <Package className="w-7 h-7 text-emerald-600" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">{asset.nama_barang}</h1>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{asset.nama_barang}</h1>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-xs font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md ring-1 ring-emerald-200/50">{asset.kode_barang}</span>
+                  <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md ring-1 ring-emerald-200/50">{asset.kode_barang}</span>
                   <span className="text-xs text-slate-400">NUP: {asset.nup}</span>
                   {asset.jenis_bmn && <span className="text-xs text-slate-400">• {asset.jenis_bmn}</span>}
                 </div>
@@ -156,7 +156,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
             <div className="flex flex-col items-end gap-1">
               <div className="flex items-center gap-2">
                 {asset.active_loan && (
-                  <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold ring-1 bg-blue-50 text-blue-700 ring-blue-200 shadow-sm">
+                  <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold ring-1 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200 shadow-sm">
                     Dipinjam
                   </span>
                 )}
@@ -171,7 +171,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-100">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800">
             <QuickStat label="Nilai Perolehan" value={formatCurrency(asset.nilai_perolehan)} />
             <QuickStat label="Nilai Buku" value={formatCurrency(asset.nilai_buku)} />
             <QuickStat label="Tahun" value={asset.tahun_perolehan || "-"} />
@@ -180,18 +180,18 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
           {/* Extra Info: Lokasi, Pengguna, Kendaraan */}
           {(asset.lokasi_ruang || asset.pengguna || asset.nama_pengguna || asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR") && (
-            <div className="flex flex-wrap gap-x-6 gap-y-1 mt-4 pt-4 border-t border-slate-100">
+            <div className="flex flex-wrap gap-x-6 gap-y-1 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
               {asset.lokasi_ruang && (
-                <span className="text-xs text-slate-500"><span className="font-semibold text-slate-700">Lokasi:</span> {asset.lokasi_ruang}</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400"><span className="font-semibold text-zinc-700 dark:text-zinc-300">Lokasi:</span> {asset.lokasi_ruang}</span>
               )}
               {(asset.pengguna || asset.nama_pengguna) && (
-                <span className="text-xs text-slate-500"><span className="font-semibold text-slate-700">Pengguna:</span> {asset.pengguna || asset.nama_pengguna}</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400"><span className="font-semibold text-zinc-700 dark:text-zinc-300">Pengguna:</span> {asset.pengguna || asset.nama_pengguna}</span>
               )}
               {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
-                <span className="text-xs text-slate-500"><span className="font-semibold text-slate-700">No Polisi:</span> {asset.no_polisi}</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400"><span className="font-semibold text-zinc-700 dark:text-zinc-300">No Polisi:</span> {asset.no_polisi}</span>
               )}
               {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.tanggal_pajak_stnk && (
-                <span className="text-xs text-slate-500"><span className="font-semibold text-slate-700">Pajak STNK:</span> {asset.tanggal_pajak_stnk}</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400"><span className="font-semibold text-zinc-700 dark:text-zinc-300">Pajak STNK:</span> {asset.tanggal_pajak_stnk}</span>
               )}
             </div>
           )}
@@ -214,12 +214,12 @@ function AssetDetail({ assetId }: { assetId: string }) {
       />
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-1 bg-white rounded-xl ring-1 ring-slate-200/60 p-1 overflow-x-auto">
+      <div className="flex items-center gap-1 bg-white dark:bg-zinc-900 rounded-xl ring-1 ring-zinc-200/60 dark:ring-zinc-800 p-1 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"}`}
           >
             {tab.label}
           </button>
@@ -442,9 +442,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
 function QuickStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="p-3 rounded-xl bg-slate-50/80">
-      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
-      <p className="text-sm font-bold text-slate-800 mt-0.5 truncate">{String(value)}</p>
+    <div className="p-3 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/50">
+      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{label}</p>
+      <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mt-0.5 truncate">{String(value)}</p>
     </div>
   );
 }
@@ -457,27 +457,27 @@ function StnkCountdown({ tanggal, label }: { tanggal: string; label: string }) {
 
   if (diffDays < 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:text-red-400">
         🚨 {label} expired {Math.abs(diffDays)} hari lalu
       </span>
     );
   }
   if (diffDays <= 30) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:text-amber-400">
         ⚠️ {diffDays} hari lagi
       </span>
     );
   }
   if (diffDays <= 90) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:text-blue-400">
         {diffDays} hari lagi
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-600">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
       ✓ {diffDays} hari lagi
     </span>
   );
@@ -496,40 +496,40 @@ interface HistoryUpdate {
 function HistoryTab({ updates }: { updates: HistoryUpdate[] }) {
   if (updates.length === 0) {
     return (
-      <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
-        <History className="w-10 h-10 mx-auto mb-3 text-slate-200" />
-        <p className="text-sm text-slate-400">Belum ada riwayat perubahan untuk aset ini.</p>
-        <p className="text-xs text-slate-300 mt-1">Perubahan akan tercatat saat field diedit.</p>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center">
+        <History className="w-10 h-10 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" />
+        <p className="text-sm text-zinc-400">Belum ada riwayat perubahan untuk aset ini.</p>
+        <p className="text-xs text-zinc-300 dark:text-zinc-500 mt-1">Perubahan akan tercatat saat field diedit.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-      <div className="px-5 py-3.5 border-b border-slate-100 bg-linear-to-r from-slate-50 to-white flex items-center gap-2.5">
-        <span className="p-1.5 rounded-lg bg-violet-50 text-violet-600"><History className="w-4 h-4" /></span>
-        <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Riwayat Perubahan</h3>
-        <span className="ml-auto text-[10px] text-slate-400">{updates.length} perubahan</span>
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 dark:from-zinc-800/50 to-white dark:to-zinc-900 flex items-center gap-2.5">
+        <span className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600"><History className="w-4 h-4" /></span>
+        <h3 className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Riwayat Perubahan</h3>
+        <span className="ml-auto text-[10px] text-zinc-400">{updates.length} perubahan</span>
       </div>
-      <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto">
+      <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50 max-h-[400px] overflow-y-auto">
         {updates.map((update) => (
-          <div key={update.id} className="px-5 py-3 hover:bg-slate-50/50 transition-colors">
+          <div key={update.id} className="px-5 py-3 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">{update.field_changed}</span>
-                  <span className="text-[9px] text-slate-400">oleh {update.author?.name || "System"}</span>
+                  <span className="text-[10px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-500/10 px-1.5 py-0.5 rounded">{update.field_changed}</span>
+                  <span className="text-[9px] text-zinc-400">oleh {update.author?.name || "System"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-red-500 line-through wrap-break-word whitespace-pre-wrap max-w-full">{update.old_value || "—"}</span>
-                  <span className="text-slate-300">→</span>
+                  <span className="text-zinc-300 dark:text-zinc-600">→</span>
                   <span className="text-emerald-600 font-medium wrap-break-word whitespace-pre-wrap max-w-full">{update.new_value || "—"}</span>
                 </div>
                 {update.alasan_perubahan && (
-                  <p className="text-[10px] text-slate-400 mt-1 italic">{update.alasan_perubahan}</p>
+                  <p className="text-[10px] text-zinc-400 mt-1 italic">{update.alasan_perubahan}</p>
                 )}
               </div>
-              <span className="text-[9px] text-slate-400 shrink-0">
+              <span className="text-[9px] text-zinc-400 shrink-0">
                 {new Date(update.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
               </span>
             </div>

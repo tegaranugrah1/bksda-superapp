@@ -85,15 +85,15 @@ export default function ImportReviewPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Import Review</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Import Review</h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
           Upload Excel → Review perubahan → Approve untuk menerapkan ke database.
         </p>
       </div>
 
       {/* Upload Section */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6">
-        <h2 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
+        <h2 className="text-base font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
           <Upload className="w-4 h-4 text-emerald-600" />
           Upload File Baru
         </h2>
@@ -103,9 +103,9 @@ export default function ImportReviewPage() {
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="border-slate-200 file:text-emerald-600 file:font-semibold"
+              className="border-zinc-200 dark:border-zinc-700 file:text-emerald-600 file:font-semibold"
             />
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-zinc-400 mt-1">
               Format: .xlsx / .xls / .csv — Maks 20MB. Kolom wajib: kode_barang, nup, nama_barang.
             </p>
           </div>
@@ -124,8 +124,8 @@ export default function ImportReviewPage() {
       </div>
 
       {/* Batch History */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6">
-        <h2 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
+        <h2 className="text-base font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
           <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
           Riwayat Import
         </h2>
@@ -135,7 +135,7 @@ export default function ImportReviewPage() {
             <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
           </div>
         ) : batches.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12 text-zinc-400">
             <FileSpreadsheet className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p>Belum ada riwayat import.</p>
           </div>
@@ -147,28 +147,28 @@ export default function ImportReviewPage() {
                 className={cn(
                   "flex items-center justify-between p-4 rounded-xl border transition-all",
                   batch.status === "pending"
-                    ? "border-amber-200 bg-amber-50/50"
-                    : "border-slate-100 bg-slate-50/50"
+                    ? "border-amber-200 dark:border-amber-500/20 bg-amber-50/50 dark:bg-amber-500/5"
+                    : "border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30"
                 )}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center">
                     <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-slate-800">{batch.filename}</p>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                    <p className="font-semibold text-sm text-zinc-800 dark:text-zinc-200">{batch.filename}</p>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                       <span>{batch.total_rows} baris</span>
                       <span className="text-emerald-600 font-medium">+{batch.new_rows} baru</span>
                       <span className="text-blue-600 font-medium">~{batch.updated_rows} update</span>
-                      <span className="text-slate-400">{batch.unchanged_rows} sama</span>
+                      <span className="text-zinc-400">{batch.unchanged_rows} sama</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   {statusBadge(batch.status)}
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-zinc-400">
                     {new Date(batch.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "short",
@@ -186,7 +186,7 @@ export default function ImportReviewPage() {
                   )}
                   {batch.status === "approved" && (
                     <Link href={`/bmn/import-review/${batch.id}`}>
-                      <Button size="sm" variant="outline" className="text-slate-600">
+                      <Button size="sm" variant="outline" className="text-zinc-600 dark:text-zinc-300">
                         <Eye className="w-3.5 h-3.5 mr-1" /> Lihat
                       </Button>
                     </Link>

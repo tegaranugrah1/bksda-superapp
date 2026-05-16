@@ -68,15 +68,15 @@ export default function CrudPageFactory({ config }: Props) {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight flex items-center gap-3">
             <config.icon className={`w-8 h-8 text-${config.accentColor}-500`} />{" "}
             {config.title}
           </h1>
-          <p className="text-zinc-400 mt-2 text-sm">{config.subtitle}</p>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">{config.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500" />
             <input
               type="text"
               placeholder={config.searchPlaceholder || "Cari..."}
@@ -85,7 +85,7 @@ export default function CrudPageFactory({ config }: Props) {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-teal-500 transition-all w-56 placeholder:text-zinc-600"
+              className="pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-teal-500 transition-all w-56 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
             />
           </div>
           <button
@@ -98,25 +98,25 @@ export default function CrudPageFactory({ config }: Props) {
       </div>
 
       {/* Tabel */}
-      <div className="bg-zinc-950/50 border border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="bg-white dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-zinc-900/80 border-b border-zinc-800">
+              <tr className="bg-zinc-50 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
                 {config.columns.map((col) => (
                   <th
                     key={col.key}
-                    className="p-4 text-xs font-bold text-zinc-400 uppercase"
+                    className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase"
                   >
                     {col.label}
                   </th>
                 ))}
-                <th className="p-4 text-xs font-bold text-zinc-400 uppercase text-center">
+                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase text-center">
                   Aksi
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/50">
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
               {isLoading ? (
                 <tr>
                   <td
@@ -141,10 +141,10 @@ export default function CrudPageFactory({ config }: Props) {
                 response?.data?.map((row: CrudRecord) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-zinc-900/40 transition-colors"
+                    className="hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition-colors"
                   >
                     {config.columns.map((col) => (
-                      <td key={col.key} className="p-4 text-sm text-zinc-300">
+                      <td key={col.key} className="p-4 text-sm text-zinc-700 dark:text-zinc-300">
                         {String(
                           col.render
                             ? col.render(row[col.key], row)
@@ -158,7 +158,7 @@ export default function CrudPageFactory({ config }: Props) {
                           onClick={() => handleEdit(row)}
                           className="p-2 hover:bg-teal-500/10 rounded-lg transition-colors group"
                         >
-                          <Pencil className="w-4 h-4 text-zinc-500 group-hover:text-teal-400" />
+                          <Pencil className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-teal-500 dark:group-hover:text-teal-400" />
                         </button>
                         <button
                           onClick={() => {
@@ -167,7 +167,7 @@ export default function CrudPageFactory({ config }: Props) {
                           }}
                           className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group"
                         >
-                          <Trash2 className="w-4 h-4 text-zinc-500 group-hover:text-red-400" />
+                          <Trash2 className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-red-500 dark:group-hover:text-red-400" />
                         </button>
                       </div>
                     </td>
@@ -177,20 +177,20 @@ export default function CrudPageFactory({ config }: Props) {
             </tbody>
           </table>
         </div>
-        <div className="p-4 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between text-sm">
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-sm">
           <span className="text-zinc-500">Hal. {page}</span>
           <div className="flex gap-2">
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded hover:bg-zinc-800 disabled:opacity-50"
+              className="px-3 py-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
             >
               Prev
             </button>
             <button
               disabled={!response?.next_page_url}
               onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded hover:bg-zinc-800 disabled:opacity-50"
+              className="px-3 py-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
             >
               Next
             </button>

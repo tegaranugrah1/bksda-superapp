@@ -56,14 +56,93 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 30: BMN Full Enhancement (✅ DONE - PR #293-302 + hotfixes) |
-| **Issue Selanjutnya** | Mobile responsive, QoL, module-specific improvements |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir** | `06f004c` - feat(bmn): editable kondisi select + bulk update kondisi |
-| **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-13T20:00:00+08:00 |
-| **GitHub Issues** | #293-302 (BMN + ST enhancements) |
+| **Issue Terakhir Selesai** | Phase 32: Full Dark Mode Finalization (✅ DONE) |
+| **Issue Selanjutnya** | Inventory module improvements, DeReporting improvements |
+| **Branch Aktif** | `feature/bmn-loans-upgrade` |
+| **Commit Terakhir** | `1abe6a7` - style(bmn-loans): unify loans UI theme |
+| **Model Terakhir** | Gemini 2.5 Pro (Antigravity) |
+| **Timestamp** | 2026-05-16T13:38:00+08:00 |
+| **GitHub Issues** | #305 (BMN Loan + Dark Mode), Phase 32 (Dark Mode Finalization) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-16 Siang - Phase 32: Full Dark Mode Finalization):**
+- **Objective**: Complete the dark mode migration across ALL remaining modules — eliminate all hardcoded `slate` colors and ensure every page works in both light and dark themes.
+- **Accomplishments**:
+  - **Phase 1 — Module-wide Audit & Fix (CMS, DeReporting, Kepegawaian, BMN core)**:
+    - CMS: Dashboard, Layout, CrudPageFactory, CrudFormDrawer, Informasi — converted from dark-only to dual-mode.
+    - DeReporting: Dashboard, Internal page, FilteredReportTable — fixed light mode issues.
+    - Kepegawaian: ST Builder, ST Create, ST Inbox — full dual-mode support.
+    - BMN core: Dashboard, Layout, Assets list, Loans, Loans/create, Maintenances, Disposal — migrated from `slate` to `zinc` with `dark:` variants.
+    - Portal: Full dark mode refinement.
+    - Inventory: Items page, Dashboard — dual-mode.
+  - **Phase 2 — Targeted Remaining Pages**:
+    - `bmn/import-review/page.tsx` — Light-only → dual-mode (header, upload section, batch history cards).
+    - `bmn/reports/page.tsx` — Light-only → dual-mode (header, report cards, icon backgrounds).
+    - `bmn/assets/[id]/page.tsx` — slate → zinc (hero card, quick stats, tabs, history tab).
+    - `bmn/assets/[id]/_components/DetailSection.tsx` — Full refactor of **all 8 sub-components** (DetailRow, EditableRow, CurrencyRow, EditableCurrencyRow, EditableSelectRow, EditableEmployeeRow, AreaRow, BadgeRow).
+    - `bmn/assets/[id]/_components/PhotoGallery.tsx` — Full dark mode (container, header, empty slots, verified banner, labels, action buttons, geotag input).
+    - `inventory/transactions/page.tsx` — Dark-only → dual-mode (filter bar, table, pagination footer).
+    - `inventory/stock-out/page.tsx` — Dark-only → dual-mode (form, labels, inputs, select, buttons).
+    - `inventory/stock-in/page.tsx` — Dark-only → dual-mode (form, labels, inputs, select, buttons).
+    - `kepegawaian/surat-tugas/builder/[id]/page.tsx` — Kota input field fixed (missed in Phase 31).
+  - **Design Standard Adopted**:
+    - Background: `bg-white dark:bg-zinc-900` or `bg-zinc-50 dark:bg-zinc-950`
+    - Text: `text-zinc-900 dark:text-white` or `text-zinc-500 dark:text-zinc-400`
+    - Borders: `border-zinc-200 dark:border-zinc-800`
+    - Hover: `hover:bg-zinc-50 dark:hover:bg-zinc-800/30`
+    - Accent badges: `bg-emerald-50 dark:bg-emerald-500/10`
+  - **Build Verified**: `npx next build` → exit code 0 ✅
+- **Key Files Modified (31 files total)**:
+  - `frontend/src/app/bmn/assets/[id]/page.tsx`
+  - `frontend/src/app/bmn/assets/[id]/_components/DetailSection.tsx`
+  - `frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx`
+  - `frontend/src/app/bmn/import-review/page.tsx`
+  - `frontend/src/app/bmn/reports/page.tsx`
+  - `frontend/src/app/bmn/{page,layout,assets/page,loans/page,loans/create/page,maintenances/page,disposal/page}.tsx`
+  - `frontend/src/app/inventory/{page,items/page,transactions/page,stock-in/page,stock-out/page}.tsx`
+  - `frontend/src/app/kepegawaian/surat-tugas/{builder/[id]/page,create/page,inbox/page}.tsx`
+  - `frontend/src/app/dereporting/{page,internal/page,_components/FilteredReportTable}.tsx`
+  - `frontend/src/app/cms/{page,layout,informasi/page,_components/CrudPageFactory,_components/CrudFormDrawer}.tsx`
+  - `frontend/src/app/portal/page.tsx`
+- **Dark Mode Status (COMPLETE)**:
+  - [x] Portal Dashboard
+  - [x] BMN — All pages (Dashboard, Assets, Asset Detail, DetailSection, PhotoGallery, Loans, Create, Import Review, Reports, Maintenances, Disposal)
+  - [x] Inventory — All pages (Dashboard, Items, Transactions, Stock-In, Stock-Out)
+  - [x] Kepegawaian — All pages (ST Inbox, ST Create, ST Builder)
+  - [x] DeReporting — All pages (Dashboard, Internal, FilteredReportTable)
+  - [x] CMS — All pages (Dashboard, Layout, Informasi, CrudPageFactory, CrudFormDrawer)
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-16 - Phase 31: BMN Loan Optimization & Comprehensive Dark Mode):**
+- **Objective**: Modernize BMN Loan UI and implement full Dark Mode support across core modules.
+- **Accomplishments**:
+  - **BMN Loan Module Overhaul**: 
+    - Rewrote `/bmn/loans` to match the Assets catalog UI (Emerald theme, clean header, inline search/filter).
+    - Fixed Vehicle Icon bug in select tables (only shows for assets with valid plate numbers).
+    - Standardized Action Buttons in `/bmn/loans/create` (consistent variants and emerald colors).
+  - **Comprehensive Dark Mode Support**:
+    - Added `dark:` utility classes across:
+      - **Portal Dashboard** (`/portal`): Full support for all cards, header, and profile sidebar.
+      - **BMN Module**: Assets list, Asset details (all 5 tabs), Loan list, and Loan creation form.
+      - **Inventory Sidebar**: Smooth transitions between light/dark for the main navigation.
+    - Automated mapping of ~20 common utility classes (bg-white, border-slate-200, etc.) via Node.js patch script.
+  - **Performance & Cleanup**:
+    - Reduced DOM nesting in BMN tables.
+    - Cleaned up hardcoded `bg-white` and `text-slate-900` in favor of theme-aware classes.
+- **Key Files Modified**:
+  - `frontend/src/app/portal/page.tsx`
+  - `frontend/src/app/bmn/assets/page.tsx`
+  - `frontend/src/app/bmn/assets/[id]/page.tsx`
+  - `frontend/src/app/bmn/loans/page.tsx`
+  - `frontend/src/app/bmn/loans/create/page.tsx`
+  - `frontend/src/app/inventory/_components/InventorySidebar.tsx`
+- **Next Steps**:
+  - [x] ~~Audit Dark Mode in minor modules (DeReporting, Kepegawaian, CMS)~~ ✅ Phase 32
+  - [x] ~~Verify form validation behavior in dark mode~~ ✅ Phase 32
+  - [x] ~~Fine-tune Emerald color contrast for accessibility in dark mode~~ ✅ Phase 32
 
 ---
 

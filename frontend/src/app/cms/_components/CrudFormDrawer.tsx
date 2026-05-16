@@ -115,14 +115,14 @@ export default function CrudFormDrawer({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg bg-zinc-900 border-l border-zinc-800 h-full overflow-y-auto animate-in slide-in-from-right duration-300 p-6">
+      <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-full overflow-y-auto animate-in slide-in-from-right duration-300 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black text-white">
+          <h2 className="text-xl font-black text-zinc-900 dark:text-white">
             {isEditing ? "Edit Data" : "Tambah Data"}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-zinc-800 rounded-lg"
+            className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
           >
             <X className="w-5 h-5 text-zinc-400" />
           </button>
@@ -131,7 +131,7 @@ export default function CrudFormDrawer({
         <form onSubmit={handleSubmit} className="space-y-4">
           {config.fields.map((field) => (
             <div key={field.key}>
-              <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5">
+              <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1.5">
                 {field.label} {field.required && "*"}
               </label>
               {field.type === "textarea" ? (
@@ -151,7 +151,7 @@ export default function CrudFormDrawer({
                   onChange={(e) =>
                     setFormData((p) => ({ ...p, [field.key]: e.target.value }))
                   }
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500 transition-all"
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-teal-500 transition-all"
                 >
                   <option value="">— Pilih —</option>
                   {field.options?.map((opt) => (
@@ -186,7 +186,7 @@ export default function CrudFormDrawer({
                     }
                     className="w-4 h-4 rounded accent-teal-500"
                   />
-                  <span className="text-sm text-zinc-300">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-300">
                     {field.placeholder}
                   </span>
                 </label>
@@ -205,7 +205,7 @@ export default function CrudFormDrawer({
                   }
                   placeholder={field.placeholder}
                   maxLength={field.maxLength}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500 transition-all placeholder:text-zinc-600"
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-teal-500 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                 />
               )}
             </div>

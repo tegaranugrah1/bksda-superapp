@@ -82,16 +82,16 @@ export default function CMSInformasiPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight flex items-center gap-3">
             <Newspaper className="w-8 h-8 text-teal-500" /> Kelola Berita
           </h1>
-          <p className="text-zinc-400 mt-2 text-sm">
+          <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">
             Tulis, terbitkan, dan kelola seluruh konten berita website BKSDA.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-teal-500 transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500 group-focus-within:text-teal-500 transition-colors" />
             <input
               type="text"
               placeholder="Cari judul berita..."
@@ -100,7 +100,7 @@ export default function CMSInformasiPage() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all w-56 placeholder:text-zinc-600"
+              className="pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all w-56 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
             />
           </div>
           <Link
@@ -113,29 +113,29 @@ export default function CMSInformasiPage() {
       </div>
 
       {/* Tabel */}
-      <div className="bg-zinc-950/50 border border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+      <div className="bg-white dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-zinc-900/80 border-b border-zinc-800">
-                <th className="p-4 text-xs font-bold text-zinc-400 uppercase">
+              <tr className="bg-zinc-50 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
+                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase">
                   Berita
                 </th>
-                <th className="p-4 text-xs font-bold text-zinc-400 uppercase">
+                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase">
                   Kategori
                 </th>
-                <th className="p-4 text-xs font-bold text-zinc-400 uppercase">
+                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase">
                   Status
                 </th>
-                <th className="p-4 text-xs font-bold text-zinc-400 uppercase">
+                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase">
                   Views
                 </th>
-                <th className="p-4 text-xs font-bold text-zinc-400 uppercase text-center">
+                <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase text-center">
                   Aksi
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/50">
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="p-12 text-center text-teal-500">
@@ -155,12 +155,12 @@ export default function CMSInformasiPage() {
                 response?.data?.map((berita: BeritaItem) => (
                   <tr
                     key={berita.id}
-                    className="hover:bg-zinc-900/40 transition-colors"
+                    className="hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition-colors"
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         {/* Mini Thumbnail */}
-                        <div className="w-12 h-12 rounded-lg bg-zinc-800 overflow-hidden shrink-0">
+                        <div className="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden shrink-0">
                           {berita.thumbnail_path ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -170,12 +170,12 @@ export default function CMSInformasiPage() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Newspaper className="w-5 h-5 text-zinc-600" />
+                              <Newspaper className="w-5 h-5 text-zinc-400 dark:text-zinc-600" />
                             </div>
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-zinc-200 text-sm max-w-[250px] truncate">
+                          <p className="font-bold text-zinc-800 dark:text-zinc-200 text-sm max-w-[250px] truncate">
                             {berita.judul}
                           </p>
                           <p className="text-[11px] text-zinc-500 mt-0.5">
@@ -193,22 +193,22 @@ export default function CMSInformasiPage() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="text-xs bg-teal-500/10 text-teal-400 px-2 py-1 rounded-lg border border-teal-500/20 font-medium">
+                      <span className="text-xs bg-teal-500/10 text-teal-600 dark:text-teal-400 px-2 py-1 rounded-lg border border-teal-500/20 font-medium">
                         {berita.category?.nama || "Tanpa Kategori"}
                       </span>
                     </td>
                     <td className="p-4">
                       {berita.is_published ? (
-                        <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg border border-emerald-500/20 font-bold">
+                        <span className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-lg border border-emerald-500/20 font-bold">
                           Terbit
                         </span>
                       ) : (
-                        <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-1 rounded-lg border border-amber-500/20 font-bold">
+                        <span className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-lg border border-amber-500/20 font-bold">
                           Draft
                         </span>
                       )}
                     </td>
-                    <td className="p-4 text-sm text-zinc-400 font-mono">
+                    <td className="p-4 text-sm text-zinc-500 dark:text-zinc-400 font-mono">
                       {berita.views_count || 0}
                     </td>
                     <td className="p-4">
@@ -222,9 +222,9 @@ export default function CMSInformasiPage() {
                           }
                         >
                           {berita.is_published ? (
-                            <EyeOff className="w-4 h-4 text-zinc-500 group-hover:text-amber-400" />
+                            <EyeOff className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-amber-500 dark:group-hover:text-amber-400" />
                           ) : (
-                            <Eye className="w-4 h-4 text-zinc-500 group-hover:text-emerald-400" />
+                            <Eye className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-emerald-500 dark:group-hover:text-emerald-400" />
                           )}
                         </button>
                         {/* Edit */}
@@ -232,7 +232,7 @@ export default function CMSInformasiPage() {
                           href={`/cms/informasi/${berita.id}`}
                           className="p-2 hover:bg-teal-500/10 rounded-lg transition-colors group"
                         >
-                          <Pencil className="w-4 h-4 text-zinc-500 group-hover:text-teal-400" />
+                          <Pencil className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-teal-500 dark:group-hover:text-teal-400" />
                         </Link>
                         {/* Hapus */}
                         <button
@@ -242,7 +242,7 @@ export default function CMSInformasiPage() {
                           }}
                           className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group"
                         >
-                          <Trash2 className="w-4 h-4 text-zinc-500 group-hover:text-red-400" />
+                          <Trash2 className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-red-500 dark:group-hover:text-red-400" />
                         </button>
                       </div>
                     </td>
@@ -253,7 +253,7 @@ export default function CMSInformasiPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="p-4 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between text-sm">
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-sm">
           <span className="text-zinc-500 font-medium">
             Hal. {page} dari {response?.last_page || 1}
           </span>
@@ -261,14 +261,14 @@ export default function CMSInformasiPage() {
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded hover:bg-zinc-800 disabled:opacity-50"
+              className="px-3 py-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
             >
               Prev
             </button>
             <button
               disabled={!response?.next_page_url}
               onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded hover:bg-zinc-800 disabled:opacity-50"
+              className="px-3 py-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
             >
               Next
             </button>

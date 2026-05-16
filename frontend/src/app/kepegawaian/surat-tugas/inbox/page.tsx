@@ -209,12 +209,12 @@ export default function SuratTugasInbox() {
 
     const getStatusStyle = (status: string) => {
         switch(status) {
-            case 'draft': return 'bg-slate-50 text-slate-500 border-slate-200';
-            case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
-            case 'approved': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-            case 'completed': return 'bg-blue-50 text-blue-600 border-blue-100';
-            case 'rejected': return 'bg-red-50 text-red-600 border-red-100';
-            default: return 'bg-slate-50 text-slate-500 border-slate-100';
+            case 'draft': return 'bg-slate-50 dark:bg-slate-500/10 text-slate-500 border-slate-200 dark:border-slate-500/20';
+            case 'pending': return 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/20';
+            case 'approved': return 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20';
+            case 'completed': return 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-500/20';
+            case 'rejected': return 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-100 dark:border-red-500/20';
+            default: return 'bg-slate-50 dark:bg-slate-500/10 text-slate-500 border-slate-100 dark:border-slate-500/20';
         }
     };
 
@@ -249,7 +249,7 @@ export default function SuratTugasInbox() {
                         className={cn(
                             "flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm",
                             isTrashView 
-                                ? "bg-red-50 text-red-600 border-red-100" 
+                                ? "bg-red-50 dark:bg-red-500/10 text-red-600 border-red-100 dark:border-red-500/20" 
                                 : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
                         )}
                     >
@@ -359,7 +359,7 @@ export default function SuratTugasInbox() {
                                                 }}
                                                 className={cn(
                                                     "p-1.5 rounded-lg",
-                                                    isTrashView ? "text-emerald-600 hover:bg-emerald-50" : "text-red-600 hover:bg-red-50"
+                                                    isTrashView ? "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" : "text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
                                                 )}
                                             >
                                                 {isTrashView ? <Undo2 className="w-3.5 h-3.5" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -603,9 +603,9 @@ export default function SuratTugasInbox() {
                     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-10 shadow-2xl border border-slate-100 dark:border-zinc-800 w-full max-w-sm relative z-10 animate-in zoom-in-95 duration-300">
                         <div className={cn(
                             "w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-xl",
-                            confirmModal.variant === 'danger' ? "bg-red-50 text-red-600 shadow-red-500/10" :
-                            confirmModal.variant === 'success' ? "bg-emerald-50 text-emerald-600 shadow-emerald-500/10" :
-                            "bg-amber-50 text-amber-600 shadow-amber-500/10"
+                            confirmModal.variant === 'danger' ? "bg-red-50 dark:bg-red-500/10 text-red-600 shadow-red-500/10" :
+                            confirmModal.variant === 'success' ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10" :
+                            "bg-amber-50 dark:bg-amber-500/10 text-amber-600 shadow-amber-500/10"
                         )}>
                             {confirmModal.variant === 'danger' ? <Trash2 className="w-8 h-8" /> :
                              confirmModal.variant === 'success' ? <Undo2 className="w-8 h-8" /> :
