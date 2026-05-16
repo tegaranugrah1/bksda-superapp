@@ -1,6 +1,28 @@
-# Progress - Phase 33: Module Themes & Fluid Layouts
+# Progress - Phase 34: Data Security & Linting Finalization
 
-> Document updated: 2026-05-16 14:30
+> Document updated: 2026-05-16
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 34: Data Security & Linting Finalization
+
+### Completed:
+- [x] **Surat Tugas Data Leakage Fix**: Added `employee_id` filter to `AssignmentLetterController::index` to ensure users only see Surat Tugas related to them in their Portal Dashboard. Updated frontend `fetchSuratTugas` to pass this parameter.
+- [x] **BMN Portal Integration**: Enhanced the "Aset Saya" tab in the Portal Dashboard to fetch and display both "Aset Tanggung Jawab Saya" (`employee_id` filter) and "Aset Yang Sedang Saya Pinjam" (`borrower_id` filter).
+- [x] **ST Builder Layout Constraint**: Fixed missing A4 wrapper in `STBuilderPreview` on the `create` page which previously caused broken layouts and misalignments.
+- [x] **Frontend Linting Remediation**: Resolved all lingering TypeScript and ESLint warnings across the codebase.
+  - Removed unused imports (`ChevronRight`, `History`, `Handshake`).
+  - Removed unused assignments (`selectedCount`).
+  - Properly disabled or resolved `react-hooks/set-state-in-effect` and `useEffect` dependency array issues in `loans/page.tsx`, `dereporting/page.tsx`, and `portal/page.tsx`.
+- [x] **Build Verification**: `npm run lint` yields 0 warnings and `npx tsc --noEmit` yields 0 errors.
+
+### Next Steps:
+- [ ] Preparation for Production / Server Deployments.
+
+---
+
+# Progress - Phase 33: Module Themes & Fluid Layouts
 > Status: **COMPLETED** ✅
 
 ---
