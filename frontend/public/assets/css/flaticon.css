@@ -1,0 +1,104 @@
+@font-face {
+    font-family: "flaticon";
+    src: url("../fonts/flaticon681a.ttf?1df927c4626e072d7cc017c3d3023445") format("truetype"),
+url("../fonts/flaticon681a.woff?1df927c4626e072d7cc017c3d3023445") format("woff"),
+url("../fonts/flaticon681a.woff2?1df927c4626e072d7cc017c3d3023445") format("woff2"),
+url("../fonts/flaticon681a.eot?1df927c4626e072d7cc017c3d3023445#iefix") format("embedded-opentype"),
+url("../fonts/flaticon681a.svg?1df927c4626e072d7cc017c3d3023445#flaticon") format("svg");
+}
+
+i[class^="flaticon-"]:before, i[class*=" flaticon-"]:before {
+    font-family: flaticon !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.flaticon-pin:before {
+    content: "\f101";
+}
+.flaticon-email:before {
+    content: "\f102";
+}
+.flaticon-clock:before {
+    content: "\f103";
+}
+.flaticon-phone-ringing:before {
+    content: "\f104";
+}
+.flaticon-magnifying-glass:before {
+    content: "\f105";
+}
+.flaticon-right-arrow:before {
+    content: "\f106";
+}
+.flaticon-left-arrow:before {
+    content: "\f107";
+}
+.flaticon-ticket:before {
+    content: "\f108";
+}
+.flaticon-calendar:before {
+    content: "\f109";
+}
+.flaticon-map:before {
+    content: "\f10a";
+}
+.flaticon-tick:before {
+    content: "\f10b";
+}
+.flaticon-quote:before {
+    content: "\f10c";
+}
+.flaticon-polar-bear:before {
+    content: "\f10d";
+}
+.flaticon-whale:before {
+    content: "\f10e";
+}
+.flaticon-bird:before {
+    content: "\f10f";
+}
+.flaticon-smiling-emoticon-square-face:before {
+    content: "\f110";
+}
+.flaticon-telephone:before {
+    content: "\f111";
+}
+.flaticon-plus-symbol:before {
+    content: "\f112";
+}
+.flaticon-zoo:before {
+    content: "\f113";
+}
+.flaticon-tiger:before {
+    content: "\f114";
+}
+.flaticon-elephant:before {
+    content: "\f115";
+}
+.flaticon-bear:before {
+    content: "\f116";
+}
+.flaticon-penguin:before {
+    content: "\f117";
+}
+.flaticon-koala:before {
+    content: "\f118";
+}
+.flaticon-monkey:before {
+    content: "\f119";
+}
+.flaticon-daughter:before {
+    content: "\f11a";
+}
+.flaticon-teen:before {
+    content: "\f11b";
+}
+.flaticon-clock-1:before {
+    content: "\f11c";
+}

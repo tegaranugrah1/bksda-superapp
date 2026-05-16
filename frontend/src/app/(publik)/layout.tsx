@@ -1,5 +1,4 @@
-import PublicNavbar from "./_components/PublicNavbar";
-import PublicFooter from "./_components/PublicFooter";
+import PublicLayout from "@/components/layout/PublicLayout";
 
 export const metadata = {
   title: "BKSDA — Balai Konservasi Sumber Daya Alam",
@@ -12,15 +11,5 @@ export default function WebsiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <PublicNavbar />
-      <main className="flex-1">{children}</main>
-      <PublicFooter />
-    </div>
-  );
+  return <PublicLayout>{children}</PublicLayout>;
 }
-
-
-
-
