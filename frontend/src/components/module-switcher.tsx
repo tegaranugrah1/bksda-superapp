@@ -28,14 +28,14 @@ const moduleDefinitions = [
     slug: "kepegawaian",
     icon: Users,
     href: "/kepegawaian",
-    color: "bg-emerald-100 text-emerald-700",
+    color: "bg-blue-100 text-blue-700",
   },
   {
     name: "BMN & Aset",
     slug: "bmn",
     icon: Box,
     href: "/bmn",
-    color: "bg-blue-100 text-blue-700",
+    color: "bg-emerald-100 text-emerald-700",
   },
   {
     name: "Inventory",
@@ -49,7 +49,7 @@ const moduleDefinitions = [
     slug: "dereporting",
     icon: FileText,
     href: "/dereporting",
-    color: "bg-purple-100 text-purple-700",
+    color: "bg-violet-100 text-violet-700",
   },
   {
     name: "CMS Panel",
