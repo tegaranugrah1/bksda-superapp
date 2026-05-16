@@ -40,6 +40,7 @@ Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose']);
 Route::post('assets/bulk-dispose', [AssetController::class, 'bulkDispose']);
 Route::post('assets/bulk-restore', [AssetController::class, 'bulkRestore']);
 Route::post('assets/bulk-force-delete', [AssetController::class, 'bulkForceDelete']);
+Route::post('assets/bulk-update-kondisi', [AssetController::class, 'bulkUpdateKondisi']);
 Route::post('assets/{asset}/verify', [AssetController::class, 'verify']);
 
 // 6. IMPORT REVIEW/DIFF/APPROVE

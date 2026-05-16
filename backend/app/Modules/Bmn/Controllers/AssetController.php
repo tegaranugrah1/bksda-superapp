@@ -127,6 +127,35 @@ class AssetController extends Controller
         return response()->json(['message' => "{$count} aset dihapus permanen."]);
     }
 
+    public function bulkUpdateKondisi(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'string',
+            'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat',
+        ]);
+
+        $assets = Asset::whereIn('id', $request->ids)->get();
+        $userId = $request->user()->id;
+
+        foreach ($assets as $asset) {
+            if ($asset->kondisi !== $request->kondisi) {
+                AssetUpdate::create([
+                    'asset_id' => $asset->id,
+                    'user_id' => $userId,
+                    'field_changed' => 'kondisi',
+                    'old_value' => $asset->kondisi,
+                    'new_value' => $request->kondisi,
+                    'alasan_perubahan' => 'Bulk update kondisi',
+                ]);
+            }
+        }
+
+        Asset::whereIn('id', $request->ids)->update(['kondisi' => $request->kondisi]);
+
+        return response()->json(['message' => count($request->ids) . " aset diubah ke {$request->kondisi}."]);
+    }
+
     public function verify(Request $request, string $id): JsonResponse
     {
         $asset = Asset::findOrFail($id);

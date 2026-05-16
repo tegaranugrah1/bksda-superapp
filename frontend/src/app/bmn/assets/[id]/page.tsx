@@ -238,7 +238,11 @@ function AssetDetail({ assetId }: { assetId: string }) {
                 <DetailRow label="Nama" value={asset.nama} />
               </>
             )}
-            <BadgeRow label="Kondisi" value={asset.kondisi} variant={kondisiVariant} />
+            {canWrite ? (
+              <EditableSelectRow label="Kondisi" value={asset.kondisi} field="kondisi" onSave={handleFieldSave} options={["Baik", "Rusak Ringan", "Rusak Berat"]} />
+            ) : (
+              <BadgeRow label="Kondisi" value={asset.kondisi} variant={kondisiVariant} />
+            )}
             <DetailRow label="Umur Aset" value={asset.umur_aset ? `${asset.umur_aset} tahun` : null} />
             <DetailRow label="Tahun Perolehan" value={asset.tahun_perolehan} />
             <DetailRow label="Intra/Extra" value={asset.intra_extra} />

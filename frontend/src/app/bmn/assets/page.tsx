@@ -313,6 +313,33 @@ export default function BmnAssetsPage() {
       {canWrite && selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
           <span className="text-sm font-semibold text-red-700">{selectedIds.size} aset dipilih</span>
+          <select
+            onChange={async (e) => {
+              const newKondisi = e.target.value;
+              if (!newKondisi) return;
+              const ok = await confirm({
+                title: "Ubah Kondisi",
+                description: `Ubah kondisi ${selectedIds.size} aset terpilih menjadi "${newKondisi}"?`,
+                confirmText: "Ya, Ubah",
+                variant: "warning",
+              });
+              if (!ok) { e.target.value = ""; return; }
+              try {
+                await api.post("/bmn/assets/bulk-update-kondisi", { ids: Array.from(selectedIds), kondisi: newKondisi });
+                toast.success(`${selectedIds.size} aset diubah ke ${newKondisi}.`);
+                setSelectedIds(new Set());
+                queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+              } catch { toast.error("Gagal mengubah kondisi."); }
+              e.target.value = "";
+            }}
+            className="h-8 px-2 text-xs border border-amber-300 rounded-lg bg-white text-slate-700"
+            defaultValue=""
+          >
+            <option value="" disabled>Ubah Kondisi...</option>
+            <option value="Baik">Baik</option>
+            <option value="Rusak Ringan">Rusak Ringan</option>
+            <option value="Rusak Berat">Rusak Berat</option>
+          </select>
           <Button size="sm" variant="destructive" className="rounded-lg gap-1 text-xs" onClick={handleBulkDispose}>
             <Trash2 className="w-3.5 h-3.5" /> Hapus Terpilih
           </Button>
