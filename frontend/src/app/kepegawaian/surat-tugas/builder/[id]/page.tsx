@@ -429,7 +429,8 @@ export default function STBuilderPage() {
       };
       await api.put(`/surat-tugas/${id}/approve`, payload);
       toast.success("Surat Tugas berhasil diajukan! Menunggu persetujuan Kasubag.");
-      await queryClient.invalidateQueries({ queryKey: ["surat-tugas"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
       router.push("/kepegawaian/surat-tugas/history");
     } catch (err: unknown) {
       console.error(err);
@@ -464,7 +465,8 @@ export default function STBuilderPage() {
       };
       await api.put(`/surat-tugas/${id}/approve`, payload);
       toast.success("Surat Tugas berhasil diterbitkan!");
-      await queryClient.invalidateQueries({ queryKey: ["surat-tugas"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
       router.push("/kepegawaian/surat-tugas/history");
     } catch (err: unknown) {
       console.error(err);

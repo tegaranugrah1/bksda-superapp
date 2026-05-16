@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import api from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateIndonesian } from "@/lib/letter-utils";
 
 interface Employee {
@@ -62,6 +62,7 @@ export default function SuratTugasInbox() {
         variant: 'warning'
     });
     const router = useRouter();
+    const queryClient = useQueryClient();
 
     const { data, isLoading: loading, refetch: fetchLetters } = useQuery({
         queryKey: ['surat-tugas-inbox', isTrashView, statusFilter],
@@ -98,6 +99,7 @@ export default function SuratTugasInbox() {
             await api.put(`/surat-tugas/${id}/status`, { status: newStatus });
             toast.success(`Berhasil mengubah status menjadi ${newStatus}`);
             fetchLetters();
+            queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
             if (selectedLetter && selectedLetter.id === id) {
                 setSelectedLetter({ ...selectedLetter, status: newStatus as AssignmentLetter['status'] });
             }
@@ -121,6 +123,7 @@ export default function SuratTugasInbox() {
                     toast.success('Berhasil memindahkan ke sampah');
                     if (selectedLetter?.id === id) setSelectedLetter(null);
                     fetchLetters();
+                    queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
                 } catch (error) {
                     console.error('Delete failed', error);
                     toast.error('Gagal menghapus surat tugas');
@@ -141,6 +144,7 @@ export default function SuratTugasInbox() {
                     toast.success('Berhasil memulihkan surat tugas');
                     if (selectedLetter?.id === id) setSelectedLetter(null);
                     fetchLetters();
+                    queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
                 } catch (error) {
                     console.error('Restore failed', error);
                     toast.error('Gagal memulihkan surat tugas');

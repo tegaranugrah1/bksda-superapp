@@ -57,18 +57,25 @@ export function AssignmentHistoryTab() {
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => api.delete(`/surat-tugas/${id}`),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+            queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
+        },
     });
 
     const restoreMutation = useMutation({
         mutationFn: (id: string) => api.post(`/surat-tugas/${id}/restore`),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+            queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
+        },
     });
 
     const approveMutation = useMutation({
         mutationFn: (id: string) => api.put(`/surat-tugas/${id}/approve`, { status: "approved" }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+            queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
             toast.success("Surat Tugas berhasil diterbitkan!");
         },
         onError: () => toast.error("Gagal menerbitkan ST."),
