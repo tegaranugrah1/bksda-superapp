@@ -71,8 +71,8 @@ export default function EditInformasiPage() {
     useQuery<InformasiData>({
       queryKey: ["cms-informasi-edit", id],
       queryFn: async () => {
-        const res = await api.get<InformasiData>(`/cms/admin/informasi/${id}`);
-        return res.data;
+        const res = await api.get(`/cms/admin/informasi/${id}`);
+        return res.data?.data || res.data;
       },
     });
 
