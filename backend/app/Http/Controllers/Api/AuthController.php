@@ -76,7 +76,7 @@ class AuthController extends Controller
         if ($employee) {
             try {
                 $loans = AssetLoan::where('employee_id', $employee->id)
-                    ->whereNotNull('tanggal_kembali')
+                    ->whereIn('status', ['dipinjam', 'terlambat'])
                     ->with('asset')
                     ->orderByDesc('tanggal_pinjam')
                     ->limit(20)

@@ -66,7 +66,6 @@ export default function PersonalDashboard() {
   
   // Aset states
   const [myAssets, setMyAssets] = useState<any[]>([]);
-  const [borrowedAssets, setBorrowedAssets] = useState<any[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(false);
 
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
@@ -108,20 +107,14 @@ export default function PersonalDashboard() {
   const fetchAssets = useCallback(async () => {
     if (!data?.employee?.id) {
       setMyAssets([]);
-      setBorrowedAssets([]);
       return;
     }
     setAssetsLoading(true);
     try {
-      const [respMy, respBorrowed] = await Promise.all([
-        api.get("/bmn/assets", { params: { employee_id: data.employee.id, per_page: 50 } }).catch(() => ({ data: { data: [] } })),
-        api.get("/bmn/assets", { params: { borrower_id: data.employee.id, per_page: 50 } }).catch(() => ({ data: { data: [] } }))
-      ]);
+      const respMy = await api.get("/bmn/assets", { params: { employee_id: data.employee.id, per_page: 50 } });
       setMyAssets(respMy.data.data || []);
-      setBorrowedAssets(respBorrowed.data.data || []);
     } catch {
       setMyAssets([]);
-      setBorrowedAssets([]);
     } finally {
       setAssetsLoading(false);
     }
@@ -417,90 +410,44 @@ export default function PersonalDashboard() {
 
               {/* Tab: Aset Saya */}
               {activeTab === "aset" && (
-                <div className="space-y-6">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
                   {assetsLoading ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-12 text-center">
+                    <div className="p-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
                       <p className="text-sm text-slate-400">Memuat aset Anda...</p>
                     </div>
+                  ) : myAssets.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <Briefcase className="w-12 h-12 mx-auto mb-3 text-slate-200" />
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Tidak ada aset di bawah tanggung jawab Anda.</p>
+                    </div>
                   ) : (
-                    <>
-                      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                          <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                            <Briefcase className="w-4 h-4 text-emerald-500" />
-                            Aset Tanggung Jawab Saya
-                          </h3>
+                    <div className="divide-y divide-slate-100 dark:divide-zinc-800">
+                      {myAssets.map((asset) => (
+                        <div key={`my-${asset.id}`} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                            <Package className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
+                              <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
+                              {asset.kondisi && (
+                                <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", 
+                                  asset.kondisi === "Baik" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" :
+                                  asset.kondisi === "Rusak Ringan" ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400" :
+                                  "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400"
+                                )}>{asset.kondisi}</span>
+                              )}
+                            </div>
+                          </div>
+                          <Link href={`/bmn/assets/${asset.id}`} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors" title="Lihat Detail">
+                            <Eye className="w-4 h-4" />
+                          </Link>
                         </div>
-                        {myAssets.length === 0 ? (
-                          <div className="p-8 text-center">
-                            <p className="text-sm text-slate-500">Tidak ada aset di bawah tanggung jawab Anda.</p>
-                          </div>
-                        ) : (
-                          <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {myAssets.map((asset) => (
-                              <div key={`my-${asset.id}`} className="p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                                  <Package className="w-5 h-5" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
-                                  <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
-                                    <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
-                                    {asset.kondisi && (
-                                      <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", 
-                                        asset.kondisi === "Baik" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" :
-                                        asset.kondisi === "Rusak Ringan" ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400" :
-                                        "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400"
-                                      )}>{asset.kondisi}</span>
-                                    )}
-                                  </div>
-                                </div>
-                                <Link href={`/bmn/assets/${asset.id}`} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors" title="Lihat Detail">
-                                  <Eye className="w-4 h-4" />
-                                </Link>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                          <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                            <HandHelping className="w-4 h-4 text-blue-500" />
-                            Aset Yang Sedang Saya Pinjam
-                          </h3>
-                        </div>
-                        {borrowedAssets.length === 0 ? (
-                          <div className="p-8 text-center">
-                            <p className="text-sm text-slate-500">Anda tidak sedang meminjam aset apapun.</p>
-                          </div>
-                        ) : (
-                          <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {borrowedAssets.map((asset) => (
-                              <div key={`borrowed-${asset.id}`} className="p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
-                                  <Package className="w-5 h-5" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
-                                  <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
-                                    <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">Sedang Dipinjam</span>
-                                  </div>
-                                </div>
-                                <Link href={`/bmn/assets/${asset.id}`} className="p-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-emerald-600 transition-colors" title="Lihat Detail">
-                                  <Eye className="w-4 h-4" />
-                                </Link>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
