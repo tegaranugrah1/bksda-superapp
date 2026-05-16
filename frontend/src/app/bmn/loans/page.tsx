@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 interface Loan {
     id: string;
     asset_id: string;
-    asset?: { id: string; kode_barang: string | null; nama_barang: string | null };
+    asset?: { id: string; kode_barang: string | null; nama_barang: string | null; nup: string | null; nup_lama: string | null; merk: string | null; merk_tipe: string | null; pengguna: string | null; no_polisi: string | null; lokasi_ruang: string | null; };
     borrower_employee_id: string;
     borrower?: { id: string; name: string; nip: string | null };
     loan_date: string;
@@ -248,7 +248,17 @@ export default function LoansPage() {
                                     <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-4 py-3">
                                             <div className="font-bold text-slate-900 line-clamp-2 text-sm">{r.asset?.nama_barang || 'Aset Terhapus'}</div>
-                                            <div className="text-[10px] text-slate-400 font-mono tracking-tighter mt-0.5">{r.asset?.kode_barang}</div>
+                                            {(r.asset?.merk || r.asset?.merk_tipe) && <div className="text-[11px] text-slate-500">{r.asset.merk_tipe || r.asset.merk}</div>}
+                                            <div className="text-[10px] text-slate-400 font-mono tracking-tighter mt-0.5">
+                                                {r.asset?.kode_barang} • NUP: {r.asset?.nup || '-'} {r.asset?.nup_lama ? `(Lama: ${r.asset.nup_lama})` : ''}
+                                            </div>
+                                            {(r.asset?.no_polisi || r.asset?.pengguna || r.asset?.lokasi_ruang) && (
+                                                <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1">
+                                                    {r.asset?.no_polisi && <span className="text-[10px] text-blue-600">🚗 {r.asset.no_polisi}</span>}
+                                                    {r.asset?.pengguna && <span className="text-[10px] text-amber-600">👤 {r.asset.pengguna}</span>}
+                                                    {r.asset?.lokasi_ruang && <span className="text-[10px] text-emerald-600">📍 {r.asset.lokasi_ruang}</span>}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="font-medium text-slate-800 text-sm">{r.borrower?.name || '-'}</div>

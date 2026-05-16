@@ -43,6 +43,13 @@ class AssetLoanResource extends JsonResource
                     'id' => $this->asset->id,
                     'kode_barang' => $this->asset->kode_barang,
                     'nama_barang' => $this->asset->nama_barang,
+                    'nup' => $this->asset->nup,
+                    'nup_lama' => $this->asset->nup_lama,
+                    'merk' => $this->asset->merk,
+                    'merk_tipe' => $this->asset->merk_tipe,
+                    'pengguna' => $this->asset->pengguna,
+                    'no_polisi' => $this->asset->no_polisi,
+                    'lokasi_ruang' => $this->asset->lokasi_ruang,
                 ];
             }),
             'borrower' => $this->whenLoaded('borrower', function () {
