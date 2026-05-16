@@ -162,8 +162,12 @@ export default function CrudPageFactory({ config }: Props) {
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm("Yakin hapus?"))
-                              deleteMutation.mutate(row.id);
+                            toast("Yakin hapus data ini?", {
+                              action: {
+                                label: "Hapus",
+                                onClick: () => deleteMutation.mutate(row.id),
+                              },
+                            });
                           }}
                           className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group"
                         >

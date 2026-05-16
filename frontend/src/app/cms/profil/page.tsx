@@ -13,14 +13,12 @@ const config: CrudPageConfig = {
     searchPlaceholder: "Cari judul profil...",
     columns: [
         { key: "judul", label: "Judul" },
-        { key: "urutan", label: "Urutan", render: (v) => v || "-" },
         { key: "is_published", label: "Status", render: (v) => v ? "✅ Terbit" : "📝 Draft" },
     ],
     fields: [
         { key: "judul", label: "Judul", type: "text", required: true, maxLength: 255 },
         { key: "konten", label: "Konten", type: "textarea", required: true },
         { key: "thumbnail", label: "Foto", type: "file", accept: "image/*" },
-        { key: "urutan", label: "Urutan", type: "number" },
         { key: "is_published", label: "Publikasi", type: "checkbox", placeholder: "Tampilkan di website" },
     ],
 };

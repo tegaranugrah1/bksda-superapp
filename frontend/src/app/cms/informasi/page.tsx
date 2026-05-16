@@ -237,8 +237,12 @@ export default function CMSInformasiPage() {
                         {/* Hapus */}
                         <button
                           onClick={() => {
-                            if (confirm("Yakin hapus berita ini?"))
-                              deleteMutation.mutate(berita.id);
+                            toast("Yakin hapus berita ini?", {
+                              action: {
+                                label: "Hapus",
+                                onClick: () => deleteMutation.mutate(berita.id),
+                              },
+                            });
                           }}
                           className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group"
                         >

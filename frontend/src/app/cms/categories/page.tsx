@@ -15,7 +15,6 @@ const config: CrudPageConfig = {
         { key: "nama", label: "Nama" },
         { key: "slug", label: "Slug", render: (v) => v || "-" },
         { key: "tipe", label: "Tipe" },
-        { key: "urutan", label: "Urutan", render: (v) => v || "-" },
     ],
     fields: [
         { key: "nama", label: "Nama", type: "text", required: true, maxLength: 100 },
@@ -25,7 +24,6 @@ const config: CrudPageConfig = {
             { value: "galeri", label: "Galeri" },
             { value: "publikasi", label: "Publikasi" },
         ]},
-        { key: "urutan", label: "Urutan", type: "number" },
     ],
 };
 
