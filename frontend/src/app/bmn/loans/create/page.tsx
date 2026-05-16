@@ -19,9 +19,13 @@ interface Asset {
     nama_barang: string;
     kode_barang: string;
     nup: string;
-    merk: string;
+    nup_lama: string | null;
+    merk: string | null;
+    merk_tipe: string | null;
     kondisi: string;
     status_bmn: string;
+    pengguna: string | null;
+    no_polisi: string | null;
 }
 
 export default function LoanCreatePage() {
@@ -159,14 +163,18 @@ export default function LoanCreatePage() {
                                                                 <div key={asset.id} className={cn("flex items-center justify-between gap-1 p-3 rounded-lg transition-colors border border-transparent", isSelected ? "opacity-50 cursor-not-allowed bg-slate-50" : isUnavailable ? "opacity-60 cursor-not-allowed bg-slate-50" : "cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 group")}
                                                                     onClick={() => { if (isSelected) return; if (isUnavailable) { toast.error(`Tidak tersedia: ${asset.status_bmn}`); return; } handleSelectAsset(asset); }}>
                                                                     <div className="flex-1 min-w-0">
-                                                                        <div className="flex items-center gap-2">
+                                                                        <div className="flex items-center gap-2 flex-wrap">
                                                                             <div className={cn("font-bold truncate", isSelected ? "text-slate-400" : "text-slate-900 group-hover:text-emerald-700")}>{asset.nama_barang}</div>
                                                                             {isUnavailable && <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-black uppercase bg-red-50 text-red-600 border-red-100 shrink-0">{asset.status_bmn}</Badge>}
                                                                         </div>
-                                                                        <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                                                                        {(asset.merk || asset.merk_tipe) && <div className="text-[11px] text-slate-600 mt-0.5">{asset.merk_tipe || asset.merk}</div>}
+                                                                        <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5 flex-wrap">
                                                                             <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-mono">{asset.kode_barang}</span>
                                                                             <span>•</span><span className="font-medium text-emerald-600">NUP {asset.nup}</span>
+                                                                            {asset.nup_lama && <><span>•</span><span className="text-slate-400">NUP Lama: {asset.nup_lama}</span></>}
+                                                                            {asset.no_polisi && <><span>•</span><span className="font-medium text-blue-600">🚗 {asset.no_polisi}</span></>}
                                                                         </div>
+                                                                        {asset.pengguna && <div className="text-[10px] text-amber-600 mt-0.5">👤 {asset.pengguna}</div>}
                                                                     </div>
                                                                     {isSelected && <Check className="w-4 h-4 text-emerald-500 shrink-0" />}
                                                                 </div>
@@ -193,7 +201,12 @@ export default function LoanCreatePage() {
                                                             <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">{idx + 1}</div>
                                                             <div>
                                                                 <p className="font-bold text-slate-900">{asset.nama_barang}</p>
-                                                                <p className="text-xs text-slate-500">NUP: {asset.nup} | Kode: {asset.kode_barang}</p>
+                                                                {(asset.merk || asset.merk_tipe) && <p className="text-[11px] text-slate-600">{asset.merk_tipe || asset.merk}</p>}
+                                                                <p className="text-xs text-slate-500">
+                                                                    NUP: {asset.nup}{asset.nup_lama ? ` (Lama: ${asset.nup_lama})` : ''} | Kode: {asset.kode_barang}
+                                                                    {asset.no_polisi ? ` | No.Pol: ${asset.no_polisi}` : ''}
+                                                                    {asset.pengguna ? ` | 👤 ${asset.pengguna}` : ''}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                         <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-600" onClick={() => setSelectedAssets(selectedAssets.filter(a => a.id !== asset.id))}><X className="w-4 h-4" /></Button>
