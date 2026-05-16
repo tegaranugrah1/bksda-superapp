@@ -10,6 +10,7 @@
 ### Completed:
 - [x] **Kepegawaian Module Branding**: Replaced generic emerald elements with **Blue** (`blue-600`, `blue-50`) to establish a formal HR identity.
 - [x] **Inventory Module Branding**: Replaced emerald/teal elements with **Orange/Amber** (`orange-600`, `amber-500`) for clear differentiation.
+- [x] **Portal & Module Switcher Alignment**: Synced the portal dashboard cards and global module switcher to accurately reflect each module's distinct theme (Blue, Emerald, Orange, Violet, Teal).
 - [x] **Kepegawaian Layout**: Upgraded wrapper layouts to use standard fluid padding `p-6 md:p-10`.
 - [x] **BMN Layout Standardization**: Removed `max-w-7xl` containers from BMN pages and fully migrated to fluid `p-6 md:p-10 space-y-8 animate-in fade-in` design system.
 - [x] **Cross-Module Verification**: Verified CMS (Teal) and DeReporting (Violet) are correctly themed and sized.
