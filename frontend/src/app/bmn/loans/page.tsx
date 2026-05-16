@@ -219,7 +219,9 @@ export default function LoansPage() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-slate-100 bg-slate-50">
-                                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-[250px]">Aset</th>
+                                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-[200px]">Aset</th>
+                                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kode / NUP</th>
+                                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lokasi & Pengguna</th>
                                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peminjam</th>
                                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tgl Pinjam</th>
                                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Jatuh Tempo</th>
@@ -230,14 +232,14 @@ export default function LoansPage() {
                         <tbody className="divide-y divide-slate-50">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-20">
+                                    <td colSpan={8} className="text-center py-20">
                                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-2" />
                                         <p className="text-slate-500 text-sm">Memuat data peminjaman...</p>
                                     </td>
                                 </tr>
                             ) : records.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-20">
+                                    <td colSpan={8} className="text-center py-20">
                                         <Package className="w-12 h-12 mx-auto mb-3 text-slate-200" />
                                         <p className="text-slate-900 font-medium">Belum ada data peminjaman</p>
                                         <p className="text-sm text-slate-500 mt-1">Sesuai dengan filter pencarian</p>
@@ -249,16 +251,16 @@ export default function LoansPage() {
                                         <td className="px-4 py-3">
                                             <div className="font-bold text-slate-900 line-clamp-2 text-sm">{r.asset?.nama_barang || 'Aset Terhapus'}</div>
                                             {(r.asset?.merk || r.asset?.merk_tipe) && <div className="text-[11px] text-slate-500">{r.asset.merk_tipe || r.asset.merk}</div>}
-                                            <div className="text-[10px] text-slate-400 font-mono tracking-tighter mt-0.5">
-                                                {r.asset?.kode_barang} • NUP: {r.asset?.nup || '-'} {r.asset?.nup_lama ? `(Lama: ${r.asset.nup_lama})` : ''}
-                                            </div>
-                                            {(r.asset?.no_polisi || r.asset?.pengguna || r.asset?.lokasi_ruang) && (
-                                                <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1">
-                                                    {r.asset?.no_polisi && <span className="text-[10px] text-blue-600">🚗 {r.asset.no_polisi}</span>}
-                                                    {r.asset?.pengguna && <span className="text-[10px] text-amber-600">👤 {r.asset.pengguna}</span>}
-                                                    {r.asset?.lokasi_ruang && <span className="text-[10px] text-emerald-600">📍 {r.asset.lokasi_ruang}</span>}
-                                                </div>
-                                            )}
+                                            {r.asset?.nup_lama && <div className="text-[10px] text-slate-400 mt-0.5">NUP Lama: {r.asset.nup_lama}</div>}
+                                            {r.asset?.no_polisi && <div className="text-[10px] text-blue-600 font-medium mt-0.5">🚗 {r.asset.no_polisi}</div>}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="text-xs font-mono font-bold text-emerald-700">{r.asset?.kode_barang || '-'}</div>
+                                            <div className="text-[10px] text-slate-400 font-mono tracking-tighter mt-0.5">NUP: {r.asset?.nup || '-'}</div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="text-xs text-slate-500">{r.asset?.lokasi_ruang || '-'}</div>
+                                            {r.asset?.pengguna && <div className="text-[10px] text-amber-600 mt-0.5">👤 {r.asset.pengguna}</div>}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="font-medium text-slate-800 text-sm">{r.borrower?.name || '-'}</div>
