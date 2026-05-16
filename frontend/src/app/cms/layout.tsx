@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -19,6 +20,7 @@ import {
   Scale,
   Settings,
   Inbox,
+  Menu,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ModuleSwitcher } from "@/components/module-switcher";
@@ -66,13 +68,30 @@ const SIDEBAR_SECTIONS = [
 
 export default function CMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
   const { canWrite } = useRole();
 
   return (
     <RouteGuard requiredModule="cms">
-      <div className="flex min-h-screen bg-zinc-950">
+      {/* Tombol Floating Mobile Hamburger */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-teal-600 text-white shadow-2xl hover:bg-teal-500 hover:scale-105 active:scale-95 transition-all duration-300"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      <div className="flex min-h-screen bg-zinc-950 relative overflow-hidden">
+        {/* Layar Gelap (Backdrop) saat laci ditarik di layar HP */}
+        {isOpen && (
+          <div
+            onClick={() => setIsOpen(false)}
+            className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+          />
+        )}
+
         {/* Sidebar Navigasi Raksasa */}
-        <aside className="hidden md:flex flex-col w-64 bg-zinc-900/50 border-r border-zinc-800 p-4 gap-0.5 overflow-y-auto">
+        <aside className={`fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-zinc-900/50 border-r border-zinc-800 p-4 gap-0.5 overflow-y-auto transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
           {/* Header Modul */}
           <div className="flex items-center justify-between px-3 py-4 mb-2">
             <div className="flex items-center gap-3">
@@ -109,6 +128,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setIsOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                       isActive
                         ? "bg-teal-500/10 text-teal-400 border border-teal-500/20"

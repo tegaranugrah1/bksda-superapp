@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Package, Handshake, Wrench, Trash2, FileText, Building2, FileUp } from "lucide-react";
+import { LayoutDashboard, Package, Handshake, Wrench, Trash2, FileText, Building2, FileUp, Menu } from "lucide-react";
 import { ModuleSwitcher } from "@/components/module-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -24,6 +25,7 @@ const bmnMenus = [
 
 export default function BmnLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const { canWrite } = useRole();
 
@@ -35,9 +37,28 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <RouteGuard requiredModule="bmn">
-      <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Tombol Floating Mobile Hamburger */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-emerald-600 text-white shadow-2xl hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all duration-300"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      <div className="flex h-screen bg-slate-50 overflow-hidden relative">
+        {/* Layar Gelap (Backdrop) saat laci ditarik di layar HP */}
+        {isOpen && (
+          <div
+            onClick={() => setIsOpen(false)}
+            className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+          />
+        )}
+
         {/* Sidebar */}
-        <aside className="hidden md:flex w-64 flex-col bg-white border-r border-slate-200">
+        <aside className={cn(
+          "fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
           <div className="p-5 border-b border-slate-100">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -62,6 +83,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={menu.path}
                   href={menu.path}
+                  onClick={() => setIsOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all",
                     isActive

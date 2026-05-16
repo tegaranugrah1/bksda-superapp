@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,6 +10,7 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   History,
+  Menu,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +30,7 @@ const menuItems = [
 
 export function InventorySidebar() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const { canWrite } = useRole();
 
@@ -38,9 +41,26 @@ export function InventorySidebar() {
   });
 
   return (
-    <aside className="w-64 shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hidden md:flex flex-col">
-      {/* Header */}
-      <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50">
+    <>
+      {/* Tombol Floating Mobile Hamburger */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-emerald-600 text-white shadow-2xl hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all duration-300"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Layar Gelap (Backdrop) saat laci ditarik di layar HP */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+        />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 shrink-0 flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        {/* Header */}
+        <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -69,6 +89,7 @@ export function InventorySidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 font-medium text-sm ${
                 isActive
                   ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold"
@@ -102,5 +123,6 @@ export function InventorySidebar() {
         <LogoutButton />
       </div>
     </aside>
+    </>
   );
 }
