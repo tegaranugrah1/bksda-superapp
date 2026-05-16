@@ -134,6 +134,7 @@ export default function LoansPage() {
             fetchRecords(pagination.current_page);
             queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-asset", returningRecord.asset_id] });
+            router.refresh();
         } catch (error) {
             const err = error as { response?: { data?: { message?: string; error?: string } } };
             toast.error(err.response?.data?.message || err.response?.data?.error || "Gagal mengembalikan");
@@ -153,6 +154,7 @@ export default function LoansPage() {
             fetchRecords(pagination.current_page);
             queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-asset", editingRecord.asset_id] });
+            router.refresh();
         } catch (error) {
             const err = error as { response?: { data?: { message?: string } } };
             toast.error(err.response?.data?.message || "Gagal memperbarui");
@@ -176,6 +178,7 @@ export default function LoansPage() {
             fetchRecords(pagination.current_page);
             queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
+            router.refresh();
         } catch {
             toast.error("Gagal menghapus");
         } finally {

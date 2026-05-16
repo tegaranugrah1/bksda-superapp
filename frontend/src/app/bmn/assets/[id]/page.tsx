@@ -153,8 +153,20 @@ function AssetDetail({ assetId }: { assetId: string }) {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ring-1 ${kondisiColor}`}>{asset.kondisi}</span>
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-2">
+                {asset.active_loan && (
+                  <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold ring-1 bg-blue-50 text-blue-700 ring-blue-200 shadow-sm">
+                    Dipinjam
+                  </span>
+                )}
+                <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ring-1 ${kondisiColor} shadow-sm`}>{asset.kondisi}</span>
+              </div>
+              {asset.active_loan && asset.active_loan.borrower_name && (
+                <span className="text-[10px] font-medium text-blue-600 bg-blue-50/50 px-2 py-0.5 rounded-md mt-0.5 flex items-center gap-1">
+                  👤 {asset.active_loan.borrower_name}
+                </span>
+              )}
             </div>
           </div>
 
