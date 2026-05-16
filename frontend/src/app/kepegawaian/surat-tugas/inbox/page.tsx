@@ -561,9 +561,9 @@ export default function SuratTugasInbox() {
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <Button 
                                                         onClick={() => handleUpdateStatus(selectedLetter.id, 'rejected')}
-                                                        disabled={updatingStatus || selectedLetter.status === 'rejected'}
+                                                        disabled={updatingStatus || ['rejected', 'approved', 'completed'].includes(selectedLetter.status)}
                                                         variant="outline"
-                                                        className="h-10 rounded-xl border-red-100 dark:border-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 font-black text-[9px] tracking-widest uppercase"
+                                                        className="h-10 rounded-xl border-red-100 dark:border-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 disabled:opacity-50 font-black text-[9px] tracking-widest uppercase"
                                                     >
                                                         Tolak
                                                     </Button>
