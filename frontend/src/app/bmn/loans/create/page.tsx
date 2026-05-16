@@ -305,10 +305,20 @@ export default function LoanCreatePage() {
                                     <h3 className="font-bold text-slate-900 mb-3 text-sm flex items-center gap-2"><ShoppingBag className="w-4 h-4 text-emerald-600" />Daftar Barang ({selectedAssets.length})</h3>
                                     <div className="border border-slate-200 rounded-lg overflow-hidden">
                                         <table className="w-full text-xs text-left">
-                                            <thead className="bg-slate-50 text-slate-500 font-medium border-b"><tr><th className="px-3 py-2">Nama Barang</th><th className="px-3 py-2 text-right">NUP</th></tr></thead>
+                                            <thead className="bg-slate-50 text-slate-500 font-medium border-b"><tr><th className="px-3 py-2">Barang</th><th className="px-3 py-2 text-right">NUP</th></tr></thead>
                                             <tbody className="divide-y divide-slate-100">
                                                 {selectedAssets.map((asset) => (
-                                                    <tr key={asset.id} className="bg-white"><td className="px-3 py-2"><p className="font-medium text-slate-900">{asset.nama_barang}</p><p className="text-slate-400 text-[10px]">{asset.kode_barang}</p></td><td className="px-3 py-2 text-right">{asset.nup}</td></tr>
+                                                    <tr key={asset.id} className="bg-white">
+                                                        <td className="px-3 py-2">
+                                                            <p className="font-medium text-slate-900">{asset.nama_barang}</p>
+                                                            {(asset.merk || asset.merk_tipe) && <p className="text-[10px] text-slate-500">{asset.merk_tipe || asset.merk}</p>}
+                                                            <p className="text-slate-400 text-[10px]">{asset.kode_barang}</p>
+                                                            {asset.nup_lama && <p className="text-[10px] text-slate-400">NUP Lama: {asset.nup_lama}</p>}
+                                                            {asset.no_polisi && <p className="text-[10px] text-blue-600">🚗 {asset.no_polisi}</p>}
+                                                            {asset.pengguna && <p className="text-[10px] text-amber-600">👤 {asset.pengguna}</p>}
+                                                        </td>
+                                                        <td className="px-3 py-2 text-right align-top">{asset.nup}</td>
+                                                    </tr>
                                                 ))}
                                             </tbody>
                                         </table>
