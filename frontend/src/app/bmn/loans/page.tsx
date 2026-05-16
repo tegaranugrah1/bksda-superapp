@@ -187,41 +187,36 @@ export default function LoansPage() {
     };
 
     return (
-        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="p-6 md:p-8 space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BMN</span>
-                        <span className="text-slate-300">•</span>
-                        <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Sirkulasi & Pinjaman</span>
-                    </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                        <Handshake className="w-6 h-6 text-amber-500" /> Daftar Peminjaman Aset
-                    </h1>
+                    <h1 className="text-2xl font-bold text-slate-900">Sirkulasi & Pinjaman</h1>
+                    <p className="text-sm text-slate-500 mt-0.5">Kelola data peminjaman dan pengembalian Barang Milik Negara.</p>
                 </div>
-                <Button
-                    onClick={() => router.push('/bmn/loans/create')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200/50 transition-all group"
-                >
-                    <Plus className="mr-2 h-4 w-4 group-hover:rotate-90 transition-transform" />
-                    Pinjam Aset
-                </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                        onClick={() => router.push('/bmn/loans/create')}
+                        size="sm"
+                        className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-500"
+                    >
+                        <Plus className="w-3.5 h-3.5" /> Pinjam Aset
+                    </Button>
+                </div>
             </div>
 
             {/* Filter */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex gap-4 items-end">
-                    <div className="w-full sm:w-64 space-y-2">
-                        <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Peminjaman</Label>
-                        <Select value={filterStatus} onValueChange={setFilterStatus}>
-                            <SelectTrigger className="bg-slate-50 border-slate-200"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Semua Status</SelectItem>
-                                {STATUS_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative w-full sm:w-48">
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                        <SelectTrigger className="w-full bg-white h-10 border-slate-200 rounded-xl px-4 shadow-xs text-sm">
+                            <SelectValue placeholder="Status Peminjaman" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                            <SelectItem value="all">Semua Status</SelectItem>
+                            {STATUS_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
@@ -248,7 +243,7 @@ export default function LoansPage() {
                             {loading ? (
                                 <tr>
                                     <td colSpan={8} className="text-center py-20">
-                                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-2" />
+                                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-emerald-600 mb-2" />
                                         <p className="text-slate-500 text-sm">Memuat data peminjaman...</p>
                                     </td>
                                 </tr>
@@ -266,7 +261,7 @@ export default function LoansPage() {
                                         <td className="px-4 py-3">
                                             <div className="font-bold text-slate-900 line-clamp-2 text-sm">{r.asset?.nama_barang || 'Aset Terhapus'}</div>
                                             {(r.asset?.merk || r.asset?.merk_tipe) && <div className="text-[11px] text-slate-500">{r.asset.merk_tipe || r.asset.merk}</div>}
-                                            {r.asset?.no_polisi && <div className="text-[10px] text-blue-600 font-medium mt-0.5">🚗 {r.asset.no_polisi}</div>}
+                                            {r.asset?.no_polisi && r.asset.no_polisi !== '-' && <div className="text-[10px] text-blue-600 font-medium mt-0.5">🚗 {r.asset.no_polisi}</div>}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="text-xs font-mono font-bold text-emerald-700">{r.asset?.kode_barang || '-'}</div>
@@ -322,7 +317,7 @@ export default function LoansPage() {
                                                         <RotateCcw className="h-4 w-4" />
                                                     </Button>
                                                 )}
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={() => openEditModal(r)} disabled={r.status === 'dikembalikan'} title="Edit">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50" onClick={() => openEditModal(r)} disabled={r.status === 'dikembalikan'} title="Edit">
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50" title="Hapus" onClick={() => { setDeletingRecord(r); setIsDeleteModalOpen(true); }}>

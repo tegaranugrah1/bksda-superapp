@@ -112,7 +112,10 @@ export default function LoanCreatePage() {
             <div className="bg-white border-b border-slate-200 flex-none z-30">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-3">
                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-emerald-50 text-emerald-600"><ArrowLeft className="w-5 h-5" /></Button>
-                    <h1 className="text-lg font-bold text-slate-900">Permohonan Peminjaman BMN</h1>
+                    <div>
+                        <h1 className="text-lg font-bold text-slate-900">Form Permohonan Peminjaman Aset</h1>
+                        <p className="text-[10px] sm:text-xs text-slate-500 hidden sm:block">Lengkapi detail di bawah ini untuk mengajukan peminjaman Barang Milik Negara.</p>
+                    </div>
                 </div>
             </div>
 
@@ -352,11 +355,11 @@ export default function LoanCreatePage() {
             {/* Footer */}
             <div className="bg-white border-t border-slate-200 shrink-0 z-20 h-16 w-full">
                 <div className="max-w-7xl mx-auto px-4 md:px-8 h-full flex justify-between items-center">
-                    <Button variant="ghost" onClick={() => step > 1 ? setStep(step - 1) : router.back()} className="h-9 px-4 text-sm text-slate-500 hover:text-slate-900">
+                    <Button variant="outline" onClick={() => step > 1 ? setStep(step - 1) : router.back()} className="h-10 px-6 text-sm text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-slate-50 rounded-xl">
                         {step > 1 ? 'Kembali' : 'Batal'}
                     </Button>
-                    <Button onClick={step === 3 ? handleSubmit : handleNext} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-6 text-sm rounded-full shadow-emerald-200 shadow-lg">
-                        {step === 3 ? (submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Mengirim...</> : 'Kirim Permohonan') : <>Lanjut<ArrowRight className="ml-2 w-4 h-4" /></>}
+                    <Button onClick={step === 3 ? handleSubmit : handleNext} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700 text-white h-10 px-8 text-sm rounded-xl shadow-emerald-200 shadow-lg">
+                        {step === 3 ? (submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Mengirim...</> : 'Konfirmasi Peminjaman') : <>Lanjut<ArrowRight className="ml-2 w-4 h-4" /></>}
                     </Button>
                 </div>
             </div>
