@@ -217,9 +217,9 @@ export default function PersonalDashboard() {
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col lg:flex-row gap-6 sm:gap-8">
           {/* Sidebar Profile */}
-          <aside className="w-full lg:w-[280px] shrink-0 space-y-4">
+          <aside className="w-full lg:w-[280px] shrink-0 space-y-4 order-2 lg:order-1">
             <div className="bg-white rounded-2xl border border-slate-200/60 p-6 text-center relative">
               <button onClick={openEditDialog} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors" title="Edit Profil">
                 <Pencil className="w-3.5 h-3.5" />
@@ -261,7 +261,7 @@ export default function PersonalDashboard() {
                     <KeyRound className="w-4 h-4 mr-2 text-emerald-500" /> Ganti Password
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[400px]">
+                <DialogContent className="sm:max-w-[400px] w-[90vw] mx-auto rounded-2xl">
                   <form onSubmit={handleChangePassword}>
                     <DialogHeader><DialogTitle>Ubah Password</DialogTitle><DialogDescription>Password baru minimal 8 karakter.</DialogDescription></DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -269,7 +269,7 @@ export default function PersonalDashboard() {
                       <div className="grid gap-2"><Label htmlFor="new_password">Password Baru</Label><Input id="new_password" type="password" value={pwData.new_password} onChange={(e) => setPwData({ ...pwData, new_password: e.target.value })} required minLength={8} /></div>
                       <div className="grid gap-2"><Label htmlFor="new_password_confirmation">Konfirmasi</Label><Input id="new_password_confirmation" type="password" value={pwData.new_password_confirmation} onChange={(e) => setPwData({ ...pwData, new_password_confirmation: e.target.value })} required minLength={8} /></div>
                     </div>
-                    <DialogFooter><DialogClose asChild><Button type="button" variant="outline">Batal</Button></DialogClose><Button type="submit" disabled={pwLoading}>{pwLoading && <Loader2 className="w-4 h-4 animate-spin mr-1" />}Simpan</Button></DialogFooter>
+                    <DialogFooter><DialogClose asChild><Button type="button" variant="outline" className="w-full sm:w-auto">Batal</Button></DialogClose><Button type="submit" disabled={pwLoading} className="w-full sm:w-auto">{pwLoading && <Loader2 className="w-4 h-4 animate-spin mr-1" />}Simpan</Button></DialogFooter>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -277,14 +277,14 @@ export default function PersonalDashboard() {
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 min-w-0 space-y-6">
+          <main className="flex-1 min-w-0 space-y-6 order-1 lg:order-2">
             {/* Welcome Banner */}
             <div className="bg-emerald-600 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
               <div className="absolute bottom-0 left-1/2 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
               <div className="relative z-10">
                 <p className="text-emerald-100 text-sm mb-1">{formatDate()}</p>
-                <h2 className="text-2xl sm:text-3xl font-black flex items-center gap-2">
+                <h2 className="text-2xl sm:text-3xl font-black flex flex-wrap items-center gap-2">
                   {greeting.text}, {firstName}! {greeting.icon}
                 </h2>
                 <p className="text-emerald-100 text-sm mt-2">Selamat datang di portal BKSDA Kalimantan Timur.</p>
@@ -311,13 +311,13 @@ export default function PersonalDashboard() {
 
             {/* Tabs Section */}
             <div>
-              <div className="flex items-center gap-1 bg-white rounded-xl border border-slate-200/60 p-1 mb-4">
+              <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-1 bg-white rounded-xl border border-slate-200/60 p-1 mb-4">
                 {tabs.map((tab) => (
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
                     className={cn(
-                      "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center",
+                      "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
                       activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                     )}
                   >
