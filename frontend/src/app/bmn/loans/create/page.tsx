@@ -26,6 +26,7 @@ interface Asset {
     status_bmn: string;
     pengguna: string | null;
     no_polisi: string | null;
+    lokasi_ruang: string | null;
 }
 
 export default function LoanCreatePage() {
@@ -174,6 +175,7 @@ export default function LoanCreatePage() {
                                                                             {asset.nup_lama && <><span>•</span><span className="text-slate-400">NUP Lama: {asset.nup_lama}</span></>}
                                                                             {asset.no_polisi && <><span>•</span><span className="font-medium text-blue-600">🚗 {asset.no_polisi}</span></>}
                                                                         </div>
+                                                                        {asset.lokasi_ruang && <div className="text-[10px] text-slate-500 mt-0.5">📍 {asset.lokasi_ruang}</div>}
                                                                         {asset.pengguna && <div className="text-[10px] text-amber-600 mt-0.5">👤 {asset.pengguna}</div>}
                                                                     </div>
                                                                     {isSelected && <Check className="w-4 h-4 text-emerald-500 shrink-0" />}
@@ -207,6 +209,7 @@ export default function LoanCreatePage() {
                                                                     {asset.no_polisi ? ` | No.Pol: ${asset.no_polisi}` : ''}
                                                                     {asset.pengguna ? ` | 👤 ${asset.pengguna}` : ''}
                                                                 </p>
+                                                                {asset.lokasi_ruang && <p className="text-[10px] text-slate-400">📍 {asset.lokasi_ruang}</p>}
                                                             </div>
                                                         </div>
                                                         <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-600" onClick={() => setSelectedAssets(selectedAssets.filter(a => a.id !== asset.id))}><X className="w-4 h-4" /></Button>
@@ -315,6 +318,7 @@ export default function LoanCreatePage() {
                                                             <p className="text-slate-400 text-[10px]">{asset.kode_barang}</p>
                                                             {asset.nup_lama && <p className="text-[10px] text-slate-400">NUP Lama: {asset.nup_lama}</p>}
                                                             {asset.no_polisi && <p className="text-[10px] text-blue-600">🚗 {asset.no_polisi}</p>}
+                                                            {asset.lokasi_ruang && <p className="text-[10px] text-slate-500">📍 {asset.lokasi_ruang}</p>}
                                                             {asset.pengguna && <p className="text-[10px] text-amber-600">👤 {asset.pengguna}</p>}
                                                         </td>
                                                         <td className="px-3 py-2 text-right align-top">{asset.nup}</td>
