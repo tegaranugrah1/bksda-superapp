@@ -55,7 +55,7 @@ export default function KepegawaianLayout({
           />
         )}
 
-        <aside className={`fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800/50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <aside className={`fixed inset-y-0 left-0 z-40 w-72 flex flex-col bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800/50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
           {/* Header */}
           <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50">
             <div className="flex items-center justify-between mb-4">
@@ -103,16 +103,18 @@ export default function KepegawaianLayout({
           {/* Footer */}
           <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/50">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
                 {user?.name?.charAt(0) || "U"}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-white leading-tight line-clamp-2">
                   {user?.name || user?.nama_lengkap || "User"}
                 </p>
-                <Badge variant="secondary" className="text-[10px]">
-                  {user?.role || "Pegawai"}
-                </Badge>
+                <div className="mt-1">
+                  <Badge variant="secondary" className="text-[10px]">
+                    {user?.role || "Pegawai"}
+                  </Badge>
+                </div>
               </div>
             </div>
             <LogoutButton />

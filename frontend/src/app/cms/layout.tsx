@@ -91,7 +91,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Sidebar Navigasi Raksasa */}
-        <aside className={`fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-zinc-900/50 border-r border-zinc-800 p-4 gap-0.5 overflow-y-auto transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <aside className={`fixed inset-y-0 left-0 z-40 w-72 flex flex-col bg-zinc-900/50 border-r border-zinc-800 p-4 gap-0.5 overflow-y-auto transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
           {/* Header Modul */}
           <div className="flex items-center justify-between px-3 py-4 mb-2">
             <div className="flex items-center gap-3">

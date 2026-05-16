@@ -110,7 +110,7 @@ export function ModuleSwitcher() {
         >
           <activeModule.icon className="w-5 h-5" />
         </div>
-        <div className="text-left hidden sm:block">
+        <div className="text-left flex-1 min-w-0">
           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider leading-none mb-1">
             Modul Aktif
           </p>
@@ -129,7 +129,7 @@ export function ModuleSwitcher() {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
             {visibleModules.map((mod) => (
               <Link
                 key={mod.slug}

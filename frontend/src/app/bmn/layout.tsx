@@ -56,7 +56,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
 
         {/* Sidebar */}
         <aside className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 w-72 flex flex-col bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}>
           <div className="p-5 border-b border-slate-100">
@@ -100,12 +100,14 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
 
           <div className="p-4 border-t border-slate-100">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-9 h-9 shrink-0 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
                 {user?.name?.charAt(0) || "U"}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-900 truncate">{user?.name || "User"}</p>
-                <Badge variant="secondary" className="text-[10px]">{user?.role || "Pegawai"}</Badge>
+                <p className="text-sm font-semibold text-slate-900 leading-tight line-clamp-2">{user?.name || "User"}</p>
+                <div className="mt-1">
+                  <Badge variant="secondary" className="text-[10px]">{user?.role || "Pegawai"}</Badge>
+                </div>
               </div>
             </div>
             <LogoutButton />
