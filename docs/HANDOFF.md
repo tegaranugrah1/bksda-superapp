@@ -56,14 +56,141 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 30: BMN Full Enhancement (✅ DONE - PR #293-302 + hotfixes) |
-| **Issue Selanjutnya** | Mobile responsive, QoL, module-specific improvements |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir** | `06f004c` - feat(bmn): editable kondisi select + bulk update kondisi |
-| **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-13T20:00:00+08:00 |
-| **GitHub Issues** | #293-302 (BMN + ST enhancements) |
+| **Issue Terakhir Selesai** | Phase 34: Portal Dashboard Refinement & Data Integrity (✅ DONE) |
+| **Issue Selanjutnya** | Preparation for Production / Server Deployments |
+| **Branch Aktif** | `feature/module-themes` |
+| **Commit Terakhir** | (Optimized Portal Asset & ST Security) |
+| **Model Terakhir** | Gemini 3.5 Flash (Antigravity) |
+| **Timestamp** | 2026-05-16T14:40:00+08:00 |
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-16 Sore - Phase 34: Portal Dashboard Refinement & Data Integrity):**
+- **Objective**: Refine the BKSDA SuperApp Portal dashboard to ensure accurate asset tracking, data security for Surat Tugas, and a polished user experience.
+- **Accomplishments**:
+  - **Data Integrity & Security**: 
+    - **ST Security**: Added `employee_id` filter to `AssignmentLetterController` to prevent data leakage in the portal dashboard.
+    - **BMN Asset Logic**: Enhanced `AssetController` with fuzzy name matching (`pengguna` column) and title-agnostic search to ensure assets appear for employees even if NIP links are missing.
+    - **Deduplication**: Implemented frontend logic in `portal/page.tsx` to exclude assets currently appearing in "Pinjaman Aktif" from the "Aset Saya" list.
+  - **UI Refinement**:
+    - **Rich Metadata**: Updated asset cards to show Merk/Tipe, NUP Lama, and No. Polisi (for vehicles).
+    - **Dashboard Badges**: Added dynamic counts (badges) to all tabs (Aset Saya, Pinjaman Aktif, Surat Tugas) for immediate visibility.
+    - **Fuzzy Search Helper**: Added `formatMerkTipe` utility to clean up redundant brand/model strings.
+  - **Linting & Stability**:
+    - Fixed React Hook ordering issue in `portal/page.tsx`.
+    - Resolved `@typescript-eslint/no-explicit-any` warnings in the portal component.
+- **Key Files Modified**:
+  - `backend/app/Modules/Kepegawaian/Controllers/AssignmentLetterController.php` (Security filter)
+  - `backend/app/Modules/BMN/Controllers/AssetController.php` (Fuzzy search logic)
+  - `frontend/src/app/portal/page.tsx` (UI, Filtering, Badges, Types)
+- **Next Steps**:
+  - Create Pull Request for `feature/module-themes` (merging Phase 33 & 34).
+  - Preparation for Production / Server Deployments.
+
+---
+| **GitHub Issues** | #305 (BMN Loan + Dark Mode), Phase 32 (Dark Mode Finalization) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-16 Sore - Phase 33: Module Themes & Fluid Layouts):**
+- **Objective**: Standardize BKSDA SuperApp branding with distinct module colors and unify layout sizing across all modules to a fluid standard (`p-6 md:p-10`).
+- **Accomplishments**:
+  - **Color Branding System**: 
+    - **Kepegawaian**: Migrated from generic emerald/slate to **Blue** (`blue-600`, `blue-50`) to establish a formal HR identity.
+    - **Inventory**: Migrated from emerald to **Orange/Amber** (`orange-600`, `amber-500`) for clear differentiation from BMN.
+    - **BMN**: Maintained identity as **Emerald** (green).
+    - **CMS** & **DeReporting**: Verified they are correctly utilizing **Teal** and **Violet** respectively.
+  - **Layout Standardization**:
+    - Removed restrictive wrappers (`max-w-7xl`, `max-w-5xl`) in main layout containers.
+    - Applied standard fluid padding `className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500"` to all sub-pages in Kepegawaian and BMN.
+    - Verified DeReporting and CMS already adhere to this fluid standard.
+- **Key Files Modified**:
+  - `frontend/src/app/kepegawaian/` (All components: AssignmentHistoryTab, AccessSheet, Builder, etc.)
+  - `frontend/src/app/inventory/` (Mass replacement of emerald/teal to orange/amber across all pages)
+  - `frontend/src/app/bmn/` (All page wrappers updated to `p-6 md:p-10`)
+- **Next Steps**:
+  - Create Pull Request for `feature/module-themes`.
+  - API & Frontend Integrations / Testing.
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-16 Siang - Phase 32: Full Dark Mode Finalization):**
+- **Objective**: Complete the dark mode migration across ALL remaining modules — eliminate all hardcoded `slate` colors and ensure every page works in both light and dark themes.
+- **Accomplishments**:
+  - **Phase 1 — Module-wide Audit & Fix (CMS, DeReporting, Kepegawaian, BMN core)**:
+    - CMS: Dashboard, Layout, CrudPageFactory, CrudFormDrawer, Informasi — converted from dark-only to dual-mode.
+    - DeReporting: Dashboard, Internal page, FilteredReportTable — fixed light mode issues.
+    - Kepegawaian: ST Builder, ST Create, ST Inbox — full dual-mode support.
+    - BMN core: Dashboard, Layout, Assets list, Loans, Loans/create, Maintenances, Disposal — migrated from `slate` to `zinc` with `dark:` variants.
+    - Portal: Full dark mode refinement.
+    - Inventory: Items page, Dashboard — dual-mode.
+  - **Phase 2 — Targeted Remaining Pages**:
+    - `bmn/import-review/page.tsx` — Light-only → dual-mode (header, upload section, batch history cards).
+    - `bmn/reports/page.tsx` — Light-only → dual-mode (header, report cards, icon backgrounds).
+    - `bmn/assets/[id]/page.tsx` — slate → zinc (hero card, quick stats, tabs, history tab).
+    - `bmn/assets/[id]/_components/DetailSection.tsx` — Full refactor of **all 8 sub-components** (DetailRow, EditableRow, CurrencyRow, EditableCurrencyRow, EditableSelectRow, EditableEmployeeRow, AreaRow, BadgeRow).
+    - `bmn/assets/[id]/_components/PhotoGallery.tsx` — Full dark mode (container, header, empty slots, verified banner, labels, action buttons, geotag input).
+    - `inventory/transactions/page.tsx` — Dark-only → dual-mode (filter bar, table, pagination footer).
+    - `inventory/stock-out/page.tsx` — Dark-only → dual-mode (form, labels, inputs, select, buttons).
+    - `inventory/stock-in/page.tsx` — Dark-only → dual-mode (form, labels, inputs, select, buttons).
+    - `kepegawaian/surat-tugas/builder/[id]/page.tsx` — Kota input field fixed (missed in Phase 31).
+  - **Design Standard Adopted**:
+    - Background: `bg-white dark:bg-zinc-900` or `bg-zinc-50 dark:bg-zinc-950`
+    - Text: `text-zinc-900 dark:text-white` or `text-zinc-500 dark:text-zinc-400`
+    - Borders: `border-zinc-200 dark:border-zinc-800`
+    - Hover: `hover:bg-zinc-50 dark:hover:bg-zinc-800/30`
+    - Accent badges: `bg-emerald-50 dark:bg-emerald-500/10`
+  - **Build Verified**: `npx next build` → exit code 0 ✅
+- **Key Files Modified (31 files total)**:
+  - `frontend/src/app/bmn/assets/[id]/page.tsx`
+  - `frontend/src/app/bmn/assets/[id]/_components/DetailSection.tsx`
+  - `frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx`
+  - `frontend/src/app/bmn/import-review/page.tsx`
+  - `frontend/src/app/bmn/reports/page.tsx`
+  - `frontend/src/app/bmn/{page,layout,assets/page,loans/page,loans/create/page,maintenances/page,disposal/page}.tsx`
+  - `frontend/src/app/inventory/{page,items/page,transactions/page,stock-in/page,stock-out/page}.tsx`
+  - `frontend/src/app/kepegawaian/surat-tugas/{builder/[id]/page,create/page,inbox/page}.tsx`
+  - `frontend/src/app/dereporting/{page,internal/page,_components/FilteredReportTable}.tsx`
+  - `frontend/src/app/cms/{page,layout,informasi/page,_components/CrudPageFactory,_components/CrudFormDrawer}.tsx`
+  - `frontend/src/app/portal/page.tsx`
+- **Dark Mode Status (COMPLETE)**:
+  - [x] Portal Dashboard
+  - [x] BMN — All pages (Dashboard, Assets, Asset Detail, DetailSection, PhotoGallery, Loans, Create, Import Review, Reports, Maintenances, Disposal)
+  - [x] Inventory — All pages (Dashboard, Items, Transactions, Stock-In, Stock-Out)
+  - [x] Kepegawaian — All pages (ST Inbox, ST Create, ST Builder)
+  - [x] DeReporting — All pages (Dashboard, Internal, FilteredReportTable)
+  - [x] CMS — All pages (Dashboard, Layout, Informasi, CrudPageFactory, CrudFormDrawer)
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-16 - Phase 31: BMN Loan Optimization & Comprehensive Dark Mode):**
+- **Objective**: Modernize BMN Loan UI and implement full Dark Mode support across core modules.
+- **Accomplishments**:
+  - **BMN Loan Module Overhaul**: 
+    - Rewrote `/bmn/loans` to match the Assets catalog UI (Emerald theme, clean header, inline search/filter).
+    - Fixed Vehicle Icon bug in select tables (only shows for assets with valid plate numbers).
+    - Standardized Action Buttons in `/bmn/loans/create` (consistent variants and emerald colors).
+  - **Comprehensive Dark Mode Support**:
+    - Added `dark:` utility classes across:
+      - **Portal Dashboard** (`/portal`): Full support for all cards, header, and profile sidebar.
+      - **BMN Module**: Assets list, Asset details (all 5 tabs), Loan list, and Loan creation form.
+      - **Inventory Sidebar**: Smooth transitions between light/dark for the main navigation.
+    - Automated mapping of ~20 common utility classes (bg-white, border-slate-200, etc.) via Node.js patch script.
+  - **Performance & Cleanup**:
+    - Reduced DOM nesting in BMN tables.
+    - Cleaned up hardcoded `bg-white` and `text-slate-900` in favor of theme-aware classes.
+- **Key Files Modified**:
+  - `frontend/src/app/portal/page.tsx`
+  - `frontend/src/app/bmn/assets/page.tsx`
+  - `frontend/src/app/bmn/assets/[id]/page.tsx`
+  - `frontend/src/app/bmn/loans/page.tsx`
+  - `frontend/src/app/bmn/loans/create/page.tsx`
+  - `frontend/src/app/inventory/_components/InventorySidebar.tsx`
+- **Next Steps**:
+  - [x] ~~Audit Dark Mode in minor modules (DeReporting, Kepegawaian, CMS)~~ ✅ Phase 32
+  - [x] ~~Verify form validation behavior in dark mode~~ ✅ Phase 32
+  - [x] ~~Fine-tune Emerald color contrast for accessibility in dark mode~~ ✅ Phase 32
 
 ---
 
@@ -167,7 +294,7 @@ git push origin main
   - [x] ~~Signature integration~~ ❌ DROPPED (lewat aplikasi lain)
   - [x] ~~Apply RBAC to Inventory, DeReporting, CMS~~ ✅ PR #298
   - [x] ~~Bulk edit kondisi~~ ✅ Done
-  - [ ] Mobile responsive sidebar (semua modul)
+  - [x] ~~Mobile responsive sidebar (semua modul)~~ ✅ PR #304
   - [ ] Inventory module improvements
   - [ ] DeReporting module improvements
 

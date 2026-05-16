@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import api from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateIndonesian } from "@/lib/letter-utils";
 
 interface Employee {
@@ -62,6 +62,7 @@ export default function SuratTugasInbox() {
         variant: 'warning'
     });
     const router = useRouter();
+    const queryClient = useQueryClient();
 
     const { data, isLoading: loading, refetch: fetchLetters } = useQuery({
         queryKey: ['surat-tugas-inbox', isTrashView, statusFilter],
@@ -98,6 +99,7 @@ export default function SuratTugasInbox() {
             await api.put(`/surat-tugas/${id}/status`, { status: newStatus });
             toast.success(`Berhasil mengubah status menjadi ${newStatus}`);
             fetchLetters();
+            queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
             if (selectedLetter && selectedLetter.id === id) {
                 setSelectedLetter({ ...selectedLetter, status: newStatus as AssignmentLetter['status'] });
             }
@@ -121,6 +123,7 @@ export default function SuratTugasInbox() {
                     toast.success('Berhasil memindahkan ke sampah');
                     if (selectedLetter?.id === id) setSelectedLetter(null);
                     fetchLetters();
+                    queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
                 } catch (error) {
                     console.error('Delete failed', error);
                     toast.error('Gagal menghapus surat tugas');
@@ -141,6 +144,7 @@ export default function SuratTugasInbox() {
                     toast.success('Berhasil memulihkan surat tugas');
                     if (selectedLetter?.id === id) setSelectedLetter(null);
                     fetchLetters();
+                    queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
                 } catch (error) {
                     console.error('Restore failed', error);
                     toast.error('Gagal memulihkan surat tugas');
@@ -205,12 +209,12 @@ export default function SuratTugasInbox() {
 
     const getStatusStyle = (status: string) => {
         switch(status) {
-            case 'draft': return 'bg-slate-50 text-slate-500 border-slate-200';
-            case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
-            case 'approved': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-            case 'completed': return 'bg-blue-50 text-blue-600 border-blue-100';
-            case 'rejected': return 'bg-red-50 text-red-600 border-red-100';
-            default: return 'bg-slate-50 text-slate-500 border-slate-100';
+            case 'draft': return 'bg-slate-50 dark:bg-slate-500/10 text-slate-500 border-slate-200 dark:border-slate-500/20';
+            case 'pending': return 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/20';
+            case 'approved': return 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20';
+            case 'completed': return 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-500/20';
+            case 'rejected': return 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-100 dark:border-red-500/20';
+            default: return 'bg-slate-50 dark:bg-slate-500/10 text-slate-500 border-slate-100 dark:border-slate-500/20';
         }
     };
 
@@ -226,15 +230,15 @@ export default function SuratTugasInbox() {
     };
 
     return (
-        <div className="p-6 max-w-7xl mx-auto space-y-8">
+        <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header Section: Matches History Page exactly */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+                        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
                             <Briefcase className="w-5 h-5" />
                         </div>
-                        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Kepegawaian & SDM</h2>
+                        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">Kepegawaian & SDM</h2>
                     </div>
                     <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Inbox Surat Tugas</h1>
                     <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">Otorisasi dan kelola pengajuan surat tugas pegawai secara real-time.</p>
@@ -245,7 +249,7 @@ export default function SuratTugasInbox() {
                         className={cn(
                             "flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm",
                             isTrashView 
-                                ? "bg-red-50 text-red-600 border-red-100" 
+                                ? "bg-red-50 dark:bg-red-500/10 text-red-600 border-red-100 dark:border-red-500/20" 
                                 : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
                         )}
                     >
@@ -254,7 +258,7 @@ export default function SuratTugasInbox() {
                     </button>
                     <button 
                         onClick={() => fetchLetters()} 
-                        className="p-3 bg-white dark:bg-zinc-900 text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:text-emerald-600 rounded-2xl transition-all shadow-sm"
+                        className="p-3 bg-white dark:bg-zinc-900 text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:text-blue-600 rounded-2xl transition-all shadow-sm"
                     >
                         <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
                     </button>
@@ -269,13 +273,13 @@ export default function SuratTugasInbox() {
                     <div className="p-6 pb-4 bg-white dark:bg-zinc-900 sticky top-0 z-10 border-b border-slate-100 dark:border-zinc-800">
                         <div className="space-y-3">
                             <div className="relative group">
-                                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-emerald-500 transition-colors" />
+                                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-blue-500 transition-colors" />
                                 <input 
                                     type="text"
                                     placeholder="Cari kegiatan atau nama..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-xs focus:ring-2 focus:ring-emerald-500/10 focus:bg-white transition-all font-semibold text-slate-700 dark:text-zinc-200 placeholder-slate-400"
+                                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-xs focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all font-semibold text-slate-700 dark:text-zinc-200 placeholder-slate-400"
                                 />
                             </div>
                             <div className="relative">
@@ -283,7 +287,7 @@ export default function SuratTugasInbox() {
                                 <select 
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="w-full appearance-none pl-9 pr-3 py-2 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-[10px] font-bold text-slate-600 dark:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10"
+                                    className="w-full appearance-none pl-9 pr-3 py-2 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-[10px] font-bold text-slate-600 dark:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                                 >
                                     <option value="all">Semua Status</option>
                                     <option value="draft">Draft</option>
@@ -316,7 +320,7 @@ export default function SuratTugasInbox() {
                                     className={cn(
                                         "p-4 rounded-2xl transition-all cursor-pointer border relative group",
                                         selectedLetter?.id === l.id 
-                                            ? "bg-white dark:bg-zinc-800 border-emerald-500 shadow-md ring-1 ring-emerald-500/10" 
+                                            ? "bg-white dark:bg-zinc-800 border-blue-500 shadow-md ring-1 ring-blue-500/10" 
                                             : "bg-white dark:bg-zinc-800 border-slate-100 dark:border-zinc-800 hover:border-slate-200"
                                     )}
                                 >
@@ -331,7 +335,7 @@ export default function SuratTugasInbox() {
 
                                     <h3 className={cn(
                                         "text-xs font-bold leading-snug mb-3 transition-colors line-clamp-2",
-                                        selectedLetter?.id === l.id ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-zinc-400 group-hover:text-emerald-700"
+                                        selectedLetter?.id === l.id ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-zinc-400 group-hover:text-blue-700"
                                     )}>
                                         {l.maksud_tujuan}
                                     </h3>
@@ -355,7 +359,7 @@ export default function SuratTugasInbox() {
                                                 }}
                                                 className={cn(
                                                     "p-1.5 rounded-lg",
-                                                    isTrashView ? "text-emerald-600 hover:bg-emerald-50" : "text-red-600 hover:bg-red-50"
+                                                    isTrashView ? "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" : "text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
                                                 )}
                                             >
                                                 {isTrashView ? <Undo2 className="w-3.5 h-3.5" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -400,21 +404,21 @@ export default function SuratTugasInbox() {
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800/50 space-y-1">
                                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Periode</span>
                                             <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
-                                                <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                                                <Calendar className="w-3.5 h-3.5 text-blue-500" />
                                                 {formatDateIndonesian(selectedLetter.tanggal_mulai)} — {formatDateIndonesian(selectedLetter.tanggal_selesai)}
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800/50 space-y-1">
                                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Lokasi</span>
                                             <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
-                                                <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+                                                <MapPin className="w-3.5 h-3.5 text-blue-500" />
                                                 {selectedLetter.tempat_tujuan || "-"}
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800/50 space-y-1">
                                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Dana</span>
                                             <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm" />
+                                                <div className="w-2 h-2 rounded-full bg-blue-500 shadow-sm" />
                                                 {selectedLetter.sumber_dana === 'other' ? selectedLetter.sumber_dana_other : selectedLetter.sumber_dana.toUpperCase()}
                                             </div>
                                         </div>
@@ -472,13 +476,13 @@ export default function SuratTugasInbox() {
                                 {/* Personil Section */}
                                 <div className="space-y-4">
                                     <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-900 dark:text-zinc-300 flex items-center gap-2">
-                                        <Users className="w-4 h-4 text-emerald-600" />
+                                        <Users className="w-4 h-4 text-blue-600" />
                                         Daftar Personil ({selectedLetter.employees.length})
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         {selectedLetter.employees.map((emp) => (
                                             <div key={emp.id} className="flex items-center gap-3 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-800/50 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all group shadow-sm">
-                                                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                                                     <UserIcon className="w-5 h-5" />
                                                 </div>
                                                 <div className="min-w-0">
@@ -493,10 +497,10 @@ export default function SuratTugasInbox() {
                                 {/* File Section */}
                                 <div className="flex flex-col lg:flex-row gap-4">
                                     <div className="flex-1 p-6 rounded-3xl bg-slate-900 dark:bg-zinc-800 text-white flex flex-col gap-6 relative overflow-hidden group">
-                                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
-                                                <FileText className="w-5 h-5 text-emerald-400" />
+                                                <FileText className="w-5 h-5 text-blue-400" />
                                             </div>
                                             <div>
                                                 <h4 className="text-sm font-black tracking-tight">Dokumen Dasar Surat</h4>
@@ -507,7 +511,7 @@ export default function SuratTugasInbox() {
                                         {selectedLetter.file_surat_path ? (
                                             <button 
                                                 onClick={() => handleDownload(selectedLetter.id)}
-                                                className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center justify-center gap-2 transition-all font-black text-[10px] tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95"
+                                                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl flex items-center justify-center gap-2 transition-all font-black text-[10px] tracking-widest shadow-lg shadow-blue-500/20 active:scale-95"
                                             >
                                                 <Download className="w-3.5 h-3.5" />
                                                 UNDUH PDF
@@ -524,7 +528,7 @@ export default function SuratTugasInbox() {
                                             <>
                                                 <Button 
                                                     onClick={() => handleRestore(selectedLetter.id)}
-                                                    className="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] tracking-widest uppercase shadow-lg shadow-emerald-500/20"
+                                                    className="h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] tracking-widest uppercase shadow-lg shadow-blue-500/20"
                                                 >
                                                     Pulihkan Surat
                                                 </Button>
@@ -541,7 +545,7 @@ export default function SuratTugasInbox() {
                                                 {selectedLetter.status === 'pending' ? (
                                                     <Button 
                                                         onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${selectedLetter.id}`)}
-                                                        className="h-20 rounded-3xl bg-linear-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-xl shadow-emerald-500/20 flex flex-col items-center justify-center gap-1"
+                                                        className="h-20 rounded-3xl bg-linear-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-xl shadow-blue-500/20 flex flex-col items-center justify-center gap-1"
                                                     >
                                                         <span className="text-[10px] font-black tracking-[0.2em] opacity-80 uppercase leading-none">Otorisasi ST</span>
                                                         <span className="text-sm font-black tracking-tight leading-none mt-1 uppercase">Proses Sekarang</span>
@@ -557,9 +561,9 @@ export default function SuratTugasInbox() {
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <Button 
                                                         onClick={() => handleUpdateStatus(selectedLetter.id, 'rejected')}
-                                                        disabled={updatingStatus || selectedLetter.status === 'rejected'}
+                                                        disabled={updatingStatus || ['rejected', 'approved', 'completed'].includes(selectedLetter.status)}
                                                         variant="outline"
-                                                        className="h-10 rounded-xl border-red-100 dark:border-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 font-black text-[9px] tracking-widest uppercase"
+                                                        className="h-10 rounded-xl border-red-100 dark:border-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 disabled:opacity-50 font-black text-[9px] tracking-widest uppercase"
                                                     >
                                                         Tolak
                                                     </Button>
@@ -594,14 +598,14 @@ export default function SuratTugasInbox() {
 
             {/* Confirm Modal */}
             {confirmModal.open && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
                     <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setConfirmModal({ ...confirmModal, open: false })} />
                     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-10 shadow-2xl border border-slate-100 dark:border-zinc-800 w-full max-w-sm relative z-10 animate-in zoom-in-95 duration-300">
                         <div className={cn(
                             "w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-xl",
-                            confirmModal.variant === 'danger' ? "bg-red-50 text-red-600 shadow-red-500/10" :
-                            confirmModal.variant === 'success' ? "bg-emerald-50 text-emerald-600 shadow-emerald-500/10" :
-                            "bg-amber-50 text-amber-600 shadow-amber-500/10"
+                            confirmModal.variant === 'danger' ? "bg-red-50 dark:bg-red-500/10 text-red-600 shadow-red-500/10" :
+                            confirmModal.variant === 'success' ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10" :
+                            "bg-amber-50 dark:bg-amber-500/10 text-amber-600 shadow-amber-500/10"
                         )}>
                             {confirmModal.variant === 'danger' ? <Trash2 className="w-8 h-8" /> :
                              confirmModal.variant === 'success' ? <Undo2 className="w-8 h-8" /> :
@@ -627,7 +631,7 @@ export default function SuratTugasInbox() {
                                     "flex-1 py-3.5 rounded-xl text-white font-black text-[10px] tracking-widest uppercase shadow-xl transition-all active:scale-95",
                                     confirmModal.variant === 'danger' ? "bg-red-600 shadow-red-500/30" :
                                     confirmModal.variant === 'success' ? "bg-emerald-600 shadow-emerald-500/30" :
-                                    "bg-emerald-600 shadow-emerald-500/30"
+                                    "bg-blue-600 shadow-blue-500/30"
                                 )}
                             >
                                 Ya

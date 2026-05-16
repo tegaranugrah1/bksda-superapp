@@ -136,6 +136,7 @@ export default function STBuilderPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [suratStatus, setSuratStatus] = useState<string>("");
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder"],
@@ -221,6 +222,7 @@ export default function STBuilderPage() {
       try {
         const res = await api.get(`/surat-tugas/${id}`);
         const data = res.data.data;
+        setSuratStatus(data.status);
 
         // Parse nomor surat: "ST.001/K.18/TU/KSA.03.01/B/05/2026"
         if (data.nomor_surat) {
@@ -427,7 +429,8 @@ export default function STBuilderPage() {
       };
       await api.put(`/surat-tugas/${id}/approve`, payload);
       toast.success("Surat Tugas berhasil diajukan! Menunggu persetujuan Kasubag.");
-      await queryClient.invalidateQueries({ queryKey: ["surat-tugas"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
       router.push("/kepegawaian/surat-tugas/history");
     } catch (err: unknown) {
       console.error(err);
@@ -462,7 +465,8 @@ export default function STBuilderPage() {
       };
       await api.put(`/surat-tugas/${id}/approve`, payload);
       toast.success("Surat Tugas berhasil diterbitkan!");
-      await queryClient.invalidateQueries({ queryKey: ["surat-tugas"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
       router.push("/kepegawaian/surat-tugas/history");
     } catch (err: unknown) {
       console.error(err);
@@ -517,45 +521,45 @@ export default function STBuilderPage() {
 
   if (isInitializing) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-slate-50">
+      <div className="h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950">
         <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
-        <p className="text-sm font-bold text-slate-800 uppercase tracking-widest">Inisialisasi Builder...</p>
+        <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-widest">Inisialisasi Builder...</p>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex bg-slate-50 overflow-hidden">
-      <aside className="w-[420px] bg-white border-r border-slate-200 flex flex-col shadow-2xl z-10">
-        <header className="p-6 border-b border-slate-100">
+    <div className="h-screen flex bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
+      <aside className="w-[420px] bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col shadow-2xl z-10">
+        <header className="p-6 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-3 mb-1">
             <div className="p-2 bg-blue-600 rounded-xl">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-black text-slate-800">ST Builder <span className="text-blue-600">Premium</span></h1>
+            <h1 className="text-xl font-black text-zinc-800 dark:text-white">ST Builder <span className="text-blue-600">Premium</span></h1>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Approval Mode</p>
+          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1">Approval Mode</p>
         </header>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
           <FormSection title="Nomor Surat">
-            <div className="flex items-stretch bg-slate-50 border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/10">
-              <div className="bg-slate-100 px-3 flex items-center border-r border-slate-200 shrink-0"><span className="text-xs font-bold">ST.</span></div>
-              <input value={stNumber} onChange={e => setStNumber(e.target.value)} placeholder="001" className="w-14 px-2 py-2 text-sm font-bold bg-transparent outline-none text-center" />
-              <div className="bg-slate-100 px-2 flex items-center border-x border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/K.18/TU/</span></div>
-              <input value={klasifikasi} onChange={e => setKlasifikasi(e.target.value)} placeholder="KSA.0X.0X" className="flex-1 min-w-0 px-2 py-2 text-xs font-medium bg-transparent outline-none" />
-              <div className="bg-slate-100 px-2 flex items-center border-l border-slate-200 shrink-0"><span className="text-[10px] font-bold text-slate-500">/B/{currentMonth}/{currentYear}</span></div>
+            <div className="flex items-stretch bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/10">
+              <div className="bg-zinc-100 dark:bg-zinc-700 px-3 flex items-center border-r border-zinc-200 dark:border-zinc-600 shrink-0"><span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">ST.</span></div>
+              <input value={stNumber} onChange={e => setStNumber(e.target.value)} placeholder="001" className="w-14 px-2 py-2 text-sm font-bold bg-transparent outline-none text-center text-zinc-900 dark:text-white" />
+              <div className="bg-zinc-100 dark:bg-zinc-700 px-2 flex items-center border-x border-zinc-200 dark:border-zinc-600 shrink-0"><span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">/K.18/TU/</span></div>
+              <input value={klasifikasi} onChange={e => setKlasifikasi(e.target.value)} placeholder="KSA.0X.0X" className="flex-1 min-w-0 px-2 py-2 text-xs font-medium bg-transparent outline-none text-zinc-900 dark:text-white" />
+              <div className="bg-zinc-100 dark:bg-zinc-700 px-2 flex items-center border-l border-zinc-200 dark:border-zinc-600 shrink-0"><span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">/B/{currentMonth}/{currentYear}</span></div>
             </div>
           </FormSection>
 
           <FormSection title="Pengaturan Dokumen">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Kota</label>
-                <input value={kotaSurat} onChange={e => setKotaSurat(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:bg-white" />
+                <label className="text-[10px] font-bold text-zinc-400 uppercase">Kota</label>
+                <input value={kotaSurat} onChange={e => setKotaSurat(e.target.value)} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 text-zinc-900 dark:text-white" />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Tanggal</label>
+                <label className="text-[10px] font-bold text-zinc-400 uppercase">Tanggal</label>
                 <input 
                   type="date" 
                   value={tanggalSurat} 
@@ -564,7 +568,7 @@ export default function STBuilderPage() {
                     setTanggalSurat(newDate);
                     updateDasarFromFunding(sumberDana, newDate);
                   }} 
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:bg-white" 
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 text-zinc-900 dark:text-white" 
                 />
               </div>
             </div>
@@ -579,7 +583,7 @@ export default function STBuilderPage() {
                   setSumberDana(newFunding);
                   updateDasarFromFunding(newFunding, tanggalSurat);
                 }} 
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none cursor-pointer"
+                className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
               >
                 {SUMBER_DANA_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
               </select>
@@ -588,7 +592,7 @@ export default function STBuilderPage() {
                   value={sumberDanaOther} 
                   onChange={e => setSumberDanaOther(e.target.value)} 
                   placeholder="Sebutkan sumber dana..." 
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:bg-white animate-in slide-in-from-top-1" 
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 animate-in slide-in-from-top-1 text-zinc-900 dark:text-white" 
                 />
               )}
             </div>
@@ -598,9 +602,9 @@ export default function STBuilderPage() {
             <div className="space-y-3">
               {menimbangItems.map((item, idx) => (
                 <div key={item.id} className="flex gap-2">
-                  <span className="text-xs font-bold text-slate-400 mt-2">{indexToLetter(idx)}</span>
-                  <textarea value={item.text} onChange={e => { const n = [...menimbangItems]; n[idx].text = e.target.value; setMenimbangItems(n); }} className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white outline-none min-h-[60px]" />
-                  <button onClick={() => setMenimbangItems(menimbangItems.filter(i => i.id !== item.id))} className="text-slate-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <span className="text-xs font-bold text-zinc-400 mt-2">{indexToLetter(idx)}</span>
+                  <textarea value={item.text} onChange={e => { const n = [...menimbangItems]; n[idx].text = e.target.value; setMenimbangItems(n); }} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white" />
+                  <button onClick={() => setMenimbangItems(menimbangItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               ))}
             </div>
@@ -610,27 +614,27 @@ export default function STBuilderPage() {
             <div className="space-y-3">
               {dasarItems.map((item, idx) => (
                 <div key={item.id} className="flex gap-2">
-                  <span className="text-xs font-bold text-slate-400 mt-2">{idx + 1}.</span>
-                  <textarea value={item.text} onChange={e => { const n = [...dasarItems]; n[idx].text = e.target.value; setDasarItems(n); }} className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white outline-none min-h-[60px]" />
-                  <button onClick={() => setDasarItems(dasarItems.filter(i => i.id !== item.id))} className="text-slate-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 1}.</span>
+                  <textarea value={item.text} onChange={e => { const n = [...dasarItems]; n[idx].text = e.target.value; setDasarItems(n); }} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white" />
+                  <button onClick={() => setDasarItems(dasarItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               ))}
             </div>
           </FormSection>
 
-          <FormSection title="Kepada (Personil)" action={<span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full">{selectedEmployees.length}</span>}>
+          <FormSection title="Kepada (Personil)" action={<span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">{selectedEmployees.length}</span>}>
             <div className="relative" ref={dropdownRef}>
               <div className="relative">
                 {isSearching ? (
                   <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 animate-spin" />
                 ) : (
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 )}
-                <input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setShowDropdown(true); }} onFocus={() => setShowDropdown(true)} className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none" placeholder="Cari..." />
+                <input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setShowDropdown(true); }} onFocus={() => setShowDropdown(true)} className="w-full pl-9 pr-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" placeholder="Cari..." />
               </div>
               <AnimatePresence>
                 {showDropdown && searchQuery && (
-                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute w-full mt-1 bg-white border rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
+                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
                     {searchResults.map((emp: Employee) => {
                       const isSelected = selectedEmployees.some(e => e.id === emp.id);
                       return (
@@ -640,9 +644,9 @@ export default function STBuilderPage() {
                         setSelectedEmployees([...selectedEmployees, normalized]); 
                         setSearchQuery(""); 
                         setShowDropdown(false); 
-                      }} className={`w-full px-4 py-2 text-left border-b last:border-0 ${isSelected ? "opacity-40 cursor-not-allowed bg-slate-100" : "hover:bg-slate-50"}`}>
-                        <p className={`text-sm font-bold ${isSelected ? "text-slate-400" : ""}`}>{emp.nama_lengkap || emp.name} {isSelected ? "✓" : ""}</p>
-                        <p className="text-[10px] text-slate-400">{emp.nip}</p>
+                      }} className={`w-full px-4 py-2 text-left border-b border-zinc-100 dark:border-zinc-700 last:border-0 ${isSelected ? "opacity-40 cursor-not-allowed bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"}`}>
+                        <p className={`text-sm font-bold ${isSelected ? "text-zinc-400" : "text-zinc-800 dark:text-zinc-200"}`}>{emp.nama_lengkap || emp.name} {isSelected ? "✓" : ""}</p>
+                        <p className="text-[10px] text-zinc-400">{emp.nip}</p>
                       </button>
                       );
                     })}
@@ -652,10 +656,10 @@ export default function STBuilderPage() {
             </div>
             <div className="space-y-2 mt-3">
               {selectedEmployees.map((emp, idx) => (
-                <div key={`${emp.id}-${idx}`} className="flex items-center gap-2 p-2 bg-slate-50 border rounded-xl group">
-                  <span className="text-[10px] font-bold text-slate-400">{idx+1}</span>
-                  <div className="flex-1 truncate text-xs font-bold">{emp.nama_lengkap || emp.name}</div>
-                  <button onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== emp.id))} className="text-slate-300 hover:text-red-500"><X className="w-4 h-4" /></button>
+                <div key={`${emp.id}-${idx}`} className="flex items-center gap-2 p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl group">
+                  <span className="text-[10px] font-bold text-zinc-400">{idx+1}</span>
+                  <div className="flex-1 truncate text-xs font-bold text-zinc-800 dark:text-zinc-200">{emp.nama_lengkap || emp.name}</div>
+                  <button onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== emp.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><X className="w-4 h-4" /></button>
                 </div>
               ))}
             </div>
@@ -664,11 +668,11 @@ export default function STBuilderPage() {
           <FormSection title="Detail Kegiatan">
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Jenis Tugas</label>
+                <label className="text-[10px] font-bold text-zinc-400 uppercase">Jenis Tugas</label>
                 <select 
                   value={activityPrefix} 
                   onChange={e => setActivityPrefix(e.target.value)} 
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none cursor-pointer"
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
                 >
                   <option value="Perjalanan Dinas">Perjalanan Dinas</option>
                   <option value="Melaksanakan Tugas">Melaksanakan Tugas</option>
@@ -676,30 +680,30 @@ export default function STBuilderPage() {
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
-                <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
+                <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               </div>
-              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm min-h-[60px] outline-none" />
-              <input value={tempatKegiatan} onChange={e => setTempatKegiatan(e.target.value)} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
+              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+              <input value={tempatKegiatan} onChange={e => setTempatKegiatan(e.target.value)} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               <div className="grid grid-cols-2 gap-2">
-                <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
-                <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
+                <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               </div>
             </div>
           </FormSection>
 
           <FormSection title="Tembusan" action={
-            <button onClick={() => setTembusanItems([...tembusanItems, ""])} className="text-emerald-600 hover:text-emerald-700">
+            <button onClick={() => setTembusanItems([...tembusanItems, ""])} className="text-blue-600 hover:text-blue-700">
               <Plus className="w-3.5 h-3.5" />
             </button>
           }>
             <div className="space-y-2">
               {tembusanItems.length === 0 && (
-                <p className="text-[11px] text-slate-400 italic">Belum ada tembusan. Klik + untuk menambah.</p>
+                <p className="text-[11px] text-zinc-400 italic">Belum ada tembusan. Klik + untuk menambah.</p>
               )}
               {tembusanItems.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-1">
-                  <span className="text-[10px] text-slate-400 w-4">{idx + 1}.</span>
+                  <span className="text-[10px] text-zinc-400 w-4">{idx + 1}.</span>
                   <input
                     value={item}
                     onChange={(e) => {
@@ -708,7 +712,7 @@ export default function STBuilderPage() {
                       setTembusanItems(updated);
                     }}
                     placeholder="Nama penerima tembusan..."
-                    className="flex-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none"
+                    className="flex-1 px-2 py-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs outline-none text-zinc-900 dark:text-white"
                   />
                   <button onClick={() => setTembusanItems(tembusanItems.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600 p-1">
                     <X className="w-3 h-3" />
@@ -719,19 +723,33 @@ export default function STBuilderPage() {
           </FormSection>
 
           <FormSection title="Penandatangan">
-            <input value={kepalaBalai.name} onChange={e => setKepalaBalai({...kepalaBalai, name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm mb-2 outline-none" />
-            <input value={kepalaBalai.nip} onChange={e => setKepalaBalai({...kepalaBalai, nip: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm outline-none" />
+            <input value={kepalaBalai.name} onChange={e => setKepalaBalai({...kepalaBalai, name: e.target.value})} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm mb-2 outline-none text-zinc-900 dark:text-white" />
+            <input value={kepalaBalai.nip} onChange={e => setKepalaBalai({...kepalaBalai, nip: e.target.value})} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
           </FormSection>
         </div>
 
-        <footer className="p-6 border-t bg-white sticky bottom-0 space-y-2">
-          <Button onClick={handleSave} variant="outline" className="w-full h-10 rounded-xl font-bold text-slate-600 border-slate-200"><FileText className="w-4 h-4 mr-2" /> Simpan Draft</Button>
-          <Button onClick={handleSubmitForApproval} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold"><Send className="w-5 h-5 mr-2" /> Ajukan Persetujuan</Button>
-          <Button variant="outline" onClick={handlePrint} className="w-full h-10 rounded-xl font-bold text-slate-600 border-slate-200"><Printer className="w-5 h-5 mr-2" /> Cetak / Download</Button>
+        <footer className="p-6 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2">
+          <Button onClick={handleSave} variant="outline" className="w-full h-10 rounded-xl font-bold text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700">
+            <FileText className="w-4 h-4 mr-2" /> Simpan Draft
+          </Button>
+          
+          {suratStatus === 'approved' || suratStatus === 'completed' ? (
+            <Button disabled className="w-full h-12 bg-emerald-500 text-white rounded-xl font-bold opacity-80 cursor-not-allowed">
+              <Send className="w-5 h-5 mr-2" /> Sudah Disetujui
+            </Button>
+          ) : (
+            <Button onClick={handleSubmitForApproval} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold">
+              <Send className="w-5 h-5 mr-2" /> {suratStatus === 'pending' ? 'Perbarui & Ajukan' : 'Ajukan Persetujuan'}
+            </Button>
+          )}
+
+          <Button variant="outline" onClick={handlePrint} className="w-full h-10 rounded-xl font-bold text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700">
+            <Printer className="w-5 h-5 mr-2" /> Cetak / Download
+          </Button>
         </footer>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-12 flex flex-col items-center bg-slate-200/50">
+      <main className="flex-1 overflow-y-auto p-12 flex flex-col items-center bg-zinc-200/50 dark:bg-zinc-950">
         <div className="relative">
           <div
             id="surat-preview-doc"
@@ -757,13 +775,13 @@ export default function STBuilderPage() {
           </div>
           {/* Page break indicators */}
           <div className="absolute left-0 right-0 pointer-events-none" style={{ top: "297mm" }}>
-            <div className="h-8 bg-slate-300 flex items-center justify-center shadow-inner">
-              <span className="text-[10px] font-bold text-slate-600 tracking-widest">HALAMAN 2</span>
+            <div className="h-8 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center shadow-inner">
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest">HALAMAN 2</span>
             </div>
           </div>
           <div className="absolute left-0 right-0 pointer-events-none" style={{ top: "calc(297mm * 2 + 32px)" }}>
-            <div className="h-8 bg-slate-300 flex items-center justify-center shadow-inner">
-              <span className="text-[10px] font-bold text-slate-600 tracking-widest">HALAMAN 3</span>
+            <div className="h-8 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center shadow-inner">
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest">HALAMAN 3</span>
             </div>
           </div>
         </div>
@@ -776,7 +794,7 @@ function FormSection({ title, children, action }: { title: string; children: Rea
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</label>
+        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{title}</label>
         {action}
       </div>
       {children}

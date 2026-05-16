@@ -24,7 +24,9 @@ class AssetController extends Controller
 
     public function index(Request $request)
     {
-        $query = Asset::with('penanggungJawab')->latest();
+        $query = Asset::with(['penanggungJawab', 'loans' => function ($q) {
+            $q->active()->with('borrower')->latest('tanggal_pinjam');
+        }])->latest();
 
         if ($request->query('status') === 'disposed') {
             $query->onlyTrashed();
@@ -38,6 +40,44 @@ class AssetController extends Controller
                     ->orWhere('nup', 'ilike', "%{$search}%")
                     ->orWhere('merk', 'ilike', "%{$search}%")
                     ->orWhere('no_polisi', 'ilike', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('employee_id')) {
+            $employeeId = $request->employee_id;
+            $employee = \App\Modules\Kepegawaian\Models\Employee::find($employeeId);
+            $query->where(function($q) use ($employeeId, $employee) {
+                $q->where('employee_id', $employeeId);
+                if ($employee && $employee->nama_lengkap) {
+                    $fullName = trim($employee->nama_lengkap);
+                    
+                    // Search full name
+                    $q->orWhere('pengguna', 'ilike', '%' . $fullName . '%')
+                      ->orWhere('nama_pengguna', 'ilike', '%' . $fullName . '%');
+                    
+                    // Search name before comma (titles)
+                    if (str_contains($fullName, ',')) {
+                        $nameParts = explode(',', $fullName);
+                        $baseName = trim($nameParts[0]);
+                        if (strlen($baseName) > 2) {
+                            $q->orWhere('pengguna', 'ilike', '%' . $baseName . '%')
+                              ->orWhere('nama_pengguna', 'ilike', '%' . $baseName . '%');
+                        }
+                    }
+                    
+                    // Search first two words for better fuzzy match
+                    $words = explode(' ', $fullName);
+                    if (count($words) >= 2) {
+                        $twoWords = $words[0] . ' ' . $words[1];
+                        $q->orWhere('pengguna', 'ilike', '%' . $twoWords . '%');
+                    }
+                }
+            });
+        }
+
+        if ($request->filled('borrower_id')) {
+            $query->whereHas('loans', function ($q) use ($request) {
+                $q->active()->where('employee_id', $request->borrower_id);
             });
         }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -19,6 +20,7 @@ import {
   Scale,
   Settings,
   Inbox,
+  Menu,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ModuleSwitcher } from "@/components/module-switcher";
@@ -66,18 +68,35 @@ const SIDEBAR_SECTIONS = [
 
 export default function CMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
   const { canWrite } = useRole();
 
   return (
     <RouteGuard requiredModule="cms">
-      <div className="flex min-h-screen bg-zinc-950">
+      {/* Tombol Floating Mobile Hamburger */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-teal-600 text-white shadow-2xl hover:bg-teal-500 hover:scale-105 active:scale-95 transition-all duration-300"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 relative overflow-hidden">
+        {/* Layar Gelap (Backdrop) saat laci ditarik di layar HP */}
+        {isOpen && (
+          <div
+            onClick={() => setIsOpen(false)}
+            className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+          />
+        )}
+
         {/* Sidebar Navigasi Raksasa */}
-        <aside className="hidden md:flex flex-col w-64 bg-zinc-900/50 border-r border-zinc-800 p-4 gap-0.5 overflow-y-auto">
+        <aside className={`fixed inset-y-0 left-0 z-40 w-72 flex flex-col bg-white dark:bg-zinc-900/50 border-r border-zinc-200 dark:border-zinc-800 p-4 gap-0.5 overflow-y-auto transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
           {/* Header Modul */}
           <div className="flex items-center justify-between px-3 py-4 mb-2">
             <div className="flex items-center gap-3">
               <Settings className="w-7 h-7 text-teal-500" />
-              <h2 className="text-lg font-black text-white tracking-tight">
+              <h2 className="text-lg font-black text-zinc-900 dark:text-white tracking-tight">
                 CMS Panel
               </h2>
             </div>
@@ -98,7 +117,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
             return (
             <div key={section.label} className={sIdx > 0 ? "mt-4" : ""}>
               {/* Label Pemisah Seksi */}
-              <p className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-600">
+              <p className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
                 {section.label}
               </p>
               {visibleItems.map((item) => {
@@ -109,10 +128,11 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setIsOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                       isActive
-                        ? "bg-teal-500/10 text-teal-400 border border-teal-500/20"
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                        ? "bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
                     }`}
                   >
                     <item.icon className="w-4 h-4" />
@@ -126,7 +146,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Konten Utama */}
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto bg-zinc-50 dark:bg-zinc-950">{children}</main>
       </div>
     </RouteGuard>
   );

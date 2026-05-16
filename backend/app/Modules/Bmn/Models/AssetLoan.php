@@ -3,6 +3,7 @@
 namespace App\Modules\Bmn\Models;
 
 use App\Modules\Kepegawaian\Models\Employee;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,14 +14,18 @@ class AssetLoan extends Model
     protected $table = 'bmn_asset_loans';
 
     protected $fillable = [
-        'asset_id', 'employee_id', 'tanggal_pinjam',
-        'tanggal_kembali', 'status', 'keterangan',
+        'asset_id', 'employee_id', 'tanggal_pinjam', 'due_date',
+        'tanggal_kembali', 'return_condition', 'status',
+        'keterangan', 'purpose', 'notes',
     ];
 
     protected $casts = [
         'tanggal_pinjam' => 'date',
         'tanggal_kembali' => 'date',
+        'due_date' => 'date',
     ];
+
+    // --- Relationships ---
 
     public function asset()
     {
@@ -30,5 +35,15 @@ class AssetLoan extends Model
     public function borrower()
     {
         return $this->belongsTo(Employee::class, 'employee_id');
+    }
+
+    // --- Scopes ---
+
+    /**
+     * Scope for active (not yet returned) loans.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereIn('status', ['dipinjam', 'terlambat']);
     }
 }

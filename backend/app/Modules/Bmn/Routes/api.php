@@ -62,6 +62,9 @@ Route::get('assets/{asset}/photos/download-all', [AssetPhotoController::class, '
 
 // 2. LALU LINTAS PEMINJAMAN (LOAN)
 Route::get('loans', [LoanController::class, 'index']);
+Route::post('loans', [LoanController::class, 'store']);
+Route::put('loans/{loan}', [LoanController::class, 'update']);
+Route::delete('loans/{loan}', [LoanController::class, 'destroy']);
 Route::post('assets/{asset}/loans', [LoanController::class, 'borrow']);
 Route::post('loans/{loan}/return', [LoanController::class, 'return']);
 

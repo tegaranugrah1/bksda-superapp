@@ -54,14 +54,14 @@ export default function EmployeeListPage() {
   });
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
                 <Users className="w-5 h-5" />
             </div>
-            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Kepegawaian & SDM</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">Kepegawaian & SDM</h2>
           </div>
           <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Daftar Pegawai</h1>
           <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">Kelola informasi personil dan hak akses sistem.</p>
@@ -69,13 +69,13 @@ export default function EmployeeListPage() {
 
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
             <input
               type="text"
               placeholder="Cari NIP / Nama..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all md:w-[300px] shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all md:w-[300px] shadow-sm"
             />
           </div>
           {canWrite && (
@@ -115,7 +115,7 @@ export default function EmployeeListPage() {
                   <tr key={emp.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-all group">
                     <td className="px-6 py-4">
                       <Link href={`/kepegawaian/employees/${emp.id}`}>
-                        <p className="font-bold text-zinc-900 dark:text-white group-hover:text-emerald-600 transition-colors cursor-pointer">{emp.nama_lengkap}</p>
+                        <p className="font-bold text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors cursor-pointer">{emp.nama_lengkap}</p>
                       </Link>
                       <p className="text-[11px] text-zinc-500">{emp.satuan_kerja || "Satuan Kerja Belum Diatur"}</p>
                     </td>
@@ -123,14 +123,14 @@ export default function EmployeeListPage() {
                     <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">{emp.jabatan || "-"}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        emp.is_active ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                        emp.is_active ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
                       }`}>
                         {emp.is_active ? "Aktif" : "Non-Aktif"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link href={`/kepegawaian/employees/${emp.id}`} className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl text-emerald-600"><Search className="w-4 h-4" /></Link>
+                        <Link href={`/kepegawaian/employees/${emp.id}`} className="p-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl text-blue-600"><Search className="w-4 h-4" /></Link>
                         {canManageAccess && (
                           <button onClick={() => { setSelectedEmployee(emp); setAccessSheetOpen(true); }} className="p-2 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl text-amber-600"><UserCog className="w-4 h-4" /></button>
                         )}

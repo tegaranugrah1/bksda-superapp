@@ -109,6 +109,18 @@ class AssetResource extends JsonResource
                 'nama_lengkap' => $this->penanggungJawab->nama_lengkap,
                 'nip' => $this->penanggungJawab->nip,
             ]),
+            'active_loan' => $this->whenLoaded('loans', function () {
+                $activeLoan = $this->loans->firstWhere(fn ($loan) => in_array($loan->status, ['dipinjam', 'terlambat']));
+                if (!$activeLoan) return null;
+                return [
+                    'id' => $activeLoan->id,
+                    'borrower_name' => $activeLoan->borrower?->nama_lengkap ?? $activeLoan->borrower?->nama ?? '-',
+                    'borrower_nip' => $activeLoan->borrower?->nip,
+                    'loan_date' => $activeLoan->tanggal_pinjam?->format('Y-m-d'),
+                    'due_date' => $activeLoan->due_date?->format('Y-m-d'),
+                    'status' => $activeLoan->status,
+                ];
+            }),
             'history_updates' => $this->whenLoaded('historyUpdates', fn () => 
                 $this->historyUpdates->sortByDesc('created_at')->values()->map(fn ($u) => [
                     'id' => $u->id,

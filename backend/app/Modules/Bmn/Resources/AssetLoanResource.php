@@ -9,25 +9,53 @@ class AssetLoanResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // Calculate late days
+        $lateDays = null;
+        if ($this->due_date) {
+            if ($this->return_date ?? $this->tanggal_kembali) {
+                $returnDate = $this->tanggal_kembali;
+                if ($returnDate > $this->due_date) {
+                    $lateDays = $returnDate->diffInDays($this->due_date);
+                }
+            } elseif (in_array($this->status, ['dipinjam', 'terlambat'])) {
+                $now = now()->startOfDay();
+                $due = $this->due_date->startOfDay();
+                if ($now->gt($due)) {
+                    $lateDays = $now->diffInDays($due);
+                }
+            }
+        }
+
         return [
             'id' => $this->id,
             'asset_id' => $this->asset_id,
-            'employee_id' => $this->employee_id,
-            'tanggal_pinjam' => $this->tanggal_pinjam?->toDateString(),
-            'tanggal_kembali' => $this->tanggal_kembali?->toDateString(),
+            'borrower_employee_id' => $this->employee_id,
+            'loan_date' => $this->tanggal_pinjam?->toDateString(),
+            'due_date' => $this->due_date?->toDateString(),
+            'return_date' => $this->tanggal_kembali?->toDateString(),
+            'return_condition' => $this->return_condition,
             'status' => $this->status,
-            'keterangan' => $this->keterangan,
+            'purpose' => $this->purpose,
+            'notes' => $this->notes ?? $this->keterangan,
+            'late_days' => $lateDays,
             'asset' => $this->whenLoaded('asset', function () {
                 return [
                     'id' => $this->asset->id,
                     'kode_barang' => $this->asset->kode_barang,
                     'nama_barang' => $this->asset->nama_barang,
+                    'nup' => $this->asset->nup,
+                    'nup_lama' => $this->asset->nup_lama,
+                    'merk' => $this->asset->merk,
+                    'merk_tipe' => $this->asset->merk_tipe,
+                    'pengguna' => $this->asset->pengguna,
+                    'no_polisi' => $this->asset->no_polisi,
+                    'lokasi_ruang' => $this->asset->lokasi_ruang,
                 ];
             }),
             'borrower' => $this->whenLoaded('borrower', function () {
                 return [
                     'id' => $this->borrower->id,
-                    'nama' => $this->borrower->nama,
+                    'name' => $this->borrower->nama_lengkap ?? $this->borrower->nama ?? $this->borrower->name ?? '-',
                     'nip' => $this->borrower->nip,
                 ];
             }),

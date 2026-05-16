@@ -48,14 +48,14 @@ export default function AssignmentLetterPreview({
           <span className="text-sm text-zinc-400 uppercase tracking-widest font-bold">
             Mode Pratinjau Surat :
           </span>
-          <span className="text-emerald-400 font-mono text-sm">
+          <span className="text-blue-400 font-mono text-sm">
             {data.nomor_surat || "DALAM PENGAJUAN (DRAFT)"}
           </span>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20"
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/20"
           >
             <Printer className="w-4 h-4" />{" "}
             <span className="hidden md:inline">Cetak (A4)</span>

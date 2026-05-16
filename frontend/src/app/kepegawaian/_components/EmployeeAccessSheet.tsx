@@ -108,7 +108,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
               <Shield className="w-4 h-4" />
             </div>
             Manajemen Hak Akses
@@ -119,7 +119,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
         {/* Employee Info Card */}
         {employee && (
           <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold shrink-0">
+            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold shrink-0">
               {employee.nama_lengkap.charAt(0)}
             </div>
             <div>
@@ -131,7 +131,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
+            <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
             <p className="text-sm font-medium text-slate-500">Memuat data akses...</p>
           </div>
         ) : isError ? (
@@ -154,7 +154,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                       <select
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
-                        className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                        className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       >
                         <option value="user">User (Pegawai Biasa)</option>
                         <option value="admin">Admin (Pengelola Modul)</option>
@@ -180,7 +180,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                         key={module.id}
                         className={cn(
                           "flex flex-row items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer select-none",
-                          isSelected ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-100 hover:border-slate-200"
+                          isSelected ? "bg-blue-50 border-blue-200" : "bg-white border-slate-100 hover:border-slate-200"
                         )}
                         onClick={() => {
                           const current = form.getValues("access_modules") || [];
@@ -192,12 +192,12 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                       >
                         <div className={cn(
                           "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                          isSelected ? "bg-emerald-600 border-emerald-600" : "border-slate-300"
+                          isSelected ? "bg-blue-600 border-blue-600" : "border-slate-300"
                         )}>
                           {isSelected && <Check className="w-3 h-3 text-white" />}
                         </div>
                         <div className="flex-1">
-                          <p className={cn("text-sm font-semibold", isSelected ? "text-emerald-700" : "text-slate-700")}>{module.label}</p>
+                          <p className={cn("text-sm font-semibold", isSelected ? "text-blue-700" : "text-slate-700")}>{module.label}</p>
                           <p className="text-[10px] text-slate-500">{module.description}</p>
                         </div>
                       </div>
@@ -236,7 +236,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button type="button" variant="outline" className="flex-1 h-10 rounded-xl" onClick={() => onOpenChange(false)}>Batal</Button>
-                <Button type="submit" className="flex-1 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold" disabled={mutation.isPending}>
+                <Button type="submit" className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold" disabled={mutation.isPending}>
                   {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
                   {isNewAccount ? "Terbitkan Akses" : "Simpan"}
                 </Button>

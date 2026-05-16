@@ -85,10 +85,10 @@ export default function ItemsManagementPage() {
         <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-                        <PackageSearch className="w-8 h-8 text-emerald-500" /> Katalog Barang
+                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-3">
+                        <PackageSearch className="w-8 h-8 text-orange-500" /> Katalog Barang
                     </h1>
-                    <p className="text-zinc-400 mt-2">
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">
                         Daftarkan dan kelola master rujukan logistik negara.
                     </p>
                 </div>
@@ -98,7 +98,7 @@ export default function ItemsManagementPage() {
                     <Button
                         variant="outline"
                         onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/inventory/export/items`, "_blank")}
-                        className="flex items-center gap-2 bg-zinc-950 border-zinc-800 hover:bg-zinc-900 text-zinc-300 hover:text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg"
+                        className="flex items-center gap-2 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg"
                     >
                         <Download className="w-4 h-4 text-blue-500" /> Ekspor Excel
                     </Button>
@@ -110,15 +110,15 @@ export default function ItemsManagementPage() {
                 <div className="lg:col-span-1">
                     <form
                         onSubmit={handleSubmit}
-                        className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl sticky top-6"
+                        className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-xl sticky top-6"
                     >
-                        <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-emerald-500" /> Barang Baru
+                        <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-orange-500" /> Barang Baru
                         </h2>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                                <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                     Kategori ID
                                 </label>
                                 <input
@@ -127,7 +127,7 @@ export default function ItemsManagementPage() {
                                     onChange={(e) =>
                                         setForm({ ...form, category_id: e.target.value })
                                     }
-                                    className="w-full mt-1 bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-2.5 focus:outline-none font-mono text-sm"
+                                    className="w-full mt-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500 rounded-xl px-4 py-2.5 focus:outline-none font-mono text-sm"
                                     placeholder="UUID Kategori"
                                 />
                                 <p className="text-[10px] text-zinc-500 mt-1">
@@ -145,7 +145,7 @@ export default function ItemsManagementPage() {
                                     onChange={(e) =>
                                         setForm({ ...form, kode_barang: e.target.value })
                                     }
-                                    className="w-full mt-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500"
+                                    className="w-full mt-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-orange-500"
                                     placeholder="Misal: ATK-001"
                                 />
                             </div>
@@ -160,7 +160,7 @@ export default function ItemsManagementPage() {
                                     onChange={(e) =>
                                         setForm({ ...form, nama_barang: e.target.value })
                                     }
-                                    className="w-full mt-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500"
+                                    className="w-full mt-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-orange-500"
                                     placeholder="Kertas HVS A4 80gr"
                                 />
                             </div>
@@ -175,7 +175,7 @@ export default function ItemsManagementPage() {
                                         onChange={(e) =>
                                             setForm({ ...form, satuan: e.target.value })
                                         }
-                                        className="w-full mt-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 appearance-none"
+                                        className="w-full mt-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 appearance-none"
                                     >
                                         <option value="Pcs">Pcs (Buah)</option>
                                         <option value="Rim">Rim</option>
@@ -194,7 +194,7 @@ export default function ItemsManagementPage() {
                                         onChange={(e) =>
                                             setForm({ ...form, min_stock: e.target.value })
                                         }
-                                        className="w-full mt-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500"
+                                        className="w-full mt-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl px-4 py-2.5 focus:outline-none focus:border-orange-500"
                                     />
                                 </div>
                             </div>
@@ -203,7 +203,7 @@ export default function ItemsManagementPage() {
                         <button
                             type="submit"
                             disabled={mutation.isPending}
-                            className="w-full mt-8 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="w-full mt-8 py-3 rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {mutation.isPending ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -217,29 +217,29 @@ export default function ItemsManagementPage() {
 
                 {/* KOLOM KANAN: TABEL DATA GRID */}
                 <div className="lg:col-span-2">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xl">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-zinc-950/50 border-b border-zinc-800">
-                                        <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                                    <tr className="bg-zinc-50 dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-zinc-800">
+                                        <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                             SKU
                                         </th>
-                                        <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                                        <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                             Nama Logistik
                                         </th>
-                                        <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider text-center">
+                                        <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-center">
                                             Batas Aman
                                         </th>
-                                        <th className="p-4 text-xs font-bold text-zinc-400 uppercase tracking-wider text-right">
+                                        <th className="p-4 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">
                                             Aksi
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-zinc-800">
+                                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                                     {isLoading ? (
                                         <tr>
-                                            <td colSpan={4} className="p-10 text-center text-emerald-500">
+                                            <td colSpan={4} className="p-10 text-center text-orange-500">
                                                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                                                 <span className="text-sm font-medium text-zinc-500">
                                                     Menarik Data Tabel...
@@ -259,13 +259,13 @@ export default function ItemsManagementPage() {
                                         response?.data?.map((item) => (
                                             <tr
                                                 key={item.id}
-                                                className="hover:bg-emerald-500/5 transition-colors group"
+                                                className="hover:bg-orange-500/5 transition-colors group"
                                             >
-                                                <td className="p-4 font-mono text-sm text-zinc-300">
+                                                <td className="p-4 font-mono text-sm text-zinc-600 dark:text-zinc-300">
                                                     {item.kode_barang}
                                                 </td>
                                                 <td className="p-4">
-                                                    <p className="font-bold text-zinc-200">
+                                                    <p className="font-bold text-zinc-800 dark:text-zinc-200">
                                                         {item.nama_barang}
                                                     </p>
                                                     <p className="text-xs text-zinc-500 mt-0.5">
@@ -273,7 +273,7 @@ export default function ItemsManagementPage() {
                                                     </p>
                                                 </td>
                                                 <td className="p-4 text-center">
-                                                    <span className="inline-block px-3 py-1 bg-zinc-800 text-zinc-300 rounded-full text-xs font-bold border border-zinc-700">
+                                                    <span className="inline-block px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-full text-xs font-bold border border-zinc-200 dark:border-zinc-700">
                                                         Min {item.min_stock}
                                                     </span>
                                                 </td>
@@ -300,7 +300,7 @@ export default function ItemsManagementPage() {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="p-4 bg-zinc-950/30 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-500 font-medium">
+                        <div className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center text-xs text-zinc-500 font-medium">
                             Menampilkan halaman {response?.current_page || 1} dari{" "}
                             {response?.last_page || 1}
                         </div>

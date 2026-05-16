@@ -1,7 +1,144 @@
-# Progress - Phase 30: BMN Dashboard Charts + Export Filtered + Riwayat + Verifikasi + Foto
+# Progress - Phase 34: Data Security & Linting Finalization
 
-> Document updated: 2026-05-13 19:00
+> Document updated: 2026-05-16
 > Status: **COMPLETED** ✅
+
+---
+
+## Phase 34: Data Security & Linting Finalization
+
+### Completed:
+- [x] **Surat Tugas Data Leakage Fix**: Added `employee_id` filter to `AssignmentLetterController::index` to ensure users only see Surat Tugas related to them in their Portal Dashboard.
+- [x] **BMN Portal Integration & Fuzzy Search**: 
+  - Enhanced `AssetController` with fuzzy name matching for `pengguna` column to handle title/spacing variations.
+  - Implemented frontend deduplication to exclude "Pinjaman Aktif" assets from "Aset Saya".
+  - Added dynamic count badges to all portal tabs.
+- [x] **Rich Asset Metadata**: Updated UI to display Merk/Tipe, NUP Lama, and No. Polisi (for vehicles) in portal asset cards.
+- [x] **ST Builder Layout Constraint**: Fixed missing A4 wrapper in `STBuilderPreview` on the `create` page.
+- [x] **Frontend Stability & Linting**: 
+  - Fixed React Hook ordering issue (`useMemo` positioning).
+  - Resolved all remaining ESLint warnings (`any` types, unused imports).
+- [x] **Build Verification**: `npm run lint` yields 0 warnings and `npx tsc --noEmit` yields 0 errors.
+
+### Next Steps:
+- [ ] Preparation for Production / Server Deployments.
+
+---
+
+# Progress - Phase 33: Module Themes & Fluid Layouts
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 33: Module Themes & Fluid Layouts
+
+### Completed:
+- [x] **Kepegawaian Module Branding**: Replaced generic emerald elements with **Blue** (`blue-600`, `blue-50`) to establish a formal HR identity.
+- [x] **Inventory Module Branding**: Replaced emerald/teal elements with **Orange/Amber** (`orange-600`, `amber-500`) for clear differentiation.
+- [x] **Portal & Module Switcher Alignment**: Synced the portal dashboard cards and global module switcher to accurately reflect each module's distinct theme (Blue, Emerald, Orange, Violet, Teal).
+- [x] **Kepegawaian Layout**: Upgraded wrapper layouts to use standard fluid padding `p-6 md:p-10`.
+- [x] **BMN Layout Standardization**: Removed `max-w-7xl` containers from BMN pages and fully migrated to fluid `p-6 md:p-10 space-y-8 animate-in fade-in` design system.
+- [x] **Cross-Module Verification**: Verified CMS (Teal) and DeReporting (Violet) are correctly themed and sized.
+- [x] **Build Verification**: `npx next build` and `npx tsc --noEmit` verified successfully after global color replacements.
+
+### Next Steps:
+- [ ] API & Frontend Integrations / Testing.
+
+---
+
+# Progress - Phase 32: Full Dark Mode Finalization
+
+## Phase 32: Full Dark Mode Finalization
+
+### Completed:
+- [x] **CMS Module**: Dashboard, Layout, CrudPageFactory, CrudFormDrawer, Informasi — converted from dark-only to dual-mode.
+- [x] **DeReporting Module**: Dashboard, Internal page, FilteredReportTable — fixed light mode rendering.
+- [x] **Kepegawaian Module**: ST Builder (Kota input fix), ST Create, ST Inbox — full dual-mode.
+- [x] **BMN Core Module**: Dashboard, Layout, Assets list, Loans, Loans/create, Maintenances, Disposal — `slate` → `zinc` + `dark:`.
+- [x] **BMN Import Review**: Header, upload section, batch history cards — light-only → dual-mode.
+- [x] **BMN Reports**: Header, report cards, icon backgrounds — light-only → dual-mode.
+- [x] **BMN Asset Detail**: Hero card, quick stats, tabs, history tab — `slate` → `zinc` + `dark:`.
+- [x] **BMN DetailSection Component**: All 8 sub-components refactored (DetailRow, EditableRow, CurrencyRow, EditableCurrencyRow, EditableSelectRow, EditableEmployeeRow, AreaRow, BadgeRow).
+- [x] **BMN PhotoGallery Component**: Container, header, empty slots, verified banner, labels, action buttons, geotag input.
+- [x] **Inventory Transactions**: Dark-only → dual-mode (filter bar, table, pagination footer).
+- [x] **Inventory Stock-Out**: Dark-only → dual-mode (form, labels, inputs, select, buttons).
+- [x] **Inventory Stock-In**: Dark-only → dual-mode (form, labels, inputs, select, buttons).
+- [x] **Portal Dashboard**: Full dark mode refinement.
+- [x] **Build Verified**: `npx next build` → exit code 0.
+
+### Design Standard:
+| Element | Light | Dark |
+|---------|-------|------|
+| Background | `bg-white` / `bg-zinc-50` | `dark:bg-zinc-900` / `dark:bg-zinc-950` |
+| Text | `text-zinc-900` / `text-zinc-500` | `dark:text-white` / `dark:text-zinc-400` |
+| Borders | `border-zinc-200` | `dark:border-zinc-800` |
+| Hover | `hover:bg-zinc-50` | `dark:hover:bg-zinc-800/30` |
+| Accent | `bg-emerald-50` | `dark:bg-emerald-500/10` |
+
+### Files Modified (31 files):
+- `frontend/src/app/bmn/assets/[id]/page.tsx`
+- `frontend/src/app/bmn/assets/[id]/_components/DetailSection.tsx`
+- `frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx`
+- `frontend/src/app/bmn/import-review/page.tsx`
+- `frontend/src/app/bmn/reports/page.tsx`
+- `frontend/src/app/bmn/{page,layout,assets/page,loans/page,loans/create/page,maintenances/page,disposal/page}.tsx`
+- `frontend/src/app/inventory/{page,items/page,transactions/page,stock-in/page,stock-out/page}.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/{builder/[id]/page,create/page,inbox/page}.tsx`
+- `frontend/src/app/dereporting/{page,internal/page,_components/FilteredReportTable}.tsx`
+- `frontend/src/app/cms/{page,layout,informasi/page,_components/CrudPageFactory,_components/CrudFormDrawer}.tsx`
+- `frontend/src/app/portal/page.tsx`
+
+### Dark Mode Coverage (100%):
+| Module | Status |
+|--------|--------|
+| Portal | ✅ Complete |
+| BMN (all pages) | ✅ Complete |
+| Inventory (all pages) | ✅ Complete |
+| Kepegawaian (all pages) | ✅ Complete |
+| DeReporting (all pages) | ✅ Complete |
+| CMS (all pages) | ✅ Complete |
+
+### Next Steps:
+- [ ] Inventory module improvements
+- [ ] DeReporting module improvements
+- [ ] Import: handle foto_geotag_url mapping dari Excel header "Foto Ber-geotag"
+
+---
+
+# Progress - Phase 31: BMN Loan UI Overhaul + Comprehensive Dark Mode
+
+> Document updated: 2026-05-16 12:45
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 31: BMN Loan UI & Dark Mode
+
+### Completed:
+- [x] **BMN Loan List Overhaul**: Identical header, search, and filter layout with Assets catalog.
+- [x] **Emerald Theme Unification**: Accent colors changed from Blue to Emerald across the Loan module.
+- [x] **Form Wizard Standardization**: Consistent "Batal" (outline) and "Lanjut" (solid) buttons in `/bmn/loans/create`.
+- [x] **Vehicle Icon Logic Fix**: Vehicle icons only show if `no_polisi !== '-'` in asset select tables.
+- [x] **Full Dark Mode (Portal)**: Added `dark:` classes to `/portal/page.tsx` for cards, header, and profile.
+- [x] **Full Dark Mode (BMN)**: Comprehensive support for Assets, Loans, and Detail pages.
+- [x] **Full Dark Mode (Sidebar)**: Navigasi inventory sidebar sekarang mendukung transisi gelap.
+- [x] **Automated Class Mapping**: Patch script for mass addition of `dark:` utility classes.
+
+### Files Modified:
+- `frontend/src/app/portal/page.tsx`
+- `frontend/src/app/bmn/loans/page.tsx`
+- `frontend/src/app/bmn/loans/create/page.tsx`
+- `frontend/src/app/bmn/assets/page.tsx`
+- `frontend/src/app/bmn/assets/[id]/page.tsx`
+- `frontend/src/app/inventory/_components/InventorySidebar.tsx`
+
+### Next Steps:
+- [x] ~~Audit remaining modules (DeReporting, Kepegawaian, CMS) for dark mode consistency~~ ✅ Phase 32
+- [x] ~~Accessibility review for dark mode contrast~~ ✅ Phase 32
+
+---
+
+# Progress - Phase 30: BMN Dashboard Charts + Export Filtered + Riwayat + Verifikasi + Foto
 
 ---
 
@@ -50,7 +187,7 @@
 - `frontend/src/app/bmn/disposal/page.tsx` — pagination "Semua"
 
 ### Next Steps (TODO):
-- [ ] Mobile responsive sidebar (semua modul)
+- [x] Mobile responsive sidebar (semua modul) ✅ PR #304
 - [ ] Inventory module improvements
 - [ ] DeReporting module improvements
 - [ ] Import: handle foto_geotag_url mapping dari Excel header "Foto Ber-geotag"

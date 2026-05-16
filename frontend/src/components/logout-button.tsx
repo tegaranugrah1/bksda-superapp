@@ -36,10 +36,10 @@ export function LogoutButton() {
       {/* 1. TOMBOL PEMICU AWAL */}
       <button
         onClick={() => setShowConfirm(true)}
-        className="flex items-center justify-center md:justify-start gap-3 px-4 py-3 w-full rounded-2xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-200 group"
+        className="flex items-center justify-start gap-3 px-4 py-3 w-full rounded-2xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-200 group"
       >
         <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-        <span className="hidden md:inline">Keluar Sistem</span>
+        <span>Keluar Sistem</span>
       </button>
 
       {/* 2. JENDELA KONFIRMASI (MODAL OVERLAY) */}

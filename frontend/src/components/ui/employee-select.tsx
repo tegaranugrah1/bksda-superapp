@@ -53,12 +53,13 @@ export function EmployeeSelect({
     const controller = new AbortController();
 
     api
-      .get("/employees/select", {
-        params: { search: debouncedSearch },
+      .get("/kepegawaian/employees/select", {
+        params: { q: debouncedSearch },
         signal: controller.signal,
       })
       .then((response) => {
-        setEmployees(response.data);
+        const result = response.data?.data ?? response.data;
+        setEmployees(Array.isArray(result) ? result : []);
       })
       .catch((error) => {
         console.error("Failed to fetch employees:", error);
