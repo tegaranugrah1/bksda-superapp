@@ -53,7 +53,7 @@ export function EmployeeSelect({
     const controller = new AbortController();
 
     api
-      .get("/employees/select", {
+      .get("/kepegawaian/employees/select", {
         params: { search: debouncedSearch },
         signal: controller.signal,
       })

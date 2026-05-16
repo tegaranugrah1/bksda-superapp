@@ -4,7 +4,10 @@ namespace App\Modules\Bmn\Services;
 
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetLoan;
+use App\Modules\Bmn\Models\AssetUpdate;
+use App\Modules\Kepegawaian\Models\Employee;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class LoanService
@@ -57,6 +60,17 @@ class LoanService
 
                 $record = AssetLoan::create($loanData);
                 $asset->update(['employee_id' => $data['borrower_employee_id']]);
+
+                // Record asset history
+                $borrowerName = Employee::find($data['borrower_employee_id'])?->nama_lengkap ?? 'Pegawai';
+                AssetUpdate::create([
+                    'asset_id' => $asset->id,
+                    'user_id' => Auth::id(),
+                    'field_changed' => 'Peminjaman',
+                    'old_value' => 'Tersedia',
+                    'new_value' => "Dipinjam oleh {$borrowerName}",
+                    'alasan_perubahan' => $data['purpose'] ?? 'Peminjaman aset',
+                ]);
 
                 $createdLoans[] = $record->load(['asset', 'borrower']);
             }
@@ -141,6 +155,18 @@ class LoanService
 
             $asset = Asset::findOrFail($loan->asset_id);
             $asset->update(['employee_id' => null]);
+
+            // Record asset history
+            $borrowerName = Employee::find($loan->employee_id)?->nama_lengkap ?? 'Pegawai';
+            $conditionText = $data['return_condition'] ?? 'Tidak dicatat';
+            AssetUpdate::create([
+                'asset_id' => $asset->id,
+                'user_id' => Auth::id(),
+                'field_changed' => 'Pengembalian',
+                'old_value' => "Dipinjam oleh {$borrowerName}",
+                'new_value' => "Dikembalikan (Kondisi: {$conditionText})",
+                'alasan_perubahan' => 'Pengembalian aset dari peminjaman',
+            ]);
 
             return $loan;
         });
