@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Plus, Pencil, Trash2, Loader2, RotateCcw, Package, Handshake, AlertTriangle, CalendarClock } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, RotateCcw, Package, AlertTriangle, CalendarClock } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -100,9 +100,11 @@ export default function LoansPage() {
         }
     }, [filterStatus]);
 
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         fetchRecords();
     }, [fetchRecords]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const openReturnModal = (record: Loan) => {
         setReturningRecord(record);

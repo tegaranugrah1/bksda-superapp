@@ -162,7 +162,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     }
   };
 
-  const selectedCount = rows.filter((r) => r.selected && r.diff_status !== "unchanged").length;
+
   const totalActionable = (batch?.new_rows || 0) + (batch?.updated_rows || 0);
   const isPending = batch?.status === "pending";
 

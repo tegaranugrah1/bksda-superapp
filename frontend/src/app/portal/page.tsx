@@ -85,13 +85,19 @@ export default function PersonalDashboard() {
   }, [router]);
 
   const fetchSuratTugas = useCallback(async () => {
+    if (!data?.employee?.id) {
+      setSuratTugas([]);
+      return;
+    }
     setStLoading(true);
     try {
-      const resp = await api.get("/surat-tugas", { params: { status: "approved", per_page: 20 } });
+      const resp = await api.get("/surat-tugas", { 
+        params: { status: "approved", per_page: 20, employee_id: data.employee.id } 
+      });
       setSuratTugas(resp.data.data || []);
     } catch { setSuratTugas([]); }
     finally { setStLoading(false); }
-  }, []);
+  }, [data]);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);

@@ -12,9 +12,11 @@ const CHART_COLORS = ["#8b5cf6", "#6366f1", "#a78bfa", "#7c3aed", "#818cf8", "#c
 export default function DeReportingDashboardPage() {
     const [mounted, setMounted] = useState(false);
 
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         setMounted(true);
     }, []);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     // Penarikan Data Statistik dari Backend
     const { data: stats, isLoading } = useQuery({

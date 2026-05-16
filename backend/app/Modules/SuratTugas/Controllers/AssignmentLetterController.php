@@ -25,6 +25,12 @@ class AssignmentLetterController extends Controller
             $query->where('status', $status);
         }
 
+        if ($employeeId = $request->query('employee_id')) {
+            $query->whereHas('employees', function ($q) use ($employeeId) {
+                $q->where('kpg_employees.id', $employeeId);
+            });
+        }
+
         if ($request->query('trashed') === 'true') {
             $query->onlyTrashed();
         }

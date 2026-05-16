@@ -448,13 +448,41 @@ export default function STCreatePremiumPage() {
         </footer>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-12 flex justify-center bg-slate-200/50 dark:bg-zinc-950">
-        <STBuilderPreview 
-          stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
-          menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
-          buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
-          kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
-        />
+      <main className="flex-1 overflow-y-auto p-12 flex flex-col items-center bg-slate-200/50 dark:bg-zinc-950">
+        <div className="relative">
+          <div
+            id="surat-preview-doc"
+            className="w-[210mm] bg-white shadow-2xl selection:bg-blue-100"
+            style={{
+              padding: "0.4cm 1cm 1cm 3cm",
+              fontFamily: "'Bookman Old Style', 'Georgia', serif",
+              fontSize: "11pt",
+              lineHeight: "1.25",
+              color: "#000",
+              textAlign: "justify",
+              boxSizing: "border-box",
+              minHeight: "297mm",
+            }}
+          >
+            <STBuilderPreview 
+              stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
+              menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
+              buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
+              kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
+            />
+          </div>
+          {/* Page break indicators */}
+          <div className="absolute left-0 right-0 pointer-events-none" style={{ top: "297mm" }}>
+            <div className="h-8 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center shadow-inner">
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest">HALAMAN 2</span>
+            </div>
+          </div>
+          <div className="absolute left-0 right-0 pointer-events-none" style={{ top: "calc(297mm * 2 + 32px)" }}>
+            <div className="h-8 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center shadow-inner">
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest">HALAMAN 3</span>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );

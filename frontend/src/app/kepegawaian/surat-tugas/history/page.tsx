@@ -1,7 +1,7 @@
 "use client";
 
 import { AssignmentHistoryTab } from "../../_components/AssignmentHistoryTab";
-import { History, Briefcase } from "lucide-react";
+import { Briefcase } from "lucide-react";
 
 export default function AssignmentHistoryPage() {
     return (

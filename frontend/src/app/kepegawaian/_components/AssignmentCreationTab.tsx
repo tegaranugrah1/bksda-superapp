@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
     Upload, Trash2, Plus, FileText, 
@@ -8,6 +8,7 @@ import {
 import { api } from "@/lib/api";
 import { EmployeePicker, Employee } from "@/components/custom/EmployeePicker";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
 
 interface Personil {
     id: string;
@@ -59,9 +60,13 @@ export function AssignmentCreationTab({ onSuccess }: { onSuccess?: () => void })
             resetForm();
             if (onSuccess) onSuccess();
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
             setIsSubmitting(false);
-            toast.error(err.response?.data?.message || "Terjadi kesalahan saat menyimpan.");
+            if (isAxiosError(err)) {
+                toast.error(err.response?.data?.message || "Terjadi kesalahan saat menyimpan.");
+            } else {
+                toast.error("Terjadi kesalahan sistem saat menyimpan.");
+            }
         },
     });
 

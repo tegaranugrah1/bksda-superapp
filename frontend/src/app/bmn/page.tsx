@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, Wrench, HandCoins, ShieldAlert, TrendingUp, PieChart, BarChart3, ChevronRight, Calendar, MapPin } from "lucide-react";
+import { Package, Wrench, HandCoins, ShieldAlert, TrendingUp, PieChart, BarChart3, Calendar, MapPin } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
