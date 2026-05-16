@@ -1,0 +1,75 @@
+/* --- Search sejajar di header biasa --- */
+.header-style-two .menu-right-content .search-box-outer {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+}
+.header-style-two .menu-right-content .search-box-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 8px !important;
+  line-height: 1 !important;
+}
+
+/* Perbaiki ikon flaticon di dalam button */
+.header-style-two .menu-right-content .search-box-btn i,
+.header-style-two .menu-right-content .search-box-btn i:before {
+  line-height: 1 !important;
+  display: inline-block !important;
+}
+
+/* --- Search sejajar di STICKY header --- */
+.sticky-header .menu-right-content,
+.sticky-header .menu-right-content .search-box-outer {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+}
+.sticky-header .menu-right-content .search-box-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 8px !important;
+  line-height: 1 !important;
+}
+.sticky-header .menu-right-content .search-box-btn i,
+.sticky-header .menu-right-content .search-box-btn i:before {
+  line-height: 1 !important;
+  display: inline-block !important;
+}
+
+/* (opsional) kecilkan ukuran ikon */
+.header-style-two .search-box-btn i,
+.sticky-header .search-box-btn i { font-size: 18px !important; }
+
+
+.search-results h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.search-results h4 {
+    font-size: 20px;
+    font-weight: 600;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.search-results ul li a {
+    font-size: 16px;
+    transition: color 0.2s;
+}
+
+.search-results ul li a:hover {
+    color: #f4b400; /* warna kuning sesuai tombol KONTAK */
+}
+
