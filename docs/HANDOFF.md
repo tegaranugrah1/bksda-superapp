@@ -56,12 +56,38 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 33: Module Themes & Fluid Layouts (✅ DONE) |
-| **Issue Selanjutnya** | API & Frontend Integrations / Testing |
+| **Issue Terakhir Selesai** | Phase 34: Portal Dashboard Refinement & Data Integrity (✅ DONE) |
+| **Issue Selanjutnya** | Preparation for Production / Server Deployments |
 | **Branch Aktif** | `feature/module-themes` |
-| **Commit Terakhir** | (Menunggu Commit Phase 33) |
-| **Model Terakhir** | Gemini 2.5 Pro (Antigravity) |
-| **Timestamp** | 2026-05-16T14:30:00+08:00 |
+| **Commit Terakhir** | (Optimized Portal Asset & ST Security) |
+| **Model Terakhir** | Gemini 3.5 Flash (Antigravity) |
+| **Timestamp** | 2026-05-16T14:40:00+08:00 |
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-16 Sore - Phase 34: Portal Dashboard Refinement & Data Integrity):**
+- **Objective**: Refine the BKSDA SuperApp Portal dashboard to ensure accurate asset tracking, data security for Surat Tugas, and a polished user experience.
+- **Accomplishments**:
+  - **Data Integrity & Security**: 
+    - **ST Security**: Added `employee_id` filter to `AssignmentLetterController` to prevent data leakage in the portal dashboard.
+    - **BMN Asset Logic**: Enhanced `AssetController` with fuzzy name matching (`pengguna` column) and title-agnostic search to ensure assets appear for employees even if NIP links are missing.
+    - **Deduplication**: Implemented frontend logic in `portal/page.tsx` to exclude assets currently appearing in "Pinjaman Aktif" from the "Aset Saya" list.
+  - **UI Refinement**:
+    - **Rich Metadata**: Updated asset cards to show Merk/Tipe, NUP Lama, and No. Polisi (for vehicles).
+    - **Dashboard Badges**: Added dynamic counts (badges) to all tabs (Aset Saya, Pinjaman Aktif, Surat Tugas) for immediate visibility.
+    - **Fuzzy Search Helper**: Added `formatMerkTipe` utility to clean up redundant brand/model strings.
+  - **Linting & Stability**:
+    - Fixed React Hook ordering issue in `portal/page.tsx`.
+    - Resolved `@typescript-eslint/no-explicit-any` warnings in the portal component.
+- **Key Files Modified**:
+  - `backend/app/Modules/Kepegawaian/Controllers/AssignmentLetterController.php` (Security filter)
+  - `backend/app/Modules/BMN/Controllers/AssetController.php` (Fuzzy search logic)
+  - `frontend/src/app/portal/page.tsx` (UI, Filtering, Badges, Types)
+- **Next Steps**:
+  - Create Pull Request for `feature/module-themes` (merging Phase 33 & 34).
+  - Preparation for Production / Server Deployments.
+
+---
 | **GitHub Issues** | #305 (BMN Loan + Dark Mode), Phase 32 (Dark Mode Finalization) |
 | **Admin Login** | Username: `198001012005011001` / Password: `Bksda2026!@#` |
 

@@ -116,10 +116,13 @@ class AuthController extends Controller
                     'nama_barang' => $loan->asset->nama_barang,
                     'kode_barang' => $loan->asset->kode_barang,
                     'nup' => $loan->asset->nup,
+                    'nup_lama' => $loan->asset->nup_lama,
                     'loan_date' => $loan->tanggal_pinjam?->toIso8601String(),
                     'due_date' => $loan->tanggal_kembali?->toIso8601String(),
                     'status' => $loan->status,
-                    'merk' => $loan->asset->merk_tipe,
+                    'merk' => $loan->asset->merk_tipe ?? $loan->asset->merk,
+                    'jenis_bmn' => $loan->asset->jenis_bmn,
+                    'no_polisi' => $loan->asset->no_polisi,
                 ];
             }),
         ];

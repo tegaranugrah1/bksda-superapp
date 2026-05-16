@@ -28,7 +28,7 @@ import { authStore } from "@/lib/auth-store";
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
   employee: { id: number; nip: string; name: string; position: string; department: string; email: string | null; phone: string | null; photo: string | null; rank: string | null; rank_level: number; is_active: boolean } | null;
-  my_assets: Array<{ id: number; nama_barang: string; kode_barang: string; nup: string; loan_date: string; due_date: string; status: string; merk: string | null }>;
+  my_assets: Array<{ id: number; nama_barang: string; kode_barang: string; nup: string; loan_date: string; due_date: string; status: string; merk: string | null; jenis_bmn?: string; no_polisi?: string | null; nup_lama?: string | null }>;
 }
 
 interface SuratTugasItem {
@@ -55,6 +55,27 @@ function formatDate(): string {
   return new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
+function formatMerkTipe(merk?: string | null, tipe?: string | null, merkTipe?: string | null): string | null {
+  const combined = [merk, tipe, merkTipe].filter(Boolean).join(" ");
+  if (!combined) return null;
+  const parts = combined.split(/[\s,]+/);
+  return [...new Set(parts)].join(" ");
+}
+
+interface AssetItem {
+  id: string;
+  nama_barang: string;
+  kode_barang: string;
+  nup: string;
+  nup_lama?: string | null;
+  merk?: string | null;
+  tipe?: string | null;
+  merk_tipe?: string | null;
+  kondisi?: string | null;
+  no_polisi?: string | null;
+  jenis_bmn?: string | null;
+}
+
 export default function PersonalDashboard() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -65,7 +86,7 @@ export default function PersonalDashboard() {
   const [stLoading, setStLoading] = useState(false);
   
   // Aset states
-  const [myAssets, setMyAssets] = useState<any[]>([]);
+  const [myAssets, setMyAssets] = useState<AssetItem[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(false);
 
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
@@ -76,6 +97,12 @@ export default function PersonalDashboard() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editData, setEditData] = useState({ email: "", phone: "" });
   const [editLoading, setEditLoading] = useState(false);
+
+  const filteredMyAssets = useMemo(() => {
+    if (!data?.my_assets) return myAssets;
+    const borrowedIds = new Set(data.my_assets.map(a => a.id));
+    return myAssets.filter(a => !borrowedIds.has(a.id));
+  }, [myAssets, data?.my_assets]);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -210,8 +237,8 @@ export default function PersonalDashboard() {
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode; count?: number }[] = [
     { key: "pinjaman", label: "Pinjaman Aktif", icon: <HandHelping className="w-4 h-4" />, count: data.my_assets.length },
-    { key: "aset", label: "Aset Saya", icon: <Briefcase className="w-4 h-4" /> },
-    { key: "surat_tugas", label: "Surat Tugas", icon: <ClipboardList className="w-4 h-4" /> },
+    { key: "aset", label: "Aset Saya", icon: <Briefcase className="w-4 h-4" />, count: filteredMyAssets.length },
+    { key: "surat_tugas", label: "Surat Tugas", icon: <ClipboardList className="w-4 h-4" />, count: suratTugas.length },
   ];
 
   return (
@@ -396,7 +423,21 @@ export default function PersonalDashboard() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
-                            <p className="text-xs text-slate-400">{asset.kode_barang} • NUP {asset.nup}</p>
+                            {formatMerkTipe(asset.merk) && (
+                              <p className="text-xs text-slate-500 mb-0.5 truncate">{formatMerkTipe(asset.merk)}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
+                              <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
+                              {asset.nup_lama && (
+                                <span className="text-xs text-slate-400">• NUP Lama: {asset.nup_lama}</span>
+                              )}
+                              {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
+                                  {asset.no_polisi}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <Badge variant={new Date(asset.due_date) < new Date() ? "destructive" : "secondary"} className="shrink-0">
                             {new Date(asset.due_date) < new Date() ? "Terlambat" : asset.status}
@@ -416,25 +457,36 @@ export default function PersonalDashboard() {
                       <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
                       <p className="text-sm text-slate-400">Memuat aset Anda...</p>
                     </div>
-                  ) : myAssets.length === 0 ? (
+                  ) : filteredMyAssets.length === 0 ? (
                     <div className="p-12 text-center">
                       <Briefcase className="w-12 h-12 mx-auto mb-3 text-slate-200" />
                       <p className="text-sm text-slate-500 dark:text-slate-400">Tidak ada aset di bawah tanggung jawab Anda.</p>
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-100 dark:divide-zinc-800">
-                      {myAssets.map((asset) => (
+                      {filteredMyAssets.map((asset) => (
                         <div key={`my-${asset.id}`} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
                           <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
                             <Package className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
+                            {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe) && (
+                              <p className="text-xs text-slate-500 mb-0.5 truncate">{formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe)}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-1">
                               <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
                               <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
+                              {asset.nup_lama && (
+                                <span className="text-xs text-slate-400">• NUP Lama: {asset.nup_lama}</span>
+                              )}
+                              {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
+                                  {asset.no_polisi}
+                                </span>
+                              )}
                               {asset.kondisi && (
-                                <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", 
+                                <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium ml-1", 
                                   asset.kondisi === "Baik" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" :
                                   asset.kondisi === "Rusak Ringan" ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400" :
                                   "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400"

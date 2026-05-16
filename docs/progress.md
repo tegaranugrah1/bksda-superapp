@@ -8,13 +8,16 @@
 ## Phase 34: Data Security & Linting Finalization
 
 ### Completed:
-- [x] **Surat Tugas Data Leakage Fix**: Added `employee_id` filter to `AssignmentLetterController::index` to ensure users only see Surat Tugas related to them in their Portal Dashboard. Updated frontend `fetchSuratTugas` to pass this parameter.
-- [x] **BMN Portal Integration**: Enhanced the "Aset Saya" tab in the Portal Dashboard to fetch and display both "Aset Tanggung Jawab Saya" (`employee_id` filter) and "Aset Yang Sedang Saya Pinjam" (`borrower_id` filter).
-- [x] **ST Builder Layout Constraint**: Fixed missing A4 wrapper in `STBuilderPreview` on the `create` page which previously caused broken layouts and misalignments.
-- [x] **Frontend Linting Remediation**: Resolved all lingering TypeScript and ESLint warnings across the codebase.
-  - Removed unused imports (`ChevronRight`, `History`, `Handshake`).
-  - Removed unused assignments (`selectedCount`).
-  - Properly disabled or resolved `react-hooks/set-state-in-effect` and `useEffect` dependency array issues in `loans/page.tsx`, `dereporting/page.tsx`, and `portal/page.tsx`.
+- [x] **Surat Tugas Data Leakage Fix**: Added `employee_id` filter to `AssignmentLetterController::index` to ensure users only see Surat Tugas related to them in their Portal Dashboard.
+- [x] **BMN Portal Integration & Fuzzy Search**: 
+  - Enhanced `AssetController` with fuzzy name matching for `pengguna` column to handle title/spacing variations.
+  - Implemented frontend deduplication to exclude "Pinjaman Aktif" assets from "Aset Saya".
+  - Added dynamic count badges to all portal tabs.
+- [x] **Rich Asset Metadata**: Updated UI to display Merk/Tipe, NUP Lama, and No. Polisi (for vehicles) in portal asset cards.
+- [x] **ST Builder Layout Constraint**: Fixed missing A4 wrapper in `STBuilderPreview` on the `create` page.
+- [x] **Frontend Stability & Linting**: 
+  - Fixed React Hook ordering issue (`useMemo` positioning).
+  - Resolved all remaining ESLint warnings (`any` types, unused imports).
 - [x] **Build Verification**: `npm run lint` yields 0 warnings and `npx tsc --noEmit` yields 0 errors.
 
 ### Next Steps:
