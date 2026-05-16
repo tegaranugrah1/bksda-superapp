@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
@@ -8,7 +8,7 @@ import { Newspaper, Save, ArrowLeft, Loader2, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 
-// Dynamic Import: Rich Text Editor hanya dimuat di sisi klien (Menghindari SSR crash)
+// Dynamic Import: Rich Text Editor hanya dimuat di sisi klien
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
@@ -27,11 +27,45 @@ interface InformasiData {
   thumbnail_path: string | null;
 }
 
+// Quill toolbar modules with justify alignment
+const QUILL_MODULES = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ align: [] }],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ indent: "-1" }, { indent: "+1" }],
+    ["blockquote", "code-block"],
+    ["link", "image"],
+    [{ color: [] }, { background: [] }],
+    ["clean"],
+  ],
+};
+
+const QUILL_FORMATS = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "align",
+  "list",
+  "indent",
+  "blockquote",
+  "code-block",
+  "link",
+  "image",
+  "color",
+  "background",
+];
+
 export default function EditInformasiPage() {
   const router = useRouter();
   const params = useParams();
   const queryClient = useQueryClient();
   const id = params.id as string;
+
+  const modules = useMemo(() => QUILL_MODULES, []);
 
   const { data: informasi, isLoading: isLoadingInformasi } =
     useQuery<InformasiData>({
@@ -61,14 +95,13 @@ export default function EditInformasiPage() {
       setIsPublished(informasi.is_published ?? false);
       if (informasi.thumbnail_path) {
         setThumbnailPreview(
-          `${process.env.NEXT_PUBLIC_STORAGE_URL}/${informasi.thumbnail_path}`,
+          `${process.env.NEXT_PUBLIC_STORAGE_URL}/${informasi.thumbnail_path}`
         );
       }
     }
   }, [informasi]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Ambil daftar Kategori untuk Dropdown
   const { data: categories } = useQuery({
     queryKey: ["cms-categories"],
     queryFn: async () => {
@@ -77,7 +110,6 @@ export default function EditInformasiPage() {
     },
   });
 
-  // Preview Thumbnail secara lokal (Tanpa upload dulu)
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -114,7 +146,7 @@ export default function EditInformasiPage() {
       toast.success(
         isPublished
           ? "Berita berhasil diperbarui dan diterbitkan!"
-          : "Berita berhasil diperbarui.",
+          : "Berita berhasil diperbarui."
       );
       queryClient.invalidateQueries({ queryKey: ["cms-informasi"] });
       router.push("/cms/informasi");
@@ -135,29 +167,29 @@ export default function EditInformasiPage() {
   }
 
   return (
-    <div className="p-6 md:p-10 max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4">
         <button
           onClick={() => router.back()}
-          className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+          className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-zinc-400" />
+          <ArrowLeft className="w-5 h-5 text-zinc-500 dark:text-zinc-400" />
         </button>
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-3">
+          <h1 className="text-2xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
             <Newspaper className="w-7 h-7 text-teal-500" /> Edit Berita
           </h1>
-          <p className="text-zinc-500 text-sm mt-1">
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
             Perbarui konten berita di bawah.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
         {/* Judul */}
         <div>
-          <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5">
+          <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1.5">
             Judul Berita *
           </label>
           <input
@@ -166,20 +198,20 @@ export default function EditInformasiPage() {
             onChange={(e) => setJudul(e.target.value)}
             maxLength={500}
             placeholder="Contoh: BKSDA Lepasliarkan 5 Ekor Elang Jawa ke Habitat Asli"
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500 transition-all placeholder:text-zinc-600"
+            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
           />
         </div>
 
-        {/* Kategori + Sumber (2 Kolom) */}
+        {/* Kategori + Sumber */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5">
+            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1.5">
               Kategori
             </label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500 transition-all"
+              className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
             >
               <option value="">— Pilih Kategori —</option>
               {categories?.map((cat: Category) => (
@@ -190,7 +222,7 @@ export default function EditInformasiPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5">
+            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1.5">
               Sumber
             </label>
             <input
@@ -199,20 +231,20 @@ export default function EditInformasiPage() {
               onChange={(e) => setSumber(e.target.value)}
               maxLength={255}
               placeholder="Opsional: Kompas.com"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500 transition-all placeholder:text-zinc-600"
+              className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
             />
           </div>
         </div>
 
-        {/* Thumbnail Upload + Preview */}
+        {/* Thumbnail */}
         <div>
-          <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5">
+          <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1.5">
             Thumbnail
           </label>
           <div className="flex items-start gap-4">
-            <label className="flex-1 flex items-center justify-center gap-3 bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl px-4 py-6 cursor-pointer hover:border-teal-500 transition-all group">
-              <ImagePlus className="w-6 h-6 text-zinc-500 group-hover:text-teal-400 transition-colors" />
-              <span className="text-sm text-zinc-500 group-hover:text-zinc-300">
+            <label className="flex-1 flex items-center justify-center gap-3 bg-zinc-50 dark:bg-zinc-900 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl px-4 py-6 cursor-pointer hover:border-teal-500 transition-all group">
+              <ImagePlus className="w-6 h-6 text-zinc-400 dark:text-zinc-500 group-hover:text-teal-400 transition-colors" />
+              <span className="text-sm text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300">
                 {thumbnail ? thumbnail.name : "Klik untuk unggah gambar"}
               </span>
               <input
@@ -227,7 +259,7 @@ export default function EditInformasiPage() {
               <img
                 src={thumbnailPreview}
                 alt="Preview"
-                className="w-24 h-24 rounded-xl object-cover border border-zinc-700"
+                className="w-24 h-24 rounded-xl object-cover border border-zinc-200 dark:border-zinc-700"
               />
             )}
           </div>
@@ -235,21 +267,23 @@ export default function EditInformasiPage() {
 
         {/* Rich Text Editor */}
         <div>
-          <label className="block text-xs font-bold text-zinc-400 uppercase mb-1.5">
+          <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1.5">
             Konten Berita *
           </label>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden [&_.ql-toolbar]:!bg-zinc-800 [&_.ql-toolbar]:!border-zinc-700 [&_.ql-container]:!border-zinc-700 [&_.ql-editor]:!text-white [&_.ql-editor]:!min-h-[300px]">
+          <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 [&_.ql-toolbar.ql-snow]:!bg-zinc-50 dark:[&_.ql-toolbar.ql-snow]:!bg-zinc-800 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-zinc-200 dark:[&_.ql-toolbar.ql-snow]:!border-zinc-700 [&_.ql-container.ql-snow]:!border-none [&_.ql-editor]:!bg-white dark:[&_.ql-editor]:!bg-zinc-900 [&_.ql-editor]:!text-zinc-900 dark:[&_.ql-editor]:!text-white [&_.ql-editor]:!min-h-[350px] [&_.ql-editor]:!text-base [&_.ql-editor]:!leading-relaxed [&_.ql-editor.ql-blank::before]:!text-zinc-400 dark:[&_.ql-editor.ql-blank::before]:!text-zinc-600 [&_.ql-snow_.ql-stroke]:!stroke-zinc-600 dark:[&_.ql-snow_.ql-stroke]:!stroke-zinc-400 [&_.ql-snow_.ql-fill]:!fill-zinc-600 dark:[&_.ql-snow_.ql-fill]:!fill-zinc-400 [&_.ql-snow_.ql-picker-label]:!text-zinc-600 dark:[&_.ql-snow_.ql-picker-label]:!text-zinc-400">
             <ReactQuill
               theme="snow"
               value={konten}
               onChange={setKonten}
+              modules={modules}
+              formats={QUILL_FORMATS}
               placeholder="Tulis konten berita di sini..."
             />
           </div>
         </div>
 
         {/* Toggle Terbitkan */}
-        <div className="flex items-center gap-3 bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+        <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4">
           <input
             type="checkbox"
             id="publish"
@@ -259,7 +293,7 @@ export default function EditInformasiPage() {
           />
           <label
             htmlFor="publish"
-            className="text-sm text-zinc-300 font-medium cursor-pointer"
+            className="text-sm text-zinc-700 dark:text-zinc-300 font-medium cursor-pointer"
           >
             Terbitkan setelah disimpan
           </label>
@@ -269,7 +303,7 @@ export default function EditInformasiPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-500 text-white px-6 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-500 text-white px-6 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 w-full md:w-auto"
         >
           {isSubmitting ? (
             <Loader2 className="w-5 h-5 animate-spin" />
