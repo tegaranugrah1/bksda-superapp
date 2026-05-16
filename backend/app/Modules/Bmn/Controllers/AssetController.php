@@ -24,7 +24,9 @@ class AssetController extends Controller
 
     public function index(Request $request)
     {
-        $query = Asset::with('penanggungJawab')->latest();
+        $query = Asset::with(['penanggungJawab', 'loans' => function ($q) {
+            $q->active()->with('borrower')->latest('tanggal_pinjam');
+        }])->latest();
 
         if ($request->query('status') === 'disposed') {
             $query->onlyTrashed();

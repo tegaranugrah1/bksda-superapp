@@ -35,6 +35,7 @@ interface IAsset {
   tanggal_pajak_stnk?: string;
   tanggal_ganti_plat?: string;
   penanggung_jawab?: { nama_lengkap: string };
+  active_loan?: { id: string; borrower_name: string; borrower_nip?: string; loan_date: string; due_date?: string; status: string } | null;
 }
 
 interface IResponse { data: IAsset[]; last_page: number; total?: number }
@@ -416,6 +417,11 @@ export default function BmnAssetsPage() {
                       <p className="text-xs text-slate-500">{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
                       {asset.pengguna && (
                         <p className="text-[10px] text-slate-400">👤 {asset.pengguna}</p>
+                      )}
+                      {asset.active_loan && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100 mt-1">
+                          🤝 Dipinjam: {asset.active_loan.borrower_name}
+                        </span>
                       )}
                       {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.tanggal_pajak_stnk && (
                         <StnkBadge tanggal={asset.tanggal_pajak_stnk} />
