@@ -62,6 +62,7 @@ export default function PersonalDashboard() {
   const [activeTab, setActiveTab] = useState<TabKey>("pinjaman");
   const [suratTugas, setSuratTugas] = useState<SuratTugasItem[]>([]);
   const [stLoading, setStLoading] = useState(false);
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
 
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
   const [pwData, setPwData] = useState({ current_password: "", new_password: "", new_password_confirmation: "" });
@@ -201,7 +202,13 @@ export default function PersonalDashboard() {
               <button className="relative p-2 rounded-xl hover:bg-slate-100 transition-colors">
                 <Bell className="w-5 h-5 text-slate-500" />
               </button>
-              <div className="hidden md:flex items-center gap-3 pl-3 border-l border-slate-200">
+              <button 
+                onClick={() => setMobileProfileOpen(true)}
+                className="lg:hidden w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm ml-2 shadow-sm border border-emerald-500"
+              >
+                {data.user.name.charAt(0)}
+              </button>
+              <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-slate-200">
                 <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
                   {data.user.name.charAt(0)}
                 </div>
@@ -218,8 +225,19 @@ export default function PersonalDashboard() {
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col lg:flex-row gap-6 sm:gap-8">
+          {/* Mobile Profile Backdrop */}
+          {mobileProfileOpen && (
+            <div 
+              className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden backdrop-blur-sm transition-opacity" 
+              onClick={() => setMobileProfileOpen(false)}
+            />
+          )}
+
           {/* Sidebar Profile */}
-          <aside className="w-full lg:w-[280px] shrink-0 space-y-4 order-2 lg:order-1">
+          <aside className={cn(
+            "fixed lg:static top-0 right-0 h-[100dvh] lg:h-auto w-[280px] sm:w-[320px] lg:w-[280px] bg-slate-50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
+            mobileProfileOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+          )}>
             <div className="bg-white rounded-2xl border border-slate-200/60 p-6 text-center relative">
               <button onClick={openEditDialog} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors" title="Edit Profil">
                 <Pencil className="w-3.5 h-3.5" />
