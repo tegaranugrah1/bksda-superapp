@@ -136,6 +136,7 @@ export default function STBuilderPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [suratStatus, setSuratStatus] = useState<string>("");
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder"],
@@ -221,6 +222,7 @@ export default function STBuilderPage() {
       try {
         const res = await api.get(`/surat-tugas/${id}`);
         const data = res.data.data;
+        setSuratStatus(data.status);
 
         // Parse nomor surat: "ST.001/K.18/TU/KSA.03.01/B/05/2026"
         if (data.nomor_surat) {
@@ -725,9 +727,23 @@ export default function STBuilderPage() {
         </div>
 
         <footer className="p-6 border-t bg-white sticky bottom-0 space-y-2">
-          <Button onClick={handleSave} variant="outline" className="w-full h-10 rounded-xl font-bold text-slate-600 border-slate-200"><FileText className="w-4 h-4 mr-2" /> Simpan Draft</Button>
-          <Button onClick={handleSubmitForApproval} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold"><Send className="w-5 h-5 mr-2" /> Ajukan Persetujuan</Button>
-          <Button variant="outline" onClick={handlePrint} className="w-full h-10 rounded-xl font-bold text-slate-600 border-slate-200"><Printer className="w-5 h-5 mr-2" /> Cetak / Download</Button>
+          <Button onClick={handleSave} variant="outline" className="w-full h-10 rounded-xl font-bold text-slate-600 border-slate-200">
+            <FileText className="w-4 h-4 mr-2" /> Simpan Draft
+          </Button>
+          
+          {suratStatus === 'approved' || suratStatus === 'completed' ? (
+            <Button disabled className="w-full h-12 bg-emerald-500 text-white rounded-xl font-bold opacity-80 cursor-not-allowed">
+              <Send className="w-5 h-5 mr-2" /> Sudah Disetujui
+            </Button>
+          ) : (
+            <Button onClick={handleSubmitForApproval} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold">
+              <Send className="w-5 h-5 mr-2" /> {suratStatus === 'pending' ? 'Perbarui & Ajukan' : 'Ajukan Persetujuan'}
+            </Button>
+          )}
+
+          <Button variant="outline" onClick={handlePrint} className="w-full h-10 rounded-xl font-bold text-slate-600 border-slate-200">
+            <Printer className="w-5 h-5 mr-2" /> Cetak / Download
+          </Button>
         </footer>
       </aside>
 
