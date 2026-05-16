@@ -114,3 +114,10 @@
     @apply bg-background text-foreground antialiased selection:bg-primary/20;
   }
 }
+
+
+/* Marquee animation for photo gallery */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

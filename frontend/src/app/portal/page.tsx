@@ -100,7 +100,7 @@ export default function PersonalDashboard() {
 
   const filteredMyAssets = useMemo(() => {
     if (!data?.my_assets) return myAssets;
-    const borrowedIds = new Set(data.my_assets.map(a => a.id));
+    const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
     return myAssets.filter(a => !borrowedIds.has(a.id));
   }, [myAssets, data?.my_assets]);
 
