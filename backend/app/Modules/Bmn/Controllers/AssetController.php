@@ -43,6 +43,16 @@ class AssetController extends Controller
             });
         }
 
+        if ($request->filled('employee_id')) {
+            $query->where('employee_id', $request->employee_id);
+        }
+
+        if ($request->filled('borrower_id')) {
+            $query->whereHas('loans', function ($q) use ($request) {
+                $q->active()->where('employee_id', $request->borrower_id);
+            });
+        }
+
         if ($request->filled('kondisi')) {
             $query->where('kondisi', $request->kondisi);
         }
