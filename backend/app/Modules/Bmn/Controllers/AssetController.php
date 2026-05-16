@@ -44,7 +44,35 @@ class AssetController extends Controller
         }
 
         if ($request->filled('employee_id')) {
-            $query->where('employee_id', $request->employee_id);
+            $employeeId = $request->employee_id;
+            $employee = \App\Modules\Kepegawaian\Models\Employee::find($employeeId);
+            $query->where(function($q) use ($employeeId, $employee) {
+                $q->where('employee_id', $employeeId);
+                if ($employee && $employee->nama_lengkap) {
+                    $fullName = trim($employee->nama_lengkap);
+                    
+                    // Search full name
+                    $q->orWhere('pengguna', 'ilike', '%' . $fullName . '%')
+                      ->orWhere('nama_pengguna', 'ilike', '%' . $fullName . '%');
+                    
+                    // Search name before comma (titles)
+                    if (str_contains($fullName, ',')) {
+                        $nameParts = explode(',', $fullName);
+                        $baseName = trim($nameParts[0]);
+                        if (strlen($baseName) > 2) {
+                            $q->orWhere('pengguna', 'ilike', '%' . $baseName . '%')
+                              ->orWhere('nama_pengguna', 'ilike', '%' . $baseName . '%');
+                        }
+                    }
+                    
+                    // Search first two words for better fuzzy match
+                    $words = explode(' ', $fullName);
+                    if (count($words) >= 2) {
+                        $twoWords = $words[0] . ' ' . $words[1];
+                        $q->orWhere('pengguna', 'ilike', '%' . $twoWords . '%');
+                    }
+                }
+            });
         }
 
         if ($request->filled('borrower_id')) {
