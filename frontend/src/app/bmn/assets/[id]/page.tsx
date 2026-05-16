@@ -227,10 +227,6 @@ function AssetDetail({ assetId }: { assetId: string }) {
         ))}
       </div>
 
-      {/* Asset Deletion Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-      </Dialog>
-
       {/* Tab Content */}
       {activeTab === "identitas" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -441,6 +437,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
       {activeTab === "riwayat" && (
         <HistoryTab updates={asset.history_updates || []} />
       )}
+      </div>
     </div>
   );
 }
@@ -540,7 +537,6 @@ function HistoryTab({ updates }: { updates: HistoryUpdate[] }) {
             </div>
           </div>
         ))}
-      </div>
       </div>
     </div>
   );

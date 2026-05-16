@@ -419,6 +419,7 @@ export default function BmnCreateAssetPage() {
           )}
         </div>
       </div>
+      </div>
     </div>
   );
 }
