@@ -509,9 +509,9 @@ function HistoryTab({ assetId, updates }: { assetId: string; updates: HistoryUpd
                   <span className="text-[9px] text-slate-400">oleh {update.author?.name || "System"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="text-red-500 line-through truncate max-w-[150px]">{update.old_value || "—"}</span>
+                  <span className="text-red-500 line-through break-words whitespace-pre-wrap max-w-full">{update.old_value || "—"}</span>
                   <span className="text-slate-300">→</span>
-                  <span className="text-emerald-600 font-medium truncate max-w-[150px]">{update.new_value || "—"}</span>
+                  <span className="text-emerald-600 font-medium break-words whitespace-pre-wrap max-w-full">{update.new_value || "—"}</span>
                 </div>
                 {update.alasan_perubahan && (
                   <p className="text-[10px] text-slate-400 mt-1 italic">{update.alasan_perubahan}</p>

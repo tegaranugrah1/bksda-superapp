@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +57,7 @@ const formatDate = (dateStr: string | null) => {
 
 export default function LoansPage() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [records, setRecords] = useState<Loan[]>([]);
     const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
     const [loading, setLoading] = useState(true);
@@ -130,6 +132,8 @@ export default function LoansPage() {
             setIsReturnModalOpen(false);
             setReturningRecord(null);
             fetchRecords(pagination.current_page);
+            queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+            queryClient.invalidateQueries({ queryKey: ["bmn-asset", returningRecord.asset_id] });
         } catch (error) {
             const err = error as { response?: { data?: { message?: string; error?: string } } };
             toast.error(err.response?.data?.message || err.response?.data?.error || "Gagal mengembalikan");
@@ -147,6 +151,8 @@ export default function LoansPage() {
             setIsEditModalOpen(false);
             setEditingRecord(null);
             fetchRecords(pagination.current_page);
+            queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+            queryClient.invalidateQueries({ queryKey: ["bmn-asset", editingRecord.asset_id] });
         } catch (error) {
             const err = error as { response?: { data?: { message?: string } } };
             toast.error(err.response?.data?.message || "Gagal memperbarui");
@@ -162,8 +168,14 @@ export default function LoansPage() {
             await api.delete(`/bmn/loans/${deletingRecord.id}`);
             toast.success("Peminjaman berhasil dihapus");
             setIsDeleteModalOpen(false);
+            
+            // Store asset_id before nullifying
+            const assetId = deletingRecord.asset_id;
             setDeletingRecord(null);
+            
             fetchRecords(pagination.current_page);
+            queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+            queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
         } catch {
             toast.error("Gagal menghapus");
         } finally {
