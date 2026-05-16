@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ── KONFIGURASI & NAVIGASI ──
+Route::get('/home', [PublicController::class, 'home']);
+Route::get('/page/{slug}', [PublicController::class, 'pageShow']);
 Route::get('/website', [PublicController::class, 'website']);
 Route::get('/kepala', [PublicController::class, 'kepala']);
 Route::get('/menus', [PublicController::class, 'menus']);
