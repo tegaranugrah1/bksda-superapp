@@ -251,12 +251,12 @@ export default function LoansPage() {
                                         <td className="px-4 py-3">
                                             <div className="font-bold text-slate-900 line-clamp-2 text-sm">{r.asset?.nama_barang || 'Aset Terhapus'}</div>
                                             {(r.asset?.merk || r.asset?.merk_tipe) && <div className="text-[11px] text-slate-500">{r.asset.merk_tipe || r.asset.merk}</div>}
-                                            {r.asset?.nup_lama && <div className="text-[10px] text-slate-400 mt-0.5">NUP Lama: {r.asset.nup_lama}</div>}
                                             {r.asset?.no_polisi && <div className="text-[10px] text-blue-600 font-medium mt-0.5">🚗 {r.asset.no_polisi}</div>}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="text-xs font-mono font-bold text-emerald-700">{r.asset?.kode_barang || '-'}</div>
                                             <div className="text-[10px] text-slate-400 font-mono tracking-tighter mt-0.5">NUP: {r.asset?.nup || '-'}</div>
+                                            {r.asset?.nup_lama && <div className="text-[10px] text-slate-400 font-mono tracking-tighter">NUP Lama: {r.asset.nup_lama}</div>}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="text-xs text-slate-500">{r.asset?.lokasi_ruang || '-'}</div>
