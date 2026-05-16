@@ -173,7 +173,7 @@ export default function LoanCreatePage() {
                                                                             <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-mono">{asset.kode_barang}</span>
                                                                             <span>•</span><span className="font-medium text-emerald-600">NUP {asset.nup}</span>
                                                                             {asset.nup_lama && <><span>•</span><span className="text-slate-400">NUP Lama: {asset.nup_lama}</span></>}
-                                                                            {asset.no_polisi && <><span>•</span><span className="font-medium text-blue-600">🚗 {asset.no_polisi}</span></>}
+                                                                            {asset.no_polisi && asset.no_polisi !== '-' && <><span>•</span><span className="font-medium text-blue-600">🚗 {asset.no_polisi}</span></>}
                                                                         </div>
                                                                         {asset.lokasi_ruang && <div className="text-[10px] text-slate-500 mt-0.5">📍 {asset.lokasi_ruang}</div>}
                                                                         {asset.pengguna && <div className="text-[10px] text-amber-600 mt-0.5">👤 {asset.pengguna}</div>}
@@ -207,7 +207,7 @@ export default function LoanCreatePage() {
                                                                 <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-1.5">
                                                                     <div className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50">{asset.kode_barang}</div>
                                                                     <div className="text-[10px] text-slate-500 font-mono">NUP: <span className="font-bold text-slate-700">{asset.nup}</span>{asset.nup_lama && <span className="text-slate-400 font-normal"> (Lama: {asset.nup_lama})</span>}</div>
-                                                                    {asset.no_polisi && <div className="text-[10px] text-blue-600 font-medium">🚗 {asset.no_polisi}</div>}
+                                                                    {asset.no_polisi && asset.no_polisi !== '-' && <div className="text-[10px] text-blue-600 font-medium">🚗 {asset.no_polisi}</div>}
                                                                     {asset.pengguna && <div className="text-[10px] text-slate-600">👤 {asset.pengguna}</div>}
                                                                     {asset.lokasi_ruang && <div className="text-[10px] text-slate-400">📍 {asset.lokasi_ruang}</div>}
                                                                 </div>
@@ -318,7 +318,7 @@ export default function LoanCreatePage() {
                                                             {(asset.merk || asset.merk_tipe) && <p className="text-[10px] text-slate-500">{asset.merk_tipe || asset.merk}</p>}
                                                             <p className="text-slate-400 text-[10px]">{asset.kode_barang}</p>
                                                             {asset.nup_lama && <p className="text-[10px] text-slate-400">NUP Lama: {asset.nup_lama}</p>}
-                                                            {asset.no_polisi && <p className="text-[10px] text-blue-600">🚗 {asset.no_polisi}</p>}
+                                                            {asset.no_polisi && asset.no_polisi !== '-' && <p className="text-[10px] text-blue-600">🚗 {asset.no_polisi}</p>}
                                                             {asset.lokasi_ruang && <p className="text-[10px] text-slate-500">📍 {asset.lokasi_ruang}</p>}
                                                             {asset.pengguna && <p className="text-[10px] text-amber-600">👤 {asset.pengguna}</p>}
                                                         </td>
