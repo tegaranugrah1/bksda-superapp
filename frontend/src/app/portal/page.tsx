@@ -235,7 +235,7 @@ export default function PersonalDashboard() {
 
           {/* Sidebar Profile */}
           <aside className={cn(
-            "fixed lg:static top-0 right-0 h-[100dvh] lg:h-auto w-[280px] sm:w-[320px] lg:w-[280px] bg-slate-50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
+            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-[280px] sm:w-[320px] lg:w-[280px] bg-slate-50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
             mobileProfileOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
           )}>
             <div className="bg-white rounded-2xl border border-slate-200/60 p-6 text-center relative">

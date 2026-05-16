@@ -598,7 +598,7 @@ export default function SuratTugasInbox() {
 
             {/* Confirm Modal */}
             {confirmModal.open && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
                     <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setConfirmModal({ ...confirmModal, open: false })} />
                     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-10 shadow-2xl border border-slate-100 dark:border-zinc-800 w-full max-w-sm relative z-10 animate-in zoom-in-95 duration-300">
                         <div className={cn(

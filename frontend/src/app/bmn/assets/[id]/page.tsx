@@ -434,7 +434,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
       )}
 
       {activeTab === "riwayat" && (
-        <HistoryTab assetId={assetId} updates={asset.history_updates || []} />
+        <HistoryTab updates={asset.history_updates || []} />
       )}
     </div>
   );
@@ -493,7 +493,7 @@ interface HistoryUpdate {
   author?: { id: number; name: string };
 }
 
-function HistoryTab({ assetId, updates }: { assetId: string; updates: HistoryUpdate[] }) {
+function HistoryTab({ updates }: { updates: HistoryUpdate[] }) {
   if (updates.length === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
@@ -506,7 +506,7 @@ function HistoryTab({ assetId, updates }: { assetId: string; updates: HistoryUpd
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-      <div className="px-5 py-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-2.5">
+      <div className="px-5 py-3.5 border-b border-slate-100 bg-linear-to-r from-slate-50 to-white flex items-center gap-2.5">
         <span className="p-1.5 rounded-lg bg-violet-50 text-violet-600"><History className="w-4 h-4" /></span>
         <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Riwayat Perubahan</h3>
         <span className="ml-auto text-[10px] text-slate-400">{updates.length} perubahan</span>
@@ -521,9 +521,9 @@ function HistoryTab({ assetId, updates }: { assetId: string; updates: HistoryUpd
                   <span className="text-[9px] text-slate-400">oleh {update.author?.name || "System"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="text-red-500 line-through break-words whitespace-pre-wrap max-w-full">{update.old_value || "—"}</span>
+                  <span className="text-red-500 line-through wrap-break-word whitespace-pre-wrap max-w-full">{update.old_value || "—"}</span>
                   <span className="text-slate-300">→</span>
-                  <span className="text-emerald-600 font-medium break-words whitespace-pre-wrap max-w-full">{update.new_value || "—"}</span>
+                  <span className="text-emerald-600 font-medium wrap-break-word whitespace-pre-wrap max-w-full">{update.new_value || "—"}</span>
                 </div>
                 {update.alasan_perubahan && (
                   <p className="text-[10px] text-slate-400 mt-1 italic">{update.alasan_perubahan}</p>
