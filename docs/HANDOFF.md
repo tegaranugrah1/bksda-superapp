@@ -167,7 +167,7 @@ git push origin main
   - [x] ~~Signature integration~~ ❌ DROPPED (lewat aplikasi lain)
   - [x] ~~Apply RBAC to Inventory, DeReporting, CMS~~ ✅ PR #298
   - [x] ~~Bulk edit kondisi~~ ✅ Done
-  - [ ] Mobile responsive sidebar (semua modul)
+  - [x] ~~Mobile responsive sidebar (semua modul)~~ ✅ PR #304
   - [ ] Inventory module improvements
   - [ ] DeReporting module improvements
 

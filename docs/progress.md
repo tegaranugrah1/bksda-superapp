@@ -50,7 +50,7 @@
 - `frontend/src/app/bmn/disposal/page.tsx` — pagination "Semua"
 
 ### Next Steps (TODO):
-- [ ] Mobile responsive sidebar (semua modul)
+- [x] Mobile responsive sidebar (semua modul) ✅ PR #304
 - [ ] Inventory module improvements
 - [ ] DeReporting module improvements
 - [ ] Import: handle foto_geotag_url mapping dari Excel header "Foto Ber-geotag"
