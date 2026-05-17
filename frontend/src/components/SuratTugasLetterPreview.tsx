@@ -123,6 +123,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
         <div
           onClick={(e) => e.stopPropagation()}
           ref={printRef}
+          data-print-letter
           className="w-[210mm] min-h-[297mm] bg-white p-[25mm] shadow-2xl shadow-black/50 print:shadow-none print:m-0 print:p-[15mm] text-black relative"
           style={{
             fontFamily: "'Bookman Old Style', 'Georgia', serif",
@@ -133,7 +134,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           }}
         >
           {/* KOP SURAT */}
-          <div style={{ marginTop: "-22mm", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
+          <div className="print:!mt-0 print:!ml-0 print:!mr-0" style={{ marginTop: "-22mm", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/header-new.png"
@@ -351,9 +352,19 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           __html: `
         @media print {
             body * { visibility: hidden; }
-            .print\\:block, .print\\:block * { visibility: visible; }
-            .print\\:block { position: absolute; left: 0; top: 0; width: 100%; }
-            @page { size: A4 portrait; margin: 5mm; }
+            [data-print-letter], [data-print-letter] * { visibility: visible !important; }
+            [data-print-letter] { 
+              position: absolute; 
+              left: 0; 
+              top: 0; 
+              width: 210mm;
+              padding: 10mm 15mm !important;
+              margin: 0 !important;
+              box-shadow: none !important;
+              overflow: visible !important;
+            }
+            [data-print-letter] img { max-width: 100% !important; }
+            @page { size: A4 portrait; margin: 0; }
         }
       `,
         }}
