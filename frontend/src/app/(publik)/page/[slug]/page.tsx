@@ -111,7 +111,9 @@ export default function GenericCmsPage() {
             prose-img:rounded-xl prose-img:shadow-lg
             prose-a:text-green-700 prose-a:no-underline hover:prose-a:underline
             prose-strong:text-gray-900
-            prose-ul:text-gray-600 prose-ol:text-gray-600"
+            prose-ul:text-gray-600 prose-ol:text-gray-600
+            [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify
+            [&_p.ql-align-center]:text-center [&_p.ql-align-right]:text-right [&_p.ql-align-justify]:text-justify"
           dangerouslySetInnerHTML={{ __html: page.konten }}
         />
 

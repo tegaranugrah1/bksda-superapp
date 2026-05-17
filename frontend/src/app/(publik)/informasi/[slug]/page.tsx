@@ -145,7 +145,7 @@ export default function InformasiDetailPage() {
 
           {/* Konten HTML */}
           <div
-            className="prose prose-green prose-lg max-w-none text-gray-700"
+            className="prose prose-green prose-lg max-w-none text-gray-700 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_p.ql-align-center]:text-center [&_p.ql-align-right]:text-right [&_p.ql-align-justify]:text-justify"
             dangerouslySetInnerHTML={{ __html: berita.konten }}
           />
         </article>
