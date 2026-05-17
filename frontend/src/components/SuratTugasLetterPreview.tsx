@@ -92,7 +92,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
   const tanggalSurat = data.tanggal_surat || data.tanggal_mulai;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto" onClick={onClose}>
+    <div data-print-root className="fixed inset-0 z-[100] flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto" onClick={onClose}>
       {/* Toolbar */}
       <div className="sticky top-0 w-full z-10 flex items-center justify-between px-6 py-4 bg-zinc-900/95 border-b border-zinc-800 shadow-2xl print:hidden backdrop-blur-md" onClick={(e) => e.stopPropagation()}>
         <div className="text-white font-medium flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
@@ -119,10 +119,11 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       </div>
 
       {/* Letter Content */}
-      <div className="py-10 print:py-0 w-full flex justify-center">
+      <div data-print-content className="py-10 print:py-0 w-full flex justify-center">
         <div
           onClick={(e) => e.stopPropagation()}
           ref={printRef}
+          id="print-letter-area"
           data-print-letter
           className="w-[210mm] min-h-[297mm] bg-white p-[25mm] shadow-2xl shadow-black/50 print:shadow-none print:m-0 print:p-[15mm] text-black relative"
           style={{
@@ -134,7 +135,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           }}
         >
           {/* KOP SURAT */}
-          <div className="print:!mt-0 print:!ml-0 print:!mr-0" style={{ marginTop: "-22mm", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
+          <div data-kop className="print:!mt-0 print:!ml-0 print:!mr-0" style={{ marginTop: "-22mm", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/header-new.png"
@@ -351,20 +352,27 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
         dangerouslySetInnerHTML={{
           __html: `
         @media print {
+            html, body { margin: 0 !important; padding: 0 !important; }
             body * { visibility: hidden; }
-            [data-print-letter], [data-print-letter] * { visibility: visible !important; }
-            [data-print-letter] { 
-              position: absolute; 
-              left: 0; 
-              top: 0; 
-              width: 210mm;
+            #print-letter-area, #print-letter-area * { visibility: visible !important; }
+            #print-letter-area {
+              position: fixed !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              min-height: auto !important;
               padding: 10mm 15mm !important;
               margin: 0 !important;
               box-shadow: none !important;
+              background: white !important;
               overflow: visible !important;
             }
-            [data-print-letter] img { max-width: 100% !important; }
-            @page { size: A4 portrait; margin: 0; }
+            #print-letter-area [data-kop] {
+              margin-top: 0 !important;
+              margin-left: -10mm !important;
+              margin-right: -10mm !important;
+            }
+            @page { size: A4 portrait; margin: 5mm; }
         }
       `,
         }}
