@@ -104,16 +104,22 @@ export default function GenericCmsPage() {
         </div>
 
         {/* Article Content */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .cms-content .ql-align-center { text-align: center !important; }
+          .cms-content .ql-align-right { text-align: right !important; }
+          .cms-content .ql-align-justify { text-align: justify !important; }
+          .cms-content p.ql-align-center { text-align: center !important; }
+          .cms-content p.ql-align-right { text-align: right !important; }
+          .cms-content p.ql-align-justify { text-align: justify !important; }
+        `}} />
         <article
-          className="prose prose-lg prose-green max-w-none
+          className="cms-content prose prose-lg prose-green max-w-none
             prose-headings:font-black prose-headings:text-gray-900
             prose-p:text-gray-600 prose-p:leading-relaxed
             prose-img:rounded-xl prose-img:shadow-lg
             prose-a:text-green-700 prose-a:no-underline hover:prose-a:underline
             prose-strong:text-gray-900
-            prose-ul:text-gray-600 prose-ol:text-gray-600
-            [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify
-            [&_p.ql-align-center]:text-center [&_p.ql-align-right]:text-right [&_p.ql-align-justify]:text-justify"
+            prose-ul:text-gray-600 prose-ol:text-gray-600"
           dangerouslySetInnerHTML={{ __html: page.konten }}
         />
 

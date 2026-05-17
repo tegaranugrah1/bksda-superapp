@@ -144,8 +144,16 @@ export default function InformasiDetailPage() {
           <hr className="my-6 border-gray-200" />
 
           {/* Konten HTML */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            .cms-content .ql-align-center { text-align: center !important; }
+            .cms-content .ql-align-right { text-align: right !important; }
+            .cms-content .ql-align-justify { text-align: justify !important; }
+            .cms-content p.ql-align-center { text-align: center !important; }
+            .cms-content p.ql-align-right { text-align: right !important; }
+            .cms-content p.ql-align-justify { text-align: justify !important; }
+          `}} />
           <div
-            className="prose prose-green prose-lg max-w-none text-gray-700 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_p.ql-align-center]:text-center [&_p.ql-align-right]:text-right [&_p.ql-align-justify]:text-justify"
+            className="cms-content prose prose-green prose-lg max-w-none text-gray-700"
             dangerouslySetInnerHTML={{ __html: berita.konten }}
           />
         </article>
