@@ -1,3 +1,54 @@
+# Progress - Phase 35b: CMS Editor Fixes & Public Detail Page Redesign
+
+> Document updated: 2026-05-17
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 35b: CMS Editor Fixes & Public Detail Page
+
+### Completed:
+- [x] **405 Fix**: Edit berita save error — use POST + `_method=PUT` for multipart FormData (PR #311)
+- [x] **Edit Data Loading**: Fixed API response unwrap (`res.data.data`)
+- [x] **React Query Cache**: Invalidate `["cms-informasi-edit", id]` after update
+- [x] **Quill Justify**: Added `{ align: [] }` to toolbar modules
+- [x] **Light/Dark Mode**: Dual-mode styling on all CMS form elements
+- [x] **react-quill-new**: Replaced old package for React 19 compatibility
+- [x] **Remove Urutan**: Removed from Profil, Links, Categories
+- [x] **Toast Confirm**: Replaced all `window.confirm()` with sonner toast
+- [x] **Dialog Modal**: CrudFormDrawer → centered dialog (not sidebar)
+- [x] **Public Disk**: File uploads now go to `storage/app/public/cms/`
+- [x] **Berita Detail Redesign**: Hero banner + breadcrumb + thumbnail + date badge + sidebar "Informasi Terbaru"
+- [x] **Alignment CSS**: Rules in `style.css` + inline `<style>` tags for Quill classes
+- [x] **Overflow Fix**: `break-word` + `max-width: 100%` images
+- [x] **nbsp Fix**: Replace `&nbsp;` with regular spaces for clean justify rendering
+
+### Design (Public Berita Detail):
+```
+┌──────────────────────────────────────────────┐
+│ HERO BANNER (thumbnail bg + gradient)        │
+│ Breadcrumb: Beranda / Informasi              │
+│ JUDUL UPPERCASE                              │
+├──────────────────────────────────────────────┤
+│ ┌─────────────────────┐  ┌────────────────┐ │
+│ │ THUMBNAIL           │  │ INFORMASI      │ │
+│ │ + Date Badge [17]   │  │ TERBARU        │ │
+│ │   [MAR]             │  │ ┌──┐ title...  │ │
+│ └─────────────────────┘  │ ┌──┐ title...  │ │
+│ Metadata (date,author)   │ ┌──┐ title...  │ │
+│ ─────────────────────    └────────────────┘ │
+│ Konten berita (justify)                      │
+│ ...                                          │
+└──────────────────────────────────────────────┘
+```
+
+### Next Steps:
+- [ ] Style /kawasan, /tsl, /galeri, /publikasi pages matching bksdakaltim design
+- [ ] Populate CMS content
+- [ ] Deployment preparation
+
+---
+
 # Progress - Phase 35: Public Website & CMS Upgrade
 
 > Document updated: 2026-05-16

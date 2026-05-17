@@ -56,12 +56,12 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 35: Public Website & CMS Upgrade (✅ DONE) |
-| **Issue Selanjutnya** | CMS content population, public page polish, sub-page styling |
+| **Issue Terakhir Selesai** | Phase 35b: CMS Editor Fixes & Public Detail Page Redesign (✅ DONE) |
+| **Issue Selanjutnya** | Style sub-pages (kawasan, tsl, galeri, publikasi) to match bksdakaltim design |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | fix(cms): change form drawer to centered dialog modal |
+| **Commit Terakhir** | fix(public): replace nbsp with regular spaces to fix justify word-spacing issues |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-16T22:30:00+08:00 |
+| **Timestamp** | 2026-05-17T00:30:00+08:00 |
 
 ---
 
@@ -75,6 +75,54 @@ git push origin main
 - **Alasan**: Dimatikan sementara atas permintaan user (belum dibutuhkan / menghindari error saat dev).
 - **Cara mengaktifkan kembali**: Uncomment kedua blok yang ditandai `[DISABLED] Google Sheets` di file controller di atas.
 - **Service file masih ada**: `backend/app/Services/GoogleSheetsService.php` (tidak dihapus, hanya tidak dipanggil).
+
+---
+
+**UPDATE SESI KIRO (2026-05-17 - Phase 35b: CMS Editor Fixes & Public Detail Page Redesign):**
+- **Objective**: Fix CMS editor issues (React 19 compat, 405 save, alignment) and redesign public berita detail page matching bksdakaltim.ksdae.kehutanan.go.id.
+- **Accomplishments**:
+  - **CMS Editor Fixes**:
+    - Fixed HTTP 405 on edit save — use `POST + _method=PUT` for multipart FormData (PR #311)
+    - Fixed edit page not loading data — unwrap `res.data.data` from API response
+    - Fixed React Query cache — invalidate edit cache after update
+    - Added justify alignment to Quill toolbar
+    - Fixed light/dark mode on editor + form inputs
+    - Replaced `react-quill` with `react-quill-new` (React 19 `findDOMNode` fix)
+  - **CMS Admin UX**:
+    - Removed "Urutan" field from Profil, Links, Categories forms
+    - Replaced all `window.confirm()` with toast confirmation
+    - Changed CrudFormDrawer from sidebar to **centered dialog modal**
+    - Fixed textarea dark-only styling
+  - **File Upload Fix**: Changed storage from `private` disk to `public` disk
+  - **Public Berita Detail Page** — redesigned matching bksdakaltim.ksdae.kehutanan.go.id:
+    - Hero banner gelap (thumbnail background + gradient overlay)
+    - Breadcrumb (Beranda / Informasi)
+    - Judul uppercase overlay
+    - Thumbnail besar dengan date badge kuning (tanggal + bulan)
+    - Metadata row (tanggal, author, views, sumber)
+    - Sidebar "Informasi Terbaru" (thumbnail + timestamp + judul)
+    - Content area dengan `&nbsp;` → regular space replacement for clean justify
+  - **Quill Alignment CSS**: Added rules to `style.css` (last-loaded) + inline `<style>` tags
+  - **Overflow fix**: `overflow-wrap: break-word` + `max-width: 100%` on images
+- **Key Files Modified**:
+  - `frontend/src/app/(publik)/informasi/[slug]/page.tsx` — REWRITE (bksdakaltim design)
+  - `frontend/src/app/(publik)/page/[slug]/page.tsx` — alignment CSS
+  - `frontend/src/app/cms/informasi/create/page.tsx` — Quill upgrade + light mode
+  - `frontend/src/app/cms/informasi/[id]/page.tsx` — 405 fix + data loading + cache
+  - `frontend/src/app/cms/_components/CrudFormDrawer.tsx` — centered dialog + file upload fix
+  - `frontend/src/app/cms/_components/CrudPageFactory.tsx` — toast confirm
+  - `frontend/src/app/cms/profil/page.tsx` — removed urutan
+  - `frontend/src/app/cms/links/page.tsx` — removed urutan
+  - `frontend/src/app/cms/categories/page.tsx` — removed urutan
+  - `frontend/public/assets/css/style.css` — Quill alignment rules appended
+  - `frontend/src/app/globals.css` — Quill alignment CSS
+  - `backend/app/Modules/CMS/Traits/AdminCrudTrait.php` — public disk upload
+- **GitHub PRs**: #311 ✅ MERGED (405 fix)
+- **Next Steps**:
+  - [ ] Style sub-pages (/kawasan, /tsl, /galeri, /publikasi) matching bksdakaltim design
+  - [ ] CMS: populate initial content (profil, kawasan, TSL)
+  - [ ] Homepage: test with real CMS data
+  - [ ] Deployment preparation
 
 ---
 
