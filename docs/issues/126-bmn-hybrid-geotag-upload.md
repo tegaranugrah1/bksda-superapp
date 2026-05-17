@@ -1,6 +1,6 @@
 # Issue #126: BMN Hybrid Geotag Photo Upload
 
-## Status: ✅ DONE
+## Status: ✅ CLOSED
 
 ## Deskripsi
 
@@ -14,12 +14,21 @@ Ketika salah satu mode digunakan, data mode lainnya otomatis di-clear (mutual ex
 
 ## Perubahan
 
+### Backend (commit 1)
 | File | Perubahan |
 |------|-----------|
 | `Migrations/2026_05_14_100000_add_foto_geotag_path_to_bmn_assets.php` | Tambah kolom `foto_geotag_path` |
 | `Models/Asset.php` | Tambah `foto_geotag_path` ke fillable |
 | `Controllers/AssetPhotoController.php` | Refactor `updateGeotag()` jadi hybrid (file/URL), update `download()` & `downloadAll()` support local geotag, tambah `delete()` support geotag |
 | `Routes/api.php` | Ubah `PUT` → `POST` untuk `/geotag` (file upload butuh POST) |
+
+### Frontend (commit 2)
+| File | Perubahan |
+|------|-----------|
+| `PhotoGallery.tsx` | Hybrid mode: tombol Upload + Link, API call POST, delete support |
+| `[id]/page.tsx` | Pass `fotoGeotagPath` prop |
+| `create/page.tsx` | Hybrid input field (upload file ATAU paste URL) |
+| `AssetResource.php` | Expose `foto_geotag_path` sebagai public URL |
 
 ## API Usage
 
