@@ -119,8 +119,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       </div>
 
       {/* Letter Content */}
-      <div className="py-10 print:py-0 w-full flex justify-center" onClick={(e) => e.stopPropagation()}>
+      <div className="py-10 print:py-0 w-full flex justify-center">
         <div
+          onClick={(e) => e.stopPropagation()}
           ref={printRef}
           className="w-[210mm] min-h-[297mm] bg-white p-[25mm] shadow-2xl shadow-black/50 print:shadow-none print:m-0 print:p-[15mm] text-black relative"
           style={{
