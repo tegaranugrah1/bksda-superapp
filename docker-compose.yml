@@ -1,7 +1,7 @@
 # =============================================================================
 # BKSDA SuperApp — Docker Compose (Local Development)
 # =============================================================================
-# Hanya PostgreSQL dan pgAdmin untuk development lokal (Sesuai Rule 10.2).
+# PostgreSQL, pgAdmin, dan RustFS untuk development lokal.
 # Backend: php artisan serve
 # Frontend: npm run dev
 # =============================================================================
@@ -43,8 +43,34 @@ services:
       db:
         condition: service_healthy
 
+  # ===========================================================================
+  # RustFS — S3-compatible Object Storage (pengganti MinIO)
+  # Console: http://localhost:9003  |  API: http://localhost:9002
+  # ===========================================================================
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: bksda-rustfs
+    restart: unless-stopped
+    command: server /data --address ":9002" --console-address ":9003"
+    environment:
+      RUSTFS_ROOT_USER: bksda_admin
+      RUSTFS_ROOT_PASSWORD: bksda_secret_2025
+    ports:
+      - "9002:9002"
+      - "9003:9003"
+    volumes:
+      - rustfs-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:9002/minio/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
 volumes:
   db-data:
     driver: local
   pgadmin-data:
+    driver: local
+  rustfs-data:
     driver: local

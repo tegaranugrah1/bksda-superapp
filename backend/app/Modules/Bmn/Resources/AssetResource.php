@@ -4,6 +4,7 @@ namespace App\Modules\Bmn\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class AssetResource extends JsonResource
 {
@@ -94,11 +95,11 @@ class AssetResource extends JsonResource
             'status_pmk' => $this->status_pmk,
             'status_foto_geotag' => $this->status_foto_geotag,
             'foto_geotag_url' => $this->foto_geotag_url,
-            'foto_geotag_path' => $this->foto_geotag_path ? asset('storage/' . $this->foto_geotag_path) : null,
-            'foto_belakang_url' => $this->foto_belakang_path ? asset('storage/' . $this->foto_belakang_path) : null,
-            'foto_kiri_url' => $this->foto_kiri_path ? asset('storage/' . $this->foto_kiri_path) : null,
-            'foto_kanan_url' => $this->foto_kanan_path ? asset('storage/' . $this->foto_kanan_path) : null,
-            'foto_lokasi_url' => $this->foto_lokasi_path ? asset('storage/' . $this->foto_lokasi_path) : null,
+            'foto_geotag_path' => $this->foto_geotag_path ? Storage::url($this->foto_geotag_path) : null,
+            'foto_belakang_url' => $this->foto_belakang_path ? Storage::url($this->foto_belakang_path) : null,
+            'foto_kiri_url' => $this->foto_kiri_path ? Storage::url($this->foto_kiri_path) : null,
+            'foto_kanan_url' => $this->foto_kanan_path ? Storage::url($this->foto_kanan_path) : null,
+            'foto_lokasi_url' => $this->foto_lokasi_path ? Storage::url($this->foto_lokasi_path) : null,
             'verified_at' => $this->verified_at?->toIso8601String(),
             'verified_by_name' => $this->verified_by ? \App\Models\User::find($this->verified_by)?->name : null,
             'tahun_perolehan' => $this->tahun_perolehan,

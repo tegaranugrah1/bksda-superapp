@@ -15,6 +15,12 @@ class AssetPhotoController extends Controller
 {
     private const VALID_TYPES = ['belakang', 'kiri', 'kanan', 'lokasi'];
 
+    /** Get the configured storage disk for BMN photos. */
+    private function disk(): \Illuminate\Contracts\Filesystem\Filesystem
+    {
+        return Storage::disk(config('filesystems.default'));
+    }
+
     /**
      * Upload a photo for a specific side.
      */
@@ -31,13 +37,13 @@ class AssetPhotoController extends Controller
         $oldPath = $asset->$column;
 
         // Delete old photo if exists
-        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-            Storage::disk('public')->delete($oldPath);
+        if ($oldPath && $this->disk()->exists($oldPath)) {
+            $this->disk()->delete($oldPath);
         }
 
         // Store new photo
         $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}." . $request->file('photo')->extension();
-        $path = $request->file('photo')->storeAs('bmn-photos', $filename, 'public');
+        $path = $request->file('photo')->storeAs('bmn-photos', $filename);
 
         $asset->update([$column => $path]);
 
@@ -54,16 +60,12 @@ class AssetPhotoController extends Controller
         return response()->json([
             'message' => 'Foto berhasil diupload.',
             'path' => $path,
-            'url' => Storage::disk('public')->url($path),
+            'url' => $this->disk()->url($path),
         ]);
     }
 
     /**
      * Update geotag: accept file upload OR external URL (hybrid).
-     *
-     * - If 'photo' file is present → upload to local storage, clear external URL.
-     * - If 'url' is present → save external link, clear local path.
-     * - At least one of the two must be provided.
      */
     public function updateGeotag(Request $request, string $assetId): JsonResponse
     {
@@ -84,19 +86,18 @@ class AssetPhotoController extends Controller
 
         if ($request->hasFile('photo')) {
             // Delete old local file if exists
-            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
+            if ($oldPath && $this->disk()->exists($oldPath)) {
+                $this->disk()->delete($oldPath);
             }
 
             $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag." . $request->file('photo')->extension();
-            $path = $request->file('photo')->storeAs('bmn-photos', $filename, 'public');
+            $path = $request->file('photo')->storeAs('bmn-photos', $filename);
 
             $asset->update([
                 'foto_geotag_path' => $path,
-                'foto_geotag_url' => null, // Clear external URL when uploading file
+                'foto_geotag_url' => null,
             ]);
 
-            // Log to history
             AssetUpdate::create([
                 'asset_id' => $asset->id,
                 'user_id' => $request->user()->id,
@@ -110,22 +111,20 @@ class AssetPhotoController extends Controller
                 'message' => 'Foto geotag berhasil diupload.',
                 'source' => 'upload',
                 'path' => $path,
-                'url' => Storage::disk('public')->url($path),
+                'url' => $this->disk()->url($path),
             ]);
         }
 
-        // External URL mode
-        // Delete old local file if switching to URL
-        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-            Storage::disk('public')->delete($oldPath);
+        // External URL mode — delete old local file if switching
+        if ($oldPath && $this->disk()->exists($oldPath)) {
+            $this->disk()->delete($oldPath);
         }
 
         $asset->update([
             'foto_geotag_url' => $request->input('url'),
-            'foto_geotag_path' => null, // Clear local path when using URL
+            'foto_geotag_path' => null,
         ]);
 
-        // Log to history
         AssetUpdate::create([
             'asset_id' => $asset->id,
             'user_id' => $request->user()->id,
@@ -152,8 +151,8 @@ class AssetPhotoController extends Controller
             $oldPath = $asset->foto_geotag_path;
             $oldUrl = $asset->foto_geotag_url;
 
-            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
+            if ($oldPath && $this->disk()->exists($oldPath)) {
+                $this->disk()->delete($oldPath);
             }
 
             $asset->update(['foto_geotag_path' => null, 'foto_geotag_url' => null]);
@@ -178,13 +177,12 @@ class AssetPhotoController extends Controller
         $column = "foto_{$type}_path";
         $oldPath = $asset->$column;
 
-        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-            Storage::disk('public')->delete($oldPath);
+        if ($oldPath && $this->disk()->exists($oldPath)) {
+            $this->disk()->delete($oldPath);
         }
 
         $asset->update([$column => null]);
 
-        // Log to history
         if ($oldPath) {
             AssetUpdate::create([
                 'asset_id' => $asset->id,
@@ -207,11 +205,12 @@ class AssetPhotoController extends Controller
         if ($type === 'geotag') {
             $asset = Asset::findOrFail($assetId);
 
-            // Prefer local file over external URL
-            if ($asset->foto_geotag_path && Storage::disk('public')->exists($asset->foto_geotag_path)) {
+            if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
                 $ext = pathinfo($asset->foto_geotag_path, PATHINFO_EXTENSION);
                 $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag.{$ext}";
-                return Storage::disk('public')->download($asset->foto_geotag_path, $filename);
+                return response()->streamDownload(function () use ($asset) {
+                    echo $this->disk()->get($asset->foto_geotag_path);
+                }, $filename);
             }
 
             if ($asset->foto_geotag_url) {
@@ -228,14 +227,16 @@ class AssetPhotoController extends Controller
         $asset = Asset::findOrFail($assetId);
         $column = "foto_{$type}_path";
 
-        if (!$asset->$column || !Storage::disk('public')->exists($asset->$column)) {
+        if (!$asset->$column || !$this->disk()->exists($asset->$column)) {
             return response()->json(['message' => 'Foto tidak ditemukan.'], 404);
         }
 
         $ext = pathinfo($asset->$column, PATHINFO_EXTENSION);
         $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}.{$ext}";
 
-        return Storage::disk('public')->download($asset->$column, $filename);
+        return response()->streamDownload(function () use ($asset, $column) {
+            echo $this->disk()->get($asset->$column);
+        }, $filename);
     }
 
     /**
@@ -244,29 +245,29 @@ class AssetPhotoController extends Controller
     public function downloadAll(string $assetId)
     {
         $asset = Asset::findOrFail($assetId);
-        $files = [];
+        $entries = [];
 
         // Include geotag if stored locally
-        if ($asset->foto_geotag_path && Storage::disk('public')->exists($asset->foto_geotag_path)) {
+        if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
             $ext = pathinfo($asset->foto_geotag_path, PATHINFO_EXTENSION);
-            $files[] = [
-                'path' => Storage::disk('public')->path($asset->foto_geotag_path),
+            $entries[] = [
+                'storage_path' => $asset->foto_geotag_path,
                 'name' => Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag.{$ext}",
             ];
         }
 
         foreach (self::VALID_TYPES as $type) {
             $column = "foto_{$type}_path";
-            if ($asset->$column && Storage::disk('public')->exists($asset->$column)) {
+            if ($asset->$column && $this->disk()->exists($asset->$column)) {
                 $ext = pathinfo($asset->$column, PATHINFO_EXTENSION);
-                $files[] = [
-                    'path' => Storage::disk('public')->path($asset->$column),
+                $entries[] = [
+                    'storage_path' => $asset->$column,
                     'name' => Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}.{$ext}",
                 ];
             }
         }
 
-        if (empty($files)) {
+        if (empty($entries)) {
             return response()->json(['message' => 'Tidak ada foto untuk diunduh.'], 404);
         }
 
@@ -281,12 +282,16 @@ class AssetPhotoController extends Controller
         $zip = new ZipArchive();
         $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-        foreach ($files as $file) {
-            $zip->addFile($file['path'], $file['name']);
+        // Stream each file from storage (works with both local and S3 disks)
+        foreach ($entries as $entry) {
+            $tempFile = tempnam(sys_get_temp_dir(), 'bmn_');
+            file_put_contents($tempFile, $this->disk()->get($entry['storage_path']));
+            $zip->addFile($tempFile, $entry['name']);
         }
 
         $zip->close();
 
+        // Clean up temp files after sending
         return response()->download($zipPath, $zipName)->deleteFileAfterSend(true);
     }
 }
