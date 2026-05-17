@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
+import AssignmentLetterPreview from "@/app/kepegawaian/_components/AssignmentLetterPreview";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -621,117 +622,24 @@ export default function PersonalDashboard() {
           </main>
         </div>
 
-        {/* Surat Tugas Inline Preview Dialog */}
-        <Dialog open={stPreviewOpen} onOpenChange={setStPreviewOpen}>
-          <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[85vh] overflow-y-auto rounded-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-600" />
-                Detail Surat Tugas
-              </DialogTitle>
-              <DialogDescription>
-                {stDetail?.nomor_surat || "Draft - Belum ada nomor surat"}
-              </DialogDescription>
-            </DialogHeader>
-            {stDetail && (
-              <div className="space-y-4 py-2">
-                {/* Nomor & Status */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {stDetail.nomor_surat && (
-                    <Badge className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-none font-bold text-xs">
-                      {stDetail.nomor_surat}
-                    </Badge>
-                  )}
-                  <Badge variant={stDetail.status === "approved" ? "default" : "secondary"} className="text-xs">
-                    {stDetail.status === "approved" ? "Disetujui" : stDetail.status === "draft" ? "Draft" : stDetail.status}
-                  </Badge>
-                </div>
-
-                {/* Maksud/Tujuan */}
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Maksud / Tujuan Kegiatan</p>
-                  <p className="text-sm text-slate-800 dark:text-slate-200 font-medium">{stDetail.maksud_tujuan}</p>
-                </div>
-
-                {/* Tempat Tujuan */}
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Tempat Tujuan</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">{stDetail.tempat_tujuan || "-"}</p>
-                  </div>
-                </div>
-
-                {/* Tanggal */}
-                <div className="flex items-start gap-2">
-                  <Calendar className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Periode</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">
-                      {new Date(stDetail.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                      {" — "}
-                      {new Date(stDetail.tanggal_selesai).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Transportasi */}
-                {stDetail.transportasi && (
-                  <div className="flex items-start gap-2">
-                    <Car className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Transportasi</p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">{stDetail.transportasi}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Personil */}
-                {stDetail.employees && stDetail.employees.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Personil ({stDetail.employees.length})</p>
-                    <div className="space-y-2">
-                      {stDetail.employees.map((emp) => (
-                        <div key={emp.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                          <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
-                            {emp.nama_lengkap?.charAt(0) || "?"}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{emp.nama_lengkap}</p>
-                            <p className="text-[11px] text-slate-400">{emp.nip}{emp.pivot?.peran ? ` • ${emp.pivot.peran}` : ""}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Dasar - safely render */}
-                {stDetail.dasar && renderTextField(stDetail.dasar) !== "-" && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Dasar</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-line">{renderTextField(stDetail.dasar)}</p>
-                  </div>
-                )}
-
-                {/* Menimbang - safely render */}
-                {stDetail.menimbang && renderTextField(stDetail.menimbang) !== "-" && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Menimbang</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-line">{renderTextField(stDetail.menimbang)}</p>
-                  </div>
-                )}
-              </div>
-            )}
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  <X className="w-4 h-4 mr-1" /> Tutup
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Surat Tugas Formal Letter Preview */}
+        {stPreviewOpen && stDetail && (
+          <AssignmentLetterPreview
+            data={{
+              id: stDetail.id,
+              nomor_surat: stDetail.nomor_surat || undefined,
+              dasar_hukum: renderTextField(stDetail.dasar),
+              maksud_tujuan: stDetail.maksud_tujuan,
+              tanggal_mulai: stDetail.tanggal_mulai,
+              tanggal_selesai: stDetail.tanggal_selesai,
+              tempat_tujuan: stDetail.tempat_tujuan || "",
+              status: stDetail.status,
+              employees: stDetail.employees?.map(e => ({ id: String(e.id), nama_lengkap: e.nama_lengkap, nip: e.nip, pivot: e.pivot })),
+              approver: stDetail.approver,
+            }}
+            onClose={() => setStPreviewOpen(false)}
+          />
+        )}
 
         {/* Edit Profile Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
