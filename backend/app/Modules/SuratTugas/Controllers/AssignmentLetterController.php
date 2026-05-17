@@ -130,9 +130,12 @@ class AssignmentLetterController extends Controller
             $surat->employees()->sync($pivotData);
 
             if ($request->hasFile('file_surat')) {
-                $folder = 'surat-tugas/' . $surat->id;
+                $folderName = $surat->nomor_surat 
+                    ? \Illuminate\Support\Str::slug($surat->nomor_surat)
+                    : date('Y-m') . '-' . \Illuminate\Support\Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
+                $folder = 'surat-tugas/' . $folderName;
                 $ext = $request->file('file_surat')->extension();
-                $filename = \Illuminate\Support\Str::slug($surat->maksud_tujuan ?: 'surat-tugas') . '.' . $ext;
+                $filename = 'dasar-surat.' . $ext;
                 $path = $request->file('file_surat')->storeAs($folder, $filename);
                 $surat->update(['file_surat_path' => $path]);
             }
@@ -204,9 +207,12 @@ class AssignmentLetterController extends Controller
                 if ($surat->file_surat_path) {
                     Storage::delete($surat->file_surat_path);
                 }
-                $folder = 'surat-tugas/' . $surat->id;
+                $folderName = $surat->nomor_surat 
+                    ? \Illuminate\Support\Str::slug($surat->nomor_surat)
+                    : date('Y-m') . '-' . \Illuminate\Support\Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
+                $folder = 'surat-tugas/' . $folderName;
                 $ext = $request->file('file_surat')->extension();
-                $filename = \Illuminate\Support\Str::slug($surat->maksud_tujuan ?: 'surat-tugas') . '.' . $ext;
+                $filename = 'dasar-surat.' . $ext;
                 $path = $request->file('file_surat')->storeAs($folder, $filename);
                 $surat->update(['file_surat_path' => $path]);
             }
