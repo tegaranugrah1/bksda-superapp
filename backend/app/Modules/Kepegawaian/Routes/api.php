@@ -22,6 +22,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::post('/employees', [EmployeeController::class, 'store']);
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
         Route::post('/employees/{employee}/photo', [EmployeeController::class, 'updatePhoto']);
+        Route::post('/employees/{employee}/reset-password', [EmployeeController::class, 'resetPassword']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
     });
 

@@ -208,6 +208,31 @@ class EmployeeController extends Controller
     }
 
     /**
+     * POST /api/kepegawaian/employees/{id}/reset-password
+     * Reset password pegawai ke default '123'
+     */
+    public function resetPassword($id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+
+        $user = User::where('username', $employee->nip)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Akun user untuk pegawai ini tidak ditemukan.',
+            ], 404);
+        }
+
+        $user->update([
+            'password' => Hash::make('123'),
+        ]);
+
+        return response()->json([
+            'message' => 'Password berhasil direset ke default.',
+        ]);
+    }
+
+    /**
      * GET /api/kepegawaian/employees/{id}/assignment-letters
      * Mengambil riwayat surat tugas khusus untuk pegawai ini
      */
