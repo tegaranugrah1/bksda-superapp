@@ -121,6 +121,32 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Upload/replace employee photo only.
+     * POST /api/kepegawaian/employees/{employee}/photo
+     */
+    public function updatePhoto(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
+        ]);
+
+        $employee = Employee::findOrFail($id);
+
+        // Delete old photo
+        if ($employee->foto_profil) {
+            Storage::delete($employee->foto_profil);
+        }
+
+        $path = $request->file('foto')->store('employees/foto');
+        $employee->update(['foto_profil' => $path]);
+
+        return response()->json([
+            'message' => 'Foto pegawai berhasil diperbarui.',
+            'foto_url' => Storage::url($path),
+        ]);
+    }
+
+    /**
      * Rule 3.6: Soft Delete
      */
     public function destroy($id): JsonResponse

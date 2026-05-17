@@ -21,6 +21,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     Route::middleware('role:super_admin,admin')->group(function () {
         Route::post('/employees', [EmployeeController::class, 'store']);
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
+        Route::post('/employees/{employee}/photo', [EmployeeController::class, 'updatePhoto']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
     });
 

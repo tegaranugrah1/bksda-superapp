@@ -100,11 +100,9 @@ export default function EmployeeDetailPage() {
                       if (file.size > 10 * 1024 * 1024) { alert("Maksimal 10MB"); return; }
                       const fd = new FormData();
                       fd.append("foto", file);
-                      // Use existing update endpoint with foto field
                       try {
-                        await api.post(`/kepegawaian/employees/${id}`, fd, {
+                        await api.post(`/kepegawaian/employees/${id}/photo`, fd, {
                           headers: { "Content-Type": "multipart/form-data" },
-                          params: { _method: "PUT" },
                         });
                         window.location.reload();
                       } catch { alert("Gagal mengupload foto."); }
