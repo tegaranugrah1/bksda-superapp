@@ -129,7 +129,7 @@ export default function InformasiDetailPage() {
       {/* ═══ CONTENT CARD ═══ */}
       <section className="relative z-20 -mt-10">
         <div className="max-w-4xl mx-auto px-6">
-          <article className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-100">
+          <article className="bg-white rounded-3xl shadow-xl p-10 md:p-16 lg:p-20 border border-gray-100">
             <style
               dangerouslySetInnerHTML={{
                 __html: `
