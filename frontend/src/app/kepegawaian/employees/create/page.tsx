@@ -159,7 +159,13 @@ export default function EmployeeCreatePage() {
                   placeholder="Pilih Pangkat/Golongan"
                 />
                 <div className="md:col-span-2">
-                    <InputGroup label="Penempatan Satker" value={formData.satuan_kerja} onChange={(v: string) => setFormData({...formData, satuan_kerja: v})} placeholder="Bidang Wilayah II..." />
+                    <SelectGroup
+                      label="Penempatan Satker"
+                      value={formData.satuan_kerja}
+                      onChange={(v: string) => setFormData({...formData, satuan_kerja: v})}
+                      options={SATUAN_KERJA}
+                      placeholder="Pilih Penempatan..."
+                    />
                 </div>
                 <div className="md:col-span-2 space-y-2">
                     <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Status Kepegawaian</label>
@@ -225,6 +231,39 @@ function InputGroup({ label, value, onChange, placeholder, required = false }: I
         </div>
     );
 }
+
+const SATUAN_KERJA = [
+  // Kantor Balai
+  "Kantor Balai KSDA Kalimantan Timur",
+  "Kantor Balai - Urusan Umum dan Perlengkapan",
+  "Kantor Balai - Urusan Kepegawaian",
+  "Kantor Balai - Urusan Program dan Perencanaan",
+  "Kantor Balai - Urusan Keuangan",
+  "Kantor Balai - Urusan Evlab",
+  "Kantor Balai - Urusan Teknis",
+  "Kantor Balai - Urusan Perlindungan",
+  "Kantor Balai - Urusan IKN",
+  // Seksi KSDA Wilayah I Berau
+  "Seksi KSDA Wilayah I Berau",
+  "SKW I - Resor 01. Berau",
+  "SKW I - Resor 02. Pulau Semama dan Pulau Sangalaki",
+  "SKW I - Resor 03. Tanjung Selor",
+  "SKW I - Resor 04. Tarakan",
+  // Seksi KSDA Wilayah II Tenggarong
+  "Seksi KSDA Wilayah II Tenggarong",
+  "SKW II - Resor 05. Samarinda",
+  "SKW II - Resor 06. Padang Luway",
+  "SKW II - Resor 07. Muara Kaman Sedulang",
+  "SKW II - Resor 08. Sangatta",
+  "SKW II - Resor 09. Suaka Badak Kelian",
+  // Seksi KSDA Wilayah III Balikpapan
+  "Seksi KSDA Wilayah III Balikpapan",
+  "SKW III - Resor 10. Balikpapan",
+  "SKW III - Resor 11. Teluk Adang",
+  "SKW III - Resor 12. Teluk Apar",
+  "SKW III - Resor 13. Paser",
+  "SKW III - Resor 14. Ibu Kota Nusantara",
+];
 
 const PANGKAT_PNS = [
   // Tidak ada pangkat (MMP, honorer, dll)
