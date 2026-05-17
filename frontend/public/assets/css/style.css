@@ -4951,3 +4951,12 @@ div#mCSB_1_container{
 
 /* Tombol Back to Top */
 
+
+
+/* ═══ Quill CMS Content Alignment ═══ */
+.ql-align-center { text-align: center !important; }
+.ql-align-right { text-align: right !important; }
+.ql-align-justify { text-align: justify !important; }
+p.ql-align-center { text-align: center !important; }
+p.ql-align-right { text-align: right !important; }
+p.ql-align-justify { text-align: justify !important; }
