@@ -132,7 +132,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           }}
         >
           {/* KOP SURAT */}
-          <div style={{ marginTop: "-20px", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
+          <div style={{ marginTop: "-22mm", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/header-new.png"
