@@ -81,11 +81,36 @@ export default function EmployeeDetailPage() {
         <div className="px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* Avatar */}
-            <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center relative group">
               {employee.foto_url ? (
                 <Image src={employee.foto_url} alt={employee.nama_lengkap} width={64} height={64} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-2xl font-bold text-slate-400">{employee.nama_lengkap.charAt(0)}</span>
+              )}
+              {canManageAccess && (
+                <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
+                  <User className="w-5 h-5 text-white" />
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 10 * 1024 * 1024) { alert("Maksimal 10MB"); return; }
+                      const fd = new FormData();
+                      fd.append("foto", file);
+                      // Use existing update endpoint with foto field
+                      try {
+                        await api.post(`/kepegawaian/employees/${id}`, fd, {
+                          headers: { "Content-Type": "multipart/form-data" },
+                          params: { _method: "PUT" },
+                        });
+                        window.location.reload();
+                      } catch { alert("Gagal mengupload foto."); }
+                    }}
+                  />
+                </label>
               )}
             </div>
             {/* Name + Status */}

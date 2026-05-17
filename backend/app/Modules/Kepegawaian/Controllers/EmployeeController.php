@@ -83,9 +83,12 @@ class EmployeeController extends Controller
     {
         $employee = Employee::findOrFail($id);
 
+        $data = $employee->toArray();
+        $data['foto_url'] = $employee->foto_profil ? Storage::url($employee->foto_profil) : null;
+
         return response()->json([
             'message' => 'Detail pegawai ditemukan.',
-            'data' => $employee,
+            'data' => $data,
         ]);
     }
 
