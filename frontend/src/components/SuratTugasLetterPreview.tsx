@@ -81,6 +81,15 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
     
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
+
+    // Clone content and reset kop margins for print
+    const clone = printContent.cloneNode(true) as HTMLElement;
+    const kopEl = clone.querySelector('[data-kop]') as HTMLElement;
+    if (kopEl) {
+      kopEl.style.marginTop = '0';
+      kopEl.style.marginLeft = '0';
+      kopEl.style.marginRight = '0';
+    }
     
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -88,15 +97,13 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       <head>
         <title>Surat Tugas - ${data.nomor_surat || 'Draft'}</title>
         <style>
-          @page { size: A4 portrait; margin: 0; }
-          body { margin: 15mm 15mm 10mm 15mm; padding: 0; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
-          img { max-width: 100%; }
-          table { border-collapse: collapse; }
-          [data-kop] { margin: -15mm -15mm 2px -15mm; }
-          [data-kop] img { width: calc(100% + 30mm); height: auto; display: block; }
+          @page { size: A4 portrait; margin: 10mm 15mm; }
+          body { margin: 0; padding: 0; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
+          img { max-width: 100%; height: auto; }
+          table { border-collapse: collapse; width: 100%; table-layout: fixed; }
         </style>
       </head>
-      <body>${printContent.innerHTML}</body>
+      <body>${clone.innerHTML}</body>
       </html>
     `);
     printWindow.document.close();
