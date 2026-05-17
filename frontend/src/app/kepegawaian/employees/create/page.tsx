@@ -227,6 +227,8 @@ function InputGroup({ label, value, onChange, placeholder, required = false }: I
 }
 
 const PANGKAT_PNS = [
+  // Tidak ada pangkat (MMP, honorer, dll)
+  "- (Tidak ada pangkat)",
   // PNS - Golongan I
   "Juru Muda (I/a)",
   "Juru Muda Tingkat I (I/b)",
