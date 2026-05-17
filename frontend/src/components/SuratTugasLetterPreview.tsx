@@ -92,9 +92,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
   const tanggalSurat = data.tanggal_surat || data.tanggal_mulai;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto" onClick={onClose}>
       {/* Toolbar */}
-      <div className="sticky top-0 w-full z-10 flex items-center justify-between px-6 py-4 bg-zinc-900/95 border-b border-zinc-800 shadow-2xl print:hidden backdrop-blur-md">
+      <div className="sticky top-0 w-full z-10 flex items-center justify-between px-6 py-4 bg-zinc-900/95 border-b border-zinc-800 shadow-2xl print:hidden backdrop-blur-md" onClick={(e) => e.stopPropagation()}>
         <div className="text-white font-medium flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
           <span className="text-sm text-zinc-400 uppercase tracking-widest font-bold">Pratinjau Surat Tugas</span>
           <span className="text-blue-400 font-mono text-sm">
@@ -119,7 +119,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       </div>
 
       {/* Letter Content */}
-      <div className="py-10 print:py-0 w-full flex justify-center">
+      <div className="py-10 print:py-0 w-full flex justify-center" onClick={(e) => e.stopPropagation()}>
         <div
           ref={printRef}
           className="w-[210mm] min-h-[297mm] bg-white p-[25mm] shadow-2xl shadow-black/50 print:shadow-none print:m-0 print:p-[15mm] text-black relative"
