@@ -1,3 +1,65 @@
+# Progress - Phase 37: Production Deployment
+
+> Document updated: 2026-05-17
+> Status: **IN PROGRESS** 🔄
+
+---
+
+## Phase 37: AWS EC2 Deployment
+
+### Completed:
+- [x] **EC2 Instance**: t3.micro launched (Amazon Linux 2023, 30GB, ap-southeast-2)
+- [x] **Docker + Compose**: Installed on server
+- [x] **Production Dockerfiles**: Backend (PHP 8.2 FPM) + Frontend (Next.js standalone)
+- [x] **docker-compose.prod.yml**: 7 services (db, rustfs, backend, nginx-backend, frontend, nginx, certbot)
+- [x] **Nginx Reverse Proxy**: Routes bksdakaltim.net → frontend, api.bksdakaltim.net → backend, storage.bksdakaltim.net → rustfs
+- [x] **All Containers Running**: Verified via `docker ps`
+- [x] **Database Migrated**: `migrate:fresh` successful (fixed ST migration ordering)
+- [x] **RustFS Bucket**: Created + public-read policy set
+- [x] **Admin User**: Seeded (198001012005011001 / Bksda2026!)
+- [x] **DNS Records**: A (@, api) + CNAME (www) configured at Biznet NeoDNS
+- [x] **Frontend Live**: http://www.bksdakaltim.net accessible
+- [x] **Next.js standalone**: Added `output: "standalone"` to next.config.ts
+- [x] **Migration Fix**: ST alter migrations moved to module folder
+- [x] **Git Security**: .pem and service-account.json added to .gitignore
+
+### Pending:
+- [ ] SSL/HTTPS setup (Let's Encrypt certbot)
+- [ ] Fix API 500 error on login
+- [ ] Root domain DNS propagation (bksdakaltim.net without www)
+- [ ] CORS configuration for production
+- [ ] Storage subdomain DNS (storage.bksdakaltim.net)
+- [ ] Seed production data (BMN Excel import)
+- [ ] End-to-end testing on production
+- [ ] Update nginx with SSL blocks
+
+### Server Info:
+| Item | Value |
+|------|-------|
+| IP | 15.135.114.1 |
+| SSH | `ssh -i bksda-superapp.pem ec2-user@15.135.114.1` |
+| Path | `/home/ec2-user/bksda-superapp` |
+| Compose | `docker-compose -f docker-compose.prod.yml --env-file .env.prod` |
+| Domain | bksdakaltim.net |
+| Admin | 198001012005011001 / Bksda2026! |
+
+### Architecture:
+```
+Internet → Nginx (:80/:443)
+              ├── bksdakaltim.net → Frontend (Next.js :3000)
+              ├── api.bksdakaltim.net → Nginx-Backend → PHP-FPM (:9000)
+              └── storage.bksdakaltim.net → RustFS (:9000)
+           PostgreSQL (:5432) ← Backend
+```
+
+### Next Steps:
+- [ ] SSL setup
+- [ ] Fix API errors
+- [ ] Seed data
+- [ ] Full testing
+
+---
+
 # Progress - Phase 36: RustFS Storage + Kepegawaian + Portal
 
 > Document updated: 2026-05-17

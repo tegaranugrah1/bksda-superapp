@@ -56,12 +56,62 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 36: RustFS Storage + Kepegawaian Enhancements + Portal ST Preview |
-| **Issue Selanjutnya** | Style public sub-pages + Deployment preparation |
+| **Issue Terakhir Selesai** | Phase 37: Production Deployment to AWS EC2 (🔄 IN PROGRESS) |
+| **Issue Selanjutnya** | SSL setup + fix API 500 + seed data + test all modules on production |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | refactor(surat-tugas): readable folder names in RustFS |
+| **Commit Terakhir** | fix: remove duplicate ST create migration + add .kiro specs |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-17T16:30:00+08:00 |
+| **Timestamp** | 2026-05-17T18:35:00+08:00 |
+
+---
+
+---
+
+**UPDATE SESI KIRO (2026-05-17 Sore - Phase 37: Production Deployment to AWS EC2):**
+- **Objective**: Deploy BKSDA SuperApp to production on AWS EC2 with domain bksdakaltim.net.
+- **Status**: 🔄 IN PROGRESS — server running, DNS propagating
+- **Accomplishments**:
+  - **EC2 Instance**: t3.micro, Amazon Linux 2023, 30GB storage, ap-southeast-2
+  - **Docker Setup**: Docker 25.0 + Docker Compose 5.1 installed
+  - **All Containers Running**: PostgreSQL, RustFS, Backend (PHP-FPM), Frontend (Next.js), Nginx, Certbot
+  - **Database Migrated**: All migrations pass (fixed ST migration order issue)
+  - **Storage Ready**: RustFS bucket created with public-read policy
+  - **Admin User Seeded**: `198001012005011001` / `Bksda2026!` (super_admin)
+  - **DNS Configured** (Biznet NeoDNS):
+    - A record: `@` → `15.135.114.1`
+    - A record: `api` → `15.135.114.1`
+    - CNAME: `www` → `bksdakaltim.net.`
+  - **Frontend Accessible**: http://www.bksdakaltim.net ✅ (http://bksdakaltim.net waiting DNS propagation)
+  - **Migration Fix**: Moved ST alter migrations to module folder (was running before create table)
+  - **Security**: Added bksda-superapp.pem and service-account.json to .gitignore
+- **Known Issues (to fix next session)**:
+  - [ ] `https://bksdakaltim.net` — SSL not yet configured (need Let's Encrypt certbot)
+  - [ ] `http://bksdakaltim.net` (without www) — DNS may still be propagating
+  - [ ] API returns 500 on login — need to investigate (APP_KEY is set, likely CORS or Sanctum config)
+  - [ ] Need to add `storage` subdomain DNS record for RustFS public access
+  - [ ] Need to seed employee data (import Excel) on production
+- **Server Details**:
+  - IP: `15.135.114.1`
+  - SSH: `ssh -i bksda-superapp.pem ec2-user@15.135.114.1`
+  - App path: `/home/ec2-user/bksda-superapp`
+  - Docker Compose: `docker-compose -f docker-compose.prod.yml --env-file .env.prod`
+  - Admin login: `198001012005011001` / `Bksda2026!`
+- **Key Files Created**:
+  - `backend/Dockerfile` — PHP 8.2 FPM Alpine
+  - `frontend/Dockerfile` — Multi-stage Next.js standalone
+  - `docker-compose.prod.yml` — All 7 services
+  - `deploy/nginx.conf` — Reverse proxy (frontend + API + storage)
+  - `deploy/nginx-backend.conf` — PHP-FPM upstream
+  - `deploy/setup.sh` — Setup script
+- **Next Steps (for next session)**:
+  - [ ] Verify DNS propagation for root domain
+  - [ ] Setup SSL with Let's Encrypt (certbot)
+  - [ ] Fix API 500 error (investigate Laravel logs on server)
+  - [ ] Configure CORS for production domain
+  - [ ] Add `storage.bksdakaltim.net` DNS record
+  - [ ] Import BMN Excel data on production
+  - [ ] Test all modules end-to-end on production
+  - [ ] Update nginx.conf with SSL server blocks
 
 ---
 
