@@ -58,13 +58,15 @@ export default function CrudFormDrawer({
 
       if (hasFiles) {
         const formPayload = new FormData();
+        // Laravel requires _method=PUT for file uploads via POST
+        if (isEditing) formPayload.append("_method", "PUT");
         Object.entries(formData).forEach(([k, v]) => {
           if (v !== undefined && v !== null) formPayload.append(k, String(v));
         });
         Object.entries(files).forEach(([k, f]) => formPayload.append(k, f));
 
         if (isEditing && editingRecord) {
-          await api.put(
+          await api.post(
             `${config.apiEndpoint}/${editingRecord.id}`,
             formPayload,
             { headers: { "Content-Type": "multipart/form-data" } }

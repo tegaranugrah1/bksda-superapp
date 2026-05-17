@@ -132,6 +132,7 @@ export default function EditInformasiPage() {
     setIsSubmitting(true);
     try {
       const payload = new FormData();
+      payload.append("_method", "PUT");
       payload.append("judul", judul);
       payload.append("konten", konten);
       if (categoryId) payload.append("category_id", categoryId);
