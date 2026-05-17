@@ -9,6 +9,11 @@ Route::get('/verify/{id}', [AssignmentLetterController::class, 'verify'])
 Route::post('/submit', [AssignmentLetterController::class, 'store'])
     ->middleware('throttle:10,1'); // Public submit - rate limit 10 per menit
 
+// Portal: pegawai bisa lihat surat tugas milik sendiri (tanpa perlu akses modul)
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/my', [AssignmentLetterController::class, 'myLetters']);
+});
+
 Route::middleware(['auth:sanctum', 'module.access:surat_tugas'])->group(function () {
 
     Route::post('/', [AssignmentLetterController::class, 'store']);

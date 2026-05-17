@@ -123,8 +123,8 @@ export default function PersonalDashboard() {
     }
     setStLoading(true);
     try {
-      const resp = await api.get("/surat-tugas", { 
-        params: { status: "approved", per_page: 20, employee_id: data.employee.id } 
+      const resp = await api.get("/surat-tugas/my", { 
+        params: { per_page: 20 } 
       });
       setSuratTugas(resp.data.data || []);
     } catch { setSuratTugas([]); }

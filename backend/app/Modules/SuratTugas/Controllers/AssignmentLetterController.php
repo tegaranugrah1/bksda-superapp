@@ -12,6 +12,39 @@ use Illuminate\Support\Facades\Storage;
 
 class AssignmentLetterController extends Controller
 {
+    /**
+     * GET /api/surat-tugas/my
+     * Pegawai melihat surat tugas milik sendiri (no module access required)
+     */
+    public function myLetters(Request $request)
+    {
+        $user = $request->user();
+        $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+
+        if (!$employee) {
+            return response()->json(['data' => [], 'meta' => ['total' => 0]]);
+        }
+
+        $query = AssignmentLetter::with(['employees:id,nama_lengkap,nip'])
+            ->whereHas('employees', function ($q) use ($employee) {
+                $q->where('kpg_employees.id', $employee->id);
+            })
+            ->where('status', 'approved');
+
+        $perPage = min((int) $request->query('per_page', 20), 50);
+        $letters = $query->latest()->paginate($perPage);
+
+        return response()->json([
+            'data' => $letters->items(),
+            'meta' => [
+                'current_page' => $letters->currentPage(),
+                'last_page' => $letters->lastPage(),
+                'per_page' => $letters->perPage(),
+                'total' => $letters->total(),
+            ],
+        ]);
+    }
+
     public function index(Request $request)
     {
         $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
