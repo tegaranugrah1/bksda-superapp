@@ -8,7 +8,7 @@ import {
   Boxes, LayoutGrid, Package, FileText, LogOut,
   Fingerprint, KeyRound, Loader2, BadgeCheck, Mail, Phone, Briefcase,
   HandHelping, Sun, Sunset, Moon, Pencil, Sparkles, Bell,
-  Download, Eye, Users, ClipboardList, Building2,
+  Eye, Users, ClipboardList, Building2,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -180,16 +180,6 @@ export default function PersonalDashboard() {
     try { await api.post("/me/update-profile", editData); toast.success("Profil berhasil diperbarui!"); setEditDialogOpen(false); fetchDashboard(); }
     catch (error: unknown) { const err = error as { response?: { data?: { message?: string } } }; toast.error(err.response?.data?.message || "Gagal memperbarui profil."); }
     finally { setEditLoading(false); }
-  };
-
-  const handleDownloadST = async (id: string) => {
-    try {
-      const resp = await api.get(`/surat-tugas/${id}/download`, { responseType: "blob" });
-      const url = window.URL.createObjectURL(new Blob([resp.data]));
-      const link = document.createElement("a"); link.href = url;
-      link.setAttribute("download", `ST_${id.substring(0, 8)}.pdf`);
-      document.body.appendChild(link); link.click(); link.parentNode?.removeChild(link);
-    } catch { toast.error("File tidak tersedia untuk diunduh."); }
   };
 
   const modules = useMemo(() => {
@@ -559,14 +549,9 @@ export default function PersonalDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
-                            <Link href={`/verifikasi/surat-tugas/${st.id}`} className="p-2 rounded-lg hover:bg-blue-50 dark:bg-blue-500/10 text-blue-600 transition-colors" title="Lihat">
+                            <button onClick={() => router.push(`/portal/surat-tugas/${st.id}`)} className="p-2 rounded-lg hover:bg-blue-50 dark:bg-blue-500/10 text-blue-600 transition-colors" title="Lihat">
                               <Eye className="w-4 h-4" />
-                            </Link>
-                            {st.file_surat_path && (
-                              <button onClick={() => handleDownloadST(st.id)} className="p-2 rounded-lg hover:bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 transition-colors" title="Download">
-                                <Download className="w-4 h-4" />
-                              </button>
-                            )}
+                            </button>
                           </div>
                         </div>
                       ))}

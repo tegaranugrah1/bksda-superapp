@@ -12,6 +12,7 @@ Route::post('/submit', [AssignmentLetterController::class, 'store'])
 // Portal: pegawai bisa lihat surat tugas milik sendiri (tanpa perlu akses modul)
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/my', [AssignmentLetterController::class, 'myLetters']);
+    Route::get('/my/{id}', [AssignmentLetterController::class, 'myShow']);
 });
 
 Route::middleware(['auth:sanctum', 'module.access:surat_tugas'])->group(function () {

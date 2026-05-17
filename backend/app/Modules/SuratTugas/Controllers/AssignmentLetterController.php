@@ -45,6 +45,25 @@ class AssignmentLetterController extends Controller
         ]);
     }
 
+    public function myShow(Request $request, string $id)
+    {
+        $user = $request->user();
+        $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+
+        if (!$employee) {
+            return response()->json(['message' => 'Data pegawai tidak ditemukan'], 404);
+        }
+
+        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees'])
+            ->whereHas('employees', function ($q) use ($employee) {
+                $q->where('kpg_employees.id', $employee->id);
+            })
+            ->where('status', 'approved')
+            ->findOrFail($id);
+
+        return response()->json(['data' => $surat]);
+    }
+
     public function index(Request $request)
     {
         $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
