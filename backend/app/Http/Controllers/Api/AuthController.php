@@ -12,6 +12,7 @@ use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -157,5 +158,63 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Password berhasil diubah',
         ]);
+    }
+
+    /**
+     * Endpoint: POST /api/me/update-photo
+     */
+    public function updatePhoto(Request $request): JsonResponse
+    {
+        $request->validate([
+            'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
+        ]);
+
+        $user = $request->user();
+        $employee = Employee::where('nip', $user->username)->first();
+
+        if (!$employee) {
+            return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 404);
+        }
+
+        // Delete old photo
+        if ($employee->foto_profil) {
+            Storage::delete($employee->foto_profil);
+        }
+
+        // Store new photo
+        $path = $request->file('foto')->store('employees/foto');
+        $employee->update(['foto_profil' => $path]);
+
+        return response()->json([
+            'message' => 'Foto profil berhasil diperbarui.',
+            'photo' => Storage::url($path),
+        ]);
+    }
+
+    /**
+     * Endpoint: POST /api/me/update-profile
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user = $request->user();
+        $employee = Employee::where('nip', $user->username)->first();
+
+        if ($employee) {
+            $employee->update(array_filter([
+                'email' => $request->input('email'),
+                'no_telepon' => $request->input('phone'),
+            ], fn($v) => $v !== null));
+        }
+
+        if ($request->filled('email')) {
+            $user->update(['email' => $request->input('email')]);
+        }
+
+        return response()->json(['message' => 'Profil berhasil diperbarui.']);
     }
 }

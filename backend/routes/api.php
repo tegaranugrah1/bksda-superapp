@@ -31,6 +31,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::get('/me/dashboard', [AuthController::class, 'dashboard']);
+    Route::post('/me/update-photo', [AuthController::class, 'updatePhoto']);
+    Route::post('/me/update-profile', [AuthController::class, 'updateProfile']);
+    Route::post('/me/change-password', [AuthController::class, 'changePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
 });

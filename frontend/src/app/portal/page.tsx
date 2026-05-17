@@ -301,8 +301,33 @@ export default function PersonalDashboard() {
               <button onClick={openEditDialog} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-emerald-600 transition-colors" title="Edit Profil">
                 <Pencil className="w-3.5 h-3.5" />
               </button>
-              <div className="w-20 h-20 rounded-full bg-emerald-600 mx-auto flex items-center justify-center text-white text-2xl font-black mb-3">
-                {data.user.name.charAt(0)}
+              <div className="w-20 h-20 rounded-full bg-emerald-600 mx-auto flex items-center justify-center text-white text-2xl font-black mb-3 relative group overflow-hidden">
+                {data.employee?.photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={data.employee.photo} alt="Foto Profil" className="w-full h-full object-cover" />
+                ) : (
+                  data.user.name.charAt(0)
+                )}
+                <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <Pencil className="w-5 h-5 text-white" />
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 10 * 1024 * 1024) { toast.error("Maksimal 10MB"); return; }
+                      const fd = new FormData();
+                      fd.append("foto", file);
+                      try {
+                        await api.post("/me/update-photo", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                        toast.success("Foto profil berhasil diperbarui!");
+                        fetchDashboard();
+                      } catch { toast.error("Gagal mengupload foto."); }
+                    }}
+                  />
+                </label>
               </div>
               <div className={cn("inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full mb-2", isActive ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600" : "bg-slate-100 text-slate-500 dark:text-slate-400")}>
                 <BadgeCheck className="w-3 h-3" /> {isActive ? "Aktif" : "Nonaktif"}
