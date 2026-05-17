@@ -175,7 +175,7 @@ export default function InformasiDetailPage() {
             `}} />
             <div
               className="cms-content text-gray-700 text-base md:text-lg leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: berita.konten }}
+              dangerouslySetInnerHTML={{ __html: berita.konten.replace(/&nbsp;/g, " ") }}
             />
           </article>
 
