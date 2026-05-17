@@ -117,9 +117,9 @@ export default function SuratTugasForm() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+            const validTypes = ['application/pdf'];
             if (!validTypes.includes(file.type)) {
-                toast.error('Format file tidak didukung. Gunakan PDF, JPG, atau PNG.');
+                toast.error('Format file tidak didukung. Hanya PDF yang diperbolehkan.');
                 return;
             }
             if (file.size > 10 * 1024 * 1024) {
@@ -569,7 +569,7 @@ export default function SuratTugasForm() {
                             <input 
                                 type="file" 
                                 id="dasar_surat"
-                                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                accept=".pdf"
                                 className="sr-only"
                                 onChange={handleFileChange}
                             />

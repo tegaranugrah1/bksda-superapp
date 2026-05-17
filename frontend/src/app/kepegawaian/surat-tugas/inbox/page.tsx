@@ -180,14 +180,17 @@ export default function SuratTugasInbox() {
                 timeout: 30000,
             });
             const contentDisposition = resp.headers['content-disposition'];
-            let filename = `DasarSurat_${id.substring(0, 8)}.pdf`;
+            const blob = new Blob([resp.data]);
+            const blobType = resp.data?.type || resp.headers['content-type'] || '';
+            const ext = blobType.includes('png') ? 'png' : blobType.includes('jpeg') || blobType.includes('jpg') ? 'jpg' : 'pdf';
+            let filename = `DasarSurat_${id.substring(0, 8)}.${ext}`;
             if (contentDisposition) {
                 const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
                 if (match && match[1]) {
                     filename = decodeURIComponent(match[1].replace(/['"]/g, ''));
                 }
             }
-            const url = window.URL.createObjectURL(new Blob([resp.data]));
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download', filename);
