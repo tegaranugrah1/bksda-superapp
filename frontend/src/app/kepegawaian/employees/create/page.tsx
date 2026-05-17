@@ -227,23 +227,45 @@ function InputGroup({ label, value, onChange, placeholder, required = false }: I
 }
 
 const PANGKAT_PNS = [
+  // PNS - Golongan I
   "Juru Muda (I/a)",
   "Juru Muda Tingkat I (I/b)",
   "Juru (I/c)",
   "Juru Tingkat I (I/d)",
+  // PNS - Golongan II
   "Pengatur Muda (II/a)",
   "Pengatur Muda Tingkat I (II/b)",
   "Pengatur (II/c)",
   "Pengatur Tingkat I (II/d)",
+  // PNS - Golongan III
   "Penata Muda (III/a)",
   "Penata Muda Tingkat I (III/b)",
   "Penata (III/c)",
   "Penata Tingkat I (III/d)",
+  // PNS - Golongan IV
   "Pembina (IV/a)",
   "Pembina Tingkat I (IV/b)",
   "Pembina Utama Muda (IV/c)",
   "Pembina Utama Madya (IV/d)",
   "Pembina Utama (IV/e)",
+  // PPPK (Pegawai Pemerintah dengan Perjanjian Kerja)
+  "PPPK Golongan I",
+  "PPPK Golongan II",
+  "PPPK Golongan III",
+  "PPPK Golongan IV",
+  "PPPK Golongan V",
+  "PPPK Golongan VI",
+  "PPPK Golongan VII",
+  "PPPK Golongan VIII",
+  "PPPK Golongan IX",
+  "PPPK Golongan X",
+  "PPPK Golongan XI",
+  "PPPK Golongan XII",
+  "PPPK Golongan XIII",
+  "PPPK Golongan XIV",
+  "PPPK Golongan XV",
+  "PPPK Golongan XVI",
+  "PPPK Golongan XVII",
 ];
 
 function SelectGroup({ label, value, onChange, options, placeholder }: {
