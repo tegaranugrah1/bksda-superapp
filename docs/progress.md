@@ -1,3 +1,59 @@
+# Progress - Phase 36: RustFS Storage + Kepegawaian + Portal
+
+> Document updated: 2026-05-17
+> Status: **COMPLETED** ✅
+
+---
+
+## Phase 36: RustFS Storage Migration + Module Enhancements
+
+### Completed:
+- [x] **RustFS Docker Setup**: Container running (API :9002, Console :9003), Apache 2.0 license
+- [x] **Laravel S3 Driver**: `league/flysystem-aws-s3-v3` installed, `FILESYSTEM_DISK=s3`
+- [x] **All Modules Migrated**: BMN, CMS, Kepegawaian, Surat Tugas, DeReporting → RustFS
+- [x] **Artisan Command**: `php artisan storage:setup` creates bucket + sets public-read policy
+- [x] **Per-Entity Folders**: `bmn-photos/wet-suit-2/`, `employees/nama-pegawai/foto-profil/`, `surat-tugas/st-01-k-18.../`
+- [x] **Hybrid Geotag Upload**: POST /geotag accepts file OR URL (mutual exclusive)
+- [x] **Employee Create Fix**: NIP unique validation 500 error fixed
+- [x] **Dropdown Pangkat**: PNS (I/a-IV/e) + PPPK (I-XVII) + "Tidak ada pangkat"
+- [x] **Dropdown Penempatan**: Kantor Balai + SKW I/II/III + 14 Resor
+- [x] **Auto User Account**: Employee create → auto user (password: 123)
+- [x] **Editable Biodata**: All fields editable in detail page (dropdowns for pangkat, unit kerja, status)
+- [x] **Reset Password**: Admin can reset employee password to "123"
+- [x] **Portal Photo Upload**: Hover avatar → upload directly
+- [x] **Portal ST Visibility**: New `/api/surat-tugas/my` endpoint (no module access required)
+- [x] **Formal Letter Preview**: SuratTugasLetterPreview component (kop surat, format dinas resmi)
+- [x] **Print Fix**: New window approach, kop not cropped
+- [x] **Module Access OR Logic**: CheckModuleAccess middleware supports multiple modules
+- [x] **Upload PDF Only**: Surat tugas dasar surat restricted to PDF
+- [x] **Bulk Satker Update**: 151 employees renamed to new format
+- [x] **ST Badge on Load**: Count shown immediately without clicking tab
+
+### RustFS Storage Structure:
+```
+bksda (bucket)/
+├── bmn-photos/{nama-aset-nup}/           ← per-asset photos
+├── employees/{nama-pegawai}/foto-profil/ ← per-employee photos
+├── surat-tugas/{nomor-surat-slug}/       ← per-ST attachments
+├── cms/                                   ← CMS media
+└── private/dereporting/                   ← report attachments
+```
+
+### New API Endpoints:
+- `POST /api/me/update-photo` — portal profile photo upload
+- `POST /api/me/update-profile` — portal profile edit
+- `GET /api/surat-tugas/my` — my approved surat tugas (no module access)
+- `GET /api/surat-tugas/my/{id}` — my ST detail (no module access)
+- `POST /api/kepegawaian/employees/{id}/photo` — admin upload employee photo
+- `POST /api/kepegawaian/employees/{id}/reset-password` — admin reset pw
+
+### Next Steps:
+- [ ] Style public sub-pages (/kawasan, /tsl, /galeri, /publikasi)
+- [ ] Deployment preparation
+- [ ] Mobile app spec
+
+---
+
 # Progress - Phase 35b: CMS Editor Fixes & Public Detail Page Redesign
 
 > Document updated: 2026-05-17

@@ -56,12 +56,82 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 35b: CMS Editor Fixes & Public Detail Page Redesign (✅ DONE) |
-| **Issue Selanjutnya** | Style sub-pages (kawasan, tsl, galeri, publikasi) to match bksdakaltim design |
+| **Issue Terakhir Selesai** | Phase 36: RustFS Storage + Kepegawaian Enhancements + Portal ST Preview |
+| **Issue Selanjutnya** | Style public sub-pages + Deployment preparation |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | fix(public): replace nbsp with regular spaces to fix justify word-spacing issues |
+| **Commit Terakhir** | refactor(surat-tugas): readable folder names in RustFS |
 | **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-17T00:30:00+08:00 |
+| **Timestamp** | 2026-05-17T16:30:00+08:00 |
+
+---
+
+---
+
+**UPDATE SESI KIRO (2026-05-17 - Phase 36: RustFS Storage + Kepegawaian + Portal):**
+- **Objective**: Migrate all file storage to RustFS (S3-compatible), enhance Kepegawaian module, fix Portal surat tugas visibility.
+- **Accomplishments**:
+  - **RustFS Object Storage** (Issue #127):
+    - Added RustFS container to Docker Compose (API :9002, Console :9003)
+    - Installed `league/flysystem-aws-s3-v3` for Laravel S3 driver
+    - Migrated ALL modules from local disk to S3/RustFS
+    - Created `php artisan storage:setup` command for bucket creation
+    - Organized files per-entity: `bmn-photos/{asset-name}/`, `employees/{name}/foto-profil/`, `surat-tugas/{nomor}/`
+    - Created `docs/RUSTFS-GUIDE.md` documentation
+  - **BMN Hybrid Geotag Upload** (Issue #126):
+    - Endpoint `POST /api/bmn/assets/{id}/geotag` now accepts file upload OR URL
+    - Frontend: upload button + link input for geotag (mutual exclusive)
+    - Migration: added `foto_geotag_path` column
+    - Route changed from PUT to POST (multipart requires POST)
+  - **Kepegawaian Enhancements**:
+    - Fixed 500 error on employee create (NIP unique validation)
+    - Dropdown Pangkat/Golongan (PNS I/a-IV/e + PPPK I-XVII + "Tidak ada pangkat")
+    - Dropdown Penempatan (Kantor Balai + SKW I/II/III + 14 Resor)
+    - Auto-create user account on employee create (default password: 123)
+    - Editable biodata in employee detail (all fields with dropdowns)
+    - Admin password reset button (`POST /employees/{id}/reset-password`)
+    - Photo upload in employee detail + portal profile
+    - Bulk update satuan_kerja (151 employees renamed)
+    - Removed password reset from Access Sheet (duplicate)
+  - **Portal Fixes**:
+    - Surat tugas now visible for pegawai (`/api/surat-tugas/my` endpoint)
+    - Formal letter preview (SuratTugasLetterPreview component)
+    - Click outside to close preview
+    - Print via new window (clean A4, no CSS conflicts)
+    - ST count badge on initial load (not lazy)
+    - Profile photo upload from portal
+  - **Module Access Fix**:
+    - `CheckModuleAccess` middleware supports multiple modules (OR logic)
+    - Surat Tugas accessible by `kepegawaian` OR `surat_tugas` module access
+  - **Upload Restrictions**:
+    - Surat Tugas dasar surat: PDF only (no more PNG/JPG)
+    - Download: detect file type from blob response
+- **Key Files Created**:
+  - `backend/app/Console/Commands/StorageSetupCommand.php`
+  - `backend/app/Modules/Bmn/Migrations/2026_05_14_100000_add_foto_geotag_path_to_bmn_assets.php`
+  - `frontend/src/components/SuratTugasLetterPreview.tsx`
+  - `frontend/src/app/portal/surat-tugas/[id]/page.tsx`
+  - `docs/RUSTFS-GUIDE.md`
+  - `docs/issues/126-bmn-hybrid-geotag-upload.md`
+  - `docs/issues/127-rustfs-object-storage.md`
+- **Key Files Modified**:
+  - `docker-compose.yml` — RustFS service
+  - `backend/.env` / `.env.example` — S3 config
+  - `backend/app/Modules/Bmn/Controllers/AssetPhotoController.php` — S3 + per-asset folders
+  - `backend/app/Modules/Bmn/Resources/AssetResource.php` — Storage::url()
+  - `backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php` — full rewrite (photo, create, reset)
+  - `backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php` — myLetters, myShow, folder structure
+  - `backend/app/Modules/SuratTugas/Routes/api.php` — /my endpoints, multi-module access
+  - `backend/app/Http/Middleware/CheckModuleAccess.php` — variadic module support
+  - `backend/app/Http/Controllers/Api/AuthController.php` — updatePhoto, updateProfile
+  - `frontend/src/app/portal/page.tsx` — ST preview, fetch on load, photo upload
+  - `frontend/src/app/kepegawaian/employees/[id]/page.tsx` — editable biodata, photo, reset pw
+  - `frontend/src/app/kepegawaian/employees/create/page.tsx` — dropdowns
+  - `frontend/src/app/kepegawaian/_components/AssignmentLetterHistory.tsx` — letter preview
+  - `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx` — removed pw reset
+- **Next Steps**:
+  - [ ] Style public sub-pages (/kawasan, /tsl, /galeri, /publikasi)
+  - [ ] Deployment preparation (Vercel frontend + VPS backend + RustFS)
+  - [ ] Mobile app spec (BMN + Kepegawaian)
 
 ---
 
