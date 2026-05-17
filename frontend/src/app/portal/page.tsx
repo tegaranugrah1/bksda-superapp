@@ -8,7 +8,7 @@ import {
   Boxes, LayoutGrid, Package, FileText, LogOut,
   Fingerprint, KeyRound, Loader2, BadgeCheck, Mail, Phone, Briefcase,
   HandHelping, Sun, Sunset, Moon, Pencil, Sparkles, Bell,
-  Eye, Users, ClipboardList, Building2,
+  Eye, Users, ClipboardList, Building2, X, MapPin, Calendar, Car,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -41,7 +41,47 @@ interface SuratTugasItem {
   file_surat_path: string | null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface SuratTugasDetail {
+  id: string;
+  nomor_surat: string | null;
+  maksud_tujuan: string;
+  tempat_tujuan: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  status: string;
+  transportasi: string | null;
+  dasar: unknown;
+  menimbang: unknown;
+  employees?: Array<{
+    id: string;
+    nama_lengkap: string;
+    nip: string;
+    pivot?: { peran?: string };
+  }>;
+}
+
 type TabKey = "pinjaman" | "aset" | "surat_tugas";
+
+/** Safely render a field that may be a string, an array of {id, text} objects, or other */
+function renderTextField(value: unknown): string {
+  if (!value) return "-";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object" && "text" in item) return (item as { text: string }).text;
+        return "";
+      })
+      .filter(Boolean)
+      .join("; ");
+  }
+  if (typeof value === "object" && value !== null && "text" in value) {
+    return (value as { text: string }).text;
+  }
+  return String(value);
+}
 
 function getGreeting(): { text: string; icon: React.ReactNode } {
   const hour = new Date().getHours();
@@ -90,6 +130,11 @@ export default function PersonalDashboard() {
   const [assetsLoading, setAssetsLoading] = useState(false);
 
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
+
+  // Surat Tugas inline preview state
+  const [stPreviewOpen, setStPreviewOpen] = useState(false);
+  const [stDetail, setStDetail] = useState<SuratTugasDetail | null>(null);
+  const [stDetailLoading, setStDetailLoading] = useState(false);
 
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
   const [pwData, setPwData] = useState({ current_password: "", new_password: "", new_password_confirmation: "" });
@@ -146,6 +191,19 @@ export default function PersonalDashboard() {
       setAssetsLoading(false);
     }
   }, [data]);
+
+  const fetchSTDetail = useCallback(async (id: string) => {
+    setStDetailLoading(true);
+    try {
+      const resp = await api.get(`/surat-tugas/my/${id}`);
+      setStDetail(resp.data.data || resp.data);
+      setStPreviewOpen(true);
+    } catch {
+      toast.error("Gagal memuat detail surat tugas.");
+    } finally {
+      setStDetailLoading(false);
+    }
+  }, []);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
@@ -549,8 +607,8 @@ export default function PersonalDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
-                            <button onClick={() => router.push(`/portal/surat-tugas/${st.id}`)} className="p-2 rounded-lg hover:bg-blue-50 dark:bg-blue-500/10 text-blue-600 transition-colors" title="Lihat">
-                              <Eye className="w-4 h-4" />
+                            <button onClick={() => fetchSTDetail(st.id)} disabled={stDetailLoading} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors disabled:opacity-50" title="Lihat">
+                              {stDetailLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
                         </div>
@@ -562,6 +620,118 @@ export default function PersonalDashboard() {
             </div>
           </main>
         </div>
+
+        {/* Surat Tugas Inline Preview Dialog */}
+        <Dialog open={stPreviewOpen} onOpenChange={setStPreviewOpen}>
+          <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[85vh] overflow-y-auto rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-emerald-600" />
+                Detail Surat Tugas
+              </DialogTitle>
+              <DialogDescription>
+                {stDetail?.nomor_surat || "Draft - Belum ada nomor surat"}
+              </DialogDescription>
+            </DialogHeader>
+            {stDetail && (
+              <div className="space-y-4 py-2">
+                {/* Nomor & Status */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {stDetail.nomor_surat && (
+                    <Badge className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-none font-bold text-xs">
+                      {stDetail.nomor_surat}
+                    </Badge>
+                  )}
+                  <Badge variant={stDetail.status === "approved" ? "default" : "secondary"} className="text-xs">
+                    {stDetail.status === "approved" ? "Disetujui" : stDetail.status === "draft" ? "Draft" : stDetail.status}
+                  </Badge>
+                </div>
+
+                {/* Maksud/Tujuan */}
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Maksud / Tujuan Kegiatan</p>
+                  <p className="text-sm text-slate-800 dark:text-slate-200 font-medium">{stDetail.maksud_tujuan}</p>
+                </div>
+
+                {/* Tempat Tujuan */}
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Tempat Tujuan</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">{stDetail.tempat_tujuan || "-"}</p>
+                  </div>
+                </div>
+
+                {/* Tanggal */}
+                <div className="flex items-start gap-2">
+                  <Calendar className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Periode</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                      {new Date(stDetail.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                      {" — "}
+                      {new Date(stDetail.tanggal_selesai).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Transportasi */}
+                {stDetail.transportasi && (
+                  <div className="flex items-start gap-2">
+                    <Car className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Transportasi</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300">{stDetail.transportasi}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Personil */}
+                {stDetail.employees && stDetail.employees.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Personil ({stDetail.employees.length})</p>
+                    <div className="space-y-2">
+                      {stDetail.employees.map((emp) => (
+                        <div key={emp.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                          <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
+                            {emp.nama_lengkap?.charAt(0) || "?"}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{emp.nama_lengkap}</p>
+                            <p className="text-[11px] text-slate-400">{emp.nip}{emp.pivot?.peran ? ` • ${emp.pivot.peran}` : ""}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Dasar - safely render */}
+                {stDetail.dasar && renderTextField(stDetail.dasar) !== "-" && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Dasar</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-line">{renderTextField(stDetail.dasar)}</p>
+                  </div>
+                )}
+
+                {/* Menimbang - safely render */}
+                {stDetail.menimbang && renderTextField(stDetail.menimbang) !== "-" && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Menimbang</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-line">{renderTextField(stDetail.menimbang)}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <X className="w-4 h-4 mr-1" /> Tutup
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Profile Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
