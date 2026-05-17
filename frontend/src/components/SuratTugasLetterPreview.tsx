@@ -132,7 +132,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           }}
         >
           {/* KOP SURAT */}
-          <div style={{ marginTop: "-10px", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
+          <div style={{ marginTop: "-20px", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/header-new.png"
@@ -317,7 +317,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                   {data.status === "approved" ? "" : "${ttd_pengirim}"}
                 </p>
                 <p style={{ margin: 0, fontWeight: "bold" }}>
-                  {data.nama_plh || data.approver?.name || "M. Ari Wibawanto, S.Hut., M.Sc."}
+                  {data.nama_plh || "M. Ari Wibawanto, S.Hut., M.Sc."}
                 </p>
                 <p style={{ margin: 0, fontSize: "10pt" }}>
                   NIP. {data.approver?.nip ? formatNIP(data.approver.nip) : "19740514 199903 1 001"}
