@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
-import AssignmentLetterPreview from "@/app/kepegawaian/_components/AssignmentLetterPreview";
+import SuratTugasLetterPreview from "@/components/SuratTugasLetterPreview";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -42,47 +42,34 @@ interface SuratTugasItem {
   file_surat_path: string | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface SuratTugasDetail {
   id: string;
   nomor_surat: string | null;
+  kode_surat: string | null;
   maksud_tujuan: string;
   tempat_tujuan: string;
   tanggal_mulai: string;
   tanggal_selesai: string;
+  tanggal_surat: string | null;
   status: string;
   transportasi: string | null;
+  sumber_dana: string | null;
+  nama_plh: string | null;
+  keterangan: string | null;
   dasar: unknown;
   menimbang: unknown;
+  tembusan: string[] | null;
   employees?: Array<{
     id: string;
     nama_lengkap: string;
     nip: string;
+    jabatan?: string;
     pivot?: { peran?: string };
   }>;
+  approver?: { id: number; name: string; nip?: string };
 }
 
 type TabKey = "pinjaman" | "aset" | "surat_tugas";
-
-/** Safely render a field that may be a string, an array of {id, text} objects, or other */
-function renderTextField(value: unknown): string {
-  if (!value) return "-";
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => {
-        if (typeof item === "string") return item;
-        if (item && typeof item === "object" && "text" in item) return (item as { text: string }).text;
-        return "";
-      })
-      .filter(Boolean)
-      .join("; ");
-  }
-  if (typeof value === "object" && value !== null && "text" in value) {
-    return (value as { text: string }).text;
-  }
-  return String(value);
-}
 
 function getGreeting(): { text: string; icon: React.ReactNode } {
   const hour = new Date().getHours();
@@ -624,18 +611,31 @@ export default function PersonalDashboard() {
 
         {/* Surat Tugas Formal Letter Preview */}
         {stPreviewOpen && stDetail && (
-          <AssignmentLetterPreview
+          <SuratTugasLetterPreview
             data={{
               id: stDetail.id,
-              nomor_surat: stDetail.nomor_surat || undefined,
-              dasar_hukum: renderTextField(stDetail.dasar),
+              nomor_surat: stDetail.nomor_surat,
+              kode_surat: stDetail.kode_surat,
+              menimbang: stDetail.menimbang as any,
+              dasar: stDetail.dasar as any,
               maksud_tujuan: stDetail.maksud_tujuan,
+              tempat_tujuan: stDetail.tempat_tujuan,
               tanggal_mulai: stDetail.tanggal_mulai,
               tanggal_selesai: stDetail.tanggal_selesai,
-              tempat_tujuan: stDetail.tempat_tujuan || "",
+              tanggal_surat: stDetail.tanggal_surat,
+              sumber_dana: stDetail.sumber_dana,
+              nama_plh: stDetail.nama_plh,
               status: stDetail.status,
-              employees: stDetail.employees?.map(e => ({ id: String(e.id), nama_lengkap: e.nama_lengkap, nip: e.nip, pivot: e.pivot })),
-              approver: stDetail.approver,
+              keterangan: stDetail.keterangan,
+              tembusan: stDetail.tembusan,
+              employees: stDetail.employees?.map(e => ({
+                id: e.id,
+                nama_lengkap: e.nama_lengkap,
+                nip: e.nip,
+                jabatan: e.jabatan,
+                pivot: e.pivot,
+              })),
+              approver: stDetail.approver ? { name: stDetail.approver.name, nip: stDetail.approver.nip } : undefined,
             }}
             onClose={() => setStPreviewOpen(false)}
           />
