@@ -41,9 +41,10 @@ class AssetPhotoController extends Controller
             $this->disk()->delete($oldPath);
         }
 
-        // Store new photo
+        // Store new photo — organized per asset folder
+        $folder = 'bmn-photos/' . Str::slug($asset->nama_barang) . '-' . $asset->nup;
         $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}." . $request->file('photo')->extension();
-        $path = $request->file('photo')->storeAs('bmn-photos', $filename);
+        $path = $request->file('photo')->storeAs($folder, $filename);
 
         $asset->update([$column => $path]);
 
@@ -90,8 +91,9 @@ class AssetPhotoController extends Controller
                 $this->disk()->delete($oldPath);
             }
 
+            $folder = 'bmn-photos/' . Str::slug($asset->nama_barang) . '-' . $asset->nup;
             $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag." . $request->file('photo')->extension();
-            $path = $request->file('photo')->storeAs('bmn-photos', $filename);
+            $path = $request->file('photo')->storeAs($folder, $filename);
 
             $asset->update([
                 'foto_geotag_path' => $path,
