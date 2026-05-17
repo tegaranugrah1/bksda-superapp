@@ -3,10 +3,12 @@
 namespace App\Modules\Kepegawaian\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Requests\EmployeeRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
@@ -69,6 +71,16 @@ class EmployeeController extends Controller
         }
 
         $employee = Employee::create($validated);
+
+        // Auto-create user account with default password '123'
+        if (!User::where('username', $employee->nip)->exists()) {
+            User::create([
+                'name' => $employee->nama_lengkap,
+                'username' => $employee->nip,
+                'password' => Hash::make('123'),
+                'role' => 'pegawai',
+            ]);
+        }
 
         return response()->json([
             'message' => 'Data pegawai berhasil ditambahkan.',
