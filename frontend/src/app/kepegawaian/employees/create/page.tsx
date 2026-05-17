@@ -235,14 +235,6 @@ function InputGroup({ label, value, onChange, placeholder, required = false }: I
 const SATUAN_KERJA = [
   // Kantor Balai
   "Kantor Balai KSDA Kalimantan Timur",
-  "Kantor Balai - Urusan Umum dan Perlengkapan",
-  "Kantor Balai - Urusan Kepegawaian",
-  "Kantor Balai - Urusan Program dan Perencanaan",
-  "Kantor Balai - Urusan Keuangan",
-  "Kantor Balai - Urusan Evlab",
-  "Kantor Balai - Urusan Teknis",
-  "Kantor Balai - Urusan Perlindungan",
-  "Kantor Balai - Urusan IKN",
   // Seksi KSDA Wilayah I Berau
   "Seksi KSDA Wilayah I Berau",
   "SKW I - Resor 01. Berau",
