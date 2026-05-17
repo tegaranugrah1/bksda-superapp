@@ -209,30 +209,6 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                 )}
               </div>
 
-              {/* Password */}
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-bold flex items-center gap-2">
-                      <KeyRound className="w-4 h-4 text-slate-400" />
-                      {isNewAccount ? "Password Akun Baru" : "Reset Password (Opsional)"}
-                    </FormLabel>
-                    <FormControl>
-                      <Input type="password" autoComplete="new-password" placeholder={isNewAccount ? "Masukkan password awal..." : "Kosongkan jika tidak ingin ganti..."} className="h-10 rounded-xl" {...field} />
-                    </FormControl>
-                    <div className="flex items-start gap-2 mt-1">
-                      <Info className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
-                      <p className="text-[10px] text-slate-500 italic">
-                        {isNewAccount ? "Akun login belum ada. Password ini akan digunakan pegawai untuk masuk pertama kali menggunakan NIP sebagai username." : "Hanya isi jika ingin mereset password pegawai secara paksa."}
-                      </p>
-                    </div>
-                    <FormMessage className="text-[11px]" />
-                  </FormItem>
-                )}
-              />
-
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button type="button" variant="outline" className="flex-1 h-10 rounded-xl" onClick={() => onOpenChange(false)}>Batal</Button>
