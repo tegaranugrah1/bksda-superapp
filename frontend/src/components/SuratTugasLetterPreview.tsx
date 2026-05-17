@@ -76,7 +76,32 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
-    window.print();
+    const printContent = printRef.current;
+    if (!printContent) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Surat Tugas - ${data.nomor_surat || 'Draft'}</title>
+        <style>
+          @page { size: A4 portrait; margin: 5mm; }
+          body { margin: 0; padding: 10mm 15mm; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; }
+          img { max-width: 100%; }
+          table { border-collapse: collapse; }
+        </style>
+      </head>
+      <body>${printContent.innerHTML}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.print();
+      printWindow.close();
+    };
   };
 
   const menimbangItems = parseItems(data.menimbang);
@@ -352,25 +377,10 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
         dangerouslySetInnerHTML={{
           __html: `
         @media print {
-            html, body { margin: 0 !important; padding: 0 !important; }
-            body * { visibility: hidden; }
-            #print-letter-area, #print-letter-area * { visibility: visible !important; }
-            #print-letter-area {
-              position: fixed !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100% !important;
-              min-height: auto !important;
+            #print-letter-area { 
               padding: 10mm 15mm !important;
               margin: 0 !important;
               box-shadow: none !important;
-              background: white !important;
-              overflow: visible !important;
-            }
-            #print-letter-area [data-kop] {
-              margin-top: 0 !important;
-              margin-left: -10mm !important;
-              margin-right: -10mm !important;
             }
             @page { size: A4 portrait; margin: 5mm; }
         }
