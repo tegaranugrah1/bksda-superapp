@@ -55,7 +55,7 @@ Route::prefix('import-review')->group(function () {
 
 // 5. FOTO ASET
 Route::post('assets/{asset}/photo', [AssetPhotoController::class, 'upload']);
-Route::put('assets/{asset}/geotag', [AssetPhotoController::class, 'updateGeotag']);
+Route::post('assets/{asset}/geotag', [AssetPhotoController::class, 'updateGeotag']);
 Route::delete('assets/{asset}/photo/{type}', [AssetPhotoController::class, 'delete']);
 Route::get('assets/{asset}/photo/{type}/download', [AssetPhotoController::class, 'download']);
 Route::get('assets/{asset}/photos/download-all', [AssetPhotoController::class, 'downloadAll']);
