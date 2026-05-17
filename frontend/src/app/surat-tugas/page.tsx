@@ -593,7 +593,7 @@ export default function SuratTugasForm() {
                                         <>
                                             <Upload className="w-8 h-8 text-slate-400 mb-2" />
                                             <p className="text-sm font-semibold text-slate-600">Klik untuk upload file</p>
-                                            <p className="text-xs text-slate-400 mt-1">PDF, JPG, PNG (Max. 10MB)</p>
+                                            <p className="text-xs text-slate-400 mt-1">PDF (Max. 10MB)</p>
                                         </>
                                     )}
                                 </div>
