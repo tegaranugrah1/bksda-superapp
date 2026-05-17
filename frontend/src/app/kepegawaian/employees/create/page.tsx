@@ -151,7 +151,13 @@ export default function EmployeeCreatePage() {
                 <InputGroup label="NIP Induk" value={formData.nip} onChange={(v: string) => setFormData({...formData, nip: v})} placeholder="19800101..." required />
                 <InputGroup label="Nama Lengkap" value={formData.nama_lengkap} onChange={(v: string) => setFormData({...formData, nama_lengkap: v})} placeholder="Budi Santoso..." required />
                 <InputGroup label="Jabatan" value={formData.jabatan} onChange={(v: string) => setFormData({...formData, jabatan: v})} placeholder="Polhut..." />
-                <InputGroup label="Pangkat/Golongan" value={formData.pangkat_golongan} onChange={(v: string) => setFormData({...formData, pangkat_golongan: v})} placeholder="Penata / III.c" />
+                <SelectGroup
+                  label="Pangkat/Golongan"
+                  value={formData.pangkat_golongan}
+                  onChange={(v: string) => setFormData({...formData, pangkat_golongan: v})}
+                  options={PANGKAT_PNS}
+                  placeholder="Pilih Pangkat/Golongan"
+                />
                 <div className="md:col-span-2">
                     <InputGroup label="Penempatan Satker" value={formData.satuan_kerja} onChange={(v: string) => setFormData({...formData, satuan_kerja: v})} placeholder="Bidang Wilayah II..." />
                 </div>
@@ -218,4 +224,53 @@ function InputGroup({ label, value, onChange, placeholder, required = false }: I
             />
         </div>
     );
+}
+
+const PANGKAT_PNS = [
+  "Juru Muda (I/a)",
+  "Juru Muda Tingkat I (I/b)",
+  "Juru (I/c)",
+  "Juru Tingkat I (I/d)",
+  "Pengatur Muda (II/a)",
+  "Pengatur Muda Tingkat I (II/b)",
+  "Pengatur (II/c)",
+  "Pengatur Tingkat I (II/d)",
+  "Penata Muda (III/a)",
+  "Penata Muda Tingkat I (III/b)",
+  "Penata (III/c)",
+  "Penata Tingkat I (III/d)",
+  "Pembina (IV/a)",
+  "Pembina Tingkat I (IV/b)",
+  "Pembina Utama Muda (IV/c)",
+  "Pembina Utama Madya (IV/d)",
+  "Pembina Utama (IV/e)",
+];
+
+function SelectGroup({ label, value, onChange, options, placeholder }: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  options: string[];
+  placeholder?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">{label}</label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-sm appearance-none cursor-pointer"
+        >
+          <option value="">{placeholder || "Pilih..."}</option>
+          {options.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+          <ChevronDown className="w-4 h-4 text-zinc-400" />
+        </div>
+      </div>
+    </div>
+  );
 }
