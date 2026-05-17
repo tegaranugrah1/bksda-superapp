@@ -34,7 +34,7 @@ class MeDashboardResource extends JsonResource
                     'department' => $this->employee->satuan_kerja,
                     'email' => $this->employee->email,
                     'phone' => $this->employee->no_telepon,
-                    'photo' => $this->employee->foto_profil,
+                    'photo' => $this->employee->foto_profil ? \Illuminate\Support\Facades\Storage::url($this->employee->foto_profil) : null,
                     'rank' => $this->employee->pangkat_golongan,
                     'rank_level' => 0,
                     'is_active' => $this->employee->is_active,
