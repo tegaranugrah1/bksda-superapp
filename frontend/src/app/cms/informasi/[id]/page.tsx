@@ -150,6 +150,7 @@ export default function EditInformasiPage() {
           : "Berita berhasil diperbarui."
       );
       queryClient.invalidateQueries({ queryKey: ["cms-informasi"] });
+      queryClient.invalidateQueries({ queryKey: ["cms-informasi-edit", id] });
       router.push("/cms/informasi");
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
