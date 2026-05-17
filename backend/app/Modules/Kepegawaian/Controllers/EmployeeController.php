@@ -62,8 +62,8 @@ class EmployeeController extends Controller
         if ($request->hasFile('foto')) {
             $file = $request->file('foto');
 
-            // store() secara otomatis membuat nama file acak (Hash) sesuai Rule 4.3.
-            // Di Laravel 11, default disk adalah 'local' yang mengarah ke `storage/app/private/` (Rule 4.4).
+            // store() membuat nama file acak (Hash).
+            // Default disk = s3 (RustFS) via FILESYSTEM_DISK env.
             $path = $file->store('employees/foto');
             $validated['foto_profil'] = $path;
         }

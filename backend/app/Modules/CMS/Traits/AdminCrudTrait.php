@@ -127,7 +127,7 @@ trait AdminCrudTrait
             if ($request->hasFile($inputName)) {
                 $file = $request->file($inputName);
                 $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
-                $path = $file->storeAs('cms', $filename, 'public');
+                $path = $file->storeAs('cms', $filename);
                 $data[$dbColumn] = $path;
             }
         }
