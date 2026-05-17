@@ -78,7 +78,10 @@ class AssignmentLetterController extends Controller
             $surat->employees()->sync($pivotData);
 
             if ($request->hasFile('file_surat')) {
-                $path = $request->file('file_surat')->store('private/surat_tugas');
+                $folder = 'surat-tugas/' . $surat->id;
+                $ext = $request->file('file_surat')->extension();
+                $filename = \Illuminate\Support\Str::slug($surat->maksud_tujuan ?: 'surat-tugas') . '.' . $ext;
+                $path = $request->file('file_surat')->storeAs($folder, $filename);
                 $surat->update(['file_surat_path' => $path]);
             }
 
@@ -149,7 +152,10 @@ class AssignmentLetterController extends Controller
                 if ($surat->file_surat_path) {
                     Storage::delete($surat->file_surat_path);
                 }
-                $path = $request->file('file_surat')->store('private/surat_tugas');
+                $folder = 'surat-tugas/' . $surat->id;
+                $ext = $request->file('file_surat')->extension();
+                $filename = \Illuminate\Support\Str::slug($surat->maksud_tujuan ?: 'surat-tugas') . '.' . $ext;
+                $path = $request->file('file_surat')->storeAs($folder, $filename);
                 $surat->update(['file_surat_path' => $path]);
             }
 
