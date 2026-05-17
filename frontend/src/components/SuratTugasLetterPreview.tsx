@@ -88,12 +88,12 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       <head>
         <title>Surat Tugas - ${data.nomor_surat || 'Draft'}</title>
         <style>
-          @page { size: A4 portrait; margin: 10mm 15mm; }
-          body { margin: 0; padding: 0; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
+          @page { size: A4 portrait; margin: 0; }
+          body { margin: 15mm 15mm 10mm 15mm; padding: 0; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
           img { max-width: 100%; }
           table { border-collapse: collapse; }
-          [data-kop] { margin: 0 -5mm; }
-          [data-kop] img { width: 100%; height: auto; display: block; }
+          [data-kop] { margin: -15mm -15mm 2px -15mm; }
+          [data-kop] img { width: calc(100% + 30mm); height: auto; display: block; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
