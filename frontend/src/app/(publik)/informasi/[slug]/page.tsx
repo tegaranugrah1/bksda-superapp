@@ -145,12 +145,15 @@ export default function InformasiDetailPage() {
 
           {/* Konten HTML */}
           <style dangerouslySetInnerHTML={{ __html: `
+            .cms-content { overflow-wrap: break-word; word-break: break-word; }
             .cms-content .ql-align-center { text-align: center !important; }
             .cms-content .ql-align-right { text-align: right !important; }
             .cms-content .ql-align-justify { text-align: justify !important; }
             .cms-content p.ql-align-center { text-align: center !important; }
             .cms-content p.ql-align-right { text-align: right !important; }
             .cms-content p.ql-align-justify { text-align: justify !important; }
+            .cms-content img { max-width: 100% !important; height: auto !important; border-radius: 12px; }
+            .cms-content p { overflow-wrap: break-word; word-break: break-word; }
           `}} />
           <div
             className="cms-content prose prose-green prose-lg max-w-none text-gray-700"
