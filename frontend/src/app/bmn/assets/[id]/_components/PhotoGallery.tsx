@@ -14,6 +14,7 @@ interface PhotoGalleryProps {
   assetName: string;
   nup: string;
   fotoGeotagUrl: string | null;
+  fotoGeotagPath: string | null;
   fotoBelakangUrl: string | null;
   fotoKiriUrl: string | null;
   fotoKananUrl: string | null;
@@ -24,7 +25,7 @@ interface PhotoGalleryProps {
 }
 
 const PHOTO_SLOTS = [
-  { key: "geotag", label: "Tampak Depan (Foto Geotag)", type: "link" },
+  { key: "geotag", label: "Tampak Depan (Foto Geotag)", type: "hybrid" },
   { key: "belakang", label: "Tampak Belakang", type: "upload" },
   { key: "kiri", label: "Tampak Kiri", type: "upload" },
   { key: "kanan", label: "Tampak Kanan", type: "upload" },
@@ -38,7 +39,7 @@ function driveToThumbnail(url: string): string | null {
   return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
 }
 
-export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
+export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
@@ -47,8 +48,11 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
 
+  // Geotag resolves to: local path (preferred) > external URL
+  const resolvedGeotagUrl = fotoGeotagPath || fotoGeotagUrl;
+
   const photos: Record<string, string | null> = {
-    geotag: fotoGeotagUrl,
+    geotag: resolvedGeotagUrl,
     belakang: fotoBelakangUrl,
     kiri: fotoKiriUrl,
     kanan: fotoKananUrl,
@@ -79,8 +83,8 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
   const availablePhotos = PHOTO_SLOTS.map((slot) => {
     const url = photos[slot.key];
     if (!url) return null;
-    const isGeotag = slot.type === "link";
-    const displayUrl = isGeotag ? driveToThumbnail(url)?.replace("sz=w400", "sz=w1200") || url : url;
+    const isExternalOnly = slot.type === "hybrid" && !fotoGeotagPath && !!fotoGeotagUrl;
+    const displayUrl = isExternalOnly ? driveToThumbnail(url)?.replace("sz=w400", "sz=w1200") || url : url;
     return { key: slot.key, label: slot.label, url: displayUrl };
   }).filter(Boolean) as { key: string; label: string; url: string }[];
 
@@ -103,10 +107,15 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
     setUploading(uploadTarget);
     const formData = new FormData();
     formData.append("photo", file);
-    formData.append("type", uploadTarget);
 
     try {
-      await api.post(`/bmn/assets/${assetId}/photo`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      if (uploadTarget === "geotag") {
+        // Hybrid geotag endpoint
+        await api.post(`/bmn/assets/${assetId}/geotag`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      } else {
+        formData.append("type", uploadTarget);
+        await api.post(`/bmn/assets/${assetId}/photo`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      }
       toast.success("Foto berhasil diupload.");
       onRefresh();
     } catch { toast.error("Gagal upload foto."); }
@@ -116,7 +125,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
   const handleSaveGeotag = async () => {
     if (!geotagInput.trim()) return;
     try {
-      await api.put(`/bmn/assets/${assetId}/geotag`, { url: geotagInput.trim() });
+      await api.post(`/bmn/assets/${assetId}/geotag`, { url: geotagInput.trim() });
       toast.success("Link geotag berhasil disimpan.");
       setShowGeotagInput(false);
       setGeotagInput("");
@@ -140,8 +149,21 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
   };
 
   const handleDownload = async (type: string) => {
-    if (type === "geotag" && fotoGeotagUrl) {
-      window.open(fotoGeotagUrl, "_blank");
+    if (type === "geotag") {
+      // If local file, download via API; if external URL, open in new tab
+      if (fotoGeotagPath) {
+        try {
+          const res = await api.get(`/bmn/assets/${assetId}/photo/geotag/download`, { responseType: "blob" });
+          const url = window.URL.createObjectURL(new Blob([res.data]));
+          const link = document.createElement("a");
+          link.href = url;
+          const slug = assetName.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
+          link.setAttribute("download", `${slug}_${nup}_geotag.jpg`);
+          document.body.appendChild(link); link.click(); link.parentNode?.removeChild(link);
+        } catch { toast.error("Foto tidak tersedia."); }
+      } else if (fotoGeotagUrl) {
+        window.open(fotoGeotagUrl, "_blank");
+      }
       return;
     }
     try {
@@ -207,7 +229,8 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
       <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {PHOTO_SLOTS.map((slot) => {
           const url = photos[slot.key];
-          const isGeotag = slot.type === "link";
+          const isHybrid = slot.type === "hybrid";
+          const isExternalOnly = isHybrid && !fotoGeotagPath && !!fotoGeotagUrl;
 
           return (
             <div key={slot.key} className="group relative">
@@ -216,7 +239,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
                 url ? "border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-500/5" : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600"
               )}>
                 {url ? (
-                  isGeotag ? (
+                  isExternalOnly ? (
                     (() => {
                       const thumb = driveToThumbnail(url);
                       return thumb ? (
@@ -254,7 +277,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
                     <button onClick={() => copyLink(url)} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500" title="Copy Link">
                       <Link2 className="w-3 h-3" />
                     </button>
-                    {canWrite && !isGeotag && (
+                    {canWrite && (
                       <button onClick={() => handleDelete(slot.key)} className="p-1 rounded hover:bg-red-50 text-red-500" title="Hapus">
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -262,10 +285,15 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
                   </>
                 )}
                 {canWrite && !url && (
-                  isGeotag ? (
-                    <button onClick={() => setShowGeotagInput(true)} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Tambah Link">
-                      <Link2 className="w-3 h-3" />
-                    </button>
+                  isHybrid ? (
+                    <>
+                      <button onClick={() => { setUploadTarget("geotag"); fileInputRef.current?.click(); }} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload File">
+                        <Upload className="w-3 h-3" />
+                      </button>
+                      <button onClick={() => setShowGeotagInput(true)} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Tambah Link">
+                        <Link2 className="w-3 h-3" />
+                      </button>
+                    </>
                   ) : (
                     <button onClick={() => { setUploadTarget(slot.key); fileInputRef.current?.click(); }} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload">
                       <Upload className="w-3 h-3" />
@@ -285,7 +313,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoBelak
             type="url"
             value={geotagInput}
             onChange={(e) => setGeotagInput(e.target.value)}
-            placeholder="https://drive.google.com/..."
+            placeholder="https://link-foto-geotag..."
             className="flex-1 px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           />
           <Button size="sm" onClick={handleSaveGeotag} className="rounded-lg bg-emerald-600">Simpan</Button>

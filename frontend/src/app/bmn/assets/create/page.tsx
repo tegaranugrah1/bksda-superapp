@@ -142,8 +142,8 @@ export default function BmnCreateAssetPage() {
     tanggal_ganti_plat: "",
   });
 
-  const [photoFiles, setPhotoFiles] = useState<{ belakang: File | null; kiri: File | null; kanan: File | null; lokasi: File | null }>({
-    belakang: null, kiri: null, kanan: null, lokasi: null,
+  const [photoFiles, setPhotoFiles] = useState<{ geotag: File | null; belakang: File | null; kiri: File | null; kanan: File | null; lokasi: File | null }>({
+    geotag: null, belakang: null, kiri: null, kanan: null, lokasi: null,
   });
 
   const set = (key: string, value: string | number) => setForm(prev => ({ ...prev, [key]: value }));
@@ -159,6 +159,8 @@ export default function BmnCreateAssetPage() {
     try {
       // Auto-fill defaults
       const payload: FormData = { ...form, ...ORG_DEFAULTS };
+      // Geotag is handled separately via the hybrid endpoint
+      delete payload.foto_geotag_url;
       
       // Auto-calculate tahun_perolehan from tanggal_perolehan
       if (form.tanggal_perolehan) {
@@ -183,6 +185,21 @@ export default function BmnCreateAssetPage() {
 
       // Upload photos if any
       if (assetId) {
+        // Upload geotag file (if chosen file) or save geotag URL
+        if (photoFiles.geotag) {
+          const fd = new FormData();
+          fd.append("photo", photoFiles.geotag);
+          try {
+            await api.post(`/bmn/assets/${assetId}/geotag`, fd, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+          } catch { /* non-blocking */ }
+        } else if (form.foto_geotag_url) {
+          try {
+            await api.post(`/bmn/assets/${assetId}/geotag`, { url: form.foto_geotag_url });
+          } catch { /* non-blocking */ }
+        }
+
         const photoTypes = ['belakang', 'kiri', 'kanan', 'lokasi'] as const;
         for (const type of photoTypes) {
           const file = photoFiles[type];
@@ -387,7 +404,27 @@ export default function BmnCreateAssetPage() {
         {step === 4 && (
           <div className="space-y-5">
             <h2 className="text-sm font-bold text-slate-700 mb-4">Foto Aset</h2>
-            <Field label="Link Tampak Depan (Google Drive)" value={form.foto_geotag_url as string} onChange={v => set("foto_geotag_url", v)} placeholder="https://drive.google.com/file/d/..." />
+
+            {/* Foto Geotag - Hybrid: Upload file ATAU paste link */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-600">Foto Tampak Depan (Geotag)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <PhotoInput label="Upload File Langsung" value={photoFiles.geotag} onChange={(f) => { setPhotoFiles(prev => ({ ...prev, geotag: f })); if (f) set("foto_geotag_url", ""); }} />
+                <div>
+                  <label className="block text-[10px] font-medium text-slate-500 mb-1">Atau Paste Link URL</label>
+                  <input
+                    type="url"
+                    value={photoFiles.geotag ? "" : (form.foto_geotag_url as string || "")}
+                    onChange={e => { set("foto_geotag_url", e.target.value); if (e.target.value) setPhotoFiles(prev => ({ ...prev, geotag: null })); }}
+                    disabled={!!photoFiles.geotag}
+                    placeholder="https://link-foto-geotag..."
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:bg-slate-50 disabled:text-slate-400"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-400">Pilih salah satu: upload file langsung atau paste URL publik.</p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <PhotoInput label="Foto Tampak Belakang" value={photoFiles.belakang} onChange={(f) => setPhotoFiles(prev => ({ ...prev, belakang: f }))} />
               <PhotoInput label="Foto Tampak Kiri" value={photoFiles.kiri} onChange={(f) => setPhotoFiles(prev => ({ ...prev, kiri: f }))} />

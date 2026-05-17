@@ -94,6 +94,7 @@ class AssetResource extends JsonResource
             'status_pmk' => $this->status_pmk,
             'status_foto_geotag' => $this->status_foto_geotag,
             'foto_geotag_url' => $this->foto_geotag_url,
+            'foto_geotag_path' => $this->foto_geotag_path ? asset('storage/' . $this->foto_geotag_path) : null,
             'foto_belakang_url' => $this->foto_belakang_path ? asset('storage/' . $this->foto_belakang_path) : null,
             'foto_kiri_url' => $this->foto_kiri_path ? asset('storage/' . $this->foto_kiri_path) : null,
             'foto_kanan_url' => $this->foto_kanan_path ? asset('storage/' . $this->foto_kanan_path) : null,
