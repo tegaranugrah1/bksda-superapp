@@ -21,11 +21,11 @@ class EmployeeRequest extends FormRequest
     public function rules(): array
     {
         // Deteksi apakah ini operasi Update (PUT/PATCH) atau Create (POST)
-        $employeeId = $this->route('employee');
+        $employeeId = $this->route('employee') ?? 'NULL';
 
         return [
             // NIP harus unique. Jika sedang Update, abaikan NIP miliknya sendiri
-            'nip' => 'required|string|max:50|unique:kpg_employees,nip,'.$employeeId,
+            'nip' => 'required|string|max:50|unique:kpg_employees,nip,' . $employeeId,
             'nama_lengkap' => 'required|string|max:255',
             'jabatan' => 'nullable|string|max:255',
             'pangkat_golongan' => 'nullable|string|max:255',
