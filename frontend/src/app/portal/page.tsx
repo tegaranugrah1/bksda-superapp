@@ -197,11 +197,19 @@ export default function PersonalDashboard() {
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  // Fetch surat tugas immediately when employee data is available
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (data?.employee?.id) {
+      fetchSuratTugas();
+    }
+  }, [data, fetchSuratTugas]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { 
-    if (activeTab === "surat_tugas") fetchSuratTugas(); 
     if (activeTab === "aset") fetchAssets();
-  }, [activeTab, fetchSuratTugas, fetchAssets]);
+  }, [activeTab, fetchAssets]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleLogout = () => { authStore.logout(); router.push("/login"); };
