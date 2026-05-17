@@ -1,14 +1,8 @@
-# Stage 1: Dependencies
-FROM node:20-alpine AS deps
+# Stage 1: Build
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
-
-# Stage 2: Build
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 COPY . .
 
 # Build args for env vars needed at build time
@@ -21,8 +15,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
 
-# Stage 3: Production
-FROM node:20-alpine AS runner
+# Stage 2: Production
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
