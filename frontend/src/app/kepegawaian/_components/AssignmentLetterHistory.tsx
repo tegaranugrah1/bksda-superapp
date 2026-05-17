@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { FileText, Calendar, MapPin, ExternalLink, Plus } from "lucide-react";
+import { FileText, Calendar, MapPin, Eye, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
+import { toast } from "sonner";
+import SuratTugasLetterPreview from "@/components/SuratTugasLetterPreview";
 
 interface AssignmentLetter {
   id: string;
@@ -32,6 +35,8 @@ interface ApiResponse {
 
 export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) {
   const { canWrite } = useRole();
+  const [previewData, setPreviewData] = useState<any>(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ["employee-assignments", employeeId],
     queryFn: async () => {
@@ -39,6 +44,15 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
       return data;
     },
   });
+
+  const handleView = async (stId: string) => {
+    try {
+      const resp = await api.get(`/surat-tugas/${stId}`);
+      setPreviewData(resp.data.data || resp.data);
+    } catch {
+      toast.error("Gagal memuat detail surat tugas.");
+    }
+  };
 
   if (isLoading) {
     return <div className="space-y-3">
@@ -90,15 +104,21 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
                     </span>
                   </div>
                 </div>
-                <Link href={`/surat-tugas/${st.id}`}>
-                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-blue-500">
-                        <ExternalLink className="w-4 h-4" />
-                    </Button>
-                </Link>
+                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-blue-500" onClick={() => handleView(st.id)}>
+                  <Eye className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Letter Preview */}
+      {previewData && (
+        <SuratTugasLetterPreview
+          data={previewData}
+          onClose={() => setPreviewData(null)}
+        />
       )}
     </div>
   );
