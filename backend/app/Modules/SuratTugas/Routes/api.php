@@ -15,7 +15,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/my/{id}', [AssignmentLetterController::class, 'myShow']);
 });
 
-Route::middleware(['auth:sanctum', 'module.access:surat_tugas'])->group(function () {
+Route::middleware(['auth:sanctum', 'module.access:surat_tugas,kepegawaian'])->group(function () {
 
     Route::post('/', [AssignmentLetterController::class, 'store']);
     Route::put('/{id}/status', [AssignmentLetterController::class, 'updateStatus']);

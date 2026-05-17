@@ -17,12 +17,10 @@ class CheckModuleAccess
      * @param  Closure(Request): (Response)  $next
      * @param  string  $moduleName  Nama modul (contoh: 'kepegawaian', 'inventory')
      */
-    public function handle(Request $request, Closure $next, string $moduleName): Response
+    public function handle(Request $request, Closure $next, string ...$moduleNames): Response
     {
         $user = $request->user();
 
-        // 1. EARLY RETURN: Pastikan user terautentikasi
-        // (Walaupun biasanya auth:sanctum sudah menangani ini, ini sebagai lapis keamanan ganda)
         if (! $user) {
             return response()->json([
                 'error' => 'Unauthenticated',
@@ -30,19 +28,23 @@ class CheckModuleAccess
             ], 401);
         }
 
-        // 2. EARLY RETURN: Bypass khusus Super Admin (Sesuai Rule 2.3)
-        // super_admin adalah dewa, izinkan akses ke semua modul tanpa pengecekan
+        // Super admin bypass
         if ($user->role === 'super_admin') {
             return $next($request);
         }
 
-        // 3. Ambil daftar tiket (hak akses modul) yang dimiliki User
-        // Menggunakan null coalescing (?? []) agar tidak error jika isinya kosong/null
         $accessModules = $user->access_modules ?? [];
 
-        // 4. VALIDASI UTAMA: Apakah $moduleName ada di dalam kantong tiket ($accessModules)?
-        if (! in_array($moduleName, $accessModules)) {
-            // Jika tidak ada, tolak dengan 403 Forbidden sesuai Rule 5.2 (Standar Error Format)
+        // Check if user has access to ANY of the specified modules (OR logic)
+        $hasAccess = false;
+        foreach ($moduleNames as $moduleName) {
+            if (in_array($moduleName, $accessModules)) {
+                $hasAccess = true;
+                break;
+            }
+        }
+
+        if (! $hasAccess) {
             return response()->json([
                 'error' => 'Forbidden',
                 'message' => 'Anda tidak memiliki hak akses ke modul ini.',
@@ -50,7 +52,6 @@ class CheckModuleAccess
             ], 403);
         }
 
-        // 5. Jika lolos semua penjagaan di atas, persilakan masuk
         return $next($request);
     }
 }
