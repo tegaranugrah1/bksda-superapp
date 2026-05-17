@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class EmployeeController extends Controller
 {
@@ -64,13 +65,26 @@ class EmployeeController extends Controller
         if ($request->hasFile('foto')) {
             $file = $request->file('foto');
 
-            // store() membuat nama file acak (Hash).
-            // Default disk = s3 (RustFS) via FILESYSTEM_DISK env.
             $path = $file->store('employees/foto');
             $validated['foto_profil'] = $path;
         }
 
         $employee = Employee::create($validated);
+
+        // Re-store photo with proper folder structure after employee is created
+        if (isset($validated['foto_profil'])) {
+            $oldPath = $validated['foto_profil'];
+            $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
+            $ext = pathinfo($oldPath, PATHINFO_EXTENSION);
+            $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
+            $newPath = $folder . '/' . $filename;
+
+            // Move file to proper folder
+            if (Storage::exists($oldPath)) {
+                Storage::move($oldPath, $newPath);
+                $employee->update(['foto_profil' => $newPath]);
+            }
+        }
 
         // Auto-create user account with default password '123'
         if (!User::where('username', $employee->nip)->exists()) {
@@ -120,7 +134,10 @@ class EmployeeController extends Controller
             }
 
             // Simpan foto baru
-            $path = $request->file('foto')->store('employees/foto');
+            $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
+            $ext = $request->file('foto')->extension();
+            $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
+            $path = $request->file('foto')->storeAs($folder, $filename);
             $validated['foto_profil'] = $path;
         }
 
@@ -149,7 +166,10 @@ class EmployeeController extends Controller
             Storage::delete($employee->foto_profil);
         }
 
-        $path = $request->file('foto')->store('employees/foto');
+        $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
+        $ext = $request->file('foto')->extension();
+        $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
+        $path = $request->file('foto')->storeAs($folder, $filename);
         $employee->update(['foto_profil' => $path]);
 
         return response()->json([

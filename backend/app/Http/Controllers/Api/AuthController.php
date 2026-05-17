@@ -182,7 +182,10 @@ class AuthController extends Controller
         }
 
         // Store new photo
-        $path = $request->file('foto')->store('employees/foto');
+        $folder = 'employees/' . \Illuminate\Support\Str::slug($employee->nama_lengkap) . '/foto-profil';
+        $ext = $request->file('foto')->extension();
+        $filename = \Illuminate\Support\Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
+        $path = $request->file('foto')->storeAs($folder, $filename);
         $employee->update(['foto_profil' => $path]);
 
         return response()->json([
