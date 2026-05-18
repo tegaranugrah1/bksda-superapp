@@ -43,7 +43,7 @@ services:
     environment:
       APP_NAME: "BKSDA SuperApp"
       APP_ENV: production
-      APP_DEBUG: "false"
+      APP_DEBUG: "true"
       APP_URL: https://api.bksdakaltim.net
       FRONTEND_URL: https://bksdakaltim.net
       APP_KEY: ${APP_KEY}
