@@ -56,12 +56,12 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #314: ST Builder FOLU funding normalization (PR #315 MERGED + DEPLOYED) |
-| **Issue Selanjutnya** | Review/merge/deploy PR #317 for Issue #316, then import BMN Excel in production |
-| **Branch Aktif** | `issue/316-untuk-print-pagination` |
-| **Commit Terakhir** | fix(surat-tugas): allow Untuk print pagination (#316) |
+| **Issue Terakhir Selesai** | Issue #316: ST Builder Untuk print pagination (PR #317 MERGED + DEPLOYED) |
+| **Issue Selanjutnya** | Import BMN Excel in production, then continue public sub-pages styling |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir** | Merge pull request #317 from tegaranugrah1/issue/316-untuk-print-pagination |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-18T18:05:48+08:00 |
+| **Timestamp** | 2026-05-18T18:09:17+08:00 |
 
 ---
 
@@ -69,12 +69,13 @@ git push origin main
 
 **UPDATE SESI CODEX (2026-05-18 - Issue #316: ST Builder Untuk Print Pagination):**
 - **Objective**: Fix FOLU print layout where the entire `Untuk` section moves to the next page when there are 2 employees, leaving unused space on the previous page.
-- **Status**: PR OPEN - PR #317 is clean and ready for review/merge/deploy.
+- **Status**: MERGED + DEPLOYED to production EC2.
 - **GitHub**:
   - Issue: #316 `fix(surat-tugas): allow Untuk section to paginate in FOLU print`
-  - PR: #317 `fix(surat-tugas): allow Untuk print pagination (#316)`
+  - PR: #317 `fix(surat-tugas): allow Untuk print pagination (#316)` - merged to `main`
   - Branch: `issue/316-untuk-print-pagination`
   - Commit: `43c6c92 fix(surat-tugas): allow Untuk print pagination (#316)`
+  - Merge commit: `76589fa`
 - **Root Cause**:
   - The `Untuk` section was still rendered as nested table rows.
   - Print CSS has global `tr { page-break-inside: avoid; break-inside: avoid; }`, so Chrome treated the outer `Untuk` row as one unbreakable block and pushed it fully to page 2.
@@ -90,12 +91,16 @@ git push origin main
   - `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx"` clean.
   - `npx tsc --noEmit` clean.
   - `npm run build` clean.
+- **Production Deploy**:
+  - Server pulled `main` to `76589fa`.
+  - Rebuilt frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod build frontend`.
+  - Recreated frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d frontend`.
+  - Verified `bksda-frontend` and `bksda-nginx` containers are up.
+  - Verified `https://bksdakaltim.net/login` returns HTTP 200.
 - **Known Issues / Risks**:
   - Untracked local helper/credential files still exist and were intentionally not staged (`bksda-superapp.pem`, `service-account.json`, import/deploy test scripts).
-  - Production deploy has not yet been done for Issue #316 at the moment this note was written.
+  - Server working tree still has pre-existing local changes not touched by this deploy: modified `docker-compose.prod.yml` and untracked `backend/seed_admin.php`.
 - **Next Steps**:
-  - [ ] Merge PR #317.
-  - [ ] Deploy merged frontend fix to production server via SSH.
   - [ ] Re-test FOLU print preview with 2 employees on production.
   - [ ] Import BMN Excel in production.
   - [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
