@@ -219,38 +219,39 @@ export default function STBuilderPreview({
               </div>
 
               {/* === UNTUK === */}
-              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
-                <tbody>
-                  <tr>
-                    <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Untuk</td>
-                    <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
-                    <td style={{ verticalAlign: "top", padding: "2px 0" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                        <tbody>
-                          <tr>
-                            <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>1.</td>
-                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                              {buildUntukText()}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>2.</td>
-                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                              {buildBiayaText()}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>3.</td>
-                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                              Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div
+                className="field-section untuk-section"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "110px 12px 1fr",
+                  columnGap: 0,
+                  marginBottom: "8px",
+                }}
+              >
+                <div style={{ padding: "2px 0" }}>Untuk</div>
+                <div style={{ padding: "2px 0" }}>:</div>
+                <div className="untuk-list" style={{ padding: "2px 0" }}>
+                  {[
+                    buildUntukText(),
+                    buildBiayaText(),
+                    "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
+                  ].map((item, idx) => (
+                    <div
+                      className="untuk-entry"
+                      key={idx}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "24px 1fr",
+                        padding: "2px 0",
+                        breakInside: "avoid",
+                      }}
+                    >
+                      <div style={{ padding: "0" }}>{idx + 1}.</div>
+                      <div style={{ padding: "0", textAlign: "justify" }}>{item}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* === PENUTUP === */}
               {isFolu ? (
