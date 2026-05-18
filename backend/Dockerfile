@@ -9,17 +9,22 @@ RUN apk add --no-cache \
     curl \
     git \
     icu-dev \
-    oniguruma-dev
+    oniguruma-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev
 
 # Install PHP extensions
-RUN docker-php-ext-install \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install \
     pdo_pgsql \
     pgsql \
     zip \
     intl \
     mbstring \
     bcmath \
-    opcache
+    opcache \
+    gd
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
