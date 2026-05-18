@@ -56,12 +56,12 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #312: ST Builder print layout stabilization (PR #313 MERGED) |
-| **Issue Selanjutnya** | Review/merge PR #315 for Issue #314, deploy ST Builder fixes to production, then import BMN Excel |
-| **Branch Aktif** | `issue/314-folu-funding-builder` |
-| **Commit Terakhir** | fix(surat-tugas): normalize FOLU funding in builder (#314) |
+| **Issue Terakhir Selesai** | Issue #314: ST Builder FOLU funding normalization (PR #315 MERGED + DEPLOYED) |
+| **Issue Selanjutnya** | Import BMN Excel in production, then continue public sub-pages styling |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir** | Merge pull request #315 from tegaranugrah1/issue/314-folu-funding-builder |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-18T17:55:43+08:00 |
+| **Timestamp** | 2026-05-18T18:01:19+08:00 |
 
 ---
 
@@ -69,12 +69,13 @@ git push origin main
 
 **UPDATE SESI CODEX (2026-05-18 - Issue #314: ST Builder FOLU Funding Normalization):**
 - **Objective**: Fix ST Builder edit mode so Surat Tugas submitted from `/surat-tugas` with `Dana Kerjasama FOLU` opens as FOLU instead of falling back to DIPA.
-- **Status**: PR OPEN - PR #315 is clean and ready for review/merge.
+- **Status**: MERGED + DEPLOYED to production EC2.
 - **GitHub**:
   - Issue: #314 `fix(surat-tugas): normalize FOLU funding in ST Builder`
-  - PR: #315 `fix(surat-tugas): normalize FOLU funding in builder (#314)`
+  - PR: #315 `fix(surat-tugas): normalize FOLU funding in builder (#314)` - merged to `main`
   - Branch: `issue/314-folu-funding-builder`
   - Commit: `b7720de fix(surat-tugas): normalize FOLU funding in builder (#314)`
+  - Merge commit: `f4a34ba`
 - **Accomplishments**:
   - Added source-funding normalization in ST Builder so saved labels like `Dana Kerjasama FOLU`, `Dana Kerjasama FOLU NC 2&3`, and internal value `folu` all map to the Builder option `folu`.
   - Fixed the user-reported case where Inbox detail showed `Dana Kerjasama FOLU`, but clicking **Edit Surat Tugas** showed `DIPA`.
@@ -93,12 +94,18 @@ git push origin main
   - `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx" "src/app/kepegawaian/surat-tugas/create/page.tsx" "src/lib/letter-utils.ts"` clean.
   - `npx tsc --noEmit` clean.
   - `npm run build` clean.
+- **Production Deploy**:
+  - Server: `ssh -i bksda-superapp.pem ec2-user@15.135.114.1`
+  - App path: `/home/ec2-user/bksda-superapp`
+  - Pulled `main` to `f4a34ba`.
+  - Rebuilt frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod build frontend`.
+  - Recreated frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d frontend`.
+  - Verified `bksda-frontend` and `bksda-nginx` containers are up.
+  - Verified `https://bksdakaltim.net/login` returns HTTP 200.
 - **Known Issues / Risks**:
   - Untracked local helper/credential files still exist and were intentionally not staged (`bksda-superapp.pem`, `service-account.json`, import/deploy test scripts).
-  - Full deploy to SSH/production has not been done for Issue #314 yet; do it after PR #315 is merged.
+  - Server working tree still has pre-existing local changes not touched by this deploy: modified `docker-compose.prod.yml` and untracked `backend/seed_admin.php`.
 - **Next Steps**:
-  - [ ] Review and merge PR #315.
-  - [ ] Deploy merged ST Builder fixes to production server via SSH.
   - [ ] Re-test Inbox -> Edit Surat Tugas for submitted FOLU letters on production.
   - [ ] Import BMN Excel in production.
   - [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).

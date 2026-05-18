@@ -1,7 +1,7 @@
 # Progress - Phase 38: Production Fixes + ST Builder FOLU Template
 
 > Document updated: 2026-05-18
-> Status: **PR OPEN**
+> Status: **DEPLOYED**
 
 ---
 
@@ -10,12 +10,14 @@
 ### Completed:
 - [x] **PR Created**: PR #315 opened from `issue/314-folu-funding-builder` to `main`.
 - [x] **Issue Created**: Issue #314 tracks the FOLU funding fallback bug.
+- [x] **PR Merged**: PR #315 merged to `main` (`f4a34ba`).
 - [x] **Funding Normalization**: ST Builder now maps submitted labels such as `Dana Kerjasama FOLU` and `Dana Kerjasama FOLU NC 2&3` to the internal `folu` option.
 - [x] **Inbox Edit Bug Fixed**: Letters that show `Dana Kerjasama FOLU` in Inbox no longer open as `DIPA` when clicking **Edit Surat Tugas**.
 - [x] **FOLU Menimbang Helper**: Added shared helper to extract kawasan from `Tempat Spesifik` or from activity text containing `di ...`.
 - [x] **Patroli SMART Template**: FOLU activities containing `Smart Patrol` or `Patroli` now generate `Menimbang` with `melalui Patroli SMART`.
 - [x] **Create + Builder Sync**: Direct ST create and Builder edit flows both sync generated FOLU Menimbang when activity/place changes.
 - [x] **Manual Text Safety**: Auto-sync only touches default/generated FOLU Menimbang text and does not overwrite manually customized Menimbang text.
+- [x] **Production Deploy**: EC2 pulled `main`, rebuilt/recreated `frontend`, and `https://bksdakaltim.net/login` returned HTTP 200.
 
 ### Example Output:
 ```text
@@ -37,9 +39,9 @@ bahwa dalam upaya menjaga kelestarian keanekaragaman hayati di Cagar Alam Muara 
 - [x] `npm run build`
 
 ### Pending:
-- [ ] Review/merge PR #315.
-- [ ] Deploy Issue #314 fix to production via SSH after merge.
 - [ ] Re-test production Inbox -> Edit Surat Tugas for submitted FOLU letters.
+- [ ] Import BMN Excel in production.
+- [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
 
 ---
 
