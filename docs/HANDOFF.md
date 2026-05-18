@@ -56,16 +56,59 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #312: ST Builder print layout stabilization (READY FOR PR) |
-| **Issue Selanjutnya** | Deploy ST Builder print fix to production, then import BMN Excel and continue public sub-pages styling |
-| **Branch Aktif** | `issue/312-st-builder-print-layout` |
-| **Commit Terakhir** | fix(surat-tugas): stabilize ST Builder print layout (#312) |
+| **Issue Terakhir Selesai** | Issue #312: ST Builder print layout stabilization (PR #313 MERGED) |
+| **Issue Selanjutnya** | Review/merge PR #315 for Issue #314, deploy ST Builder fixes to production, then import BMN Excel |
+| **Branch Aktif** | `issue/314-folu-funding-builder` |
+| **Commit Terakhir** | fix(surat-tugas): normalize FOLU funding in builder (#314) |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-18T18:00:00+08:00 |
+| **Timestamp** | 2026-05-18T17:55:43+08:00 |
 
 ---
 
 ---
+
+**UPDATE SESI CODEX (2026-05-18 - Issue #314: ST Builder FOLU Funding Normalization):**
+- **Objective**: Fix ST Builder edit mode so Surat Tugas submitted from `/surat-tugas` with `Dana Kerjasama FOLU` opens as FOLU instead of falling back to DIPA.
+- **Status**: PR OPEN - PR #315 is clean and ready for review/merge.
+- **GitHub**:
+  - Issue: #314 `fix(surat-tugas): normalize FOLU funding in ST Builder`
+  - PR: #315 `fix(surat-tugas): normalize FOLU funding in builder (#314)`
+  - Branch: `issue/314-folu-funding-builder`
+  - Commit: `b7720de fix(surat-tugas): normalize FOLU funding in builder (#314)`
+- **Accomplishments**:
+  - Added source-funding normalization in ST Builder so saved labels like `Dana Kerjasama FOLU`, `Dana Kerjasama FOLU NC 2&3`, and internal value `folu` all map to the Builder option `folu`.
+  - Fixed the user-reported case where Inbox detail showed `Dana Kerjasama FOLU`, but clicking **Edit Surat Tugas** showed `DIPA`.
+  - Added FOLU Menimbang helper that extracts kawasan names from `Tempat Spesifik` or from activity text containing `di ...`.
+  - FOLU Menimbang now becomes: `bahwa dalam upaya menjaga kelestarian keanekaragaman hayati di [kawasan], perlu dilakukan kegiatan pengamanan dan perlindungan melalui Patroli SMART;` when the activity contains Smart Patrol/Patroli.
+  - Applied the same FOLU Menimbang sync to direct ST create page and ST Builder edit flow.
+  - Preserved manually edited Menimbang text by only auto-updating default/generated FOLU text.
+- **Example Covered**:
+  - `Melaksanakan perjalanan dinas dari Samarinda ke Kabupaten Kutai Barat dalam rangka melaksanakan Smart Patrol/Patroli Perlindungan Kawasan Konservasi di Suaka Margasatwa Kelian` + FOLU now generates Menimbang with `di Suaka Margasatwa Kelian`.
+  - `Melaksanakan Smart Patrol/Patroli Perlindungan dan Pengamanan Kawasan Konservasi di Cagar Alam Muara Kaman Sedulang` + FOLU now generates Menimbang with `di Cagar Alam Muara Kaman Sedulang`.
+- **Key Files Modified**:
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+  - `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`
+  - `frontend/src/lib/letter-utils.ts`
+- **Validation**:
+  - `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx" "src/app/kepegawaian/surat-tugas/create/page.tsx" "src/lib/letter-utils.ts"` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean.
+- **Known Issues / Risks**:
+  - Untracked local helper/credential files still exist and were intentionally not staged (`bksda-superapp.pem`, `service-account.json`, import/deploy test scripts).
+  - Full deploy to SSH/production has not been done for Issue #314 yet; do it after PR #315 is merged.
+- **Next Steps**:
+  - [ ] Review and merge PR #315.
+  - [ ] Deploy merged ST Builder fixes to production server via SSH.
+  - [ ] Re-test Inbox -> Edit Surat Tugas for submitted FOLU letters on production.
+  - [ ] Import BMN Excel in production.
+  - [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
+
+---
+
+**UPDATE SESI CODEX (2026-05-18 - Issue #312 Merge):**
+- PR #313 for Issue #312 was merged into `main`.
+- Merge commit: `f17c1049378f9b86b92c4cf2ff9e29982995adec`.
+- Branch cleanup was handled by GitHub CLI.
 
 **UPDATE SESI CODEX (2026-05-18 - Issue #312: ST Builder Print Layout Stabilization):**
 - **Objective**: Stabilize ST Builder print output for FOLU and DIPA letters after production fixes.
