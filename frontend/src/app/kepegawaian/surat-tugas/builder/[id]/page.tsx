@@ -82,9 +82,9 @@ const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
     dasarText: 'Perjanjian Kerjasama Antara Kepala Balai KSDA Kalimantan Timur dengan Direktur Aliansi Lestrai Rimba Terpadu (AleRT) Nomor: PKS.192/K.18/TU/Teknis/10/2023 dan Nomor: 51/PKS-ALeRT/ X/2023.',
     biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan ALeRT (Aliansi Lestari Rimba Terpadu);'
   },
-  { id: 'folu', label: 'Dana Kerjasama FOLU',
+  { id: 'folu', label: 'Dana Kerjasama FOLU NC 2&3',
     dasarText: '',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Dana Kerjasama FOLU;'
+    biayaText: 'Sumber dana dibebankan pada anggaran Proyek FOLU Net Sink 2030 RBC Norwegia Tahap II dan III (FOLU NC 2&3) pada AWP KSDAE - Tahun Anggaran {tahun};'
   },
   { id: 'dl1', label: 'DL 1 / Tidak ada biaya',
     dasarText: '',
@@ -119,6 +119,7 @@ export default function STBuilderPage() {
 
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
+  const [headerTitle, setHeaderTitle] = useState("KEPALA BALAI,");
   const [namaKegiatan, setNamaKegiatan] = useState("");
   const [activityPrefix, setActivityPrefix] = useState("Perjalanan Dinas");
   const [tanggalMulai, setTanggalMulai] = useState("");
@@ -199,13 +200,41 @@ export default function STBuilderPage() {
 
   // Function to update Dasar items based on Funding
   const updateDasarFromFunding = (fundingId: string, date: string) => {
+    const tahun = date ? new Date(date).getFullYear().toString() : new Date().getFullYear().toString();
+
+    // FOLU has a completely different template
+    if (fundingId === 'folu') {
+      setHeaderTitle("KEPALA UPT SELAKU\nPELAKSANA SATUAN KERJA IMPLEMENTING PARTNER FOLU NC 2&3");
+      setMenimbangItems([
+        { id: "folu-1", text: "bahwa dalam upaya menjaga kelestarian keanekaragaman hayati, perlu dilakukan kegiatan pengamanan dan perlindungan;" },
+        { id: "folu-2", text: "bahwa dalam rangka kelancaran tugas Project Management Unit FOLU-NC 2 dan 3 maka dipandang perlu menugaskan pegawai dimaksud;" },
+        { id: "folu-3", text: "bahwa untuk maksud tersebut (poin a dan b) perlu diterbitkan Surat Tugas." },
+      ]);
+      setDasarItems([
+        { id: "folu-d1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
+        { id: "folu-d2", text: `Keputusan Kepala Biro Perencanaan Kementerian Kehutanan Selaku Project Director FOLU NC 2&3 Nomor SK.30/ROCAN/PK/REN.02/6/2025 tentang Perubahan Atas Keputusan Kepala Biro Perencanaan Selaku Project Director FOLU NC 2&3 Nomor SK.11/ROCAN/PK/REN.02/4/2025 tentang Pedoman Operasional Proyek Implementasi FOLU Net Sink 2030 Melalui Sumber Dana Kerja Sama Indonesia - Norwegia Tahap Kedua dan Ketiga yang dikelola oleh Badan Pengelola Dana Lingkungan Hidup dengan Mekanisme Pengelolaan Dana Lingkungan Hidup;` },
+        { id: "folu-d3", text: `Keputusan Sekretaris Direktorat Jenderal Konservasi Sumber Daya Alam Dan Ekosistem Selaku Koordinator Kegiatan Implementing Partner FOLU Net Sink 2030 Melalui Sumber Dana Kerja Sama Indonesia Norwegia Tahap II Dan III Nomor: SK.2/KSDAE/FOLU.NC-23/I/2026 Tentang Penunjukan Personil Tim Pengelola Proyek Implementing Partner FOLU Net Sink 2030 Melalui Sumber Dana Kerja Sama Indonesia Norwegia Tahap II Dan III Yang Dikelola Oleh Badan Pengelola Dana Lingkungan Hidup;` },
+        { id: "folu-d4", text: `Annual Work Plan (AWP) Tahun Anggaran ${tahun} Implementasi FOLU Net Sink 2030 melalui Dukungan Sumber Dana Kerja Sama Indonesia-Norwegia Tahap Kedua dan Ketiga Ditjen KSDAE.` },
+      ]);
+      return;
+    }
+
+    // Reset header for non-FOLU
+    setHeaderTitle("KEPALA BALAI,");
+
     const opt = SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
     if (opt && opt.dasarText) {
-      const tahun = date ? new Date(date).getFullYear().toString() : new Date().getFullYear().toString();
       const text = opt.dasarText.replace(/{tahun}/g, tahun);
       
       setDasarItems(prev => {
         const newItems = [...prev];
+        // Reset to 2 items if previously was FOLU (4 items)
+        if (newItems.length > 2) {
+          return [
+            { id: "1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
+            { id: Date.now().toString(), text },
+          ];
+        }
         if (newItems.length >= 2) {
           newItems[1].text = text;
         } else if (newItems.length === 1) {
@@ -771,6 +800,7 @@ export default function STBuilderPage() {
               buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               tembusanItems={tembusanItems}
+              headerTitle={headerTitle}
             />
           </div>
           {/* Page break indicators */}

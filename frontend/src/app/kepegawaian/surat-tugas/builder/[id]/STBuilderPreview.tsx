@@ -34,6 +34,7 @@ interface PreviewProps {
   tanggalSurat: string;
   kepalaBalai: { name: string; nip: string };
   tembusanItems?: string[];
+  headerTitle?: string;
 }
 
 export default function STBuilderPreview({
@@ -50,6 +51,7 @@ export default function STBuilderPreview({
   tanggalSurat,
   kepalaBalai,
   tembusanItems = [],
+  headerTitle = "KEPALA BALAI,",
 }: PreviewProps) {
   return (
     <div
@@ -93,7 +95,15 @@ export default function STBuilderPreview({
               </p>
 
               {/* === KEPALA BALAI === */}
-              <p style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>KEPALA BALAI,</p>
+              {headerTitle.includes("\n") ? (
+                <div style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>
+                  {headerTitle.split("\n").map((line, i) => (
+                    <p key={i} style={{ margin: 0, fontStyle: line.includes("IMPLEMENTING") ? "italic" : "normal" }}>{line}</p>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>{headerTitle}</p>
+              )}
 
               {/* === MENIMBANG === */}
               <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
@@ -236,9 +246,29 @@ export default function STBuilderPreview({
 
               {/* === TANDA TANGAN + TEMBUSAN (keep together) === */}
               <div style={{ pageBreakInside: "avoid" }}>
-                {/* === TANDA TANGAN === */}
-                <div style={{ display: "flex", marginTop: "14px" }}>
-                  <div style={{ marginLeft: "9.2cm", textAlign: "left" }}>
+                {/* === TANDA TANGAN (kanan) + TEMBUSAN (kiri) === */}
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "14px", alignItems: "flex-start" }}>
+                  {/* TEMBUSAN — kiri, sejajar dengan NIP */}
+                  <div style={{ flex: "0 0 auto", maxWidth: "8cm", paddingTop: "80px" }}>
+                    {tembusanItems.length > 0 && (
+                      <div>
+                        <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
+                        <table style={{ borderCollapse: "collapse" }}>
+                          <tbody>
+                            {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
+                              <tr key={idx}>
+                                <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
+                                <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* TTD — kanan */}
+                  <div style={{ textAlign: "left" }}>
                     <p style={{ margin: 0 }}>
                       {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
                     </p>
@@ -250,23 +280,6 @@ export default function STBuilderPreview({
                     <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
                   </div>
                 </div>
-
-                {/* === TEMBUSAN === */}
-                {tembusanItems.length > 0 && (
-                  <div style={{ marginTop: "24px" }}>
-                    <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
-                    <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                      <tbody>
-                        {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
-                          <tr key={idx}>
-                            <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
-                            <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
               </div>
             </td>
           </tr>
