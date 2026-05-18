@@ -274,7 +274,7 @@ export default function STBuilderPage() {
           setDasarItems(data.dasar);
         }
         if (data.tembusan && Array.isArray(data.tembusan) && data.tembusan.length > 0) {
-          setTembusanItems(data.tembusan);
+          setTembusanItems(data.tembusan.filter((t: unknown): t is string => typeof t === 'string'));
         }
 
         const activityStr = data.maksud_tujuan || "";

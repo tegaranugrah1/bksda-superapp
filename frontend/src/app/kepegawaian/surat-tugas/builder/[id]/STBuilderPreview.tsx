@@ -257,7 +257,7 @@ export default function STBuilderPreview({
                     <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
                     <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                       <tbody>
-                        {tembusanItems.filter(t => t.trim()).map((item, idx) => (
+                        {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
                           <tr key={idx}>
                             <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
                             <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
