@@ -56,14 +56,55 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Phase 37: Production Deployment to AWS EC2 (🔄 IN PROGRESS) |
-| **Issue Selanjutnya** | SSL setup + fix API 500 + seed data + test all modules on production |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir** | fix: remove duplicate ST create migration + add .kiro specs |
-| **Model Terakhir** | Claude Opus 4.6 (Kiro) |
-| **Timestamp** | 2026-05-17T18:35:00+08:00 |
+| **Issue Terakhir Selesai** | Issue #312: ST Builder print layout stabilization (READY FOR PR) |
+| **Issue Selanjutnya** | Deploy ST Builder print fix to production, then import BMN Excel and continue public sub-pages styling |
+| **Branch Aktif** | `issue/312-st-builder-print-layout` |
+| **Commit Terakhir** | fix(surat-tugas): stabilize ST Builder print layout (#312) |
+| **Model Terakhir** | GPT-5 Codex |
+| **Timestamp** | 2026-05-18T18:00:00+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI CODEX (2026-05-18 - Issue #312: ST Builder Print Layout Stabilization):**
+- **Objective**: Stabilize ST Builder print output for FOLU and DIPA letters after production fixes.
+- **Status**: READY FOR PR - local print tuning completed, pending PR review/merge and production deploy.
+- **Accomplishments**:
+  - KOP surat halaman 1 no longer cropped in Chrome print preview.
+  - KOP is isolated from the main letter content so content margins do not affect the header.
+  - Main letter content is wrapped in `.surat-content` for consistent left/right margins across page breaks.
+  - Page 2+ keeps top margin via `@page` while page 1 gets a smaller top margin for KOP.
+  - `Kepada` block was refactored from a single large table row into block/grid layout.
+  - Employee entries now paginate per employee (`.employee-entry { break-inside: avoid }`) instead of moving the entire `Kepada` list to the next page.
+  - Verified scenarios discussed in session: FOLU, DIPA, 1 employee, 4 employees, 7 employees, and 11 employees no longer force the whole employee list down.
+- **Final Print CSS State**:
+  - `@page { size: A4; margin: 3cm 1cm 1cm 1.55cm; }`
+  - `@page :first { margin: 0.7cm 1cm 1cm 1.55cm; }`
+  - `.kop-surat` remains outside `.surat-content` and uses print-only sizing/spacing.
+  - `.surat-content { margin-left: 1.25cm; width: calc(100% - 2.2cm); margin-right: 0.95cm; }`
+  - `.kepada-list` may break across pages, `.employee-entry` avoids splitting inside an employee.
+- **Known Issues / Risks**:
+  - Full project lint still has pre-existing errors outside this change (`AssignmentLetterHistory.tsx`, `portal/page.tsx`, `portal/surat-tugas/[id]/page.tsx`).
+  - Only touched ST Builder print layout; untracked local deployment/import helper files and secrets were intentionally not staged.
+  - Need production deploy after PR merge.
+- **Key Files Modified**:
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+  - `docs/HANDOFF.md`
+  - `docs/progress.md`
+- **Validation**:
+  - `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx"` clean.
+  - `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx"` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean.
+  - Full `npm run lint -- --max-warnings=0` not clean due to unrelated pre-existing files noted above.
+- **Next Steps**:
+  - [ ] Push branch and open PR for issue #312.
+  - [ ] Merge PR after review/testing.
+  - [ ] Deploy ST Builder print fix to production.
+  - [ ] Import BMN Excel in production.
+  - [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
 
 ---
 

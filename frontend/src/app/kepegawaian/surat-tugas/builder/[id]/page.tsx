@@ -547,8 +547,8 @@ export default function STBuilderPage() {
       <head>
         <title>ST.${stNumber}-${namaKegiatan.replace(/[/\\?%*:|"<>]/g, '-')}</title>
         <style>
-          @page { size: A4; margin: 2cm 1.5cm 1cm 2.5cm; }
-          @page :first { margin-top: 0; }
+          @page { size: A4; margin: 3cm 1cm 1cm 1.55cm; }
+          @page :first { margin: 0.7cm 1cm 1cm 1.55cm; }
           body { 
             font-family: 'Bookman Old Style', 'Georgia', serif; 
             font-size: 11pt; 
@@ -560,12 +560,18 @@ export default function STBuilderPage() {
           }
           table { width: 100%; border-collapse: collapse; }
           td { vertical-align: top; padding: 2px 0; font-size: 11pt; }
-          tr { page-break-inside: avoid; }
+          tr { page-break-inside: avoid; break-inside: avoid; }
           img { max-width: none !important; }
           .ttd-placeholder { height: 80px; }
-          .kop-surat { margin-left: -1cm; margin-right: -0.5cm; }
-          .kop-surat img { width: 100% !important; height: auto !important; }
+          /* First page gets its own safe letterhead area; page 2+ keeps the 3cm @page margin. */
+          .kop-surat { margin-left: 0 !important; margin-right: -0.95cm !important; margin-top: -0.25cm !important; margin-bottom: 2px !important; overflow: visible !important; }
+          .kop-surat img { width: 18.8cm !important; height: auto !important; }
+          .surat-content { margin-left: 1.25cm !important; width: calc(100% - 2.2cm) !important; margin-right: 0.95cm !important; }
+          .field-section, .kepada-section, .kepada-list { break-inside: auto !important; page-break-inside: auto !important; }
+          .employee-entry { break-inside: avoid !important; page-break-inside: avoid !important; }
           div[style*="page-break-inside"] { page-break-inside: avoid; }
+          /* thead spacer: hidden, not needed with @page margin */
+          thead.page-spacer td { height: 0; padding: 0; line-height: 0; font-size: 0; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
