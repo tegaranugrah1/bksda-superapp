@@ -547,7 +547,7 @@ export default function STBuilderPage() {
       <head>
         <title>ST.${stNumber}-${namaKegiatan.replace(/[/\\?%*:|"<>]/g, '-')}</title>
         <style>
-          @page { size: A4; margin: 1.5cm 1cm 1cm 3cm; }
+          @page { size: A4; margin: 2cm 1cm 1cm 3cm; }
           @page :first { margin-top: 0.4cm; }
           body { 
             font-family: 'Bookman Old Style', 'Georgia', serif; 
@@ -563,7 +563,8 @@ export default function STBuilderPage() {
           tr { page-break-inside: avoid; }
           img { max-width: none !important; }
           .ttd-placeholder { height: 80px; }
-          .kop-surat { display: block; }
+          .kop-surat { margin-left: -1.5cm; margin-right: -1cm; }
+          .kop-surat img { width: 18.8cm !important; height: auto !important; }
           div[style*="page-break-inside"] { page-break-inside: avoid; }
         </style>
       </head>
