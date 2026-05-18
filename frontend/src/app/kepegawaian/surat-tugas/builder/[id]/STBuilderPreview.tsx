@@ -286,7 +286,8 @@ export default function STBuilderPreview({
                         </tbody>
                       </table>
                       <p style={{ margin: "4px 0 0" }}>a.n. Sekretaris Direktorat Jenderal KSDAE</p>
-                      <p style={{ margin: 0 }}>selaku Koordinator Kegiatan <span style={{ fontStyle: "italic" }}>Implementing Partner</span> FOLU NC 2&amp;3</p>
+                      <p style={{ margin: 0 }}>selaku Koordinator Kegiatan <span style={{ fontStyle: "italic" }}>Implementing</span></p>
+                      <p style={{ margin: 0 }}><span style={{ fontStyle: "italic" }}>Partner</span> FOLU NC 2&amp;3</p>
                       <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
                       <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
                         ${"{ttd_pengirim}"}
@@ -298,7 +299,7 @@ export default function STBuilderPreview({
                     {/* === FOLU Tembusan — di bawah NIP, full width === */}
                     {tembusanItems.length > 0 && (
                       <div style={{ marginTop: "16px" }}>
-                        <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan Kepada :</p>
+                        <p style={{ margin: "0 0 4px", fontSize: "10pt" }}>Tembusan Kepada :</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
                             {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
@@ -323,35 +324,26 @@ export default function STBuilderPreview({
                       <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
                         ${"{ttd_pengirim}"}
                       </p>
+                      <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
+                      <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
-                    {/* === Tembusan (kiri) sejajar Nama+NIP (kanan) === */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      {/* TEMBUSAN — kiri */}
-                      <div style={{ flex: "0 0 auto", maxWidth: "8cm" }}>
-                        {tembusanItems.length > 0 && (
-                          <div>
-                            <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
-                            <table style={{ borderCollapse: "collapse" }}>
-                              <tbody>
-                                {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
-                                  <tr key={idx}>
-                                    <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
-                                    <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
+                    {/* === Tembusan (kiri) sejajar NIP (kanan sudah di atas) === */}
+                    {tembusanItems.length > 0 && (
+                      <div style={{ marginTop: "-28px" }}>
+                        <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
+                        <table style={{ borderCollapse: "collapse", maxWidth: "8cm" }}>
+                          <tbody>
+                            {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
+                              <tr key={idx}>
+                                <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
+                                <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-
-                      {/* Nama + NIP — kanan */}
-                      <div style={{ textAlign: "left" }}>
-                        <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-                        <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
-                      </div>
-                    </div>
+                    )}
                   </>
                 )}
               </div>

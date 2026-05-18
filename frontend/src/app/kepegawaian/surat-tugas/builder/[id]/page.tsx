@@ -228,6 +228,25 @@ export default function STBuilderPage() {
     // Reset header for non-FOLU
     setHeaderTitle("KEPALA BALAI,");
 
+    // Reset menimbang to default (2 items) if previously was FOLU (3 items)
+    setMenimbangItems(prev => {
+      if (prev.length === 3 && prev[0]?.id?.startsWith("folu")) {
+        return [
+          { id: "1", text: "bahwa dalam rangka , perlu ;" },
+          { id: "2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
+        ];
+      }
+      return prev;
+    });
+
+    // Reset tembusan if it was FOLU auto-filled
+    setTembusanItems(prev => {
+      if (prev.length === 4 && prev[0]?.includes("Kuasa Pengguna Anggaran")) {
+        return [];
+      }
+      return prev;
+    });
+
     const opt = SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
     if (opt && opt.dasarText) {
       const text = opt.dasarText.replace(/{tahun}/g, tahun);
