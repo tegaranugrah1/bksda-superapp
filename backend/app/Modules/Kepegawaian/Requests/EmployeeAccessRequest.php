@@ -17,8 +17,8 @@ class EmployeeAccessRequest extends FormRequest
             // Jabatan sistemik (Bukan jabatan fungsional instansi)
             'role' => 'required|string|in:super_admin,admin,user',
 
-            // Rule 2.4: Wajib memiliki minimal 1 modul untuk diakses
-            'access_modules' => 'required|array|min:1',
+            // Rule 2.4: Modul akses (opsional untuk super_admin)
+            'access_modules' => 'present|array',
             'access_modules.*' => 'string',
 
             // Password bersifat opsional (hanya diisi jika membuat akun baru / mereset)
