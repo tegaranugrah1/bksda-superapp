@@ -1,3 +1,48 @@
+# Progress - Phase 38: Production Fixes + ST Builder FOLU Template
+
+> Document updated: 2026-05-18
+> Status: **READY FOR PR**
+
+---
+
+## Issue #312: ST Builder Print Layout Stabilization
+
+### Completed:
+- [x] **Production**: SSL active, login works, employee import works, API URL fixed to `bksdakaltim.net/api`.
+- [x] **ST Builder FOLU Template**: FOLU header, nomor prefix, menimbang/dasar defaults, TTD wording, penutup, and tembusan are implemented.
+- [x] **KOP Print**: KOP only appears on page 1 and no longer crops in Chrome print preview.
+- [x] **Content Margins**: Main letter body now uses `.surat-content` so page 1, page 2, and later pages keep consistent margins independent of KOP.
+- [x] **Page Margins**: `@page` top margin keeps continuation pages readable; first page uses a smaller top margin for KOP.
+- [x] **Employee Pagination**: `Kepada` was refactored from one large table row to block/grid layout so employee entries can paginate one-by-one instead of all moving to the next page.
+- [x] **Employee Row Safety**: `.employee-entry` uses `break-inside: avoid` / `page-break-inside: avoid` so each employee is not split in the middle.
+- [x] **Scenarios Checked During Session**: FOLU/DIPA, 1 employee, 4 employees, 7 employees, and 11 employees print behavior.
+
+### Current Print CSS State:
+```css
+@page { size: A4; margin: 3cm 1cm 1cm 1.55cm; }
+@page :first { margin: 0.7cm 1cm 1cm 1.55cm; }
+.kop-surat { margin-left: 0; margin-right: -0.95cm; margin-top: -0.25cm; }
+.kop-surat img { width: 18.8cm; height: auto; }
+.surat-content { margin-left: 1.25cm; width: calc(100% - 2.2cm); margin-right: 0.95cm; }
+.field-section, .kepada-section, .kepada-list { break-inside: auto; page-break-inside: auto; }
+.employee-entry { break-inside: avoid; page-break-inside: avoid; }
+```
+
+### Validation:
+- [x] `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx"`
+- [x] `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx"`
+- [x] `npx tsc --noEmit`
+- [x] `npm run build`
+- [ ] Full `npm run lint -- --max-warnings=0` still blocked by unrelated pre-existing lint errors in portal/kepegawaian files.
+
+### Pending:
+- [ ] PR review/merge for #312.
+- [ ] Deploy ST Builder print fix to production.
+- [ ] Import BMN Excel in production.
+- [ ] Style public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
+
+---
+
 # Progress - Phase 37: Production Deployment
 
 > Document updated: 2026-05-17

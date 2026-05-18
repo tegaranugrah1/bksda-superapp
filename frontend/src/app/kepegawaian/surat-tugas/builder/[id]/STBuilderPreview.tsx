@@ -72,6 +72,9 @@ export default function STBuilderPreview({
         <colgroup>
           <col style={{ width: "100%" }} />
         </colgroup>
+        <thead className="page-spacer">
+          <tr><td style={{ height: 0, padding: 0, lineHeight: 0, fontSize: 0 }}></td></tr>
+        </thead>
         <tbody>
           <tr>
             <td>
@@ -84,6 +87,7 @@ export default function STBuilderPreview({
                   style={{ width: "18.8cm", height: "auto", display: "block" }}
                 />
               </div>
+              <div className="surat-content">
               {/* === JUDUL === */}
               <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "11pt", margin: "0 0 2px" }}>
                 SURAT TUGAS
@@ -162,59 +166,57 @@ export default function STBuilderPreview({
               <p style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>MEMBERI TUGAS,</p>
 
               {/* === KEPADA === */}
-              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px", marginLeft: "0", tableLayout: "fixed" }}>
-                <tbody>
-                  <tr>
-                    <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Kepada</td>
-                    <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
-                    <td style={{ verticalAlign: "top", padding: "2px 0" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                        <tbody>
-                          {selectedEmployees.length === 0 ? (
-                            <tr>
-                              <td colSpan={2} style={{ padding: "4px 0", fontStyle: "italic", color: "#999" }}>
-                                ( Belum ada pegawai dipilih )
-                              </td>
-                            </tr>
-                          ) : (
-                            selectedEmployees.map((emp, idx) => (
-                              <React.Fragment key={emp.id}>
-                                <tr>
-                                  <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                                  <td style={{ padding: "2px 0" }}>
-                                    <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
-                                      <tbody>
-                                        <tr>
-                                          <td style={{ width: "70px", padding: "1px 0" }}>Nama</td>
-                                          <td style={{ width: "20px", padding: "1px 0" }}>:</td>
-                                          <td style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
-                                        </tr>
-                                        <tr>
-                                          <td style={{ width: "70px", padding: "1px 0" }}>NIP</td>
-                                          <td style={{ width: "20px", padding: "1px 0" }}>:</td>
-                                          <td style={{ padding: "1px 0" }}>{formatNIP(emp.nip)}</td>
-                                        </tr>
-                                        <tr>
-                                          <td style={{ width: "70px", padding: "1px 0" }}>Jabatan</td>
-                                          <td style={{ width: "20px", padding: "1px 0" }}>:</td>
-                                          <td style={{ padding: "1px 0" }}>{emp.jabatan}</td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </td>
-                                </tr>
-                                {idx < selectedEmployees.length - 1 && (
-                                  <tr><td colSpan={2} style={{ padding: "4px 0" }}></td></tr>
-                                )}
-                              </React.Fragment>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div
+                className="field-section kepada-section"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "110px 12px 1fr",
+                  columnGap: 0,
+                  marginBottom: "12px",
+                }}
+              >
+                <div style={{ padding: "2px 0" }}>Kepada</div>
+                <div style={{ padding: "2px 0" }}>:</div>
+                <div className="kepada-list" style={{ padding: "2px 0" }}>
+                  {selectedEmployees.length === 0 ? (
+                    <div style={{ padding: "4px 0", fontStyle: "italic", color: "#999" }}>
+                      ( Belum ada pegawai dipilih )
+                    </div>
+                  ) : (
+                    selectedEmployees.map((emp, idx) => (
+                      <div
+                        className="employee-entry"
+                        key={emp.id}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "24px 1fr",
+                          padding: idx === 0 ? "0 0 4px" : "4px 0",
+                          breakInside: "avoid",
+                        }}
+                      >
+                        <div style={{ padding: "2px 0" }}>{idx + 1}.</div>
+                        <div>
+                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr" }}>
+                            <div style={{ padding: "1px 0" }}>Nama</div>
+                            <div style={{ padding: "1px 0" }}>:</div>
+                            <div style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</div>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr" }}>
+                            <div style={{ padding: "1px 0" }}>NIP</div>
+                            <div style={{ padding: "1px 0" }}>:</div>
+                            <div style={{ padding: "1px 0" }}>{formatNIP(emp.nip)}</div>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr" }}>
+                            <div style={{ padding: "1px 0" }}>Jabatan</div>
+                            <div style={{ padding: "1px 0" }}>:</div>
+                            <div style={{ padding: "1px 0" }}>{emp.jabatan}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
 
               {/* === UNTUK === */}
               <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
@@ -252,15 +254,15 @@ export default function STBuilderPreview({
 
               {/* === PENUTUP === */}
               {isFolu ? (
-                <p style={{ margin: "28px 0 0", textAlign: "justify" }}>
+                <p className="penutup-surat" style={{ margin: "28px 0 0", textAlign: "justify" }}>
                   Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.
                 </p>
               ) : (
-                <p style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
+                <p className="penutup-surat" style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
               )}
 
               {/* === TANDA TANGAN + TEMBUSAN === */}
-              <div style={{ pageBreakInside: "avoid" }}>
+              <div className="ttd-tembusan-wrapper" style={{ pageBreakInside: "avoid" }}>
                 {isFolu ? (
                   <>
                     {/* === FOLU TTD Layout — Dikeluarkan sejajar a.n., rata kanan === */}
@@ -292,7 +294,7 @@ export default function STBuilderPreview({
 
                     {/* === FOLU Tembusan — di bawah NIP, full width === */}
                     {tembusanItems.length > 0 && (
-                      <div style={{ marginTop: "16px" }}>
+                      <div className="tembusan-block" style={{ marginTop: "16px" }}>
                         <p style={{ margin: "0 0 4px", fontSize: "10pt" }}>Tembusan Kepada :</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
@@ -324,7 +326,7 @@ export default function STBuilderPreview({
 
                     {/* === Tembusan (kiri) sejajar NIP === */}
                     {tembusanItems.length > 0 && (
-                      <div style={{ marginTop: "-18px", maxWidth: "8cm" }}>
+                      <div className="tembusan-block" style={{ marginTop: "-18px", maxWidth: "8cm" }}>
                         <p style={{ margin: "0 0 4px", fontSize: "10pt" }}>Tembusan:</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
@@ -340,6 +342,7 @@ export default function STBuilderPreview({
                     )}
                   </>
                 )}
+              </div>
               </div>
             </td>
           </tr>
