@@ -24,6 +24,8 @@ import {
   daysBetween,
   numberToWords,
   indexToLetter,
+  buildFoluMenimbangText,
+  isGeneratedFoluMenimbangText,
 } from "@/lib/letter-utils";
 
 // --- Types ---
@@ -95,6 +97,30 @@ const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
     biayaText: ''
   },
 ];
+
+function normalizeSumberDana(value: string | null | undefined): string {
+  if (!value) return "dipa";
+
+  const normalized = value.toLowerCase().replace(/\s+/g, " ").trim();
+  const exactId = SUMBER_DANA_OPTIONS.find(option => option.id === normalized);
+  if (exactId) return exactId.id;
+
+  const exactLabel = SUMBER_DANA_OPTIONS.find(option => option.label.toLowerCase() === normalized);
+  if (exactLabel) return exactLabel.id;
+
+  if (normalized.includes("folu")) return "folu";
+  if (normalized.includes("dipa")) return "dipa";
+  if (normalized.includes("kja")) return "kja";
+  if (normalized.includes("mja")) return "mja";
+  if (normalized.includes("cop")) return "cop";
+  if (normalized.includes("tjiwi")) return "tjiwi_kimia";
+  if (normalized.includes("bosf")) return "bosf";
+  if (normalized.includes("can")) return "can";
+  if (normalized.includes("alert")) return "alert";
+  if (normalized.includes("dl 1") || normalized.includes("tidak ada biaya")) return "dl1";
+
+  return "other";
+}
 
 export default function STBuilderPage() {
   const params = useParams();
@@ -208,7 +234,7 @@ export default function STBuilderPage() {
       // Auto-set klasifikasi with FOLU.NC-23 prefix
       setKlasifikasi(prev => prev.startsWith("FOLU.NC-23/") ? prev : "FOLU.NC-23/" + prev);
       setMenimbangItems([
-        { id: "folu-1", text: "bahwa dalam upaya menjaga kelestarian keanekaragaman hayati, perlu dilakukan kegiatan pengamanan dan perlindungan;" },
+        { id: "folu-1", text: buildFoluMenimbangText(namaKegiatan, tempatKegiatan) },
         { id: "folu-2", text: "bahwa dalam rangka kelancaran tugas Project Management Unit FOLU-NC 2 dan 3 maka dipandang perlu menugaskan pegawai dimaksud;" },
         { id: "folu-3", text: "bahwa untuk maksud tersebut (poin a dan b) perlu diterbitkan Surat Tugas." },
       ]);
@@ -318,7 +344,7 @@ export default function STBuilderPage() {
         setTanggalMulai(data.tanggal_mulai?.split("T")[0] || "");
         setTanggalSelesai(data.tanggal_selesai?.split("T")[0] || "");
         
-        const funding = data.sumber_dana || "dipa";
+        const funding = normalizeSumberDana(data.sumber_dana);
         setSumberDana(funding);
         if (data.sumber_dana_other) setSumberDanaOther(data.sumber_dana_other);
         
@@ -373,6 +399,31 @@ export default function STBuilderPage() {
           updateDasarFromFunding(funding, new Date().toISOString().substring(0, 10));
         }
 
+        if (funding === "folu") {
+          const currentMenimbang = data.menimbang && Array.isArray(data.menimbang) ? data.menimbang : [];
+          const firstMenimbang = currentMenimbang[0];
+          const shouldUseFoluTemplate = currentMenimbang.length === 0 ||
+            firstMenimbang?.id === "folu-1" ||
+            isGeneratedFoluMenimbangText(firstMenimbang?.text);
+
+          if (shouldUseFoluTemplate) {
+            setMenimbangItems(prev => {
+              const nextItems = prev.length >= 3 ? [...prev] : [
+                { id: "folu-1", text: "" },
+                { id: "folu-2", text: "bahwa dalam rangka kelancaran tugas Project Management Unit FOLU-NC 2 dan 3 maka dipandang perlu menugaskan pegawai dimaksud;" },
+                { id: "folu-3", text: "bahwa untuk maksud tersebut (poin a dan b) perlu diterbitkan Surat Tugas." },
+              ];
+
+              nextItems[0] = {
+                ...nextItems[0],
+                id: "folu-1",
+                text: buildFoluMenimbangText(cleanedActivity),
+              };
+              return nextItems;
+            });
+          }
+        }
+
         // Auto-fill klasifikasi & menimbang if kegiatan contains "konflik"
         const parsedKegiatan = cleanedActivity.toLowerCase();
         if (parsedKegiatan.includes("konflik")) {
@@ -410,8 +461,28 @@ export default function STBuilderPage() {
   }, [id]);
 
   // Auto-fill klasifikasi & menimbang based on nama kegiatan keywords
+  const updateFoluMenimbang = (activity: string, place: string) => {
+    setMenimbangItems(prev => {
+      if (prev.length === 0) return prev;
+      const first = prev[0];
+      const isDefaultText = first.text === "bahwa dalam rangka , perlu ;";
+      if (first.id !== "folu-1" && !isDefaultText && !isGeneratedFoluMenimbangText(first.text)) return prev;
+
+      const nextText = buildFoluMenimbangText(activity, place);
+      if (first.text === nextText && first.id === "folu-1") return prev;
+
+      const nextItems = [...prev];
+      nextItems[0] = { ...first, id: "folu-1", text: nextText };
+      return nextItems;
+    });
+  };
+
   const handleNamaKegiatanChange = (value: string) => {
     setNamaKegiatan(value);
+    if (sumberDana === "folu") {
+      updateFoluMenimbang(value, tempatKegiatan);
+    }
+
     const lower = value.toLowerCase();
     if (lower.includes("konflik")) {
       setKlasifikasi("KSA.03.01");
@@ -747,7 +818,13 @@ export default function STBuilderPage() {
                 <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               </div>
               <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
-              <input value={tempatKegiatan} onChange={e => setTempatKegiatan(e.target.value)} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+              <input value={tempatKegiatan} onChange={e => {
+                const nextPlace = e.target.value;
+                setTempatKegiatan(nextPlace);
+                if (sumberDana === "folu") {
+                  updateFoluMenimbang(namaKegiatan, nextPlace);
+                }
+              }} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
                 <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />

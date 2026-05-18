@@ -1,13 +1,52 @@
 # Progress - Phase 38: Production Fixes + ST Builder FOLU Template
 
 > Document updated: 2026-05-18
-> Status: **READY FOR PR**
+> Status: **PR OPEN**
+
+---
+
+## Issue #314: ST Builder FOLU Funding Normalization
+
+### Completed:
+- [x] **PR Created**: PR #315 opened from `issue/314-folu-funding-builder` to `main`.
+- [x] **Issue Created**: Issue #314 tracks the FOLU funding fallback bug.
+- [x] **Funding Normalization**: ST Builder now maps submitted labels such as `Dana Kerjasama FOLU` and `Dana Kerjasama FOLU NC 2&3` to the internal `folu` option.
+- [x] **Inbox Edit Bug Fixed**: Letters that show `Dana Kerjasama FOLU` in Inbox no longer open as `DIPA` when clicking **Edit Surat Tugas**.
+- [x] **FOLU Menimbang Helper**: Added shared helper to extract kawasan from `Tempat Spesifik` or from activity text containing `di ...`.
+- [x] **Patroli SMART Template**: FOLU activities containing `Smart Patrol` or `Patroli` now generate `Menimbang` with `melalui Patroli SMART`.
+- [x] **Create + Builder Sync**: Direct ST create and Builder edit flows both sync generated FOLU Menimbang when activity/place changes.
+- [x] **Manual Text Safety**: Auto-sync only touches default/generated FOLU Menimbang text and does not overwrite manually customized Menimbang text.
+
+### Example Output:
+```text
+bahwa dalam upaya menjaga kelestarian keanekaragaman hayati di Suaka Margasatwa Kelian, perlu dilakukan kegiatan pengamanan dan perlindungan melalui Patroli SMART;
+```
+
+```text
+bahwa dalam upaya menjaga kelestarian keanekaragaman hayati di Cagar Alam Muara Kaman Sedulang, perlu dilakukan kegiatan pengamanan dan perlindungan melalui Patroli SMART;
+```
+
+### Key Files:
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`
+- `frontend/src/lib/letter-utils.ts`
+
+### Validation:
+- [x] `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx" "src/app/kepegawaian/surat-tugas/create/page.tsx" "src/lib/letter-utils.ts"`
+- [x] `npx tsc --noEmit`
+- [x] `npm run build`
+
+### Pending:
+- [ ] Review/merge PR #315.
+- [ ] Deploy Issue #314 fix to production via SSH after merge.
+- [ ] Re-test production Inbox -> Edit Surat Tugas for submitted FOLU letters.
 
 ---
 
 ## Issue #312: ST Builder Print Layout Stabilization
 
 ### Completed:
+- [x] **PR Merged**: PR #313 merged into `main` (`f17c1049378f9b86b92c4cf2ff9e29982995adec`).
 - [x] **Production**: SSL active, login works, employee import works, API URL fixed to `bksdakaltim.net/api`.
 - [x] **ST Builder FOLU Template**: FOLU header, nomor prefix, menimbang/dasar defaults, TTD wording, penutup, and tembusan are implemented.
 - [x] **KOP Print**: KOP only appears on page 1 and no longer crops in Chrome print preview.
@@ -36,7 +75,6 @@
 - [ ] Full `npm run lint -- --max-warnings=0` still blocked by unrelated pre-existing lint errors in portal/kepegawaian files.
 
 ### Pending:
-- [ ] PR review/merge for #312.
 - [ ] Deploy ST Builder print fix to production.
 - [ ] Import BMN Excel in production.
 - [ ] Style public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
