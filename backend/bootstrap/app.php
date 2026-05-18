@@ -25,7 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // 2. Mendaftarkan Global API Middleware (Berjalan otomatis di seluruh rute /api/*)
-        // Kita masukkan AuditLog ke grup 'api' agar kita tidak pernah lupa me-log aktivitas
         $middleware->api(append: [
             AuditLogMiddleware::class,
         ]);

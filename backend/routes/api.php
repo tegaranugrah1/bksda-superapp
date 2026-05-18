@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Fallback login route (prevents "Route [login] not defined" error)
+Route::get('/login', fn () => response()->json(['message' => 'Unauthenticated'], 401))->name('login');
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
