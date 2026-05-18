@@ -547,14 +547,15 @@ export default function STBuilderPage() {
       <head>
         <title>ST.${stNumber}-${namaKegiatan.replace(/[/\\?%*:|"<>]/g, '-')}</title>
         <style>
-          @page { size: A4; margin: 0; }
+          @page { size: A4; margin: 1.5cm 1cm 1cm 3cm; }
+          @page :first { margin-top: 0.4cm; }
           body { 
             font-family: 'Bookman Old Style', 'Georgia', serif; 
             font-size: 11pt; 
             line-height: 1.25; 
             color: #000; 
             margin: 0; 
-            padding: 0.4cm 1cm 1cm 3cm; 
+            padding: 0; 
             text-align: justify; 
           }
           table { width: 100%; border-collapse: collapse; }
@@ -562,9 +563,7 @@ export default function STBuilderPage() {
           tr { page-break-inside: avoid; }
           img { max-width: none !important; }
           .ttd-placeholder { height: 80px; }
-          /* KOP only on page 1 — hide on subsequent pages */
           .kop-surat { display: block; }
-          /* Prevent signature + tembusan from being split across pages */
           div[style*="page-break-inside"] { page-break-inside: avoid; }
         </style>
       </head>
