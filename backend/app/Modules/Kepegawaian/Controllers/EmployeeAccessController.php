@@ -42,10 +42,11 @@ class EmployeeAccessController extends Controller
      */
     public function update(EmployeeAccessRequest $request, $id): JsonResponse
     {
-        $employee = Employee::findOrFail($id);
-        $validated = $request->validated();
+        try {
+            $employee = Employee::findOrFail($id);
+            $validated = $request->validated();
 
-        $user = $employee->user;
+            $user = $employee->user;
 
         // SKENARIO A: Pegawai belum punya Akun, kita buatkan!
         if (! $user) {
@@ -92,5 +93,12 @@ class EmployeeAccessController extends Controller
                 'access_modules' => $user->access_modules,
             ],
         ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Server Error',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ], 500);
+        }
     }
 }
