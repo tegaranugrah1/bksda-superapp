@@ -205,6 +205,8 @@ export default function STBuilderPage() {
     // FOLU has a completely different template
     if (fundingId === 'folu') {
       setHeaderTitle("KEPALA UPT SELAKU\nPELAKSANA SATUAN KERJA IMPLEMENTING PARTNER FOLU NC 2&3");
+      // Auto-set klasifikasi with FOLU.NC-23 prefix
+      setKlasifikasi(prev => prev.startsWith("FOLU.NC-23/") ? prev : "FOLU.NC-23/" + prev);
       setMenimbangItems([
         { id: "folu-1", text: "bahwa dalam upaya menjaga kelestarian keanekaragaman hayati, perlu dilakukan kegiatan pengamanan dan perlindungan;" },
         { id: "folu-2", text: "bahwa dalam rangka kelancaran tugas Project Management Unit FOLU-NC 2 dan 3 maka dipandang perlu menugaskan pegawai dimaksud;" },
@@ -227,6 +229,9 @@ export default function STBuilderPage() {
 
     // Reset header for non-FOLU
     setHeaderTitle("KEPALA BALAI,");
+
+    // Remove FOLU.NC-23 prefix from klasifikasi if present
+    setKlasifikasi(prev => prev.replace(/^FOLU\.NC-23\//, ""));
 
     // Reset menimbang to default (2 items) if previously was FOLU (3 items)
     setMenimbangItems(prev => {
@@ -555,14 +560,12 @@ export default function STBuilderPage() {
           table { width: 100%; border-collapse: collapse; }
           td { vertical-align: top; padding: 2px 0; font-size: 11pt; }
           tr { page-break-inside: avoid; }
-          thead { display: table-header-group; }
-          tfoot { display: table-footer-group; }
           img { max-width: none !important; }
           .ttd-placeholder { height: 80px; }
+          /* KOP only on page 1 — hide on subsequent pages */
+          .kop-surat { display: block; }
           /* Prevent signature + tembusan from being split across pages */
-          div[style*="marginLeft: 9.2cm"], div[style*="margin-left: 9.2cm"] { page-break-inside: avoid; }
-          /* Keep penutup + TTD + tembusan together if possible */
-          p + div[style*="marginTop"] { page-break-before: auto; }
+          div[style*="page-break-inside"] { page-break-inside: avoid; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
