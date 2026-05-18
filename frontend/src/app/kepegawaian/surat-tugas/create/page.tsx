@@ -24,6 +24,8 @@ import {
   daysBetween,
   numberToWords,
   indexToLetter,
+  buildFoluMenimbangText,
+  isGeneratedFoluMenimbangText,
 } from "@/lib/letter-utils";
 
 // --- Types ---
@@ -202,8 +204,28 @@ export default function STCreatePremiumPage() {
   };
 
   // Auto-fill klasifikasi & menimbang based on nama kegiatan keywords
+  const updateFoluMenimbang = (activity: string, place: string) => {
+    setMenimbangItems(prev => {
+      if (prev.length === 0) return prev;
+      const first = prev[0];
+      const isDefaultText = first.text === "bahwa dalam rangka , perlu ;";
+      if (first.id !== "folu-1" && !isDefaultText && !isGeneratedFoluMenimbangText(first.text)) return prev;
+
+      const nextText = buildFoluMenimbangText(activity, place);
+      if (first.text === nextText && first.id === "folu-1") return prev;
+
+      const nextItems = [...prev];
+      nextItems[0] = { ...first, id: "folu-1", text: nextText };
+      return nextItems;
+    });
+  };
+
   const handleNamaKegiatanChange = (value: string) => {
     setNamaKegiatan(value);
+    if (sumberDana === "folu") {
+      updateFoluMenimbang(value, tempatKegiatan);
+    }
+
     const lower = value.toLowerCase();
     if (lower.includes("konflik")) {
       setKlasifikasi("KSA.03.01");
@@ -330,6 +352,9 @@ export default function STCreatePremiumPage() {
                   const newFunding = e.target.value;
                   setSumberDana(newFunding);
                   updateDasarFromFunding(newFunding, tanggalSurat);
+                  if (newFunding === "folu") {
+                    updateFoluMenimbang(namaKegiatan, tempatKegiatan);
+                  }
                 }} 
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
               >
@@ -428,7 +453,13 @@ export default function STCreatePremiumPage() {
                 <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               </div>
               <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
-              <input value={tempatKegiatan} onChange={e => setTempatKegiatan(e.target.value)} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+              <input value={tempatKegiatan} onChange={e => {
+                const nextPlace = e.target.value;
+                setTempatKegiatan(nextPlace);
+                if (sumberDana === "folu") {
+                  updateFoluMenimbang(namaKegiatan, nextPlace);
+                }
+              }} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
                 <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />

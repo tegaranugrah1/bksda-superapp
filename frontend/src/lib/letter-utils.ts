@@ -75,3 +75,29 @@ export function formatNIP(nip: string | null | undefined): string {
     if (cleaned.length !== 18) return cleaned;
     return `${cleaned.substring(0, 8)} ${cleaned.substring(8, 14)} ${cleaned.substring(14, 15)} ${cleaned.substring(15)}`;
 }
+
+export function extractFoluKawasan(namaKegiatan: string, tempatKegiatan?: string): string {
+    const explicitPlace = tempatKegiatan?.trim().replace(/[;,.]$/, '');
+    if (explicitPlace) return explicitPlace;
+
+    const normalized = namaKegiatan.replace(/\s+/g, ' ').trim();
+    const diMatch = normalized.match(/\bdi\s+(.+?)(?:[,;.]|$)/i);
+    return diMatch?.[1]?.trim().replace(/[;,.]$/, '') || '';
+}
+
+export function buildFoluMenimbangText(namaKegiatan: string, tempatKegiatan?: string): string {
+    const kawasan = extractFoluKawasan(namaKegiatan, tempatKegiatan);
+    const lower = namaKegiatan.toLowerCase();
+    const isSmartPatrol = lower.includes('smart patrol') || lower.includes('patroli');
+    const locationText = kawasan ? ` di ${kawasan}` : '';
+    const patrolText = isSmartPatrol ? ' melalui Patroli SMART' : '';
+
+    return `bahwa dalam upaya menjaga kelestarian keanekaragaman hayati${locationText}, perlu dilakukan kegiatan pengamanan dan perlindungan${patrolText};`;
+}
+
+export function isGeneratedFoluMenimbangText(text: string | null | undefined): boolean {
+    return Boolean(
+        text?.startsWith('bahwa dalam upaya menjaga kelestarian keanekaragaman hayati') &&
+        text.includes('perlu dilakukan kegiatan pengamanan dan perlindungan')
+    );
+}
