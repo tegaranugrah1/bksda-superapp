@@ -35,6 +35,7 @@ interface PreviewProps {
   kepalaBalai: { name: string; nip: string };
   tembusanItems?: string[];
   headerTitle?: string;
+  sumberDana?: string;
 }
 
 export default function STBuilderPreview({
@@ -52,7 +53,10 @@ export default function STBuilderPreview({
   kepalaBalai,
   tembusanItems = [],
   headerTitle = "KEPALA BALAI,",
+  sumberDana = "dipa",
 }: PreviewProps) {
+  const isFolu = sumberDana === "folu";
+
   return (
     <div
       className="w-full selection:bg-blue-100"
@@ -94,11 +98,22 @@ export default function STBuilderPreview({
                 Nomor : ST.{stNumber || "..."}/{stCode || "..."}/{currentMonth}/{currentYear}
               </p>
 
-              {/* === KEPALA BALAI === */}
+              {/* === KEPALA BALAI / HEADER === */}
               {headerTitle.includes("\n") ? (
                 <div style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>
                   {headerTitle.split("\n").map((line, i) => (
-                    <p key={i} style={{ margin: 0, fontStyle: line.includes("IMPLEMENTING") ? "italic" : "normal" }}>{line}</p>
+                    <p key={i} style={{ margin: 0 }}>
+                      {line.includes("IMPLEMENTING PARTNER") ? (
+                        <>
+                          {line.split("IMPLEMENTING PARTNER").map((part, j) => (
+                            <React.Fragment key={j}>
+                              {j > 0 && <span style={{ fontStyle: "italic" }}>IMPLEMENTING PARTNER</span>}
+                              {part}
+                            </React.Fragment>
+                          ))}
+                        </>
+                      ) : line}
+                    </p>
                   ))}
                 </div>
               ) : (
@@ -242,17 +257,48 @@ export default function STBuilderPreview({
               </table>
 
               {/* === PENUTUP === */}
-              <p style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
+              {isFolu ? (
+                <p style={{ margin: "28px 0 0", textAlign: "justify" }}>
+                  Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.
+                </p>
+              ) : (
+                <p style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
+              )}
 
-              {/* === TANDA TANGAN + TEMBUSAN (keep together) === */}
+              {/* === TANDA TANGAN + TEMBUSAN === */}
               <div style={{ pageBreakInside: "avoid" }}>
-                {/* === TANDA TANGAN (kanan) + TEMBUSAN (kiri) === */}
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "14px", alignItems: "flex-start" }}>
-                  {/* TEMBUSAN — kiri, sejajar dengan NIP */}
-                  <div style={{ flex: "0 0 auto", maxWidth: "8cm", paddingTop: "80px" }}>
+                {isFolu ? (
+                  <>
+                    {/* === FOLU TTD Layout === */}
+                    <div style={{ marginTop: "14px", marginLeft: "7cm", textAlign: "left" }}>
+                      <table style={{ borderCollapse: "collapse" }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
+                            <td style={{ padding: "1px 0", width: "14px" }}>:</td>
+                            <td style={{ padding: "1px 0" }}>{kotaSurat || "..."}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "1px 0" }}>Pada tanggal</td>
+                            <td style={{ padding: "1px 0" }}>:</td>
+                            <td style={{ padding: "1px 0" }}>{tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <p style={{ margin: "4px 0 0" }}>a.n. Sekretaris Direktorat Jenderal KSDAE</p>
+                      <p style={{ margin: 0 }}>selaku Koordinator Kegiatan <span style={{ fontStyle: "italic" }}>Implementing Partner</span> FOLU NC 2&amp;3</p>
+                      <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
+                      <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
+                        ${"{ttd_pengirim}"}
+                      </p>
+                      <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
+                      <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+                    </div>
+
+                    {/* === FOLU Tembusan — di bawah NIP, full width === */}
                     {tembusanItems.length > 0 && (
-                      <div>
-                        <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
+                      <div style={{ marginTop: "16px" }}>
+                        <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan Kepada :</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
                             {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
@@ -265,21 +311,49 @@ export default function STBuilderPreview({
                         </table>
                       </div>
                     )}
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    {/* === Default TTD (kanan) === */}
+                    <div style={{ marginTop: "14px", marginLeft: "9.2cm", textAlign: "left" }}>
+                      <p style={{ margin: 0 }}>
+                        {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
+                      </p>
+                      <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
+                      <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
+                        ${"{ttd_pengirim}"}
+                      </p>
+                    </div>
 
-                  {/* TTD — kanan */}
-                  <div style={{ textAlign: "left" }}>
-                    <p style={{ margin: 0 }}>
-                      {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
-                    </p>
-                    <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
-                    <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
-                      ${"{ttd_pengirim}"}
-                    </p>
-                    <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-                    <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
-                  </div>
-                </div>
+                    {/* === Tembusan (kiri) sejajar Nama+NIP (kanan) === */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      {/* TEMBUSAN — kiri */}
+                      <div style={{ flex: "0 0 auto", maxWidth: "8cm" }}>
+                        {tembusanItems.length > 0 && (
+                          <div>
+                            <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
+                            <table style={{ borderCollapse: "collapse" }}>
+                              <tbody>
+                                {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
+                                  <tr key={idx}>
+                                    <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
+                                    <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Nama + NIP — kanan */}
+                      <div style={{ textAlign: "left" }}>
+                        <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
+                        <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </td>
           </tr>

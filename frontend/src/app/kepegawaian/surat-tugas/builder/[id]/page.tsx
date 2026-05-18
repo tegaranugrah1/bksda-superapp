@@ -216,6 +216,12 @@ export default function STBuilderPage() {
         { id: "folu-d3", text: `Keputusan Sekretaris Direktorat Jenderal Konservasi Sumber Daya Alam Dan Ekosistem Selaku Koordinator Kegiatan Implementing Partner FOLU Net Sink 2030 Melalui Sumber Dana Kerja Sama Indonesia Norwegia Tahap II Dan III Nomor: SK.2/KSDAE/FOLU.NC-23/I/2026 Tentang Penunjukan Personil Tim Pengelola Proyek Implementing Partner FOLU Net Sink 2030 Melalui Sumber Dana Kerja Sama Indonesia Norwegia Tahap II Dan III Yang Dikelola Oleh Badan Pengelola Dana Lingkungan Hidup;` },
         { id: "folu-d4", text: `Annual Work Plan (AWP) Tahun Anggaran ${tahun} Implementasi FOLU Net Sink 2030 melalui Dukungan Sumber Dana Kerja Sama Indonesia-Norwegia Tahap Kedua dan Ketiga Ditjen KSDAE.` },
       ]);
+      setTembusanItems([
+        "Kuasa Pengguna Anggaran Project Management Unit FOLU NC 2&3;",
+        "Sekretaris Direktorat Jenderal KSDAE selaku Koordinator Kegiatan;",
+        "Kepala Seksi KSDA Wilayah II Tenggarong;",
+        "Yang Bersangkutan.",
+      ]);
       return;
     }
 
@@ -801,6 +807,7 @@ export default function STBuilderPage() {
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               tembusanItems={tembusanItems}
               headerTitle={headerTitle}
+              sumberDana={sumberDana}
             />
           </div>
           {/* Page break indicators */}
