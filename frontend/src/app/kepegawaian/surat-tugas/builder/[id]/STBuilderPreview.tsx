@@ -263,33 +263,31 @@ export default function STBuilderPreview({
               <div style={{ pageBreakInside: "avoid" }}>
                 {isFolu ? (
                   <>
-                    {/* === FOLU TTD Layout — right-aligned so KSDAE aligns with right margin === */}
-                    <div style={{ marginTop: "14px", display: "flex", justifyContent: "flex-end" }}>
-                      <div style={{ textAlign: "left" }}>
-                        <table style={{ borderCollapse: "collapse" }}>
-                          <tbody>
-                            <tr>
-                              <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
-                              <td style={{ padding: "1px 0", width: "14px" }}>:</td>
-                              <td style={{ padding: "1px 0" }}>{kotaSurat || "..."}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ padding: "1px 0" }}>Pada tanggal</td>
-                              <td style={{ padding: "1px 0" }}>:</td>
-                              <td style={{ padding: "1px 0" }}>{tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                        <p style={{ margin: "4px 0 0" }}>a.n. Sekretaris Direktorat Jenderal KSDAE</p>
-                        <p style={{ margin: 0 }}>selaku Koordinator Kegiatan <span style={{ fontStyle: "italic" }}>Implementing</span></p>
-                        <p style={{ margin: 0 }}><span style={{ fontStyle: "italic" }}>Partner</span> FOLU NC 2&amp;3</p>
-                        <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
-                        <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
-                          ${"{ttd_pengirim}"}
-                        </p>
-                        <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-                        <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
-                      </div>
+                    {/* === FOLU TTD Layout — Dikeluarkan sejajar a.n., rata kanan === */}
+                    <div style={{ marginTop: "14px", paddingLeft: "50%" }}>
+                      <table style={{ borderCollapse: "collapse" }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
+                            <td style={{ padding: "1px 0", width: "14px" }}>:</td>
+                            <td style={{ padding: "1px 0" }}>{kotaSurat || "..."}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "1px 0" }}>Pada tanggal</td>
+                            <td style={{ padding: "1px 0" }}>:</td>
+                            <td style={{ padding: "1px 0" }}>{tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <p style={{ margin: "4px 0 0" }}>a.n. Sekretaris Direktorat Jenderal KSDAE</p>
+                      <p style={{ margin: 0 }}>selaku Koordinator Kegiatan <span style={{ fontStyle: "italic" }}>Implementing</span></p>
+                      <p style={{ margin: 0 }}><span style={{ fontStyle: "italic" }}>Partner</span> FOLU NC 2&amp;3</p>
+                      <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
+                      <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
+                        ${"{ttd_pengirim}"}
+                      </p>
+                      <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
+                      <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
                     {/* === FOLU Tembusan — di bawah NIP, full width === */}
