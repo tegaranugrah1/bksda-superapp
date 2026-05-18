@@ -1,7 +1,33 @@
 # Progress - Phase 38: Production Fixes + ST Builder FOLU Template
 
 > Document updated: 2026-05-18
-> Status: **DEPLOYED**
+> Status: **PR OPEN**
+
+---
+
+## Issue #316: ST Builder Untuk Print Pagination
+
+### Completed:
+- [x] **Issue Created**: Issue #316 tracks the `Untuk` section print pagination bug.
+- [x] **PR Created**: PR #317 opened from `issue/316-untuk-print-pagination` to `main`.
+- [x] **Root Cause Identified**: `Untuk` still used nested table rows, and global `tr { break-inside: avoid }` made the whole section move to page 2.
+- [x] **Untuk Layout Refactor**: Replaced nested table markup with grid/block layout so the section can paginate naturally.
+- [x] **Print CSS Updated**: `.untuk-section` and `.untuk-list` can break across pages; `.untuk-entry` avoids splitting each numbered item.
+- [x] **FOLU 2-Employee Scenario Targeted**: Fix targets the case where 2 FOLU employees leave blank space and push all `Untuk` items to the next page.
+
+### Key Files:
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx"`
+- [x] `npx tsc --noEmit`
+- [x] `npm run build`
+
+### Pending:
+- [ ] Merge PR #317.
+- [ ] Deploy Issue #316 fix to production via SSH.
+- [ ] Re-test production FOLU print preview with 2 employees.
 
 ---
 

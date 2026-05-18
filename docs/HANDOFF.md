@@ -57,13 +57,48 @@ git push origin main
 | Field | Value |
 |-------|-------|
 | **Issue Terakhir Selesai** | Issue #314: ST Builder FOLU funding normalization (PR #315 MERGED + DEPLOYED) |
-| **Issue Selanjutnya** | Import BMN Excel in production, then continue public sub-pages styling |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir** | Merge pull request #315 from tegaranugrah1/issue/314-folu-funding-builder |
+| **Issue Selanjutnya** | Review/merge/deploy PR #317 for Issue #316, then import BMN Excel in production |
+| **Branch Aktif** | `issue/316-untuk-print-pagination` |
+| **Commit Terakhir** | fix(surat-tugas): allow Untuk print pagination (#316) |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-18T18:01:19+08:00 |
+| **Timestamp** | 2026-05-18T18:05:48+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI CODEX (2026-05-18 - Issue #316: ST Builder Untuk Print Pagination):**
+- **Objective**: Fix FOLU print layout where the entire `Untuk` section moves to the next page when there are 2 employees, leaving unused space on the previous page.
+- **Status**: PR OPEN - PR #317 is clean and ready for review/merge/deploy.
+- **GitHub**:
+  - Issue: #316 `fix(surat-tugas): allow Untuk section to paginate in FOLU print`
+  - PR: #317 `fix(surat-tugas): allow Untuk print pagination (#316)`
+  - Branch: `issue/316-untuk-print-pagination`
+  - Commit: `43c6c92 fix(surat-tugas): allow Untuk print pagination (#316)`
+- **Root Cause**:
+  - The `Untuk` section was still rendered as nested table rows.
+  - Print CSS has global `tr { page-break-inside: avoid; break-inside: avoid; }`, so Chrome treated the outer `Untuk` row as one unbreakable block and pushed it fully to page 2.
+- **Accomplishments**:
+  - Refactored `Untuk` from nested table rows to grid/block layout, matching the previous `Kepada` pagination fix.
+  - Added `.untuk-section` and `.untuk-list` to print CSS with `break-inside: auto`.
+  - Added `.untuk-entry` with `break-inside: avoid` so each numbered item stays intact while the list can paginate between items.
+  - Verified build path locally for the changed files.
+- **Key Files Modified**:
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+- **Validation**:
+  - `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx"` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean.
+- **Known Issues / Risks**:
+  - Untracked local helper/credential files still exist and were intentionally not staged (`bksda-superapp.pem`, `service-account.json`, import/deploy test scripts).
+  - Production deploy has not yet been done for Issue #316 at the moment this note was written.
+- **Next Steps**:
+  - [ ] Merge PR #317.
+  - [ ] Deploy merged frontend fix to production server via SSH.
+  - [ ] Re-test FOLU print preview with 2 employees on production.
+  - [ ] Import BMN Excel in production.
+  - [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
 
 ---
 
