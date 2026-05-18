@@ -72,7 +72,7 @@ class EmployeeAccessController extends Controller
         else {
             $updateData = [
                 'role' => $validated['role'],
-                'access_modules' => $validated['access_modules'],
+                'access_modules' => $validated['access_modules'] ?? [],
             ];
 
             // Jika dikirimi password (berarti admin ingin mereset password stafnya)
