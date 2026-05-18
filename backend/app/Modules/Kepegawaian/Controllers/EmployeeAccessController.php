@@ -15,11 +15,14 @@ class EmployeeAccessController extends Controller
      */
     public function show($id): JsonResponse
     {
-        // Panggil pegawai beserta relasi 'user' nya (Logical Link NIP)
-        $employee = Employee::with('user')->findOrFail($id);
+        // Panggil pegawai
+        $employee = Employee::findOrFail($id);
+
+        // Find user by NIP (trim whitespace for safety)
+        $user = User::where('username', trim($employee->nip))->first();
 
         // Jika pegawai ini belum punya akun untuk login
-        if (! $employee->user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'Pegawai ini belum memiliki akses ke aplikasi.',
                 'data' => null,
@@ -30,9 +33,9 @@ class EmployeeAccessController extends Controller
         return response()->json([
             'message' => 'Data akses pegawai ditemukan.',
             'data' => [
-                'username' => $employee->user->username,
-                'role' => $employee->user->role,
-                'access_modules' => $employee->user->access_modules,
+                'username' => $user->username,
+                'role' => $user->role,
+                'access_modules' => $user->access_modules,
             ],
         ]);
     }
@@ -46,27 +49,24 @@ class EmployeeAccessController extends Controller
             $employee = Employee::findOrFail($id);
             $validated = $request->validated();
 
-            $user = $employee->user;
+            // Try to find user by NIP (trim whitespace for safety)
+            $user = User::where('username', trim($employee->nip))->first();
 
         // SKENARIO A: Pegawai belum punya Akun, kita buatkan!
         if (! $user) {
-            // Pembuatan akun perdana WAJIB diiringi pembuatan password
-            if (empty($validated['password'])) {
-                return response()->json([
-                    'message' => 'Password wajib diisi untuk pembuatan akun baru.',
-                ], 422);
-            }
+            // Pembuatan akun perdana — jika password tidak diisi, gunakan default "12345678"
+            $password = !empty($validated['password']) ? $validated['password'] : '12345678';
 
             // Rule 6.1: Hubungkan NIP Pegawai menjadi Username Aplikasi
             $user = User::create([
-                'username' => $employee->nip,
-                'name' => $employee->nama_lengkap, // Salin nama agar bagus di Header Frontend
-                'password' => $validated['password'], // Hash bcrypt otomatis diurus oleh model User (Rule 1.5)
+                'username' => trim($employee->nip),
+                'name' => $employee->nama_lengkap,
+                'password' => $password,
                 'role' => $validated['role'],
-                'access_modules' => $validated['access_modules'],
+                'access_modules' => $validated['access_modules'] ?? [],
             ]);
 
-            $message = 'Akun akses berhasil diterbitkan.';
+            $message = 'Akun akses berhasil diterbitkan (password default: 12345678).';
         }
 
         // SKENARIO B: Pegawai sudah punya Akun, kita perbarui datanya

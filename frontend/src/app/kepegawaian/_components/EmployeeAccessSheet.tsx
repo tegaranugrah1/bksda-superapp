@@ -94,7 +94,18 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
   }, [currentAccess, open, isLoading, employee?.id]);
 
   const mutation = useMutation({
-    mutationFn: async (values: AccessFormValues) => { const { data } = await api.put(`/kepegawaian/employees/${employee?.id}/access`, values); return data; },
+    mutationFn: async (values: AccessFormValues) => {
+      // Don't send password field if empty (avoid validation issues)
+      const payload: Record<string, unknown> = {
+        role: values.role,
+        access_modules: values.access_modules,
+      };
+      if (values.password && values.password.length > 0) {
+        payload.password = values.password;
+      }
+      const { data } = await api.put(`/kepegawaian/employees/${employee?.id}/access`, payload);
+      return data;
+    },
     onSuccess: (data) => { toast.success(data.message || "Hak akses berhasil diperbarui"); queryClient.invalidateQueries({ queryKey: ["employees"] }); onOpenChange(false); },
     onError: (error: unknown) => { const err = error as { response?: { data?: { message?: string } } }; toast.error(err.response?.data?.message || "Gagal memperbarui hak akses"); },
   });

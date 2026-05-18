@@ -23,8 +23,19 @@ class EmployeeAccessRequest extends FormRequest
 
             // Password bersifat opsional (hanya diisi jika membuat akun baru / mereset)
             // Panjang minimal 8 karakter demi keamanan dasar
-            'password' => 'nullable|string|min:8',
+            'password' => 'sometimes|nullable|string|min:8',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     * Remove password field if it's empty string (frontend sends "" by default)
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->password === '' || $this->password === null) {
+            $this->request->remove('password');
+        }
     }
 
     public function messages(): array
