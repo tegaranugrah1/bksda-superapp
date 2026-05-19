@@ -77,6 +77,14 @@ class ImportReviewController extends Controller
             $query->where('diff_status', $request->status);
         }
 
+        foreach (['kode_barang', 'nup', 'nama_barang'] as $field) {
+            $value = trim((string) $request->input($field, ''));
+
+            if ($value !== '') {
+                $query->whereRaw("imported_data->>'{$field}' ILIKE ?", ["%{$value}%"]);
+            }
+        }
+
         // Paginate
         $perPage = $request->integer('per_page', 50);
         $rows = $query->orderByRaw("CASE diff_status WHEN 'new' THEN 1 WHEN 'updated' THEN 2 WHEN 'unchanged' THEN 3 END")

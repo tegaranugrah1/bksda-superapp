@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -16,6 +17,8 @@ import {
   RefreshCw,
   Minus,
   FileSpreadsheet,
+  Search,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -92,14 +95,23 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const queryClient = useQueryClient();
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "new" | "updated" | "unchanged">("all");
+  const [identityFilters, setIdentityFilters] = useState({
+    kode_barang: "",
+    nup: "",
+    nama_barang: "",
+  });
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["bmn-import-batch", batchId, filter],
+    queryKey: ["bmn-import-batch", batchId, filter, identityFilters],
     queryFn: async () => {
       const params: Record<string, string> = { per_page: "200" };
       if (filter !== "all") params.status = filter;
+      Object.entries(identityFilters).forEach(([key, value]) => {
+        const trimmedValue = value.trim();
+        if (trimmedValue) params[key] = trimmedValue;
+      });
       const res = await api.get(`/bmn/import-review/${batchId}`, { params });
       return res.data;
     },
@@ -165,6 +177,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
 
   const totalActionable = (batch?.new_rows || 0) + (batch?.updated_rows || 0);
   const isPending = batch?.status === "pending";
+  const hasIdentityFilters = Object.values(identityFilters).some((value) => value.trim() !== "");
 
   if (isLoading) {
     return (
@@ -255,6 +268,64 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           active={filter === "unchanged"}
           onClick={() => setFilter("unchanged")}
         />
+      </div>
+
+      {/* Identity Filters */}
+      <div className="bg-white border border-slate-200 rounded-xl p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+          <div className="min-w-0 flex-1">
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Kode Barang
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={identityFilters.kode_barang}
+                onChange={(event) => setIdentityFilters((current) => ({ ...current, kode_barang: event.target.value }))}
+                placeholder="Cari kode barang..."
+                className="h-10 pl-9"
+              />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              NUP
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={identityFilters.nup}
+                onChange={(event) => setIdentityFilters((current) => ({ ...current, nup: event.target.value }))}
+                placeholder="Cari NUP..."
+                className="h-10 pl-9"
+              />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Nama Barang
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={identityFilters.nama_barang}
+                onChange={(event) => setIdentityFilters((current) => ({ ...current, nama_barang: event.target.value }))}
+                placeholder="Cari nama barang..."
+                className="h-10 pl-9"
+              />
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!hasIdentityFilters}
+            onClick={() => setIdentityFilters({ kode_barang: "", nup: "", nama_barang: "" })}
+            className="h-10 shrink-0"
+          >
+            <X className="mr-1 h-4 w-4" />
+            Reset
+          </Button>
+        </div>
       </div>
 
       {/* Select All */}
