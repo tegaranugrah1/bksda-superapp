@@ -76,16 +76,13 @@ class ImportReviewController extends Controller
         $selectionSummary = [
             'selected_total' => (clone $selectionQuery)
                 ->where('selected', true)
-                ->where('diff_status', '!=', 'unchanged')
+                ->where('diff_status', 'new')
                 ->count(),
             'selected_new' => (clone $selectionQuery)
                 ->where('selected', true)
                 ->where('diff_status', 'new')
                 ->count(),
-            'selected_updated' => (clone $selectionQuery)
-                ->where('selected', true)
-                ->where('diff_status', 'updated')
-                ->count(),
+            'selected_updated' => 0,
             'filtered_new' => (clone $selectionQuery)->where('diff_status', 'new')->count(),
             'filtered_updated' => (clone $selectionQuery)->where('diff_status', 'updated')->count(),
         ];
@@ -137,6 +134,7 @@ class ImportReviewController extends Controller
         ]);
 
         ImportStaging::whereIn('id', $request->ids)
+            ->where('diff_status', 'new')
             ->update(['selected' => $request->selected]);
 
         return response()->json(['message' => 'Seleksi diperbarui.']);
@@ -158,7 +156,7 @@ class ImportReviewController extends Controller
         $batch = ImportBatch::findOrFail($validated['batch_id']);
         $baseQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
 
-        if ($validated['action'] === 'select_new_only') {
+        if (in_array($validated['action'], ['select_changed', 'select_new_only'], true)) {
             $cleared = (clone $baseQuery)
                 ->where('diff_status', '!=', 'unchanged')
                 ->update(['selected' => false]);
@@ -174,10 +172,9 @@ class ImportReviewController extends Controller
             ]);
         }
 
-        $selected = $validated['action'] === 'select_changed';
         $affected = $baseQuery
             ->where('diff_status', '!=', 'unchanged')
-            ->update(['selected' => $selected]);
+            ->update(['selected' => false]);
 
         return response()->json([
             'message' => 'Seleksi massal diperbarui.',
@@ -200,7 +197,7 @@ class ImportReviewController extends Controller
                 // Get all selected rows
                 $selectedRows = $batch->stagingRows()
                     ->where('selected', true)
-                    ->where('diff_status', '!=', 'unchanged')
+                    ->where('diff_status', 'new')
                     ->get();
 
                 foreach ($selectedRows as $row) {

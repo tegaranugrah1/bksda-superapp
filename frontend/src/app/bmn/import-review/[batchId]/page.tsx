@@ -229,8 +229,8 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const totalActionable = selectionSummary.selected_total;
   const isPending = batch?.status === "pending";
   const hasIdentityFilters = Object.values(identityFilters).some((value) => value.trim() !== "");
-  const filteredChangedTotal = selectionSummary.filtered_new + selectionSummary.filtered_updated;
-  const allFilteredChangedSelected = filteredChangedTotal > 0 && selectionSummary.selected_total === filteredChangedTotal;
+  const filteredNewTotal = selectionSummary.filtered_new;
+  const allFilteredNewSelected = filteredNewTotal > 0 && selectionSummary.selected_new === filteredNewTotal;
 
   if (isLoading) {
     return (
@@ -385,22 +385,22 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       </div>
 
       {/* Select All */}
-      {isPending && filteredChangedTotal > 0 && (
+      {isPending && filteredNewTotal > 0 && (
         <div className="flex flex-col gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex items-center gap-3">
             <Checkbox
-              checked={allFilteredChangedSelected}
+              checked={allFilteredNewSelected}
               disabled={bulkAction !== null}
               onCheckedChange={(checked) => handleBulkSelection(checked ? "select_changed" : "clear_changed")}
             />
             <span className="text-sm text-slate-600">
-              Pilih semua hasil filter yang berubah
-              <span className="ml-1 text-xs text-slate-400">({filteredChangedTotal} baris)</span>
+              Pilih semua aset baru hasil filter
+              <span className="ml-1 text-xs text-slate-400">({filteredNewTotal} baris)</span>
             </span>
           </label>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-500">
-              Dipilih: <strong>{selectionSummary.selected_new}</strong> baru, <strong>{selectionSummary.selected_updated}</strong> update
+              Dipilih: <strong>{selectionSummary.selected_new}</strong> aset baru
             </span>
             <Button
               type="button"
@@ -438,21 +438,25 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                   </td>
                 </tr>
               ) : (
-                rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={cn(
-                      "transition-colors",
-                      row.diff_status === "new" && "bg-emerald-50/30",
-                      row.diff_status === "updated" && "bg-blue-50/30",
-                      !row.selected && row.diff_status !== "unchanged" && "opacity-50"
-                    )}
-                  >
+                rows.map((row) => {
+                  const isSelectableNewRow = row.diff_status === "new";
+                  const isSelectedNewRow = isSelectableNewRow && row.selected;
+
+                  return (
+                    <tr
+                      key={row.id}
+                      className={cn(
+                        "transition-colors",
+                        row.diff_status === "new" && "bg-emerald-50/30",
+                        row.diff_status === "updated" && "bg-blue-50/30 opacity-60",
+                        isSelectableNewRow && !isSelectedNewRow && "opacity-50"
+                      )}
+                    >
                     {isPending && (
                       <td className="px-4 py-3">
-                        {row.diff_status !== "unchanged" && (
+                        {isSelectableNewRow && (
                           <Checkbox
-                            checked={row.selected}
+                            checked={isSelectedNewRow}
                             onCheckedChange={(checked) => handleToggleRow(row.id, !!checked)}
                           />
                         )}
@@ -482,7 +486,8 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                       )}
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
