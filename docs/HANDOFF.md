@@ -56,14 +56,50 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #316: ST Builder Untuk print pagination (PR #317 MERGED + DEPLOYED) |
+| **Issue Terakhir Selesai** | Issue #318: ST Builder bottom print margin (PR #319 MERGED + DEPLOYED) |
 | **Issue Selanjutnya** | Import BMN Excel in production, then continue public sub-pages styling |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | Merge pull request #317 from tegaranugrah1/issue/316-untuk-print-pagination |
+| **Commit Terakhir** | Merge pull request #319 from tegaranugrah1/issue/318-remove-bsre-test-footer |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-18T18:09:17+08:00 |
+| **Timestamp** | 2026-05-19T08:06:56+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI CODEX (2026-05-19 - Issue #318: ST Builder Bottom Print Margin):**
+- **Objective**: Keep the improved bottom print spacing from the BSrE footer test, but remove the temporary BSrE footer text from final output.
+- **Status**: MERGED + DEPLOYED to production EC2.
+- **GitHub**:
+  - Issue: #318 `fix(surat-tugas): remove BSrE test footer from print`
+  - PR: #319 `fix(surat-tugas): reserve bottom print margin (#318)` - merged to `main`
+  - Branch: `issue/318-remove-bsre-test-footer`
+  - Commit: `e91f546 fix(surat-tugas): reserve bottom print margin (#318)`
+  - Merge commit: `83f89c6`
+- **Accomplishments**:
+  - Removed the temporary BSrE footer test from the final diff.
+  - Kept the larger print bottom margin for ST Builder print output.
+  - `@page` margin is now `3cm 1cm 1.9cm 1.55cm`.
+  - `@page :first` margin is now `0.7cm 1cm 1.9cm 1.55cm`.
+- **Key Files Modified**:
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+- **Validation**:
+  - `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx"` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean.
+- **Production Deploy**:
+  - Server pulled `main` to `83f89c6`.
+  - Rebuilt frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod build frontend`.
+  - Recreated frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d frontend`.
+  - Verified `bksda-frontend` and `bksda-nginx` containers are up.
+  - Verified `https://bksdakaltim.net/login` returns HTTP 200.
+- **Known Issues / Risks**:
+  - Untracked local helper/credential files still exist and were intentionally not staged (`bksda-superapp.pem`, `service-account.json`, import/deploy test scripts).
+  - Server working tree still has pre-existing local changes not touched by this deploy: modified `docker-compose.prod.yml` and untracked `backend/seed_admin.php`.
+- **Next Steps**:
+  - [ ] Re-test ST Builder print preview spacing on production.
+  - [ ] Import BMN Excel in production.
+  - [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
 
 ---
 

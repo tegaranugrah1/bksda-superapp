@@ -1,7 +1,37 @@
 # Progress - Phase 38: Production Fixes + ST Builder FOLU Template
 
-> Document updated: 2026-05-18
+> Document updated: 2026-05-19
 > Status: **DEPLOYED**
+
+---
+
+## Issue #318: ST Builder Bottom Print Margin
+
+### Completed:
+- [x] **Issue Created**: Issue #318 tracks removal of the temporary BSrE footer test and preservation of bottom print spacing.
+- [x] **PR Created/Merged**: PR #319 merged to `main` (`83f89c6`).
+- [x] **Temporary Footer Removed**: BSrE test text is not part of the final output.
+- [x] **Bottom Margin Preserved**: Print bottom margin stays at `1.9cm` for page 1 and continuation pages.
+- [x] **Production Deploy**: EC2 pulled `main`, rebuilt/recreated `frontend`, and `https://bksdakaltim.net/login` returned HTTP 200.
+
+### Current Print CSS State:
+```css
+@page { size: A4; margin: 3cm 1cm 1.9cm 1.55cm; }
+@page :first { margin: 0.7cm 1cm 1.9cm 1.55cm; }
+```
+
+### Key Files:
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" "src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx"`
+- [x] `npx tsc --noEmit`
+- [x] `npm run build`
+
+### Pending:
+- [ ] Re-test ST Builder print preview spacing on production.
+- [ ] Import BMN Excel in production.
+- [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
 
 ---
 
