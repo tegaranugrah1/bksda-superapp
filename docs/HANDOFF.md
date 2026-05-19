@@ -56,14 +56,67 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #318: ST Builder bottom print margin (PR #319 MERGED + DEPLOYED) |
+| **Issue Terakhir Selesai** | Issue #320: production storage proxy + employee ST link (PR #321 MERGED + DEPLOYED) |
 | **Issue Selanjutnya** | Import BMN Excel in production, then continue public sub-pages styling |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | Merge pull request #319 from tegaranugrah1/issue/318-remove-bsre-test-footer |
+| **Commit Terakhir** | Merge pull request #321 from tegaranugrah1/issue/320-prod-storage-and-st-link |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-19T08:06:56+08:00 |
+| **Timestamp** | 2026-05-19T08:20:12+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI CODEX (2026-05-19 - Issue #320: Production Storage Proxy + Employee ST Link):**
+- **Objective**: Fix production profile photo SSL errors and employee-detail ST create route 404.
+- **Status**: MERGED + DEPLOYED to production EC2.
+- **GitHub**:
+  - Issue: #320 `fix(production): route storage through main domain and fix employee ST link`
+  - PR: #321 `fix(production): proxy storage and employee ST link (#320)` - merged to `main`
+  - Branch: `issue/320-prod-storage-and-st-link`
+  - Commit: `d940ecc fix(production): proxy storage and employee ST link (#320)`
+  - Merge commit: `36298ca`
+- **Root Causes**:
+  - Profile photos used `https://storage.bksdakaltim.net/...`, but the active certificate does not match that subdomain, causing `ERR_CERT_COMMON_NAME_INVALID`.
+  - Employee assignment history linked to `/surat-tugas/create?employee_id=...`, but the dashboard route is `/kepegawaian/surat-tugas/create`.
+- **Accomplishments**:
+  - Changed production storage URL to same-origin `https://bksdakaltim.net/storage`.
+  - Added HTTPS `/storage/` proxy in `deploy/nginx.conf` to RustFS bucket `bksda`.
+  - Updated `docker-compose.prod.yml` backend `AWS_URL` and frontend `NEXT_PUBLIC_STORAGE_URL`.
+  - Kept frontend API build arg on `https://bksdakaltim.net/api`.
+  - Added Next Image remote patterns for `bksdakaltim.net/storage`, `www.bksdakaltim.net/storage`, and legacy `storage.bksdakaltim.net`.
+  - Fixed employee detail history CTA to `/kepegawaian/surat-tugas/create?employee_id=...`.
+  - Added `employee_id` query handling in ST create page so the selected employee is auto-added.
+  - Replaced `any` in `AssignmentLetterHistory` preview state with typed preview data while touching the file.
+- **Key Files Modified**:
+  - `deploy/nginx.conf`
+  - `docker-compose.prod.yml`
+  - `frontend/next.config.ts`
+  - `frontend/src/app/kepegawaian/_components/AssignmentLetterHistory.tsx`
+  - `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`
+- **Validation**:
+  - `npx eslint "src/app/kepegawaian/_components/AssignmentLetterHistory.tsx" "src/app/kepegawaian/surat-tugas/create/page.tsx" "next.config.ts"` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean.
+  - `php -l backend/app/Http/Controllers/Api/AuthController.php` clean.
+  - `php -l backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php` clean.
+- **Production Deploy**:
+  - Server pulled `main` to `36298ca`.
+  - Rebuilt frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod build frontend`.
+  - Recreated `backend`, `frontend`, and `nginx` services with `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d backend frontend nginx`.
+  - Reloaded nginx inside `bksda-nginx`.
+  - Verified backend env `AWS_URL=https://bksdakaltim.net/storage`.
+  - Verified `https://bksdakaltim.net/login` returns HTTP 200.
+  - Verified `https://bksdakaltim.net/kepegawaian/surat-tugas/create?employee_id=78` returns HTTP 200.
+  - Verified legacy `https://storage.bksdakaltim.net/...` still has SSL trust error, so new same-origin URLs are required.
+- **Known Issues / Risks**:
+  - Untracked local helper/credential files still exist and were intentionally not staged (`bksda-superapp.pem`, `service-account.json`, import/deploy test scripts).
+  - Server working tree still has pre-existing untracked `backend/seed_admin.php`; previous local `docker-compose.prod.yml` diff was incorporated into repo and is now clean.
+- **Next Steps**:
+  - [ ] Re-test production employee detail photo upload and portal profile photo upload.
+  - [ ] Re-test employee detail -> Buat Surat Tugas opens `/kepegawaian/surat-tugas/create?employee_id=...` and auto-selects employee.
+  - [ ] Import BMN Excel in production.
+  - [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
 
 ---
 

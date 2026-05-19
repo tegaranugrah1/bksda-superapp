@@ -35,6 +35,38 @@
 
 ---
 
+## Issue #320: Production Storage Proxy + Employee ST Link
+
+### Completed:
+- [x] **Issue Created**: Issue #320 tracks profile photo SSL errors and employee ST create route 404.
+- [x] **PR Created/Merged**: PR #321 merged to `main` (`36298ca`).
+- [x] **Storage Same-Origin Proxy**: Production storage URL now uses `https://bksdakaltim.net/storage`.
+- [x] **Nginx Storage Proxy**: HTTPS `/storage/` now proxies to RustFS bucket `bksda`.
+- [x] **Backend URL Fixed**: Backend `AWS_URL` now returns same-origin storage URLs from `Storage::url()`.
+- [x] **Frontend Build Args Fixed**: Frontend uses `https://bksdakaltim.net/api` and `https://bksdakaltim.net/storage`.
+- [x] **Next Image Config**: Added allowed remote patterns for main-domain storage and legacy storage subdomain.
+- [x] **Employee ST Route Fixed**: Employee history CTA now links to `/kepegawaian/surat-tugas/create?employee_id=...`.
+- [x] **Employee Preselect**: ST create page now auto-selects the employee from the `employee_id` query parameter.
+- [x] **Production Deploy**: EC2 pulled `main`, rebuilt frontend, recreated backend/frontend/nginx, reloaded nginx, and `https://bksdakaltim.net/login` returned HTTP 200.
+
+### Validation:
+- [x] `npx eslint "src/app/kepegawaian/_components/AssignmentLetterHistory.tsx" "src/app/kepegawaian/surat-tugas/create/page.tsx" "next.config.ts"`
+- [x] `npx tsc --noEmit`
+- [x] `npm run build`
+- [x] `php -l backend/app/Http/Controllers/Api/AuthController.php`
+- [x] `php -l backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php`
+- [x] `https://bksdakaltim.net/kepegawaian/surat-tugas/create?employee_id=78` returns HTTP 200.
+- [x] Backend container env has `AWS_URL=https://bksdakaltim.net/storage`.
+
+### Pending:
+- [ ] Re-test production employee detail photo upload.
+- [ ] Re-test production portal profile photo upload.
+- [ ] Re-test employee detail -> Buat Surat Tugas auto-selects the employee.
+- [ ] Import BMN Excel in production.
+- [ ] Continue styling public sub-pages (/kawasan, /tsl, /galeri, /publikasi).
+
+---
+
 ## Issue #316: ST Builder Untuk Print Pagination
 
 ### Completed:
