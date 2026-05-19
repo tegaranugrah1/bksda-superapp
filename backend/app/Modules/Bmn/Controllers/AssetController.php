@@ -161,8 +161,12 @@ class AssetController extends Controller
     {
         $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'string']);
 
-        $count = Asset::onlyTrashed()->whereIn('id', $request->ids)->count();
-        Asset::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+        $assets = Asset::onlyTrashed()->whereIn('id', $request->ids)->get();
+        $count = $assets->count();
+
+        foreach ($assets as $asset) {
+            $asset->forceDelete();
+        }
 
         return response()->json(['message' => "{$count} aset dihapus permanen."]);
     }
