@@ -618,8 +618,8 @@ export default function STBuilderPage() {
       <head>
         <title>ST.${stNumber}-${namaKegiatan.replace(/[/\\?%*:|"<>]/g, '-')}</title>
         <style>
-          @page { size: A4; margin: 3cm 1cm 1cm 1.55cm; }
-          @page :first { margin: 0.7cm 1cm 1cm 1.55cm; }
+          @page { size: A4; margin: 3cm 1cm 1.9cm 1.55cm; }
+          @page :first { margin: 0.7cm 1cm 1.9cm 1.55cm; }
           body { 
             font-family: 'Bookman Old Style', 'Georgia', serif; 
             font-size: 11pt; 
