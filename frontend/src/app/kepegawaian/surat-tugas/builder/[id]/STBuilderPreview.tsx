@@ -56,6 +56,8 @@ export default function STBuilderPreview({
   sumberDana = "dipa",
 }: PreviewProps) {
   const isFolu = sumberDana === "folu";
+  const visibleTembusanItems = tembusanItems.filter(t => t && t.trim());
+  const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
 
   return (
     <div
@@ -286,7 +288,7 @@ export default function STBuilderPreview({
                       <p style={{ margin: 0 }}>selaku Koordinator Kegiatan <span style={{ fontStyle: "italic" }}>Implementing</span></p>
                       <p style={{ margin: 0 }}><span style={{ fontStyle: "italic" }}>Partner</span> FOLU NC 2&amp;3</p>
                       <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
-                      <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
+                      <p className="ttd-placeholder" style={{ margin: "14px 0 0", height: "105px", display: "flex", alignItems: "flex-start", paddingTop: "34px", paddingLeft: "1.35cm", boxSizing: "border-box", color: "#94a3b8", fontSize: "9pt" }}>
                         ${"{ttd_pengirim}"}
                       </p>
                       <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
@@ -294,12 +296,12 @@ export default function STBuilderPreview({
                     </div>
 
                     {/* === FOLU Tembusan — di bawah NIP, full width === */}
-                    {tembusanItems.length > 0 && (
+                    {visibleTembusanItems.length > 0 && (
                       <div className="tembusan-block" style={{ marginTop: "16px" }}>
                         <p style={{ margin: "0 0 4px", fontSize: "10pt" }}>Tembusan Kepada :</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
-                            {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
+                            {visibleTembusanItems.map((item, idx) => (
                               <tr key={idx}>
                                 <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
                                 <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
@@ -318,7 +320,7 @@ export default function STBuilderPreview({
                         {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
                       </p>
                       <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
-                      <p className="ttd-placeholder" style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
+                      <p className="ttd-placeholder" style={{ margin: "14px 0 0", height: "105px", display: "flex", alignItems: "flex-start", paddingTop: "34px", paddingLeft: "1.35cm", boxSizing: "border-box", color: "#94a3b8", fontSize: "9pt" }}>
                         ${"{ttd_pengirim}"}
                       </p>
                       <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
@@ -326,14 +328,16 @@ export default function STBuilderPreview({
                     </div>
 
                     {/* === Tembusan (kiri) sejajar NIP === */}
-                    {tembusanItems.length > 0 && (
-                      <div className="tembusan-block" style={{ marginTop: "-18px", maxWidth: "8cm" }}>
+                    {visibleTembusanItems.length > 0 && (
+                      <div className="tembusan-block" style={{ marginTop: "-22px", maxWidth: "8cm" }}>
                         <p style={{ margin: "0 0 4px", fontSize: "10pt" }}>Tembusan:</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
-                            {tembusanItems.filter(t => t && t.trim()).map((item, idx) => (
+                            {visibleTembusanItems.map((item, idx) => (
                               <tr key={idx}>
-                                <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
+                                {shouldNumberDefaultTembusan && (
+                                  <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
+                                )}
                                 <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
                               </tr>
                             ))}
