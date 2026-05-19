@@ -51,7 +51,7 @@ class DashboardController extends Controller
             ]);
 
         // Transaksi terakhir (peminjaman + pemeliharaan)
-        $recentLoans = AssetLoan::with('asset:id,nama_barang,kode_barang', 'borrower:id,nama')
+        $recentLoans = AssetLoan::with('asset:id,nama_barang,kode_barang', 'borrower:id,nama_lengkap')
             ->latest()
             ->limit(5)
             ->get()
@@ -59,7 +59,7 @@ class DashboardController extends Controller
                 'type' => 'loan',
                 'id' => $loan->id,
                 'asset' => $loan->asset?->nama_barang,
-                'borrower' => $loan->borrower?->nama,
+                'borrower' => $loan->borrower?->nama_lengkap,
                 'tanggal' => $loan->tanggal_pinjam?->toDateString(),
                 'status' => $loan->status,
             ]);
