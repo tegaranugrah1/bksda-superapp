@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Package, Handshake, Wrench, Trash2, FileText, Building2, FileUp, Menu } from "lucide-react";
+import { LayoutDashboard, Package, Handshake, Wrench, Trash2, FileText, Building2, FileUp, Menu, Gavel } from "lucide-react";
 import { ModuleSwitcher } from "@/components/module-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -19,6 +19,7 @@ const bmnMenus = [
   { title: "Peminjaman", path: "/bmn/loans", icon: Handshake, minRole: "user" as const },
   { title: "Pemeliharaan", path: "/bmn/maintenances", icon: Wrench, minRole: "user" as const },
   { title: "Import Review", path: "/bmn/import-review", icon: FileUp, minRole: "admin" as const },
+  { title: "Aset Akan Di Lelang", path: "/bmn/auction-candidates", icon: Gavel, minRole: "admin" as const },
   { title: "Aset Dihapus", path: "/bmn/disposal", icon: Trash2, minRole: "admin" as const },
   { title: "Laporan", path: "/bmn/reports", icon: FileText, minRole: "user" as const },
 ];

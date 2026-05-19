@@ -292,19 +292,19 @@ export default function STBuilderPreview({
                         ${"{ttd_pengirim}"}
                       </p>
                       <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-                      <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+                      <p style={{ margin: 0 }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
                     {/* === FOLU Tembusan — di bawah NIP, full width === */}
                     {visibleTembusanItems.length > 0 && (
                       <div className="tembusan-block" style={{ marginTop: "16px" }}>
-                        <p style={{ margin: "0 0 4px", fontSize: "10pt" }}>Tembusan Kepada :</p>
+                        <p style={{ margin: "0 0 4px" }}>Tembusan Kepada :</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
                             {visibleTembusanItems.map((item, idx) => (
                               <tr key={idx}>
-                                <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
-                                <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
+                                <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0" }}>{idx + 1}.</td>
+                                <td style={{ verticalAlign: "top", padding: "1px 0" }}>{item}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -324,21 +324,21 @@ export default function STBuilderPreview({
                         ${"{ttd_pengirim}"}
                       </p>
                       <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-                      <p style={{ margin: 0, fontSize: "10pt" }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+                      <p style={{ margin: 0 }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
                     {/* === Tembusan (kiri) sejajar NIP === */}
                     {visibleTembusanItems.length > 0 && (
                       <div className="tembusan-block" style={{ marginTop: "-22px", maxWidth: "8cm" }}>
-                        <p style={{ margin: "0 0 4px", fontSize: "10pt" }}>Tembusan:</p>
+                        <p style={{ margin: "0 0 4px" }}>Tembusan:</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
                             {visibleTembusanItems.map((item, idx) => (
                               <tr key={idx}>
                                 {shouldNumberDefaultTembusan && (
-                                  <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
+                                  <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0" }}>{idx + 1}.</td>
                                 )}
-                                <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
+                                <td style={{ verticalAlign: "top", padding: "1px 0" }}>{item}</td>
                               </tr>
                             ))}
                           </tbody>
