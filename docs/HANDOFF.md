@@ -102,24 +102,53 @@ git push origin main
 
 ## Status Saat Ini
 
-- [x] Create GitHub issue #330 for No Rangka field.
-- [x] Add `no_rangka` to database migration and `Asset` model `$fillable`.
-- [x] Add `no_rangka` to `UpdateAssetRequest` and `AssetResource`.
-- [x] Update frontend UI in `page.tsx` for `ALAT ANGKUTAN BERMOTOR`.
-- [x] Test the functionality locally.
-- [ ] Commit, PR, and merge issue #330.
-- [ ] Update SSH production server with Issue #330 changes.
+- [x] Create GitHub issue #332 for ST Builder TTE placeholder and tembusan numbering.
+- [x] Align `${ttd_pengirim}` placeholder for FOLU and non-FOLU Srikandi TTE placement.
+- [x] Add larger signature vertical room so QR/TTE does not cover Kepala Balai name/NIP.
+- [x] Render non-FOLU single tembusan without numbering; keep numbering for 2+ recipients.
+- [x] Commit, PR, merge issue #332.
+- [x] Deploy issue #332 to SSH production server.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #330: Add No Rangka Field |
+| **Issue Terakhir Selesai** | Issue #332: ST Builder TTE Placeholder & Tembusan Numbering |
 | **Issue Selanjutnya** | Inventory module improvements |
-| **Branch Aktif** | `feat/330-add-no-rangka` |
-| **Commit Terakhir** | feat(bmn): add no rangka field for motor vehicles |
-| **Model Terakhir** | Antigravity |
-| **Timestamp** | 2026-05-19T14:10:00+08:00 |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir** | c67aca5 Merge pull request #333 from tegaranugrah1/issue/332-st-builder-tte-tembusan |
+| **Model Terakhir** | Codex |
+| **Timestamp** | 2026-05-19T14:55:00+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI CODEX (2026-05-19 - Issue #332: ST Builder TTE Placeholder & Tembusan Numbering):**
+- **Objective**: Fix Surat Tugas Builder print/PDF alignment for Srikandi TTE placement and non-FOLU tembusan numbering.
+- **Status**: MERGED + DEPLOYED to production EC2.
+- **GitHub**:
+  - Issue: #332 `fix(kepegawaian): align TTE placeholder and tembusan numbering`
+  - PR: #333 `fix(kepegawaian): align TTE placeholder and tembusan (#332)` - merged to `main`
+  - Branch: `issue/332-st-builder-tte-tembusan`
+  - Commit: `8b79cab fix(kepegawaian): align TTE placeholder and tembusan (#332)`
+  - Merge commit: `c67aca5`
+- **Accomplishments**:
+  - Shifted `${ttd_pengirim}` anchor to the right and tuned its vertical position for both FOLU and non-FOLU layouts.
+  - Increased signature placeholder height to reserve space for large Srikandi TTE/QR overlays so they do not cover the Kepala Balai name/NIP.
+  - Kept non-FOLU tembusan aligned with the signature/NIP area after the signature spacing change.
+  - Changed non-FOLU tembusan numbering: one recipient renders without a number; two or more recipients render numbered rows. FOLU tembusan remains numbered.
+- **Key Files Modified**:
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+- **Validation**:
+  - `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" --max-warnings=0` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean.
+  - Full `npm run lint -- --max-warnings=0` remains blocked by unrelated pre-existing lint issues in `portal` and `EmployeeAccessSheet` files.
+- **Production Deploy**:
+  - Server pulled `main` to `c67aca5`.
+  - Rebuilt frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod build frontend`.
+  - Recreated frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d frontend`.
+  - Verified `bksda-frontend` and `bksda-nginx` containers are up.
+  - Verified `https://bksdakaltim.net/login` returns HTTP 200.
 
 ---
 

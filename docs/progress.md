@@ -1,3 +1,31 @@
+# Progress - Phase 41: Kepegawaian ST Builder TTE & Tembusan Fix
+
+> Document updated: 2026-05-19
+> Status: **DEPLOYED**
+
+---
+
+## Issue #332: ST Builder TTE Placeholder & Tembusan Numbering
+
+### Completed:
+- [x] **Issue Created**: Issue #332 tracks ST Builder print/PDF alignment for Srikandi TTE and non-FOLU tembusan numbering.
+- [x] **PR Created/Merged**: PR #333 merged to `main` (`c67aca5`).
+- [x] **TTE Placeholder Alignment**: Adjusted `${ttd_pengirim}` placement for FOLU and non-FOLU layouts so Srikandi TTE/QR lands in the signature area without covering the Kepala Balai name/NIP.
+- [x] **Signature Spacing**: Increased placeholder height to reserve enough vertical space for large TTE overlays.
+- [x] **Non-FOLU Tembusan Rule**: Single tembusan recipient now renders without numbering; two or more recipients remain numbered. FOLU tembusan remains numbered.
+- [x] **Production Deploy**: EC2 pulled `main`, rebuilt/recreated `frontend`, and `https://bksdakaltim.net/login` returned HTTP 200.
+
+### Key Files:
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" --max-warnings=0`
+- [x] `npx tsc --noEmit`
+- [x] `npm run build`
+- [ ] Full `npm run lint -- --max-warnings=0` is still blocked by unrelated pre-existing lint issues in `portal` and `EmployeeAccessSheet` files.
+
+---
+
 # Progress - Phase 40: BMN Vehicle Document Uploads & Prod Bugfix
 
 > Document updated: 2026-05-19
