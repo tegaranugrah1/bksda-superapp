@@ -203,7 +203,7 @@ export default function BmnDisposalPage() {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{new Date(asset.deleted_at).toLocaleDateString("id-ID")}</p>
+                      <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{asset.deleted_at ? new Date(asset.deleted_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—"}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 max-w-[250px] truncate">{asset.nama_barang}</p>
