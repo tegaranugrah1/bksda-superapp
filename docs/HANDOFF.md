@@ -102,6 +102,12 @@ git push origin main
 
 ## Status Saat Ini
 
+- [x] Create GitHub issue #329 for BPKB & STNK upload.
+- [x] Implement backend database schema & logic for new photo document types.
+- [x] Implement frontend UI components for document uploads on vehicle assets.
+- [ ] Test the BPKB/STNK photo upload functionality locally.
+- [ ] Commit, PR, and merge issue #329.
+
 | Field | Value |
 |-------|-------|
 | **Issue Terakhir Selesai** | Issue #326 & #328: BMN Disposal Invalid Date & RustFS Cleanup (PR #327 & #328 MERGED) |

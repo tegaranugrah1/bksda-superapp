@@ -210,6 +210,13 @@ function AssetDetail({ assetId }: { assetId: string }) {
         fotoKiriUrl={asset.foto_kiri_url}
         fotoKananUrl={asset.foto_kanan_url}
         fotoLokasiUrl={asset.foto_lokasi_url}
+        fotoBpkb1Url={asset.foto_bpkb_1_url}
+        fotoBpkb2Url={asset.foto_bpkb_2_url}
+        fotoBpkb3Url={asset.foto_bpkb_3_url}
+        fotoBpkb4Url={asset.foto_bpkb_4_url}
+        fotoStnk1Url={asset.foto_stnk_1_url}
+        fotoStnk2Url={asset.foto_stnk_2_url}
+        isVehicle={asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-"}
         verifiedAt={asset.verified_at}
         verifiedByName={asset.verified_by_name}
         onRefresh={refetch}
@@ -267,6 +274,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
             {canWrite ? (
               <>
                 <EditableRow label="No Polisi" value={asset.no_polisi} field="no_polisi" onSave={handleFieldSave} />
+                <EditableRow label="No BPKB" value={asset.no_bpkp} field="no_bpkp" onSave={handleFieldSave} />
                 <EditableRow label="No STNK" value={asset.no_stnk} field="no_stnk" onSave={handleFieldSave} />
                 <EditableRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} field="tanggal_pajak_stnk" onSave={handleFieldSave} type="date" badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
                 <EditableRow label="Tanggal Ganti Plat" value={asset.tanggal_ganti_plat} field="tanggal_ganti_plat" onSave={handleFieldSave} type="date" badge={asset.tanggal_ganti_plat ? <StnkCountdown tanggal={asset.tanggal_ganti_plat} label="Ganti Plat" /> : undefined} />
@@ -278,6 +286,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
             ) : (
               <>
                 <DetailRow label="No Polisi" value={asset.no_polisi} />
+                <DetailRow label="No BPKB" value={asset.no_bpkp} />
                 <DetailRow label="No STNK" value={asset.no_stnk} />
                 <DetailRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
                 <DetailRow label="Tanggal Ganti Plat" value={asset.tanggal_ganti_plat} badge={asset.tanggal_ganti_plat ? <StnkCountdown tanggal={asset.tanggal_ganti_plat} label="Ganti Plat" /> : undefined} />
@@ -349,7 +358,6 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <EditableRow label="Properti Investasi" value={asset.properti_investasi} field="properti_investasi" onSave={handleFieldSave} />
               <EditableRow label="Jenis Dokumen" value={asset.jenis_dokumen} field="jenis_dokumen" onSave={handleFieldSave} />
               <EditableRow label="No Dokumen" value={asset.no_dokumen} field="no_dokumen" onSave={handleFieldSave} />
-              <EditableRow label="No BPKP" value={asset.no_bpkp} field="no_bpkp" onSave={handleFieldSave} />
               <EditableRow label="Status Penggunaan" value={asset.status_penggunaan} field="status_penggunaan" onSave={handleFieldSave} />
               <EditableRow label="No PSP" value={asset.no_psp} field="no_psp" onSave={handleFieldSave} />
               <EditableRow label="Tanggal PSP" value={asset.tanggal_psp} field="tanggal_psp" onSave={handleFieldSave} type="date" />
@@ -369,7 +377,6 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <DetailRow label="Properti Investasi" value={asset.properti_investasi} />
               <DetailRow label="Jenis Dokumen" value={asset.jenis_dokumen} />
               <DetailRow label="No Dokumen" value={asset.no_dokumen} />
-              <DetailRow label="No BPKP" value={asset.no_bpkp} />
               <DetailRow label="Status Penggunaan" value={asset.status_penggunaan} />
               <DetailRow label="No PSP" value={asset.no_psp} />
               <DetailRow label="Tanggal PSP" value={asset.tanggal_psp} />

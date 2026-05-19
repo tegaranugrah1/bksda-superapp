@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
+import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck, FileText } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,13 @@ interface PhotoGalleryProps {
   fotoKiriUrl: string | null;
   fotoKananUrl: string | null;
   fotoLokasiUrl: string | null;
+  fotoBpkb1Url?: string | null;
+  fotoBpkb2Url?: string | null;
+  fotoBpkb3Url?: string | null;
+  fotoBpkb4Url?: string | null;
+  fotoStnk1Url?: string | null;
+  fotoStnk2Url?: string | null;
+  isVehicle?: boolean;
   verifiedAt: string | null;
   verifiedByName: string | null;
   onRefresh: () => void;
@@ -32,6 +39,15 @@ const PHOTO_SLOTS = [
   { key: "lokasi", label: "Lokasi Barang", type: "upload" },
 ] as const;
 
+const DOC_SLOTS = [
+  { key: "bpkb_1", label: "Foto BPKB 1", type: "upload" },
+  { key: "bpkb_2", label: "Foto BPKB 2", type: "upload" },
+  { key: "bpkb_3", label: "Foto BPKB 3", type: "upload" },
+  { key: "bpkb_4", label: "Foto BPKB 4", type: "upload" },
+  { key: "stnk_1", label: "Foto STNK Depan", type: "upload" },
+  { key: "stnk_2", label: "Foto STNK Belakang", type: "upload" },
+] as const;
+
 /** Convert Google Drive share link to embeddable thumbnail URL */
 function driveToThumbnail(url: string): string | null {
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -39,7 +55,7 @@ function driveToThumbnail(url: string): string | null {
   return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
 }
 
-export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
+export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
@@ -57,6 +73,12 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
     kiri: fotoKiriUrl,
     kanan: fotoKananUrl,
     lokasi: fotoLokasiUrl,
+    bpkb_1: fotoBpkb1Url || null,
+    bpkb_2: fotoBpkb2Url || null,
+    bpkb_3: fotoBpkb3Url || null,
+    bpkb_4: fotoBpkb4Url || null,
+    stnk_1: fotoStnk1Url || null,
+    stnk_2: fotoStnk2Url || null,
   };
 
   const hasAnyPhoto = Object.values(photos).some(Boolean);
@@ -80,7 +102,8 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
   };
 
   // Get all available photos for navigation
-  const availablePhotos = PHOTO_SLOTS.map((slot) => {
+  const allSlots = isVehicle ? [...PHOTO_SLOTS, ...DOC_SLOTS] : PHOTO_SLOTS;
+  const availablePhotos = allSlots.map((slot) => {
     const url = photos[slot.key];
     if (!url) return null;
     const isExternalOnly = slot.type === "hybrid" && !fotoGeotagPath && !!fotoGeotagUrl;
@@ -227,84 +250,25 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
       )}
 
       <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        {PHOTO_SLOTS.map((slot) => {
-          const url = photos[slot.key];
-          const isHybrid = slot.type === "hybrid";
-          const isExternalOnly = isHybrid && !fotoGeotagPath && !!fotoGeotagUrl;
-
-          return (
-            <div key={slot.key} className="group relative">
-              <div className={cn(
-                "aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all",
-                url ? "border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-500/5" : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600"
-              )}>
-                {url ? (
-                  isExternalOnly ? (
-                    (() => {
-                      const thumb = driveToThumbnail(url);
-                      return thumb ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={thumb} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" referrerPolicy="no-referrer" onClick={() => openLightbox(slot.key)} />
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 p-3 text-center">
-                          <ExternalLink className="w-6 h-6 text-emerald-600" />
-                          <p className="text-[9px] text-emerald-700 font-bold">Link Tersedia</p>
-                        </div>
-                      );
-                    })()
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={url} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => openLightbox(slot.key)} />
-                  )
-                ) : (
-                  <div className="flex flex-col items-center gap-1 p-3 text-center">
-                    <Camera className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
-                    <p className="text-[9px] text-zinc-400 font-medium">Belum ada</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Label */}
-              <p className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 text-center mt-1.5">{slot.label}</p>
-
-              {/* Actions */}
-              <div className="flex items-center justify-center gap-1 mt-1">
-                {url && (
-                  <>
-                    <button onClick={() => handleDownload(slot.key)} className="p-1 rounded hover:bg-blue-50 text-blue-600" title="Download">
-                      <Download className="w-3 h-3" />
-                    </button>
-                    <button onClick={() => copyLink(url)} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500" title="Copy Link">
-                      <Link2 className="w-3 h-3" />
-                    </button>
-                    {canWrite && (
-                      <button onClick={() => handleDelete(slot.key)} className="p-1 rounded hover:bg-red-50 text-red-500" title="Hapus">
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
-                  </>
-                )}
-                {canWrite && !url && (
-                  isHybrid ? (
-                    <>
-                      <button onClick={() => { setUploadTarget("geotag"); fileInputRef.current?.click(); }} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload File">
-                        <Upload className="w-3 h-3" />
-                      </button>
-                      <button onClick={() => setShowGeotagInput(true)} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Tambah Link">
-                        <Link2 className="w-3 h-3" />
-                      </button>
-                    </>
-                  ) : (
-                    <button onClick={() => { setUploadTarget(slot.key); fileInputRef.current?.click(); }} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload">
-                      <Upload className="w-3 h-3" />
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-          );
-        })}
+        {PHOTO_SLOTS.map((slot) => (
+          <PhotoSlot key={slot.key} slot={slot} url={photos[slot.key]} openLightbox={openLightbox} handleDownload={handleDownload} copyLink={copyLink} handleDelete={handleDelete} setUploadTarget={setUploadTarget} fileInputRef={fileInputRef} setShowGeotagInput={setShowGeotagInput} canWrite={canWrite} fotoGeotagPath={fotoGeotagPath} fotoGeotagUrl={fotoGeotagUrl} />
+        ))}
       </div>
+
+      {isVehicle && (
+        <>
+          <div className="px-5 py-3.5 border-y border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 dark:from-zinc-800/50 to-white dark:to-zinc-900 flex items-center gap-2.5">
+            <span className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600"><FileText className="w-4 h-4" /></span>
+            <h3 className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Dokumen Kendaraan</h3>
+          </div>
+          <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+            {DOC_SLOTS.map((slot) => (
+              <PhotoSlot key={slot.key} slot={slot} url={photos[slot.key]} openLightbox={openLightbox} handleDownload={handleDownload} copyLink={copyLink} handleDelete={handleDelete} setUploadTarget={setUploadTarget} fileInputRef={fileInputRef} setShowGeotagInput={setShowGeotagInput} canWrite={canWrite} fotoGeotagPath={null} fotoGeotagUrl={null} />
+            ))}
+          </div>
+        </>
+      )}
+
 
       {/* Geotag URL Input */}
       {showGeotagInput && (
@@ -398,6 +362,98 @@ function Lightbox({ url, label, index, total, onClose, onPrev, onNext }: {
         referrerPolicy="no-referrer"
         onClick={(e) => e.stopPropagation()}
       />
+    </div>
+  );
+}
+
+interface PhotoSlotProps {
+  slot: { key: string; label: string; type: string };
+  url: string | null;
+  openLightbox: (key: string) => void;
+  handleDownload: (key: string) => void;
+  copyLink: (url: string) => void;
+  handleDelete: (key: string) => void;
+  setUploadTarget: (target: string) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  setShowGeotagInput: (show: boolean) => void;
+  canWrite: boolean;
+  fotoGeotagPath: string | null;
+  fotoGeotagUrl: string | null;
+}
+
+function PhotoSlot({ slot, url, openLightbox, handleDownload, copyLink, handleDelete, setUploadTarget, fileInputRef, setShowGeotagInput, canWrite, fotoGeotagPath, fotoGeotagUrl }: PhotoSlotProps) {
+  const isHybrid = slot.type === "hybrid";
+  const isExternalOnly = isHybrid && !fotoGeotagPath && !!fotoGeotagUrl;
+
+  return (
+    <div className="group relative">
+      <div className={cn(
+        "aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all",
+        url ? "border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-500/5" : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600"
+      )}>
+        {url ? (
+          isExternalOnly ? (
+            (() => {
+              const thumb = driveToThumbnail(url);
+              return thumb ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={thumb} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" referrerPolicy="no-referrer" onClick={() => openLightbox(slot.key)} />
+              ) : (
+                <div className="flex flex-col items-center gap-2 p-3 text-center">
+                  <ExternalLink className="w-6 h-6 text-emerald-600" />
+                  <p className="text-[9px] text-emerald-700 font-bold">Link Tersedia</p>
+                </div>
+              );
+            })()
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={url} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => openLightbox(slot.key)} />
+          )
+        ) : (
+          <div className="flex flex-col items-center gap-1 p-3 text-center">
+            <Camera className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
+            <p className="text-[9px] text-zinc-400 font-medium">Belum ada</p>
+          </div>
+        )}
+      </div>
+
+      {/* Label */}
+      <p className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 text-center mt-1.5">{slot.label}</p>
+
+      {/* Actions */}
+      <div className="flex items-center justify-center gap-1 mt-1">
+        {url && (
+          <>
+            <button onClick={() => handleDownload(slot.key)} className="p-1 rounded hover:bg-blue-50 text-blue-600" title="Download">
+              <Download className="w-3 h-3" />
+            </button>
+            <button onClick={() => copyLink(url)} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500" title="Copy Link">
+              <Link2 className="w-3 h-3" />
+            </button>
+            {canWrite && (
+              <button onClick={() => handleDelete(slot.key)} className="p-1 rounded hover:bg-red-50 text-red-500" title="Hapus">
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
+          </>
+        )}
+        {canWrite && !url && (
+          isHybrid ? (
+            <>
+              <button onClick={() => { setUploadTarget("geotag"); fileInputRef.current?.click(); }} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload File">
+                <Upload className="w-3 h-3" />
+              </button>
+              <button onClick={() => setShowGeotagInput(true)} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Tambah Link">
+                <Link2 className="w-3 h-3" />
+              </button>
+            </>
+          ) : (
+            <button onClick={() => { setUploadTarget(slot.key); fileInputRef.current?.click(); }} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload">
+              <Upload className="w-3 h-3" />
+            </button>
+          )
+        )}
+      </div>
     </div>
   );
 }

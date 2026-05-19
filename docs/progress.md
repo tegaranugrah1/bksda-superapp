@@ -575,7 +575,12 @@ bksda (bucket)/
 - [x] **No Polisi di tabel**: tampil di subtitle untuk kendaraan (Merk • No Pol • Tahun)
 - [x] **Shorten lokasi**: nama panjang disingkat di tabel (Kantor Balai, Seksi Wil. I, R.01, dll)
 - [x] **Pengguna di tabel**: tampil di bawah lokasi jika ada
-- [x] **Foto rename**: label + DB columns diubah (Tampak Depan=Geotag, Belakang, Kiri, Kanan, Lokasi Barang)
+- [x] **Issue #329: BPKB & STNK Upload for Vehicle Assets**
+  - Added new columns to `bmn_assets` via migration.
+  - Updated `Asset` model and `AssetResource` for 6 new photo slots (BPKB 1-4, STNK 1-2).
+  - Modified `AssetPhotoController` to support uploading and ZIP download for the new document types.
+  - Extended `PhotoGallery.tsx` and `page.tsx` on the frontend to conditionally render a "Dokumen Kendaraan" section for `ALAT ANGKUTAN BERMOTOR` assets.
+  - *Pending*: User testing and git commit/PR.
 - [x] **Verifikasi BMN**: tombol + timestamp + log riwayat
 - [x] **Photo history**: upload + delete foto tercatat di riwayat
 - [x] **Disposal pagination**: tambah opsi "Semua"

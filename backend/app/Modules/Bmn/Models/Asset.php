@@ -31,6 +31,8 @@ class Asset extends Model
         'jenis_identitas', 'no_identitas', 'no_stnk', 'nama_pengguna', 'status_pmk',
         'status_foto_geotag', 'foto_geotag_url', 'foto_geotag_path', 'foto_belakang_path',
         'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path',
+        'foto_bpkb_1_path', 'foto_bpkb_2_path', 'foto_bpkb_3_path', 'foto_bpkb_4_path',
+        'foto_stnk_1_path', 'foto_stnk_2_path',
         'verified_at', 'verified_by',
         'tahun_perolehan', 'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
         'tanggal_pajak_stnk', 'tanggal_ganti_plat',
@@ -84,6 +86,12 @@ class Asset extends Model
                 $asset->foto_kiri_path,
                 $asset->foto_kanan_path,
                 $asset->foto_lokasi_path,
+                $asset->foto_bpkb_1_path,
+                $asset->foto_bpkb_2_path,
+                $asset->foto_bpkb_3_path,
+                $asset->foto_bpkb_4_path,
+                $asset->foto_stnk_1_path,
+                $asset->foto_stnk_2_path,
             ];
 
             foreach ($paths as $path) {
