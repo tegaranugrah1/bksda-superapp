@@ -70,12 +70,25 @@ class ImportReviewController extends Controller
     {
         $batch = ImportBatch::findOrFail($batchId);
 
-        $query = $batch->stagingRows();
+        $query = $this->buildFilteredRowsQuery($batch, $request);
+        $selectionQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
 
-        // Filter by diff_status
-        if ($request->filled('status')) {
-            $query->where('diff_status', $request->status);
-        }
+        $selectionSummary = [
+            'selected_total' => (clone $selectionQuery)
+                ->where('selected', true)
+                ->whereIn('diff_status', ['new', 'updated'])
+                ->count(),
+            'selected_new' => (clone $selectionQuery)
+                ->where('selected', true)
+                ->where('diff_status', 'new')
+                ->count(),
+            'selected_updated' => (clone $selectionQuery)
+                ->where('selected', true)
+                ->where('diff_status', 'updated')
+                ->count(),
+            'filtered_new' => (clone $selectionQuery)->where('diff_status', 'new')->count(),
+            'filtered_updated' => (clone $selectionQuery)->where('diff_status', 'updated')->count(),
+        ];
 
         // Paginate
         $perPage = $request->integer('per_page', 50);
@@ -108,6 +121,7 @@ class ImportReviewController extends Controller
                 'created_at' => $batch->created_at,
             ],
             'rows' => $rows,
+            'selection_summary' => $selectionSummary,
         ]);
     }
 
@@ -123,9 +137,64 @@ class ImportReviewController extends Controller
         ]);
 
         ImportStaging::whereIn('id', $request->ids)
+            ->whereIn('diff_status', ['new', 'updated'])
             ->update(['selected' => $request->selected]);
 
         return response()->json(['message' => 'Seleksi diperbarui.']);
+    }
+
+    /**
+     * Step 2c: Bulk selection for all filtered rows in the batch.
+     */
+    public function bulkSelection(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'batch_id' => 'required|string|exists:bmn_import_batches,id',
+            'action' => 'required|string|in:select_changed,clear_changed,select_new_only',
+            'kode_barang' => 'nullable|string|max:255',
+            'nup' => 'nullable|string|max:255',
+            'nama_barang' => 'nullable|string|max:255',
+        ]);
+
+        $batch = ImportBatch::findOrFail($validated['batch_id']);
+        $baseQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
+
+        if ($validated['action'] === 'select_changed') {
+            // Select ALL changed rows (new + updated)
+            $selected = (clone $baseQuery)
+                ->whereIn('diff_status', ['new', 'updated'])
+                ->update(['selected' => true]);
+
+            return response()->json([
+                'message' => "{$selected} baris (baru + update) dipilih.",
+                'selected' => $selected,
+            ]);
+        }
+
+        if ($validated['action'] === 'select_new_only') {
+            // Clear all, then select only new rows
+            (clone $baseQuery)
+                ->where('diff_status', '!=', 'unchanged')
+                ->update(['selected' => false]);
+
+            $selected = (clone $baseQuery)
+                ->where('diff_status', 'new')
+                ->update(['selected' => true]);
+
+            return response()->json([
+                'message' => "{$selected} aset baru dipilih.",
+                'selected' => $selected,
+            ]);
+        }
+
+        $affected = $baseQuery
+            ->where('diff_status', '!=', 'unchanged')
+            ->update(['selected' => false]);
+
+        return response()->json([
+            'message' => 'Seleksi massal diperbarui.',
+            'affected' => $affected,
+        ]);
     }
 
     /**
@@ -140,10 +209,10 @@ class ImportReviewController extends Controller
                 $inserted = 0;
                 $updated = 0;
 
-                // Get all selected rows
+                // Get all selected rows (new + updated)
                 $selectedRows = $batch->stagingRows()
                     ->where('selected', true)
-                    ->where('diff_status', '!=', 'unchanged')
+                    ->whereIn('diff_status', ['new', 'updated'])
                     ->get();
 
                 foreach ($selectedRows as $row) {
@@ -243,5 +312,29 @@ class ImportReviewController extends Controller
             ->paginate($request->integer('per_page', 10));
 
         return response()->json($batches);
+    }
+
+    private function buildFilteredRowsQuery(ImportBatch $batch, Request $request)
+    {
+        $query = $this->applyIdentityFilters($batch->stagingRows(), $request);
+
+        if ($request->filled('status')) {
+            $query->where('diff_status', $request->status);
+        }
+
+        return $query;
+    }
+
+    private function applyIdentityFilters($query, Request $request)
+    {
+        foreach (['kode_barang', 'nup', 'nama_barang'] as $field) {
+            $value = trim((string) $request->input($field, ''));
+
+            if ($value !== '') {
+                $query->whereRaw("imported_data->>'{$field}' ILIKE ?", ["%{$value}%"]);
+            }
+        }
+
+        return $query;
     }
 }

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -16,6 +17,8 @@ import {
   RefreshCw,
   Minus,
   FileSpreadsheet,
+  Search,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -45,6 +48,24 @@ interface BatchInfo {
   unchanged_rows: number;
   status: string;
   created_at: string;
+}
+
+interface SelectionSummary {
+  selected_total: number;
+  selected_new: number;
+  selected_updated: number;
+  filtered_new: number;
+  filtered_updated: number;
+}
+
+interface RowsPagination {
+  current_page: number;
+  data: StagingRow[];
+  from: number | null;
+  last_page: number;
+  per_page: number;
+  to: number | null;
+  total: number;
 }
 
 // Human-readable field labels
@@ -92,21 +113,50 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const queryClient = useQueryClient();
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "new" | "updated" | "unchanged">("all");
+  const [page, setPage] = useState(1);
+  const [identityFilters, setIdentityFilters] = useState({
+    kode_barang: "",
+    nup: "",
+    nama_barang: "",
+  });
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [bulkAction, setBulkAction] = useState<"select_changed" | "clear_changed" | "select_new_only" | null>(null);
+
+  const handleStatusFilterChange = (nextFilter: "all" | "new" | "updated" | "unchanged") => {
+    setPage(1);
+    setFilter(nextFilter);
+  };
+
+  const handleIdentityFilterChange = (field: keyof typeof identityFilters, value: string) => {
+    setPage(1);
+    setIdentityFilters((current) => ({ ...current, [field]: value }));
+  };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["bmn-import-batch", batchId, filter],
+    queryKey: ["bmn-import-batch", batchId, filter, identityFilters, page],
     queryFn: async () => {
-      const params: Record<string, string> = { per_page: "200" };
+      const params: Record<string, string> = { page: String(page), per_page: "200" };
       if (filter !== "all") params.status = filter;
+      Object.entries(identityFilters).forEach(([key, value]) => {
+        const trimmedValue = value.trim();
+        if (trimmedValue) params[key] = trimmedValue;
+      });
       const res = await api.get(`/bmn/import-review/${batchId}`, { params });
       return res.data;
     },
   });
 
   const batch: BatchInfo | null = data?.batch || null;
-  const rows: StagingRow[] = data?.rows?.data || [];
+  const rowsPagination: RowsPagination | null = data?.rows || null;
+  const rows: StagingRow[] = rowsPagination?.data || [];
+  const selectionSummary: SelectionSummary = data?.selection_summary || {
+    selected_total: 0,
+    selected_new: 0,
+    selected_updated: 0,
+    filtered_new: 0,
+    filtered_updated: 0,
+  };
 
   const handleToggleRow = async (rowId: string, selected: boolean) => {
     try {
@@ -120,14 +170,27 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     }
   };
 
-  const handleToggleAll = async (selected: boolean) => {
-    const ids = rows.filter((r) => r.diff_status !== "unchanged").map((r) => r.id);
-    if (ids.length === 0) return;
+  const getIdentityFilterParams = () =>
+    Object.fromEntries(
+      Object.entries(identityFilters)
+        .map(([key, value]) => [key, value.trim()])
+        .filter(([, value]) => value !== "")
+    );
+
+  const handleBulkSelection = async (action: "select_changed" | "clear_changed" | "select_new_only") => {
+    setBulkAction(action);
     try {
-      await api.post("/bmn/import-review/toggle-selection", { ids, selected });
+      const res = await api.post("/bmn/import-review/bulk-selection", {
+        batch_id: batchId,
+        action,
+        ...getIdentityFilterParams(),
+      });
+      toast.success(res.data.message || "Seleksi diperbarui.");
       queryClient.invalidateQueries({ queryKey: ["bmn-import-batch", batchId] });
     } catch {
-      toast.error("Gagal mengubah seleksi.");
+      toast.error("Gagal mengubah seleksi massal.");
+    } finally {
+      setBulkAction(null);
     }
   };
 
@@ -163,8 +226,10 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
 
-  const totalActionable = (batch?.new_rows || 0) + (batch?.updated_rows || 0);
+  const totalActionable = selectionSummary.selected_total;
   const isPending = batch?.status === "pending";
+  const hasIdentityFilters = Object.values(identityFilters).some((value) => value.trim() !== "");
+  const filteredNewTotal = selectionSummary.filtered_new;
 
   if (isLoading) {
     return (
@@ -215,7 +280,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
               {isApproving ? (
                 <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Memproses...</>
               ) : (
-                <><CheckCircle2 className="w-4 h-4 mr-1" />Setujui ({totalActionable} baris)</>
+                <><CheckCircle2 className="w-4 h-4 mr-1" />Setujui ({totalActionable} dipilih)</>
               )}
             </Button>
           </div>
@@ -229,7 +294,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           value={batch?.total_rows || 0}
           color="slate"
           active={filter === "all"}
-          onClick={() => setFilter("all")}
+          onClick={() => handleStatusFilterChange("all")}
         />
         <SummaryCard
           label="Baru"
@@ -237,7 +302,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           color="emerald"
           icon={<Plus className="w-3.5 h-3.5" />}
           active={filter === "new"}
-          onClick={() => setFilter("new")}
+          onClick={() => handleStatusFilterChange("new")}
         />
         <SummaryCard
           label="Update"
@@ -245,7 +310,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           color="blue"
           icon={<RefreshCw className="w-3.5 h-3.5" />}
           active={filter === "updated"}
-          onClick={() => setFilter("updated")}
+          onClick={() => handleStatusFilterChange("updated")}
         />
         <SummaryCard
           label="Tidak Berubah"
@@ -253,18 +318,99 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           color="slate"
           icon={<Minus className="w-3.5 h-3.5" />}
           active={filter === "unchanged"}
-          onClick={() => setFilter("unchanged")}
+          onClick={() => handleStatusFilterChange("unchanged")}
         />
       </div>
 
-      {/* Select All */}
-      {isPending && rows.some((r) => r.diff_status !== "unchanged") && (
-        <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3">
-          <Checkbox
-            checked={rows.filter((r) => r.diff_status !== "unchanged").every((r) => r.selected)}
-            onCheckedChange={(checked) => handleToggleAll(!!checked)}
-          />
-          <span className="text-sm text-slate-600">Pilih semua baris yang berubah</span>
+      {/* Identity Filters */}
+      <div className="bg-white border border-slate-200 rounded-xl p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+          <div className="min-w-0 flex-1">
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Kode Barang
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={identityFilters.kode_barang}
+                onChange={(event) => handleIdentityFilterChange("kode_barang", event.target.value)}
+                placeholder="Cari kode barang..."
+                className="h-10 pl-9"
+              />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              NUP
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={identityFilters.nup}
+                onChange={(event) => handleIdentityFilterChange("nup", event.target.value)}
+                placeholder="Cari NUP..."
+                className="h-10 pl-9"
+              />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Nama Barang
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={identityFilters.nama_barang}
+                onChange={(event) => handleIdentityFilterChange("nama_barang", event.target.value)}
+                placeholder="Cari nama barang..."
+                className="h-10 pl-9"
+              />
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!hasIdentityFilters}
+            onClick={() => {
+              setPage(1);
+              setIdentityFilters({ kode_barang: "", nup: "", nama_barang: "" });
+            }}
+            className="h-10 shrink-0"
+          >
+            <X className="mr-1 h-4 w-4" />
+            Reset
+          </Button>
+        </div>
+      </div>
+
+      {/* Selection Toolbar */}
+      {isPending && (filteredNewTotal > 0 || selectionSummary.filtered_updated > 0) && (
+        <div className="flex flex-col gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <span className="text-sm text-slate-600">
+            Dipilih: <strong>{selectionSummary.selected_new}</strong> baru, <strong>{selectionSummary.selected_updated}</strong> update
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={bulkAction !== null}
+              onClick={() => handleBulkSelection("select_changed")}
+              className="h-8 bg-slate-700 text-white hover:bg-slate-800"
+            >
+              {bulkAction === "select_changed" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="mr-1 h-3.5 w-3.5" />}
+              Pilih semua ({filteredNewTotal + selectionSummary.filtered_updated})
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={bulkAction !== null || filteredNewTotal === 0}
+              onClick={() => handleBulkSelection("select_new_only")}
+              className="h-8 bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              {bulkAction === "select_new_only" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1 h-3.5 w-3.5" />}
+              Pilih hanya aset baru ({filteredNewTotal})
+            </Button>
+          </div>
         </div>
       )}
 
@@ -274,7 +420,24 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                {isPending && <th className="px-4 py-3 w-10"></th>}
+                {isPending && (
+                  <th className="px-4 py-3 w-10">
+                    <Checkbox
+                      checked={(() => {
+                        const changed = rows.filter((r) => r.diff_status === "new" || r.diff_status === "updated");
+                        const selected = changed.filter((r) => r.selected);
+                        if (changed.length === 0) return false;
+                        if (selected.length === changed.length) return true;
+                        if (selected.length > 0) return "indeterminate" as const;
+                        return false;
+                      })()}
+                      disabled={bulkAction !== null}
+                      onCheckedChange={(checked) => {
+                        handleBulkSelection(checked ? "select_changed" : "clear_changed");
+                      }}
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-3 text-left font-semibold text-slate-600">Status</th>
                 <th className="px-4 py-3 text-left font-semibold text-slate-600">Kode Barang</th>
                 <th className="px-4 py-3 text-left font-semibold text-slate-600">NUP</th>
@@ -290,21 +453,25 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                   </td>
                 </tr>
               ) : (
-                rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={cn(
-                      "transition-colors",
-                      row.diff_status === "new" && "bg-emerald-50/30",
-                      row.diff_status === "updated" && "bg-blue-50/30",
-                      !row.selected && row.diff_status !== "unchanged" && "opacity-50"
-                    )}
-                  >
+                rows.map((row) => {
+                  const isSelectableRow = row.diff_status === "new" || row.diff_status === "updated";
+                  const isSelected = isSelectableRow && row.selected;
+
+                  return (
+                    <tr
+                      key={row.id}
+                      className={cn(
+                        "transition-colors",
+                        row.diff_status === "new" && "bg-emerald-50/30",
+                        row.diff_status === "updated" && "bg-blue-50/30",
+                        isSelectableRow && !isSelected && "opacity-60"
+                      )}
+                    >
                     {isPending && (
                       <td className="px-4 py-3">
-                        {row.diff_status !== "unchanged" && (
+                        {isSelectableRow && (
                           <Checkbox
-                            checked={row.selected}
+                            checked={isSelected}
                             onCheckedChange={(checked) => handleToggleRow(row.id, !!checked)}
                           />
                         )}
@@ -334,12 +501,44 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                       )}
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {rowsPagination && rowsPagination.last_page > 1 && (
+        <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+          <span>
+            Menampilkan {rowsPagination.from || 0}-{rowsPagination.to || 0} dari {rowsPagination.total} baris hasil filter
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              Sebelumnya
+            </Button>
+            <span className="text-xs text-slate-500">
+              Halaman {rowsPagination.current_page} / {rowsPagination.last_page}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= rowsPagination.last_page}
+              onClick={() => setPage((current) => Math.min(rowsPagination.last_page, current + 1))}
+            >
+              Berikutnya
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
