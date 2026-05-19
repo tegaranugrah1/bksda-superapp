@@ -74,4 +74,23 @@ class Asset extends Model
     {
         return $this->hasMany(AssetUpdate::class, 'asset_id');
     }
+
+    protected static function booted()
+    {
+        static::forceDeleted(function ($asset) {
+            $paths = [
+                $asset->foto_geotag_path,
+                $asset->foto_belakang_path,
+                $asset->foto_kiri_path,
+                $asset->foto_kanan_path,
+                $asset->foto_lokasi_path,
+            ];
+
+            foreach ($paths as $path) {
+                if ($path && \Illuminate\Support\Facades\Storage::exists($path)) {
+                    \Illuminate\Support\Facades\Storage::delete($path);
+                }
+            }
+        });
+    }
 }
