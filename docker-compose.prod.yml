@@ -60,7 +60,7 @@ services:
       AWS_BUCKET: bksda
       AWS_ENDPOINT: http://rustfs:9000
       AWS_USE_PATH_STYLE_ENDPOINT: "true"
-      AWS_URL: https://storage.bksdakaltim.net
+      AWS_URL: https://bksdakaltim.net/storage
       SESSION_DRIVER: file
       CACHE_STORE: file
       QUEUE_CONNECTION: sync
@@ -87,8 +87,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://api.bksdakaltim.net/api
-        NEXT_PUBLIC_STORAGE_URL: https://storage.bksdakaltim.net/bksda
+        NEXT_PUBLIC_API_URL: https://bksdakaltim.net/api
+        NEXT_PUBLIC_STORAGE_URL: https://bksdakaltim.net/storage
     container_name: bksda-frontend
     restart: always
 

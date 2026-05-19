@@ -22,6 +22,40 @@ interface AssignmentLetter {
   status: string;
 }
 
+interface PreviewEmployee {
+  id: string | number;
+  nama_lengkap: string;
+  name?: string;
+  nip: string;
+  jabatan?: string;
+  pivot?: { peran?: string };
+}
+
+interface PreviewItem {
+  id?: string;
+  text: string;
+}
+
+interface AssignmentLetterPreviewData {
+  id: string;
+  nomor_surat?: string | null;
+  kode_surat?: string | null;
+  menimbang?: PreviewItem[] | string | null;
+  dasar?: PreviewItem[] | string | null;
+  maksud_tujuan: string;
+  tempat_tujuan?: string | null;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  tanggal_surat?: string | null;
+  sumber_dana?: string | null;
+  status: string;
+  keterangan?: string | null;
+  tembusan?: string[] | null;
+  nama_plh?: string | null;
+  employees?: PreviewEmployee[];
+  approver?: { name: string; nip?: string };
+}
+
 interface Meta {
     current_page: number;
     last_page: number;
@@ -35,7 +69,7 @@ interface ApiResponse {
 
 export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) {
   const { canWrite } = useRole();
-  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewData, setPreviewData] = useState<AssignmentLetterPreviewData | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["employee-assignments", employeeId],
@@ -48,7 +82,7 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
   const handleView = async (stId: string) => {
     try {
       const resp = await api.get(`/surat-tugas/${stId}`);
-      setPreviewData(resp.data.data || resp.data);
+      setPreviewData((resp.data.data || resp.data) as AssignmentLetterPreviewData);
     } catch {
       toast.error("Gagal memuat detail surat tugas.");
     }
@@ -67,7 +101,7 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Riwayat Penugasan</h3>
         {canWrite && (
-          <Link href={`/surat-tugas/create?employee_id=${employeeId}`}>
+          <Link href={`/kepegawaian/surat-tugas/create?employee_id=${employeeId}`}>
               <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
                   <Plus className="w-4 h-4" />
                   Buat Surat Tugas
