@@ -102,23 +102,62 @@ git push origin main
 
 ## Status Saat Ini
 
-- [x] Create GitHub issue #332 for ST Builder TTE placeholder and tembusan numbering.
-- [x] Align `${ttd_pengirim}` placeholder for FOLU and non-FOLU Srikandi TTE placement.
-- [x] Add larger signature vertical room so QR/TTE does not cover Kepala Balai name/NIP.
-- [x] Render non-FOLU single tembusan without numbering; keep numbering for 2+ recipients.
-- [x] Commit, PR, merge issue #332.
-- [x] Deploy issue #332 to SSH production server.
+- [x] Create GitHub issue #334 for BMN Aset Akan Di Lelang and BA Koreksi Kondisi document workflow.
+- [x] Add BMN sidebar route `/bmn/auction-candidates` for Rusak Berat assets with search, pagination, bulk select, and process/print document flow.
+- [x] Generate BA Koreksi Perubahan Kondisi BMN preview/print using `header-terbaru.png`, tuned A4 margins, two-page print output, and lampiran table layout.
+- [x] Align ST Builder NIP and tembusan font size with the main letter font for FOLU and non-FOLU layouts.
+- [x] Commit, PR, merge issue #334.
+- [x] Deploy issue #334 to SSH production server.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #332: ST Builder TTE Placeholder & Tembusan Numbering |
-| **Issue Selanjutnya** | Inventory module improvements |
+| **Issue Terakhir Selesai** | Issue #334: BMN Auction Candidates & BA Koreksi Kondisi Document |
+| **Issue Selanjutnya** | Continue BMN auction/disposal document set after user review |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | c67aca5 Merge pull request #333 from tegaranugrah1/issue/332-st-builder-tte-tembusan |
+| **Commit Terakhir** | 135ef77 Merge pull request #335 from tegaranugrah1/issue/334-bmn-auction-candidates |
 | **Model Terakhir** | Codex |
-| **Timestamp** | 2026-05-19T14:55:00+08:00 |
+| **Timestamp** | 2026-05-19T16:45:00+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI CODEX (2026-05-19 - Issue #334: BMN Auction Candidates & BA Koreksi Kondisi Document):**
+- **Objective**: Add a BMN `Aset Akan Di Lelang` sidebar page and the first auction/disposal document: `BERITA ACARA KOREKSI PERUBAHAN KONDISI BARANG MILIK NEGARA`.
+- **Status**: MERGED + DEPLOYED to production EC2.
+- **GitHub**:
+  - Issue: #334 `feat(bmn): add auction candidate assets page`
+  - PR: #335 `feat(bmn): add auction candidate document workflow (#334)` - merged to `main`
+  - Branch: `issue/334-bmn-auction-candidates`
+  - Commit: `814eb6a feat(bmn): add auction candidate document workflow (#334)`
+  - Merge commit: `135ef77`
+- **Accomplishments**:
+  - Added BMN sidebar menu `Aset Akan Di Lelang` at `/bmn/auction-candidates`.
+  - Built a candidate page that filters BMN assets by `Rusak Berat`, supports search, pagination, bulk select, and a process/preview flow.
+  - Added BA Koreksi Kondisi document preview and print/save-PDF workflow with two A4 pages.
+  - Used `frontend/public/header-terbaru.png` for the official letterhead.
+  - Tuned page 1 body, signature spacing, `${ttd_pengirim}`, and page 2 lampiran/table/signature spacing based on user print-preview checks.
+  - Matched ST Builder NIP and tembusan font size to the main letter text for both FOLU and non-FOLU layouts.
+- **Key Files Modified**:
+  - `frontend/src/app/bmn/layout.tsx`
+  - `frontend/src/app/bmn/auction-candidates/page.tsx`
+  - `frontend/public/header-terbaru.png`
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+- **Validation**:
+  - `npx eslint "src/app/bmn/auction-candidates/page.tsx" "src/app/bmn/layout.tsx" "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" --max-warnings=0` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean.
+  - Full `npm run lint -- --max-warnings=0` remains blocked by unrelated pre-existing lint issues in `portal` and `EmployeeAccessSheet` files.
+- **Production Deploy**:
+  - Server pulled `main` to `135ef77`.
+  - Rebuilt frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod build frontend`.
+  - Recreated frontend with `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d frontend`.
+  - Verified `bksda-frontend` and `bksda-nginx` containers are up.
+  - Verified `https://bksdakaltim.net/login` returns HTTP 200.
+  - Verified `https://bksdakaltim.net/bmn/auction-candidates` returns HTTP 307 to login because the route is protected.
+- **Known Issues / Risks**:
+  - Untracked local helper/credential files still exist and were intentionally not staged (`bksda-superapp.pem`, `service-account.json`, import/test scripts, and `frontend/public/header.png`).
+  - Server still has pre-existing untracked `backend/seed_admin.php`.
 
 ---
 

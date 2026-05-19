@@ -1,3 +1,45 @@
+# Progress - Phase 42: BMN Auction Candidates & BA Koreksi Kondisi
+
+> Document updated: 2026-05-19
+> Status: **DEPLOYED**
+
+---
+
+## Issue #334: Aset Akan Di Lelang & BA Koreksi Kondisi BMN
+
+### Completed:
+- [x] **Issue Created**: Issue #334 tracks the BMN auction candidate page and first generated document workflow.
+- [x] **PR Created/Merged**: PR #335 merged to `main` (`135ef77`).
+- [x] **Sidebar Page**: Added `Aset Akan Di Lelang` in the BMN sidebar at `/bmn/auction-candidates`.
+- [x] **Candidate Filtering**: Page loads BMN assets in `Rusak Berat` condition, with search, pagination, select all on page, and bulk selection.
+- [x] **BA Koreksi Document**: Added preview/print for `BERITA ACARA KOREKSI PERUBAHAN KONDISI BARANG MILIK NEGARA`.
+- [x] **Official Header**: Document uses `frontend/public/header-terbaru.png`.
+- [x] **Print Layout Tuning**: Tuned A4 page 1 body, signature, `${ttd_pengirim}`, page 2 lampiran metadata, asset tables, and two-page print/save-PDF output.
+- [x] **ST Builder Font Follow-up**: NIP and tembusan text now inherit the main ST Builder font size for both FOLU and non-FOLU layouts.
+- [x] **Production Deploy**: EC2 pulled `main`, rebuilt/recreated `frontend`, and production route checks passed.
+
+### Key Files:
+- `frontend/src/app/bmn/layout.tsx`
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+- `frontend/public/header-terbaru.png`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/page.tsx" "src/app/bmn/layout.tsx" "src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx" --max-warnings=0`
+- [x] `npx tsc --noEmit`
+- [x] `npm run build`
+- [ ] Full `npm run lint -- --max-warnings=0` is still blocked by unrelated pre-existing lint issues in `portal` and `EmployeeAccessSheet` files.
+
+### Production:
+- [x] Server pulled `main` to `135ef77`.
+- [x] `docker-compose -f docker-compose.prod.yml --env-file .env.prod build frontend`
+- [x] `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d frontend`
+- [x] `bksda-frontend` and `bksda-nginx` containers are up.
+- [x] `https://bksdakaltim.net/login` returns HTTP 200.
+- [x] `https://bksdakaltim.net/bmn/auction-candidates` returns HTTP 307 to login because the route is protected.
+
+---
+
 # Progress - Phase 41: Kepegawaian ST Builder TTE & Tembusan Fix
 
 > Document updated: 2026-05-19
