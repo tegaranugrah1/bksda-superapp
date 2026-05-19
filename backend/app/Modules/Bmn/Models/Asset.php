@@ -28,7 +28,7 @@ class Asset extends Model
         'kecamatan', 'kab_kota', 'kode_kab_kota', 'provinsi', 'kode_provinsi', 'kode_pos',
         'sbsk', 'optimalisasi', 'penghuni', 'pengguna', 'kode_kpknl', 'uraian_kpknl',
         'uraian_kanwil_djkn', 'nama_kl', 'nama_e1', 'nama_korwil', 'kode_register', 'lokasi_ruang',
-        'jenis_identitas', 'no_identitas', 'no_stnk', 'nama_pengguna', 'status_pmk',
+        'jenis_identitas', 'no_identitas', 'no_stnk', 'no_rangka', 'nama_pengguna', 'status_pmk',
         'status_foto_geotag', 'foto_geotag_url', 'foto_geotag_path', 'foto_belakang_path',
         'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path',
         'foto_bpkb_1_path', 'foto_bpkb_2_path', 'foto_bpkb_3_path', 'foto_bpkb_4_path',

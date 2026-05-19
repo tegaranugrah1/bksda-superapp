@@ -270,26 +270,32 @@ function AssetDetail({ assetId }: { assetId: string }) {
             <DetailRow label="Henti Guna" value={asset.henti_guna} />
           </DetailSection>
 
-          <DetailSection title="Kendaraan & Sertifikat" icon={<Car className="w-4 h-4" />}>
-            {canWrite ? (
-              <>
-                <EditableRow label="No Polisi" value={asset.no_polisi} field="no_polisi" onSave={handleFieldSave} />
-                <EditableRow label="No BPKB" value={asset.no_bpkp} field="no_bpkp" onSave={handleFieldSave} />
-                <EditableRow label="No STNK" value={asset.no_stnk} field="no_stnk" onSave={handleFieldSave} />
-                <EditableRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} field="tanggal_pajak_stnk" onSave={handleFieldSave} type="date" badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
-                <EditableRow label="Tanggal Ganti Plat" value={asset.tanggal_ganti_plat} field="tanggal_ganti_plat" onSave={handleFieldSave} type="date" badge={asset.tanggal_ganti_plat ? <StnkCountdown tanggal={asset.tanggal_ganti_plat} label="Ganti Plat" /> : undefined} />
-                <EditableRow label="Status Sertifikasi" value={asset.status_sertifikasi} field="status_sertifikasi" onSave={handleFieldSave} />
-                <EditableRow label="Jenis Sertipikat" value={asset.jenis_sertipikat} field="jenis_sertipikat" onSave={handleFieldSave} />
-                <EditableRow label="No Sertifikat" value={asset.no_sertifikat} field="no_sertifikat" onSave={handleFieldSave} />
-                <EditableRow label="Nama" value={asset.nama} field="nama" onSave={handleFieldSave} />
-              </>
-            ) : (
-              <>
-                <DetailRow label="No Polisi" value={asset.no_polisi} />
-                <DetailRow label="No BPKB" value={asset.no_bpkp} />
-                <DetailRow label="No STNK" value={asset.no_stnk} />
-                <DetailRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
-                <DetailRow label="Tanggal Ganti Plat" value={asset.tanggal_ganti_plat} badge={asset.tanggal_ganti_plat ? <StnkCountdown tanggal={asset.tanggal_ganti_plat} label="Ganti Plat" /> : undefined} />
+            <DetailSection title="Kendaraan & Sertifikat" icon={<Car className="w-4 h-4" />}>
+              {canWrite ? (
+                <>
+                  <EditableRow label="No Polisi" value={asset.no_polisi} field="no_polisi" onSave={handleFieldSave} />
+                  <EditableRow label="No BPKB" value={asset.no_bpkp} field="no_bpkp" onSave={handleFieldSave} />
+                  <EditableRow label="No STNK" value={asset.no_stnk} field="no_stnk" onSave={handleFieldSave} />
+                  {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
+                    <EditableRow label="No Rangka" value={asset.no_rangka} field="no_rangka" onSave={handleFieldSave} />
+                  )}
+                  <EditableRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} field="tanggal_pajak_stnk" onSave={handleFieldSave} type="date" badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
+                  <EditableRow label="Tanggal Ganti Plat" value={asset.tanggal_ganti_plat} field="tanggal_ganti_plat" onSave={handleFieldSave} type="date" badge={asset.tanggal_ganti_plat ? <StnkCountdown tanggal={asset.tanggal_ganti_plat} label="Ganti Plat" /> : undefined} />
+                  <EditableRow label="Status Sertifikasi" value={asset.status_sertifikasi} field="status_sertifikasi" onSave={handleFieldSave} />
+                  <EditableRow label="Jenis Sertipikat" value={asset.jenis_sertipikat} field="jenis_sertipikat" onSave={handleFieldSave} />
+                  <EditableRow label="No Sertifikat" value={asset.no_sertifikat} field="no_sertifikat" onSave={handleFieldSave} />
+                  <EditableRow label="Nama" value={asset.nama} field="nama" onSave={handleFieldSave} />
+                </>
+              ) : (
+                <>
+                  <DetailRow label="No Polisi" value={asset.no_polisi} />
+                  <DetailRow label="No BPKB" value={asset.no_bpkp} />
+                  <DetailRow label="No STNK" value={asset.no_stnk} />
+                  {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
+                    <DetailRow label="No Rangka" value={asset.no_rangka} />
+                  )}
+                  <DetailRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
+                  <DetailRow label="Tanggal Ganti Plat" value={asset.tanggal_ganti_plat} badge={asset.tanggal_ganti_plat ? <StnkCountdown tanggal={asset.tanggal_ganti_plat} label="Ganti Plat" /> : undefined} />
                 <DetailRow label="Status Sertifikasi" value={asset.status_sertifikasi} />
                 <DetailRow label="Jenis Sertipikat" value={asset.jenis_sertipikat} />
                 <DetailRow label="No Sertifikat" value={asset.no_sertifikat} />
