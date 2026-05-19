@@ -82,6 +82,21 @@ const nextConfig: NextConfig = {
             },
             {
                 protocol: 'https',
+                hostname: 'bksdakaltim.net',
+                pathname: '/storage/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'www.bksdakaltim.net',
+                pathname: '/storage/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'storage.bksdakaltim.net',
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
                 hostname: 'iflvjdalryfosgbxvcon.supabase.co',
                 pathname: '/**',
             },

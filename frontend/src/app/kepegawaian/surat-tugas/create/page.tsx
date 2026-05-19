@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FileText,
   Printer,
@@ -11,7 +11,7 @@ import {
   CheckCircle,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -100,6 +100,8 @@ const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
 
 export default function STCreatePremiumPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialEmployeeId = searchParams.get("employee_id");
 
   // --- Form State ---
   const [stNumber, setStNumber] = useState("");
@@ -148,6 +150,22 @@ export default function STCreatePremiumPage() {
       (emp.nip?.toLowerCase() || "").includes(searchQuery.toLowerCase())
     )
     .slice(0, 50);
+
+  useEffect(() => {
+    if (!initialEmployeeId || selectedEmployees.length > 0 || allEmployees.length === 0) return;
+
+    const employee = allEmployees.find((emp: Employee) => String(emp.id) === initialEmployeeId);
+    if (!employee) return;
+
+    const normalized = {
+      ...employee,
+      nama_lengkap: employee.nama_lengkap || employee.name || "-",
+      jabatan: employee.jabatan || employee.position || "-",
+    };
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedEmployees([normalized]);
+  }, [allEmployees, initialEmployeeId, selectedEmployees.length]);
 
   // Helper for "Untuk" text
   const buildUntukText = (): string => {
