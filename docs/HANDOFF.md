@@ -140,7 +140,7 @@ git push origin main
   - `npx tsc --noEmit` clean.
   - `php -l` on modified backend files clean.
 - **Next Steps**:
-  - [ ] Deploy BMN disposal fix & RustFS cleanup to production.
+  - [x] Deploy BMN disposal fix & RustFS cleanup to production.
   - [ ] Inventory module improvements.
   - [ ] DeReporting module improvements.
 
