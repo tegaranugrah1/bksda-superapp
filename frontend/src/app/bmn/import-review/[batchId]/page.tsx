@@ -230,7 +230,6 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const isPending = batch?.status === "pending";
   const hasIdentityFilters = Object.values(identityFilters).some((value) => value.trim() !== "");
   const filteredNewTotal = selectionSummary.filtered_new;
-  const allFilteredNewSelected = filteredNewTotal > 0 && selectionSummary.selected_new === filteredNewTotal;
 
   if (isLoading) {
     return (
@@ -384,33 +383,32 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
         </div>
       </div>
 
-      {/* Select All */}
-      {isPending && filteredNewTotal > 0 && (
+      {/* Selection Toolbar */}
+      {isPending && (filteredNewTotal > 0 || selectionSummary.filtered_updated > 0) && (
         <div className="flex flex-col gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-          <label className="flex items-center gap-3">
-            <Checkbox
-              checked={allFilteredNewSelected}
-              disabled={bulkAction !== null}
-              onCheckedChange={(checked) => handleBulkSelection(checked ? "select_changed" : "clear_changed")}
-            />
-            <span className="text-sm text-slate-600">
-              Pilih semua aset baru hasil filter
-              <span className="ml-1 text-xs text-slate-400">({filteredNewTotal} baris)</span>
-            </span>
-          </label>
+          <span className="text-sm text-slate-600">
+            Dipilih: <strong>{selectionSummary.selected_new}</strong> baru, <strong>{selectionSummary.selected_updated}</strong> update
+          </span>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-slate-500">
-              Dipilih: <strong>{selectionSummary.selected_new}</strong> aset baru
-            </span>
             <Button
               type="button"
               size="sm"
-              disabled={bulkAction !== null || selectionSummary.filtered_new === 0}
+              disabled={bulkAction !== null}
+              onClick={() => handleBulkSelection("select_changed")}
+              className="h-8 bg-slate-700 text-white hover:bg-slate-800"
+            >
+              {bulkAction === "select_changed" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="mr-1 h-3.5 w-3.5" />}
+              Pilih semua ({filteredNewTotal + selectionSummary.filtered_updated})
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={bulkAction !== null || filteredNewTotal === 0}
               onClick={() => handleBulkSelection("select_new_only")}
               className="h-8 bg-emerald-600 text-white hover:bg-emerald-700"
             >
               {bulkAction === "select_new_only" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1 h-3.5 w-3.5" />}
-              Pilih hanya aset baru ({selectionSummary.filtered_new})
+              Pilih hanya aset baru ({filteredNewTotal})
             </Button>
           </div>
         </div>
@@ -422,7 +420,24 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                {isPending && <th className="px-4 py-3 w-10"></th>}
+                {isPending && (
+                  <th className="px-4 py-3 w-10">
+                    <Checkbox
+                      checked={(() => {
+                        const changed = rows.filter((r) => r.diff_status === "new" || r.diff_status === "updated");
+                        const selected = changed.filter((r) => r.selected);
+                        if (changed.length === 0) return false;
+                        if (selected.length === changed.length) return true;
+                        if (selected.length > 0) return "indeterminate" as const;
+                        return false;
+                      })()}
+                      disabled={bulkAction !== null}
+                      onCheckedChange={(checked) => {
+                        handleBulkSelection(checked ? "select_changed" : "clear_changed");
+                      }}
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-3 text-left font-semibold text-slate-600">Status</th>
                 <th className="px-4 py-3 text-left font-semibold text-slate-600">Kode Barang</th>
                 <th className="px-4 py-3 text-left font-semibold text-slate-600">NUP</th>
@@ -439,8 +454,8 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                 </tr>
               ) : (
                 rows.map((row) => {
-                  const isSelectableNewRow = row.diff_status === "new";
-                  const isSelectedNewRow = isSelectableNewRow && row.selected;
+                  const isSelectableRow = row.diff_status === "new" || row.diff_status === "updated";
+                  const isSelected = isSelectableRow && row.selected;
 
                   return (
                     <tr
@@ -448,15 +463,15 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                       className={cn(
                         "transition-colors",
                         row.diff_status === "new" && "bg-emerald-50/30",
-                        row.diff_status === "updated" && "bg-blue-50/30 opacity-60",
-                        isSelectableNewRow && !isSelectedNewRow && "opacity-50"
+                        row.diff_status === "updated" && "bg-blue-50/30",
+                        isSelectableRow && !isSelected && "opacity-60"
                       )}
                     >
                     {isPending && (
                       <td className="px-4 py-3">
-                        {isSelectableNewRow && (
+                        {isSelectableRow && (
                           <Checkbox
-                            checked={isSelectedNewRow}
+                            checked={isSelected}
                             onCheckedChange={(checked) => handleToggleRow(row.id, !!checked)}
                           />
                         )}

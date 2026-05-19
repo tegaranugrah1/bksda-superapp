@@ -76,13 +76,16 @@ class ImportReviewController extends Controller
         $selectionSummary = [
             'selected_total' => (clone $selectionQuery)
                 ->where('selected', true)
-                ->where('diff_status', 'new')
+                ->whereIn('diff_status', ['new', 'updated'])
                 ->count(),
             'selected_new' => (clone $selectionQuery)
                 ->where('selected', true)
                 ->where('diff_status', 'new')
                 ->count(),
-            'selected_updated' => 0,
+            'selected_updated' => (clone $selectionQuery)
+                ->where('selected', true)
+                ->where('diff_status', 'updated')
+                ->count(),
             'filtered_new' => (clone $selectionQuery)->where('diff_status', 'new')->count(),
             'filtered_updated' => (clone $selectionQuery)->where('diff_status', 'updated')->count(),
         ];
@@ -134,7 +137,7 @@ class ImportReviewController extends Controller
         ]);
 
         ImportStaging::whereIn('id', $request->ids)
-            ->where('diff_status', 'new')
+            ->whereIn('diff_status', ['new', 'updated'])
             ->update(['selected' => $request->selected]);
 
         return response()->json(['message' => 'Seleksi diperbarui.']);
@@ -156,8 +159,21 @@ class ImportReviewController extends Controller
         $batch = ImportBatch::findOrFail($validated['batch_id']);
         $baseQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
 
-        if (in_array($validated['action'], ['select_changed', 'select_new_only'], true)) {
-            $cleared = (clone $baseQuery)
+        if ($validated['action'] === 'select_changed') {
+            // Select ALL changed rows (new + updated)
+            $selected = (clone $baseQuery)
+                ->whereIn('diff_status', ['new', 'updated'])
+                ->update(['selected' => true]);
+
+            return response()->json([
+                'message' => "{$selected} baris (baru + update) dipilih.",
+                'selected' => $selected,
+            ]);
+        }
+
+        if ($validated['action'] === 'select_new_only') {
+            // Clear all, then select only new rows
+            (clone $baseQuery)
                 ->where('diff_status', '!=', 'unchanged')
                 ->update(['selected' => false]);
 
@@ -166,9 +182,8 @@ class ImportReviewController extends Controller
                 ->update(['selected' => true]);
 
             return response()->json([
-                'message' => "{$selected} aset baru dipilih. {$cleared} baris berubah lainnya dikosongkan.",
+                'message' => "{$selected} aset baru dipilih.",
                 'selected' => $selected,
-                'cleared' => $cleared,
             ]);
         }
 
@@ -194,10 +209,10 @@ class ImportReviewController extends Controller
                 $inserted = 0;
                 $updated = 0;
 
-                // Get all selected rows
+                // Get all selected rows (new + updated)
                 $selectedRows = $batch->stagingRows()
                     ->where('selected', true)
-                    ->where('diff_status', 'new')
+                    ->whereIn('diff_status', ['new', 'updated'])
                     ->get();
 
                 foreach ($selectedRows as $row) {
