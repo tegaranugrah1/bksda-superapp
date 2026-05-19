@@ -51,6 +51,7 @@ Route::prefix('import-review')->group(function () {
     Route::post('/{batchId}/approve', [ImportReviewController::class, 'approve']);
     Route::post('/{batchId}/reject', [ImportReviewController::class, 'reject']);
     Route::post('/toggle-selection', [ImportReviewController::class, 'toggleSelection']);
+    Route::post('/bulk-selection', [ImportReviewController::class, 'bulkSelection']);
 });
 
 // 5. FOTO ASET

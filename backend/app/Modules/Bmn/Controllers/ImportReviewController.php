@@ -70,20 +70,25 @@ class ImportReviewController extends Controller
     {
         $batch = ImportBatch::findOrFail($batchId);
 
-        $query = $batch->stagingRows();
+        $query = $this->buildFilteredRowsQuery($batch, $request);
+        $selectionQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
 
-        // Filter by diff_status
-        if ($request->filled('status')) {
-            $query->where('diff_status', $request->status);
-        }
-
-        foreach (['kode_barang', 'nup', 'nama_barang'] as $field) {
-            $value = trim((string) $request->input($field, ''));
-
-            if ($value !== '') {
-                $query->whereRaw("imported_data->>'{$field}' ILIKE ?", ["%{$value}%"]);
-            }
-        }
+        $selectionSummary = [
+            'selected_total' => (clone $selectionQuery)
+                ->where('selected', true)
+                ->where('diff_status', '!=', 'unchanged')
+                ->count(),
+            'selected_new' => (clone $selectionQuery)
+                ->where('selected', true)
+                ->where('diff_status', 'new')
+                ->count(),
+            'selected_updated' => (clone $selectionQuery)
+                ->where('selected', true)
+                ->where('diff_status', 'updated')
+                ->count(),
+            'filtered_new' => (clone $selectionQuery)->where('diff_status', 'new')->count(),
+            'filtered_updated' => (clone $selectionQuery)->where('diff_status', 'updated')->count(),
+        ];
 
         // Paginate
         $perPage = $request->integer('per_page', 50);
@@ -116,6 +121,7 @@ class ImportReviewController extends Controller
                 'created_at' => $batch->created_at,
             ],
             'rows' => $rows,
+            'selection_summary' => $selectionSummary,
         ]);
     }
 
@@ -134,6 +140,49 @@ class ImportReviewController extends Controller
             ->update(['selected' => $request->selected]);
 
         return response()->json(['message' => 'Seleksi diperbarui.']);
+    }
+
+    /**
+     * Step 2c: Bulk selection for all filtered rows in the batch.
+     */
+    public function bulkSelection(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'batch_id' => 'required|string|exists:bmn_import_batches,id',
+            'action' => 'required|string|in:select_changed,clear_changed,select_new_only',
+            'kode_barang' => 'nullable|string|max:255',
+            'nup' => 'nullable|string|max:255',
+            'nama_barang' => 'nullable|string|max:255',
+        ]);
+
+        $batch = ImportBatch::findOrFail($validated['batch_id']);
+        $baseQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
+
+        if ($validated['action'] === 'select_new_only') {
+            $cleared = (clone $baseQuery)
+                ->where('diff_status', '!=', 'unchanged')
+                ->update(['selected' => false]);
+
+            $selected = (clone $baseQuery)
+                ->where('diff_status', 'new')
+                ->update(['selected' => true]);
+
+            return response()->json([
+                'message' => "{$selected} aset baru dipilih. {$cleared} baris berubah lainnya dikosongkan.",
+                'selected' => $selected,
+                'cleared' => $cleared,
+            ]);
+        }
+
+        $selected = $validated['action'] === 'select_changed';
+        $affected = $baseQuery
+            ->where('diff_status', '!=', 'unchanged')
+            ->update(['selected' => $selected]);
+
+        return response()->json([
+            'message' => 'Seleksi massal diperbarui.',
+            'affected' => $affected,
+        ]);
     }
 
     /**
@@ -251,5 +300,29 @@ class ImportReviewController extends Controller
             ->paginate($request->integer('per_page', 10));
 
         return response()->json($batches);
+    }
+
+    private function buildFilteredRowsQuery(ImportBatch $batch, Request $request)
+    {
+        $query = $this->applyIdentityFilters($batch->stagingRows(), $request);
+
+        if ($request->filled('status')) {
+            $query->where('diff_status', $request->status);
+        }
+
+        return $query;
+    }
+
+    private function applyIdentityFilters($query, Request $request)
+    {
+        foreach (['kode_barang', 'nup', 'nama_barang'] as $field) {
+            $value = trim((string) $request->input($field, ''));
+
+            if ($value !== '') {
+                $query->whereRaw("imported_data->>'{$field}' ILIKE ?", ["%{$value}%"]);
+            }
+        }
+
+        return $query;
     }
 }
