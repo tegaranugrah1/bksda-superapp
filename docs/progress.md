@@ -1,9 +1,40 @@
-# Progress - Phase 38: Production Fixes + ST Builder FOLU Template
+# Progress - Phase 39: BMN Disposal Invalid Date Fix & RustFS Cleanup
 
 > Document updated: 2026-05-19
 > Status: **DEPLOYED**
 
 ---
+
+## Issue #326: BMN Disposal Invalid Date
+
+### Completed:
+- [x] **Issue Created**: Issue #326 tracks the "Invalid Date" bug on the disposal page.
+- [x] **PR Created/Merged**: PR #327 merged to `main`.
+- [x] **Root Cause Identified**: The `deleted_at` field was missing from the `AssetResource` API response.
+- [x] **Backend Fix**: Added `deleted_at` to `AssetResource.php`.
+- [x] **Frontend Fix**: Added null safety check and `id-ID` locale formatting for the deletion date in `disposal/page.tsx`.
+
+### Key Files:
+- `backend/app/Modules/Bmn/Resources/AssetResource.php`
+- `frontend/src/app/bmn/disposal/page.tsx`
+
+---
+
+## Issue #328: RustFS Cleanup on Force Delete
+
+### Completed:
+- [x] **PR Created/Merged**: PR #328 merged to `main`.
+- [x] **Root Cause Identified**: `bulkForceDelete` used a query builder delete, bypassing Eloquent model events. Consequently, physical photo files remained in RustFS (S3) after permanent deletion.
+- [x] **Model Event Added**: Implemented `booted` method in `Asset.php` with a `forceDeleted` event listener to delete all 5 photo paths from storage.
+- [x] **Controller Fix**: Updated `bulkForceDelete` in `AssetController.php` to fetch models and iterate with `$asset->forceDelete()` so that events are triggered.
+
+### Key Files:
+- `backend/app/Modules/Bmn/Models/Asset.php`
+- `backend/app/Modules/Bmn/Controllers/AssetController.php`
+
+---
+
+# Progress - Phase 38: Production Fixes + ST Builder FOLU Template
 
 ## Issue #318: ST Builder Bottom Print Margin
 

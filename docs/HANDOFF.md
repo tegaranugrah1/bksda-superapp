@@ -46,6 +46,54 @@ git push origin main
 ```
 
 > ❌ **DILARANG** mulai mengerjakan issue tanpa `gh issue create` terlebih dahulu!
+# 🔄 HANDOFF — Progress Tracker
+
+> **TUJUAN FILE INI:**
+> File ini adalah "memori" antar sesi chat AI.
+> AI WAJIB membaca file ini di awal, dan meng-UPDATE file ini sebelum sesi berakhir.
+
+---
+
+## ⚠️ GIT WORKFLOW — WAJIB DIIKUTI SETIAP ISSUE
+
+> **DILARANG SHORTCUT!** Setiap issue WAJIB mengikuti flow ini TANPA PENGECUALIAN:
+
+```bash
+# STEP 0 — Buat GitHub Issue (jika belum ada)
+gh issue create --title "feat(module): nama issue" --body "deskripsi" --label "frontend" # atau backend
+
+# STEP 1 — Ambil state terbaru & buat branch
+git pull origin main
+git checkout -b issue/XXX-nama-issue
+
+# STEP 2 — Kerjakan kode sesuai spec di docs/issues/XXX-*.md
+
+# STEP 3 — CEK IDE WARNINGS (WAJIB! 2-3x sebelum commit)
+cd frontend; npm run lint -- --max-warnings=0   # wajib 0
+cd frontend; npx tsc --noEmit                   # wajib 0 error
+cd frontend; npm run build                       # wajib clean
+# Periksa juga IDE Warning All di VS Code Problems tab (Ctrl+Shift+M)!
+# Tailwind v4: bg-gradient-to-* → bg-linear-to-*, flex-shrink-0 → shrink-0, dll
+
+# STEP 4 — Commit (HINDARI git add . — selalu specify folder)
+git add frontend/src/components/ frontend/src/app/bmn/ # contoh
+git commit -m "feat(module): deskripsi (#<nomor_gh_issue>)"
+
+# STEP 5 — Push & PR
+git push -u origin issue/XXX-nama-issue
+gh pr create --title "feat(module): deskripsi (#XXX)" --body "Closes #<nomor_gh_issue>" --base main
+
+# STEP 6 — Merge & cleanup (setelah PR di-test & di-approve)
+gh pr merge <PR_NUMBER> --merge --delete-branch
+git checkout main; git pull origin main
+
+# STEP 7 — Update HANDOFF.md & progress.md lalu push
+git add docs/HANDOFF.md docs/progress.md
+git commit -m "docs: update HANDOFF.md and progress.md - issue #XXX selesai"
+git push origin main
+```
+
+> ❌ **DILARANG** mulai mengerjakan issue tanpa `gh issue create` terlebih dahulu!
 > ❌ **DILARANG** skip cek IDE warning — Tailwind v4 warnings **harus 0** sebelum commit!
 > ❌ **DILARANG** commit langsung ke `main` tanpa PR!
 > ❌ **DILARANG** `git add .` — selalu specify folder (`frontend/src/...` atau `backend/...`)!
@@ -56,14 +104,45 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #320: production storage proxy + employee ST link (PR #321 MERGED + DEPLOYED) |
-| **Issue Selanjutnya** | Import BMN Excel in production, then continue public sub-pages styling |
+| **Issue Terakhir Selesai** | Issue #326 & #328: BMN Disposal Invalid Date & RustFS Cleanup (PR #327 & #328 MERGED) |
+| **Issue Selanjutnya** | Inventory module improvements |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | Merge pull request #321 from tegaranugrah1/issue/320-prod-storage-and-st-link |
-| **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-19T08:20:12+08:00 |
+| **Commit Terakhir** | Merge pull request #328 from tegaranugrah1/fix/326-cleanup-force-delete |
+| **Model Terakhir** | Antigravity |
+| **Timestamp** | 2026-05-19T11:00:42+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-19 - Issue #326 & #328: BMN Disposal Invalid Date Fix & RustFS Cleanup):**
+- **Objective**: Fix "Invalid Date" display for disposed assets and ensure physical files are deleted from RustFS on permanent deletion.
+- **Status**: MERGED to `main`.
+- **GitHub**:
+  - Issues: #326 `fix(bmn): disposal page shows Invalid Date`
+  - PRs: #327 (Invalid Date Fix), #328 (RustFS Cleanup)
+  - Branches: `issue/326-disposal-invalid-date`, `fix/326-cleanup-force-delete`
+- **Root Causes**:
+  - `AssetResource.php` omitted `deleted_at`, causing frontend to pass `undefined` to `new Date()`.
+  - `AssetController::bulkForceDelete` used query builder deletion, bypassing Eloquent model events, which left orphaned files in S3.
+- **Accomplishments**:
+  - Included `deleted_at` in `AssetResource`.
+  - Added null safety and correct `id-ID` locale date formatting in `bmn/disposal/page.tsx`.
+  - Added `booted` method to `Asset` model listening to `forceDeleted` event to delete all 5 photo paths from storage.
+  - Refactored `bulkForceDelete` to fetch models and loop over them to trigger the `forceDeleted` events.
+- **Key Files Modified**:
+  - `backend/app/Modules/Bmn/Resources/AssetResource.php`
+  - `frontend/src/app/bmn/disposal/page.tsx`
+  - `backend/app/Modules/Bmn/Models/Asset.php`
+  - `backend/app/Modules/Bmn/Controllers/AssetController.php`
+- **Validation**:
+  - `npx eslint "src/app/bmn/disposal/page.tsx"` clean.
+  - `npx tsc --noEmit` clean.
+  - `php -l` on modified backend files clean.
+- **Next Steps**:
+  - [ ] Deploy BMN disposal fix & RustFS cleanup to production.
+  - [ ] Inventory module improvements.
+  - [ ] DeReporting module improvements.
 
 ---
 
