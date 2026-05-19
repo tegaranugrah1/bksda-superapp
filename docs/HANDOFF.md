@@ -102,23 +102,43 @@ git push origin main
 
 ## Status Saat Ini
 
-- [x] Create GitHub issue #329 for BPKB & STNK upload.
-- [x] Implement backend database schema & logic for new photo document types.
-- [x] Implement frontend UI components for document uploads on vehicle assets.
-- [x] Test the BPKB/STNK photo upload functionality locally.
-- [x] Commit, PR, and merge issue #329.
-- [x] Fix production missing UI bugs caused by old backend Docker image.
+- [x] Create GitHub issue #330 for No Rangka field.
+- [x] Add `no_rangka` to database migration and `Asset` model `$fillable`.
+- [x] Add `no_rangka` to `UpdateAssetRequest` and `AssetResource`.
+- [x] Update frontend UI in `page.tsx` for `ALAT ANGKUTAN BERMOTOR`.
+- [x] Test the functionality locally.
+- [ ] Commit, PR, and merge issue #330.
+- [ ] Update SSH production server with Issue #330 changes.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #329: BPKB & STNK Upload & Issue #324 Prod Deploy Fix |
+| **Issue Terakhir Selesai** | Issue #330: Add No Rangka Field |
 | **Issue Selanjutnya** | Inventory module improvements |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir** | feat(bmn): add BPKB and STNK photo uploads for vehicles |
+| **Branch Aktif** | `feat/330-add-no-rangka` |
+| **Commit Terakhir** | feat(bmn): add no rangka field for motor vehicles |
 | **Model Terakhir** | Antigravity |
-| **Timestamp** | 2026-05-19T13:40:00+08:00 |
+| **Timestamp** | 2026-05-19T14:10:00+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-19 - Issue #330: Add No Rangka Field):**
+- **Objective**: Add `no_rangka` (Chassis Number) field specifically for motor vehicles that have a license plate.
+- **Status**: Ready for PR and deployment.
+- **GitHub**:
+  - Issues: #330
+  - Branch: `feat/330-add-no-rangka`
+- **Accomplishments**:
+  - Added a new migration for `no_rangka` in the `bmn_assets` table.
+  - Updated the backend `Asset` model, `AssetResource`, and crucial validation rules in `UpdateAssetRequest.php`.
+  - Implemented conditional rendering in the frontend `page.tsx` so that `no_rangka` is only editable/visible under `Kendaraan & Sertifikat` when the asset is a vehicle and has a `no_polisi`.
+- **Key Files Modified**:
+  - `backend/database/migrations/2026_05_19_134552_add_no_rangka_to_bmn_assets_table.php`
+  - `backend/app/Modules/Bmn/Models/Asset.php`
+  - `backend/app/Modules/Bmn/Resources/AssetResource.php`
+  - `backend/app/Modules/Bmn/Requests/UpdateAssetRequest.php`
+  - `frontend/src/app/bmn/assets/[id]/page.tsx`
 
 ---
 

@@ -5,6 +5,22 @@
 
 ---
 
+## Issue #330: Add No Rangka Field for Motor Vehicles
+
+### Completed:
+- [x] **Database Migration**: Added `no_rangka` column to `bmn_assets` table.
+- [x] **Backend Updates**: Added `no_rangka` to `Asset` model `$fillable`, `AssetResource.php`, and validation rules in `UpdateAssetRequest.php`.
+- [x] **Frontend UI**: Updated `page.tsx` to conditionally render the "No Rangka" field below "No STNK" only when `jenis_bmn` is `ALAT ANGKUTAN BERMOTOR` and `no_polisi` exists.
+
+### Key Files:
+- `backend/database/migrations/2026_05_19_134552_add_no_rangka_to_bmn_assets_table.php`
+- `backend/app/Modules/Bmn/Models/Asset.php`
+- `backend/app/Modules/Bmn/Resources/AssetResource.php`
+- `backend/app/Modules/Bmn/Requests/UpdateAssetRequest.php`
+- `frontend/src/app/bmn/assets/[id]/page.tsx`
+
+---
+
 ## Issue #329: BPKB & STNK Upload for Vehicle Assets
 
 ### Completed:
