@@ -1,3 +1,32 @@
+# Progress - Phase 40: BMN Vehicle Document Uploads & Prod Bugfix
+
+> Document updated: 2026-05-19
+> Status: **DEPLOYED**
+
+---
+
+## Issue #329: BPKB & STNK Upload for Vehicle Assets
+
+### Completed:
+- [x] **Database Migration**: Added 6 new columns to `bmn_assets` for 4 BPKB photos and 2 STNK photos.
+- [x] **Backend Updates**: Updated `Asset` model `$fillable` and `forceDeleted` events. Modified `AssetResource` and `AssetPhotoController` to handle file uploads/deletions and ZIP downloads for the new document types.
+- [x] **Frontend UI**: Refactored `PhotoGallery.tsx` and updated `page.tsx` to conditionally render a "Dokumen Kendaraan" section for `ALAT ANGKUTAN BERMOTOR` with a valid `no_polisi`.
+- [x] **UI Improvement**: Relocated the "No BPKB" field from the Dokumen tab to the Identitas BMN (Kendaraan & Sertifikat) tab for better grouping.
+
+### Production Bugfix (Issue #324 Regression):
+- **Problem**: In production, the "Pilih Semua" and "Pilih hanya aset baru" buttons in the Import Review page were missing, and the "Setujui" button was locked. This worked in local development.
+- **Root Cause**: The backend container was built using an old `Dockerfile` image cache that didn't include the recent PR #324 logic (`filtered_new` counts) because a simple `docker-compose restart` was used instead of `docker-compose build`.
+- **Resolution**: SSH'd into the EC2 server and fully rebuilt the backend Docker image (`docker-compose build backend` & `up -d backend`), successfully syncing the container code with `main` and restoring the selection functionality.
+
+### Key Files:
+- `backend/database/migrations/2026_05_19_112752_add_bpkb_stnk_photos_to_bmn_assets_table.php`
+- `backend/app/Modules/Bmn/Models/Asset.php`
+- `backend/app/Modules/Bmn/Controllers/AssetPhotoController.php`
+- `frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx`
+- `frontend/src/app/bmn/assets/[id]/page.tsx`
+
+---
+
 # Progress - Phase 39: BMN Disposal Invalid Date Fix & RustFS Cleanup
 
 > Document updated: 2026-05-19

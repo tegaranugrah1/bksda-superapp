@@ -105,19 +105,41 @@ git push origin main
 - [x] Create GitHub issue #329 for BPKB & STNK upload.
 - [x] Implement backend database schema & logic for new photo document types.
 - [x] Implement frontend UI components for document uploads on vehicle assets.
-- [ ] Test the BPKB/STNK photo upload functionality locally.
-- [ ] Commit, PR, and merge issue #329.
+- [x] Test the BPKB/STNK photo upload functionality locally.
+- [x] Commit, PR, and merge issue #329.
+- [x] Fix production missing UI bugs caused by old backend Docker image.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #326 & #328: BMN Disposal Invalid Date & RustFS Cleanup (PR #327 & #328 MERGED) |
+| **Issue Terakhir Selesai** | Issue #329: BPKB & STNK Upload & Issue #324 Prod Deploy Fix |
 | **Issue Selanjutnya** | Inventory module improvements |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir** | Merge pull request #328 from tegaranugrah1/fix/326-cleanup-force-delete |
+| **Commit Terakhir** | feat(bmn): add BPKB and STNK photo uploads for vehicles |
 | **Model Terakhir** | Antigravity |
-| **Timestamp** | 2026-05-19T11:00:42+08:00 |
+| **Timestamp** | 2026-05-19T13:40:00+08:00 |
 
 ---
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-05-19 - Issue #329: BPKB & STNK Upload & Prod Fix):**
+- **Objective**: Implement vehicle document (BPKB/STNK) uploads and fix missing "Pilih Semua" buttons in the production environment.
+- **Status**: MERGED to `main` and DEPLOYED to Prod.
+- **GitHub**:
+  - Issues: #329
+  - Branch: `feat/329-upload-bpkb-stnk`
+- **Accomplishments**:
+  - Executed migration to add 4 BPKB and 2 STNK slots in `bmn_assets`.
+  - Updated `Asset` model `$fillable` and `forceDeleted` handler to support the new file paths.
+  - Refactored `PhotoGallery.tsx` and `page.tsx` to conditionally display a "Dokumen Kendaraan" section for `ALAT ANGKUTAN BERMOTOR` only.
+  - Repositioned the "No BPKB" field from the Dokumen tab to the Identitas BMN tab.
+  - Resolved a production bug on `bksdakaltim.net` where Issue #324 features were missing. The root cause was an outdated backend Docker image which was then fully rebuilt using `docker-compose build backend`.
+- **Key Files Modified**:
+  - `backend/database/migrations/2026_05_19_112752_add_bpkb_stnk_photos_to_bmn_assets_table.php`
+  - `backend/app/Modules/Bmn/Models/Asset.php`
+  - `backend/app/Modules/Bmn/Controllers/AssetPhotoController.php`
+  - `frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx`
+  - `frontend/src/app/bmn/assets/[id]/page.tsx`
 
 ---
 
