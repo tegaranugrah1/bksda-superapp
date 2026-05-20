@@ -1008,14 +1008,15 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             font-size: 11pt; line-height: 1.4; margin: 0; padding: 0;
           }
           .sk-page {
-            width: 210mm; min-height: 297mm; margin: 0 auto;
-            padding: 5mm 20mm 14mm; box-shadow: none !important;
+            width: 210mm; margin: 0 auto;
+            padding: 5mm 20mm 28mm; box-shadow: none !important;
             page-break-after: always;
           }
           .sk-page:last-child { page-break-after: auto; }
           .sk-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 4px; text-align: center; }
           .sk-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
           .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
+          .sk-label-bold { font-weight: bold; }
           .sk-no-print { display: none !important; }
           .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
           .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
@@ -1031,7 +1032,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
 
       {/* ── HALAMAN 1: KOP + Judul + Menimbang + Mengingat ── */}
       <article
-        className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
+        className="sk-page mx-auto max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
         style={pageStyle}
       >
         <div className="sk-kop" style={{ marginTop: "-5mm", marginLeft: "-16mm", marginRight: "-16mm", marginBottom: "4px", textAlign: "center" }}>
@@ -1104,7 +1105,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
 
       {/* ── HALAMAN 2: MEMUTUSKAN + Menetapkan + KESATU/KEDUA/KETIGA + TTD + Tembusan ── */}
       <article
-        className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
+        className="sk-page mx-auto max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
         style={pageStyle}
       >
         <div className="sk-page2-body sk-body mx-auto w-[166mm]" style={{ paddingTop: "16mm" }}>
@@ -1162,7 +1163,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
 
       {/* ── HALAMAN 3: Lampiran — Tabel Daftar Penghentian ── */}
       <article
-        className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
+        className="sk-page mx-auto max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
         style={pageStyle}
       >
         <div className="sk-body mx-auto w-[166mm]">
