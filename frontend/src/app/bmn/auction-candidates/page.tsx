@@ -364,7 +364,7 @@ export default function BmnAuctionCandidatesPage() {
             p { margin: 0; padding: 0; }
             .sk-page {
               width: 210mm; min-height: 297mm;
-              margin: 0 auto; padding: 5mm 20mm 14mm;
+              margin: 0 auto; padding: 5mm 20mm 28mm;
               page-break-after: always;
             }
             .sk-page:last-child { page-break-after: auto; }
@@ -380,6 +380,7 @@ export default function BmnAuctionCandidatesPage() {
               margin-top: 10px; text-align: center; font-weight: bold; line-height: 1.3;
             }
             .sk-title-nomor { font-weight: normal; }
+            .sk-title-tentang { margin-top: 10px; }
             /* Sub-judul (DENGAN RAHMAT, KEPALA BALAI) */
             .sk-subtitle {
               width: 166mm; margin-left: auto; margin-right: auto;
@@ -1040,7 +1041,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
           <p className="m-0">KEPUTUSAN KEPALA BALAI</p>
           <p className="m-0">KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</p>
           <p className="sk-title-nomor m-0 font-normal">Nomor : {skNumberText}</p>
-          <p className="m-0 mt-2">TENTANG</p>
+          <p className="sk-title-tentang m-0 mt-4">TENTANG</p>
           <p className="m-0">PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA</p>
           <p className="m-0">PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR,</p>
         </div>
