@@ -355,35 +355,66 @@ export default function BmnAuctionCandidatesPage() {
           <title>SK Penghentian Penggunaan BMN</title>
           <style>
             @page { size: A4; margin: 0; }
+            * { box-sizing: border-box; }
             body {
               margin: 0; padding: 0; background: white; color: black;
               font-family: 'Bookman Old Style', Georgia, serif;
               font-size: 11pt; line-height: 1.4;
             }
+            p { margin: 0; padding: 0; }
             .sk-page {
-              width: 210mm; min-height: 297mm; box-sizing: border-box;
+              width: 210mm; min-height: 297mm;
               margin: 0 auto; padding: 5mm 20mm 14mm;
               page-break-after: always;
             }
             .sk-page:last-child { page-break-after: auto; }
+            /* KOP */
             .sk-kop {
               margin-top: -5mm; margin-left: -16mm; margin-right: -16mm;
-              margin-bottom: 4px; text-align: center;
+              margin-bottom: 6px; text-align: center;
             }
             .sk-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
+            /* Judul SK — halaman 1 */
+            .sk-title {
+              width: 166mm; margin-left: auto; margin-right: auto;
+              margin-top: 10px; text-align: center; font-weight: bold; line-height: 1.3;
+            }
+            .sk-title-nomor { font-weight: normal; }
+            /* Sub-judul (DENGAN RAHMAT, KEPALA BALAI) */
+            .sk-subtitle {
+              width: 166mm; margin-left: auto; margin-right: auto;
+              margin-top: 16px;
+            }
+            .sk-subtitle p { text-align: center; font-weight: bold; }
+            .sk-subtitle p + p { margin-top: 6px; }
+            /* Tabel Menimbang/Mengingat/Memutuskan */
             .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
-            table { border-collapse: collapse; }
-            .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
-            .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
-            .sk-asset-table td.text-left { text-align: left; }
-            .sk-asset-table td.text-right { text-align: right; }
+            table { border-collapse: collapse; width: 100%; }
+            td { vertical-align: top; }
+            /* Halaman 2 */
+            .sk-page2-body { width: 166mm; margin-left: auto; margin-right: auto; padding-top: 16mm; }
+            .sk-memutuskan { text-align: center; font-weight: bold; text-decoration: underline; margin-bottom: 12px; }
+            /* TTD block */
+            .sk-ttd {
+              width: 20rem; margin-left: auto; margin-top: 3rem;
+            }
+            .sk-ttd p { margin: 0; padding: 0; line-height: 1.3; }
+            .ttd-placeholder { height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
+            /* Tembusan — tanpa spasi antar item */
+            .sk-tembusan { margin-top: 2rem; }
+            .sk-tembusan p { margin: 0; padding: 0; line-height: 1.5; }
+            /* Halaman 3 lampiran */
             .sk-attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
             .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
             .meta-label { white-space: nowrap; }
             .meta-colon { text-align: center; }
-            .signature { width: 20rem; margin-left: auto; }
-            .signature p { margin: 0; padding: 0; line-height: 1.15; }
-            .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
+            .sk-lampiran-title { text-align: center; font-weight: bold; line-height: 1.3; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+            .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
+            .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
+            .sk-asset-table td.text-left { text-align: left; }
+            .sk-asset-table td.text-right { text-align: right; }
+            .sk-lampiran-ttd { width: 20rem; margin-left: auto; margin-top: 2.5rem; }
+            .sk-lampiran-ttd p { margin: 0; padding: 0; line-height: 1.3; }
           </style>
         </head>
         <body>${printContent.innerHTML}</body>
@@ -1005,16 +1036,16 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
           <img src="/header-new.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
-        <div className="sk-body mx-auto mt-3 w-[166mm] text-center font-bold leading-snug">
+        <div className="sk-title mx-auto mt-3 w-[166mm] text-center font-bold leading-snug">
           <p className="m-0">KEPUTUSAN KEPALA BALAI</p>
           <p className="m-0">KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</p>
-          <p className="m-0 font-normal">Nomor : {skNumberText}</p>
+          <p className="sk-title-nomor m-0 font-normal">Nomor : {skNumberText}</p>
           <p className="m-0 mt-2">TENTANG</p>
           <p className="m-0">PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA</p>
           <p className="m-0">PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR,</p>
         </div>
 
-        <div className="sk-body mx-auto mt-5 w-[166mm]">
+        <div className="sk-subtitle sk-body mx-auto mt-5 w-[166mm]">
           <p className="text-center font-bold">DENGAN RAHMAT TUHAN YANG MAHA ESA</p>
           <p className="mt-2 text-center font-bold">
             KEPALA BALAI<br />
@@ -1073,8 +1104,8 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
         className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
         style={pageStyle}
       >
-        <div className="sk-body mx-auto w-[166mm]">
-          <p className="text-center font-bold underline">MEMUTUSKAN</p>
+        <div className="sk-page2-body sk-body mx-auto w-[166mm]" style={{ paddingTop: "16mm" }}>
+          <p className="sk-memutuskan text-center font-bold underline">MEMUTUSKAN</p>
 
           <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
             <tbody>
@@ -1109,7 +1140,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             </tbody>
           </table>
 
-          <div className="signature mt-12 ml-auto w-80">
+          <div className="sk-ttd signature mt-12 ml-auto w-80">
             <p className="m-0">Ditetapkan di : Samarinda</p>
             <p className="m-0">Pada tanggal : {formatDateLong(today)}</p>
             <p className="m-0 mt-3">Kepala Balai,</p>
@@ -1118,7 +1149,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             <p className="m-0">NIP. 19740514 199903 1 001</p>
           </div>
 
-          <div className="mt-10">
+          <div className="sk-tembusan mt-10">
             <p className="m-0">Tembusan :</p>
             <p className="m-0">1.&nbsp; Kepala Biro Umum Kementerian Kehutanan</p>
             <p className="m-0">2.&nbsp; Sekretaris Direktorat Jenderal KSDAE</p>
@@ -1150,7 +1181,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             </div>
           </div>
 
-          <p className="mt-6 text-center font-bold leading-snug">
+          <p className="sk-lampiran-title mt-6 text-center font-bold leading-snug">
             DAFTAR PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA<br />
             PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR
           </p>
@@ -1193,7 +1224,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             </tbody>
           </table>
 
-          <div className="signature mt-10 ml-auto w-80">
+          <div className="sk-lampiran-ttd signature mt-10 ml-auto w-80">
             <p className="m-0">Kepala Balai,</p>
             <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
             <p className="m-0 font-bold">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
