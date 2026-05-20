@@ -1,3 +1,71 @@
+# Progress - Phase 44: SK Penghentian Penggunaan BMN (READY FOR PR)
+
+> Document updated: 2026-05-20
+> Status: **READY FOR PR** ✅
+
+---
+
+## Issue #338: SK Penghentian Penggunaan BMN
+
+### Completed:
+- [x] **Issue Created**: Issue #338 tracks SK Penghentian Penggunaan BMN document.
+- [x] **Branch**: `issue/338-sk-penghentian-bmn` aktif.
+- [x] **Input Nomor SK**: Format `SK.____/K.18/TU/KAP.05/MM/YYYY` (bulan+tahun otomatis).
+- [x] **Tombol Generate SK**: Tombol amber "Generate SK Penghentian" di action bar dan banner.
+- [x] **Preview SK**: 3 halaman — KOP+Judul+Menimbang+Mengingat, MEMUTUSKAN+TTD+Tembusan, Lampiran tabel.
+- [x] **KOP**: Pakai `header-new.png` (sama dengan ST Builder).
+- [x] **Tabel Lampiran**: No, Kode Barang, NUP, Nama, Merk/Type, No Polisi, Tahun, Nilai, Kondisi, Keterangan + baris Jumlah + TTD.
+- [x] **Label tidak bold**: Menimbang, Mengingat, Menetapkan, KESATU, KEDUA, KETIGA tidak bold (sesuai dokumen resmi).
+- [x] **Halaman 1+2 digabung**: Satu artikel agar konten mengalir natural tanpa page break buatan.
+- [x] **`sk-mengingat-row { break-inside: avoid }`**: Tiap item Mengingat tidak terpotong di tengah.
+- [x] **`@page { margin-bottom: 28mm }`**: Margin bawah semua halaman untuk BSrE footer.
+- [x] **Print Mengingat fixed**: Struktur Menimbang/Mengingat diubah dari tabel bersarang menjadi grid/block sehingga hanya item berikutnya yang turun, bukan seluruh bagian.
+- [x] **TTD/Tembusan fixed**: Blok tanda tangan dan tembusan tidak lagi ikut bold, rata kiri, dan spacing lebih rapi.
+- [x] **Lampiran pagination fixed**: Halaman pertama lampiran maksimal 15 aset, halaman tengah maksimal 17 aset, halaman terakhir maksimal 10 aset dan boleh kurang dari 10.
+- [x] **Lampiran continuation header**: Angka kolom 1-10 hanya muncul di halaman lampiran lanjutan, bukan halaman lampiran pertama.
+- [x] **Footer BSrE safe area**: Halaman utama dan lampiran menjaga margin bawah untuk teks footer elektronik BSrE/BSSN.
+- [x] **Preview screen fixed**: Preview SK di `/bmn/auction-candidates` disamakan dengan CSS print agar layout layar tidak rusak.
+
+### Pending / Known Issues:
+- [ ] **PR belum dibuat** — siap dibuat dari branch `issue/338-sk-penghentian-bmn`.
+- [ ] **Deploy ke SSH** — ditunda sampai semua fitur di halaman ini selesai.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/page.tsx" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean
+
+---
+
+# Progress - Phase 43: BMN Reorder Selected Assets
+
+> Document updated: 2026-05-20
+> Status: **MERGED** ✅
+
+---
+
+## Issue #336: Reorder Selected Assets in Auction Candidates
+
+### Completed:
+- [x] **Issue Created**: Issue #336.
+- [x] **PR Created/Merged**: PR #337 merged ke `main`.
+- [x] **State Refactor**: `selectedIds` (Set) → `orderedIds` (array) untuk menjaga urutan.
+- [x] **Panel Reorder**: "Urutan Aset Terpilih" dengan drag-and-drop native HTML5 + tombol ↑↓.
+- [x] **Nomor Urut**: Badge merah (1, 2, 3, ...) per aset di panel.
+- [x] **No Polisi**: Ditampilkan di panel jika aset memilikinya.
+- [x] **Dokumen BA Koreksi**: Menggunakan urutan dari panel (bukan urutan API).
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+
+### Note:
+- Deploy ke SSH ditunda — masih ada fitur lanjutan di halaman ini.
+
+---
+
 # Progress - Phase 42: BMN Auction Candidates & BA Koreksi Kondisi
 
 > Document updated: 2026-05-19
