@@ -113,6 +113,10 @@ function getBaNumberSuffix(date = new Date()) {
   return `K.18/TU/KAP.06.01/B/${month}/${date.getFullYear()}`;
 }
 
+function getSkNumberSuffix(date = new Date()) {
+  return `K.18/TU/KAP.05/${date.getFullYear()}`;
+}
+
 function shortenLokasi(value?: string | null) {
   if (!value) return "-";
   return value
@@ -129,7 +133,9 @@ export default function BmnAuctionCandidatesPage() {
   // orderedIds keeps the user-defined order for the document
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
   const [showDocument, setShowDocument] = useState(false);
+  const [showSkDocument, setShowSkDocument] = useState(false);
   const [baNumber, setBaNumber] = useState("");
+  const [skNumber, setSkNumber] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 400);
 
   // drag-and-drop refs
@@ -250,6 +256,17 @@ export default function BmnAuctionCandidatesPage() {
     }, 50);
   };
 
+  const handleProcessSk = () => {
+    if (orderedIds.length === 0) {
+      toast.error("Pilih minimal satu aset untuk diproses.");
+      return;
+    }
+    setShowSkDocument(true);
+    setTimeout(() => {
+      document.getElementById("sk-penghentian-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
   const handlePrint = () => {
     if (orderedSelectedAssets.length === 0) {
       toast.error("Tidak ada aset terpilih untuk dicetak.");
@@ -321,6 +338,70 @@ export default function BmnAuctionCandidatesPage() {
     setTimeout(() => printWindow.print(), 500);
   };
 
+  const handlePrintSk = () => {
+    if (orderedSelectedAssets.length === 0) {
+      toast.error("Tidak ada aset terpilih untuk dicetak.");
+      return;
+    }
+    const printContent = document.getElementById("sk-penghentian-print-root");
+    if (!printContent) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>SK Penghentian Penggunaan BMN</title>
+          <style>
+            @page { size: A4; margin: 0; }
+            body {
+              margin: 0; padding: 0; background: white; color: black;
+              font-family: 'Bookman Old Style', Georgia, serif;
+              font-size: 11pt; line-height: 1.4;
+            }
+            .sk-page {
+              width: 210mm; min-height: 297mm; box-sizing: border-box;
+              margin: 0 auto; padding: 5mm 20mm 14mm;
+              page-break-after: always;
+            }
+            .sk-page:last-child { page-break-after: auto; }
+            .sk-header { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; text-align: center; }
+            .sk-header img { width: 196mm !important; max-width: 196mm !important; height: auto !important; }
+            .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
+            .sk-title { margin-top: 0.5rem; text-align: center; font-weight: 700; }
+            .sk-title p { margin: 0; line-height: 1.3; }
+            table { border-collapse: collapse; }
+            .sk-section-table { width: 100%; }
+            .sk-section-table td { vertical-align: top; padding: 0.15rem 0; }
+            .sk-label { width: 28mm; font-weight: bold; }
+            .sk-colon { width: 8mm; text-align: center; }
+            .sk-value { }
+            .sk-sub-table { width: 100%; }
+            .sk-sub-table td { vertical-align: top; padding: 0.1rem 0; }
+            .sk-sub-label { width: 6mm; }
+            .sk-sub-colon { width: 6mm; text-align: center; }
+            .asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
+            .asset-table th, .asset-table td { border: 1px solid #000; padding: 0.25rem; }
+            .asset-table td.text-left { text-align: left; }
+            .asset-table td.text-right { text-align: right; }
+            .attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
+            .attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
+            .attachment-meta .meta-label { white-space: nowrap; }
+            .attachment-meta .meta-colon { text-align: center; }
+            .attachment-meta .meta-value { min-width: 0; }
+            .signature { width: 20rem; margin-left: auto; }
+            .signature p { margin: 0; padding: 0; line-height: 1.15; }
+            .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
+          </style>
+        </head>
+        <body>${printContent.innerHTML}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 500);
+  };
+
   return (
     <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -359,6 +440,15 @@ export default function BmnAuctionCandidatesPage() {
           >
             <FileText className="h-3.5 w-3.5" />
             Proses BA Koreksi
+          </Button>
+          <Button
+            size="sm"
+            className="rounded-xl gap-2 bg-amber-600 text-xs hover:bg-amber-500"
+            onClick={handleProcessSk}
+            disabled={orderedIds.length === 0}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Proses SK Penghentian
           </Button>
         </div>
       </div>
@@ -416,6 +506,29 @@ export default function BmnAuctionCandidatesPage() {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+        <label htmlFor="sk-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+          Nomor SK Penghentian
+        </label>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+            <span className="font-semibold">SK.</span>
+            <input
+              id="sk-number"
+              type="text"
+              value={skNumber}
+              onChange={(event) => setSkNumber(event.target.value)}
+              placeholder="____"
+              className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
+            />
+            <span>/{getSkNumberSuffix()}</span>
+          </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Tahun otomatis mengikuti tanggal generate dokumen.
+          </p>
+        </div>
+      </div>
+
       {orderedIds.length > 0 && (
         <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -425,12 +538,22 @@ export default function BmnAuctionCandidatesPage() {
           <div className="flex flex-wrap gap-2">
             <Button size="sm" className="rounded-lg bg-red-600 text-xs hover:bg-red-500" onClick={handleProcess}>
               <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate Dokumen
+              Generate BA Koreksi
+            </Button>
+            <Button size="sm" className="rounded-lg bg-amber-600 text-xs hover:bg-amber-500" onClick={handleProcessSk}>
+              <FileText className="mr-1 h-3.5 w-3.5" />
+              Generate SK Penghentian
             </Button>
             {showDocument && (
               <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrint}>
                 <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak
+                Cetak BA
+              </Button>
+            )}
+            {showSkDocument && (
+              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSk}>
+                <Printer className="mr-1 h-3.5 w-3.5" />
+                Cetak SK
               </Button>
             )}
           </div>
@@ -615,6 +738,22 @@ export default function BmnAuctionCandidatesPage() {
             </Button>
           </div>
           <CorrectionDocument assets={orderedSelectedAssets} baNumber={baNumber} />
+        </section>
+      )}
+
+      {showSkDocument && orderedSelectedAssets.length > 0 && (
+        <section id="sk-penghentian-preview" className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview SK Penghentian Penggunaan BMN</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Keputusan Kepala Balai tentang penghentian penggunaan aset terpilih.</p>
+            </div>
+            <Button className="rounded-xl gap-2 bg-amber-600 text-xs hover:bg-amber-500" onClick={handlePrintSk}>
+              <Printer className="h-3.5 w-3.5" />
+              Cetak / Save PDF
+            </Button>
+          </div>
+          <SkPenghentianDocument assets={orderedSelectedAssets} skNumber={skNumber} />
         </section>
       )}
     </div>
@@ -802,6 +941,282 @@ function AssetConditionTable({ title, assets, mode }: { title: string; assets: A
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; skNumber: string }) {
+  const today = new Date();
+  const skNumberText = `SK.${skNumber.trim() || "____"}/${getSkNumberSuffix(today)}`;
+  const totalNilai = assets.reduce((sum, a) => sum + (a.nilai_perolehan || 0), 0);
+
+  const mengingat = [
+    "Undang-Undang Republik Indonesia Nomor 17 Tahun 2003 tentang Keuangan Negara;",
+    "Undang-Undang Republik Indonesia Nomor 1 Tahun 2004 tentang Perbendaharaan Negara;",
+    "Peraturan Pemerintah Nomor 27 Tahun 2014 tentang Pengelolaan Barang Milik Negara/Daerah sebagaimana telah diubah dengan Peraturan Pemerintah Nomor 28 Tahun 2020;",
+    "Peraturan Presiden Nomor 175 Tahun 2024 tentang Kementerian Kehutanan;",
+    "Peraturan Menteri Keuangan Nomor 4/PMK.06/2015 tentang Pendelegasian Kewenangan dan Tanggung Jawab Tertentu Dari Pengelola Barang kepada Pengguna Barang;",
+    "Peraturan Menteri Keuangan Nomor 83/PMK.06/2016 tentang Tata Cara Pelaksanaan Pemusnahan dan Penghapusan Barang Milik Negara;",
+    "Peraturan Menteri Keuangan Nomor 111/PMK.06/2016 tentang Tata Cara Pelaksanaan Pemindahtanganan Barang Milik Negara sebagaimana telah diubah dengan Peraturan Menteri Keuangan Nomor 165/PMK.06/2021;",
+    "Peraturan Menteri Keuangan Nomor 181/PMK.06/2016 tentang Penatausahaan Barang Milik Negara;",
+    "Peraturan Menteri Lingkungan Hidup dan Kehutanan Nomor P.11/MENLHK/SETJEN/KAP.3/4/2018 tentang Tata Cara Pelaksanaan Pemindahtanganan Barang Milik Negara Lingkup Kementerian Lingkungan Hidup dan Kehutanan.",
+  ];
+
+  const pageStyle = {
+    fontFamily: "'Bookman Old Style', Georgia, serif",
+    fontSize: "11pt",
+    lineHeight: "1.4",
+  } as React.CSSProperties;
+
+  return (
+    <div id="sk-penghentian-print-root" className="sk-print-root space-y-6">
+      <style jsx global>{`
+        @media print {
+          body * { visibility: hidden; }
+          .sk-print-root, .sk-print-root * { visibility: visible; }
+          .sk-print-root {
+            position: absolute; left: 0; top: 0; width: 100%;
+            background: white; color: black;
+            font-family: 'Bookman Old Style', Georgia, serif;
+            font-size: 11pt; line-height: 1.4; margin: 0; padding: 0;
+          }
+          .sk-page {
+            width: 210mm; min-height: 297mm; margin: 0 auto;
+            padding: 5mm 20mm 14mm; box-shadow: none !important;
+            page-break-after: always;
+          }
+          .sk-page:last-child { page-break-after: auto; }
+          .sk-header { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; }
+          .sk-header img { max-width: 196mm !important; }
+          .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
+          .sk-no-print { display: none !important; }
+          .asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
+          .asset-table th, .asset-table td { border: 1px solid #000; padding: 0.25rem; }
+          .asset-table td.text-left { text-align: left; }
+          .asset-table td.text-right { text-align: right; }
+          .attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
+          .attachment-meta .meta-label { white-space: nowrap; }
+          .attachment-meta .meta-colon { text-align: center; }
+          .signature p { margin: 0; padding: 0; line-height: 1.15; }
+          .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
+        }
+      `}</style>
+
+      {/* ── HALAMAN 1: KOP + Judul + Menimbang + Mengingat ── */}
+      <article
+        className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
+        style={pageStyle}
+      >
+        {/* KOP */}
+        <div className="sk-header -mx-18 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/header-terbaru.png" alt="Kop Surat" className="mx-auto h-auto w-full max-w-[196mm]" />
+        </div>
+
+        {/* Judul SK */}
+        <div className="sk-body sk-title mx-auto mt-3 w-[166mm] text-center font-bold leading-snug">
+          <p className="m-0">KEPUTUSAN KEPALA BALAI</p>
+          <p className="m-0">KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</p>
+          <p className="m-0 font-normal">Nomor : {skNumberText}</p>
+          <p className="m-0 mt-2">TENTANG</p>
+          <p className="m-0">PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA</p>
+          <p className="m-0">PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR,</p>
+        </div>
+
+        <div className="sk-body mx-auto mt-5 w-[166mm]">
+          <p className="text-center font-bold">DENGAN RAHMAT TUHAN YANG MAHA ESA</p>
+          <p className="mt-2 text-center font-bold">
+            KEPALA BALAI<br />
+            KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR,
+          </p>
+
+          {/* Menimbang */}
+          <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
+            <tbody>
+              <tr>
+                <td className="w-28 align-top font-bold">Menimbang</td>
+                <td className="w-6 text-center align-top">:</td>
+                <td className="align-top">
+                  <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                    <tbody>
+                      <tr>
+                        <td className="w-5 align-top">a.</td>
+                        <td className="align-top text-justify">
+                          bahwa terdapat Barang Milik Negara pada Balai Konservasi Sumber Daya Alam Kalimantan Timur berupa Alat Angkutan Bermotor dalam keadaan rusak berat dan tidak ekonomis lagi untuk digunakan;
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="w-5 align-top pt-2">b.</td>
+                        <td className="align-top pt-2 text-justify">
+                          bahwa sehubungan dengan hal tersebut diatas, dipandang perlu untuk menerbitkan Keputusan Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur tentang Penghentian Penggunaan Barang Milik Negara.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+
+              {/* Mengingat */}
+              <tr>
+                <td className="w-28 align-top pt-3 font-bold">Mengingat</td>
+                <td className="w-6 text-center align-top pt-3">:</td>
+                <td className="align-top pt-3">
+                  <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                    <tbody>
+                      {mengingat.map((item, i) => (
+                        <tr key={i}>
+                          <td className="w-5 align-top pt-1">{i + 1}.</td>
+                          <td className="align-top pt-1 text-justify">{item}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      {/* ── HALAMAN 2: MEMUTUSKAN + Menetapkan + KESATU/KEDUA/KETIGA + TTD + Tembusan ── */}
+      <article
+        className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
+        style={pageStyle}
+      >
+        <div className="sk-body mx-auto w-[166mm]">
+          <p className="text-center font-bold underline">MEMUTUSKAN</p>
+
+          <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
+            <tbody>
+              <tr>
+                <td className="w-28 align-top font-bold">Menetapkan</td>
+                <td className="w-6 text-center align-top">:</td>
+                <td className="align-top font-bold uppercase text-justify">
+                  KEPUTUSAN KEPALA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR TENTANG PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA LINGKUP BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR.
+                </td>
+              </tr>
+              <tr>
+                <td className="w-28 align-top pt-4 font-bold">KESATU</td>
+                <td className="w-6 text-center align-top pt-4">:</td>
+                <td className="align-top pt-4 text-justify">
+                  Menghentikan penggunaan Barang Milik Negara berupa Alat Angkutan Bermotor dalam kondisi rusak berat pada Balai Konservasi Sumber Daya Alam Kalimantan Timur tersebut sebagaimana tercantum dalam lampiran keputusan ini.
+                </td>
+              </tr>
+              <tr>
+                <td className="w-28 align-top pt-4 font-bold">KEDUA</td>
+                <td className="w-6 text-center align-top pt-4">:</td>
+                <td className="align-top pt-4 text-justify">
+                  Menghentikan biaya pemeliharaan Alat Angkutan Bermotor tersebut sejak dikeluarkan keputusan ini, untuk dilanjutkan pada proses penghapusan.
+                </td>
+              </tr>
+              <tr>
+                <td className="w-28 align-top pt-4 font-bold">KETIGA</td>
+                <td className="w-6 text-center align-top pt-4">:</td>
+                <td className="align-top pt-4 text-justify">
+                  Keputusan ini mulai berlaku sejak tanggal ditetapkan.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* TTD */}
+          <div className="mt-12 ml-auto w-80">
+            <p className="m-0">Ditetapkan di : Samarinda</p>
+            <p className="m-0">Pada tanggal : {formatDateLong(today)}</p>
+            <p className="m-0 mt-3">Kepala Balai,</p>
+            <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+            <p className="m-0 font-bold">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
+            <p className="m-0">NIP. 19740514 199903 1 001</p>
+          </div>
+
+          {/* Tembusan */}
+          <div className="mt-10">
+            <p className="m-0">Tembusan :</p>
+            <p className="m-0">1.&nbsp; Kepala Biro Umum Kementerian Kehutanan</p>
+            <p className="m-0">2.&nbsp; Sekretaris Direktorat Jenderal KSDAE</p>
+          </div>
+        </div>
+      </article>
+
+      {/* ── HALAMAN 3: Lampiran — Tabel Daftar Penghentian ── */}
+      <article
+        className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
+        style={pageStyle}
+      >
+        <div className="sk-body mx-auto w-[166mm]">
+          {/* Attachment meta */}
+          <div className="attachment-meta ml-auto w-[109mm]">
+            <div className="meta-row grid grid-cols-[24mm_5mm_minmax(0,1fr)]">
+              <span className="meta-label whitespace-nowrap">Lampiran</span>
+              <span className="meta-colon text-center">:</span>
+              <span className="meta-value min-w-0">Keputusan Kepala Balai KSDA KALTIM</span>
+            </div>
+            <div className="meta-row grid grid-cols-[24mm_5mm_minmax(0,1fr)]">
+              <span className="meta-label whitespace-nowrap">Nomor</span>
+              <span className="meta-colon text-center">:</span>
+              <span className="meta-value min-w-0 whitespace-nowrap">{skNumberText}</span>
+            </div>
+            <div className="meta-row grid grid-cols-[24mm_5mm_minmax(0,1fr)]">
+              <span className="meta-label whitespace-nowrap">Tanggal</span>
+              <span className="meta-colon text-center">:</span>
+              <span className="meta-value min-w-0">{formatDateLong(today)}</span>
+            </div>
+          </div>
+
+          {/* Judul tabel */}
+          <p className="mt-6 text-center font-bold text-[11pt] leading-snug">
+            DAFTAR PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA<br />
+            PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR
+          </p>
+
+          {/* Tabel aset */}
+          <table className="asset-table mt-4 w-full border-collapse text-center text-[8.5pt]">
+            <thead>
+              <tr>
+                <th className="border border-black px-1 py-1">No</th>
+                <th className="border border-black px-1 py-1">Kode Barang</th>
+                <th className="border border-black px-1 py-1">NUP</th>
+                <th className="border border-black px-1 py-1">Nama Barang</th>
+                <th className="border border-black px-1 py-1">Merk / Type</th>
+                <th className="border border-black px-1 py-1">No Polisi</th>
+                <th className="border border-black px-1 py-1">Tahun Perolehan</th>
+                <th className="border border-black px-1 py-1">Nilai Perolehan (Rp)</th>
+                <th className="border border-black px-1 py-1">Kondisi</th>
+                <th className="border border-black px-1 py-1">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {assets.map((asset, index) => (
+                <tr key={asset.id}>
+                  <td className="border border-black px-1 py-1">{index + 1}.</td>
+                  <td className="border border-black px-1 py-1">{asset.kode_barang}</td>
+                  <td className="border border-black px-1 py-1">{asset.nup}</td>
+                  <td className="border border-black px-1 py-1 text-left">{asset.nama_barang}</td>
+                  <td className="border border-black px-1 py-1">{asset.merk_tipe || "-"}</td>
+                  <td className="border border-black px-1 py-1">{asset.no_polisi || "-"}</td>
+                  <td className="border border-black px-1 py-1">{asset.tahun_perolehan || "-"}</td>
+                  <td className="border border-black px-1 py-1 text-right">{formatPlainRupiah(asset.nilai_perolehan)}</td>
+                  <td className="border border-black px-1 py-1">{asset.kondisi}</td>
+                  <td className="border border-black px-1 py-1">Surat Lengkap</td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan={7} className="border border-black px-1 py-1 text-center font-bold">Jumlah</td>
+                <td className="border border-black px-1 py-1 text-right font-bold">{formatPlainRupiah(totalNilai)}</td>
+                <td colSpan={2} className="border border-black px-1 py-1"></td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* TTD lampiran */}
+          <div className="signature mt-10 ml-auto w-80">
+            <p className="m-0">Kepala Balai,</p>
+            <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+            <p className="m-0 font-bold">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
+            <p className="m-0">NIP. 19740514 199903 1 001</p>
+          </div>
+        </div>
+      </article>
     </div>
   );
 }
