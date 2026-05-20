@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -10,9 +10,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   Eye,
   FileText,
   Gavel,
+  GripVertical,
   Loader2,
   Package,
   Printer,
@@ -35,6 +38,7 @@ interface AuctionAsset {
   lokasi_ruang?: string | null;
   lokasi_spesifik?: string | null;
   tahun_perolehan?: number | null;
+  no_polisi?: string | null;
 }
 
 interface AssetResponse {
@@ -122,10 +126,15 @@ export default function BmnAuctionCandidatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // orderedIds keeps the user-defined order for the document
+  const [orderedIds, setOrderedIds] = useState<string[]>([]);
   const [showDocument, setShowDocument] = useState(false);
   const [baNumber, setBaNumber] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 400);
+
+  // drag-and-drop refs
+  const dragIndexRef = useRef<number | null>(null);
+  const dragOverIndexRef = useRef<number | null>(null);
 
   const { data: response, isLoading, isFetching } = useQuery<AssetResponse>({
     queryKey: ["bmn-auction-candidates", debouncedSearch, page, perPage],
@@ -144,33 +153,94 @@ export default function BmnAuctionCandidatesPage() {
   });
 
   const assets = useMemo(() => response?.data || [], [response?.data]);
-  const selectedAssets = useMemo(
-    () => assets.filter((asset) => selectedIds.has(asset.id)),
-    [assets, selectedIds]
+
+  // selectedIds derived from orderedIds for O(1) lookup
+  const selectedIds = useMemo(() => new Set(orderedIds), [orderedIds]);
+
+  // ordered selected assets — this is what the document uses
+  const assetMap = useMemo(() => {
+    const map = new Map<string, AuctionAsset>();
+    assets.forEach((a) => map.set(a.id, a));
+    return map;
+  }, [assets]);
+
+  const orderedSelectedAssets = useMemo(
+    () => orderedIds.flatMap((id) => (assetMap.has(id) ? [assetMap.get(id)!] : [])),
+    [orderedIds, assetMap]
   );
-  const selectedTotal = selectedAssets.reduce((total, asset) => total + (asset.nilai_perolehan || 0), 0);
+
+  const selectedTotal = orderedSelectedAssets.reduce((total, asset) => total + (asset.nilai_perolehan || 0), 0);
   const allSelected = assets.length > 0 && assets.every((asset) => selectedIds.has(asset.id));
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+  const toggleSelect = useCallback((id: string) => {
+    setOrderedIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      return [...prev, id];
     });
-  };
+    setShowDocument(false);
+  }, []);
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     if (allSelected) {
-      setSelectedIds(new Set());
+      setOrderedIds([]);
       setShowDocument(false);
       return;
     }
-    setSelectedIds(new Set(assets.map((asset) => asset.id)));
-  };
+    // preserve existing order, append newly selected
+    setOrderedIds((prev) => {
+      const existing = new Set(prev);
+      const newIds = assets.filter((a) => !existing.has(a.id)).map((a) => a.id);
+      return [...prev, ...newIds];
+    });
+  }, [allSelected, assets]);
+
+  // reorder helpers
+  const moveUp = useCallback((index: number) => {
+    if (index === 0) return;
+    setOrderedIds((prev) => {
+      const next = [...prev];
+      [next[index - 1], next[index]] = [next[index], next[index - 1]];
+      return next;
+    });
+  }, []);
+
+  const moveDown = useCallback((index: number) => {
+    setOrderedIds((prev) => {
+      if (index >= prev.length - 1) return prev;
+      const next = [...prev];
+      [next[index], next[index + 1]] = [next[index + 1], next[index]];
+      return next;
+    });
+  }, []);
+
+  const handleDragStart = useCallback((index: number) => {
+    dragIndexRef.current = index;
+  }, []);
+
+  const handleDragEnter = useCallback((index: number) => {
+    dragOverIndexRef.current = index;
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    const from = dragIndexRef.current;
+    const to = dragOverIndexRef.current;
+    if (from === null || to === null || from === to) {
+      dragIndexRef.current = null;
+      dragOverIndexRef.current = null;
+      return;
+    }
+    setOrderedIds((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    dragIndexRef.current = null;
+    dragOverIndexRef.current = null;
+  }, []);
 
   const handleProcess = () => {
-    if (selectedIds.size === 0) {
+    if (orderedIds.length === 0) {
       toast.error("Pilih minimal satu aset untuk diproses.");
       return;
     }
@@ -181,7 +251,7 @@ export default function BmnAuctionCandidatesPage() {
   };
 
   const handlePrint = () => {
-    if (selectedAssets.length === 0) {
+    if (orderedSelectedAssets.length === 0) {
       toast.error("Tidak ada aset terpilih untuk dicetak.");
       return;
     }
@@ -273,10 +343,10 @@ export default function BmnAuctionCandidatesPage() {
             variant="outline"
             className="rounded-xl gap-2 text-xs"
             onClick={() => {
-              setSelectedIds(new Set());
+              setOrderedIds([]);
               setShowDocument(false);
             }}
-            disabled={selectedIds.size === 0}
+            disabled={orderedIds.length === 0}
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Reset Pilihan
@@ -285,7 +355,7 @@ export default function BmnAuctionCandidatesPage() {
             size="sm"
             className="rounded-xl gap-2 bg-red-600 text-xs hover:bg-red-500"
             onClick={handleProcess}
-            disabled={selectedIds.size === 0}
+            disabled={orderedIds.length === 0}
           >
             <FileText className="h-3.5 w-3.5" />
             Proses BA Koreksi
@@ -295,7 +365,7 @@ export default function BmnAuctionCandidatesPage() {
 
       <div className="grid gap-3 md:grid-cols-3">
         <SummaryTile label="Total Rusak Berat" value={(response?.total || assets.length).toLocaleString("id-ID")} tone="red" />
-        <SummaryTile label="Dipilih" value={selectedIds.size.toLocaleString("id-ID")} tone="emerald" />
+        <SummaryTile label="Dipilih" value={orderedIds.length.toLocaleString("id-ID")} tone="emerald" />
         <SummaryTile label="Nilai Terpilih" value={formatRupiah(selectedTotal)} tone="zinc" />
       </div>
 
@@ -309,7 +379,7 @@ export default function BmnAuctionCandidatesPage() {
             onChange={(event) => {
               setSearchTerm(event.target.value);
               setPage(1);
-              setSelectedIds(new Set());
+              setOrderedIds([]);
               setShowDocument(false);
             }}
             className="h-11 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-4 text-sm text-zinc-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
@@ -346,10 +416,10 @@ export default function BmnAuctionCandidatesPage() {
         </div>
       </div>
 
-      {selectedIds.size > 0 && (
+      {orderedIds.length > 0 && (
         <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-bold text-red-800 dark:text-red-300">{selectedIds.size} aset dipilih</p>
+            <p className="text-sm font-bold text-red-800 dark:text-red-300">{orderedIds.length} aset dipilih</p>
             <p className="text-xs text-red-700/80 dark:text-red-400">Dokumen BA Koreksi akan memakai aset yang dipilih di halaman ini.</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -450,7 +520,7 @@ export default function BmnAuctionCandidatesPage() {
               onChange={(event) => {
                 setPerPage(Number(event.target.value));
                 setPage(1);
-                setSelectedIds(new Set());
+                setOrderedIds([]);
                 setShowDocument(false);
               }}
               className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-600 outline-none focus:ring-1 focus:ring-red-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
@@ -469,7 +539,70 @@ export default function BmnAuctionCandidatesPage() {
         </div>
       </div>
 
-      {showDocument && selectedAssets.length > 0 && (
+      {/* Reorder panel — visible whenever assets are selected */}
+      {orderedIds.length > 0 && (
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 print:hidden">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-bold text-zinc-900 dark:text-white">Urutan Aset Terpilih</h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Drag atau gunakan tombol ↑↓ untuk mengatur nomor urut di dokumen.
+              </p>
+            </div>
+            <span className="rounded-lg bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400">
+              {orderedIds.length} aset
+            </span>
+          </div>
+          <ol className="space-y-1.5">
+            {orderedSelectedAssets.map((asset, index) => (
+              <li
+                key={asset.id}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                className="flex cursor-grab items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 transition active:cursor-grabbing active:opacity-60 dark:border-zinc-800 dark:bg-zinc-800/50"
+              >
+                <GripVertical className="h-4 w-4 shrink-0 text-zinc-400" />
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-600 text-[10px] font-black text-white">
+                  {index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-zinc-900 dark:text-zinc-100">{asset.nama_barang}</p>
+                  <p className="font-mono text-[10px] text-zinc-400">
+                    {asset.kode_barang} · NUP {asset.nup}
+                    {asset.merk_tipe ? ` · ${asset.merk_tipe}` : ""}
+                    {asset.no_polisi ? ` · ${asset.no_polisi}` : ""}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveUp(index)}
+                    disabled={index === 0}
+                    aria-label="Pindah ke atas"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition hover:bg-zinc-100 disabled:opacity-30 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-700"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveDown(index)}
+                    disabled={index === orderedIds.length - 1}
+                    aria-label="Pindah ke bawah"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition hover:bg-zinc-100 disabled:opacity-30 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-700"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {showDocument && orderedSelectedAssets.length > 0 && (
         <section id="ba-koreksi-preview" className="space-y-4">
           <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
             <div>
@@ -481,7 +614,7 @@ export default function BmnAuctionCandidatesPage() {
               Cetak / Save PDF
             </Button>
           </div>
-          <CorrectionDocument assets={selectedAssets} baNumber={baNumber} />
+          <CorrectionDocument assets={orderedSelectedAssets} baNumber={baNumber} />
         </section>
       )}
     </div>
