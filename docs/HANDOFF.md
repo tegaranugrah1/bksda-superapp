@@ -114,20 +114,49 @@ git push origin main
 - [x] Issue #338: PR #339 merged ke `main` (merge commit `1ddfb1a`). Deploy ke SSH ditunda.
 - [x] Issue #340: Refactor auction-candidates page into smaller components. PR #341 merged.
 - [x] Issue #342: Editable BA builder + toggle BA/SK visibility + editable KAP field. PR #343 merged.
-- [ ] Issue #344 (IN PROGRESS): BA Koreksi lampiran pagination + margin bawah. Branch `issue/344-ba-lampiran-pagination`. TTD masih turun ke halaman sendiri — perlu fix.
+- [x] Issue #344: BA Koreksi lampiran pagination + margin bawah. PR #345 merged ke `main` (merge commit `db598ca`); branch `issue/344-ba-lampiran-pagination` deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #342: Editable BA builder (PR #343 merged) |
-| **Issue Sedang Dikerjakan** | Issue #344: BA lampiran pagination — branch `issue/344-ba-lampiran-pagination` |
-| **Branch Aktif** | `issue/344-ba-lampiran-pagination` |
-| **Commit Terakhir di Branch** | `f33ab14` |
-| **Status** | Natural browser pagination sudah diterapkan. Masalah: TTD turun ke halaman sendiri karena blok terlalu besar untuk sisa halaman. `break-inside: avoid` sudah dihapus dari signature tapi belum ditest. |
-| **Model Terakhir** | Kiro |
-| **Timestamp** | 2026-05-20T14:00:00+08:00 |
+| **Issue Terakhir Selesai** | Issue #344: BA Koreksi lampiran pagination + bottom margin (PR #345 merged) |
+| **Issue Sedang Dikerjakan** | None |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir di Main** | `db598ca` |
+| **Status** | Issue #344 DONE: BA lampiran memakai measured row pagination, urutan `I. Sebelum` selesai dulu lalu `II. Sesudah`, halaman lanjutan memakai nomor kolom, dan TTD final tidak terpotong dengan safe area BSrE. |
+| **Model Terakhir** | Codex |
+| **Timestamp** | 2026-05-20T16:55:00+08:00 |
 | **Status Print SK** | DONE: preview dan print PDF OK; margin bawah BSrE aman; Mengingat paginate per item; lampiran paginate sesuai aturan 15/17/max-10 |
 | **Model Terakhir** | Codex |
 | **Timestamp** | 2026-05-20T13:00:00+08:00 |
+
+---
+
+**UPDATE SESI CODEX (2026-05-20 - Issue #344 SELESAI: BA Koreksi lampiran pagination):**
+- **Objective**: Finalisasi dokumen BA Koreksi Kondisi BMN di halaman `/bmn/auction-candidates`, terutama print/PDF lampiran dengan pagination tabel, margin bawah untuk footer BSrE/BSSN, dan blok TTD agar tidak terpotong.
+- **Status**: MERGED (PR #345) ke `main`.
+- **GitHub**:
+  - Issue: #344 `fix(bmn): BA Koreksi lampiran pagination and bottom margin like SK`
+  - PR: #345 `fix(bmn): paginate BA lampiran by measured rows (#344)`
+  - Merge commit: `db598ca`
+  - Branch `issue/344-ba-lampiran-pagination` deleted setelah merge.
+- **Accomplishments**:
+  - Lampiran BA memakai measured row pagination berbasis tinggi row aktual, bukan fixed count.
+  - Urutan resmi dokumen dijaga: semua `I. Sebelum` selesai dulu, baru `II. Sesudah`.
+  - Halaman lanjutan tidak mengulang label `I. Sebelum` / `II. Sesudah`; baris nomor kolom `1 2 3 ...` muncul di atas header tabel.
+  - Tabel memakai fixed layout dan word wrapping yang lebih stabil untuk nama barang panjang.
+  - Halaman terakhir menghitung tinggi blok TTD (`Kepala Balai`, `${ttd_pengirim}`, nama, NIP) agar tidak pecah halaman.
+  - Margin bawah 28mm tetap dipertahankan untuk ruang footer BSrE/BSSN.
+- **Key Files Modified**:
+  - `frontend/src/app/bmn/auction-candidates/_components/BaKoreksiDocument.tsx`
+  - `docs/HANDOFF.md`
+  - `docs/progress.md`
+- **Validation**:
+  - `npx eslint "src/app/bmn/auction-candidates/_components/BaKoreksiDocument.tsx" --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean
+  - Full `npm run lint -- --max-warnings=0` masih terblokir issue lama yang tidak terkait di `portal` dan `EmployeeAccessSheet`.
+- **Next Steps**:
+  - Deploy issue #336, #338, #342, dan #344 ke SSH production saat user sudah siap.
 
 ---
 

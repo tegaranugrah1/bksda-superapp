@@ -1,7 +1,7 @@
-# Progress - Phase 46: BA Koreksi Lampiran Pagination (IN PROGRESS)
+# Progress - Phase 46: BA Koreksi Lampiran Pagination
 
 > Document updated: 2026-05-20
-> Status: **IN PROGRESS** 🔄
+> Status: **MERGED** ✅
 
 ---
 
@@ -9,25 +9,30 @@
 
 ### Completed:
 - [x] **Issue Created**: Issue #344.
-- [x] **Branch**: `issue/344-ba-lampiran-pagination` aktif.
+- [x] **PR Created/Merged**: PR #345 merged ke `main` (`db598ca`).
+- [x] **Branch Cleanup**: `issue/344-ba-lampiran-pagination` deleted after merge.
 - [x] **`@page { margin-bottom: 28mm }`**: Margin bawah semua halaman untuk BSrE footer.
-- [x] **Natural browser pagination**: Hapus explicit pagination logic, biarkan browser paginate tabel secara natural.
+- [x] **Measured pagination final**: Natural browser pagination diganti menjadi halaman lampiran eksplisit berbasis hasil ukur tinggi row.
 - [x] **`break-inside: avoid` per `<tr>`**: Setiap row tabel tidak terpotong di tengah.
 - [x] **`display: table-header-group`**: Header tabel otomatis repeat di setiap halaman baru.
-- [x] **Sebelum + Sesudah unified**: Satu artikel, mengalir natural tanpa page break buatan.
-- [x] **`break-inside: avoid` dihapus dari signature**: Agar TTD tidak memaksa pindah halaman.
+- [x] **Sebelum lalu Sesudah**: Urutan lampiran mengikuti dokumen resmi; bagian `I. Sebelum` selesai dulu sebelum `II. Sesudah`.
+- [x] **TTD reserved space**: Signature block dihitung sebagai area utuh di halaman terakhir.
+- [x] **Measured row pagination**: Lampiran BA memakai tinggi row aktual agar stabil untuk nama barang panjang-pendek.
+- [x] **Sequential sections**: `I. Sebelum` diselesaikan dulu sampai habis, baru lanjut `II. Sesudah`.
+- [x] **Continuation header**: Halaman lanjutan tidak mengulang label `I. Sebelum` / `II. Sesudah`; diganti baris nomor kolom `1 2 3 ...`.
+- [x] **Signature safe area**: Halaman terakhir menghitung tinggi blok TTD agar `${ttd_pengirim}`, nama, dan NIP tidak terpotong.
 
 ### Pending / Known Issues:
-- [ ] **TTD masih turun ke halaman sendiri** — `break-inside: avoid` sudah dihapus tapi belum ditest apakah fix. Masalah: blok TTD (Kepala Balai + placeholder 112px + nama + NIP) terlalu besar untuk sisa halaman setelah tabel terakhir.
-- [ ] **Solusi alternatif yang mungkin**: Kurangi `margin-top` signature dari `mt-12` ke `mt-6`, atau kurangi tinggi placeholder TTD saat print saja (bukan di preview).
-- [ ] **PR belum dibuat** — menunggu fix TTD selesai.
+- [ ] **Deploy ke SSH production**: Ditunda sampai user siap deploy batch BMN terbaru.
 
 ### Key Files:
 - `frontend/src/app/bmn/auction-candidates/_components/BaKoreksiDocument.tsx`
 
 ### Validation:
-- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx eslint "src/app/bmn/auction-candidates/_components/BaKoreksiDocument.tsx" --max-warnings=0` clean
 - [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean
+- [ ] Full `npm run lint -- --max-warnings=0` masih blocked oleh issue lama tidak terkait di `portal` dan `EmployeeAccessSheet`.
 
 ---
 
