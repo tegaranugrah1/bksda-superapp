@@ -363,7 +363,7 @@ export default function BmnAuctionCandidatesPage() {
             }
             p { margin: 0; padding: 0; }
             .sk-page {
-              width: 210mm; min-height: 297mm;
+              width: 210mm;
               margin: 0 auto; padding: 5mm 20mm 28mm;
               page-break-after: always;
             }
@@ -392,6 +392,8 @@ export default function BmnAuctionCandidatesPage() {
             .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
             table { border-collapse: collapse; width: 100%; }
             td { vertical-align: top; padding: 0; }
+            /* Label bold: Menimbang, Mengingat, Menetapkan, KESATU, KEDUA, KETIGA */
+            .sk-label-bold { font-weight: bold; }
             /* Halaman 2 */
             .sk-page2-body { width: 166mm; margin-left: auto; margin-right: auto; padding-top: 16mm; }
             .sk-memutuskan { text-align: center; font-weight: bold; margin-bottom: 12px; }
@@ -1057,7 +1059,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             <tbody>
               {/* Menimbang */}
               <tr>
-                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold" }}>Menimbang</td>
+                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top" }}>Menimbang</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
                 <td style={{ verticalAlign: "top" }}>
                   <table className="w-full" style={{ borderCollapse: "collapse" }}>
@@ -1080,7 +1082,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
               </tr>
               {/* Mengingat */}
               <tr>
-                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold", paddingTop: "0.75rem" }}>Mengingat</td>
+                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.75rem" }}>Mengingat</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.75rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "0.75rem" }}>
                   <table className="w-full" style={{ borderCollapse: "collapse" }}>
@@ -1111,28 +1113,28 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
           <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
             <tbody>
               <tr>
-                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold" }}>Menetapkan</td>
+                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top" }}>Menetapkan</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
-                <td style={{ verticalAlign: "top", fontWeight: "bold", textTransform: "uppercase", textAlign: "justify" }}>
+                <td className="sk-label-bold" style={{ verticalAlign: "top", textTransform: "uppercase", textAlign: "justify" }}>
                   KEPUTUSAN KEPALA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR TENTANG PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA LINGKUP BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR.
                 </td>
               </tr>
               <tr>
-                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold", paddingTop: "1rem" }}>KESATU</td>
+                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KESATU</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Menghentikan penggunaan Barang Milik Negara berupa Alat Angkutan Bermotor dalam kondisi rusak berat pada Balai Konservasi Sumber Daya Alam Kalimantan Timur tersebut sebagaimana tercantum dalam lampiran keputusan ini.
                 </td>
               </tr>
               <tr>
-                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold", paddingTop: "1rem" }}>KEDUA</td>
+                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KEDUA</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Menghentikan biaya pemeliharaan Alat Angkutan Bermotor tersebut sejak dikeluarkan keputusan ini, untuk dilanjutkan pada proses penghapusan.
                 </td>
               </tr>
               <tr>
-                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold", paddingTop: "1rem" }}>KETIGA</td>
+                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KETIGA</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Keputusan ini mulai berlaku sejak tanggal ditetapkan.
