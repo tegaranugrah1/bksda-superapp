@@ -24,7 +24,6 @@ import type { AuctionAsset, AssetResponse } from "./_lib/auction-helpers";
 import {
   formatRupiah,
   shortenLokasi,
-  getBaNumberSuffix,
   getSkNumberSuffix,
 } from "./_lib/auction-helpers";
 import { ReorderPanel } from "./_components/ReorderPanel";
@@ -40,6 +39,7 @@ export default function BmnAuctionCandidatesPage() {
   const [showDocument, setShowDocument] = useState(false);
   const [showSkDocument, setShowSkDocument] = useState(false);
   const [baNumber, setBaNumber] = useState("");
+  const [baKap, setBaKap] = useState("KAP.06.01");
   const [skNumber, setSkNumber] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 400);
 
@@ -152,6 +152,7 @@ export default function BmnAuctionCandidatesPage() {
       return;
     }
     setShowDocument(true);
+    setShowSkDocument(false);
     setTimeout(() => {
       document.getElementById("ba-koreksi-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
@@ -163,6 +164,7 @@ export default function BmnAuctionCandidatesPage() {
       return;
     }
     setShowSkDocument(true);
+    setShowDocument(false);
     setTimeout(() => {
       document.getElementById("sk-penghentian-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
@@ -267,7 +269,14 @@ export default function BmnAuctionCandidatesPage() {
               placeholder="____"
               className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
             />
-            <span>/{getBaNumberSuffix()}</span>
+            <span>/K.18/TU/</span>
+            <input
+              type="text"
+              value={baKap}
+              onChange={(event) => setBaKap(event.target.value)}
+              className="w-24 bg-transparent text-center font-semibold outline-none"
+            />
+            <span>/B/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Bulan dan tahun otomatis mengikuti tanggal generate dokumen.
@@ -455,7 +464,7 @@ export default function BmnAuctionCandidatesPage() {
               Cetak / Save PDF
             </Button>
           </div>
-          <CorrectionDocument assets={orderedSelectedAssets} baNumber={baNumber} />
+          <CorrectionDocument assets={orderedSelectedAssets} baNumber={baNumber} baKap={baKap} />
         </section>
       )}
 

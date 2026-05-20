@@ -6,7 +6,6 @@ import {
   formatPlainRupiah,
   formatDateLong,
   getSpelledDate,
-  getBaNumberSuffix,
 } from "../_lib/auction-helpers";
 
 export function handlePrintBa(orderedSelectedAssets: AuctionAsset[]) {
@@ -70,6 +69,7 @@ export function handlePrintBa(orderedSelectedAssets: AuctionAsset[]) {
           .attachment-signature { margin-top: 3rem; }
           .signature p { margin: 0; padding: 0; line-height: 1.15; }
           .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
+          .ba-editable { outline: none; border-bottom: 1px dashed transparent; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -80,15 +80,27 @@ export function handlePrintBa(orderedSelectedAssets: AuctionAsset[]) {
   setTimeout(() => printWindow.print(), 500);
 }
 
-export function CorrectionDocument({ assets, baNumber }: { assets: AuctionAsset[]; baNumber: string }) {
+export function CorrectionDocument({ assets, baNumber, baKap }: { assets: AuctionAsset[]; baNumber: string; baKap: string }) {
   const today = new Date();
   const { day, dateText, month, yearText } = getSpelledDate(today);
-  const baNumberText = `BA.${baNumber.trim() || "____"}/${getBaNumberSuffix(today)}`;
+  const monthNum = String(today.getMonth() + 1).padStart(2, "0");
+  const baNumberText = `BA.${baNumber.trim() || "____"}/K.18/TU/${baKap}/B/${monthNum}/${today.getFullYear()}`;
   const datePhrase = `${dateText} bulan ${month} tahun ${yearText}`;
 
   return (
     <div id="ba-koreksi-print-root" className="ba-print-root space-y-6">
       <style jsx global>{`
+        .ba-editable {
+          outline: none;
+          border-bottom: 1px dashed transparent;
+          transition: border-bottom-color 0.15s ease;
+        }
+        .ba-editable:hover {
+          border-bottom-color: #94a3b8;
+        }
+        .ba-editable:focus {
+          border-bottom-color: #64748b;
+        }
         @media print {
           body * { visibility: hidden; }
           .ba-print-root, .ba-print-root * { visibility: visible; }
@@ -126,6 +138,7 @@ export function CorrectionDocument({ assets, baNumber }: { assets: AuctionAsset[
           .attachment-meta .lampiran-value { display: inline-block; max-width: 80mm; }
           .ba-page:last-child { page-break-after: auto; }
           .ba-no-print { display: none !important; }
+          .ba-editable { border-bottom: none !important; }
         }
       `}</style>
       <article className="ba-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200" style={{ fontFamily: "'Bookman Old Style', Georgia, serif", fontSize: "11pt", lineHeight: "1.25" }}>
@@ -136,32 +149,104 @@ export function CorrectionDocument({ assets, baNumber }: { assets: AuctionAsset[
           <p className="m-0 font-normal">Nomor : {baNumberText}</p>
         </div>
         <div className="ba-body ba-text-block mx-auto mt-4 w-[166mm] space-y-5 text-justify">
-          <p>
+          <p
+            contentEditable="true"
+            suppressContentEditableWarning
+            className="ba-editable"
+          >
             Pada hari {day} tanggal {datePhrase}, bertempat di Kantor Balai Konservasi Sumber Daya Alam Kalimantan Timur, kami penanggungjawab Unit Penatausahaan Kuasa Pengguna Barang pada Balai Konservasi Sumber Daya Alam Kalimantan Timur :
           </p>
           <table className="identity-table">
             <tbody>
-              <tr><td className="label-cell w-24 py-0.5">Nama</td><td className="colon-cell w-6">:</td><td>M. ARI WIBAWANTO, S.Hut., M.Sc.</td></tr>
-              <tr><td className="label-cell py-0.5">NIP</td><td className="colon-cell">:</td><td>19740514 199903 1 001</td></tr>
-              <tr><td className="label-cell py-0.5">Jabatan</td><td className="colon-cell">:</td><td>Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur</td></tr>
+              <tr>
+                <td className="label-cell w-24 py-0.5">Nama</td>
+                <td className="colon-cell w-6">:</td>
+                <td>
+                  <span
+                    contentEditable="true"
+                    suppressContentEditableWarning
+                    className="ba-editable"
+                  >
+                    M. ARI WIBAWANTO, S.Hut., M.Sc.
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="label-cell py-0.5">NIP</td>
+                <td className="colon-cell">:</td>
+                <td>
+                  <span
+                    contentEditable="true"
+                    suppressContentEditableWarning
+                    className="ba-editable"
+                  >
+                    19740514 199903 1 001
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="label-cell py-0.5">Jabatan</td>
+                <td className="colon-cell">:</td>
+                <td>
+                  <span
+                    contentEditable="true"
+                    suppressContentEditableWarning
+                    className="ba-editable"
+                  >
+                    Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur
+                  </span>
+                </td>
+              </tr>
             </tbody>
           </table>
-          <p>
+          <p
+            contentEditable="true"
+            suppressContentEditableWarning
+            className="ba-editable"
+          >
             Menyatakan bahwa telah dilakukan koreksi perubahan kondisi dengan cara melakukan koreksi terhadap kondisi Barang Milik Negara
             pada Kantor Balai Konservasi Sumber Daya Alam Kalimantan Timur pada tanggal {datePhrase} berdasarkan Penilaian Barang Milik Negara
             dengan hasil (rincian terlampir).
           </p>
-          <p>
+          <p
+            contentEditable="true"
+            suppressContentEditableWarning
+            className="ba-editable"
+          >
             Demikian Berita Acara ini dibuat sebagai bahan koreksi perubahan kondisi Barang Milik Negara Semester Satu tahun {yearText},
             dan apabila dikemudian hari terdapat kekeliruan akan dilakukan perbaikan sebagaimana mestinya.
           </p>
         </div>
         <div className="signature mt-20 ml-auto w-80">
-          <p className="m-0">Unit Penatausaha Kuasa Pengguna Barang</p>
-          <p className="m-0">Kepala Balai,</p>
+          <p
+            contentEditable="true"
+            suppressContentEditableWarning
+            className="ba-editable m-0"
+          >
+            Unit Penatausaha Kuasa Pengguna Barang
+          </p>
+          <p
+            contentEditable="true"
+            suppressContentEditableWarning
+            className="ba-editable m-0"
+          >
+            Kepala Balai,
+          </p>
           <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-          <p className="m-0">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
-          <p className="m-0">NIP. 19740514 199903 1 001</p>
+          <p
+            contentEditable="true"
+            suppressContentEditableWarning
+            className="ba-editable m-0"
+          >
+            M. ARI WIBAWANTO, S.Hut., M.Sc.
+          </p>
+          <p
+            contentEditable="true"
+            suppressContentEditableWarning
+            className="ba-editable m-0"
+          >
+            NIP. 19740514 199903 1 001
+          </p>
         </div>
       </article>
 
@@ -189,10 +274,28 @@ export function CorrectionDocument({ assets, baNumber }: { assets: AuctionAsset[
           <AssetConditionTable title="I. Sebelum" assets={assets} mode="before" />
           <AssetConditionTable title="II. Sesudah" assets={assets} mode="after" />
           <div className="signature attachment-signature mt-12 ml-auto w-80">
-            <p className="m-0">Kepala Balai,</p>
+            <p
+              contentEditable="true"
+              suppressContentEditableWarning
+              className="ba-editable m-0"
+            >
+              Kepala Balai,
+            </p>
             <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-            <p className="m-0">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
-            <p className="m-0">NIP. 19740514 199903 1 001</p>
+            <p
+              contentEditable="true"
+              suppressContentEditableWarning
+              className="ba-editable m-0"
+            >
+              M. ARI WIBAWANTO, S.Hut., M.Sc.
+            </p>
+            <p
+              contentEditable="true"
+              suppressContentEditableWarning
+              className="ba-editable m-0"
+            >
+              NIP. 19740514 199903 1 001
+            </p>
           </div>
         </div>
       </article>
