@@ -13,9 +13,15 @@ const BA_ATTACHMENT_PAGE_HEIGHT_MM = 269;
 const BA_ATTACHMENT_FALLBACK_CHUNK_SIZE = 8;
 const BA_ATTACHMENT_MIN_ROWS_PER_PAGE = 1;
 
-type BaLampiranPage = {
+type BaLampiranSection = {
+  mode: "before" | "after";
+  title: string;
   assets: AuctionAsset[];
   startIndex: number;
+};
+
+type BaLampiranPage = {
+  sections: BaLampiranSection[];
   showMeta: boolean;
   showSignature: boolean;
 };
@@ -208,28 +214,47 @@ function AttachmentSignature() {
   );
 }
 
+function BaLampiranSectionBlock({
+  section,
+  measureKey,
+}: {
+  section: BaLampiranSection;
+  measureKey?: string;
+}) {
+  return (
+    <>
+      <p className="ba-section-title mt-6 mb-2 text-[12px] font-semibold">{section.title}</p>
+      <AssetConditionTable
+        assets={section.assets}
+        mode={section.mode}
+        startIndex={section.startIndex}
+        measureKey={measureKey}
+      />
+    </>
+  );
+}
+
 function BaLampiranPageContent({
-  assets,
-  startIndex,
-  showMeta,
-  showSignature,
+  page,
   baNumberText,
   today,
-}: BaLampiranPage & {
+}: {
+  page: BaLampiranPage;
   baNumberText: string;
   today: Date;
 }) {
   return (
     <>
-      {showMeta ? <AttachmentMeta baNumberText={baNumberText} today={today} /> : <div className="ba-continuation-spacer" />}
+      {page.showMeta ? <AttachmentMeta baNumberText={baNumberText} today={today} /> : <div className="ba-continuation-spacer" />}
 
-      <p className="ba-section-title mt-6 mb-2 text-[12px] font-semibold">I. Sebelum</p>
-      <AssetConditionTable assets={assets} mode="before" startIndex={startIndex} />
+      {page.sections.map((section) => (
+        <BaLampiranSectionBlock
+          key={`${section.mode}-${section.startIndex}`}
+          section={section}
+        />
+      ))}
 
-      <p className="ba-section-title mt-6 mb-2 text-[12px] font-semibold">II. Sesudah</p>
-      <AssetConditionTable assets={assets} mode="after" startIndex={startIndex} />
-
-      {showSignature ? <AttachmentSignature /> : null}
+      {page.showSignature ? <AttachmentSignature /> : null}
     </>
   );
 }
@@ -244,74 +269,124 @@ function getOuterHeight(element: Element | null) {
   return rect.height + marginTop + marginBottom;
 }
 
-function fitAssetCount(rowHeights: number[], startIndex: number, availableHeight: number) {
+function fitAssetCount(rowHeights: number[], startIndex: number, availableHeight: number, allowSingleOverflow = false) {
   let usedHeight = 0;
   let count = 0;
 
   for (let index = startIndex; index < rowHeights.length; index += 1) {
     const nextHeight = rowHeights[index] || 0;
-    if (count >= BA_ATTACHMENT_MIN_ROWS_PER_PAGE && usedHeight + nextHeight > availableHeight) {
+    if (usedHeight + nextHeight > availableHeight) {
+      if (count === 0 && allowSingleOverflow) return BA_ATTACHMENT_MIN_ROWS_PER_PAGE;
       break;
     }
     usedHeight += nextHeight;
     count += 1;
   }
 
-  return Math.max(BA_ATTACHMENT_MIN_ROWS_PER_PAGE, count);
+  return count;
 }
 
 function buildMeasuredLampiranPages({
   assets,
-  rowHeights,
-  firstBaseHeight,
-  continuationBaseHeight,
+  beforeRowHeights,
+  afterRowHeights,
+  metaHeight,
+  continuationSpacerHeight,
+  sectionBaseHeight,
   signatureHeight,
   pageHeight,
 }: {
   assets: AuctionAsset[];
-  rowHeights: number[];
-  firstBaseHeight: number;
-  continuationBaseHeight: number;
+  beforeRowHeights: number[];
+  afterRowHeights: number[];
+  metaHeight: number;
+  continuationSpacerHeight: number;
+  sectionBaseHeight: number;
   signatureHeight: number;
   pageHeight: number;
 }) {
   if (assets.length === 0) return [];
 
   const pages: BaLampiranPage[] = [];
-  let startIndex = 0;
+  let currentPage: BaLampiranPage | null = null;
+  let currentHeight = 0;
 
-  while (startIndex < assets.length) {
-    const isFirstPage = pages.length === 0;
-    const baseHeight = isFirstPage ? firstBaseHeight : continuationBaseHeight;
-    const remainingCount = assets.length - startIndex;
-    const finalAvailableHeight = pageHeight - baseHeight - signatureHeight;
-    const finalFitCount = fitAssetCount(rowHeights, startIndex, finalAvailableHeight);
+  const startPage = () => {
+    const showMeta = pages.length === 0;
+    currentPage = { sections: [], showMeta, showSignature: false };
+    currentHeight = showMeta ? metaHeight : continuationSpacerHeight;
+    pages.push(currentPage);
+  };
 
-    if (finalFitCount >= remainingCount) {
-      pages.push({
-        assets: assets.slice(startIndex),
+  const addSection = (mode: "before" | "after", title: string, rowHeights: number[]) => {
+    let startIndex = 0;
+
+    while (startIndex < assets.length) {
+      if (!currentPage) startPage();
+
+      const page = currentPage!;
+      const isNewSectionOnPage = page.sections.length === 0 || page.sections[page.sections.length - 1]?.mode !== mode;
+      const baseHeight = isNewSectionOnPage ? sectionBaseHeight : 0;
+      const remainingCount = assets.length - startIndex;
+      const isAfterSection = mode === "after";
+      const finalAvailableHeight = pageHeight - currentHeight - baseHeight - signatureHeight;
+      const finalFitCount = isAfterSection
+        ? fitAssetCount(rowHeights, startIndex, finalAvailableHeight, page.sections.length === 0)
+        : 0;
+
+      if (isAfterSection && finalFitCount >= remainingCount) {
+        page.sections.push({
+          mode,
+          title,
+          assets: assets.slice(startIndex),
+          startIndex,
+        });
+        page.showSignature = true;
+        currentPage = null;
+        currentHeight = 0;
+        return;
+      }
+
+      if (isAfterSection && remainingCount <= BA_ATTACHMENT_MIN_ROWS_PER_PAGE && page.sections.length > 0) {
+        currentPage = null;
+        currentHeight = 0;
+        continue;
+      }
+
+      const regularAvailableHeight = pageHeight - currentHeight - baseHeight;
+      let regularFitCount = fitAssetCount(rowHeights, startIndex, regularAvailableHeight, page.sections.length === 0);
+
+      if (regularFitCount === 0 && page.sections.length > 0) {
+        currentPage = null;
+        currentHeight = 0;
+        continue;
+      }
+
+      if (isAfterSection) {
+        regularFitCount = Math.min(remainingCount - BA_ATTACHMENT_MIN_ROWS_PER_PAGE, regularFitCount);
+      } else {
+        regularFitCount = Math.min(remainingCount, regularFitCount);
+      }
+
+      const safeCount = Math.max(BA_ATTACHMENT_MIN_ROWS_PER_PAGE, regularFitCount);
+      page.sections.push({
+        mode,
+        title,
+        assets: assets.slice(startIndex, startIndex + safeCount),
         startIndex,
-        showMeta: isFirstPage,
-        showSignature: true,
       });
-      break;
+      currentHeight += baseHeight + rowHeights.slice(startIndex, startIndex + safeCount).reduce((total, height) => total + height, 0);
+      startIndex += safeCount;
+
+      if (startIndex < assets.length) {
+        currentPage = null;
+        currentHeight = 0;
+      }
     }
+  };
 
-    const regularAvailableHeight = pageHeight - baseHeight;
-    const regularFitCount = Math.min(
-      remainingCount - BA_ATTACHMENT_MIN_ROWS_PER_PAGE,
-      fitAssetCount(rowHeights, startIndex, regularAvailableHeight),
-    );
-    const safeCount = Math.max(BA_ATTACHMENT_MIN_ROWS_PER_PAGE, regularFitCount);
-
-    pages.push({
-      assets: assets.slice(startIndex, startIndex + safeCount),
-      startIndex,
-      showMeta: isFirstPage,
-      showSignature: false,
-    });
-    startIndex += safeCount;
-  }
+  addSection("before", "I. Sebelum", beforeRowHeights);
+  addSection("after", "II. Sesudah", afterRowHeights);
 
   return pages;
 }
@@ -323,8 +398,20 @@ function buildFallbackLampiranPages(assets: AuctionAsset[]) {
   for (let startIndex = 0; startIndex < assets.length; startIndex += BA_ATTACHMENT_FALLBACK_CHUNK_SIZE) {
     const pageAssets = assets.slice(startIndex, startIndex + BA_ATTACHMENT_FALLBACK_CHUNK_SIZE);
     pages.push({
-      assets: pageAssets,
-      startIndex,
+      sections: [
+        {
+          mode: "before",
+          title: "I. Sebelum",
+          assets: pageAssets,
+          startIndex,
+        },
+        {
+          mode: "after",
+          title: "II. Sesudah",
+          assets: pageAssets,
+          startIndex,
+        },
+      ],
       showMeta: startIndex === 0,
       showSignature: startIndex + pageAssets.length >= assets.length,
     });
@@ -353,14 +440,24 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
     }
 
     const pageHeight = root.querySelector("[data-ba-measure='page']")?.getBoundingClientRect().height || 0;
-    const firstBaseHeight = getOuterHeight(root.querySelector("[data-ba-measure='first-base']"));
-    const continuationBaseHeight = getOuterHeight(root.querySelector("[data-ba-measure='continuation-base']"));
+    const metaHeight = getOuterHeight(root.querySelector("[data-ba-measure='meta']"));
+    const continuationSpacerHeight = getOuterHeight(root.querySelector("[data-ba-measure='continuation-spacer']"));
+    const sectionBaseHeight = getOuterHeight(root.querySelector("[data-ba-measure='section-base']"));
     const signatureHeight = getOuterHeight(root.querySelector("[data-ba-measure='signature']"));
     const beforeRows = Array.from(root.querySelectorAll("[data-ba-measure-table='before'] tbody tr"));
     const afterRows = Array.from(root.querySelectorAll("[data-ba-measure-table='after'] tbody tr"));
-    const rowHeights = assets.map((_, index) => getOuterHeight(beforeRows[index]) + getOuterHeight(afterRows[index]));
+    const beforeRowHeights = assets.map((_, index) => getOuterHeight(beforeRows[index]));
+    const afterRowHeights = assets.map((_, index) => getOuterHeight(afterRows[index]));
 
-    if (!pageHeight || !firstBaseHeight || !continuationBaseHeight || !signatureHeight || rowHeights.some((height) => height <= 0)) {
+    if (
+      !pageHeight ||
+      !metaHeight ||
+      !continuationSpacerHeight ||
+      !sectionBaseHeight ||
+      !signatureHeight ||
+      beforeRowHeights.some((height) => height <= 0) ||
+      afterRowHeights.some((height) => height <= 0)
+    ) {
       setLampiranPages(fallbackLampiranPages);
       return;
     }
@@ -368,9 +465,11 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
     setLampiranPages(
       buildMeasuredLampiranPages({
         assets,
-        rowHeights,
-        firstBaseHeight,
-        continuationBaseHeight,
+        beforeRowHeights,
+        afterRowHeights,
+        metaHeight,
+        continuationSpacerHeight,
+        sectionBaseHeight,
         signatureHeight,
         pageHeight,
       }),
@@ -604,50 +703,44 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
         </div>
       </article>
 
-      {/* Lampiran BA: measured pages keep Sebelum/Sesudah pairs and final signature together */}
+      {/* Lampiran BA: measured pages finish Sebelum first, then Sesudah, with final signature kept together */}
       <div ref={measurementRef} className="ba-measurement" aria-hidden="true">
         <div data-ba-measure="page" className="ba-measure-page" />
-        <div className="ba-lampiran-body mx-auto w-[166mm]" data-ba-measure="first-base">
-          <BaLampiranPageContent
-            assets={[]}
-            startIndex={0}
-            showMeta
-            showSignature={false}
-            baNumberText={baNumberText}
-            today={today}
-          />
+        <div data-ba-measure="meta">
+          <AttachmentMeta baNumberText={baNumberText} today={today} />
         </div>
-        <div className="ba-lampiran-body mx-auto w-[166mm]" data-ba-measure="continuation-base">
-          <BaLampiranPageContent
-            assets={[]}
-            startIndex={0}
-            showMeta={false}
-            showSignature={false}
-            baNumberText={baNumberText}
-            today={today}
+        <div data-ba-measure="continuation-spacer">
+          <div className="ba-continuation-spacer" />
+        </div>
+        <div className="ba-lampiran-body mx-auto w-[166mm]" data-ba-measure="section-base">
+          <BaLampiranSectionBlock
+            section={{ mode: "before", title: "I. Sebelum", assets: [], startIndex: 0 }}
           />
         </div>
         <div data-ba-measure="signature">
           <AttachmentSignature />
         </div>
         <div className="ba-lampiran-body mx-auto w-[166mm]">
-          <AssetConditionTable assets={assets} mode="before" measureKey="before" />
-          <AssetConditionTable assets={assets} mode="after" measureKey="after" />
+          <BaLampiranSectionBlock
+            section={{ mode: "before", title: "I. Sebelum", assets, startIndex: 0 }}
+            measureKey="before"
+          />
+          <BaLampiranSectionBlock
+            section={{ mode: "after", title: "II. Sesudah", assets, startIndex: 0 }}
+            measureKey="after"
+          />
         </div>
       </div>
 
-      {lampiranPages.map((page) => (
+      {lampiranPages.map((page, pageIndex) => (
         <article
-          key={`ba-lampiran-${page.startIndex}`}
+          key={`ba-lampiran-${pageIndex}`}
           className="ba-lampiran mx-auto max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
           style={{ fontFamily: "'Bookman Old Style', Georgia, serif", fontSize: "11pt", lineHeight: "1.25" }}
         >
           <div className="ba-lampiran-body mx-auto w-[166mm]">
             <BaLampiranPageContent
-              assets={page.assets}
-              startIndex={page.startIndex}
-              showMeta={page.showMeta}
-              showSignature={page.showSignature}
+              page={page}
               baNumberText={baNumberText}
               today={today}
             />
