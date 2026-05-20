@@ -373,13 +373,18 @@ export default function BmnAuctionCandidatesPage() {
             table { border-collapse: collapse; }
             .sk-section-table { width: 100%; }
             .sk-section-table td { vertical-align: top; padding: 0.1rem 0; }
-            .asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
-            .asset-table th, .asset-table td { border: 1px solid #000; padding: 0.25rem; }
-            .asset-table td.text-left { text-align: left; }
-            .asset-table td.text-right { text-align: right; }
-            .attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
-            .attachment-meta .meta-label { white-space: nowrap; }
-            .attachment-meta .meta-colon { text-align: center; }
+            .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
+            .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
+            .sk-asset-table td.text-left { text-align: left; }
+            .sk-asset-table td.text-right { text-align: right; }
+            .sk-attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
+            .sk-attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
+            .sk-attachment-meta .meta-label { white-space: nowrap; }
+            .sk-attachment-meta .meta-colon { text-align: center; }
+            .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
+            .meta-label { white-space: nowrap; }
+            .meta-colon { text-align: center; }
+            .signature { width: 20rem; margin-left: auto; }
             .signature p { margin: 0; padding: 0; line-height: 1.15; }
             .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
           </style>
@@ -977,8 +982,8 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             page-break-after: always;
           }
           .sk-page:last-child { page-break-after: auto; }
-          .sk-header { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; }
-          .sk-header img { max-width: 196mm !important; }
+          .sk-kop { margin-top: -0.25cm; margin-left: 0; margin-right: -0.95cm; margin-bottom: 2px; overflow: visible; }
+          .sk-kop img { width: 18.8cm !important; height: auto !important; display: block; }
           .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
           .sk-no-print { display: none !important; }
           .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
@@ -998,9 +1003,9 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
         className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
         style={pageStyle}
       >
-        <div className="sk-header -mx-18 text-center">
+        <div className="sk-kop" style={{ marginTop: "-10px", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-terbaru.png" alt="Kop Surat" className="mx-auto h-auto w-full max-w-[196mm]" />
+          <img src="/header-new.png" alt="Kop Surat" style={{ width: "18.8cm", height: "auto", display: "block" }} />
         </div>
 
         <div className="sk-body mx-auto mt-3 w-[166mm] text-center font-bold leading-snug">
