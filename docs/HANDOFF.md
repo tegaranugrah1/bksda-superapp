@@ -111,13 +111,16 @@ git push origin main
 - [x] Issue #336: Add reorder panel for selected assets in auction-candidates page (drag-and-drop + ↑↓ buttons, no_polisi shown if available). PR #337 merged to main.
 - [x] Issue #338: Add SK Penghentian Penggunaan BMN document (KOP+Menimbang+Mengingat, MEMUTUSKAN+TTD+Tembusan, Lampiran tabel). Branch `issue/338-sk-penghentian-bmn` siap PR.
 - [x] Issue #338: Fix print layout SK Penghentian — margin bawah semua halaman untuk BSrE footer, Mengingat paginate per nomor, TTD/tembusan rapi, dan lampiran paginate stabil.
+- [x] Issue #338: PR #339 merged ke `main` (merge commit `1ddfb1a`). Deploy ke SSH ditunda.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #338: SK Penghentian Penggunaan BMN (ready for PR) |
-| **Issue Sedang Dikerjakan** | None — Issue #338 siap dibuat PR |
-| **Branch Aktif** | `issue/338-sk-penghentian-bmn` |
-| **Commit Terakhir di Branch** | see latest branch commit |
+| **Issue Terakhir Selesai** | Issue #338: SK Penghentian Penggunaan BMN — PR #339 merged |
+| **Issue Selanjutnya** | Lanjut fitur di /bmn/auction-candidates atau deploy ke SSH |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir** | `1ddfb1a` Merge pull request #339 from tegaranugrah1/issue/338-sk-penghentian-bmn |
+| **Model Terakhir** | Kiro |
+| **Timestamp** | 2026-05-20T12:00:00+08:00 |
 | **Status Print SK** | DONE: preview dan print PDF OK; margin bawah BSrE aman; Mengingat paginate per item; lampiran paginate sesuai aturan 15/17/max-10 |
 | **Model Terakhir** | Codex |
 | **Timestamp** | 2026-05-20T13:00:00+08:00 |
@@ -145,6 +148,28 @@ git push origin main
 - **Next Steps**:
   - Create PR for issue #338.
   - Deploy ke SSH setelah PR merged dan disetujui.
+
+---
+
+**UPDATE SESI (2026-05-20 - Issue #338 SELESAI: SK Penghentian Penggunaan BMN print layout):**
+- **Objective**: Fix print layout SK Penghentian — Mengingat paginate per nomor, margin bawah BSrE, TTD/tembusan rapi, lampiran pagination stabil.
+- **Status**: MERGED (PR #339) ke `main`. Deploy ke SSH ditunda.
+- **GitHub**:
+  - Issue: #338 `feat(bmn): add SK Penghentian Penggunaan BMN document`
+  - PR: #339 merged ke `main`
+  - Merge commit: `1ddfb1a`
+- **Accomplishments** (diselesaikan AI lain setelah handoff dari Kiro):
+  - Struktur Menimbang/Mengingat diubah dari tabel bersarang ke grid/block — hanya item berikutnya yang turun, bukan seluruh bagian
+  - TTD/Tembusan tidak bold, rata kiri, spacing rapi
+  - Lampiran pagination: halaman pertama max 15 aset, tengah max 17, terakhir max 10
+  - Lampiran continuation header hanya muncul di halaman lanjutan
+  - `@page { margin-bottom: 28mm }` untuk BSrE footer safe area di semua halaman
+  - Preview screen disamakan dengan CSS print
+- **Key Files Modified**:
+  - `frontend/src/app/bmn/auction-candidates/page.tsx`
+- **Next Steps**:
+  - [ ] Deploy issue #336 + #338 ke SSH production
+  - [ ] Lanjut fitur berikutnya di /bmn/auction-candidates
 
 ---
 
