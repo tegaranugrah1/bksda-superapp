@@ -114,7 +114,8 @@ function getBaNumberSuffix(date = new Date()) {
 }
 
 function getSkNumberSuffix(date = new Date()) {
-  return `K.18/TU/KAP.05/${date.getFullYear()}`;
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `K.18/TU/KAP.05/${month}/${date.getFullYear()}`;
 }
 
 function shortenLokasi(value?: string | null) {
@@ -353,7 +354,8 @@ export default function BmnAuctionCandidatesPage() {
         <head>
           <title>SK Penghentian Penggunaan BMN</title>
           <style>
-            @page { size: A4; margin: 0; }
+            @page { size: A4; margin: 3cm 1cm 1.9cm 1.55cm; }
+            @page :first { margin: 0.7cm 1cm 1.9cm 1.55cm; }
             body {
               margin: 0; padding: 0; background: white; color: black;
               font-family: 'Bookman Old Style', Georgia, serif;
@@ -361,35 +363,23 @@ export default function BmnAuctionCandidatesPage() {
             }
             .sk-page {
               width: 210mm; min-height: 297mm; box-sizing: border-box;
-              margin: 0 auto; padding: 5mm 20mm 14mm;
+              margin: 0 auto; padding: 0;
               page-break-after: always;
             }
             .sk-page:last-child { page-break-after: auto; }
-            .sk-header { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; text-align: center; }
-            .sk-header img { width: 196mm !important; max-width: 196mm !important; height: auto !important; }
-            .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
-            .sk-title { margin-top: 0.5rem; text-align: center; font-weight: 700; }
-            .sk-title p { margin: 0; line-height: 1.3; }
+            .sk-kop { margin-top: -0.25cm; margin-left: 0; margin-right: -0.95cm; margin-bottom: 2px; overflow: visible; }
+            .sk-kop img { width: 18.8cm !important; height: auto !important; display: block; }
+            .sk-body { }
             table { border-collapse: collapse; }
             .sk-section-table { width: 100%; }
-            .sk-section-table td { vertical-align: top; padding: 0.15rem 0; }
-            .sk-label { width: 28mm; font-weight: bold; }
-            .sk-colon { width: 8mm; text-align: center; }
-            .sk-value { }
-            .sk-sub-table { width: 100%; }
-            .sk-sub-table td { vertical-align: top; padding: 0.1rem 0; }
-            .sk-sub-label { width: 6mm; }
-            .sk-sub-colon { width: 6mm; text-align: center; }
+            .sk-section-table td { vertical-align: top; padding: 0.1rem 0; }
             .asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
             .asset-table th, .asset-table td { border: 1px solid #000; padding: 0.25rem; }
             .asset-table td.text-left { text-align: left; }
             .asset-table td.text-right { text-align: right; }
-            .attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
             .attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
             .attachment-meta .meta-label { white-space: nowrap; }
             .attachment-meta .meta-colon { text-align: center; }
-            .attachment-meta .meta-value { min-width: 0; }
-            .signature { width: 20rem; margin-left: auto; }
             .signature p { margin: 0; padding: 0; line-height: 1.15; }
             .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
           </style>
@@ -945,6 +935,7 @@ function AssetConditionTable({ title, assets, mode }: { title: string; assets: A
   );
 }
 
+
 function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; skNumber: string }) {
   const today = new Date();
   const skNumberText = `SK.${skNumber.trim() || "____"}/${getSkNumberSuffix(today)}`;
@@ -962,11 +953,11 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
     "Peraturan Menteri Lingkungan Hidup dan Kehutanan Nomor P.11/MENLHK/SETJEN/KAP.3/4/2018 tentang Tata Cara Pelaksanaan Pemindahtanganan Barang Milik Negara Lingkup Kementerian Lingkungan Hidup dan Kehutanan.",
   ];
 
-  const pageStyle = {
+  const pageStyle: React.CSSProperties = {
     fontFamily: "'Bookman Old Style', Georgia, serif",
     fontSize: "11pt",
     lineHeight: "1.4",
-  } as React.CSSProperties;
+  };
 
   return (
     <div id="sk-penghentian-print-root" className="sk-print-root space-y-6">
@@ -990,13 +981,13 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
           .sk-header img { max-width: 196mm !important; }
           .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
           .sk-no-print { display: none !important; }
-          .asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
-          .asset-table th, .asset-table td { border: 1px solid #000; padding: 0.25rem; }
-          .asset-table td.text-left { text-align: left; }
-          .asset-table td.text-right { text-align: right; }
-          .attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
-          .attachment-meta .meta-label { white-space: nowrap; }
-          .attachment-meta .meta-colon { text-align: center; }
+          .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
+          .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
+          .sk-asset-table td.text-left { text-align: left; }
+          .sk-asset-table td.text-right { text-align: right; }
+          .sk-attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
+          .sk-attachment-meta .meta-label { white-space: nowrap; }
+          .sk-attachment-meta .meta-colon { text-align: center; }
           .signature p { margin: 0; padding: 0; line-height: 1.15; }
           .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
         }
@@ -1007,14 +998,12 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
         className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
         style={pageStyle}
       >
-        {/* KOP */}
         <div className="sk-header -mx-18 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/header-terbaru.png" alt="Kop Surat" className="mx-auto h-auto w-full max-w-[196mm]" />
         </div>
 
-        {/* Judul SK */}
-        <div className="sk-body sk-title mx-auto mt-3 w-[166mm] text-center font-bold leading-snug">
+        <div className="sk-body mx-auto mt-3 w-[166mm] text-center font-bold leading-snug">
           <p className="m-0">KEPUTUSAN KEPALA BALAI</p>
           <p className="m-0">KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</p>
           <p className="m-0 font-normal">Nomor : {skNumberText}</p>
@@ -1030,24 +1019,24 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR,
           </p>
 
-          {/* Menimbang */}
           <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
             <tbody>
+              {/* Menimbang */}
               <tr>
-                <td className="w-28 align-top font-bold">Menimbang</td>
-                <td className="w-6 text-center align-top">:</td>
-                <td className="align-top">
+                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold" }}>Menimbang</td>
+                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
+                <td style={{ verticalAlign: "top" }}>
                   <table className="w-full" style={{ borderCollapse: "collapse" }}>
                     <tbody>
                       <tr>
-                        <td className="w-5 align-top">a.</td>
-                        <td className="align-top text-justify">
+                        <td style={{ width: "6mm", verticalAlign: "top" }}>a.</td>
+                        <td style={{ verticalAlign: "top", textAlign: "justify" }}>
                           bahwa terdapat Barang Milik Negara pada Balai Konservasi Sumber Daya Alam Kalimantan Timur berupa Alat Angkutan Bermotor dalam keadaan rusak berat dan tidak ekonomis lagi untuk digunakan;
                         </td>
                       </tr>
                       <tr>
-                        <td className="w-5 align-top pt-2">b.</td>
-                        <td className="align-top pt-2 text-justify">
+                        <td style={{ width: "6mm", verticalAlign: "top", paddingTop: "0.5rem" }}>b.</td>
+                        <td style={{ verticalAlign: "top", paddingTop: "0.5rem", textAlign: "justify" }}>
                           bahwa sehubungan dengan hal tersebut diatas, dipandang perlu untuk menerbitkan Keputusan Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur tentang Penghentian Penggunaan Barang Milik Negara.
                         </td>
                       </tr>
@@ -1055,18 +1044,17 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
                   </table>
                 </td>
               </tr>
-
               {/* Mengingat */}
               <tr>
-                <td className="w-28 align-top pt-3 font-bold">Mengingat</td>
-                <td className="w-6 text-center align-top pt-3">:</td>
-                <td className="align-top pt-3">
+                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold", paddingTop: "0.75rem" }}>Mengingat</td>
+                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.75rem" }}>:</td>
+                <td style={{ verticalAlign: "top", paddingTop: "0.75rem" }}>
                   <table className="w-full" style={{ borderCollapse: "collapse" }}>
                     <tbody>
                       {mengingat.map((item, i) => (
                         <tr key={i}>
-                          <td className="w-5 align-top pt-1">{i + 1}.</td>
-                          <td className="align-top pt-1 text-justify">{item}</td>
+                          <td style={{ width: "6mm", verticalAlign: "top", paddingTop: i > 0 ? "0.35rem" : "0" }}>{i + 1}.</td>
+                          <td style={{ verticalAlign: "top", paddingTop: i > 0 ? "0.35rem" : "0", textAlign: "justify" }}>{item}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1089,38 +1077,37 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
           <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
             <tbody>
               <tr>
-                <td className="w-28 align-top font-bold">Menetapkan</td>
-                <td className="w-6 text-center align-top">:</td>
-                <td className="align-top font-bold uppercase text-justify">
+                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold" }}>Menetapkan</td>
+                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
+                <td style={{ verticalAlign: "top", fontWeight: "bold", textTransform: "uppercase", textAlign: "justify" }}>
                   KEPUTUSAN KEPALA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR TENTANG PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA LINGKUP BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR.
                 </td>
               </tr>
               <tr>
-                <td className="w-28 align-top pt-4 font-bold">KESATU</td>
-                <td className="w-6 text-center align-top pt-4">:</td>
-                <td className="align-top pt-4 text-justify">
+                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold", paddingTop: "1rem" }}>KESATU</td>
+                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
+                <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Menghentikan penggunaan Barang Milik Negara berupa Alat Angkutan Bermotor dalam kondisi rusak berat pada Balai Konservasi Sumber Daya Alam Kalimantan Timur tersebut sebagaimana tercantum dalam lampiran keputusan ini.
                 </td>
               </tr>
               <tr>
-                <td className="w-28 align-top pt-4 font-bold">KEDUA</td>
-                <td className="w-6 text-center align-top pt-4">:</td>
-                <td className="align-top pt-4 text-justify">
+                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold", paddingTop: "1rem" }}>KEDUA</td>
+                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
+                <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Menghentikan biaya pemeliharaan Alat Angkutan Bermotor tersebut sejak dikeluarkan keputusan ini, untuk dilanjutkan pada proses penghapusan.
                 </td>
               </tr>
               <tr>
-                <td className="w-28 align-top pt-4 font-bold">KETIGA</td>
-                <td className="w-6 text-center align-top pt-4">:</td>
-                <td className="align-top pt-4 text-justify">
+                <td style={{ width: "28mm", verticalAlign: "top", fontWeight: "bold", paddingTop: "1rem" }}>KETIGA</td>
+                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
+                <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Keputusan ini mulai berlaku sejak tanggal ditetapkan.
                 </td>
               </tr>
             </tbody>
           </table>
 
-          {/* TTD */}
-          <div className="mt-12 ml-auto w-80">
+          <div className="signature mt-12 ml-auto w-80">
             <p className="m-0">Ditetapkan di : Samarinda</p>
             <p className="m-0">Pada tanggal : {formatDateLong(today)}</p>
             <p className="m-0 mt-3">Kepala Balai,</p>
@@ -1129,7 +1116,6 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             <p className="m-0">NIP. 19740514 199903 1 001</p>
           </div>
 
-          {/* Tembusan */}
           <div className="mt-10">
             <p className="m-0">Tembusan :</p>
             <p className="m-0">1.&nbsp; Kepala Biro Umum Kementerian Kehutanan</p>
@@ -1144,8 +1130,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
         style={pageStyle}
       >
         <div className="sk-body mx-auto w-[166mm]">
-          {/* Attachment meta */}
-          <div className="attachment-meta ml-auto w-[109mm]">
+          <div className="sk-attachment-meta ml-auto w-[109mm]">
             <div className="meta-row grid grid-cols-[24mm_5mm_minmax(0,1fr)]">
               <span className="meta-label whitespace-nowrap">Lampiran</span>
               <span className="meta-colon text-center">:</span>
@@ -1163,14 +1148,12 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             </div>
           </div>
 
-          {/* Judul tabel */}
-          <p className="mt-6 text-center font-bold text-[11pt] leading-snug">
+          <p className="mt-6 text-center font-bold leading-snug">
             DAFTAR PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA<br />
             PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR
           </p>
 
-          {/* Tabel aset */}
-          <table className="asset-table mt-4 w-full border-collapse text-center text-[8.5pt]">
+          <table className="sk-asset-table mt-4 w-full border-collapse text-center" style={{ fontSize: "8.5pt" }}>
             <thead>
               <tr>
                 <th className="border border-black px-1 py-1">No</th>
@@ -1208,7 +1191,6 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             </tbody>
           </table>
 
-          {/* TTD lampiran */}
           <div className="signature mt-10 ml-auto w-80">
             <p className="m-0">Kepala Balai,</p>
             <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
