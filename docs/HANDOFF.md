@@ -109,18 +109,42 @@ git push origin main
 - [x] Commit, PR, merge issue #334.
 - [x] Deploy issue #334 to SSH production server.
 - [x] Issue #336: Add reorder panel for selected assets in auction-candidates page (drag-and-drop + ↑↓ buttons, no_polisi shown if available). PR #337 merged to main.
-- [x] Issue #338: Add SK Penghentian Penggunaan BMN document (3 halaman: KOP+Menimbang+Mengingat, MEMUTUSKAN+TTD+Tembusan, Lampiran tabel). Branch `issue/338-sk-penghentian-bmn` aktif, belum PR.
-- [ ] Issue #338 (IN PROGRESS): Fix print layout SK Penghentian — margin bawah semua halaman untuk BSrE footer, Mengingat paginate per nomor (tidak semua turun). Masalah belum selesai, dilanjutkan AI lain.
+- [x] Issue #338: Add SK Penghentian Penggunaan BMN document (KOP+Menimbang+Mengingat, MEMUTUSKAN+TTD+Tembusan, Lampiran tabel). Branch `issue/338-sk-penghentian-bmn` siap PR.
+- [x] Issue #338: Fix print layout SK Penghentian — margin bawah semua halaman untuk BSrE footer, Mengingat paginate per nomor, TTD/tembusan rapi, dan lampiran paginate stabil.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #336: Reorder selected assets (PR #337 merged) |
-| **Issue Sedang Dikerjakan** | Issue #338: SK Penghentian Penggunaan BMN — branch `issue/338-sk-penghentian-bmn` |
+| **Issue Terakhir Selesai** | Issue #338: SK Penghentian Penggunaan BMN (ready for PR) |
+| **Issue Sedang Dikerjakan** | None — Issue #338 siap dibuat PR |
 | **Branch Aktif** | `issue/338-sk-penghentian-bmn` |
-| **Commit Terakhir di Branch** | 5ffee12 (latest push) |
-| **Status Print SK** | Preview OK, print layout masih bermasalah: (1) margin bawah tidak ke-apply, (2) Mengingat masih turun semua ke halaman baru |
-| **Model Terakhir** | Kiro |
-| **Timestamp** | 2026-05-20T10:00:00+08:00 |
+| **Commit Terakhir di Branch** | see latest branch commit |
+| **Status Print SK** | DONE: preview dan print PDF OK; margin bawah BSrE aman; Mengingat paginate per item; lampiran paginate sesuai aturan 15/17/max-10 |
+| **Model Terakhir** | Codex |
+| **Timestamp** | 2026-05-20T13:00:00+08:00 |
+
+---
+
+**UPDATE SESI CODEX (2026-05-20 - Issue #338: SK Penghentian BMN print layout final):**
+- **Objective**: Finalisasi dokumen SK Penghentian Penggunaan BMN di halaman `/bmn/auction-candidates`, terutama print/PDF dengan ruang footer BSrE/BSSN.
+- **Status Issue #338**: DONE, siap PR dari branch `issue/338-sk-penghentian-bmn`.
+- **Accomplishments**:
+  - Struktur Menimbang/Mengingat diubah dari tabel bersarang menjadi grid/block agar halaman cetak memecah per item, bukan menurunkan seluruh bagian.
+  - Margin bawah untuk footer BSrE/BSSN dijaga pada halaman utama dan lampiran.
+  - Blok TTD dan tembusan dirapikan: tidak ikut bold, rata kiri, dan spacing lebih stabil.
+  - Lampiran dipaginate eksplisit: halaman pertama maksimal 15 aset, halaman tengah maksimal 17 aset, halaman terakhir maksimal 10 aset dan boleh kurang dari 10.
+  - Angka kolom 1-10 hanya tampil di halaman lampiran lanjutan, bukan halaman lampiran pertama.
+  - Preview layar SK di `/bmn/auction-candidates` disamakan dengan style print agar tidak rusak saat generate dokumen.
+- **Key Files Modified**:
+  - `frontend/src/app/bmn/auction-candidates/page.tsx`
+  - `docs/HANDOFF.md`
+  - `docs/progress.md`
+- **Validation**:
+  - `npx eslint "src/app/bmn/auction-candidates/page.tsx" --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean
+- **Next Steps**:
+  - Create PR for issue #338.
+  - Deploy ke SSH setelah PR merged dan disetujui.
 
 ---
 

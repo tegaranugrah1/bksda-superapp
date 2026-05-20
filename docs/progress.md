@@ -1,7 +1,7 @@
-# Progress - Phase 44: SK Penghentian Penggunaan BMN (IN PROGRESS)
+# Progress - Phase 44: SK Penghentian Penggunaan BMN (READY FOR PR)
 
 > Document updated: 2026-05-20
-> Status: **IN PROGRESS** 🔄
+> Status: **READY FOR PR** ✅
 
 ---
 
@@ -19,20 +19,24 @@
 - [x] **Halaman 1+2 digabung**: Satu artikel agar konten mengalir natural tanpa page break buatan.
 - [x] **`sk-mengingat-row { break-inside: avoid }`**: Tiap item Mengingat tidak terpotong di tengah.
 - [x] **`@page { margin-bottom: 28mm }`**: Margin bawah semua halaman untuk BSrE footer.
+- [x] **Print Mengingat fixed**: Struktur Menimbang/Mengingat diubah dari tabel bersarang menjadi grid/block sehingga hanya item berikutnya yang turun, bukan seluruh bagian.
+- [x] **TTD/Tembusan fixed**: Blok tanda tangan dan tembusan tidak lagi ikut bold, rata kiri, dan spacing lebih rapi.
+- [x] **Lampiran pagination fixed**: Halaman pertama lampiran maksimal 15 aset, halaman tengah maksimal 17 aset, halaman terakhir maksimal 10 aset dan boleh kurang dari 10.
+- [x] **Lampiran continuation header**: Angka kolom 1-10 hanya muncul di halaman lampiran lanjutan, bukan halaman lampiran pertama.
+- [x] **Footer BSrE safe area**: Halaman utama dan lampiran menjaga margin bawah untuk teks footer elektronik BSrE/BSSN.
+- [x] **Preview screen fixed**: Preview SK di `/bmn/auction-candidates` disamakan dengan CSS print agar layout layar tidak rusak.
 
 ### Pending / Known Issues:
-- [ ] **Mengingat masih turun semua ke halaman baru** saat cetak — `break-inside: avoid` belum efektif di print window. Perlu investigasi lebih lanjut.
-- [ ] **Verifikasi margin bawah** — `@page { margin-bottom: 28mm }` sudah ditambahkan tapi belum terverifikasi karena masalah Mengingat belum selesai.
-- [ ] **PR belum dibuat** — menunggu print layout selesai.
+- [ ] **PR belum dibuat** — siap dibuat dari branch `issue/338-sk-penghentian-bmn`.
 - [ ] **Deploy ke SSH** — ditunda sampai semua fitur di halaman ini selesai.
 
 ### Key Files:
 - `frontend/src/app/bmn/auction-candidates/page.tsx`
 
 ### Validation:
-- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx eslint "src/app/bmn/auction-candidates/page.tsx" --max-warnings=0` clean
 - [x] `npx tsc --noEmit` clean
-- [x] `npm run build` clean (sebelum perubahan print CSS terbaru)
+- [x] `npm run build` clean
 
 ---
 
