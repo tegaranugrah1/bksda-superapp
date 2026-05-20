@@ -1,3 +1,51 @@
+# Progress - Phase 46: BA Koreksi Lampiran Pagination (IN PROGRESS)
+
+> Document updated: 2026-05-20
+> Status: **IN PROGRESS** 🔄
+
+---
+
+## Issue #344: BA Koreksi Lampiran Pagination & Bottom Margin
+
+### Completed:
+- [x] **Issue Created**: Issue #344.
+- [x] **Branch**: `issue/344-ba-lampiran-pagination` aktif.
+- [x] **`@page { margin-bottom: 28mm }`**: Margin bawah semua halaman untuk BSrE footer.
+- [x] **Natural browser pagination**: Hapus explicit pagination logic, biarkan browser paginate tabel secara natural.
+- [x] **`break-inside: avoid` per `<tr>`**: Setiap row tabel tidak terpotong di tengah.
+- [x] **`display: table-header-group`**: Header tabel otomatis repeat di setiap halaman baru.
+- [x] **Sebelum + Sesudah unified**: Satu artikel, mengalir natural tanpa page break buatan.
+- [x] **`break-inside: avoid` dihapus dari signature**: Agar TTD tidak memaksa pindah halaman.
+
+### Pending / Known Issues:
+- [ ] **TTD masih turun ke halaman sendiri** — `break-inside: avoid` sudah dihapus tapi belum ditest apakah fix. Masalah: blok TTD (Kepala Balai + placeholder 112px + nama + NIP) terlalu besar untuk sisa halaman setelah tabel terakhir.
+- [ ] **Solusi alternatif yang mungkin**: Kurangi `margin-top` signature dari `mt-12` ke `mt-6`, atau kurangi tinggi placeholder TTD saat print saja (bukan di preview).
+- [ ] **PR belum dibuat** — menunggu fix TTD selesai.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/_components/BaKoreksiDocument.tsx`
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+
+---
+
+# Progress - Phase 45: Editable BA Builder + Refactor
+
+> Document updated: 2026-05-20
+> Status: **MERGED** ✅
+
+---
+
+## Issue #340: Refactor Auction Candidates Page
+- [x] PR #341 merged. Split 1518-line page.tsx into 6 files.
+
+## Issue #342: Editable BA Builder + Toggle BA/SK
+- [x] PR #343 merged. BA Koreksi editable (contentEditable), KAP field editable, toggle BA/SK.
+
+---
+
 # Progress - Phase 44: SK Penghentian Penggunaan BMN
 
 > Document updated: 2026-05-20
