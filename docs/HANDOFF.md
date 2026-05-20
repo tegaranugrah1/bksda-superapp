@@ -112,15 +112,19 @@ git push origin main
 - [x] Issue #338: Add SK Penghentian Penggunaan BMN document (KOP+Menimbang+Mengingat, MEMUTUSKAN+TTD+Tembusan, Lampiran tabel). Branch `issue/338-sk-penghentian-bmn` siap PR.
 - [x] Issue #338: Fix print layout SK Penghentian — margin bawah semua halaman untuk BSrE footer, Mengingat paginate per nomor, TTD/tembusan rapi, dan lampiran paginate stabil.
 - [x] Issue #338: PR #339 merged ke `main` (merge commit `1ddfb1a`). Deploy ke SSH ditunda.
+- [x] Issue #340: Refactor auction-candidates page into smaller components. PR #341 merged.
+- [x] Issue #342: Editable BA builder + toggle BA/SK visibility + editable KAP field. PR #343 merged.
+- [ ] Issue #344 (IN PROGRESS): BA Koreksi lampiran pagination + margin bawah. Branch `issue/344-ba-lampiran-pagination`. TTD masih turun ke halaman sendiri — perlu fix.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #338: SK Penghentian Penggunaan BMN — PR #339 merged |
-| **Issue Selanjutnya** | Lanjut fitur di /bmn/auction-candidates atau deploy ke SSH |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir** | `1ddfb1a` Merge pull request #339 from tegaranugrah1/issue/338-sk-penghentian-bmn |
+| **Issue Terakhir Selesai** | Issue #342: Editable BA builder (PR #343 merged) |
+| **Issue Sedang Dikerjakan** | Issue #344: BA lampiran pagination — branch `issue/344-ba-lampiran-pagination` |
+| **Branch Aktif** | `issue/344-ba-lampiran-pagination` |
+| **Commit Terakhir di Branch** | `f33ab14` |
+| **Status** | Natural browser pagination sudah diterapkan. Masalah: TTD turun ke halaman sendiri karena blok terlalu besar untuk sisa halaman. `break-inside: avoid` sudah dihapus dari signature tapi belum ditest. |
 | **Model Terakhir** | Kiro |
-| **Timestamp** | 2026-05-20T12:00:00+08:00 |
+| **Timestamp** | 2026-05-20T14:00:00+08:00 |
 | **Status Print SK** | DONE: preview dan print PDF OK; margin bawah BSrE aman; Mengingat paginate per item; lampiran paginate sesuai aturan 15/17/max-10 |
 | **Model Terakhir** | Codex |
 | **Timestamp** | 2026-05-20T13:00:00+08:00 |
