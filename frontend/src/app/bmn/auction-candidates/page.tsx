@@ -38,6 +38,7 @@ interface AuctionAsset {
   lokasi_ruang?: string | null;
   lokasi_spesifik?: string | null;
   tahun_perolehan?: number | null;
+  no_polisi?: string | null;
 }
 
 interface AssetResponse {
@@ -572,6 +573,7 @@ export default function BmnAuctionCandidatesPage() {
                   <p className="font-mono text-[10px] text-zinc-400">
                     {asset.kode_barang} · NUP {asset.nup}
                     {asset.merk_tipe ? ` · ${asset.merk_tipe}` : ""}
+                    {asset.no_polisi ? ` · ${asset.no_polisi}` : ""}
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-1">
