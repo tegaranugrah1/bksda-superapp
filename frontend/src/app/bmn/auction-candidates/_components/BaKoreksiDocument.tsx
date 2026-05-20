@@ -18,6 +18,7 @@ type BaLampiranSection = {
   title: string;
   assets: AuctionAsset[];
   startIndex: number;
+  isContinuation: boolean;
 };
 
 type BaLampiranPage = {
@@ -121,11 +122,13 @@ function AssetConditionTable({
   mode,
   startIndex = 0,
   measureKey,
+  showColumnNumbers = false,
 }: {
   assets: AuctionAsset[];
   mode: "before" | "after";
   startIndex?: number;
   measureKey?: string;
+  showColumnNumbers?: boolean;
 }) {
   return (
     <table
@@ -145,6 +148,19 @@ function AssetConditionTable({
         <col style={{ width: "10%" }} />
       </colgroup>
       <thead>
+        {showColumnNumbers ? (
+          <tr className="ba-column-number-row">
+            <th className="border border-black px-1 py-1">1</th>
+            <th className="border border-black px-1 py-1">2</th>
+            <th className="border border-black px-1 py-1">3</th>
+            <th className="border border-black px-1 py-1">4</th>
+            <th className="border border-black px-1 py-1">5</th>
+            <th className="border border-black px-1 py-1">6</th>
+            <th className="border border-black px-1 py-1">7</th>
+            <th className="border border-black px-1 py-1">8</th>
+            <th className="border border-black px-1 py-1">9</th>
+          </tr>
+        ) : null}
         <tr>
           <th rowSpan={2} className="border border-black px-1 py-1">No.</th>
           <th rowSpan={2} className="border border-black px-1 py-1">Kode Barang</th>
@@ -223,12 +239,13 @@ function BaLampiranSectionBlock({
 }) {
   return (
     <>
-      <p className="ba-section-title mt-6 mb-2 text-[12px] font-semibold">{section.title}</p>
+      {section.isContinuation ? null : <p className="ba-section-title mt-6 mb-2 text-[12px] font-semibold">{section.title}</p>}
       <AssetConditionTable
         assets={section.assets}
         mode={section.mode}
         startIndex={section.startIndex}
         measureKey={measureKey}
+        showColumnNumbers={section.isContinuation}
       />
     </>
   );
@@ -340,6 +357,7 @@ function buildMeasuredLampiranPages({
           title,
           assets: assets.slice(startIndex),
           startIndex,
+          isContinuation: startIndex > 0,
         });
         page.showSignature = true;
         currentPage = null;
@@ -374,6 +392,7 @@ function buildMeasuredLampiranPages({
         title,
         assets: assets.slice(startIndex, startIndex + safeCount),
         startIndex,
+        isContinuation: startIndex > 0,
       });
       currentHeight += baseHeight + rowHeights.slice(startIndex, startIndex + safeCount).reduce((total, height) => total + height, 0);
       startIndex += safeCount;
@@ -404,12 +423,14 @@ function buildFallbackLampiranPages(assets: AuctionAsset[]) {
           title: "I. Sebelum",
           assets: pageAssets,
           startIndex,
+          isContinuation: startIndex > 0,
         },
         {
           mode: "after",
           title: "II. Sesudah",
           assets: pageAssets,
           startIndex,
+          isContinuation: startIndex > 0,
         },
       ],
       showMeta: startIndex === 0,
@@ -714,7 +735,7 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
         </div>
         <div className="ba-lampiran-body mx-auto w-[166mm]" data-ba-measure="section-base">
           <BaLampiranSectionBlock
-            section={{ mode: "before", title: "I. Sebelum", assets: [], startIndex: 0 }}
+            section={{ mode: "before", title: "I. Sebelum", assets: [], startIndex: 0, isContinuation: false }}
           />
         </div>
         <div data-ba-measure="signature">
@@ -722,11 +743,11 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
         </div>
         <div className="ba-lampiran-body mx-auto w-[166mm]">
           <BaLampiranSectionBlock
-            section={{ mode: "before", title: "I. Sebelum", assets, startIndex: 0 }}
+            section={{ mode: "before", title: "I. Sebelum", assets, startIndex: 0, isContinuation: false }}
             measureKey="before"
           />
           <BaLampiranSectionBlock
-            section={{ mode: "after", title: "II. Sesudah", assets, startIndex: 0 }}
+            section={{ mode: "after", title: "II. Sesudah", assets, startIndex: 0, isContinuation: false }}
             measureKey="after"
           />
         </div>
