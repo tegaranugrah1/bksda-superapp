@@ -390,10 +390,10 @@ export default function BmnAuctionCandidatesPage() {
             /* Tabel Menimbang/Mengingat/Memutuskan */
             .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
             table { border-collapse: collapse; width: 100%; }
-            td { vertical-align: top; }
+            td { vertical-align: top; padding: 0; }
             /* Halaman 2 */
             .sk-page2-body { width: 166mm; margin-left: auto; margin-right: auto; padding-top: 16mm; }
-            .sk-memutuskan { text-align: center; font-weight: bold; text-decoration: underline; margin-bottom: 12px; }
+            .sk-memutuskan { text-align: center; font-weight: bold; margin-bottom: 12px; }
             /* TTD block */
             .sk-ttd {
               width: 20rem; margin-left: auto; margin-top: 3rem;
@@ -1086,8 +1086,8 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
                     <tbody>
                       {mengingat.map((item, i) => (
                         <tr key={i}>
-                          <td style={{ width: "6mm", verticalAlign: "top", paddingTop: i > 0 ? "0.35rem" : "0" }}>{i + 1}.</td>
-                          <td style={{ verticalAlign: "top", paddingTop: i > 0 ? "0.35rem" : "0", textAlign: "justify" }}>{item}</td>
+                          <td style={{ width: "6mm", verticalAlign: "top", paddingTop: i > 0 ? "0.35rem" : "0", paddingBottom: 0 }}>{i + 1}.</td>
+                          <td style={{ verticalAlign: "top", paddingTop: i > 0 ? "0.35rem" : "0", paddingBottom: 0, textAlign: "justify" }}>{item}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1105,7 +1105,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
         style={pageStyle}
       >
         <div className="sk-page2-body sk-body mx-auto w-[166mm]" style={{ paddingTop: "16mm" }}>
-          <p className="sk-memutuskan text-center font-bold underline">MEMUTUSKAN</p>
+          <p className="sk-memutuskan text-center font-bold">MEMUTUSKAN</p>
 
           <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
             <tbody>
