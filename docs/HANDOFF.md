@@ -108,15 +108,16 @@ git push origin main
 - [x] Align ST Builder NIP and tembusan font size with the main letter font for FOLU and non-FOLU layouts.
 - [x] Commit, PR, merge issue #334.
 - [x] Deploy issue #334 to SSH production server.
+- [x] Issue #336: Add reorder panel for selected assets in auction-candidates page (drag-and-drop + ↑↓ buttons, no_polisi shown if available). PR #337 opened — deploy ditunda, masih ada fitur lanjutan.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #334: BMN Auction Candidates & BA Koreksi Kondisi Document |
-| **Issue Selanjutnya** | Continue BMN auction/disposal document set after user review |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir** | 135ef77 Merge pull request #335 from tegaranugrah1/issue/334-bmn-auction-candidates |
-| **Model Terakhir** | Codex |
-| **Timestamp** | 2026-05-19T16:45:00+08:00 |
+| **Issue Terakhir Selesai** | Issue #336: Reorder selected assets in auction-candidates (PR #337, belum deploy) |
+| **Issue Selanjutnya** | Lanjut fitur di /bmn/auction-candidates |
+| **Branch Aktif** | `main` (PR #337 pending merge) |
+| **Commit Terakhir** | ea09e83 feat(bmn): show no_polisi in reorder panel if available (#336) |
+| **Model Terakhir** | Kiro |
+| **Timestamp** | 2026-05-20T00:00:00+08:00 |
 
 ---
 
