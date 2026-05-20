@@ -354,7 +354,7 @@ export default function BmnAuctionCandidatesPage() {
         <head>
           <title>SK Penghentian Penggunaan BMN</title>
           <style>
-            @page { size: A4; margin: 0; }
+            @page { size: A4; margin: 0 0 28mm 0; }
             * { box-sizing: border-box; }
             body {
               margin: 0; padding: 0; background: white; color: black;
@@ -364,10 +364,11 @@ export default function BmnAuctionCandidatesPage() {
             p { margin: 0; padding: 0; }
             .sk-page {
               width: 210mm;
-              margin: 0 auto; padding: 5mm 20mm 28mm;
-              page-break-after: always;
+              margin: 0 auto; padding: 5mm 20mm 0;
             }
-            .sk-page:last-child { page-break-after: auto; }
+            .sk-page-ttd { padding-bottom: 0; }
+            article { margin: 0; }
+            .sk-page-break { page-break-after: always; break-after: always; }
             /* KOP */
             .sk-kop {
               margin-top: -5mm; margin-left: -16mm; margin-right: -16mm;
@@ -392,21 +393,19 @@ export default function BmnAuctionCandidatesPage() {
             .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
             table { border-collapse: collapse; width: 100%; }
             td { vertical-align: top; padding: 0; }
-            /* Label bold: Menimbang, Mengingat, Menetapkan, KESATU, KEDUA, KETIGA */
-            .sk-label-bold { font-weight: bold; }
-            /* Mengingat list — boleh paginate antar item, tapi tiap item tidak terpotong */
+            /* Label bold */
+
+            /* Mengingat list — boleh paginate antar item, tiap item tidak terpotong */
             .sk-mengingat-table { break-inside: auto !important; page-break-inside: auto !important; }
             .sk-mengingat-row { break-inside: avoid !important; page-break-inside: avoid !important; }
             /* Halaman 2 */
             .sk-page2-body { width: 166mm; margin-left: auto; margin-right: auto; padding-top: 16mm; }
             .sk-memutuskan { text-align: center; font-weight: bold; margin-bottom: 12px; }
             /* TTD block */
-            .sk-ttd {
-              width: 20rem; margin-left: auto; margin-top: 3rem;
-            }
+            .sk-ttd { width: 20rem; margin-left: auto; margin-top: 3rem; }
             .sk-ttd p { margin: 0; padding: 0; line-height: 1.3; }
             .ttd-placeholder { height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
-            /* Tembusan — tanpa spasi antar item */
+            /* Tembusan */
             .sk-tembusan { margin-top: 2rem; }
             .sk-tembusan p { margin: 0; padding: 0; line-height: 1.5; }
             /* Halaman 3 lampiran */
@@ -999,7 +998,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
   };
 
   return (
-    <div id="sk-penghentian-print-root" className="sk-print-root space-y-6">
+    <div id="sk-penghentian-print-root" className="sk-print-root">
       <style jsx global>{`
         @media print {
           body * { visibility: hidden; }
@@ -1013,13 +1012,12 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
           .sk-page {
             width: 210mm; margin: 0 auto;
             padding: 5mm 20mm 28mm; box-shadow: none !important;
-            page-break-after: always;
           }
-          .sk-page:last-child { page-break-after: auto; }
+          .sk-page-break { page-break-after: always; break-after: always; }
           .sk-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 4px; text-align: center; }
           .sk-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
           .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
-          .sk-label-bold { font-weight: bold; }
+
           .sk-mengingat-table { break-inside: auto !important; page-break-inside: auto !important; }
           .sk-mengingat-row { break-inside: avoid !important; page-break-inside: avoid !important; }
           .sk-no-print { display: none !important; }
@@ -1035,9 +1033,9 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
         }
       `}</style>
 
-      {/* ── HALAMAN 1: KOP + Judul + Menimbang + Mengingat ── */}
+      {/* ── HALAMAN 1+2: KOP + Judul + Menimbang + Mengingat + MEMUTUSKAN + TTD + Tembusan ── */}
       <article
-        className="sk-page mx-auto max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
+        className="sk-page sk-page-ttd mx-auto max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
         style={pageStyle}
       >
         <div className="sk-kop" style={{ marginTop: "-5mm", marginLeft: "-16mm", marginRight: "-16mm", marginBottom: "4px", textAlign: "center" }}>
@@ -1061,11 +1059,11 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR,
           </p>
 
+          {/* Menimbang + Mengingat */}
           <table className="sk-mengingat-table mt-4 w-full" style={{ borderCollapse: "collapse" }}>
             <tbody>
-              {/* Menimbang */}
               <tr className="sk-mengingat-row">
-                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top" }}>Menimbang</td>
+                <td style={{ width: "28mm", verticalAlign: "top" }}>Menimbang</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
                 <td style={{ verticalAlign: "top" }}>
                   <table className="sk-mengingat-table w-full" style={{ borderCollapse: "collapse" }}>
@@ -1086,9 +1084,8 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
                   </table>
                 </td>
               </tr>
-              {/* Mengingat */}
               <tr className="sk-mengingat-row">
-                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.75rem" }}>Mengingat</td>
+                <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.75rem" }}>Mengingat</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.75rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "0.75rem" }}>
                   <table className="sk-mengingat-table w-full" style={{ borderCollapse: "collapse" }}>
@@ -1105,42 +1102,35 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
               </tr>
             </tbody>
           </table>
-        </div>
-      </article>
 
-      {/* ── HALAMAN 2: MEMUTUSKAN + Menetapkan + KESATU/KEDUA/KETIGA + TTD + Tembusan ── */}
-      <article
-        className="sk-page mx-auto max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
-        style={pageStyle}
-      >
-        <div className="sk-page2-body sk-body mx-auto w-[166mm]" style={{ paddingTop: "16mm" }}>
-          <p className="sk-memutuskan text-center font-bold">MEMUTUSKAN</p>
+          {/* MEMUTUSKAN */}
+          <p className="sk-memutuskan text-center font-bold" style={{ marginTop: "1.5rem" }}>MEMUTUSKAN</p>
 
-          <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
+          <table className="sk-mengingat-table mt-4 w-full" style={{ borderCollapse: "collapse" }}>
             <tbody>
-              <tr>
-                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top" }}>Menetapkan</td>
+              <tr className="sk-mengingat-row">
+                <td style={{ width: "28mm", verticalAlign: "top" }}>Menetapkan</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
-                <td className="sk-label-bold" style={{ verticalAlign: "top", textTransform: "uppercase", textAlign: "justify" }}>
+                <td style={{ verticalAlign: "top", textTransform: "uppercase", textAlign: "justify" }}>
                   KEPUTUSAN KEPALA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR TENTANG PENGHENTIAN PENGGUNAAN BARANG MILIK NEGARA LINGKUP BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR.
                 </td>
               </tr>
-              <tr>
-                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KESATU</td>
+              <tr className="sk-mengingat-row">
+                <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KESATU</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Menghentikan penggunaan Barang Milik Negara berupa Alat Angkutan Bermotor dalam kondisi rusak berat pada Balai Konservasi Sumber Daya Alam Kalimantan Timur tersebut sebagaimana tercantum dalam lampiran keputusan ini.
                 </td>
               </tr>
-              <tr>
-                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KEDUA</td>
+              <tr className="sk-mengingat-row">
+                <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KEDUA</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Menghentikan biaya pemeliharaan Alat Angkutan Bermotor tersebut sejak dikeluarkan keputusan ini, untuk dilanjutkan pada proses penghapusan.
                 </td>
               </tr>
-              <tr>
-                <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KETIGA</td>
+              <tr className="sk-mengingat-row">
+                <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "1rem" }}>KETIGA</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "1rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "1rem", textAlign: "justify" }}>
                   Keputusan ini mulai berlaku sejak tanggal ditetapkan.
@@ -1149,6 +1139,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             </tbody>
           </table>
 
+          {/* TTD */}
           <div className="sk-ttd signature mt-12 ml-auto w-80">
             <p className="m-0">Ditetapkan di : Samarinda</p>
             <p className="m-0">Pada tanggal : {formatDateLong(today)}</p>
@@ -1158,6 +1149,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             <p className="m-0">NIP. 19740514 199903 1 001</p>
           </div>
 
+          {/* Tembusan */}
           <div className="sk-tembusan mt-10">
             <p className="m-0">Tembusan :</p>
             <p className="m-0">1.&nbsp; Kepala Biro Umum Kementerian Kehutanan</p>
@@ -1165,6 +1157,7 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
           </div>
         </div>
       </article>
+      <div className="sk-page-break" />
 
       {/* ── HALAMAN 3: Lampiran — Tabel Daftar Penghentian ── */}
       <article
