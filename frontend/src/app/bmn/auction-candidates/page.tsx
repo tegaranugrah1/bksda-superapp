@@ -394,6 +394,9 @@ export default function BmnAuctionCandidatesPage() {
             td { vertical-align: top; padding: 0; }
             /* Label bold: Menimbang, Mengingat, Menetapkan, KESATU, KEDUA, KETIGA */
             .sk-label-bold { font-weight: bold; }
+            /* Mengingat list — boleh paginate antar item, tapi tiap item tidak terpotong */
+            .sk-mengingat-table { break-inside: auto !important; page-break-inside: auto !important; }
+            .sk-mengingat-row { break-inside: avoid !important; page-break-inside: avoid !important; }
             /* Halaman 2 */
             .sk-page2-body { width: 166mm; margin-left: auto; margin-right: auto; padding-top: 16mm; }
             .sk-memutuskan { text-align: center; font-weight: bold; margin-bottom: 12px; }
@@ -1017,6 +1020,8 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
           .sk-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
           .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
           .sk-label-bold { font-weight: bold; }
+          .sk-mengingat-table { break-inside: auto !important; page-break-inside: auto !important; }
+          .sk-mengingat-row { break-inside: avoid !important; page-break-inside: avoid !important; }
           .sk-no-print { display: none !important; }
           .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
           .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
@@ -1056,22 +1061,22 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR,
           </p>
 
-          <table className="mt-4 w-full" style={{ borderCollapse: "collapse" }}>
+          <table className="sk-mengingat-table mt-4 w-full" style={{ borderCollapse: "collapse" }}>
             <tbody>
               {/* Menimbang */}
-              <tr>
+              <tr className="sk-mengingat-row">
                 <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top" }}>Menimbang</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
                 <td style={{ verticalAlign: "top" }}>
-                  <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                  <table className="sk-mengingat-table w-full" style={{ borderCollapse: "collapse" }}>
                     <tbody>
-                      <tr>
+                      <tr className="sk-mengingat-row">
                         <td style={{ width: "6mm", verticalAlign: "top" }}>a.</td>
                         <td style={{ verticalAlign: "top", textAlign: "justify" }}>
                           bahwa terdapat Barang Milik Negara pada Balai Konservasi Sumber Daya Alam Kalimantan Timur berupa Alat Angkutan Bermotor dalam keadaan rusak berat dan tidak ekonomis lagi untuk digunakan;
                         </td>
                       </tr>
-                      <tr>
+                      <tr className="sk-mengingat-row">
                         <td style={{ width: "6mm", verticalAlign: "top", paddingTop: "0.5rem" }}>b.</td>
                         <td style={{ verticalAlign: "top", paddingTop: "0.5rem", textAlign: "justify" }}>
                           bahwa sehubungan dengan hal tersebut diatas, dipandang perlu untuk menerbitkan Keputusan Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur tentang Penghentian Penggunaan Barang Milik Negara.
@@ -1082,14 +1087,14 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
                 </td>
               </tr>
               {/* Mengingat */}
-              <tr>
+              <tr className="sk-mengingat-row">
                 <td className="sk-label-bold" style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.75rem" }}>Mengingat</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.75rem" }}>:</td>
                 <td style={{ verticalAlign: "top", paddingTop: "0.75rem" }}>
-                  <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                  <table className="sk-mengingat-table w-full" style={{ borderCollapse: "collapse" }}>
                     <tbody>
                       {mengingat.map((item, i) => (
-                        <tr key={i}>
+                        <tr className="sk-mengingat-row" key={i}>
                           <td style={{ width: "6mm", verticalAlign: "top", paddingTop: i > 0 ? "0.35rem" : "0", paddingBottom: 0 }}>{i + 1}.</td>
                           <td style={{ verticalAlign: "top", paddingTop: i > 0 ? "0.35rem" : "0", paddingBottom: 0, textAlign: "justify" }}>{item}</td>
                         </tr>
