@@ -354,8 +354,7 @@ export default function BmnAuctionCandidatesPage() {
         <head>
           <title>SK Penghentian Penggunaan BMN</title>
           <style>
-            @page { size: A4; margin: 3cm 1cm 1.9cm 1.55cm; }
-            @page :first { margin: 0.7cm 1cm 1.9cm 1.55cm; }
+            @page { size: A4; margin: 0; }
             body {
               margin: 0; padding: 0; background: white; color: black;
               font-family: 'Bookman Old Style', Georgia, serif;
@@ -363,24 +362,22 @@ export default function BmnAuctionCandidatesPage() {
             }
             .sk-page {
               width: 210mm; min-height: 297mm; box-sizing: border-box;
-              margin: 0 auto; padding: 0;
+              margin: 0 auto; padding: 5mm 20mm 14mm;
               page-break-after: always;
             }
             .sk-page:last-child { page-break-after: auto; }
-            .sk-kop { margin-top: -0.25cm; margin-left: 0; margin-right: -0.95cm; margin-bottom: 2px; overflow: visible; }
-            .sk-kop img { width: 18.8cm !important; height: auto !important; display: block; }
-            .sk-body { }
+            .sk-kop {
+              margin-top: -5mm; margin-left: -16mm; margin-right: -16mm;
+              margin-bottom: 4px; text-align: center;
+            }
+            .sk-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
+            .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
             table { border-collapse: collapse; }
-            .sk-section-table { width: 100%; }
-            .sk-section-table td { vertical-align: top; padding: 0.1rem 0; }
             .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
             .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
             .sk-asset-table td.text-left { text-align: left; }
             .sk-asset-table td.text-right { text-align: right; }
             .sk-attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
-            .sk-attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
-            .sk-attachment-meta .meta-label { white-space: nowrap; }
-            .sk-attachment-meta .meta-colon { text-align: center; }
             .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
             .meta-label { white-space: nowrap; }
             .meta-colon { text-align: center; }
@@ -982,8 +979,8 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
             page-break-after: always;
           }
           .sk-page:last-child { page-break-after: auto; }
-          .sk-kop { margin-top: -0.25cm; margin-left: 0; margin-right: -0.95cm; margin-bottom: 2px; overflow: visible; }
-          .sk-kop img { width: 18.8cm !important; height: auto !important; display: block; }
+          .sk-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 4px; text-align: center; }
+          .sk-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
           .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
           .sk-no-print { display: none !important; }
           .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
@@ -1003,9 +1000,9 @@ function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAsset[]; s
         className="sk-page mx-auto min-h-100 max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
         style={pageStyle}
       >
-        <div className="sk-kop" style={{ marginTop: "-10px", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
+        <div className="sk-kop" style={{ marginTop: "-5mm", marginLeft: "-16mm", marginRight: "-16mm", marginBottom: "4px", textAlign: "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-new.png" alt="Kop Surat" style={{ width: "18.8cm", height: "auto", display: "block" }} />
+          <img src="/header-new.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
         <div className="sk-body mx-auto mt-3 w-[166mm] text-center font-bold leading-snug">
