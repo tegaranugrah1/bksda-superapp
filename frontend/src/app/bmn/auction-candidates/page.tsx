@@ -30,6 +30,14 @@ import { ReorderPanel } from "./_components/ReorderPanel";
 import { SummaryTile } from "./_components/SummaryTile";
 import { CorrectionDocument, handlePrintBa } from "./_components/BaKoreksiDocument";
 import { SkPenghentianDocument, handlePrintSk } from "./_components/SkPenghentianDocument";
+import { SkBuilder } from "./_components/SkBuilder";
+import {
+  DEFAULT_MENIMBANG,
+  DEFAULT_MENGINGAT,
+  DEFAULT_MEMUTUSKAN,
+  DEFAULT_KEPALA_BALAI,
+  DEFAULT_TEMBUSAN,
+} from "./_lib/sk-defaults";
 
 export default function BmnAuctionCandidatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,6 +49,11 @@ export default function BmnAuctionCandidatesPage() {
   const [baNumber, setBaNumber] = useState("");
   const [baKap, setBaKap] = useState("KAP.06.01");
   const [skNumber, setSkNumber] = useState("");
+  const [menimbang, setMenimbang] = useState(DEFAULT_MENIMBANG);
+  const [mengingat, setMengingat] = useState(DEFAULT_MENGINGAT);
+  const [memutuskan, setMemutuskan] = useState(DEFAULT_MEMUTUSKAN);
+  const [kepalaBalai, setKepalaBalai] = useState(DEFAULT_KEPALA_BALAI);
+  const [tembusan, setTembusan] = useState(DEFAULT_TEMBUSAN);
   const debouncedSearch = useDebounce(searchTerm, 400);
 
   // drag-and-drop refs
@@ -480,7 +493,33 @@ export default function BmnAuctionCandidatesPage() {
               Cetak / Save PDF
             </Button>
           </div>
-          <SkPenghentianDocument assets={orderedSelectedAssets} skNumber={skNumber} />
+          <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
+            <div className="print:hidden">
+              <SkBuilder
+                menimbang={menimbang}
+                setMenimbang={setMenimbang}
+                mengingat={mengingat}
+                setMengingat={setMengingat}
+                memutuskan={memutuskan}
+                setMemutuskan={setMemutuskan}
+                kepalaBalai={kepalaBalai}
+                setKepalaBalai={setKepalaBalai}
+                tembusan={tembusan}
+                setTembusan={setTembusan}
+              />
+            </div>
+            <div>
+              <SkPenghentianDocument
+                assets={orderedSelectedAssets}
+                skNumber={skNumber}
+                menimbang={menimbang}
+                mengingat={mengingat}
+                memutuskan={memutuskan}
+                kepalaBalai={kepalaBalai}
+                tembusan={tembusan}
+              />
+            </div>
+          </div>
         </section>
       )}
     </div>
