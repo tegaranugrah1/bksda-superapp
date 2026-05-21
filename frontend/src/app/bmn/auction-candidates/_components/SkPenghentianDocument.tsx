@@ -106,6 +106,8 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-ttd { width: 20rem; margin-left: auto; margin-top: 3rem; }
           .sk-ttd, .sk-ttd p { font-weight: normal !important; text-align: left !important; }
           .sk-ttd p { margin: 0; padding: 0; line-height: 1.3; }
+          .sk-ttd-meta { display: grid !important; grid-template-columns: max-content auto 1fr; column-gap: 0.4rem; line-height: 1.3; }
+          .sk-ttd-meta span { font-weight: normal !important; text-align: left !important; }
           .sk-signature-name { font-weight: bold !important; }
           .ttd-placeholder { height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 2rem; margin-bottom: 2rem; }
           /* Tembusan */
@@ -375,6 +377,8 @@ export function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAss
           .sk-attachment-meta .meta-label { white-space: nowrap; }
           .sk-attachment-meta .meta-colon { text-align: center; }
           .sk-ttd, .sk-ttd p { font-weight: normal !important; text-align: left !important; }
+          .sk-ttd-meta { display: grid !important; grid-template-columns: max-content auto 1fr; column-gap: 0.4rem; line-height: 1.3; }
+          .sk-ttd-meta span { font-weight: normal !important; text-align: left !important; }
           .signature p { margin: 0; padding: 0; line-height: 1.15; }
           .sk-signature-name { font-weight: bold !important; }
           .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 2rem !important; margin-bottom: 2rem !important; }
@@ -686,8 +690,14 @@ export function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAss
 
           {/* TTD */}
           <div className="sk-ttd signature mt-12 ml-auto w-80">
-            <p className="m-0">Ditetapkan di : Samarinda</p>
-            <p className="m-0">Pada tanggal : {formatDateLong(today)}</p>
+            <div className="sk-ttd-meta" style={{ display: "grid", gridTemplateColumns: "max-content auto 1fr", columnGap: "0.4rem" }}>
+              <span>Ditetapkan di</span>
+              <span>:</span>
+              <span>Samarinda</span>
+              <span>Pada tanggal</span>
+              <span>:</span>
+              <span>{formatDateLong(today)}</span>
+            </div>
             <p className="m-0 mt-3">Kepala Balai,</p>
             <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
             <p className="sk-signature-name m-0 mt-8 font-bold">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
