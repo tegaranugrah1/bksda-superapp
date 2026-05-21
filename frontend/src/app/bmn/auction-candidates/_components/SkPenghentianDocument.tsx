@@ -107,7 +107,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-ttd, .sk-ttd p { font-weight: normal !important; text-align: left !important; }
           .sk-ttd p { margin: 0; padding: 0; line-height: 1.3; }
           .sk-signature-name { font-weight: bold !important; }
-          .ttd-placeholder { height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; }
+          .ttd-placeholder { height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 2rem; margin-bottom: 2rem; }
           /* Tembusan */
           .sk-tembusan { margin-top: 2rem; }
           .sk-tembusan, .sk-tembusan p { font-weight: normal !important; text-align: left !important; }
@@ -127,7 +127,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-asset-table td.text-right { text-align: right; }
           .sk-lampiran-ttd { width: 20rem; margin-left: auto; margin-top: 1rem; break-inside: avoid; page-break-inside: avoid; }
           .sk-lampiran-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-          .sk-lampiran-ttd .ttd-placeholder { height: 86px !important; padding-top: 28px !important; }
+          .sk-lampiran-ttd .ttd-placeholder { height: 86px !important; padding-top: 28px !important; margin-top: 2rem !important; margin-bottom: 2rem !important; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -313,8 +313,8 @@ export function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAss
   const renderAttachmentSignature = (measure = false) => (
     <div className="sk-lampiran-ttd signature mt-10 ml-auto w-80" data-sk-measure={measure ? "signature" : undefined}>
       <p className="m-0">Kepala Balai,</p>
-      <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-      <p className="m-0 font-bold">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
+      <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+      <p className="m-0 mt-8 font-bold">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
       <p className="m-0">NIP. 19740514 199903 1 001</p>
     </div>
   );
@@ -377,8 +377,8 @@ export function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAss
           .sk-ttd, .sk-ttd p { font-weight: normal !important; text-align: left !important; }
           .signature p { margin: 0; padding: 0; line-height: 1.15; }
           .sk-signature-name { font-weight: bold !important; }
-          .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; }
-          .sk-lampiran-ttd .ttd-placeholder { height: 86px !important; padding-top: 28px !important; }
+          .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 2rem !important; margin-bottom: 2rem !important; }
+          .sk-lampiran-ttd .ttd-placeholder { height: 86px !important; padding-top: 28px !important; margin-top: 2rem !important; margin-bottom: 2rem !important; }
           .sk-tembusan, .sk-tembusan p { font-weight: normal !important; text-align: left !important; }
         }
         .sk-print-root .sk-attachment-document {
@@ -511,6 +511,8 @@ export function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAss
           color: #94a3b8;
           font-weight: normal !important;
           text-align: left !important;
+          margin-top: 2rem;
+          margin-bottom: 2rem;
         }
         .sk-print-root .sk-tembusan {
           margin-top: 2rem;
@@ -580,6 +582,8 @@ export function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAss
         .sk-print-root .sk-lampiran-ttd .ttd-placeholder {
           height: 86px !important;
           padding-top: 28px !important;
+          margin-top: 2rem !important;
+          margin-bottom: 2rem !important;
         }
       `}</style>
 
@@ -685,8 +689,8 @@ export function SkPenghentianDocument({ assets, skNumber }: { assets: AuctionAss
             <p className="m-0">Ditetapkan di : Samarinda</p>
             <p className="m-0">Pada tanggal : {formatDateLong(today)}</p>
             <p className="m-0 mt-3">Kepala Balai,</p>
-            <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-            <p className="sk-signature-name m-0 font-bold">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
+            <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+            <p className="sk-signature-name m-0 mt-8 font-bold">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
             <p className="m-0">NIP. 19740514 199903 1 001</p>
           </div>
 

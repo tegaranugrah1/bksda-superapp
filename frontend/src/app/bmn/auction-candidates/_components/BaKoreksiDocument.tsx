@@ -101,8 +101,9 @@ export function handlePrintBa(orderedSelectedAssets: AuctionAsset[]) {
           .signature { width: 20rem; margin-left: auto; break-inside: avoid; page-break-inside: avoid; }
           .attachment-signature { margin-top: 1.5rem; }
           .signature p { margin: 0; padding: 0; line-height: 1.15; }
-          .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; }
-          .attachment-signature .ttd-placeholder { height: 92px; padding-top: 30px; }
+          .signature p.ttd-spacer-top { margin-top: 2rem !important; }
+          .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; margin-top: 2rem; margin-bottom: 2rem; }
+          .attachment-signature .ttd-placeholder { height: 92px; padding-top: 30px; margin-top: 2rem; margin-bottom: 2rem; }
           .ba-editable { outline: none; border-bottom: none !important; }
           .ba-measurement { display: none !important; }
         </style>
@@ -223,8 +224,8 @@ function AttachmentSignature() {
   return (
     <div className="signature attachment-signature mt-6 ml-auto w-80">
       <p className="m-0">Kepala Balai,</p>
-      <div className="ttd-placeholder mt-4 h-[92px] box-border pt-[30px] pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-      <p className="m-0">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
+      <div className="ttd-placeholder mt-8 h-[92px] box-border pt-[30px] pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+      <p className="m-0 mt-8">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
       <p className="m-0">NIP. 19740514 199903 1 001</p>
     </div>
   );
@@ -532,6 +533,8 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
         .attachment-signature .ttd-placeholder {
           height: 92px;
           padding-top: 30px;
+          margin-top: 2rem;
+          margin-bottom: 2rem;
         }
         .ba-measurement {
           position: absolute;
@@ -606,7 +609,8 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
           .ba-asset-table tr { break-inside: avoid; page-break-inside: avoid; }
           .ba-continuation-spacer { height: 8mm; }
           .attachment-signature { margin-top: 1.5rem !important; break-inside: avoid; page-break-inside: avoid; }
-          .attachment-signature .ttd-placeholder { height: 92px !important; padding-top: 30px !important; }
+          .attachment-signature .ttd-placeholder { height: 92px !important; padding-top: 30px !important; margin-top: 2rem !important; margin-bottom: 2rem !important; }
+          .signature .ttd-placeholder { margin-top: 2rem !important; margin-bottom: 2rem !important; }
           .ba-measurement { display: none !important; }
         }
       `}</style>
@@ -706,11 +710,11 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
           >
             Kepala Balai,
           </p>
-          <div className="ttd-placeholder mt-4 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+          <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
           <p
             contentEditable="true"
             suppressContentEditableWarning
-            className="ba-editable m-0"
+            className="ba-editable m-0 mt-8"
           >
             M. ARI WIBAWANTO, S.Hut., M.Sc.
           </p>
