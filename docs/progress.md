@@ -1,3 +1,30 @@
+# Progress - Phase 48: SK Colon Alignment
+
+> Document updated: 2026-05-21
+> Status: **MERGED** ✅
+
+---
+
+## Issue #348: Align Colons in SK Ditetapkan/Pada tanggal Block
+
+### Completed:
+- [x] **Issue Created**: Issue #348.
+- [x] **PR Created/Merged**: PR #349 merged ke `main` (merge commit `b29e5f5`).
+- [x] **Branch Cleanup**: `issue/348-sk-colon-align` deleted after merge.
+- [x] **Grid 3 kolom**: `label / colon / value` dengan `grid-template-columns: max-content auto 1fr` agar `:` sejajar atas-bawah.
+- [x] **Inline `display: grid`**: Tidak bergantung pada Tailwind class supaya berlaku di print window.
+- [x] **CSS `.sk-ttd-meta`**: Ditambahkan di handlePrintSk print CSS dan `@media print` block dengan `display: grid !important`.
+- [x] **Konsisten preview + print**: ':' sejajar di kedua mode.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx`
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+
+---
+
 # Progress - Phase 47: BA & SK TTD Spacing
 
 > Document updated: 2026-05-21
