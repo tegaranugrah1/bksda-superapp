@@ -117,16 +117,17 @@ git push origin main
 - [x] Issue #344: BA Koreksi lampiran pagination + margin bawah. PR #345 merged ke `main` (merge commit `db598ca`); branch `issue/344-ba-lampiran-pagination` deleted.
 - [x] Issue #346: Widen TTD spacing in BA and SK documents (vertical spacing around `${ttd_pengirim}` placeholder). PR #347 merged ke `main` (merge commit `fa24541`).
 - [x] Issue #348: Align colons in SK Ditetapkan/Pada tanggal block. PR #349 merged ke `main` (merge commit `b29e5f5`).
+- [x] Issue #350: Add SK Builder panel beside SK preview (Menimbang/Mengingat/Memutuskan/Tembusan editable + Kepala Balai picker dari kepegawaian). PR #351 merged ke `main` (merge commit `b833a20`).
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #348: Align colons in SK Ditetapkan/Pada tanggal (PR #349 merged) |
+| **Issue Terakhir Selesai** | Issue #350: SK Builder panel (PR #351 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `b29e5f5` |
-| **Status** | Issue #348 DONE: ':' di blok 'Ditetapkan di' dan 'Pada tanggal' sekarang sejajar atas-bawah pakai grid 3 kolom (label / colon / value) di preview dan print PDF. |
+| **Commit Terakhir di Main** | `b833a20` |
+| **Status** | Issue #350 DONE: builder panel dengan card Menimbang (a, b, c, ...), Mengingat (1-9 default + add/remove), Memutuskan (Menetapkan/KESATU/KEDUA/KETIGA), Kepala Balai (dropdown dari `/kepegawaian/employees/select`, auto-uppercase nama, format NIP `19740514 199903 1 001`), dan Tembusan (add/remove, single tanpa nomor). KETIGA + TTD halaman 2 grouped `break-inside: avoid`. Mengingat number column 9mm untuk 2-digit. |
 | **Model Terakhir** | Kiro |
-| **Timestamp** | 2026-05-21T11:00:00+08:00 |
+| **Timestamp** | 2026-05-21T15:00:00+08:00 |
 | **Status Print SK** | DONE: preview dan print PDF OK; margin bawah BSrE aman; Mengingat paginate per item; lampiran paginate sesuai aturan 15/17/max-10 |
 | **Model Terakhir** | Codex |
 | **Timestamp** | 2026-05-20T13:00:00+08:00 |

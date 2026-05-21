@@ -1,3 +1,39 @@
+# Progress - Phase 49: SK Builder Panel
+
+> Document updated: 2026-05-21
+> Status: **MERGED** ✅
+
+---
+
+## Issue #350: SK Builder Panel beside SK Preview
+
+### Completed:
+- [x] **Issue Created**: Issue #350.
+- [x] **PR Created/Merged**: PR #351 merged ke `main` (merge commit `b833a20`).
+- [x] **Branch Cleanup**: `issue/350-sk-builder` deleted after merge.
+- [x] **Split Layout**: Builder di kiri (`lg:grid-cols-[400px_1fr]`), preview di kanan, builder ter-hide saat cetak (`print:hidden`).
+- [x] **Card Menimbang**: Default 2 item (a, b). Tombol "+ Tambah" untuk c, d, e, ... Tombol "Hapus" per item (disabled jika hanya 1 tersisa).
+- [x] **Card Mengingat**: Default 9 peraturan. Tambah/hapus item. Number column diperbesar dari 6mm → 9mm untuk 2-digit (10+).
+- [x] **Card Memutuskan**: 4 textarea (Menetapkan, KESATU, KEDUA, KETIGA), tidak bisa tambah/hapus.
+- [x] **Card Kepala Balai**: Dropdown dari API `/kepegawaian/employees/select`, sorted alphabetically. On select: nama auto-uppercase (`UPPERCASE`), NIP auto-format spasi (`19740514 199903 1 001`).
+- [x] **Card Tembusan**: Default 2 item, tambah/hapus. Rendering: jika hanya 1 item → tanpa nomor, jika 2+ → nomor `1.`, `2.`, dst.
+- [x] **KETIGA + TTD halaman 2 grouped**: `break-inside: avoid` agar kalau TTD turun, KETIGA ikut turun (tidak terpisah).
+- [x] **Nama Kepala Balai tidak bold**: TTD halaman 2 + TTD lampiran (preview + print).
+- [x] **State management**: Lifted ke `page.tsx`, di-pass sebagai props ke SkBuilder dan SkPenghentianDocument.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/_lib/sk-defaults.ts` (new)
+- `frontend/src/app/bmn/auction-candidates/_components/SkBuilder.tsx` (new)
+- `frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean
+
+---
+
 # Progress - Phase 48: SK Colon Alignment
 
 > Document updated: 2026-05-21
