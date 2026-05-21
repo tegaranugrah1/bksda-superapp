@@ -55,7 +55,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
             width: 210mm;
             margin: 0 auto; padding: 5mm 20mm 0;
           }
-          .sk-main-document { page: sk-main; }
+          .sk-main-document { page: sk-main; position: relative; }
           .sk-attachment-document {
             page: sk-attachment;
             page-break-before: always;
@@ -127,6 +127,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-ketiga-group { break-inside: avoid !important; page-break-inside: avoid !important; }
           .sk-signature-name { font-weight: normal !important; }
           .ttd-placeholder { height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 2rem; margin-bottom: 2rem; }
+          .sk-continuation-word { position: absolute; right: 20mm; width: 166mm; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 2; }
           /* Tembusan */
           .sk-tembusan { margin-top: 2rem; }
           .sk-tembusan, .sk-tembusan p { font-weight: normal !important; text-align: left !important; }
@@ -226,6 +227,14 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
       }
 
       // For each boundary, find the last item that fits and inject continuation word
+      const insertContinuationWord = (label: string, boundary: number) => {
+        const contWord = doc.createElement("p");
+        contWord.className = "sk-continuation-word";
+        contWord.textContent = label;
+        contWord.style.top = `${Math.max(0, boundary - (8 * mmToPx))}px`;
+        mainDoc.appendChild(contWord);
+      };
+
       const injected = new Set<number>();
       for (const boundary of boundaries) {
         for (let i = 0; i < allItems.length; i++) {
@@ -237,16 +246,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
 
           if (itemBottom <= boundary && nextTop > boundary && !injected.has(i)) {
             // This item is the last one on this page, next item is on next page
-            const contWord = doc.createElement("p");
-            contWord.style.cssText = "text-align: right; margin: 0.5rem 0 0 0; padding: 0; font-weight: normal; font-size: 11pt;";
-            contWord.textContent = allItems[i].nextLabel;
-
-            // Insert after the item
-            if (allItems[i].el.nextSibling) {
-              allItems[i].el.parentElement?.insertBefore(contWord, allItems[i].el.nextSibling);
-            } else {
-              allItems[i].el.parentElement?.appendChild(contWord);
-            }
+            insertContinuationWord(allItems[i].nextLabel, boundary);
             injected.add(i);
             break; // Only one continuation word per page boundary
           }
