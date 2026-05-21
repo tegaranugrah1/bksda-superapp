@@ -115,16 +115,17 @@ git push origin main
 - [x] Issue #340: Refactor auction-candidates page into smaller components. PR #341 merged.
 - [x] Issue #342: Editable BA builder + toggle BA/SK visibility + editable KAP field. PR #343 merged.
 - [x] Issue #344: BA Koreksi lampiran pagination + margin bawah. PR #345 merged ke `main` (merge commit `db598ca`); branch `issue/344-ba-lampiran-pagination` deleted.
+- [x] Issue #346: Widen TTD spacing in BA and SK documents (vertical spacing around `${ttd_pengirim}` placeholder). PR #347 merged ke `main` (merge commit `fa24541`).
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #344: BA Koreksi lampiran pagination + bottom margin (PR #345 merged) |
+| **Issue Terakhir Selesai** | Issue #346: Widen TTD spacing in BA and SK (PR #347 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `db598ca` |
-| **Status** | Issue #344 DONE: BA lampiran memakai measured row pagination, urutan `I. Sebelum` selesai dulu lalu `II. Sesudah`, halaman lanjutan memakai nomor kolom, dan TTD final tidak terpotong dengan safe area BSrE. |
-| **Model Terakhir** | Codex |
-| **Timestamp** | 2026-05-20T16:55:00+08:00 |
+| **Commit Terakhir di Main** | `fa24541` |
+| **Status** | Issue #346 DONE: jarak vertikal di blok TTD BA dan SK lebih lebar (margin-top + margin-bottom 2rem pada placeholder), posisi horizontal tidak berubah. |
+| **Model Terakhir** | Kiro |
+| **Timestamp** | 2026-05-21T10:00:00+08:00 |
 | **Status Print SK** | DONE: preview dan print PDF OK; margin bawah BSrE aman; Mengingat paginate per item; lampiran paginate sesuai aturan 15/17/max-10 |
 | **Model Terakhir** | Codex |
 | **Timestamp** | 2026-05-20T13:00:00+08:00 |

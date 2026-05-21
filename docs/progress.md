@@ -1,3 +1,34 @@
+# Progress - Phase 47: BA & SK TTD Spacing
+
+> Document updated: 2026-05-21
+> Status: **MERGED** ✅
+
+---
+
+## Issue #346: Widen TTD Spacing in BA and SK Documents
+
+### Completed:
+- [x] **Issue Created**: Issue #346.
+- [x] **PR Created/Merged**: PR #347 merged ke `main` (merge commit `fa24541`).
+- [x] **Branch Cleanup**: `issue/346-ba-ttd-spacing` deleted after merge.
+- [x] **BA Halaman 1**: `Kepala Balai,` → 2rem spacing → `${ttd_pengirim}` → 2rem spacing → `M. ARI WIBAWANTO`.
+- [x] **BA Lampiran**: Sama, jarak `mt-8` (2rem) di atas dan bawah placeholder.
+- [x] **SK Halaman 2**: Spasi atas + bawah placeholder ditambah 2rem.
+- [x] **SK Lampiran**: Spasi atas + bawah placeholder ditambah 2rem.
+- [x] **Posisi horizontal**: Tidak berubah, `${ttd_pengirim}` tetap di tengah dengan padding-left 1.35cm.
+- [x] **Print + screen consistent**: Tambah `margin-top: 2rem; margin-bottom: 2rem` di JSX (Tailwind `mt-8`), `handlePrintBa`/`handlePrintSk` print CSS, `@media print` block, dan screen CSS (`.sk-print-root`).
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/_components/BaKoreksiDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx`
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean
+
+---
+
 # Progress - Phase 46: BA Koreksi Lampiran Pagination
 
 > Document updated: 2026-05-20
