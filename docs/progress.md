@@ -1,7 +1,7 @@
-# Progress - Phase 50: SK Continuation Words (IN PROGRESS)
+# Progress - Phase 50: SK Continuation Words
 
 > Document updated: 2026-05-21
-> Status: **IN PROGRESS** 🔄
+> Status: **READY TO MERGE** ✅
 
 ---
 
@@ -10,36 +10,23 @@
 ### Objective:
 Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halaman 2), tampilkan kata penyambung di pojok kanan bawah halaman yang terpotong. Contoh: `9. Peraturan Menteri Lingkungan.....` atau `KESATU.....`.
 
-### Approach Attempted:
-- JavaScript DOM measurement di print window (`handlePrintSk`)
-- Setelah HTML di-inject ke print window, script menghitung posisi vertikal setiap item
-- Membandingkan posisi dengan page boundary (A4 297mm - margin)
-- Inject `<p>` continuation word setelah item terakhir sebelum boundary
-
-### Current State (WIP):
-- [x] **Branch**: `issue/352-sk-continuation-words` aktif, pushed.
-- [x] **Script injected**: `handlePrintSk` sekarang punya logic continuation word injection setelah `document.close()`.
-- [ ] **Detection NOT reliable**: `getBoundingClientRect()` di print window tidak akurat karena `@page` margin hanya berlaku saat actual print, bukan saat DOM render. Boundary calculation salah.
-- [ ] **Wrong position**: Continuation word muncul setelah KEDUA (bukan setelah Mengingat 8 yang sebenarnya terpotong).
-- [ ] **Wrong alignment**: Muncul di kiri, bukan di kanan (parent element layout issue).
-
-### Known Issues:
-1. **Fundamental problem**: Browser print engine menerapkan `@page` margin hanya saat actual print — JavaScript `getBoundingClientRect()` sebelum `print()` mengembalikan posisi tanpa page break.
-2. **Boundary mismatch**: Calculated boundary (264mm first page, 257mm continuation) tidak match dengan actual browser page break position.
-3. **Selector issue**: `.sk-mengingat-row` di tabel MEMUTUSKAN juga ter-select, menyebabkan continuation word di posisi yang salah.
-
-### Possible Solutions:
-- **Opsi A**: Measure di halaman utama (Next.js preview, sudah 210mm width) sebelum buka print window. Preview sudah di-render dengan layout yang benar — measure di sana, lalu inject ke HTML yang dikirim ke print window.
-- **Opsi B**: Manual input — tambah field di SK Builder untuk user mengetik continuation word per halaman.
-- **Opsi C**: CSS `string-set` / `running()` — hanya didukung Firefox, tidak Chrome.
-- **Opsi D**: Render ke hidden iframe dengan exact print dimensions, measure di sana, lalu inject.
+### Completed:
+- [x] **Branch**: `issue/352-sk-continuation-words` aktif.
+- [x] **Print-only pagination**: SK utama dipaginate menjadi halaman A4 eksplisit di `handlePrintSk`, sehingga preview cetak Chrome stabil.
+- [x] **Continuation words**: Kata lanjutan muncul di pojok kanan bawah halaman sebelum item berikutnya turun, misalnya `9. Peraturan.....`, `MEMUTUSKAN.....`, atau `KETIGA.....`.
+- [x] **Mengingat per item**: Setiap peraturan diperlakukan sebagai unit sendiri agar item panjang boleh turun halaman tanpa merusak item sebelumnya.
+- [x] **MEMUTUSKAN + Menetapkan grouped**: Judul `MEMUTUSKAN` dan baris `Menetapkan` tetap satu kesatuan.
+- [x] **KETIGA + TTD grouped**: Jika blok TTD harus turun ke halaman berikutnya, kalimat `KETIGA` ikut turun agar tanda tangan tidak terpotong sendiri.
+- [x] **BSrE safe area**: Halaman utama memakai margin/padding bawah khusus untuk ruang teks tanda tangan elektronik otomatis dari aplikasi lain.
+- [x] **Lampiran untouched**: Pagination lampiran SK tetap mengikuti aturan yang sudah disetujui sebelumnya.
 
 ### Key Files:
 - `frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx`
 
 ### Validation:
-- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx eslint "src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx" --max-warnings=0` clean
 - [x] `npx tsc --noEmit` clean
+- [x] `git diff --check -- frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx` clean
 
 ---
 

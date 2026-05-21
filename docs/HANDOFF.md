@@ -118,28 +118,47 @@ git push origin main
 - [x] Issue #346: Widen TTD spacing in BA and SK documents (vertical spacing around `${ttd_pengirim}` placeholder). PR #347 merged ke `main` (merge commit `fa24541`).
 - [x] Issue #348: Align colons in SK Ditetapkan/Pada tanggal block. PR #349 merged ke `main` (merge commit `b29e5f5`).
 - [x] Issue #350: Add SK Builder panel beside SK preview (Menimbang/Mengingat/Memutuskan/Tembusan editable + Kepala Balai picker dari kepegawaian). PR #351 merged ke `main` (merge commit `b833a20`).
-- [ ] Issue #352 (IN PROGRESS): Add continuation words at page breaks in SK document. Branch `issue/352-sk-continuation-words`. JavaScript DOM measurement approach — detection belum reliable.
+- [x] Issue #352: Add continuation words at page breaks in SK document. Branch `issue/352-sk-continuation-words` siap PR/merge.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #350: SK Builder panel (PR #351 merged) |
-| **Issue Sedang Dikerjakan** | Issue #352: Continuation words at page breaks — branch `issue/352-sk-continuation-words` |
+| **Issue Terakhir Selesai** | Issue #352: SK continuation words at page breaks |
+| **Issue Sedang Dikerjakan** | Tidak ada — Issue #352 siap PR/merge |
 | **Branch Aktif** | `issue/352-sk-continuation-words` |
-| **Commit Terakhir di Branch** | `ebe94ba` |
-| **Status** | WIP: JavaScript page break detection di print window tidak reliable — boundary calculation salah karena `@page` margin hanya berlaku saat actual print, bukan saat DOM render. Continuation word muncul di posisi yang salah (setelah KEDUA, bukan setelah Mengingat 8). Perlu pendekatan berbeda. |
-| **Model Terakhir** | Kiro |
-| **Timestamp** | 2026-05-21T16:00:00+08:00 |
-
-### TODO Issue #352:
-- [ ] Fix boundary calculation — `getBoundingClientRect()` di print window tidak akurat karena `@page` margin belum diterapkan saat JS measure
-- [ ] Opsi A: Measure di halaman utama (Next.js preview yang sudah 210mm width) sebelum buka print window, lalu inject ke HTML
-- [ ] Opsi B: Manual input — user menambahkan continuation word sendiri via SK Builder (textarea per halaman)
-- [ ] Opsi C: Gunakan CSS `string-set` / `running()` (hanya Firefox, tidak Chrome)
-- [ ] Fix posisi: harus `text-align: right` di pojok kanan bawah halaman
-- [ ] Fix content: harus menunjukkan item berikutnya (nomor + awal teks + ".....")
-| **Status Print SK** | DONE: preview dan print PDF OK; margin bawah BSrE aman; Mengingat paginate per item; lampiran paginate sesuai aturan 15/17/max-10 |
+| **Commit Terakhir di Branch** | Pending commit final sesi ini |
+| **Status** | DONE: SK utama memakai print-only A4 pagination eksplisit; continuation word kanan bawah stabil; margin bawah BSrE aman; MEMUTUSKAN+Menetapkan dan KETIGA+TTD dijaga sebagai unit; lampiran SK tidak diubah. |
 | **Model Terakhir** | Codex |
-| **Timestamp** | 2026-05-20T13:00:00+08:00 |
+| **Timestamp** | 2026-05-21T23:59:00+08:00 |
+
+### Issue #352 Summary:
+- [x] Ganti pendekatan lama JS page-boundary detection menjadi halaman A4 eksplisit khusus print.
+- [x] Continuation word menampilkan item berikutnya di pojok kanan bawah, contoh `9. Peraturan.....`, `MEMUTUSKAN.....`, `KETIGA.....`.
+- [x] `Mengingat` dipaginate per item, sehingga jumlah peraturan 3, 6, 9, 10, dan 11 tetap stabil.
+- [x] `MEMUTUSKAN + Menetapkan` dibuat satu kesatuan, terpisah dari `KESATU`.
+- [x] `KETIGA + TTD + Tembusan` dibuat satu kesatuan agar TTD tidak terpotong sendiri.
+- [x] Validasi clean: eslint file SK, `npx tsc --noEmit`, dan `git diff --check`.
+
+---
+
+**UPDATE SESI CODEX (2026-05-21 - Issue #352 SELESAI: SK continuation words):**
+- **Objective**: Tambah kata lanjutan di pojok kanan bawah halaman SK saat konten turun halaman, sambil menjaga margin bawah untuk teks BSrE/BSSN otomatis.
+- **Status**: DONE, siap PR/merge dari branch `issue/352-sk-continuation-words`.
+- **Accomplishments**:
+  - SK utama di print window dipaginate menjadi halaman A4 eksplisit agar Chrome print/PDF tidak mengandalkan page break otomatis yang sulit diprediksi.
+  - Unit `Mengingat` diukur per item; item yang turun halaman memunculkan continuation word item berikutnya pada halaman sebelumnya.
+  - `MEMUTUSKAN + Menetapkan` dijaga sebagai satu unit, sedangkan `KESATU`, `KEDUA`, dan `KETIGA` tetap unit terpisah.
+  - `KETIGA + TTD + Tembusan` dijaga sebagai unit agar tanda tangan tidak terpotong halaman.
+  - Margin bawah halaman utama tetap menyediakan ruang untuk teks tanda tangan elektronik BSrE/BSSN.
+- **Key Files Modified**:
+  - `frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx`
+  - `docs/HANDOFF.md`
+  - `docs/progress.md`
+- **Validation**:
+  - `npx eslint "src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx" --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `git diff --check -- frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx` clean
+- **Next Steps**:
+  - PR, merge ke `main`, hapus branch issue #352.
 
 ---
 

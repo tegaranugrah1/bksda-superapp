@@ -40,9 +40,9 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
       <head>
         <title>SK Penghentian Penggunaan BMN</title>
         <style>
-          @page { size: A4; margin: 0 0 28mm 0; }
-          @page sk-main { size: A4; margin: 12mm 0 28mm 0; }
-          @page sk-main:first { size: A4; margin: 0 0 28mm 0; }
+          @page { size: A4; margin: 0; }
+          @page sk-main { size: A4; margin: 0; }
+          @page sk-main:first { size: A4; margin: 0; }
           @page sk-attachment { size: A4; margin: 0; }
           * { box-sizing: border-box; }
           body {
@@ -56,6 +56,24 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
             margin: 0 auto; padding: 5mm 20mm 0;
           }
           .sk-main-document { page: sk-main; position: relative; }
+          .sk-print-root .sk-page.sk-main-document.sk-main-paginated {
+            height: 297mm !important;
+            min-height: 297mm !important;
+            padding: 5mm 20mm 28mm !important;
+            overflow: hidden !important;
+            position: relative !important;
+            box-shadow: none !important;
+          }
+          .sk-print-root .sk-page.sk-main-document.sk-main-paginated.sk-main-continuation-page {
+            padding-top: 18mm !important;
+          }
+          .sk-print-root .sk-main-document.sk-main-page-break {
+            page-break-after: always;
+            break-after: page;
+          }
+          .sk-main-flow { width: 100%; }
+          .sk-main-paginated .sk-paginated-field-section + .sk-paginated-field-section { margin-top: 0 !important; }
+          .sk-main-paginated .sk-paginated-field-section.sk-section-start { margin-top: 0.75rem !important; }
           .sk-attachment-document {
             page: sk-attachment;
             page-break-before: always;
@@ -127,7 +145,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-ketiga-group { break-inside: avoid !important; page-break-inside: avoid !important; }
           .sk-signature-name { font-weight: normal !important; }
           .ttd-placeholder { height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 2rem; margin-bottom: 2rem; }
-          .sk-continuation-word { position: absolute; right: 20mm; width: 166mm; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 2; }
+          .sk-continuation-word { position: absolute; right: 23mm; bottom: 31mm; width: 163mm; height: 0; line-height: 11pt; overflow: visible; white-space: nowrap; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 20; }
           /* Tembusan */
           .sk-tembusan { margin-top: 2rem; }
           .sk-tembusan, .sk-tembusan p { font-weight: normal !important; text-align: left !important; }
@@ -162,6 +180,50 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
       const body = doc.body;
       if (!body) { printWindow.print(); return; }
 
+      const paginationStyle = doc.createElement("style");
+      paginationStyle.textContent = `
+        @page sk-main { size: A4; margin: 0; }
+        @page sk-main:first { size: A4; margin: 0; }
+        .sk-print-root .sk-page.sk-main-document.sk-main-paginated {
+          height: 297mm !important;
+          min-height: 297mm !important;
+          padding: 5mm 20mm 28mm !important;
+          overflow: hidden !important;
+          position: relative !important;
+          box-shadow: none !important;
+        }
+        .sk-print-root .sk-page.sk-main-document.sk-main-paginated.sk-main-continuation-page {
+          padding-top: 18mm !important;
+        }
+        .sk-print-root .sk-main-document.sk-main-page-break {
+          page-break-after: always;
+          break-after: page;
+        }
+        .sk-main-paginated .sk-paginated-field-section + .sk-paginated-field-section {
+          margin-top: 0 !important;
+        }
+        .sk-main-paginated .sk-paginated-field-section.sk-section-start {
+          margin-top: 0.75rem !important;
+        }
+        .sk-continuation-word {
+          position: absolute !important;
+          right: 23mm !important;
+          bottom: 31mm !important;
+          width: 163mm !important;
+          height: 0 !important;
+          line-height: 11pt !important;
+          overflow: visible !important;
+          white-space: nowrap !important;
+          text-align: right !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          font-weight: normal !important;
+          font-size: 11pt !important;
+          z-index: 20 !important;
+        }
+      `;
+      body.appendChild(paginationStyle);
+
       // Force layout by reading offsetHeight
       void body.offsetHeight;
 
@@ -170,88 +232,215 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
       // Total A4 = 297mm. Usable first page ≈ 297 - 28 - 5 = 264mm
       // Continuation pages: 297 - 28 - 12 = 257mm (12mm top margin from @page sk-main)
       const mmToPx = 96 / 25.4; // 1mm = 96/25.4 px at screen resolution
-      const firstPageH = 264 * mmToPx;
-      const contPageH = 257 * mmToPx;
+      const firstPageContentH = 264 * mmToPx;
+      const continuationContentH = 251 * mmToPx;
+      const markerReserveH = 9 * mmToPx;
 
       // Collect all breakable items from the main document section
       const mainDoc = doc.querySelector(".sk-main-document");
       if (!mainDoc) { printWindow.print(); return; }
 
-      const allItems: { el: HTMLElement; nextLabel: string }[] = [];
+      const root = mainDoc.parentElement;
+      if (!root) { printWindow.print(); return; }
 
-      // Mengingat items
-      const mengItems = mainDoc.querySelectorAll<HTMLElement>(".sk-mengingat-item");
-      mengItems.forEach((el, idx) => {
-        if (idx < mengItems.length - 1) {
-          const nextEl = mengItems[idx + 1];
-          const numEl = nextEl.querySelector("div:first-child");
-          const textEl = nextEl.querySelector(".sk-mengingat-text");
-          const num = numEl?.textContent?.trim() || "";
-          const text = textEl?.textContent?.trim() || "";
-          const preview = text.length > 40 ? text.slice(0, 40) + "....." : text + ".....";
-          allItems.push({ el: el as HTMLElement, nextLabel: `${num} ${preview}` });
-        }
-      });
+      const continuationLabel = (num: string, text: string) => {
+        const firstWord = text.trim().split(/\s+/)[0] || "";
+        return `${num.trim()} ${firstWord ? `${firstWord}.....` : "....."}`;
+      };
 
-      // Last mengingat item → next is MEMUTUSKAN
-      if (mengItems.length > 0) {
-        const lastMeng = mengItems[mengItems.length - 1] as HTMLElement;
-        allItems.push({ el: lastMeng, nextLabel: "MEMUTUSKAN :" });
-      }
+      const cloneElement = <T extends HTMLElement>(el: T) => el.cloneNode(true) as T;
 
-      // Memutuskan rows
-      const memRows = mainDoc.querySelectorAll<HTMLElement>(".sk-mengingat-row");
-      const rowLabels = ["Menetapkan", "KESATU", "KEDUA", "KETIGA"];
-      memRows.forEach((el, idx) => {
-        if (idx < memRows.length - 1) {
-          const nextLabel = rowLabels[idx + 1] || "";
-          if (nextLabel) {
-            allItems.push({ el: el as HTMLElement, nextLabel: `${nextLabel}.....` });
-          }
-        }
-      });
+      const createFieldBlock = (
+        sectionLabel: string,
+        item: HTMLElement,
+        showSectionLabel: boolean,
+        marginTop = false,
+      ) => {
+        const section = doc.createElement("div");
+        section.className = "sk-field-section sk-paginated-field-section";
+        section.style.marginTop = marginTop ? "0.75rem" : "0";
+        if (marginTop) section.classList.add("sk-section-start");
 
-      // Sort by vertical position
-      const mainTop = mainDoc.getBoundingClientRect().top;
-      allItems.sort((a, b) => {
-        return (a.el.getBoundingClientRect().top - mainTop) - (b.el.getBoundingClientRect().top - mainTop);
-      });
+        const label = doc.createElement("div");
+        label.className = "sk-field-label";
+        label.textContent = showSectionLabel ? sectionLabel : "";
 
-      // Calculate page boundaries
-      const boundaries: number[] = [];
-      let cumH = firstPageH;
-      boundaries.push(cumH);
-      for (let i = 0; i < 10; i++) {
-        cumH += contPageH;
-        boundaries.push(cumH);
-      }
+        const colon = doc.createElement("div");
+        colon.className = "sk-field-colon";
+        colon.textContent = showSectionLabel ? ":" : "";
 
-      // For each boundary, find the last item that fits and inject continuation word
-      const insertContinuationWord = (label: string, boundary: number) => {
+        const list = doc.createElement("div");
+        list.className = "sk-mengingat-list";
+        const itemClone = cloneElement(item);
+        itemClone.style.paddingTop = "0";
+        list.appendChild(itemClone);
+
+        section.append(label, colon, list);
+        return section;
+      };
+
+      const createDecisionBlock = (rows: HTMLElement[]) => {
+        const table = doc.createElement("table");
+        table.className = "sk-mengingat-table";
+        table.style.borderCollapse = "collapse";
+
+        const tbody = doc.createElement("tbody");
+        rows.forEach((row) => tbody.appendChild(cloneElement(row)));
+        table.appendChild(tbody);
+        return table;
+      };
+
+      const createMemutuskanMenetapkanBlock = (heading: HTMLElement, row: HTMLElement) => {
+        const block = doc.createElement("div");
+        block.appendChild(cloneElement(heading));
+        block.appendChild(createDecisionBlock([row]));
+        return block;
+      };
+
+      const makePage = (isFirstPage: boolean) => {
+        const page = doc.createElement("article");
+        page.className = "sk-page sk-page-ttd sk-main-document sk-main-paginated mx-auto max-w-[210mm] bg-white px-24 py-9 text-black";
+        if (!isFirstPage) page.classList.add("sk-main-continuation-page");
+        page.style.cssText = [
+          "width: 210mm",
+          "height: 297mm",
+          "min-height: 297mm",
+          "margin: 0 auto",
+          `padding: ${isFirstPage ? "5mm" : "18mm"} 20mm 28mm`,
+          "overflow: hidden",
+          "position: relative",
+          "box-sizing: border-box",
+          "background: white",
+          "color: black",
+        ].join("; ");
+
+        const flow = doc.createElement("div");
+        flow.className = "sk-main-flow";
+        page.appendChild(flow);
+
+        const bodyWrap = doc.createElement("div");
+        bodyWrap.className = "sk-body";
+        flow.appendChild(bodyWrap);
+
+        return { page, flow, bodyWrap };
+      };
+
+      const addContinuationWord = (page: HTMLElement, label: string) => {
         const contWord = doc.createElement("p");
         contWord.className = "sk-continuation-word";
         contWord.textContent = label;
-        contWord.style.top = `${Math.max(0, boundary - (8 * mmToPx))}px`;
-        mainDoc.appendChild(contWord);
+        page.appendChild(contWord);
       };
 
-      const injected = new Set<number>();
-      for (const boundary of boundaries) {
-        for (let i = 0; i < allItems.length; i++) {
-          const rect = allItems[i].el.getBoundingClientRect();
-          const itemBottom = rect.bottom - mainTop;
-          const nextTop = i < allItems.length - 1
-            ? allItems[i + 1].el.getBoundingClientRect().top - mainTop
-            : Infinity;
+      const measureFlowContentHeight = (flow: HTMLElement) => {
+        const flowTop = flow.getBoundingClientRect().top;
+        return Array.from(flow.children).reduce((maxBottom, child) => {
+          const rect = (child as HTMLElement).getBoundingClientRect();
+          return Math.max(maxBottom, rect.bottom - flowTop);
+        }, 0);
+      };
 
-          if (itemBottom <= boundary && nextTop > boundary && !injected.has(i)) {
-            // This item is the last one on this page, next item is on next page
-            insertContinuationWord(allItems[i].nextLabel, boundary);
-            injected.add(i);
-            break; // Only one continuation word per page boundary
-          }
-        }
+      const measureOuterHeight = (el: HTMLElement) => {
+        const rect = el.getBoundingClientRect();
+        const style = printWindow.getComputedStyle(el);
+        const marginTop = Number.parseFloat(style.marginTop || "0") || 0;
+        const marginBottom = Number.parseFloat(style.marginBottom || "0") || 0;
+        return rect.height + marginTop + marginBottom;
+      };
+
+      const contentWrap = mainDoc.querySelector<HTMLElement>(".sk-subtitle");
+      const contentSections = contentWrap?.querySelector<HTMLElement>("div");
+      const fieldSections = contentSections?.querySelectorAll<HTMLElement>(":scope > .sk-field-section");
+      const menimbangItems = fieldSections?.[0]?.querySelectorAll<HTMLElement>(".sk-mengingat-item") || [];
+      const mengingatItems = fieldSections?.[1]?.querySelectorAll<HTMLElement>(".sk-mengingat-item") || [];
+
+      const explicitMemutuskanHeading = mainDoc.querySelector<HTMLElement>(".sk-memutuskan");
+      const explicitMemRows = Array.from(mainDoc.querySelectorAll<HTMLElement>(".sk-mengingat-row"));
+      const ketigaGroup = mainDoc.querySelector<HTMLElement>(".sk-ketiga-group");
+
+      let currentPage = makePage(true);
+      root.insertBefore(currentPage.page, mainDoc);
+
+      const kop = mainDoc.querySelector<HTMLElement>(".sk-kop");
+      const title = mainDoc.querySelector<HTMLElement>(".sk-title");
+      const intro = doc.createElement("div");
+      intro.className = "sk-subtitle sk-body";
+      const introParagraphs = Array.from(contentWrap?.children || []).filter((child) => {
+        return child.tagName === "P" && !(child as HTMLElement).classList.contains("sk-memutuskan");
+      });
+      introParagraphs.forEach((child) => intro.appendChild(cloneElement(child as HTMLElement)));
+
+      const firstBody = currentPage.bodyWrap;
+      currentPage.flow.insertBefore(intro, firstBody);
+      if (title) currentPage.flow.insertBefore(cloneElement(title), intro);
+      if (kop) currentPage.flow.insertBefore(cloneElement(kop), currentPage.flow.firstChild);
+      let currentUsedHeight = measureFlowContentHeight(currentPage.flow);
+
+      const blocks: { el: HTMLElement; label: string }[] = [];
+      Array.from(menimbangItems).forEach((item, index) => {
+        const num = item.querySelector("div:first-child")?.textContent || "";
+        const text = item.querySelector(".sk-mengingat-text")?.textContent || "";
+        blocks.push({
+          el: createFieldBlock("Menimbang", item, index === 0),
+          label: continuationLabel(num, text),
+        });
+      });
+
+      Array.from(mengingatItems).forEach((item, index) => {
+        const num = item.querySelector("div:first-child")?.textContent || "";
+        const text = item.querySelector(".sk-mengingat-text")?.textContent || "";
+        blocks.push({
+          el: createFieldBlock("Mengingat", item, index === 0, index === 0),
+          label: continuationLabel(num, text),
+        });
+      });
+
+      if (explicitMemutuskanHeading && explicitMemRows[0]) {
+        const memutuskanBlock = createMemutuskanMenetapkanBlock(explicitMemutuskanHeading, explicitMemRows[0]);
+        blocks.push({ el: memutuskanBlock, label: "MEMUTUSKAN....." });
+      } else if (explicitMemutuskanHeading) {
+        blocks.push({ el: cloneElement(explicitMemutuskanHeading), label: "MEMUTUSKAN....." });
+      } else if (explicitMemRows[0]) {
+        blocks.push({ el: createDecisionBlock([explicitMemRows[0]]), label: "Menetapkan....." });
       }
+      if (explicitMemRows[1]) {
+        blocks.push({ el: createDecisionBlock([explicitMemRows[1]]), label: "KESATU....." });
+      }
+      if (explicitMemRows[2]) {
+        blocks.push({ el: createDecisionBlock([explicitMemRows[2]]), label: "KEDUA....." });
+      }
+      if (ketigaGroup) {
+        blocks.push({ el: cloneElement(ketigaGroup), label: "KETIGA....." });
+      }
+
+      blocks.forEach((block, index) => {
+        const isLastBlock = index === blocks.length - 1;
+        const contentLimit = currentPage.page.classList.contains("sk-main-continuation-page")
+          ? continuationContentH
+          : firstPageContentH;
+        const maxFlowHeight = contentLimit - (isLastBlock ? 0 : markerReserveH);
+        const markerSafeHeight = contentLimit - markerReserveH;
+
+        currentPage.bodyWrap.appendChild(block.el);
+        const blockHeight = measureOuterHeight(block.el);
+        const flowHeight = currentUsedHeight + blockHeight;
+        const canMoveToNextPage = currentPage.bodyWrap.children.length > 1;
+        if ((flowHeight > maxFlowHeight || (!isLastBlock && flowHeight > markerSafeHeight)) && canMoveToNextPage) {
+          currentPage.bodyWrap.removeChild(block.el);
+          currentPage.page.classList.add("sk-main-page-break");
+          addContinuationWord(currentPage.page, block.label);
+
+          currentPage = makePage(false);
+          root.insertBefore(currentPage.page, mainDoc);
+          currentPage.bodyWrap.appendChild(block.el);
+          currentUsedHeight = measureOuterHeight(block.el);
+        } else {
+          currentUsedHeight = flowHeight;
+        }
+      });
+
+      root.removeChild(mainDoc);
+
     } catch {
       // Silently fail — print without continuation words
     }
