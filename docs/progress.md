@@ -1,3 +1,35 @@
+# Progress - Phase 50: SK Continuation Words
+
+> Document updated: 2026-05-21
+> Status: **READY TO MERGE** ✅
+
+---
+
+## Issue #352: Continuation Words at Page Breaks in SK Document
+
+### Objective:
+Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halaman 2), tampilkan kata penyambung di pojok kanan bawah halaman yang terpotong. Contoh: `9. Peraturan Menteri Lingkungan.....` atau `KESATU.....`.
+
+### Completed:
+- [x] **Branch**: `issue/352-sk-continuation-words` aktif.
+- [x] **Print-only pagination**: SK utama dipaginate menjadi halaman A4 eksplisit di `handlePrintSk`, sehingga preview cetak Chrome stabil.
+- [x] **Continuation words**: Kata lanjutan muncul di pojok kanan bawah halaman sebelum item berikutnya turun, misalnya `9. Peraturan.....`, `MEMUTUSKAN.....`, atau `KETIGA.....`.
+- [x] **Mengingat per item**: Setiap peraturan diperlakukan sebagai unit sendiri agar item panjang boleh turun halaman tanpa merusak item sebelumnya.
+- [x] **MEMUTUSKAN + Menetapkan grouped**: Judul `MEMUTUSKAN` dan baris `Menetapkan` tetap satu kesatuan.
+- [x] **KETIGA + TTD grouped**: Jika blok TTD harus turun ke halaman berikutnya, kalimat `KETIGA` ikut turun agar tanda tangan tidak terpotong sendiri.
+- [x] **BSrE safe area**: Halaman utama memakai margin/padding bawah khusus untuk ruang teks tanda tangan elektronik otomatis dari aplikasi lain.
+- [x] **Lampiran untouched**: Pagination lampiran SK tetap mengikuti aturan yang sudah disetujui sebelumnya.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `git diff --check -- frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx` clean
+
+---
+
 # Progress - Phase 49: SK Builder Panel
 
 > Document updated: 2026-05-21
