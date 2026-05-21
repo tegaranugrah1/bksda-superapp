@@ -119,15 +119,22 @@ git push origin main
 - [x] Issue #348: Align colons in SK Ditetapkan/Pada tanggal block. PR #349 merged ke `main` (merge commit `b29e5f5`).
 - [x] Issue #350: Add SK Builder panel beside SK preview (Menimbang/Mengingat/Memutuskan/Tembusan editable + Kepala Balai picker dari kepegawaian). PR #351 merged ke `main` (merge commit `b833a20`).
 - [x] Issue #352: Add continuation words at page breaks in SK document. Branch `issue/352-sk-continuation-words` siap PR/merge.
+- [ ] Issue #354 (IN PROGRESS): Add SK Panitia Penghapusan BMN document. Branch `issue/354-sk-panitia-penghapusan`.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #352: SK continuation words at page breaks |
-| **Issue Sedang Dikerjakan** | Tidak ada — Issue #352 siap PR/merge |
-| **Branch Aktif** | `issue/352-sk-continuation-words` |
-| **Commit Terakhir di Branch** | Pending commit final sesi ini |
-| **Status** | DONE: SK utama memakai print-only A4 pagination eksplisit; continuation word kanan bawah stabil; margin bawah BSrE aman; MEMUTUSKAN+Menetapkan dan KETIGA+TTD dijaga sebagai unit; lampiran SK tidak diubah. |
-| **Model Terakhir** | Codex |
+| **Issue Terakhir Selesai** | Issue #352: SK continuation words (PR #353 merged) |
+| **Issue Sedang Dikerjakan** | Issue #354: SK Panitia Penghapusan — branch `issue/354-sk-panitia-penghapusan` |
+| **Branch Aktif** | `issue/354-sk-panitia-penghapusan` |
+| **Commit Terakhir di Branch** | `3c03738` |
+| **Status** | WIP: SK Panitia + lampiran tabel (No/Nama-NIP-Jabatan/Jabatan Kegiatan) + employee search + spacing tuning. TODO: (1) spacing MEMUTUSKAN→Tembusan masih besar, (2) sub-item c/d di KEDUA tidak align dengan a/b. |
+| **Model Terakhir** | Kiro |
+| **Timestamp** | 2026-05-21T18:00:00+08:00 |
+
+### TODO Issue #354:
+- [ ] Kurangi spacing antara MEMUTUSKAN → KETIGA → TTD → Tembusan (masih terlalu besar)
+- [ ] Fix alignment sub-item c, d di KEDUA agar sejajar dengan a, b (indentasi)
+- [ ] Verify cetak PDF final
 | **Timestamp** | 2026-05-21T23:59:00+08:00 |
 
 ### Issue #352 Summary:

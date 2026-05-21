@@ -1,7 +1,45 @@
+# Progress - Phase 51: SK Panitia Penghapusan BMN (IN PROGRESS)
+
+> Document updated: 2026-05-21
+> Status: **IN PROGRESS** 🔄
+
+---
+
+## Issue #354: SK Panitia Penghapusan BMN
+
+### Completed:
+- [x] **Issue Created**: Issue #354.
+- [x] **Branch**: `issue/354-sk-panitia-penghapusan` aktif.
+- [x] **SK Panitia Document**: Komponen `SkPanitiaDocument.tsx` — mirip SK Penghentian tapi isi berbeda (Panitia Penghapusan).
+- [x] **Defaults**: `sk-panitia-defaults.ts` — Menimbang 2 item, Mengingat 8 peraturan, Memutuskan (KEDUA punya sub-items), Tembusan 3 item (termasuk "Yang Bersangkutan").
+- [x] **Lampiran tabel border**: No. | Nama/NIP/Jabatan | Jabatan dalam Kegiatan (tanpa Keterangan).
+- [x] **Employee search**: Dropdown dari `/kepegawaian/employees/select` untuk susunan panitia. Auto-fill nama, NIP (formatted), jabatan instansi (dari field `position`).
+- [x] **Toggle 3 dokumen**: BA / SK Penghentian / SK Panitia — hanya satu tampil.
+- [x] **Tombol teal**: "Proses SK Panitia" di action bar dan banner.
+- [x] **Input nomor SK Panitia**: Format `SK.____/K.18/TU/KAP.05/MM/YYYY`.
+- [x] **Spacing tuning**: line-height 1.25, reduced margins/paddings, firstPageContentH=280mm.
+- [x] **Continuation words**: Pagination eksplisit dengan kata penyambung (reuse pattern dari SK Penghentian).
+
+### Pending / TODO:
+- [ ] **Spacing MEMUTUSKAN → Tembusan** masih terlalu besar saat cetak PDF.
+- [ ] **Sub-item c, d di KEDUA** tidak align dengan a, b (indentasi `white-space: pre-wrap` tidak konsisten).
+- [ ] **PR belum dibuat** — menunggu fix spacing dan alignment.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/_components/SkPanitiaDocument.tsx` (new)
+- `frontend/src/app/bmn/auction-candidates/_lib/sk-panitia-defaults.ts` (new)
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+
+---
+
 # Progress - Phase 50: SK Continuation Words
 
 > Document updated: 2026-05-21
-> Status: **READY TO MERGE** ✅
+> Status: **MERGED** ✅
 
 ---
 
