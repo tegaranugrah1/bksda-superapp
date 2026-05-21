@@ -117,6 +117,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           /* Halaman 2 */
           .sk-page2-body { width: 166mm; margin-left: auto; margin-right: auto; padding-top: 16mm; }
           .sk-memutuskan { text-align: center; font-weight: bold; margin-bottom: 12px; }
+
           /* TTD block */
           .sk-ttd { width: 20rem; margin-left: auto; margin-top: 3rem; }
           .sk-ttd, .sk-ttd p { font-weight: normal !important; text-align: left !important; }
@@ -153,7 +154,109 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
   `);
   printWindow.document.close();
   printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+  // Wait for full render, then inject continuation words at page breaks, then print
+  setTimeout(() => {
+    try {
+      const doc = printWindow.document;
+      const body = doc.body;
+      if (!body) { printWindow.print(); return; }
+
+      // Force layout by reading offsetHeight
+      void body.offsetHeight;
+
+      // A4 page usable height calculation
+      // @page margin-bottom: 28mm, page padding-top: 5mm (first page)
+      // Total A4 = 297mm. Usable first page ≈ 297 - 28 - 5 = 264mm
+      // Continuation pages: 297 - 28 - 12 = 257mm (12mm top margin from @page sk-main)
+      const mmToPx = 96 / 25.4; // 1mm = 96/25.4 px at screen resolution
+      const firstPageH = 264 * mmToPx;
+      const contPageH = 257 * mmToPx;
+
+      // Collect all breakable items from the main document section
+      const mainDoc = doc.querySelector(".sk-main-document");
+      if (!mainDoc) { printWindow.print(); return; }
+
+      const allItems: { el: HTMLElement; nextLabel: string }[] = [];
+
+      // Mengingat items
+      const mengItems = mainDoc.querySelectorAll<HTMLElement>(".sk-mengingat-item");
+      mengItems.forEach((el, idx) => {
+        if (idx < mengItems.length - 1) {
+          const nextEl = mengItems[idx + 1];
+          const numEl = nextEl.querySelector("div:first-child");
+          const textEl = nextEl.querySelector(".sk-mengingat-text");
+          const num = numEl?.textContent?.trim() || "";
+          const text = textEl?.textContent?.trim() || "";
+          const preview = text.length > 40 ? text.slice(0, 40) + "....." : text + ".....";
+          allItems.push({ el: el as HTMLElement, nextLabel: `${num} ${preview}` });
+        }
+      });
+
+      // Last mengingat item → next is MEMUTUSKAN
+      if (mengItems.length > 0) {
+        const lastMeng = mengItems[mengItems.length - 1] as HTMLElement;
+        allItems.push({ el: lastMeng, nextLabel: "MEMUTUSKAN :" });
+      }
+
+      // Memutuskan rows
+      const memRows = mainDoc.querySelectorAll<HTMLElement>(".sk-mengingat-row");
+      const rowLabels = ["Menetapkan", "KESATU", "KEDUA", "KETIGA"];
+      memRows.forEach((el, idx) => {
+        if (idx < memRows.length - 1) {
+          const nextLabel = rowLabels[idx + 1] || "";
+          if (nextLabel) {
+            allItems.push({ el: el as HTMLElement, nextLabel: `${nextLabel}.....` });
+          }
+        }
+      });
+
+      // Sort by vertical position
+      const mainTop = mainDoc.getBoundingClientRect().top;
+      allItems.sort((a, b) => {
+        return (a.el.getBoundingClientRect().top - mainTop) - (b.el.getBoundingClientRect().top - mainTop);
+      });
+
+      // Calculate page boundaries
+      const boundaries: number[] = [];
+      let cumH = firstPageH;
+      boundaries.push(cumH);
+      for (let i = 0; i < 10; i++) {
+        cumH += contPageH;
+        boundaries.push(cumH);
+      }
+
+      // For each boundary, find the last item that fits and inject continuation word
+      const injected = new Set<number>();
+      for (const boundary of boundaries) {
+        for (let i = 0; i < allItems.length; i++) {
+          const rect = allItems[i].el.getBoundingClientRect();
+          const itemBottom = rect.bottom - mainTop;
+          const nextTop = i < allItems.length - 1
+            ? allItems[i + 1].el.getBoundingClientRect().top - mainTop
+            : Infinity;
+
+          if (itemBottom <= boundary && nextTop > boundary && !injected.has(i)) {
+            // This item is the last one on this page, next item is on next page
+            const contWord = doc.createElement("p");
+            contWord.style.cssText = "text-align: right; margin: 0.5rem 0 0 0; padding: 0; font-weight: normal; font-size: 11pt;";
+            contWord.textContent = allItems[i].nextLabel;
+
+            // Insert after the item
+            if (allItems[i].el.nextSibling) {
+              allItems[i].el.parentElement?.insertBefore(contWord, allItems[i].el.nextSibling);
+            } else {
+              allItems[i].el.parentElement?.appendChild(contWord);
+            }
+            injected.add(i);
+            break; // Only one continuation word per page boundary
+          }
+        }
+      }
+    } catch {
+      // Silently fail — print without continuation words
+    }
+    setTimeout(() => printWindow.print(), 300);
+  }, 600);
 }
 
 export function SkPenghentianDocument({
@@ -501,6 +604,11 @@ export function SkPenghentianDocument({
           text-align: center;
           font-weight: bold;
           margin-bottom: 12px;
+        }
+        .sk-print-root .sk-continuation-word {
+          text-align: right !important;
+          margin-top: 0.5rem;
+          font-weight: normal !important;
         }
         .sk-print-root .sk-ttd {
           width: 20rem;
