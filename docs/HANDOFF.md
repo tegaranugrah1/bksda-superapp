@@ -118,16 +118,25 @@ git push origin main
 - [x] Issue #346: Widen TTD spacing in BA and SK documents (vertical spacing around `${ttd_pengirim}` placeholder). PR #347 merged ke `main` (merge commit `fa24541`).
 - [x] Issue #348: Align colons in SK Ditetapkan/Pada tanggal block. PR #349 merged ke `main` (merge commit `b29e5f5`).
 - [x] Issue #350: Add SK Builder panel beside SK preview (Menimbang/Mengingat/Memutuskan/Tembusan editable + Kepala Balai picker dari kepegawaian). PR #351 merged ke `main` (merge commit `b833a20`).
+- [ ] Issue #352 (IN PROGRESS): Add continuation words at page breaks in SK document. Branch `issue/352-sk-continuation-words`. JavaScript DOM measurement approach — detection belum reliable.
 
 | Field | Value |
 |-------|-------|
 | **Issue Terakhir Selesai** | Issue #350: SK Builder panel (PR #351 merged) |
-| **Issue Sedang Dikerjakan** | None |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `b833a20` |
-| **Status** | Issue #350 DONE: builder panel dengan card Menimbang (a, b, c, ...), Mengingat (1-9 default + add/remove), Memutuskan (Menetapkan/KESATU/KEDUA/KETIGA), Kepala Balai (dropdown dari `/kepegawaian/employees/select`, auto-uppercase nama, format NIP `19740514 199903 1 001`), dan Tembusan (add/remove, single tanpa nomor). KETIGA + TTD halaman 2 grouped `break-inside: avoid`. Mengingat number column 9mm untuk 2-digit. |
+| **Issue Sedang Dikerjakan** | Issue #352: Continuation words at page breaks — branch `issue/352-sk-continuation-words` |
+| **Branch Aktif** | `issue/352-sk-continuation-words` |
+| **Commit Terakhir di Branch** | `ebe94ba` |
+| **Status** | WIP: JavaScript page break detection di print window tidak reliable — boundary calculation salah karena `@page` margin hanya berlaku saat actual print, bukan saat DOM render. Continuation word muncul di posisi yang salah (setelah KEDUA, bukan setelah Mengingat 8). Perlu pendekatan berbeda. |
 | **Model Terakhir** | Kiro |
-| **Timestamp** | 2026-05-21T15:00:00+08:00 |
+| **Timestamp** | 2026-05-21T16:00:00+08:00 |
+
+### TODO Issue #352:
+- [ ] Fix boundary calculation — `getBoundingClientRect()` di print window tidak akurat karena `@page` margin belum diterapkan saat JS measure
+- [ ] Opsi A: Measure di halaman utama (Next.js preview yang sudah 210mm width) sebelum buka print window, lalu inject ke HTML
+- [ ] Opsi B: Manual input — user menambahkan continuation word sendiri via SK Builder (textarea per halaman)
+- [ ] Opsi C: Gunakan CSS `string-set` / `running()` (hanya Firefox, tidak Chrome)
+- [ ] Fix posisi: harus `text-align: right` di pojok kanan bawah halaman
+- [ ] Fix content: harus menunjukkan item berikutnya (nomor + awal teks + ".....")
 | **Status Print SK** | DONE: preview dan print PDF OK; margin bawah BSrE aman; Mengingat paginate per item; lampiran paginate sesuai aturan 15/17/max-10 |
 | **Model Terakhir** | Codex |
 | **Timestamp** | 2026-05-20T13:00:00+08:00 |
