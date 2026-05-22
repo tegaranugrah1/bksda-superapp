@@ -1,7 +1,13 @@
 "use client";
 
 import { toast } from "sonner";
-import { getSpelledDate } from "../_lib/auction-helpers";
+import type { AuctionAsset } from "../_lib/auction-helpers";
+import {
+  formatPlainRupiah,
+  formatDateLong,
+  getSpelledDate,
+} from "../_lib/auction-helpers";
+import type { SkKepalaBalai } from "../_lib/sk-defaults";
 import type { PemeriksaAnggota } from "../_lib/pemeriksa-defaults";
 
 interface BaPemeriksaanDocumentProps {
@@ -9,6 +15,8 @@ interface BaPemeriksaanDocumentProps {
   pemeriksaList: PemeriksaAnggota[];
   stNumber: string;
   stTanggal: string;
+  assets: AuctionAsset[];
+  kepalaBalai: SkKepalaBalai;
 }
 
 function buildNomorText(number: string, today: Date) {
@@ -54,6 +62,42 @@ export function handlePrintBaPemeriksaan() {
           .pemeriksa-row { display: grid; grid-template-columns: 28mm 5mm minmax(0, 1fr); column-gap: 0; }
           .pemeriksa-row .colon { text-align: center; }
           .doc-editable { outline: none; border-bottom: none !important; }
+
+          /* Lampiran (landscape/portrait) */
+          .ba-pem-lampiran {
+            page-break-before: always;
+            break-before: page;
+            padding-top: 18mm !important;
+          }
+          .ba-pem-lamp-meta { font-size: 11pt; line-height: 1.4; }
+          .ba-pem-lamp-meta .meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); }
+          .ba-pem-lamp-meta .meta-row .colon { text-align: center; }
+          table.ba-pem-table { border-collapse: collapse; width: 100%; font-size: 8.5pt; text-align: center; margin-top: 0.75rem; table-layout: fixed; }
+          table.ba-pem-table th, table.ba-pem-table td { border: 1px solid #000; padding: 4px 3px; vertical-align: middle; overflow-wrap: anywhere; word-break: normal; }
+          table.ba-pem-table thead { display: table-header-group; }
+          table.ba-pem-table tr { break-inside: avoid; page-break-inside: avoid; }
+          .ba-pem-ttd-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12mm;
+            margin-top: 1.5rem;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          .ba-pem-ttd-grid p { margin: 0; padding: 0; line-height: 1.3; }
+          .ba-pem-ttd-pelaksana .ba-pem-pemeriksa-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            row-gap: 1.4rem;
+            column-gap: 6mm;
+            margin-top: 5.5rem;
+          }
+          .ba-pem-pemeriksa-cell p { margin: 0; line-height: 1.25; }
+          .ba-pem-pemeriksa-cell .name { font-weight: bold; }
+          .ba-pem-ttd-kepala { text-align: left; }
+          .ba-pem-ttd-kepala .kepala-name-block { margin-top: 5.5rem; }
+          .ba-pem-ttd-kepala .kepala-name-block p { line-height: 1.25; }
+          .ba-pem-ttd-kepala .kepala-name-block .name { font-weight: bold; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -69,10 +113,20 @@ export function BaPemeriksaanDocument({
   pemeriksaList,
   stNumber,
   stTanggal,
+  assets,
+  kepalaBalai,
 }: BaPemeriksaanDocumentProps) {
   const today = new Date();
   const nomorText = buildNomorText(number, today);
   const { day, dateText, month, yearText } = getSpelledDate(today);
+  const tanggalLong = formatDateLong(today);
+
+  // Pelaksana Kegiatan grid: split list into two columns
+  // Layout sesuai contoh: kolom kiri = index 0, 1 ; kolom kanan = index 2, 3
+  // (urut atas-bawah per kolom mengikuti gambar referensi: 1, 2 di kiri; 3, 4 di kanan)
+  const half = Math.ceil(pemeriksaList.length / 2);
+  const colA = pemeriksaList.slice(0, half);
+  const colB = pemeriksaList.slice(half);
 
   return (
     <div id="ba-pemeriksaan-print-root" className="ba-pemeriksaan-print-root">
@@ -80,6 +134,11 @@ export function BaPemeriksaanDocument({
         .ba-pemeriksaan-print-root .doc-editable { outline: none; border-bottom: 1px dashed transparent; transition: border-bottom-color 0.15s ease; }
         .ba-pemeriksaan-print-root .doc-editable:hover { border-bottom-color: #94a3b8; }
         .ba-pemeriksaan-print-root .doc-editable:focus { border-bottom-color: #64748b; }
+        .ba-pemeriksaan-print-root table.ba-pem-table { border-collapse: collapse; width: 100%; font-size: 8.5pt; text-align: center; table-layout: fixed; }
+        .ba-pemeriksaan-print-root table.ba-pem-table th,
+        .ba-pemeriksaan-print-root table.ba-pem-table td { border: 1px solid #000; padding: 4px 3px; vertical-align: middle; overflow-wrap: anywhere; }
+        .ba-pemeriksaan-print-root .ba-pem-ttd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12mm; margin-top: 1.5rem; }
+        .ba-pemeriksaan-print-root .ba-pem-pemeriksa-grid { display: grid; grid-template-columns: 1fr 1fr; row-gap: 1.4rem; column-gap: 6mm; margin-top: 5.5rem; }
         @media print {
           @page { size: A4; margin: 0 0 28mm 0; }
           body * { visibility: hidden; }
@@ -96,9 +155,13 @@ export function BaPemeriksaanDocument({
           .doc-body { width: 166mm; margin-left: auto; margin-right: auto; }
           .doc-editable { border-bottom: none !important; }
           .pemeriksa-item { break-inside: avoid; page-break-inside: avoid; }
+          .ba-pem-lampiran { page-break-before: always; break-before: page; padding-top: 18mm !important; }
+          table.ba-pem-table tr { break-inside: avoid; page-break-inside: avoid; }
+          .ba-pem-ttd-grid { break-inside: avoid; page-break-inside: avoid; }
         }
       `}</style>
 
+      {/* ─── Halaman 1: Berita Acara ─────────────────────── */}
       <article
         className="doc-page mx-auto max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
         style={{ fontFamily: "'Bookman Old Style', Georgia, serif", fontSize: "11pt", lineHeight: "1.5" }}
@@ -121,7 +184,7 @@ export function BaPemeriksaanDocument({
 
           <div className="pemeriksa-list">
             {pemeriksaList.length === 0 ? (
-              <p className="text-center text-zinc-400" style={{ color: "#94a3b8" }}>
+              <p className="text-center" style={{ color: "#94a3b8" }}>
                 Belum ada pemeriksa. Silakan tambah pemeriksa.
               </p>
             ) : (
@@ -156,6 +219,119 @@ export function BaPemeriksaanDocument({
           <p contentEditable suppressContentEditableWarning className="doc-editable">
             Demikian Berita Acara Pemeriksaan ini dibuat dengan sebenarnya, ditandatangani oleh masing-masing pemeriksa.
           </p>
+        </div>
+      </article>
+
+      {/* ─── Halaman 2+: Lampiran (Tabel + TTD) ─────────────────────── */}
+      <article
+        className="doc-page ba-pem-lampiran mx-auto max-w-[210mm] bg-white px-24 py-9 text-black shadow-xl ring-1 ring-zinc-200"
+        style={{ fontFamily: "'Bookman Old Style', Georgia, serif", fontSize: "11pt", lineHeight: "1.4" }}
+      >
+        <div className="ba-pem-lamp-meta mx-auto w-[166mm]">
+          <div className="meta-row grid grid-cols-[22mm_5mm_minmax(0,1fr)]">
+            <span>Lampiran</span>
+            <span className="colon text-center">:</span>
+            <span></span>
+          </div>
+          <div className="meta-row grid grid-cols-[22mm_5mm_minmax(0,1fr)]">
+            <span>Nomor</span>
+            <span className="colon text-center">:</span>
+            <span contentEditable suppressContentEditableWarning className="doc-editable">{nomorText}</span>
+          </div>
+          <div className="meta-row grid grid-cols-[22mm_5mm_minmax(0,1fr)]">
+            <span>Tanggal</span>
+            <span className="colon text-center">:</span>
+            <span contentEditable suppressContentEditableWarning className="doc-editable">{tanggalLong}</span>
+          </div>
+        </div>
+
+        <table className="ba-pem-table mx-auto mt-3 w-[166mm]">
+          <colgroup>
+            <col style={{ width: "5%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "5%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "8%" }} />
+            <col style={{ width: "7%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "8%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "8%" }} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Kode Barang</th>
+              <th>NUP</th>
+              <th>Nama Barang</th>
+              <th>Merk / Type</th>
+              <th>No Polisi</th>
+              <th>Tahun Perolehan</th>
+              <th>Nilai Perolehan (Rp)</th>
+              <th>Nilai Buku</th>
+              <th>Nilai Taksiran (Rp)</th>
+              <th>Kondisi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {assets.length === 0 ? (
+              <tr>
+                <td colSpan={11} style={{ padding: "12px", color: "#94a3b8" }}>
+                  Belum ada aset terpilih.
+                </td>
+              </tr>
+            ) : (
+              assets.map((asset, index) => (
+                <tr key={asset.id}>
+                  <td>{index + 1}.</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable" style={{ wordBreak: "break-all" }}>{asset.kode_barang}</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.nup}</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.nama_barang}</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.merk_tipe || ""}</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.no_polisi || ""}</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.tahun_perolehan ?? ""}</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable" style={{ textAlign: "right" }}>{asset.nilai_perolehan ? formatPlainRupiah(asset.nilai_perolehan) : ""}</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable" style={{ textAlign: "right" }}>{asset.nilai_buku ? formatPlainRupiah(asset.nilai_buku) : "-"}</td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable" style={{ textAlign: "right" }}></td>
+                  <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.kondisi}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {/* TTD — 2 kolom (Pelaksana Kegiatan kiri, Mengetahui Kepala Balai kanan) */}
+        <div className="ba-pem-ttd-grid mx-auto w-[166mm]">
+          <div className="ba-pem-ttd-pelaksana">
+            <p>Samarinda, {tanggalLong}</p>
+            <p>Pelaksana Kegiatan,</p>
+
+            <div className="ba-pem-pemeriksa-grid">
+              {colA.map((p, index) => (
+                <div className="ba-pem-pemeriksa-cell" key={p.id}>
+                  <p className="name">{index + 1}. {p.nama}</p>
+                  <p style={{ paddingLeft: "5mm" }}>NIP. {p.nip}</p>
+                </div>
+              ))}
+              {colB.map((p, index) => (
+                <div className="ba-pem-pemeriksa-cell" key={p.id}>
+                  <p className="name">{index + 1 + colA.length}. {p.nama}</p>
+                  <p style={{ paddingLeft: "5mm" }}>NIP. {p.nip}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="ba-pem-ttd-kepala">
+            <p>Mengetahui,</p>
+            <p>Kepala Balai,</p>
+
+            <div className="kepala-name-block">
+              <p className="name">{kepalaBalai.nama}</p>
+              <p>NIP. {kepalaBalai.nip}</p>
+            </div>
+          </div>
         </div>
       </article>
     </div>

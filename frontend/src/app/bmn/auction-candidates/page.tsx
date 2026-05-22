@@ -303,6 +303,10 @@ export default function BmnAuctionCandidatesPage() {
   };
 
   const handleProcessBaPemeriksaan = () => {
+    if (orderedIds.length === 0) {
+      toast.error("Pilih minimal satu aset untuk lampiran BA Pemeriksaan.");
+      return;
+    }
     resetAllShows();
     setShowBaPemeriksaan(true);
     setTimeout(() => {
@@ -480,6 +484,7 @@ export default function BmnAuctionCandidatesPage() {
             size="sm"
             className="rounded-xl gap-2 bg-orange-600 text-xs hover:bg-orange-500"
             onClick={handleProcessBaPemeriksaan}
+            disabled={orderedIds.length === 0}
           >
             <FileText className="h-3.5 w-3.5" />
             Proses BA Pemeriksaan
@@ -1141,7 +1146,7 @@ export default function BmnAuctionCandidatesPage() {
         </section>
       )}
 
-      {showBaPemeriksaan && (
+      {showBaPemeriksaan && orderedSelectedAssets.length > 0 && (
         <section id="ba-pemeriksaan-preview" className="space-y-4">
           <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
             <div>
@@ -1226,6 +1231,8 @@ export default function BmnAuctionCandidatesPage() {
                 pemeriksaList={pemeriksaList}
                 stNumber={stNumber}
                 stTanggal={stTanggal}
+                assets={orderedSelectedAssets}
+                kepalaBalai={kepalaBalai}
               />
             </div>
           </div>
