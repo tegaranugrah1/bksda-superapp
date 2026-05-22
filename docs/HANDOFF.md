@@ -120,16 +120,28 @@ git push origin main
 - [x] Issue #350: Add SK Builder panel beside SK preview (Menimbang/Mengingat/Memutuskan/Tembusan editable + Kepala Balai picker dari kepegawaian). PR #351 merged ke `main` (merge commit `b833a20`).
 - [x] Issue #352: Add continuation words at page breaks in SK document. Branch `issue/352-sk-continuation-words` siap PR/merge.
 - [x] Issue #354: Add SK Panitia Penghapusan BMN document. PR #355 merged ke `main` (merge commit `c353bee`); remote branch deleted.
+- [x] Issue #356: Add 5 supporting documents for auction candidates (SPTJ Nilai Limit, SPTJM, SP Tidak Ganggu Tugas, SK Kebenaran Dokumen, BA Pemeriksaan BMN). PR #357 merged ke `main` (merge commit `1b88d7c`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #354: SK Panitia Penghapusan BMN (PR #355 merged) |
+| **Issue Terakhir Selesai** | Issue #356: 5 dokumen pendukung lelang BMN (PR #357 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `c353bee` |
-| **Status** | DONE: SK Panitia document, builder toggle, employee search, lampiran panitia, Kepala Balai default Penanggung Jawab, safe-area BSrE pagination, continuation words, KETIGA+TTD grouping, and lint cleanup merged. Deploy production pending. |
-| **Model Terakhir** | Codex |
-| **Timestamp** | 2026-05-22T11:05:00+08:00 |
+| **Commit Terakhir di Main** | `1b88d7c` |
+| **Status** | DONE: 5 dokumen pendukung lelang baru di /bmn/auction-candidates — SPTJ Nilai Limit, SPTJM, SP Tidak Mengganggu Tugas, SK Kebenaran Fotokopi Dokumen Kepemilikan (tabel editable), BA Pemeriksaan BMN (pemeriksa list editable). Deploy production pending. |
+| **Model Terakhir** | Claude Opus 4.7 |
+| **Timestamp** | 2026-05-22T16:30:00+08:00 |
+
+### Issue #356 Summary:
+- [x] Tambah 5 dokumen pendukung lelang BMN di `/bmn/auction-candidates`.
+- [x] **Surat Pernyataan Tanggung Jawab Nilai Limit** (`SM.41/K.18/TU/KAP.06.01/MM/YYYY`) — pernyataan kebenaran nilai limit penjualan.
+- [x] **Surat Pernyataan Tanggung Jawab Mutlak / SPTJM** (`SPTJM.202/K.18/TU/KAP.06.01/MM/YYYY`) — pernyataan tanggung jawab mutlak atas usulan pemindahtanganan.
+- [x] **Surat Pernyataan Tidak Mengganggu Kelancaran Tugas** (`SM.40/K.18/TU/KAP.06.01/MM/YYYY`) — pernyataan bahwa pemindahtanganan tidak ganggu tugas dinas.
+- [x] **SK Kebenaran Fotokopi Dokumen Kepemilikan** (`KT.200/K.18/TU/KAP.06.01/MM/YYYY`) — tabel 6 kolom (No, Nomor Dokumen, Merk/Tipe, Nomor Mesin, Nomor Rangka, Nomor Polisi). Kolom editable inline. Mapping dari `no_identitas`, `merk_tipe`, `no_rangka`, `no_polisi`. Nomor Mesin default kosong (belum ada di DB).
+- [x] **BA Pemeriksaan BMN** (`BA.158/K.18/TU/KAP.06.01/MM/YYYY`) — daftar 4 pemeriksa default editable (DHENY MARDIONO, HERYANTO SUMANBOWO, HARDI PURNAMA, TEGAR ANUGRAH), select pegawai dari API `/kepegawaian/employees/select`, input Nomor ST + Tanggal ST, spelled date, **tanpa TTD Kepala Balai**.
+- [x] Pattern reuse: `SkPenghentianDocument` style — KOP `header-new.png`, Bookman Old Style 11pt, A4 dengan margin bottom 28mm untuk BSrE.
+- [x] Tombol di action bar dan banner: blue (SPTJ Limit), purple (SPTJM), pink (SP Tugas), cyan (SK Kebenaran), orange (BA Pemeriksaan).
+- [x] Validasi clean: `npm run lint --max-warnings=0`, `npx tsc --noEmit`, `npm run build` (59/59 static pages).
 
 ### Issue #354 Summary:
 - [x] Tambah dokumen SK Panitia Penghapusan BMN di `/bmn/auction-candidates`.
@@ -145,6 +157,49 @@ git push origin main
 
 ### Next Steps:
 - [ ] Deploy batch BMN terbaru ke SSH production saat user siap.
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-22 - Issue #356 SELESAI: 5 dokumen pendukung lelang BMN):**
+- **Objective**: Tambah 5 dokumen pendukung untuk proses lelang BMN di halaman `/bmn/auction-candidates`.
+- **Status**: MERGED (PR #357) ke `main` (merge commit `1b88d7c`). Remote branch deleted.
+- **GitHub**:
+  - Issue: #356 `feat(bmn): add 5 supporting documents for auction candidates`
+  - PR: #357 `feat(bmn): add 5 supporting documents for auction candidates (#356)` - merged to `main`
+  - Branch: `issue/356-bmn-supporting-documents` (deleted)
+  - Commit: `c7ce25b feat(bmn): add 5 supporting documents for auction candidates (#356)`
+  - Merge commit: `1b88d7c`
+- **Accomplishments**:
+  - **SPTJ Nilai Limit** (`SM.41/...`) — 1 halaman statis, pernyataan tanggung jawab nilai limit penjualan + TTD Kepala Balai.
+  - **SPTJM** (`SPTJM.202/...`) — 1 halaman statis, tanggung jawab mutlak atas usulan + TTD Kepala Balai.
+  - **SP Tidak Mengganggu Tugas** (`SM.40/...`) — 1 halaman statis, pernyataan tidak ganggu tugas dinas + TTD Kepala Balai.
+  - **SK Kebenaran Dokumen** (`KT.200/...`) — judul 4 baris, tabel 6 kolom dengan contentEditable di seluruh sel; data otomatis dari `no_identitas`, `merk_tipe`, `no_rangka`, `no_polisi`. Pangkat/Gol = `Pembina Muda Tk.I / IV b`. Nomor Mesin default kosong (field belum ada di DB, di-handle inline-edit).
+  - **BA Pemeriksaan BMN** (`BA.158/...`) — daftar pemeriksa editable (4 default + Add/Remove), select pegawai dari API kepegawaian, input Nomor ST + Tanggal ST. Spelled date (Hari ini Kamis tanggal Dua Puluh Satu...). **Tidak ada TTD Kepala Balai** sesuai template resmi.
+  - Pattern reuse: setiap dokumen pakai `window.open()` + inject HTML/CSS print, KOP `/header-new.png`, Bookman Old Style 11pt, A4 dengan `@page margin: 0 0 28mm 0` untuk BSrE.
+  - Tombol di action bar + banner: blue (SPTJ Limit), purple (SPTJM), pink (SP Tugas), cyan (SK Kebenaran), orange (BA Pemeriksaan).
+  - Panel input nomor surat baru di top section (grid 2/3 kolom) untuk 5 dokumen baru, ditambah field input Nomor ST + Tanggal ST untuk BA Pemeriksaan.
+  - Helper `resetAllShows()` agar mutually exclusive antar dokumen.
+- **Key Files Created**:
+  - `frontend/src/app/bmn/auction-candidates/_components/SptjLimitDocument.tsx`
+  - `frontend/src/app/bmn/auction-candidates/_components/SptjmDocument.tsx`
+  - `frontend/src/app/bmn/auction-candidates/_components/SpTugasDocument.tsx`
+  - `frontend/src/app/bmn/auction-candidates/_components/SkKebenaranDokumenDocument.tsx`
+  - `frontend/src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx`
+  - `frontend/src/app/bmn/auction-candidates/_lib/pemeriksa-defaults.ts`
+- **Key Files Modified**:
+  - `frontend/src/app/bmn/auction-candidates/page.tsx`
+  - `frontend/src/app/bmn/auction-candidates/_lib/auction-helpers.ts`
+- **Validation**:
+  - `npx eslint "src/app/bmn/auction-candidates/**/*.{ts,tsx}" --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
+- **Constraints Honored**:
+  - Tidak ada migration backend (Nomor Mesin di-handle inline-edit di SK Kebenaran).
+  - Tidak ada perubahan di luar folder `auction-candidates/`.
+- **Next Steps**:
+  - [ ] Deploy batch BMN terbaru (issue #336, #338, #342, #344, #346, #348, #350, #352, #354, #356) ke SSH production saat user siap.
+
+---
 
 ### Issue #352 Summary:
 - [x] Ganti pendekatan lama JS page-boundary detection menjadi halaman A4 eksplisit khusus print.

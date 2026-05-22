@@ -1,3 +1,50 @@
+# Progress - Phase 52: 5 Supporting Documents for Auction
+
+> Document updated: 2026-05-22
+> Status: **MERGED** ✅
+
+---
+
+## Issue #356: 5 Supporting Documents for Auction Candidates
+
+### Completed:
+- [x] **Issue Created**: Issue #356.
+- [x] **PR Created/Merged**: PR #357 merged ke `main` (merge commit `1b88d7c`).
+- [x] **Branch Cleanup**: remote branch `issue/356-bmn-supporting-documents` deleted after merge.
+- [x] **SPTJ Nilai Limit** (`SM.41/K.18/TU/KAP.06.01/MM/YYYY`): 1 halaman, pernyataan tanggung jawab nilai limit + TTD Kepala Balai.
+- [x] **SPTJM** (`SPTJM.202/K.18/TU/KAP.06.01/MM/YYYY`): 1 halaman, pernyataan tanggung jawab mutlak + TTD Kepala Balai.
+- [x] **SP Tidak Mengganggu Tugas** (`SM.40/K.18/TU/KAP.06.01/MM/YYYY`): 1 halaman, pernyataan tidak ganggu tugas dinas + TTD Kepala Balai.
+- [x] **SK Kebenaran Fotokopi Dokumen Kepemilikan** (`KT.200/K.18/TU/KAP.06.01/MM/YYYY`): judul 4 baris, tabel 6 kolom (No, No Dokumen, Merk/Tipe, No Mesin, No Rangka, No Polisi). Semua sel `contentEditable`. Data otomatis dari `no_identitas`, `merk_tipe`, `no_rangka`, `no_polisi`. Pangkat/Gol `Pembina Muda Tk.I / IV b`. Nomor Mesin default kosong.
+- [x] **BA Pemeriksaan BMN** (`BA.158/K.18/TU/KAP.06.01/MM/YYYY`): 4 pemeriksa default editable (DHENY MARDIONO, HERYANTO SUMANBOWO, HARDI PURNAMA, TEGAR ANUGRAH). Select pegawai dari `/kepegawaian/employees/select`. Input Nomor ST + Tanggal ST. Spelled date. **Tanpa TTD Kepala Balai**.
+- [x] **Pattern reuse**: setiap dokumen pakai `window.open()` + inject HTML/CSS print, KOP `/header-new.png`, Bookman Old Style 11pt.
+- [x] **A4 + BSrE safe area**: `@page { size: A4; margin: 0 0 28mm 0; }` untuk semua dokumen baru.
+- [x] **Action bar tombol**: blue (SPTJ Limit), purple (SPTJM), pink (SP Tugas), cyan (SK Kebenaran), orange (BA Pemeriksaan).
+- [x] **Panel input nomor surat**: grid 2/3 kolom untuk 5 nomor baru + Nomor ST + Tanggal ST.
+- [x] **Helper `resetAllShows()`**: dokumen mutually exclusive (hanya 1 preview tampil sekaligus).
+- [x] **No backend migration**: Nomor Mesin di-handle inline-edit di SK Kebenaran (tidak nambah field DB).
+
+### Pending / TODO:
+- [ ] **Deploy ke SSH production**: Tunggu batch BMN siap deploy.
+
+### Key Files Created:
+- `frontend/src/app/bmn/auction-candidates/_components/SptjLimitDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/SptjmDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/SpTugasDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/SkKebenaranDokumenDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_lib/pemeriksa-defaults.ts`
+
+### Key Files Modified:
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+- `frontend/src/app/bmn/auction-candidates/_lib/auction-helpers.ts`
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/**/*.{ts,tsx}" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+---
+
 # Progress - Phase 51: SK Panitia Penghapusan BMN
 
 > Document updated: 2026-05-22
