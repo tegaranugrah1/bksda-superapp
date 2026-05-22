@@ -1,3 +1,44 @@
+# Progress - Phase 55: Generate ST Pemeriksaan Redirect (WIP)
+
+> Document updated: 2026-05-22 (sore)
+> Status: **WIP — siap user testing besok** ⏳
+
+---
+
+## Issue #364: Generate ST Pemeriksaan Button + Auto-fill Template + Cetak Fix + TTD Group Rule
+
+### Completed (di branch `issue/364-generate-st-pemeriksaan`):
+- [x] **Issue Created**: Issue #364.
+- [x] **Branch + WIP Commit**: `issue/364-generate-st-pemeriksaan` di-push (commit `8523646`).
+- [x] **Tombol indigo "Generate ST Pemeriksaan"**: Di action bar dan banner `/bmn/auction-candidates`. Onclick `router.push('/kepegawaian/surat-tugas/create?template=bmn-pemeriksaan')`.
+- [x] **ST create auto-fill via query param**: `useEffect` deteksi `template=bmn-pemeriksaan`, set state via `templateAppliedRef` (one-shot).
+- [x] **Klasifikasi**: `KAP.05` saat template aktif.
+- [x] **Sumber Dana**: opsi baru `bmn` ("BMN Penghapusan (tanpa biaya)") di SUMBER_DANA_OPTIONS create page.
+- [x] **Menimbang 2 items + Dasar 8 peraturan**: Sama dengan template di builder.
+- [x] **buildBiayaText**: return empty saat `sumberDana === 'bmn'` → baris biaya skip.
+- [x] **buildUntukText fix**: Support mode freeform (clean text dari `namaKegiatan`). Saat `bmn`, paksa freeform tanpa suffix "selama X hari" meski user isi tanggal mulai/selesai.
+- [x] **handlePrint create page synced dengan builder**: CSS rules lengkap (KOP, surat-content, untuk-entry break-inside, @page margin 3cm/0.7cm) → cetak/save PDF tidak rusak.
+- [x] **Conditional laporan tertulis text**: `bmn` pakai "7 (tujuh) hari" (tanpa "kerja"). Default tetap "7 (tujuh) hari kerja".
+- [x] **Rule global TTD**: Bungkus `Demikian + TTD + Tembusan` jadi `.penutup-ttd-group` dengan `pageBreakInside: avoid`. Kalau TTD tidak fit halaman, seluruh blok turun ke halaman berikutnya.
+
+### Pending / TODO Besok:
+- [ ] **User testing**: Refresh, klik tombol indigo, cek Untuk format (harus 1 baris saja, tanpa "dari... ke... selama"), preview cetak, save PDF, rule TTD pagination.
+- [ ] **Fix bugs jika ada** di branch yang sama.
+- [ ] **PR + merge** kalau testing OK.
+
+### Key Files Modified:
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+---
+
 # Progress - Phase 54: BA Pemeriksaan Lampiran + ST BMN Template
 
 > Document updated: 2026-05-22

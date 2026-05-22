@@ -124,16 +124,18 @@ git push origin main
 - [x] Issue #358: Add `no_mesin` field for motor vehicles with no_polisi (migration + model + resource + request + UI conditional + auto-fill SK Kebenaran). PR #359 merged ke `main` (merge commit `bed9cce`); remote branch deleted.
 - [x] Issue #361: Add lampiran with asset table and dual-column TTD to BA Pemeriksaan document. PR #362 merged ke `main` (merge commit `6b2ac4a`); remote branch deleted.
 - [x] Issue #360: Add Apply BMN Penghapusan template button to ST builder (one-click preset Menimbang + Dasar + Klasifikasi + Untuk freeform). PR #363 merged ke `main` (merge commit `270394d`); remote branch deleted.
+- [ ] Issue #364: Generate ST Pemeriksaan button on auction-candidates redirects to ST create with prefilled template. **WIP — siap testing user. Branch `issue/364-generate-st-pemeriksaan` pushed.**
 
 | Field | Value |
 |-------|-------|
 | **Issue Terakhir Selesai** | Issue #360: ST BMN Penghapusan template button (PR #363 merged) |
-| **Issue Sedang Dikerjakan** | None |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `270394d` |
-| **Status** | DONE: BA Pemeriksaan punya halaman lampiran (tabel 11 kolom + dual-column TTD); ST Builder punya tombol orange Apply Template BMN Penghapusan untuk one-click generate ST Pemeriksaan BMN. Deploy production pending. |
+| **Issue Sedang Dikerjakan** | Issue #364: Generate ST Pemeriksaan redirect (WIP, siap user testing) |
+| **Branch Aktif** | `main` (WIP di `issue/364-generate-st-pemeriksaan`) |
+| **Commit Terakhir di Main** | `c34e809` |
+| **WIP Commit** | `8523646` di branch `issue/364-generate-st-pemeriksaan` |
+| **Status** | WIP: Tombol Generate ST Pemeriksaan di /bmn/auction-candidates → redirect /kepegawaian/surat-tugas/create?template=bmn-pemeriksaan dengan auto-fill template. Cetak format sudah diperbaiki (CSS sync dengan builder). Rule global TTD: Demikian+TTD+Tembusan satu group break-inside:avoid. Menunggu user testing besok. Deploy production pending. |
 | **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-22T18:45:00+08:00 |
+| **Timestamp** | 2026-05-22T20:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -169,6 +171,44 @@ git push origin main
 
 ### Next Steps:
 - [ ] Deploy batch BMN terbaru ke SSH production saat user siap (jangan lupa `php artisan migrate` di production untuk #358).
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-22 - Issue #364 WIP: Generate ST Pemeriksaan redirect + Untuk fix + Print fix + TTD group rule):**
+- **Objective**: Tombol di `/bmn/auction-candidates` yang redirect ke ST create dengan auto-fill template BMN Penghapusan. Plus fix bug: format Untuk freeform vs structured, cetak rusak, TTD jatuh sendiri ke halaman 2.
+- **Status**: WIP. Branch `issue/364-generate-st-pemeriksaan` di-push (commit `8523646`). Belum PR — menunggu user testing besok.
+- **GitHub**:
+  - Issue: #364 `feat(bmn+kepegawaian): Generate ST Pemeriksaan button redirects to ST create with prefilled template`
+  - Branch: `issue/364-generate-st-pemeriksaan`
+  - Commit WIP: `8523646`
+- **Accomplishments**:
+  - **Tombol indigo "Generate ST Pemeriksaan"** di action bar dan banner `/bmn/auction-candidates`. Onclick redirect ke `/kepegawaian/surat-tugas/create?template=bmn-pemeriksaan`.
+  - **ST create page** detect query param `template=bmn-pemeriksaan` saat mount, apply via useEffect dengan `templateAppliedRef` (one-shot):
+    - Klasifikasi `KAP.05`
+    - Sumber Dana `bmn` (label "BMN Penghapusan (tanpa biaya)" — opsi baru di SUMBER_DANA_OPTIONS)
+    - Menimbang 2 items + Dasar 8 peraturan (sama persis dengan template di builder)
+    - Mode freeform: clear `activityPrefix/kotaAsal/kotaTujuan/tempatKegiatan`, set `namaKegiatan` ke template default
+  - **buildBiayaText**: return empty saat `sumberDana === 'bmn'` agar baris biaya skip.
+  - **buildUntukText fix di create page**: support mode freeform (sebelumnya hardcode "dari ... ke ... dalam rangka..."). Saat sumberDana `bmn`, paksa freeform tanpa peduli activityPrefix/kotaAsal — dan TIDAK render suffix "selama X hari".
+  - **handlePrint create page synced dengan builder**: full CSS rules (KOP `header-new.png`, `surat-content` margin, `untuk-entry` break-inside avoid, `@page` margin 3cm/0.7cm, dll) sehingga cetak/save PDF tidak rusak lagi.
+  - **STBuilderPreview**: text laporan tertulis conditional — `bmn` pakai "7 (tujuh) hari" (tanpa "kerja"), default tetap "7 (tujuh) hari kerja".
+  - **Rule global TTD (semua ST)**: bungkus `Demikian + TTD + Tembusan` jadi satu group `.penutup-ttd-group` dengan `pageBreakInside: avoid`. Kalau TTD tidak fit halaman, seluruh blok (termasuk kalimat Demikian) turun ke halaman berikutnya. CSS rule ditambahkan di kedua print handler (builder + create).
+- **Key Files Modified**:
+  - `frontend/src/app/bmn/auction-candidates/page.tsx` — useRouter import, ClipboardList icon, `handleGenerateStPemeriksaan` handler, tombol indigo di action bar + banner
+  - `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx` — `bmn` option, buildBiayaText, buildUntukText (forced freeform), template useEffect, handlePrint synced, sumberDana prop ke STBuilderPreview, `.penutup-ttd-group` di print CSS
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx` — wrap Demikian+TTD+Tembusan jadi `.penutup-ttd-group`, conditional laporan text
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx` — `.penutup-ttd-group` di print CSS
+- **Validation**:
+  - `npx eslint --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
+- **Known Issues / Pending Testing**:
+  - User akan test besok: format Untuk freeform (harus 1 baris saja, tanpa "selama X hari"), preview cetak, save PDF, dan rule TTD-not-orphaned.
+  - Belum PR / merge — menunggu user testing besok.
+- **Next Steps Besok**:
+  - User test di browser (refresh, klik tombol indigo, cek Untuk format, cek cetak, cek TTD pagination).
+  - Kalau ada bug → fix dulu di branch yang sama.
+  - Kalau OK → PR + merge + update HANDOFF.md.
 
 ---
 
