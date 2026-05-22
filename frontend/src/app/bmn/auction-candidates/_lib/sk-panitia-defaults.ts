@@ -1,6 +1,7 @@
 // Default text content for the SK Panitia Penghapusan BMN builder.
 
 import {
+  DEFAULT_KEPALA_BALAI,
   newSkBuilderItem,
   type SkBuilderItem,
   type SkMemutuskan,
@@ -17,6 +18,13 @@ export interface PanitiaAnggota {
 const makeId = () => "id" + Math.random().toString(36).slice(2);
 
 export const DEFAULT_PANITIA_SUSUNAN: PanitiaAnggota[] = [
+  {
+    id: makeId(),
+    nama: DEFAULT_KEPALA_BALAI.nama,
+    nip: DEFAULT_KEPALA_BALAI.nip,
+    jabatanInstansi: "Kepala Balai Konservasi Sumber Daya Alam\nKalimantan Timur",
+    jabatanKegiatan: "Penanggung Jawab",
+  },
   { id: makeId(), nama: "Dheny Mardiono, S.Hut., M.Sc.", nip: "19750314 199903 1 004", jabatanInstansi: "Kepala Sub Bagian Tata Usaha", jabatanKegiatan: "Ketua" },
   { id: makeId(), nama: "Heryanto Sumanbowo, S.Hut.", nip: "198305 28200112 1 001", jabatanInstansi: "PEH Ahli Muda", jabatanKegiatan: "Sekretaris" },
   { id: makeId(), nama: "Tegar Anugrah, A.Md.Kom.", nip: "19990707 202506 1 006", jabatanInstansi: "Pranata Komputer Terampil", jabatanKegiatan: "Anggota" },

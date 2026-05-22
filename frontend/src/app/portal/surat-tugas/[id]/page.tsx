@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, FileText, Calendar, MapPin, Users } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
@@ -36,7 +36,6 @@ interface SuratTugasDetail {
 
 export default function SuratTugasPreviewPage() {
   const params = useParams();
-  const router = useRouter();
   const [data, setData] = useState<SuratTugasDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,8 +45,9 @@ export default function SuratTugasPreviewPage() {
       try {
         const resp = await api.get(`/surat-tugas/my/${params.id}`);
         setData(resp.data.data);
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Gagal memuat data surat tugas");
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
+        setError(error.response?.data?.message || "Gagal memuat data surat tugas");
       } finally {
         setLoading(false);
       }

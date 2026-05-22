@@ -19,6 +19,38 @@ interface SkPanitiaDocumentProps {
   susunanPanitia: PanitiaAnggota[];
 }
 
+function renderKeduaText(text: string) {
+  return text.split("\n").filter((line) => line.trim().length > 0).map((line, index) => {
+    const trimmedLine = line.trim();
+    const subItemMatch = trimmedLine.match(/^([a-z]\.)\s+(.*)$/i);
+    const numberedItemMatch = trimmedLine.match(/^(\d+\.)\s+(.*)$/);
+
+    if (subItemMatch) {
+      return (
+        <div className="skp-kedua-item skp-kedua-subitem" key={`${trimmedLine}-${index}`}>
+          <span className="skp-kedua-marker">{subItemMatch[1]}</span>
+          <span className="skp-kedua-item-text">{subItemMatch[2]}</span>
+        </div>
+      );
+    }
+
+    if (numberedItemMatch) {
+      return (
+        <div className="skp-kedua-item" key={`${trimmedLine}-${index}`}>
+          <span className="skp-kedua-marker">{numberedItemMatch[1]}</span>
+          <span className="skp-kedua-item-text">{numberedItemMatch[2]}</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="skp-kedua-line" key={`${trimmedLine}-${index}`}>
+        {trimmedLine}
+      </div>
+    );
+  });
+}
+
 export function handlePrintSkPanitia() {
   const printContent = document.getElementById("sk-panitia-print-root");
   if (!printContent) {
@@ -51,7 +83,7 @@ export function handlePrintSkPanitia() {
           .skp-print-root .skp-page.skp-main-document.skp-main-paginated {
             height: 297mm !important;
             min-height: 297mm !important;
-            padding: 5mm 20mm 18mm !important;
+            padding: 5mm 20mm 28mm !important;
             overflow: hidden !important;
             position: relative !important;
             box-shadow: none !important;
@@ -117,23 +149,28 @@ export function handlePrintSkPanitia() {
           .skp-mengingat-item:first-child { padding-top: 0; }
           .skp-mengingat-text { text-align: justify; }
           /* Memutuskan */
-          .skp-memutuskan { text-align: center; font-weight: bold; margin-bottom: 12px; }
+          .skp-memutuskan { text-align: center; font-weight: bold; margin-bottom: 8px; }
           /* TTD block */
-          .skp-ttd { width: 20rem; margin-left: auto; margin-top: 3rem; }
+          .skp-ttd { width: 20rem; margin-left: auto; margin-top: 1.25rem; }
           .skp-ttd, .skp-ttd p { font-weight: normal !important; text-align: left !important; }
-          .skp-ttd p { margin: 0; padding: 0; line-height: 1.3; }
+          .skp-ttd p { margin: 0; padding: 0; line-height: 1.25; }
           .skp-ttd-meta { display: grid !important; grid-template-columns: max-content auto 1fr; column-gap: 0.4rem; line-height: 1.3; }
           .skp-ttd-meta span { font-weight: normal !important; text-align: left !important; }
           .skp-ketiga-group { break-inside: avoid !important; page-break-inside: avoid !important; }
           .skp-signature-name { font-weight: normal !important; }
-          .skp-ttd-placeholder { height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 2rem; margin-bottom: 2rem; }
+          .skp-ttd-placeholder { height: 86px; padding-top: 28px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 0.75rem; margin-bottom: 0.75rem; }
           .skp-continuation-word { position: absolute; right: 23mm; bottom: 31mm; width: 163mm; height: 0; line-height: 11pt; overflow: visible; white-space: nowrap; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 20; }
           /* Tembusan */
-          .skp-tembusan { margin-top: 2rem; }
+          .skp-tembusan { margin-top: 1rem; }
           .skp-tembusan, .skp-tembusan p { font-weight: normal !important; text-align: left !important; }
-          .skp-tembusan p { margin: 0; padding: 0; line-height: 1.5; }
+          .skp-tembusan p { margin: 0; padding: 0; line-height: 1.3; }
           /* pre-wrap for KEDUA */
-          .skp-kedua-text { white-space: pre-wrap; }
+          .skp-kedua-text { display: grid; row-gap: 0; white-space: normal; }
+          .skp-kedua-line { text-align: justify; }
+          .skp-kedua-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); column-gap: 0; text-align: left; }
+          .skp-kedua-subitem { margin-left: 8mm; }
+          .skp-kedua-marker { text-align: left; }
+          .skp-kedua-item-text { text-align: justify; }
           /* Lampiran */
           .skp-lampiran {
             width: 210mm;
@@ -170,7 +207,7 @@ export function handlePrintSkPanitia() {
         .skp-print-root .skp-page.skp-main-document.skp-main-paginated {
           height: 297mm !important;
           min-height: 297mm !important;
-          padding: 5mm 20mm 18mm !important;
+          padding: 5mm 20mm 28mm !important;
           overflow: hidden !important;
           position: relative !important;
           box-shadow: none !important;
@@ -210,9 +247,9 @@ export function handlePrintSkPanitia() {
       void body.offsetHeight;
 
       const mmToPx = 96 / 25.4;
-      const firstPageContentH = 280 * mmToPx;
-      const continuationContentH = 267 * mmToPx;
-      const markerReserveH = 5 * mmToPx;
+      const firstPageContentH = 264 * mmToPx;
+      const continuationContentH = 251 * mmToPx;
+      const markerReserveH = 9 * mmToPx;
 
       const mainDoc = doc.querySelector(".skp-main-document");
       if (!mainDoc) { printWindow.print(); return; }
@@ -443,7 +480,7 @@ export function SkPanitiaDocument({
   const pageStyle: React.CSSProperties = {
     fontFamily: "'Bookman Old Style', Georgia, serif",
     fontSize: "11pt",
-    lineHeight: "1.4",
+    lineHeight: "1.25",
   };
 
   return (
@@ -545,7 +582,7 @@ export function SkPanitiaDocument({
         .skp-print-root .skp-memutuskan {
           text-align: center;
           font-weight: bold;
-          margin-bottom: 12px;
+          margin-bottom: 8px;
         }
         .skp-print-root .skp-continuation-word {
           text-align: right !important;
@@ -555,7 +592,7 @@ export function SkPanitiaDocument({
         .skp-print-root .skp-ttd {
           width: 20rem;
           margin-left: auto;
-          margin-top: 3rem;
+          margin-top: 1.25rem;
         }
         .skp-print-root .skp-ttd,
         .skp-print-root .skp-ttd p,
@@ -574,23 +611,43 @@ export function SkPanitiaDocument({
         }
         .skp-print-root .skp-ttd-placeholder {
           box-sizing: border-box;
-          height: 112px;
-          padding-top: 40px;
+          height: 86px;
+          padding-top: 28px;
           padding-left: 1.35cm;
           color: #94a3b8;
           font-weight: normal !important;
           text-align: left !important;
-          margin-top: 2rem;
-          margin-bottom: 2rem;
+          margin-top: 0.75rem;
+          margin-bottom: 0.75rem;
         }
         .skp-print-root .skp-tembusan {
-          margin-top: 2rem;
+          margin-top: 1rem;
         }
         .skp-print-root .skp-tembusan p {
-          line-height: 1.5;
+          line-height: 1.3;
         }
         .skp-print-root .skp-kedua-text {
-          white-space: pre-wrap;
+          display: grid;
+          row-gap: 0;
+          white-space: normal;
+        }
+        .skp-print-root .skp-kedua-line {
+          text-align: justify;
+        }
+        .skp-print-root .skp-kedua-item {
+          display: grid;
+          grid-template-columns: 7mm minmax(0, 1fr);
+          column-gap: 0;
+          text-align: left;
+        }
+        .skp-print-root .skp-kedua-subitem {
+          margin-left: 8mm;
+        }
+        .skp-print-root .skp-kedua-marker {
+          text-align: left;
+        }
+        .skp-print-root .skp-kedua-item-text {
+          text-align: justify;
         }
         .skp-print-root .skp-lampiran {
           page-break-before: always;
@@ -641,6 +698,7 @@ export function SkPanitiaDocument({
           <p className="skp-title-tentang m-0 mt-2">TENTANG</p>
           <p className="m-0">PANITIA PENGHAPUSAN BARANG MILIK NEGARA</p>
           <p className="m-0">BERUPA ALAT ANGKUTAN BERMOTOR</p>
+          <p className="m-0">PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</p>
         </div>
 
         <div className="skp-subtitle skp-body mx-auto mt-3 w-[166mm]">
@@ -695,17 +753,17 @@ export function SkPanitiaDocument({
                 </td>
               </tr>
               <tr className="skp-mengingat-row">
-                <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.6rem" }}>KESATU</td>
-                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.6rem" }}>:</td>
-                <td style={{ verticalAlign: "top", paddingTop: "0.6rem", textAlign: "justify" }}>
+                <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.4rem" }}>KESATU</td>
+                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.4rem" }}>:</td>
+                <td style={{ verticalAlign: "top", paddingTop: "0.4rem", textAlign: "justify" }}>
                   {memutuskan.kesatu}
                 </td>
               </tr>
               <tr className="skp-mengingat-row">
-                <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.6rem" }}>KEDUA</td>
-                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.6rem" }}>:</td>
-                <td style={{ verticalAlign: "top", paddingTop: "0.6rem", textAlign: "justify" }}>
-                  <span className="skp-kedua-text" style={{ whiteSpace: "pre-wrap" }}>{memutuskan.kedua}</span>
+                <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.4rem" }}>KEDUA</td>
+                <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.4rem" }}>:</td>
+                <td style={{ verticalAlign: "top", paddingTop: "0.4rem", textAlign: "justify" }}>
+                  <div className="skp-kedua-text">{renderKeduaText(memutuskan.kedua)}</div>
                 </td>
               </tr>
             </tbody>
@@ -716,9 +774,9 @@ export function SkPanitiaDocument({
             <table className="skp-mengingat-table mt-0 w-full" style={{ borderCollapse: "collapse" }}>
               <tbody>
                 <tr className="skp-mengingat-row">
-                  <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.6rem" }}>KETIGA</td>
-                  <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.6rem" }}>:</td>
-                  <td style={{ verticalAlign: "top", paddingTop: "0.6rem", textAlign: "justify" }}>
+                  <td style={{ width: "28mm", verticalAlign: "top", paddingTop: "0.4rem" }}>KETIGA</td>
+                  <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top", paddingTop: "0.4rem" }}>:</td>
+                  <td style={{ verticalAlign: "top", paddingTop: "0.4rem", textAlign: "justify" }}>
                     {memutuskan.ketiga}
                   </td>
                 </tr>
@@ -726,7 +784,7 @@ export function SkPanitiaDocument({
             </table>
 
             {/* TTD */}
-            <div className="skp-ttd signature mt-6 ml-auto w-80">
+            <div className="skp-ttd signature mt-4 ml-auto w-80">
               <div className="skp-ttd-meta" style={{ display: "grid", gridTemplateColumns: "max-content auto 1fr", columnGap: "0.4rem" }}>
                 <span>Ditetapkan di</span>
                 <span>:</span>
@@ -736,14 +794,14 @@ export function SkPanitiaDocument({
                 <span>{formatDateLong(today)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
-              <div className="skp-ttd-placeholder mt-4 h-24 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+              <div className="skp-ttd-placeholder mt-3 h-20 box-border pt-7 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
               <p className="skp-signature-name m-0 mt-4">{kepalaBalai.nama}</p>
               <p className="m-0">NIP. {kepalaBalai.nip}</p>
             </div>
 
             {/* Tembusan */}
             {tembusan.length > 0 && (
-              <div className="skp-tembusan mt-10">
+              <div className="skp-tembusan mt-4">
                 <p className="m-0">Tembusan :</p>
                 {tembusan.length === 1 ? (
                   <p className="m-0">{tembusan[0].text}</p>
@@ -800,7 +858,12 @@ export function SkPanitiaDocument({
                   <td style={{ border: "1px solid black", padding: "0.5rem", verticalAlign: "middle" }}>
                     {item.nama}<br/>
                     NIP. {item.nip}<br/>
-                    {item.jabatanInstansi}
+                    {item.jabatanInstansi.split("\n").map((line, lineIndex) => (
+                      <span key={`${item.id}-jabatan-${lineIndex}`}>
+                        {lineIndex > 0 && <br />}
+                        {line}
+                      </span>
+                    ))}
                   </td>
                   <td style={{ border: "1px solid black", padding: "0.5rem", textAlign: "center", verticalAlign: "middle" }}>{item.jabatanKegiatan}</td>
                 </tr>

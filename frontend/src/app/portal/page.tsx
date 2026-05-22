@@ -8,7 +8,7 @@ import {
   Boxes, LayoutGrid, Package, FileText, LogOut,
   Fingerprint, KeyRound, Loader2, BadgeCheck, Mail, Phone, Briefcase,
   HandHelping, Sun, Sunset, Moon, Pencil, Sparkles, Bell,
-  Eye, Users, ClipboardList, Building2, X, MapPin, Calendar, Car,
+  Eye, Users, ClipboardList, Building2,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -42,6 +42,11 @@ interface SuratTugasItem {
   file_surat_path: string | null;
 }
 
+interface DasarItem {
+  id?: string;
+  text: string;
+}
+
 interface SuratTugasDetail {
   id: string;
   nomor_surat: string | null;
@@ -56,8 +61,8 @@ interface SuratTugasDetail {
   sumber_dana: string | null;
   nama_plh: string | null;
   keterangan: string | null;
-  dasar: unknown;
-  menimbang: unknown;
+  dasar: DasarItem[] | string | null;
+  menimbang: DasarItem[] | string | null;
   tembusan: string[] | null;
   employees?: Array<{
     id: string;
@@ -131,11 +136,12 @@ export default function PersonalDashboard() {
   const [editData, setEditData] = useState({ email: "", phone: "" });
   const [editLoading, setEditLoading] = useState(false);
 
+  const borrowedAssets = data?.my_assets;
   const filteredMyAssets = useMemo(() => {
-    if (!data?.my_assets) return myAssets;
-    const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
+    if (!borrowedAssets) return myAssets;
+    const borrowedIds = new Set(borrowedAssets.map(a => String(a.id)));
     return myAssets.filter(a => !borrowedIds.has(a.id));
-  }, [myAssets, data?.my_assets]);
+  }, [myAssets, borrowedAssets]);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -624,8 +630,8 @@ export default function PersonalDashboard() {
               id: stDetail.id,
               nomor_surat: stDetail.nomor_surat,
               kode_surat: stDetail.kode_surat,
-              menimbang: stDetail.menimbang as any,
-              dasar: stDetail.dasar as any,
+              menimbang: stDetail.menimbang,
+              dasar: stDetail.dasar,
               maksud_tujuan: stDetail.maksud_tujuan,
               tempat_tujuan: stDetail.tempat_tujuan,
               tanggal_mulai: stDetail.tanggal_mulai,

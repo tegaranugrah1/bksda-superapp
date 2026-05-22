@@ -727,7 +727,7 @@ export default function BmnAuctionCandidatesPage() {
                         <div className="mt-2 rounded-lg bg-teal-50 px-2.5 py-1.5 text-[11px] text-teal-800 dark:bg-teal-500/10 dark:text-teal-300">
                           <p className="font-semibold">{item.nama}</p>
                           <p>NIP. {item.nip}</p>
-                          <p>{item.jabatanInstansi}</p>
+                          <p className="whitespace-pre-line">{item.jabatanInstansi}</p>
                         </div>
                       )}
                     </div>
