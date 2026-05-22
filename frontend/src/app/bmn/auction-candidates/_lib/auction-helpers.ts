@@ -15,6 +15,7 @@ export interface AuctionAsset {
   tahun_perolehan?: number | null;
   no_polisi?: string | null;
   no_identitas?: string | null;
+  no_mesin?: string | null;
   no_rangka?: string | null;
 }
 

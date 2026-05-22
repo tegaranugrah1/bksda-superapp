@@ -277,6 +277,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   <EditableRow label="No BPKB" value={asset.no_bpkp} field="no_bpkp" onSave={handleFieldSave} />
                   <EditableRow label="No STNK" value={asset.no_stnk} field="no_stnk" onSave={handleFieldSave} />
                   {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
+                    <EditableRow label="No Mesin" value={asset.no_mesin} field="no_mesin" onSave={handleFieldSave} />
+                  )}
+                  {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
                     <EditableRow label="No Rangka" value={asset.no_rangka} field="no_rangka" onSave={handleFieldSave} />
                   )}
                   <EditableRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} field="tanggal_pajak_stnk" onSave={handleFieldSave} type="date" badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
@@ -291,6 +294,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   <DetailRow label="No Polisi" value={asset.no_polisi} />
                   <DetailRow label="No BPKB" value={asset.no_bpkp} />
                   <DetailRow label="No STNK" value={asset.no_stnk} />
+                  {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
+                    <DetailRow label="No Mesin" value={asset.no_mesin} />
+                  )}
                   {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
                     <DetailRow label="No Rangka" value={asset.no_rangka} />
                   )}

@@ -27,6 +27,7 @@ class UpdateAssetRequest extends FormRequest
             'kondisi' => ['sometimes', 'string', Rule::in(['Baik', 'Rusak Ringan', 'Rusak Berat'])],
             'no_polisi' => ['sometimes', 'nullable', 'string'],
             'no_stnk' => ['sometimes', 'nullable', 'string'],
+            'no_mesin' => ['sometimes', 'nullable', 'string'],
             'no_rangka' => ['sometimes', 'nullable', 'string'],
             'no_bpkp' => ['sometimes', 'nullable', 'string'],
             'no_dokumen' => ['sometimes', 'nullable', 'string'],
