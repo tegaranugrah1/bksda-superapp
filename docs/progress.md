@@ -1,3 +1,47 @@
+# Progress - Phase 53: Add no_mesin Field for Motor Vehicles
+
+> Document updated: 2026-05-22
+> Status: **MERGED** ✅
+
+---
+
+## Issue #358: Add no_mesin Field for Motor Vehicles with no_polisi
+
+### Completed:
+- [x] **Issue Created**: Issue #358.
+- [x] **PR Created/Merged**: PR #359 merged ke `main` (merge commit `bed9cce`).
+- [x] **Branch Cleanup**: remote branch `issue/358-add-no-mesin` deleted after merge.
+- [x] **Migration**: `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string, posisi `after('no_stnk')`.
+- [x] **Backend Model**: `Asset` `$fillable` ditambah `no_mesin`.
+- [x] **Backend Resource**: `AssetResource` expose `no_mesin` di response API.
+- [x] **Backend Validation**: `UpdateAssetRequest` rule `['sometimes', 'nullable', 'string']`.
+- [x] **Frontend Detail Asset**: `bmn/assets/[id]/page.tsx` tambah `EditableRow` + `DetailRow` untuk "No Mesin" — conditional render hanya untuk `ALAT ANGKUTAN BERMOTOR` + `no_polisi` valid (mirror pattern `no_rangka`).
+- [x] **Frontend Auction Helpers**: `AuctionAsset` interface ditambah `no_mesin?: string | null`.
+- [x] **SK Kebenaran Auto-fill**: `SkKebenaranDokumenDocument.tsx` kolom Nomor Mesin auto-fill dari `asset.no_mesin || ""` (tetap editable inline via `contentEditable`).
+- [x] **Local migration applied**: `php artisan migrate --path=...` SELESAI di local DB.
+
+### Pending / TODO:
+- [ ] **Production migrate**: Wajib `php artisan migrate` di backend container saat deploy ke SSH production.
+
+### Key Files Created:
+- `backend/database/migrations/2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php`
+
+### Key Files Modified:
+- `backend/app/Modules/Bmn/Models/Asset.php`
+- `backend/app/Modules/Bmn/Resources/AssetResource.php`
+- `backend/app/Modules/Bmn/Requests/UpdateAssetRequest.php`
+- `frontend/src/app/bmn/assets/[id]/page.tsx`
+- `frontend/src/app/bmn/auction-candidates/_lib/auction-helpers.ts`
+- `frontend/src/app/bmn/auction-candidates/_components/SkKebenaranDokumenDocument.tsx`
+
+### Validation:
+- [x] `php -l` clean for 4 PHP files (Asset.php, AssetResource.php, UpdateAssetRequest.php, migration).
+- [x] `npx eslint "src/app/bmn/**" --max-warnings=0` clean.
+- [x] `npx tsc --noEmit` clean.
+- [x] `npm run build` clean (59/59 static pages).
+
+---
+
 # Progress - Phase 52: 5 Supporting Documents for Auction
 
 > Document updated: 2026-05-22

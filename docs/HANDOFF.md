@@ -121,16 +121,26 @@ git push origin main
 - [x] Issue #352: Add continuation words at page breaks in SK document. Branch `issue/352-sk-continuation-words` siap PR/merge.
 - [x] Issue #354: Add SK Panitia Penghapusan BMN document. PR #355 merged ke `main` (merge commit `c353bee`); remote branch deleted.
 - [x] Issue #356: Add 5 supporting documents for auction candidates (SPTJ Nilai Limit, SPTJM, SP Tidak Ganggu Tugas, SK Kebenaran Dokumen, BA Pemeriksaan BMN). PR #357 merged ke `main` (merge commit `1b88d7c`); remote branch deleted.
+- [x] Issue #358: Add `no_mesin` field for motor vehicles with no_polisi (migration + model + resource + request + UI conditional + auto-fill SK Kebenaran). PR #359 merged ke `main` (merge commit `bed9cce`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #356: 5 dokumen pendukung lelang BMN (PR #357 merged) |
+| **Issue Terakhir Selesai** | Issue #358: Add no_mesin field for motor vehicles (PR #359 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `1b88d7c` |
-| **Status** | DONE: 5 dokumen pendukung lelang baru di /bmn/auction-candidates — SPTJ Nilai Limit, SPTJM, SP Tidak Mengganggu Tugas, SK Kebenaran Fotokopi Dokumen Kepemilikan (tabel editable), BA Pemeriksaan BMN (pemeriksa list editable). Deploy production pending. |
+| **Commit Terakhir di Main** | `bed9cce` |
+| **Status** | DONE: no_mesin field tersedia untuk kendaraan bermotor (jenis_bmn=ALAT ANGKUTAN BERMOTOR + no_polisi). SK Kebenaran Fotokopi auto-fill kolom Nomor Mesin dari asset. Local migration applied. Deploy production pending. |
 | **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-22T16:30:00+08:00 |
+| **Timestamp** | 2026-05-22T17:00:00+08:00 |
+
+### Issue #358 Summary:
+- [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
+- [x] `Asset` model `$fillable` + `AssetResource` (expose) + `UpdateAssetRequest` validation.
+- [x] Frontend `bmn/assets/[id]/page.tsx` — `EditableRow` + `DetailRow` "No Mesin" conditional render (mirror pattern `no_rangka`).
+- [x] `AuctionAsset` interface ditambah `no_mesin?: string | null`.
+- [x] `SkKebenaranDokumenDocument.tsx` kolom Nomor Mesin auto-fill dari `asset.no_mesin || ""` (tetap editable inline).
+- [x] Local DB migration applied (127.09ms).
+- [x] Validation clean: `php -l`, `npx eslint --max-warnings=0`, `npx tsc --noEmit`, `npm run build`.
 
 ### Issue #356 Summary:
 - [x] Tambah 5 dokumen pendukung lelang BMN di `/bmn/auction-candidates`.
@@ -156,7 +166,7 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Deploy batch BMN terbaru ke SSH production saat user siap.
+- [ ] Deploy batch BMN terbaru ke SSH production saat user siap (jangan lupa `php artisan migrate` di production untuk #358).
 
 ---
 
