@@ -165,7 +165,7 @@ export function SkKebenaranDokumenDocument({ number, assets, kepalaBalai }: SkKe
                     <td>{index + 1}.</td>
                     <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.no_identitas || ""}</td>
                     <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.merk_tipe || ""}</td>
-                    <td contentEditable suppressContentEditableWarning className="doc-editable"></td>
+                    <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.no_mesin || ""}</td>
                     <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.no_rangka || ""}</td>
                     <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.no_polisi || ""}</td>
                   </tr>
