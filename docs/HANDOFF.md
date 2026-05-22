@@ -119,23 +119,32 @@ git push origin main
 - [x] Issue #348: Align colons in SK Ditetapkan/Pada tanggal block. PR #349 merged ke `main` (merge commit `b29e5f5`).
 - [x] Issue #350: Add SK Builder panel beside SK preview (Menimbang/Mengingat/Memutuskan/Tembusan editable + Kepala Balai picker dari kepegawaian). PR #351 merged ke `main` (merge commit `b833a20`).
 - [x] Issue #352: Add continuation words at page breaks in SK document. Branch `issue/352-sk-continuation-words` siap PR/merge.
-- [ ] Issue #354 (IN PROGRESS): Add SK Panitia Penghapusan BMN document. Branch `issue/354-sk-panitia-penghapusan`.
+- [x] Issue #354: Add SK Panitia Penghapusan BMN document. PR #355 merged ke `main` (merge commit `c353bee`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #352: SK continuation words (PR #353 merged) |
-| **Issue Sedang Dikerjakan** | Issue #354: SK Panitia Penghapusan — branch `issue/354-sk-panitia-penghapusan` |
-| **Branch Aktif** | `issue/354-sk-panitia-penghapusan` |
-| **Commit Terakhir di Branch** | `3c03738` |
-| **Status** | WIP: SK Panitia + lampiran tabel (No/Nama-NIP-Jabatan/Jabatan Kegiatan) + employee search + spacing tuning. TODO: (1) spacing MEMUTUSKAN→Tembusan masih besar, (2) sub-item c/d di KEDUA tidak align dengan a/b. |
-| **Model Terakhir** | Kiro |
-| **Timestamp** | 2026-05-21T18:00:00+08:00 |
+| **Issue Terakhir Selesai** | Issue #354: SK Panitia Penghapusan BMN (PR #355 merged) |
+| **Issue Sedang Dikerjakan** | None |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir di Main** | `c353bee` |
+| **Status** | DONE: SK Panitia document, builder toggle, employee search, lampiran panitia, Kepala Balai default Penanggung Jawab, safe-area BSrE pagination, continuation words, KETIGA+TTD grouping, and lint cleanup merged. Deploy production pending. |
+| **Model Terakhir** | Codex |
+| **Timestamp** | 2026-05-22T11:05:00+08:00 |
 
-### TODO Issue #354:
-- [ ] Kurangi spacing antara MEMUTUSKAN → KETIGA → TTD → Tembusan (masih terlalu besar)
-- [ ] Fix alignment sub-item c, d di KEDUA agar sejajar dengan a, b (indentasi)
-- [ ] Verify cetak PDF final
-| **Timestamp** | 2026-05-21T23:59:00+08:00 |
+### Issue #354 Summary:
+- [x] Tambah dokumen SK Panitia Penghapusan BMN di `/bmn/auction-candidates`.
+- [x] Tambah defaults `sk-panitia-defaults.ts` untuk Menimbang, Mengingat, Memutuskan, Tembusan, dan Susunan Panitia.
+- [x] Tambah susunan panitia editable dengan employee search dari `/kepegawaian/employees/select`.
+- [x] Default nomor 1 lampiran adalah Kepala Balai `M. ARI WIBAWANTO, S.HUT., M.SC.` sebagai `Penanggung Jawab`.
+- [x] Judul halaman 1 menampilkan `PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR`.
+- [x] Lampiran panitia memecah `Kalimantan Timur` ke baris bawah pada jabatan Kepala Balai.
+- [x] Pagination SK Panitia memakai safe area BSrE/BSSN, continuation words, dan margin top halaman lanjutan.
+- [x] `KETIGA + TTD + Tembusan` tetap satu group supaya TTD tidak jatuh sendiri tanpa kalimat pengantar.
+- [x] Sub-item `a/b/c/d` di `KEDUA` dirender grid agar alignment stabil.
+- [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
+
+### Next Steps:
+- [ ] Deploy batch BMN terbaru ke SSH production saat user siap.
 
 ### Issue #352 Summary:
 - [x] Ganti pendekatan lama JS page-boundary detection menjadi halaman A4 eksplisit khusus print.

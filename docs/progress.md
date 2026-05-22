@@ -1,7 +1,7 @@
-# Progress - Phase 51: SK Panitia Penghapusan BMN (IN PROGRESS)
+# Progress - Phase 51: SK Panitia Penghapusan BMN
 
-> Document updated: 2026-05-21
-> Status: **IN PROGRESS** 🔄
+> Document updated: 2026-05-22
+> Status: **MERGED** ✅
 
 ---
 
@@ -9,7 +9,8 @@
 
 ### Completed:
 - [x] **Issue Created**: Issue #354.
-- [x] **Branch**: `issue/354-sk-panitia-penghapusan` aktif.
+- [x] **PR Created/Merged**: PR #355 merged ke `main` (merge commit `c353bee`).
+- [x] **Branch Cleanup**: remote branch `issue/354-sk-panitia-penghapusan` deleted after merge.
 - [x] **SK Panitia Document**: Komponen `SkPanitiaDocument.tsx` — mirip SK Penghentian tapi isi berbeda (Panitia Penghapusan).
 - [x] **Defaults**: `sk-panitia-defaults.ts` — Menimbang 2 item, Mengingat 8 peraturan, Memutuskan (KEDUA punya sub-items), Tembusan 3 item (termasuk "Yang Bersangkutan").
 - [x] **Lampiran tabel border**: No. | Nama/NIP/Jabatan | Jabatan dalam Kegiatan (tanpa Keterangan).
@@ -17,22 +18,31 @@
 - [x] **Toggle 3 dokumen**: BA / SK Penghentian / SK Panitia — hanya satu tampil.
 - [x] **Tombol teal**: "Proses SK Panitia" di action bar dan banner.
 - [x] **Input nomor SK Panitia**: Format `SK.____/K.18/TU/KAP.05/MM/YYYY`.
-- [x] **Spacing tuning**: line-height 1.25, reduced margins/paddings, firstPageContentH=280mm.
+- [x] **Spacing tuning**: line-height 1.25, reduced margins/paddings, firstPageContentH=264mm, continuationContentH=251mm, marker reserve 9mm.
 - [x] **Continuation words**: Pagination eksplisit dengan kata penyambung (reuse pattern dari SK Penghentian).
+- [x] **TTD grouping**: `KETIGA + TTD + Tembusan` tetap satu paket agar TTD tidak jatuh sendiri tanpa kalimat pengantar.
+- [x] **KEDUA sub-items**: sub-item a/b/c/d dirender sebagai grid supaya alignment stabil.
+- [x] **Default Penanggung Jawab**: Kepala Balai `M. ARI WIBAWANTO, S.HUT., M.SC.` menjadi nomor 1 di susunan panitia dengan jabatan kegiatan `Penanggung Jawab`.
+- [x] **Judul SK Panitia**: halaman 1 menampilkan baris `PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR`.
+- [x] **Lampiran line break**: jabatan Kepala Balai di tabel lampiran memecah `Kalimantan Timur` ke baris bawah.
+- [x] **Lint cleanup**: Bersihkan blocker lama di `portal` dan `EmployeeAccessSheet` sehingga full lint kembali clean.
 
 ### Pending / TODO:
-- [ ] **Spacing MEMUTUSKAN → Tembusan** masih terlalu besar saat cetak PDF.
-- [ ] **Sub-item c, d di KEDUA** tidak align dengan a, b (indentasi `white-space: pre-wrap` tidak konsisten).
-- [ ] **PR belum dibuat** — menunggu fix spacing dan alignment.
+- [ ] **Deploy ke SSH production**: Ditunda sampai user siap deploy batch BMN terbaru.
 
 ### Key Files:
 - `frontend/src/app/bmn/auction-candidates/_components/SkPanitiaDocument.tsx` (new)
 - `frontend/src/app/bmn/auction-candidates/_lib/sk-panitia-defaults.ts` (new)
 - `frontend/src/app/bmn/auction-candidates/page.tsx`
+- `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx` (lint cleanup)
+- `frontend/src/app/portal/page.tsx` (lint cleanup)
+- `frontend/src/app/portal/surat-tugas/[id]/page.tsx` (lint cleanup)
 
 ### Validation:
-- [x] `npx eslint --max-warnings=0` clean
+- [x] `npm run lint -- --max-warnings=0` clean
 - [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean
+- [x] `git diff --check` clean
 
 ---
 
