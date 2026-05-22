@@ -1,3 +1,67 @@
+# Progress - Phase 54: BA Pemeriksaan Lampiran + ST BMN Template
+
+> Document updated: 2026-05-22
+> Status: **MERGED** ✅
+
+---
+
+## Issue #361: BA Pemeriksaan Lampiran (Asset Table + Dual-Column TTD)
+
+### Completed:
+- [x] **Issue Created**: Issue #361.
+- [x] **PR Created/Merged**: PR #362 merged ke `main` (merge commit `6b2ac4a`).
+- [x] **Branch Cleanup**: remote branch `issue/361-ba-pemeriksaan-lampiran` deleted after merge.
+- [x] **Lampiran page**: `page-break-before: always`, halaman 2 setelah halaman utama BA.
+- [x] **Header lampiran editable**: Lampiran / Nomor / Tanggal (semua editable inline).
+- [x] **Tabel 11 kolom**: No, Kode Barang, NUP, Nama Barang, Merk/Type, No Polisi, Tahun Perolehan, Nilai Perolehan (Rp), Nilai Buku, Nilai Taksiran (Rp), Kondisi.
+- [x] **All cells contentEditable**: Inline edit semua sel tabel.
+- [x] **Dual-column TTD**:
+  - Kiri: `Samarinda, {date}` / `Pelaksana Kegiatan,` / 2x2 grid pemeriksa (kolom kiri 1,2; kolom kanan 3,4) dengan ruang paraf, nama bold, NIP.
+  - Kanan: `Mengetahui,` / `Kepala Balai,` / ruang TTD / nama bold + NIP.
+- [x] **Page-break safety**: Row tabel + TTD block `break-inside: avoid`.
+- [x] **Asset count guard**: Tombol Generate BA Pemeriksaan disabled saat 0 aset; handler check minimal 1 aset.
+- [x] **Props baru**: BaPemeriksaanDocument terima `assets: AuctionAsset[]` dan `kepalaBalai: SkKepalaBalai`.
+
+### Key Files Modified:
+- `frontend/src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/**" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+---
+
+## Issue #360: Apply BMN Penghapusan Template Button for ST Builder
+
+### Completed:
+- [x] **Issue Created**: Issue #360.
+- [x] **PR Created/Merged**: PR #363 merged ke `main` (merge commit `270394d`).
+- [x] **Branch Cleanup**: remote branch `issue/360-st-bmn-template` deleted after merge.
+- [x] **New SUMBER_DANA option**: `bmn` (label `BMN Penghapusan (tanpa biaya)`).
+- [x] **buildBiayaText**: Return empty string saat `sumberDana === 'bmn'`.
+- [x] **applyBmnTemplate handler**: One-click set Klasifikasi `KAP.05`, sumberDana `bmn`, header `KEPALA BALAI,`, Menimbang (2 items), Dasar (8 peraturan UU/PP/Perpres/PMK), freeform Untuk dengan placeholder `{tanggal_pemeriksaan}`, reset tembusan.
+- [x] **Tombol orange "Apply Template BMN Penghapusan"**: Di sidebar ST Builder di atas Sumber Dana select.
+- [x] **Preview filter**: STBuilderPreview filter empty string di Untuk list agar baris biaya kosong tidak ter-render.
+
+### Key Files Modified:
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+
+### Validation:
+- [x] `npx eslint <both files> --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+### How to Use:
+1. Buka ST manapun di builder (`/kepegawaian/surat-tugas/builder/[id]`).
+2. Klik **Apply Template BMN Penghapusan** (orange) di sidebar.
+3. Isi tanggal pemeriksaan dan pilih 4 pegawai pemeriksa.
+4. Save & generate.
+
+---
+
 # Progress - Phase 53: Add no_mesin Field for Motor Vehicles
 
 > Document updated: 2026-05-22

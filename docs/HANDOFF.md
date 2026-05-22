@@ -122,16 +122,18 @@ git push origin main
 - [x] Issue #354: Add SK Panitia Penghapusan BMN document. PR #355 merged ke `main` (merge commit `c353bee`); remote branch deleted.
 - [x] Issue #356: Add 5 supporting documents for auction candidates (SPTJ Nilai Limit, SPTJM, SP Tidak Ganggu Tugas, SK Kebenaran Dokumen, BA Pemeriksaan BMN). PR #357 merged ke `main` (merge commit `1b88d7c`); remote branch deleted.
 - [x] Issue #358: Add `no_mesin` field for motor vehicles with no_polisi (migration + model + resource + request + UI conditional + auto-fill SK Kebenaran). PR #359 merged ke `main` (merge commit `bed9cce`); remote branch deleted.
+- [x] Issue #361: Add lampiran with asset table and dual-column TTD to BA Pemeriksaan document. PR #362 merged ke `main` (merge commit `6b2ac4a`); remote branch deleted.
+- [x] Issue #360: Add Apply BMN Penghapusan template button to ST builder (one-click preset Menimbang + Dasar + Klasifikasi + Untuk freeform). PR #363 merged ke `main` (merge commit `270394d`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #358: Add no_mesin field for motor vehicles (PR #359 merged) |
+| **Issue Terakhir Selesai** | Issue #360: ST BMN Penghapusan template button (PR #363 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `bed9cce` |
-| **Status** | DONE: no_mesin field tersedia untuk kendaraan bermotor (jenis_bmn=ALAT ANGKUTAN BERMOTOR + no_polisi). SK Kebenaran Fotokopi auto-fill kolom Nomor Mesin dari asset. Local migration applied. Deploy production pending. |
+| **Commit Terakhir di Main** | `270394d` |
+| **Status** | DONE: BA Pemeriksaan punya halaman lampiran (tabel 11 kolom + dual-column TTD); ST Builder punya tombol orange Apply Template BMN Penghapusan untuk one-click generate ST Pemeriksaan BMN. Deploy production pending. |
 | **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-22T17:00:00+08:00 |
+| **Timestamp** | 2026-05-22T18:45:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -167,6 +169,36 @@ git push origin main
 
 ### Next Steps:
 - [ ] Deploy batch BMN terbaru ke SSH production saat user siap (jangan lupa `php artisan migrate` di production untuk #358).
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-22 - Issue #360 + #361 SELESAI: BA lampiran + ST BMN template):**
+- **Objective**: BA Pemeriksaan butuh halaman lampiran (tabel aset + TTD 2 kolom), dan butuh format ST khusus (BMN Penghapusan) yang bisa di-generate sekali klik di ST Builder.
+- **Status**: KEDUANYA MERGED ke `main`. Branches deleted.
+- **GitHub**:
+  - Issue #361: `feat(bmn): add lampiran (asset table + dual-column TTD) to BA Pemeriksaan document`
+  - PR #362 merged → merge commit `6b2ac4a`
+  - Issue #360: `feat(kepegawaian): add BMN Penghapusan template for ST builder`
+  - PR #363 merged → merge commit `270394d`
+- **Issue #361 Accomplishments (BA Pemeriksaan lampiran)**:
+  - `BaPemeriksaanDocument` punya halaman lampiran terpisah dengan `page-break-before: always`.
+  - Header lampiran (Lampiran/Nomor/Tanggal) editable inline.
+  - Tabel 11 kolom: No, Kode Barang, NUP, Nama Barang, Merk/Type, No Polisi, Tahun Perolehan, Nilai Perolehan, Nilai Buku, Nilai Taksiran, Kondisi. Semua sel `contentEditable`.
+  - TTD dual-column: kiri Pelaksana Kegiatan (2x2 grid pemeriksa), kanan Mengetahui Kepala Balai. Ruang paraf ~5.5rem.
+  - Tombol Generate BA Pemeriksaan + handler check minimal 1 aset terpilih.
+  - `break-inside: avoid` untuk row tabel + TTD block.
+- **Issue #360 Accomplishments (ST BMN template)**:
+  - Tambah opsi `bmn` di `SUMBER_DANA_OPTIONS` (label "BMN Penghapusan (tanpa biaya)", biayaText kosong).
+  - `buildBiayaText()` return "" untuk `sumberDana === 'bmn'` — tidak render baris biaya.
+  - Function `applyBmnTemplate()` set `klasifikasi=KAP.05`, `sumberDana=bmn`, `headerTitle=KEPALA BALAI,`, Menimbang (2 items), Dasar (8 peraturan), Untuk freeform dengan placeholder `{tanggal_pemeriksaan}`, reset tembusan.
+  - Tombol orange "Apply Template BMN Penghapusan" di sidebar ST Builder di atas Sumber Dana select.
+  - `STBuilderPreview` filter empty string di Untuk list (`.filter(item => item && item.trim())`) supaya baris biaya kosong tidak ter-render.
+- **Validation (kedua issue)**:
+  - `npx eslint --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
+- **Next Steps**:
+  - [ ] Deploy batch BMN ke SSH production saat user siap.
 
 ---
 
