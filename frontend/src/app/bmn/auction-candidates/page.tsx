@@ -27,6 +27,7 @@ import {
   formatRupiah,
   shortenLokasi,
   getSkNumberSuffix,
+  formatDateLong,
 } from "./_lib/auction-helpers";
 import { ReorderPanel } from "./_components/ReorderPanel";
 import { SummaryTile } from "./_components/SummaryTile";
@@ -34,6 +35,11 @@ import { CorrectionDocument, handlePrintBa } from "./_components/BaKoreksiDocume
 import { SkPenghentianDocument, handlePrintSk } from "./_components/SkPenghentianDocument";
 import { SkPanitiaDocument, handlePrintSkPanitia } from "./_components/SkPanitiaDocument";
 import { SkBuilder } from "./_components/SkBuilder";
+import { SptjLimitDocument, handlePrintSptjLimit } from "./_components/SptjLimitDocument";
+import { SptjmDocument, handlePrintSptjm } from "./_components/SptjmDocument";
+import { SpTugasDocument, handlePrintSpTugas } from "./_components/SpTugasDocument";
+import { SkKebenaranDokumenDocument, handlePrintSkKebenaran } from "./_components/SkKebenaranDokumenDocument";
+import { BaPemeriksaanDocument, handlePrintBaPemeriksaan } from "./_components/BaPemeriksaanDocument";
 import {
   DEFAULT_MENIMBANG,
   DEFAULT_MENGINGAT,
@@ -50,6 +56,11 @@ import {
   DEFAULT_PANITIA_SUSUNAN,
   type PanitiaAnggota,
 } from "./_lib/sk-panitia-defaults";
+import {
+  DEFAULT_PEMERIKSA,
+  newPemeriksaAnggota,
+  type PemeriksaAnggota,
+} from "./_lib/pemeriksa-defaults";
 
 export default function BmnAuctionCandidatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,10 +70,23 @@ export default function BmnAuctionCandidatesPage() {
   const [showDocument, setShowDocument] = useState(false);
   const [showSkDocument, setShowSkDocument] = useState(false);
   const [showSkPanitia, setShowSkPanitia] = useState(false);
+  const [showSptjLimit, setShowSptjLimit] = useState(false);
+  const [showSptjm, setShowSptjm] = useState(false);
+  const [showSpTugas, setShowSpTugas] = useState(false);
+  const [showSkKebenaran, setShowSkKebenaran] = useState(false);
+  const [showBaPemeriksaan, setShowBaPemeriksaan] = useState(false);
   const [baNumber, setBaNumber] = useState("");
   const [baKap, setBaKap] = useState("KAP.06.01");
   const [skNumber, setSkNumber] = useState("");
   const [skPanitiaNumber, setSkPanitiaNumber] = useState("");
+  const [sptjLimitNumber, setSptjLimitNumber] = useState("41");
+  const [sptjmNumber, setSptjmNumber] = useState("202");
+  const [spTugasNumber, setSpTugasNumber] = useState("40");
+  const [skKebenaranNumber, setSkKebenaranNumber] = useState("200");
+  const [baPemeriksaanNumber, setBaPemeriksaanNumber] = useState("158");
+  const [stNumber, setStNumber] = useState("");
+  const [stTanggal, setStTanggal] = useState(formatDateLong(new Date()));
+  const [pemeriksaList, setPemeriksaList] = useState<PemeriksaAnggota[]>(DEFAULT_PEMERIKSA);
   const [menimbang, setMenimbang] = useState(DEFAULT_MENIMBANG);
   const [mengingat, setMengingat] = useState(DEFAULT_MENGINGAT);
   const [memutuskan, setMemutuskan] = useState(DEFAULT_MEMUTUSKAN);
@@ -195,14 +219,24 @@ export default function BmnAuctionCandidatesPage() {
     dragOverIndexRef.current = null;
   }, []);
 
+  const resetAllShows = useCallback(() => {
+    setShowDocument(false);
+    setShowSkDocument(false);
+    setShowSkPanitia(false);
+    setShowSptjLimit(false);
+    setShowSptjm(false);
+    setShowSpTugas(false);
+    setShowSkKebenaran(false);
+    setShowBaPemeriksaan(false);
+  }, []);
+
   const handleProcess = () => {
     if (orderedIds.length === 0) {
       toast.error("Pilih minimal satu aset untuk diproses.");
       return;
     }
+    resetAllShows();
     setShowDocument(true);
-    setShowSkDocument(false);
-    setShowSkPanitia(false);
     setTimeout(() => {
       document.getElementById("ba-koreksi-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
@@ -213,9 +247,8 @@ export default function BmnAuctionCandidatesPage() {
       toast.error("Pilih minimal satu aset untuk diproses.");
       return;
     }
+    resetAllShows();
     setShowSkDocument(true);
-    setShowDocument(false);
-    setShowSkPanitia(false);
     setTimeout(() => {
       document.getElementById("sk-penghentian-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
@@ -226,17 +259,97 @@ export default function BmnAuctionCandidatesPage() {
       toast.error("Pilih minimal satu aset untuk diproses.");
       return;
     }
+    resetAllShows();
     setShowSkPanitia(true);
-    setShowDocument(false);
-    setShowSkDocument(false);
     setTimeout(() => {
       document.getElementById("sk-panitia-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  const handleProcessSptjLimit = () => {
+    resetAllShows();
+    setShowSptjLimit(true);
+    setTimeout(() => {
+      document.getElementById("sptj-limit-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  const handleProcessSptjm = () => {
+    resetAllShows();
+    setShowSptjm(true);
+    setTimeout(() => {
+      document.getElementById("sptjm-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  const handleProcessSpTugas = () => {
+    resetAllShows();
+    setShowSpTugas(true);
+    setTimeout(() => {
+      document.getElementById("sp-tugas-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  const handleProcessSkKebenaran = () => {
+    if (orderedIds.length === 0) {
+      toast.error("Pilih minimal satu aset untuk membuat tabel dokumen kepemilikan.");
+      return;
+    }
+    resetAllShows();
+    setShowSkKebenaran(true);
+    setTimeout(() => {
+      document.getElementById("sk-kebenaran-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  const handleProcessBaPemeriksaan = () => {
+    resetAllShows();
+    setShowBaPemeriksaan(true);
+    setTimeout(() => {
+      document.getElementById("ba-pemeriksaan-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
 
   const handlePrint = () => handlePrintBa(orderedSelectedAssets);
   const handlePrintSkDoc = () => handlePrintSk(orderedSelectedAssets, skNumber);
   const handlePrintSkPanitiaDoc = () => handlePrintSkPanitia();
+  const handlePrintSptjLimitDoc = () => handlePrintSptjLimit();
+  const handlePrintSptjmDoc = () => handlePrintSptjm();
+  const handlePrintSpTugasDoc = () => handlePrintSpTugas();
+  const handlePrintSkKebenaranDoc = () => handlePrintSkKebenaran();
+  const handlePrintBaPemeriksaanDoc = () => handlePrintBaPemeriksaan();
+
+  const addPemeriksaAnggota = () => {
+    setPemeriksaList((prev) => [...prev, newPemeriksaAnggota()]);
+  };
+
+  const removePemeriksaAnggota = (id: string) => {
+    setPemeriksaList((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const updatePemeriksaAnggota = (id: string, field: keyof PemeriksaAnggota, value: string) => {
+    setPemeriksaList((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+    );
+  };
+
+  const selectPemeriksaEmployee = (id: string, employeeId: string) => {
+    if (!employeeId) return;
+    const emp = sortedEmployeesForPanitia.find((e) => String(e.id) === employeeId);
+    if (!emp) return;
+    setPemeriksaList((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              nama: emp.nama_lengkap || emp.name || "",
+              nip: formatNip(emp.nip || ""),
+              jabatan: emp.position || emp.jabatan || "",
+            }
+          : item,
+      ),
+    );
+  };
 
   const addPanitiaAnggota = () => {
     setSusunanPanitia((prev) => [
@@ -329,6 +442,47 @@ export default function BmnAuctionCandidatesPage() {
           >
             <FileText className="h-3.5 w-3.5" />
             Proses SK Panitia
+          </Button>
+          <Button
+            size="sm"
+            className="rounded-xl gap-2 bg-blue-600 text-xs hover:bg-blue-500"
+            onClick={handleProcessSptjLimit}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Proses SPTJ Limit
+          </Button>
+          <Button
+            size="sm"
+            className="rounded-xl gap-2 bg-purple-600 text-xs hover:bg-purple-500"
+            onClick={handleProcessSptjm}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Proses SPTJM
+          </Button>
+          <Button
+            size="sm"
+            className="rounded-xl gap-2 bg-pink-600 text-xs hover:bg-pink-500"
+            onClick={handleProcessSpTugas}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Proses SP Tugas
+          </Button>
+          <Button
+            size="sm"
+            className="rounded-xl gap-2 bg-cyan-600 text-xs hover:bg-cyan-500"
+            onClick={handleProcessSkKebenaran}
+            disabled={orderedIds.length === 0}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Proses SK Kebenaran
+          </Button>
+          <Button
+            size="sm"
+            className="rounded-xl gap-2 bg-orange-600 text-xs hover:bg-orange-500"
+            onClick={handleProcessBaPemeriksaan}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Proses BA Pemeriksaan
           </Button>
         </div>
       </div>
@@ -439,6 +593,120 @@ export default function BmnAuctionCandidatesPage() {
         </div>
       </div>
 
+      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <label htmlFor="sptj-limit-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            Nomor SPTJ Nilai Limit
+          </label>
+          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+            <span className="font-semibold">SM.</span>
+            <input
+              id="sptj-limit-number"
+              type="text"
+              value={sptjLimitNumber}
+              onChange={(event) => setSptjLimitNumber(event.target.value)}
+              placeholder="41"
+              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
+            />
+            <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <label htmlFor="sptjm-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            Nomor SPTJM
+          </label>
+          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+            <span className="font-semibold">SPTJM.</span>
+            <input
+              id="sptjm-number"
+              type="text"
+              value={sptjmNumber}
+              onChange={(event) => setSptjmNumber(event.target.value)}
+              placeholder="202"
+              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
+            />
+            <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <label htmlFor="sp-tugas-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            Nomor SP Tidak Mengganggu Tugas
+          </label>
+          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+            <span className="font-semibold">SM.</span>
+            <input
+              id="sp-tugas-number"
+              type="text"
+              value={spTugasNumber}
+              onChange={(event) => setSpTugasNumber(event.target.value)}
+              placeholder="40"
+              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
+            />
+            <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <label htmlFor="sk-kebenaran-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            Nomor SK Kebenaran Dokumen
+          </label>
+          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+            <span className="font-semibold">KT.</span>
+            <input
+              id="sk-kebenaran-number"
+              type="text"
+              value={skKebenaranNumber}
+              onChange={(event) => setSkKebenaranNumber(event.target.value)}
+              placeholder="200"
+              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
+            />
+            <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 xl:col-span-2">
+          <label htmlFor="ba-pemeriksaan-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            Nomor BA Pemeriksaan + Surat Tugas
+          </label>
+          <div className="mt-2 grid gap-2 lg:grid-cols-3">
+            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+              <span className="font-semibold">BA.</span>
+              <input
+                id="ba-pemeriksaan-number"
+                type="text"
+                value={baPemeriksaanNumber}
+                onChange={(event) => setBaPemeriksaanNumber(event.target.value)}
+                placeholder="158"
+                className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
+              />
+              <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
+            </div>
+            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+              <span className="mr-2 shrink-0 text-[10px] font-bold uppercase tracking-wider text-zinc-400">No. ST</span>
+              <input
+                type="text"
+                value={stNumber}
+                onChange={(event) => setStNumber(event.target.value)}
+                placeholder="ST.xxx/K.18/TU/..."
+                className="w-full bg-transparent font-semibold outline-none"
+              />
+            </div>
+            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+              <span className="mr-2 shrink-0 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Tgl ST</span>
+              <input
+                type="text"
+                value={stTanggal}
+                onChange={(event) => setStTanggal(event.target.value)}
+                placeholder={formatDateLong(new Date())}
+                className="w-full bg-transparent font-semibold outline-none"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {orderedIds.length > 0 && (
         <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -458,6 +726,26 @@ export default function BmnAuctionCandidatesPage() {
               <FileText className="mr-1 h-3.5 w-3.5" />
               Generate SK Panitia
             </Button>
+            <Button size="sm" className="rounded-lg bg-blue-600 text-xs hover:bg-blue-500" onClick={handleProcessSptjLimit}>
+              <FileText className="mr-1 h-3.5 w-3.5" />
+              Generate SPTJ Limit
+            </Button>
+            <Button size="sm" className="rounded-lg bg-purple-600 text-xs hover:bg-purple-500" onClick={handleProcessSptjm}>
+              <FileText className="mr-1 h-3.5 w-3.5" />
+              Generate SPTJM
+            </Button>
+            <Button size="sm" className="rounded-lg bg-pink-600 text-xs hover:bg-pink-500" onClick={handleProcessSpTugas}>
+              <FileText className="mr-1 h-3.5 w-3.5" />
+              Generate SP Tugas
+            </Button>
+            <Button size="sm" className="rounded-lg bg-cyan-600 text-xs hover:bg-cyan-500" onClick={handleProcessSkKebenaran}>
+              <FileText className="mr-1 h-3.5 w-3.5" />
+              Generate SK Kebenaran
+            </Button>
+            <Button size="sm" className="rounded-lg bg-orange-600 text-xs hover:bg-orange-500" onClick={handleProcessBaPemeriksaan}>
+              <FileText className="mr-1 h-3.5 w-3.5" />
+              Generate BA Pemeriksaan
+            </Button>
             {showDocument && (
               <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrint}>
                 <Printer className="mr-1 h-3.5 w-3.5" />
@@ -474,6 +762,36 @@ export default function BmnAuctionCandidatesPage() {
               <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSkPanitiaDoc}>
                 <Printer className="mr-1 h-3.5 w-3.5" />
                 Cetak SK Panitia
+              </Button>
+            )}
+            {showSptjLimit && (
+              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSptjLimitDoc}>
+                <Printer className="mr-1 h-3.5 w-3.5" />
+                Cetak SPTJ Limit
+              </Button>
+            )}
+            {showSptjm && (
+              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSptjmDoc}>
+                <Printer className="mr-1 h-3.5 w-3.5" />
+                Cetak SPTJM
+              </Button>
+            )}
+            {showSpTugas && (
+              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSpTugasDoc}>
+                <Printer className="mr-1 h-3.5 w-3.5" />
+                Cetak SP Tugas
+              </Button>
+            )}
+            {showSkKebenaran && (
+              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSkKebenaranDoc}>
+                <Printer className="mr-1 h-3.5 w-3.5" />
+                Cetak SK Kebenaran
+              </Button>
+            )}
+            {showBaPemeriksaan && (
+              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintBaPemeriksaanDoc}>
+                <Printer className="mr-1 h-3.5 w-3.5" />
+                Cetak BA Pemeriksaan
               </Button>
             )}
           </div>
@@ -749,6 +1067,165 @@ export default function BmnAuctionCandidatesPage() {
                 kepalaBalai={kepalaBalai}
                 tembusan={panitiaTembusan}
                 susunanPanitia={susunanPanitia}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {showSptjLimit && (
+        <section id="sptj-limit-preview" className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Surat Pernyataan Tanggung Jawab Nilai Limit</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Pernyataan tanggung jawab Kepala Balai atas kebenaran nilai limit penjualan BMN.</p>
+            </div>
+            <Button className="rounded-xl gap-2 bg-blue-600 text-xs hover:bg-blue-500" onClick={handlePrintSptjLimitDoc}>
+              <Printer className="h-3.5 w-3.5" />
+              Cetak / Save PDF
+            </Button>
+          </div>
+          <SptjLimitDocument number={sptjLimitNumber} kepalaBalai={kepalaBalai} />
+        </section>
+      )}
+
+      {showSptjm && (
+        <section id="sptjm-preview" className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Surat Pernyataan Tanggung Jawab Mutlak (SPTJM)</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Pernyataan tanggung jawab mutlak atas usulan pemindahtanganan BMN.</p>
+            </div>
+            <Button className="rounded-xl gap-2 bg-purple-600 text-xs hover:bg-purple-500" onClick={handlePrintSptjmDoc}>
+              <Printer className="h-3.5 w-3.5" />
+              Cetak / Save PDF
+            </Button>
+          </div>
+          <SptjmDocument number={sptjmNumber} kepalaBalai={kepalaBalai} />
+        </section>
+      )}
+
+      {showSpTugas && (
+        <section id="sp-tugas-preview" className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Surat Pernyataan Tidak Mengganggu Kelancaran Tugas</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Pernyataan bahwa pemindahtanganan BMN tidak mengganggu kelancaran tugas dinas.</p>
+            </div>
+            <Button className="rounded-xl gap-2 bg-pink-600 text-xs hover:bg-pink-500" onClick={handlePrintSpTugasDoc}>
+              <Printer className="h-3.5 w-3.5" />
+              Cetak / Save PDF
+            </Button>
+          </div>
+          <SpTugasDocument number={spTugasNumber} kepalaBalai={kepalaBalai} />
+        </section>
+      )}
+
+      {showSkKebenaran && orderedSelectedAssets.length > 0 && (
+        <section id="sk-kebenaran-preview" className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview SK Kebenaran Fotokopi Dokumen Kepemilikan</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Surat keterangan kebenaran dokumen kepemilikan kendaraan bermotor. Tabel dapat diedit langsung.</p>
+            </div>
+            <Button className="rounded-xl gap-2 bg-cyan-600 text-xs hover:bg-cyan-500" onClick={handlePrintSkKebenaranDoc}>
+              <Printer className="h-3.5 w-3.5" />
+              Cetak / Save PDF
+            </Button>
+          </div>
+          <SkKebenaranDokumenDocument
+            number={skKebenaranNumber}
+            assets={orderedSelectedAssets}
+            kepalaBalai={kepalaBalai}
+          />
+        </section>
+      )}
+
+      {showBaPemeriksaan && (
+        <section id="ba-pemeriksaan-preview" className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Berita Acara Pemeriksaan BMN</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Berita Acara Pemeriksaan BMN berupa Alat Angkutan Bermotor oleh tim pemeriksa.</p>
+            </div>
+            <Button className="rounded-xl gap-2 bg-orange-600 text-xs hover:bg-orange-500" onClick={handlePrintBaPemeriksaanDoc}>
+              <Printer className="h-3.5 w-3.5" />
+              Cetak / Save PDF
+            </Button>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
+            <div className="print:hidden">
+              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Pemeriksa</h3>
+                  <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addPemeriksaAnggota}>
+                    <Plus className="h-3 w-3" />
+                    Tambah
+                  </Button>
+                </div>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  Daftar pemeriksa BMN yang akan ditampilkan pada berita acara.
+                </p>
+                <div className="mt-3 space-y-3">
+                  {pemeriksaList.map((item) => (
+                    <div key={item.id} className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <div className="flex items-center gap-2">
+                        <select
+                          value=""
+                          onChange={(e) => selectPemeriksaEmployee(item.id, e.target.value)}
+                          className="h-8 flex-1 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                        >
+                          <option value="">-- Pilih Pegawai --</option>
+                          {sortedEmployeesForPanitia.map((emp) => (
+                            <option key={emp.id} value={String(emp.id)}>
+                              {emp.nama_lengkap || emp.name || "-"}
+                            </option>
+                          ))}
+                        </select>
+                        <Button
+                          size="xs"
+                          variant="destructive"
+                          className="rounded-md gap-1"
+                          onClick={() => removePemeriksaAnggota(item.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Hapus
+                        </Button>
+                      </div>
+                      <input
+                        value={item.nama}
+                        onChange={(e) => updatePemeriksaAnggota(item.id, "nama", e.target.value)}
+                        placeholder="Nama"
+                        className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      />
+                      <input
+                        value={item.nip}
+                        onChange={(e) => updatePemeriksaAnggota(item.id, "nip", e.target.value)}
+                        placeholder="NIP"
+                        className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      />
+                      <input
+                        value={item.jabatan}
+                        onChange={(e) => updatePemeriksaAnggota(item.id, "jabatan", e.target.value)}
+                        placeholder="Jabatan"
+                        className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      />
+                    </div>
+                  ))}
+                  {pemeriksaList.length === 0 && (
+                    <p className="rounded-lg border border-dashed border-zinc-300 p-3 text-center text-xs text-zinc-400">
+                      Belum ada pemeriksa. Klik Tambah untuk menambahkan.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div>
+              <BaPemeriksaanDocument
+                number={baPemeriksaanNumber}
+                pemeriksaList={pemeriksaList}
+                stNumber={stNumber}
+                stTanggal={stTanggal}
               />
             </div>
           </div>
