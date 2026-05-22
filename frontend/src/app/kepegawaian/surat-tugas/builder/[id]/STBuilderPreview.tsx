@@ -237,7 +237,9 @@ export default function STBuilderPreview({
                     buildUntukText(),
                     buildBiayaText(),
                     "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
-                  ].map((item, idx) => (
+                  ]
+                    .filter(item => item && item.trim())
+                    .map((item, idx) => (
                     <div
                       className="untuk-entry"
                       key={idx}
