@@ -15,8 +15,10 @@ import {
   Gavel,
   Loader2,
   Package,
+  Plus,
   Printer,
   Search,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,6 +32,7 @@ import { ReorderPanel } from "./_components/ReorderPanel";
 import { SummaryTile } from "./_components/SummaryTile";
 import { CorrectionDocument, handlePrintBa } from "./_components/BaKoreksiDocument";
 import { SkPenghentianDocument, handlePrintSk } from "./_components/SkPenghentianDocument";
+import { SkPanitiaDocument, handlePrintSkPanitia } from "./_components/SkPanitiaDocument";
 import { SkBuilder } from "./_components/SkBuilder";
 import {
   DEFAULT_MENIMBANG,
@@ -37,7 +40,16 @@ import {
   DEFAULT_MEMUTUSKAN,
   DEFAULT_KEPALA_BALAI,
   DEFAULT_TEMBUSAN,
+  formatNip,
 } from "./_lib/sk-defaults";
+import {
+  DEFAULT_PANITIA_MENIMBANG,
+  DEFAULT_PANITIA_MENGINGAT,
+  DEFAULT_PANITIA_MEMUTUSKAN,
+  DEFAULT_PANITIA_TEMBUSAN,
+  DEFAULT_PANITIA_SUSUNAN,
+  type PanitiaAnggota,
+} from "./_lib/sk-panitia-defaults";
 
 export default function BmnAuctionCandidatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,14 +58,21 @@ export default function BmnAuctionCandidatesPage() {
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
   const [showDocument, setShowDocument] = useState(false);
   const [showSkDocument, setShowSkDocument] = useState(false);
+  const [showSkPanitia, setShowSkPanitia] = useState(false);
   const [baNumber, setBaNumber] = useState("");
   const [baKap, setBaKap] = useState("KAP.06.01");
   const [skNumber, setSkNumber] = useState("");
+  const [skPanitiaNumber, setSkPanitiaNumber] = useState("");
   const [menimbang, setMenimbang] = useState(DEFAULT_MENIMBANG);
   const [mengingat, setMengingat] = useState(DEFAULT_MENGINGAT);
   const [memutuskan, setMemutuskan] = useState(DEFAULT_MEMUTUSKAN);
   const [kepalaBalai, setKepalaBalai] = useState(DEFAULT_KEPALA_BALAI);
   const [tembusan, setTembusan] = useState(DEFAULT_TEMBUSAN);
+  const [panitiaMenimbang, setPanitiaMenimbang] = useState(DEFAULT_PANITIA_MENIMBANG);
+  const [panitiaMengingat, setPanitiaMengingat] = useState(DEFAULT_PANITIA_MENGINGAT);
+  const [panitiaMemutuskan, setPanitiaMemutuskan] = useState(DEFAULT_PANITIA_MEMUTUSKAN);
+  const [panitiaTembusan, setPanitiaTembusan] = useState(DEFAULT_PANITIA_TEMBUSAN);
+  const [susunanPanitia, setSusunanPanitia] = useState<PanitiaAnggota[]>(DEFAULT_PANITIA_SUSUNAN);
   const debouncedSearch = useDebounce(searchTerm, 400);
 
   // drag-and-drop refs
@@ -75,6 +94,23 @@ export default function BmnAuctionCandidatesPage() {
     },
     placeholderData: (prev) => prev,
   });
+
+  const { data: employeesForPanitia = [] } = useQuery<{ id: string | number; nama_lengkap?: string; name?: string; nip?: string | null; jabatan?: string | null; position?: string | null }[]>({
+    queryKey: ["employees-select-panitia"],
+    queryFn: async () => {
+      const res = await api.get("/kepegawaian/employees/select");
+      return res.data?.data || res.data || [];
+    },
+  });
+
+  const sortedEmployeesForPanitia = useMemo(() => {
+    const list = Array.isArray(employeesForPanitia) ? [...employeesForPanitia] : [];
+    return list.sort((a, b) => {
+      const an = (a.nama_lengkap || a.name || "").toLowerCase();
+      const bn = (b.nama_lengkap || b.name || "").toLowerCase();
+      return an.localeCompare(bn);
+    });
+  }, [employeesForPanitia]);
 
   const assets = useMemo(() => response?.data || [], [response?.data]);
   const selectedIds = useMemo(() => new Set(orderedIds), [orderedIds]);
@@ -166,6 +202,7 @@ export default function BmnAuctionCandidatesPage() {
     }
     setShowDocument(true);
     setShowSkDocument(false);
+    setShowSkPanitia(false);
     setTimeout(() => {
       document.getElementById("ba-koreksi-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
@@ -178,13 +215,63 @@ export default function BmnAuctionCandidatesPage() {
     }
     setShowSkDocument(true);
     setShowDocument(false);
+    setShowSkPanitia(false);
     setTimeout(() => {
       document.getElementById("sk-penghentian-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
 
+  const handleProcessSkPanitia = () => {
+    if (orderedIds.length === 0) {
+      toast.error("Pilih minimal satu aset untuk diproses.");
+      return;
+    }
+    setShowSkPanitia(true);
+    setShowDocument(false);
+    setShowSkDocument(false);
+    setTimeout(() => {
+      document.getElementById("sk-panitia-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
   const handlePrint = () => handlePrintBa(orderedSelectedAssets);
   const handlePrintSkDoc = () => handlePrintSk(orderedSelectedAssets, skNumber);
+  const handlePrintSkPanitiaDoc = () => handlePrintSkPanitia();
+
+  const addPanitiaAnggota = () => {
+    setSusunanPanitia((prev) => [
+      ...prev,
+      { id: "id" + Math.random().toString(36).slice(2), nama: "", nip: "", jabatanInstansi: "", jabatanKegiatan: "" },
+    ]);
+  };
+
+  const removePanitiaAnggota = (id: string) => {
+    setSusunanPanitia((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const updatePanitiaAnggota = (id: string, field: keyof PanitiaAnggota, value: string) => {
+    setSusunanPanitia((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const selectPanitiaEmployee = (id: string, employeeId: string) => {
+    if (!employeeId) return;
+    const emp = sortedEmployeesForPanitia.find((e) => String(e.id) === employeeId);
+    if (!emp) return;
+    setSusunanPanitia((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              nama: emp.nama_lengkap || emp.name || "",
+              nip: formatNip(emp.nip || ""),
+              jabatanInstansi: emp.position || emp.jabatan || "",
+            }
+          : item
+      )
+    );
+  };
 
   return (
     <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -233,6 +320,15 @@ export default function BmnAuctionCandidatesPage() {
           >
             <FileText className="h-3.5 w-3.5" />
             Proses SK Penghentian
+          </Button>
+          <Button
+            size="sm"
+            className="rounded-xl gap-2 bg-teal-600 text-xs hover:bg-teal-500"
+            onClick={handleProcessSkPanitia}
+            disabled={orderedIds.length === 0}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Proses SK Panitia
           </Button>
         </div>
       </div>
@@ -320,6 +416,29 @@ export default function BmnAuctionCandidatesPage() {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+        <label htmlFor="sk-panitia-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+          Nomor SK Panitia Penghapusan
+        </label>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+            <span className="font-semibold">SK.</span>
+            <input
+              id="sk-panitia-number"
+              type="text"
+              value={skPanitiaNumber}
+              onChange={(event) => setSkPanitiaNumber(event.target.value)}
+              placeholder="____"
+              className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
+            />
+            <span>/{getSkNumberSuffix()}</span>
+          </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Tahun otomatis mengikuti tanggal generate dokumen.
+          </p>
+        </div>
+      </div>
+
       {orderedIds.length > 0 && (
         <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -335,6 +454,10 @@ export default function BmnAuctionCandidatesPage() {
               <FileText className="mr-1 h-3.5 w-3.5" />
               Generate SK Penghentian
             </Button>
+            <Button size="sm" className="rounded-lg bg-teal-600 text-xs hover:bg-teal-500" onClick={handleProcessSkPanitia}>
+              <FileText className="mr-1 h-3.5 w-3.5" />
+              Generate SK Panitia
+            </Button>
             {showDocument && (
               <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrint}>
                 <Printer className="mr-1 h-3.5 w-3.5" />
@@ -345,6 +468,12 @@ export default function BmnAuctionCandidatesPage() {
               <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSkDoc}>
                 <Printer className="mr-1 h-3.5 w-3.5" />
                 Cetak SK
+              </Button>
+            )}
+            {showSkPanitia && (
+              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSkPanitiaDoc}>
+                <Printer className="mr-1 h-3.5 w-3.5" />
+                Cetak SK Panitia
               </Button>
             )}
           </div>
@@ -517,6 +646,109 @@ export default function BmnAuctionCandidatesPage() {
                 memutuskan={memutuskan}
                 kepalaBalai={kepalaBalai}
                 tembusan={tembusan}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {showSkPanitia && orderedIds.length > 0 && (
+        <section id="sk-panitia-preview" className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+            <div>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview SK Panitia Penghapusan BMN</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Keputusan Kepala Balai tentang pembentukan Panitia Penghapusan BMN.</p>
+            </div>
+            <Button className="rounded-xl gap-2 bg-teal-600 text-xs hover:bg-teal-500" onClick={handlePrintSkPanitiaDoc}>
+              <Printer className="h-3.5 w-3.5" />
+              Cetak / Save PDF
+            </Button>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
+            <div className="print:hidden">
+              <SkBuilder
+                menimbang={panitiaMenimbang}
+                setMenimbang={setPanitiaMenimbang}
+                mengingat={panitiaMengingat}
+                setMengingat={setPanitiaMengingat}
+                memutuskan={panitiaMemutuskan}
+                setMemutuskan={setPanitiaMemutuskan}
+                kepalaBalai={kepalaBalai}
+                setKepalaBalai={setKepalaBalai}
+                tembusan={panitiaTembusan}
+                setTembusan={setPanitiaTembusan}
+              />
+
+              {/* Susunan Panitia editor */}
+              <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Susunan Panitia</h3>
+                  <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addPanitiaAnggota}>
+                    <Plus className="h-3 w-3" />
+                    Tambah
+                  </Button>
+                </div>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  Susunan panitia yang akan ditampilkan pada halaman lampiran.
+                </p>
+                <div className="mt-3 space-y-3">
+                  {susunanPanitia.map((item) => (
+                    <div key={item.id} className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <div className="flex items-center gap-2">
+                        <select
+                          value=""
+                          onChange={(e) => selectPanitiaEmployee(item.id, e.target.value)}
+                          className="h-8 flex-1 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                        >
+                          <option value="">-- Pilih Pegawai --</option>
+                          {sortedEmployeesForPanitia.map((emp) => (
+                            <option key={emp.id} value={String(emp.id)}>
+                              {emp.nama_lengkap || emp.name || "-"}
+                            </option>
+                          ))}
+                        </select>
+                        <Button
+                          size="xs"
+                          variant="destructive"
+                          className="rounded-md gap-1"
+                          onClick={() => removePanitiaAnggota(item.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Hapus
+                        </Button>
+                      </div>
+                      <input
+                        value={item.jabatanKegiatan}
+                        onChange={(e) => updatePanitiaAnggota(item.id, "jabatanKegiatan", e.target.value)}
+                        placeholder="Jabatan dalam Kegiatan (Ketua, Sekretaris, Anggota...)"
+                        className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      />
+                      {item.nama && (
+                        <div className="mt-2 rounded-lg bg-teal-50 px-2.5 py-1.5 text-[11px] text-teal-800 dark:bg-teal-500/10 dark:text-teal-300">
+                          <p className="font-semibold">{item.nama}</p>
+                          <p>NIP. {item.nip}</p>
+                          <p className="whitespace-pre-line">{item.jabatanInstansi}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {susunanPanitia.length === 0 && (
+                    <p className="rounded-lg border border-dashed border-zinc-300 p-3 text-center text-xs text-zinc-400">
+                      Belum ada anggota panitia. Klik Tambah untuk menambahkan.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div>
+              <SkPanitiaDocument
+                skNumber={skPanitiaNumber}
+                menimbang={panitiaMenimbang}
+                mengingat={panitiaMengingat}
+                memutuskan={panitiaMemutuskan}
+                kepalaBalai={kepalaBalai}
+                tembusan={panitiaTembusan}
+                susunanPanitia={susunanPanitia}
               />
             </div>
           </div>
