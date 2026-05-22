@@ -14,6 +14,8 @@ export interface AuctionAsset {
   lokasi_spesifik?: string | null;
   tahun_perolehan?: number | null;
   no_polisi?: string | null;
+  no_identitas?: string | null;
+  no_rangka?: string | null;
 }
 
 export interface AssetResponse {
