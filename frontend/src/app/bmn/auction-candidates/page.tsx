@@ -1,321 +1,125 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { useDebounce } from "@/hooks/use-debounce";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
-import {
-  ArrowLeft,
-  Eye,
-  FileText,
-  Gavel,
-  Loader2,
-  Package,
-  Plus,
-  Printer,
-  Search,
-  Trash2,
-} from "lucide-react";
-import { toast } from "sonner";
+import { useCallback } from "react";
 
-import type { AuctionAsset, AssetResponse } from "./_lib/auction-helpers";
-import {
-  formatRupiah,
-  shortenLokasi,
-  getSkNumberSuffix,
-  formatDateLong,
-} from "./_lib/auction-helpers";
 import { ReorderPanel } from "./_components/ReorderPanel";
 import { SummaryTile } from "./_components/SummaryTile";
-import { CorrectionDocument, handlePrintBa } from "./_components/BaKoreksiDocument";
-import { SkPenghentianDocument, handlePrintSk } from "./_components/SkPenghentianDocument";
-import { SkPanitiaDocument, handlePrintSkPanitia } from "./_components/SkPanitiaDocument";
-import { SkBuilder } from "./_components/SkBuilder";
-import { SptjLimitDocument, handlePrintSptjLimit } from "./_components/SptjLimitDocument";
-import { SptjmDocument, handlePrintSptjm } from "./_components/SptjmDocument";
-import { SpTugasDocument, handlePrintSpTugas } from "./_components/SpTugasDocument";
-import { SkKebenaranDokumenDocument, handlePrintSkKebenaran } from "./_components/SkKebenaranDokumenDocument";
-import { BaPemeriksaanDocument, handlePrintBaPemeriksaan } from "./_components/BaPemeriksaanDocument";
-import {
-  DEFAULT_MENIMBANG,
-  DEFAULT_MENGINGAT,
-  DEFAULT_MEMUTUSKAN,
-  DEFAULT_KEPALA_BALAI,
-  DEFAULT_TEMBUSAN,
-  formatNip,
-} from "./_lib/sk-defaults";
-import {
-  DEFAULT_PANITIA_MENIMBANG,
-  DEFAULT_PANITIA_MENGINGAT,
-  DEFAULT_PANITIA_MEMUTUSKAN,
-  DEFAULT_PANITIA_TEMBUSAN,
-  DEFAULT_PANITIA_SUSUNAN,
-  type PanitiaAnggota,
-} from "./_lib/sk-panitia-defaults";
-import {
-  DEFAULT_PEMERIKSA,
-  newPemeriksaAnggota,
-  type PemeriksaAnggota,
-} from "./_lib/pemeriksa-defaults";
+import { handlePrintBa } from "./_components/BaKoreksiDocument";
+import { handlePrintSk } from "./_components/SkPenghentianDocument";
+import { handlePrintSkPanitia } from "./_components/SkPanitiaDocument";
+import { handlePrintSptjLimit } from "./_components/SptjLimitDocument";
+import { handlePrintSptjm } from "./_components/SptjmDocument";
+import { handlePrintSpTugas } from "./_components/SpTugasDocument";
+import { handlePrintSkKebenaran } from "./_components/SkKebenaranDokumenDocument";
+import { handlePrintBaPemeriksaan } from "./_components/BaPemeriksaanDocument";
+import { PageHeader } from "./_components/PageHeader";
+import { SearchBar } from "./_components/SearchBar";
+import { DocumentNumberInputs } from "./_components/DocumentNumberInputs";
+import { SelectedAssetsBanner } from "./_components/SelectedAssetsBanner";
+import { AssetTable } from "./_components/AssetTable";
+import { BaKoreksiSection } from "./_components/sections/BaKoreksiSection";
+import { SkPenghentianSection } from "./_components/sections/SkPenghentianSection";
+import { SkPanitiaSection } from "./_components/sections/SkPanitiaSection";
+import { SptjLimitSection } from "./_components/sections/SptjLimitSection";
+import { SptjmSection } from "./_components/sections/SptjmSection";
+import { SpTugasSection } from "./_components/sections/SpTugasSection";
+import { SkKebenaranSection } from "./_components/sections/SkKebenaranSection";
+import { BaPemeriksaanSection } from "./_components/sections/BaPemeriksaanSection";
+import { formatRupiah } from "./_lib/auction-helpers";
+
+import { useAuctionAssets } from "./_hooks/useAuctionAssets";
+import { useDocumentToggles } from "./_hooks/useDocumentToggles";
+import { useDocumentNumbers } from "./_hooks/useDocumentNumbers";
+import { useEmployeeOptions } from "./_hooks/useEmployeeOptions";
+import { usePemeriksaList } from "./_hooks/usePemeriksaList";
+import { usePanitiaList } from "./_hooks/usePanitiaList";
+import { useSkBuilderState } from "./_hooks/useSkBuilderState";
+import { useSkPanitiaBuilderState } from "./_hooks/useSkPanitiaBuilderState";
 
 export default function BmnAuctionCandidatesPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [orderedIds, setOrderedIds] = useState<string[]>([]);
-  const [showDocument, setShowDocument] = useState(false);
-  const [showSkDocument, setShowSkDocument] = useState(false);
-  const [showSkPanitia, setShowSkPanitia] = useState(false);
-  const [showSptjLimit, setShowSptjLimit] = useState(false);
-  const [showSptjm, setShowSptjm] = useState(false);
-  const [showSpTugas, setShowSpTugas] = useState(false);
-  const [showSkKebenaran, setShowSkKebenaran] = useState(false);
-  const [showBaPemeriksaan, setShowBaPemeriksaan] = useState(false);
-  const [baNumber, setBaNumber] = useState("");
-  const [baKap, setBaKap] = useState("KAP.06.01");
-  const [skNumber, setSkNumber] = useState("");
-  const [skPanitiaNumber, setSkPanitiaNumber] = useState("");
-  const [sptjLimitNumber, setSptjLimitNumber] = useState("41");
-  const [sptjmNumber, setSptjmNumber] = useState("202");
-  const [spTugasNumber, setSpTugasNumber] = useState("40");
-  const [skKebenaranNumber, setSkKebenaranNumber] = useState("200");
-  const [baPemeriksaanNumber, setBaPemeriksaanNumber] = useState("158");
-  const [stNumber, setStNumber] = useState("");
-  const [stTanggal, setStTanggal] = useState(formatDateLong(new Date()));
-  const [pemeriksaList, setPemeriksaList] = useState<PemeriksaAnggota[]>(DEFAULT_PEMERIKSA);
-  const [menimbang, setMenimbang] = useState(DEFAULT_MENIMBANG);
-  const [mengingat, setMengingat] = useState(DEFAULT_MENGINGAT);
-  const [memutuskan, setMemutuskan] = useState(DEFAULT_MEMUTUSKAN);
-  const [kepalaBalai, setKepalaBalai] = useState(DEFAULT_KEPALA_BALAI);
-  const [tembusan, setTembusan] = useState(DEFAULT_TEMBUSAN);
-  const [panitiaMenimbang, setPanitiaMenimbang] = useState(DEFAULT_PANITIA_MENIMBANG);
-  const [panitiaMengingat, setPanitiaMengingat] = useState(DEFAULT_PANITIA_MENGINGAT);
-  const [panitiaMemutuskan, setPanitiaMemutuskan] = useState(DEFAULT_PANITIA_MEMUTUSKAN);
-  const [panitiaTembusan, setPanitiaTembusan] = useState(DEFAULT_PANITIA_TEMBUSAN);
-  const [susunanPanitia, setSusunanPanitia] = useState<PanitiaAnggota[]>(DEFAULT_PANITIA_SUSUNAN);
-  const debouncedSearch = useDebounce(searchTerm, 400);
+  const auctionAssets = useAuctionAssets();
+  const docToggles = useDocumentToggles(auctionAssets.orderedIds.length);
+  const docNumbers = useDocumentNumbers();
+  const { sortedEmployeesForPanitia } = useEmployeeOptions();
+  const pemeriksa = usePemeriksaList();
+  const panitia = usePanitiaList();
+  const sk = useSkBuilderState();
+  const skPanitia = useSkPanitiaBuilderState();
 
-  // drag-and-drop refs
-  const dragIndexRef = useRef<number | null>(null);
-  const dragOverIndexRef = useRef<number | null>(null);
+  const {
+    searchTerm,
+    setSearchTerm,
+    page,
+    setPage,
+    perPage,
+    setPerPage,
+    orderedIds,
+    setOrderedIds,
+    response,
+    isLoading,
+    isFetching,
+    assets,
+    selectedIds,
+    orderedSelectedAssets,
+    selectedTotal,
+    allSelected,
+    toggleSelect,
+    toggleSelectAll,
+    moveUp,
+    moveDown,
+    handleDragStart,
+    handleDragEnter,
+    handleDragEnd,
+  } = auctionAssets;
 
-  const { data: response, isLoading, isFetching } = useQuery<AssetResponse>({
-    queryKey: ["bmn-auction-candidates", debouncedSearch, page, perPage],
-    queryFn: async () => {
-      const res = await api.get("/bmn/assets", {
-        params: {
-          kondisi: "Rusak Berat",
-          search: debouncedSearch || undefined,
-          page,
-          per_page: perPage === 0 ? 9999 : perPage,
-        },
-      });
-      return res.data;
+  const { setShowDocument } = docToggles;
+
+  // Wrappers that combine selection mutations with showDocument reset to
+  // preserve the original page behaviour.
+  const handleResetSelection = useCallback(() => {
+    setOrderedIds([]);
+    setShowDocument(false);
+  }, [setOrderedIds, setShowDocument]);
+
+  const handleToggleSelect = useCallback(
+    (id: string) => {
+      toggleSelect(id);
+      setShowDocument(false);
     },
-    placeholderData: (prev) => prev,
-  });
-
-  const { data: employeesForPanitia = [] } = useQuery<{ id: string | number; nama_lengkap?: string; name?: string; nip?: string | null; jabatan?: string | null; position?: string | null }[]>({
-    queryKey: ["employees-select-panitia"],
-    queryFn: async () => {
-      const res = await api.get("/kepegawaian/employees/select");
-      return res.data?.data || res.data || [];
-    },
-  });
-
-  const sortedEmployeesForPanitia = useMemo(() => {
-    const list = Array.isArray(employeesForPanitia) ? [...employeesForPanitia] : [];
-    return list.sort((a, b) => {
-      const an = (a.nama_lengkap || a.name || "").toLowerCase();
-      const bn = (b.nama_lengkap || b.name || "").toLowerCase();
-      return an.localeCompare(bn);
-    });
-  }, [employeesForPanitia]);
-
-  const assets = useMemo(() => response?.data || [], [response?.data]);
-  const selectedIds = useMemo(() => new Set(orderedIds), [orderedIds]);
-
-  const assetMap = useMemo(() => {
-    const map = new Map<string, AuctionAsset>();
-    assets.forEach((a) => map.set(a.id, a));
-    return map;
-  }, [assets]);
-
-  const orderedSelectedAssets = useMemo(
-    () => orderedIds.flatMap((id) => (assetMap.has(id) ? [assetMap.get(id)!] : [])),
-    [orderedIds, assetMap]
+    [toggleSelect, setShowDocument],
   );
 
-  const selectedTotal = orderedSelectedAssets.reduce((total, asset) => total + (asset.nilai_perolehan || 0), 0);
-  const allSelected = assets.length > 0 && assets.every((asset) => selectedIds.has(asset.id));
-
-  const toggleSelect = useCallback((id: string) => {
-    setOrderedIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      return [...prev, id];
-    });
-    setShowDocument(false);
-  }, []);
-
-  const toggleSelectAll = useCallback(() => {
+  const handleToggleSelectAll = useCallback(() => {
     if (allSelected) {
-      setOrderedIds([]);
+      toggleSelectAll();
       setShowDocument(false);
       return;
     }
-    setOrderedIds((prev) => {
-      const existing = new Set(prev);
-      const newIds = assets.filter((a) => !existing.has(a.id)).map((a) => a.id);
-      return [...prev, ...newIds];
-    });
-  }, [allSelected, assets]);
+    toggleSelectAll();
+  }, [allSelected, toggleSelectAll, setShowDocument]);
 
-  // reorder helpers
-  const moveUp = useCallback((index: number) => {
-    if (index === 0) return;
-    setOrderedIds((prev) => {
-      const next = [...prev];
-      [next[index - 1], next[index]] = [next[index], next[index - 1]];
-      return next;
-    });
-  }, []);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchTerm(value);
+      setPage(1);
+      setOrderedIds([]);
+      setShowDocument(false);
+    },
+    [setSearchTerm, setPage, setOrderedIds, setShowDocument],
+  );
 
-  const moveDown = useCallback((index: number) => {
-    setOrderedIds((prev) => {
-      if (index >= prev.length - 1) return prev;
-      const next = [...prev];
-      [next[index], next[index + 1]] = [next[index + 1], next[index]];
-      return next;
-    });
-  }, []);
-
-  const handleDragStart = useCallback((index: number) => {
-    dragIndexRef.current = index;
-  }, []);
-
-  const handleDragEnter = useCallback((index: number) => {
-    dragOverIndexRef.current = index;
-  }, []);
-
-  const handleDragEnd = useCallback(() => {
-    const from = dragIndexRef.current;
-    const to = dragOverIndexRef.current;
-    if (from === null || to === null || from === to) {
-      dragIndexRef.current = null;
-      dragOverIndexRef.current = null;
-      return;
-    }
-    setOrderedIds((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
-    });
-    dragIndexRef.current = null;
-    dragOverIndexRef.current = null;
-  }, []);
-
-  const resetAllShows = useCallback(() => {
-    setShowDocument(false);
-    setShowSkDocument(false);
-    setShowSkPanitia(false);
-    setShowSptjLimit(false);
-    setShowSptjm(false);
-    setShowSpTugas(false);
-    setShowSkKebenaran(false);
-    setShowBaPemeriksaan(false);
-  }, []);
-
-  const handleProcess = () => {
-    if (orderedIds.length === 0) {
-      toast.error("Pilih minimal satu aset untuk diproses.");
-      return;
-    }
-    resetAllShows();
-    setShowDocument(true);
-    setTimeout(() => {
-      document.getElementById("ba-koreksi-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
-  const handleProcessSk = () => {
-    if (orderedIds.length === 0) {
-      toast.error("Pilih minimal satu aset untuk diproses.");
-      return;
-    }
-    resetAllShows();
-    setShowSkDocument(true);
-    setTimeout(() => {
-      document.getElementById("sk-penghentian-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
-  const handleProcessSkPanitia = () => {
-    if (orderedIds.length === 0) {
-      toast.error("Pilih minimal satu aset untuk diproses.");
-      return;
-    }
-    resetAllShows();
-    setShowSkPanitia(true);
-    setTimeout(() => {
-      document.getElementById("sk-panitia-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
-  const handleProcessSptjLimit = () => {
-    resetAllShows();
-    setShowSptjLimit(true);
-    setTimeout(() => {
-      document.getElementById("sptj-limit-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
-  const handleProcessSptjm = () => {
-    resetAllShows();
-    setShowSptjm(true);
-    setTimeout(() => {
-      document.getElementById("sptjm-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
-  const handleProcessSpTugas = () => {
-    resetAllShows();
-    setShowSpTugas(true);
-    setTimeout(() => {
-      document.getElementById("sp-tugas-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
-  const handleProcessSkKebenaran = () => {
-    if (orderedIds.length === 0) {
-      toast.error("Pilih minimal satu aset untuk membuat tabel dokumen kepemilikan.");
-      return;
-    }
-    resetAllShows();
-    setShowSkKebenaran(true);
-    setTimeout(() => {
-      document.getElementById("sk-kebenaran-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
-  const handleProcessBaPemeriksaan = () => {
-    if (orderedIds.length === 0) {
-      toast.error("Pilih minimal satu aset untuk lampiran BA Pemeriksaan.");
-      return;
-    }
-    resetAllShows();
-    setShowBaPemeriksaan(true);
-    setTimeout(() => {
-      document.getElementById("ba-pemeriksaan-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
+  const handlePerPageChange = useCallback(
+    (value: number) => {
+      setPerPage(value);
+      setPage(1);
+      setOrderedIds([]);
+      setShowDocument(false);
+    },
+    [setPerPage, setPage, setOrderedIds, setShowDocument],
+  );
 
   const handlePrint = () => handlePrintBa(orderedSelectedAssets);
-  const handlePrintSkDoc = () => handlePrintSk(orderedSelectedAssets, skNumber);
+  const handlePrintSkDoc = () => handlePrintSk(orderedSelectedAssets, docNumbers.skNumber);
   const handlePrintSkPanitiaDoc = () => handlePrintSkPanitia();
   const handlePrintSptjLimitDoc = () => handlePrintSptjLimit();
   const handlePrintSptjmDoc = () => handlePrintSptjm();
@@ -323,174 +127,20 @@ export default function BmnAuctionCandidatesPage() {
   const handlePrintSkKebenaranDoc = () => handlePrintSkKebenaran();
   const handlePrintBaPemeriksaanDoc = () => handlePrintBaPemeriksaan();
 
-  const addPemeriksaAnggota = () => {
-    setPemeriksaList((prev) => [...prev, newPemeriksaAnggota()]);
-  };
-
-  const removePemeriksaAnggota = (id: string) => {
-    setPemeriksaList((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const updatePemeriksaAnggota = (id: string, field: keyof PemeriksaAnggota, value: string) => {
-    setPemeriksaList((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
-    );
-  };
-
-  const selectPemeriksaEmployee = (id: string, employeeId: string) => {
-    if (!employeeId) return;
-    const emp = sortedEmployeesForPanitia.find((e) => String(e.id) === employeeId);
-    if (!emp) return;
-    setPemeriksaList((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              nama: emp.nama_lengkap || emp.name || "",
-              nip: formatNip(emp.nip || ""),
-              jabatan: emp.position || emp.jabatan || "",
-            }
-          : item,
-      ),
-    );
-  };
-
-  const addPanitiaAnggota = () => {
-    setSusunanPanitia((prev) => [
-      ...prev,
-      { id: "id" + Math.random().toString(36).slice(2), nama: "", nip: "", jabatanInstansi: "", jabatanKegiatan: "" },
-    ]);
-  };
-
-  const removePanitiaAnggota = (id: string) => {
-    setSusunanPanitia((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const updatePanitiaAnggota = (id: string, field: keyof PanitiaAnggota, value: string) => {
-    setSusunanPanitia((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
-  };
-
-  const selectPanitiaEmployee = (id: string, employeeId: string) => {
-    if (!employeeId) return;
-    const emp = sortedEmployeesForPanitia.find((e) => String(e.id) === employeeId);
-    if (!emp) return;
-    setSusunanPanitia((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              nama: emp.nama_lengkap || emp.name || "",
-              nip: formatNip(emp.nip || ""),
-              jabatanInstansi: emp.position || emp.jabatan || "",
-            }
-          : item
-      )
-    );
-  };
-
   return (
     <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-100 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20">
-              <Gavel className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Aset Akan Di Lelang</h1>
-              <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-                Kandidat aset kondisi Rusak Berat untuk proses koreksi dan dokumen lelang.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="rounded-xl gap-2 text-xs"
-            onClick={() => {
-              setOrderedIds([]);
-              setShowDocument(false);
-            }}
-            disabled={orderedIds.length === 0}
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Reset Pilihan
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-xl gap-2 bg-red-600 text-xs hover:bg-red-500"
-            onClick={handleProcess}
-            disabled={orderedIds.length === 0}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Proses BA Koreksi
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-xl gap-2 bg-amber-600 text-xs hover:bg-amber-500"
-            onClick={handleProcessSk}
-            disabled={orderedIds.length === 0}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Proses SK Penghentian
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-xl gap-2 bg-teal-600 text-xs hover:bg-teal-500"
-            onClick={handleProcessSkPanitia}
-            disabled={orderedIds.length === 0}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Proses SK Panitia
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-xl gap-2 bg-blue-600 text-xs hover:bg-blue-500"
-            onClick={handleProcessSptjLimit}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Proses SPTJ Limit
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-xl gap-2 bg-purple-600 text-xs hover:bg-purple-500"
-            onClick={handleProcessSptjm}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Proses SPTJM
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-xl gap-2 bg-pink-600 text-xs hover:bg-pink-500"
-            onClick={handleProcessSpTugas}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Proses SP Tugas
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-xl gap-2 bg-cyan-600 text-xs hover:bg-cyan-500"
-            onClick={handleProcessSkKebenaran}
-            disabled={orderedIds.length === 0}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Proses SK Kebenaran
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-xl gap-2 bg-orange-600 text-xs hover:bg-orange-500"
-            onClick={handleProcessBaPemeriksaan}
-            disabled={orderedIds.length === 0}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Proses BA Pemeriksaan
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        orderedIdsLength={orderedIds.length}
+        onResetSelection={handleResetSelection}
+        onProcess={docToggles.handleProcess}
+        onProcessSk={docToggles.handleProcessSk}
+        onProcessSkPanitia={docToggles.handleProcessSkPanitia}
+        onProcessSptjLimit={docToggles.handleProcessSptjLimit}
+        onProcessSptjm={docToggles.handleProcessSptjm}
+        onProcessSpTugas={docToggles.handleProcessSpTugas}
+        onProcessSkKebenaran={docToggles.handleProcessSkKebenaran}
+        onProcessBaPemeriksaan={docToggles.handleProcessBaPemeriksaan}
+      />
 
       <div className="grid gap-3 md:grid-cols-3">
         <SummaryTile label="Total Rusak Berat" value={(response?.total || assets.length).toLocaleString("id-ID")} tone="red" />
@@ -498,412 +148,56 @@ export default function BmnAuctionCandidatesPage() {
         <SummaryTile label="Nilai Terpilih" value={formatRupiah(selectedTotal)} tone="zinc" />
       </div>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-          <input
-            type="text"
-            placeholder="Cari nama, kode barang, NUP..."
-            value={searchTerm}
-            onChange={(event) => {
-              setSearchTerm(event.target.value);
-              setPage(1);
-              setOrderedIds([]);
-              setShowDocument(false);
-            }}
-            className="h-11 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-4 text-sm text-zinc-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-500/20 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-          />
-        </div>
-        <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-          <span className="rounded-lg bg-red-50 px-2.5 py-1 font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400">
-            Filter: Rusak Berat
-          </span>
-          {isFetching && !isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-        </div>
-      </div>
+      <SearchBar
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        isFetching={isFetching}
+        isLoading={isLoading}
+      />
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <label htmlFor="ba-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-          Nomor Berita Acara
-        </label>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">BA.</span>
-            <input
-              id="ba-number"
-              type="text"
-              value={baNumber}
-              onChange={(event) => setBaNumber(event.target.value)}
-              placeholder="____"
-              className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
-            />
-            <span>/K.18/TU/</span>
-            <input
-              type="text"
-              value={baKap}
-              onChange={(event) => setBaKap(event.target.value)}
-              className="w-24 bg-transparent text-center font-semibold outline-none"
-            />
-            <span>/B/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Bulan dan tahun otomatis mengikuti tanggal generate dokumen.
-          </p>
-        </div>
-      </div>
+      <DocumentNumberInputs {...docNumbers} />
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <label htmlFor="sk-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-          Nomor SK Penghentian
-        </label>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SK.</span>
-            <input
-              id="sk-number"
-              type="text"
-              value={skNumber}
-              onChange={(event) => setSkNumber(event.target.value)}
-              placeholder="____"
-              className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
-            />
-            <span>/{getSkNumberSuffix()}</span>
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Tahun otomatis mengikuti tanggal generate dokumen.
-          </p>
-        </div>
-      </div>
+      <SelectedAssetsBanner
+        orderedIdsLength={orderedIds.length}
+        showDocument={docToggles.showDocument}
+        showSkDocument={docToggles.showSkDocument}
+        showSkPanitia={docToggles.showSkPanitia}
+        showSptjLimit={docToggles.showSptjLimit}
+        showSptjm={docToggles.showSptjm}
+        showSpTugas={docToggles.showSpTugas}
+        showSkKebenaran={docToggles.showSkKebenaran}
+        showBaPemeriksaan={docToggles.showBaPemeriksaan}
+        onProcess={docToggles.handleProcess}
+        onProcessSk={docToggles.handleProcessSk}
+        onProcessSkPanitia={docToggles.handleProcessSkPanitia}
+        onProcessSptjLimit={docToggles.handleProcessSptjLimit}
+        onProcessSptjm={docToggles.handleProcessSptjm}
+        onProcessSpTugas={docToggles.handleProcessSpTugas}
+        onProcessSkKebenaran={docToggles.handleProcessSkKebenaran}
+        onProcessBaPemeriksaan={docToggles.handleProcessBaPemeriksaan}
+        onPrint={handlePrint}
+        onPrintSk={handlePrintSkDoc}
+        onPrintSkPanitia={handlePrintSkPanitiaDoc}
+        onPrintSptjLimit={handlePrintSptjLimitDoc}
+        onPrintSptjm={handlePrintSptjmDoc}
+        onPrintSpTugas={handlePrintSpTugasDoc}
+        onPrintSkKebenaran={handlePrintSkKebenaranDoc}
+        onPrintBaPemeriksaan={handlePrintBaPemeriksaanDoc}
+      />
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <label htmlFor="sk-panitia-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-          Nomor SK Panitia Penghapusan
-        </label>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SK.</span>
-            <input
-              id="sk-panitia-number"
-              type="text"
-              value={skPanitiaNumber}
-              onChange={(event) => setSkPanitiaNumber(event.target.value)}
-              placeholder="____"
-              className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
-            />
-            <span>/{getSkNumberSuffix()}</span>
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Tahun otomatis mengikuti tanggal generate dokumen.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <label htmlFor="sptj-limit-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor SPTJ Nilai Limit
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SM.</span>
-            <input
-              id="sptj-limit-number"
-              type="text"
-              value={sptjLimitNumber}
-              onChange={(event) => setSptjLimitNumber(event.target.value)}
-              placeholder="41"
-              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
-            />
-            <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <label htmlFor="sptjm-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor SPTJM
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SPTJM.</span>
-            <input
-              id="sptjm-number"
-              type="text"
-              value={sptjmNumber}
-              onChange={(event) => setSptjmNumber(event.target.value)}
-              placeholder="202"
-              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
-            />
-            <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <label htmlFor="sp-tugas-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor SP Tidak Mengganggu Tugas
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SM.</span>
-            <input
-              id="sp-tugas-number"
-              type="text"
-              value={spTugasNumber}
-              onChange={(event) => setSpTugasNumber(event.target.value)}
-              placeholder="40"
-              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
-            />
-            <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <label htmlFor="sk-kebenaran-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor SK Kebenaran Dokumen
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">KT.</span>
-            <input
-              id="sk-kebenaran-number"
-              type="text"
-              value={skKebenaranNumber}
-              onChange={(event) => setSkKebenaranNumber(event.target.value)}
-              placeholder="200"
-              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
-            />
-            <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 xl:col-span-2">
-          <label htmlFor="ba-pemeriksaan-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor BA Pemeriksaan + Surat Tugas
-          </label>
-          <div className="mt-2 grid gap-2 lg:grid-cols-3">
-            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-              <span className="font-semibold">BA.</span>
-              <input
-                id="ba-pemeriksaan-number"
-                type="text"
-                value={baPemeriksaanNumber}
-                onChange={(event) => setBaPemeriksaanNumber(event.target.value)}
-                placeholder="158"
-                className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
-              />
-              <span className="truncate">/K.18/TU/KAP.06.01/{String(new Date().getMonth() + 1).padStart(2, "0")}/{new Date().getFullYear()}</span>
-            </div>
-            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-              <span className="mr-2 shrink-0 text-[10px] font-bold uppercase tracking-wider text-zinc-400">No. ST</span>
-              <input
-                type="text"
-                value={stNumber}
-                onChange={(event) => setStNumber(event.target.value)}
-                placeholder="ST.xxx/K.18/TU/..."
-                className="w-full bg-transparent font-semibold outline-none"
-              />
-            </div>
-            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-              <span className="mr-2 shrink-0 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Tgl ST</span>
-              <input
-                type="text"
-                value={stTanggal}
-                onChange={(event) => setStTanggal(event.target.value)}
-                placeholder={formatDateLong(new Date())}
-                className="w-full bg-transparent font-semibold outline-none"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {orderedIds.length > 0 && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-bold text-red-800 dark:text-red-300">{orderedIds.length} aset dipilih</p>
-            <p className="text-xs text-red-700/80 dark:text-red-400">Dokumen BA Koreksi akan memakai aset yang dipilih di halaman ini.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" className="rounded-lg bg-red-600 text-xs hover:bg-red-500" onClick={handleProcess}>
-              <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate BA Koreksi
-            </Button>
-            <Button size="sm" className="rounded-lg bg-amber-600 text-xs hover:bg-amber-500" onClick={handleProcessSk}>
-              <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate SK Penghentian
-            </Button>
-            <Button size="sm" className="rounded-lg bg-teal-600 text-xs hover:bg-teal-500" onClick={handleProcessSkPanitia}>
-              <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate SK Panitia
-            </Button>
-            <Button size="sm" className="rounded-lg bg-blue-600 text-xs hover:bg-blue-500" onClick={handleProcessSptjLimit}>
-              <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate SPTJ Limit
-            </Button>
-            <Button size="sm" className="rounded-lg bg-purple-600 text-xs hover:bg-purple-500" onClick={handleProcessSptjm}>
-              <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate SPTJM
-            </Button>
-            <Button size="sm" className="rounded-lg bg-pink-600 text-xs hover:bg-pink-500" onClick={handleProcessSpTugas}>
-              <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate SP Tugas
-            </Button>
-            <Button size="sm" className="rounded-lg bg-cyan-600 text-xs hover:bg-cyan-500" onClick={handleProcessSkKebenaran}>
-              <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate SK Kebenaran
-            </Button>
-            <Button size="sm" className="rounded-lg bg-orange-600 text-xs hover:bg-orange-500" onClick={handleProcessBaPemeriksaan}>
-              <FileText className="mr-1 h-3.5 w-3.5" />
-              Generate BA Pemeriksaan
-            </Button>
-            {showDocument && (
-              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrint}>
-                <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak BA
-              </Button>
-            )}
-            {showSkDocument && (
-              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSkDoc}>
-                <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak SK
-              </Button>
-            )}
-            {showSkPanitia && (
-              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSkPanitiaDoc}>
-                <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak SK Panitia
-              </Button>
-            )}
-            {showSptjLimit && (
-              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSptjLimitDoc}>
-                <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak SPTJ Limit
-              </Button>
-            )}
-            {showSptjm && (
-              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSptjmDoc}>
-                <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak SPTJM
-              </Button>
-            )}
-            {showSpTugas && (
-              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSpTugasDoc}>
-                <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak SP Tugas
-              </Button>
-            )}
-            {showSkKebenaran && (
-              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintSkKebenaranDoc}>
-                <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak SK Kebenaran
-              </Button>
-            )}
-            {showBaPemeriksaan && (
-              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={handlePrintBaPemeriksaanDoc}>
-                <Printer className="mr-1 h-3.5 w-3.5" />
-                Cetak BA Pemeriksaan
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <th className="w-10 px-4 py-3">
-                  <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} />
-                </th>
-                <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Identitas Aset</th>
-                <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Jenis / Lokasi</th>
-                <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Kondisi</th>
-                <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Nilai Perolehan</th>
-                <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="p-12 text-center">
-                    <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-red-500" />
-                    <p className="text-sm text-zinc-400">Memuat aset rusak berat...</p>
-                  </td>
-                </tr>
-              ) : assets.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-12 text-center">
-                    <Package className="mx-auto mb-2 h-10 w-10 text-zinc-300 dark:text-zinc-700" />
-                    <p className="text-sm text-zinc-400">Belum ada aset kondisi Rusak Berat.</p>
-                  </td>
-                </tr>
-              ) : (
-                assets.map((asset) => (
-                  <tr
-                    key={asset.id}
-                    className={cn(
-                      "transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40",
-                      selectedIds.has(asset.id) && "bg-red-50/50 dark:bg-red-500/5"
-                    )}
-                  >
-                    <td className="px-4 py-3">
-                      <Checkbox checked={selectedIds.has(asset.id)} onCheckedChange={() => toggleSelect(asset.id)} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="max-w-75 truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{asset.nama_barang}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-[10px] font-bold text-red-700 dark:text-red-400">{asset.kode_barang}</span>
-                        <span className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">NUP: {asset.nup}</span>
-                        {asset.nup_lama && <span className="font-mono text-[10px] text-zinc-400">NUP Lama: {asset.nup_lama}</span>}
-                      </div>
-                      {asset.merk_tipe && <p className="mt-1 text-[11px] text-zinc-400">{asset.merk_tipe}</p>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">{asset.jenis_bmn || "-"}</p>
-                      <p className="mt-1 text-[11px] text-zinc-400">{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik)}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-100 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20">
-                        {asset.kondisi}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{formatRupiah(asset.nilai_perolehan)}</p>
-                      <p className="text-[10px] text-zinc-400">Buku: {formatRupiah(asset.nilai_buku)}</p>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <Link href={`/bmn/assets/${asset.id}`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 transition hover:bg-blue-50 dark:hover:bg-blue-500/10">
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex flex-col gap-3 border-t border-zinc-100 px-4 py-3 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-zinc-400">{response?.total || assets.length} item total</span>
-            <select
-              value={perPage}
-              onChange={(event) => {
-                setPerPage(Number(event.target.value));
-                setPage(1);
-                setOrderedIds([]);
-                setShowDocument(false);
-              }}
-              className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-600 outline-none focus:ring-1 focus:ring-red-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-            >
-              <option value={10}>10 / halaman</option>
-              <option value={50}>50 / halaman</option>
-              <option value={100}>100 / halaman</option>
-              <option value={0}>Semua</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((prev) => prev - 1)} className="rounded-lg text-xs">Prev</Button>
-            <span className="px-2 text-xs text-zinc-500 dark:text-zinc-400">Hal {page} / {response?.last_page || 1}</span>
-            <Button variant="outline" size="sm" disabled={page === response?.last_page || perPage === 0} onClick={() => setPage((prev) => prev + 1)} className="rounded-lg text-xs">Next</Button>
-          </div>
-        </div>
-      </div>
+      <AssetTable
+        assets={assets}
+        selectedIds={selectedIds}
+        allSelected={allSelected}
+        isLoading={isLoading}
+        response={response}
+        page={page}
+        perPage={perPage}
+        onToggleSelect={handleToggleSelect}
+        onToggleSelectAll={handleToggleSelectAll}
+        onPerPageChange={handlePerPageChange}
+        onPageChange={setPage}
+      />
 
       {orderedIds.length > 0 && (
         <ReorderPanel
@@ -917,326 +211,104 @@ export default function BmnAuctionCandidatesPage() {
         />
       )}
 
-      {showDocument && orderedSelectedAssets.length > 0 && (
-        <section id="ba-koreksi-preview" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview BA Koreksi Kondisi</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Dokumen pertama untuk aset terpilih: Rusak Ringan menjadi Rusak Berat.</p>
-            </div>
-            <Button className="rounded-xl gap-2 bg-zinc-900 text-xs hover:bg-zinc-800 dark:bg-white dark:text-zinc-900" onClick={handlePrint}>
-              <Printer className="h-3.5 w-3.5" />
-              Cetak / Save PDF
-            </Button>
-          </div>
-          <CorrectionDocument assets={orderedSelectedAssets} baNumber={baNumber} baKap={baKap} />
-        </section>
+      {docToggles.showDocument && orderedSelectedAssets.length > 0 && (
+        <BaKoreksiSection
+          assets={orderedSelectedAssets}
+          baNumber={docNumbers.baNumber}
+          baKap={docNumbers.baKap}
+          onPrint={handlePrint}
+        />
       )}
 
-      {showSkDocument && orderedSelectedAssets.length > 0 && (
-        <section id="sk-penghentian-preview" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview SK Penghentian Penggunaan BMN</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Keputusan Kepala Balai tentang penghentian penggunaan aset terpilih.</p>
-            </div>
-            <Button className="rounded-xl gap-2 bg-amber-600 text-xs hover:bg-amber-500" onClick={handlePrintSkDoc}>
-              <Printer className="h-3.5 w-3.5" />
-              Cetak / Save PDF
-            </Button>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
-            <div className="print:hidden">
-              <SkBuilder
-                menimbang={menimbang}
-                setMenimbang={setMenimbang}
-                mengingat={mengingat}
-                setMengingat={setMengingat}
-                memutuskan={memutuskan}
-                setMemutuskan={setMemutuskan}
-                kepalaBalai={kepalaBalai}
-                setKepalaBalai={setKepalaBalai}
-                tembusan={tembusan}
-                setTembusan={setTembusan}
-              />
-            </div>
-            <div>
-              <SkPenghentianDocument
-                assets={orderedSelectedAssets}
-                skNumber={skNumber}
-                menimbang={menimbang}
-                mengingat={mengingat}
-                memutuskan={memutuskan}
-                kepalaBalai={kepalaBalai}
-                tembusan={tembusan}
-              />
-            </div>
-          </div>
-        </section>
+      {docToggles.showSkDocument && orderedSelectedAssets.length > 0 && (
+        <SkPenghentianSection
+          assets={orderedSelectedAssets}
+          skNumber={docNumbers.skNumber}
+          menimbang={sk.menimbang}
+          setMenimbang={sk.setMenimbang}
+          mengingat={sk.mengingat}
+          setMengingat={sk.setMengingat}
+          memutuskan={sk.memutuskan}
+          setMemutuskan={sk.setMemutuskan}
+          kepalaBalai={sk.kepalaBalai}
+          setKepalaBalai={sk.setKepalaBalai}
+          tembusan={sk.tembusan}
+          setTembusan={sk.setTembusan}
+          onPrint={handlePrintSkDoc}
+        />
       )}
 
-      {showSkPanitia && orderedIds.length > 0 && (
-        <section id="sk-panitia-preview" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview SK Panitia Penghapusan BMN</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Keputusan Kepala Balai tentang pembentukan Panitia Penghapusan BMN.</p>
-            </div>
-            <Button className="rounded-xl gap-2 bg-teal-600 text-xs hover:bg-teal-500" onClick={handlePrintSkPanitiaDoc}>
-              <Printer className="h-3.5 w-3.5" />
-              Cetak / Save PDF
-            </Button>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
-            <div className="print:hidden">
-              <SkBuilder
-                menimbang={panitiaMenimbang}
-                setMenimbang={setPanitiaMenimbang}
-                mengingat={panitiaMengingat}
-                setMengingat={setPanitiaMengingat}
-                memutuskan={panitiaMemutuskan}
-                setMemutuskan={setPanitiaMemutuskan}
-                kepalaBalai={kepalaBalai}
-                setKepalaBalai={setKepalaBalai}
-                tembusan={panitiaTembusan}
-                setTembusan={setPanitiaTembusan}
-              />
-
-              {/* Susunan Panitia editor */}
-              <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Susunan Panitia</h3>
-                  <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addPanitiaAnggota}>
-                    <Plus className="h-3 w-3" />
-                    Tambah
-                  </Button>
-                </div>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Susunan panitia yang akan ditampilkan pada halaman lampiran.
-                </p>
-                <div className="mt-3 space-y-3">
-                  {susunanPanitia.map((item) => (
-                    <div key={item.id} className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value=""
-                          onChange={(e) => selectPanitiaEmployee(item.id, e.target.value)}
-                          className="h-8 flex-1 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                        >
-                          <option value="">-- Pilih Pegawai --</option>
-                          {sortedEmployeesForPanitia.map((emp) => (
-                            <option key={emp.id} value={String(emp.id)}>
-                              {emp.nama_lengkap || emp.name || "-"}
-                            </option>
-                          ))}
-                        </select>
-                        <Button
-                          size="xs"
-                          variant="destructive"
-                          className="rounded-md gap-1"
-                          onClick={() => removePanitiaAnggota(item.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          Hapus
-                        </Button>
-                      </div>
-                      <input
-                        value={item.jabatanKegiatan}
-                        onChange={(e) => updatePanitiaAnggota(item.id, "jabatanKegiatan", e.target.value)}
-                        placeholder="Jabatan dalam Kegiatan (Ketua, Sekretaris, Anggota...)"
-                        className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                      />
-                      {item.nama && (
-                        <div className="mt-2 rounded-lg bg-teal-50 px-2.5 py-1.5 text-[11px] text-teal-800 dark:bg-teal-500/10 dark:text-teal-300">
-                          <p className="font-semibold">{item.nama}</p>
-                          <p>NIP. {item.nip}</p>
-                          <p className="whitespace-pre-line">{item.jabatanInstansi}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {susunanPanitia.length === 0 && (
-                    <p className="rounded-lg border border-dashed border-zinc-300 p-3 text-center text-xs text-zinc-400">
-                      Belum ada anggota panitia. Klik Tambah untuk menambahkan.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div>
-              <SkPanitiaDocument
-                skNumber={skPanitiaNumber}
-                menimbang={panitiaMenimbang}
-                mengingat={panitiaMengingat}
-                memutuskan={panitiaMemutuskan}
-                kepalaBalai={kepalaBalai}
-                tembusan={panitiaTembusan}
-                susunanPanitia={susunanPanitia}
-              />
-            </div>
-          </div>
-        </section>
+      {docToggles.showSkPanitia && orderedIds.length > 0 && (
+        <SkPanitiaSection
+          skPanitiaNumber={docNumbers.skPanitiaNumber}
+          panitiaMenimbang={skPanitia.panitiaMenimbang}
+          setPanitiaMenimbang={skPanitia.setPanitiaMenimbang}
+          panitiaMengingat={skPanitia.panitiaMengingat}
+          setPanitiaMengingat={skPanitia.setPanitiaMengingat}
+          panitiaMemutuskan={skPanitia.panitiaMemutuskan}
+          setPanitiaMemutuskan={skPanitia.setPanitiaMemutuskan}
+          kepalaBalai={sk.kepalaBalai}
+          setKepalaBalai={sk.setKepalaBalai}
+          panitiaTembusan={skPanitia.panitiaTembusan}
+          setPanitiaTembusan={skPanitia.setPanitiaTembusan}
+          susunanPanitia={panitia.susunanPanitia}
+          employees={sortedEmployeesForPanitia}
+          onAddPanitia={panitia.addPanitiaAnggota}
+          onRemovePanitia={panitia.removePanitiaAnggota}
+          onUpdatePanitia={panitia.updatePanitiaAnggota}
+          onSelectPanitiaEmployee={panitia.selectPanitiaEmployee}
+          onPrint={handlePrintSkPanitiaDoc}
+        />
       )}
 
-      {showSptjLimit && (
-        <section id="sptj-limit-preview" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Surat Pernyataan Tanggung Jawab Nilai Limit</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Pernyataan tanggung jawab Kepala Balai atas kebenaran nilai limit penjualan BMN.</p>
-            </div>
-            <Button className="rounded-xl gap-2 bg-blue-600 text-xs hover:bg-blue-500" onClick={handlePrintSptjLimitDoc}>
-              <Printer className="h-3.5 w-3.5" />
-              Cetak / Save PDF
-            </Button>
-          </div>
-          <SptjLimitDocument number={sptjLimitNumber} kepalaBalai={kepalaBalai} />
-        </section>
+      {docToggles.showSptjLimit && (
+        <SptjLimitSection
+          number={docNumbers.sptjLimitNumber}
+          kepalaBalai={sk.kepalaBalai}
+          onPrint={handlePrintSptjLimitDoc}
+        />
       )}
 
-      {showSptjm && (
-        <section id="sptjm-preview" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Surat Pernyataan Tanggung Jawab Mutlak (SPTJM)</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Pernyataan tanggung jawab mutlak atas usulan pemindahtanganan BMN.</p>
-            </div>
-            <Button className="rounded-xl gap-2 bg-purple-600 text-xs hover:bg-purple-500" onClick={handlePrintSptjmDoc}>
-              <Printer className="h-3.5 w-3.5" />
-              Cetak / Save PDF
-            </Button>
-          </div>
-          <SptjmDocument number={sptjmNumber} kepalaBalai={kepalaBalai} />
-        </section>
+      {docToggles.showSptjm && (
+        <SptjmSection
+          number={docNumbers.sptjmNumber}
+          kepalaBalai={sk.kepalaBalai}
+          onPrint={handlePrintSptjmDoc}
+        />
       )}
 
-      {showSpTugas && (
-        <section id="sp-tugas-preview" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Surat Pernyataan Tidak Mengganggu Kelancaran Tugas</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Pernyataan bahwa pemindahtanganan BMN tidak mengganggu kelancaran tugas dinas.</p>
-            </div>
-            <Button className="rounded-xl gap-2 bg-pink-600 text-xs hover:bg-pink-500" onClick={handlePrintSpTugasDoc}>
-              <Printer className="h-3.5 w-3.5" />
-              Cetak / Save PDF
-            </Button>
-          </div>
-          <SpTugasDocument number={spTugasNumber} kepalaBalai={kepalaBalai} />
-        </section>
+      {docToggles.showSpTugas && (
+        <SpTugasSection
+          number={docNumbers.spTugasNumber}
+          kepalaBalai={sk.kepalaBalai}
+          onPrint={handlePrintSpTugasDoc}
+        />
       )}
 
-      {showSkKebenaran && orderedSelectedAssets.length > 0 && (
-        <section id="sk-kebenaran-preview" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview SK Kebenaran Fotokopi Dokumen Kepemilikan</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Surat keterangan kebenaran dokumen kepemilikan kendaraan bermotor. Tabel dapat diedit langsung.</p>
-            </div>
-            <Button className="rounded-xl gap-2 bg-cyan-600 text-xs hover:bg-cyan-500" onClick={handlePrintSkKebenaranDoc}>
-              <Printer className="h-3.5 w-3.5" />
-              Cetak / Save PDF
-            </Button>
-          </div>
-          <SkKebenaranDokumenDocument
-            number={skKebenaranNumber}
-            assets={orderedSelectedAssets}
-            kepalaBalai={kepalaBalai}
-          />
-        </section>
+      {docToggles.showSkKebenaran && orderedSelectedAssets.length > 0 && (
+        <SkKebenaranSection
+          assets={orderedSelectedAssets}
+          number={docNumbers.skKebenaranNumber}
+          kepalaBalai={sk.kepalaBalai}
+          onPrint={handlePrintSkKebenaranDoc}
+        />
       )}
 
-      {showBaPemeriksaan && orderedSelectedAssets.length > 0 && (
-        <section id="ba-pemeriksaan-preview" className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Berita Acara Pemeriksaan BMN</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Berita Acara Pemeriksaan BMN berupa Alat Angkutan Bermotor oleh tim pemeriksa.</p>
-            </div>
-            <Button className="rounded-xl gap-2 bg-orange-600 text-xs hover:bg-orange-500" onClick={handlePrintBaPemeriksaanDoc}>
-              <Printer className="h-3.5 w-3.5" />
-              Cetak / Save PDF
-            </Button>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
-            <div className="print:hidden">
-              <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Pemeriksa</h3>
-                  <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addPemeriksaAnggota}>
-                    <Plus className="h-3 w-3" />
-                    Tambah
-                  </Button>
-                </div>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Daftar pemeriksa BMN yang akan ditampilkan pada berita acara.
-                </p>
-                <div className="mt-3 space-y-3">
-                  {pemeriksaList.map((item) => (
-                    <div key={item.id} className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value=""
-                          onChange={(e) => selectPemeriksaEmployee(item.id, e.target.value)}
-                          className="h-8 flex-1 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                        >
-                          <option value="">-- Pilih Pegawai --</option>
-                          {sortedEmployeesForPanitia.map((emp) => (
-                            <option key={emp.id} value={String(emp.id)}>
-                              {emp.nama_lengkap || emp.name || "-"}
-                            </option>
-                          ))}
-                        </select>
-                        <Button
-                          size="xs"
-                          variant="destructive"
-                          className="rounded-md gap-1"
-                          onClick={() => removePemeriksaAnggota(item.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          Hapus
-                        </Button>
-                      </div>
-                      <input
-                        value={item.nama}
-                        onChange={(e) => updatePemeriksaAnggota(item.id, "nama", e.target.value)}
-                        placeholder="Nama"
-                        className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                      />
-                      <input
-                        value={item.nip}
-                        onChange={(e) => updatePemeriksaAnggota(item.id, "nip", e.target.value)}
-                        placeholder="NIP"
-                        className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                      />
-                      <input
-                        value={item.jabatan}
-                        onChange={(e) => updatePemeriksaAnggota(item.id, "jabatan", e.target.value)}
-                        placeholder="Jabatan"
-                        className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                      />
-                    </div>
-                  ))}
-                  {pemeriksaList.length === 0 && (
-                    <p className="rounded-lg border border-dashed border-zinc-300 p-3 text-center text-xs text-zinc-400">
-                      Belum ada pemeriksa. Klik Tambah untuk menambahkan.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div>
-              <BaPemeriksaanDocument
-                number={baPemeriksaanNumber}
-                pemeriksaList={pemeriksaList}
-                stNumber={stNumber}
-                stTanggal={stTanggal}
-                assets={orderedSelectedAssets}
-                kepalaBalai={kepalaBalai}
-              />
-            </div>
-          </div>
-        </section>
+      {docToggles.showBaPemeriksaan && orderedSelectedAssets.length > 0 && (
+        <BaPemeriksaanSection
+          assets={orderedSelectedAssets}
+          number={docNumbers.baPemeriksaanNumber}
+          stNumber={docNumbers.stNumber}
+          stTanggal={docNumbers.stTanggal}
+          kepalaBalai={sk.kepalaBalai}
+          pemeriksaList={pemeriksa.pemeriksaList}
+          employees={sortedEmployeesForPanitia}
+          onAddPemeriksa={pemeriksa.addPemeriksaAnggota}
+          onRemovePemeriksa={pemeriksa.removePemeriksaAnggota}
+          onUpdatePemeriksa={pemeriksa.updatePemeriksaAnggota}
+          onSelectPemeriksaEmployee={pemeriksa.selectPemeriksaEmployee}
+          onPrint={handlePrintBaPemeriksaanDoc}
+        />
       )}
     </div>
   );
