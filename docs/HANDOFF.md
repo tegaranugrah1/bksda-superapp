@@ -125,17 +125,18 @@ git push origin main
 - [x] Issue #361: Add lampiran with asset table and dual-column TTD to BA Pemeriksaan document. PR #362 merged ke `main` (merge commit `6b2ac4a`); remote branch deleted.
 - [x] Issue #360: Add Apply BMN Penghapusan template button to ST builder (one-click preset Menimbang + Dasar + Klasifikasi + Untuk freeform). PR #363 merged ke `main` (merge commit `270394d`); remote branch deleted.
 - [ ] Issue #364: Generate ST Pemeriksaan button on auction-candidates redirects to ST create with prefilled template. **WIP — siap testing user. Branch `issue/364-generate-st-pemeriksaan` pushed.**
+- [x] Issue #365: Refactor auction-candidates page.tsx (1184 → 288 lines) into hooks + section components. PR #366 merged ke `main` (merge commit `d90a519`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #360: ST BMN Penghapusan template button (PR #363 merged) |
+| **Issue Terakhir Selesai** | Issue #365: Refactor auction-candidates page.tsx (PR #366 merged) |
 | **Issue Sedang Dikerjakan** | Issue #364: Generate ST Pemeriksaan redirect (WIP, siap user testing) |
 | **Branch Aktif** | `main` (WIP di `issue/364-generate-st-pemeriksaan`) |
-| **Commit Terakhir di Main** | `c34e809` |
+| **Commit Terakhir di Main** | `d90a519` |
 | **WIP Commit** | `8523646` di branch `issue/364-generate-st-pemeriksaan` |
-| **Status** | WIP: Tombol Generate ST Pemeriksaan di /bmn/auction-candidates → redirect /kepegawaian/surat-tugas/create?template=bmn-pemeriksaan dengan auto-fill template. Cetak format sudah diperbaiki (CSS sync dengan builder). Rule global TTD: Demikian+TTD+Tembusan satu group break-inside:avoid. Menunggu user testing besok. Deploy production pending. |
+| **Status** | DONE: Refactor besar `/bmn/auction-candidates` selesai — 23 file baru (8 hooks + 15 components), page.tsx turun ~75% jadi 288 baris, zero behavior change. Issue #364 (Generate ST Pemeriksaan) masih WIP menunggu user testing. Deploy production pending. |
 | **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-22T20:00:00+08:00 |
+| **Timestamp** | 2026-05-23T10:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -170,7 +171,49 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
+- [ ] User testing untuk issue #364 (WIP).
 - [ ] Deploy batch BMN terbaru ke SSH production saat user siap (jangan lupa `php artisan migrate` di production untuk #358).
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-23 - Issue #365 SELESAI: Refactor auction-candidates page.tsx):**
+- **Objective**: Halaman `/bmn/auction-candidates/page.tsx` sudah 1184 baris dengan banyak state, handler, query, JSX. Susah baca, susah edit, rentan bug regresi. Refactor jadi hooks + section components dengan zero behavior change.
+- **Status**: MERGED (PR #366) ke `main` (merge commit `d90a519`). Branch deleted.
+- **GitHub**:
+  - Issue: #365 `refactor(bmn): split auction-candidates page.tsx into smaller components and hooks`
+  - PR: #366 merged → merge commit `d90a519`
+  - Commit: `4af100c`
+- **Result**: `page.tsx` 1184 → 288 baris (~75% reduction). 23 file baru.
+- **New hooks (`_hooks/`)**:
+  - `useAuctionAssets.ts` — query + selection + ordering + drag-drop
+  - `useDocumentToggles.ts` — 8 show flags + handleProcess* + resetAllShows + scroll
+  - `useDocumentNumbers.ts` — 11 number/date states (BA, SK, SPTJ, ST, dll)
+  - `useEmployeeOptions.ts` — sorted employees dari kepegawaian API
+  - `usePemeriksaList.ts` — pemeriksa CRUD + select pegawai (BA Pemeriksaan)
+  - `usePanitiaList.ts` — susunan panitia CRUD + select pegawai (SK Panitia)
+  - `useSkBuilderState.ts` — SK Penghentian state (menimbang/mengingat/memutuskan/kepalaBalai/tembusan)
+  - `useSkPanitiaBuilderState.ts` — SK Panitia state
+- **New UI components (`_components/`)**:
+  - `PageHeader.tsx` — title + 9 action buttons
+  - `SearchBar.tsx` — search input + filter badge + loading spinner
+  - `DocumentNumberInputs.tsx` — semua 9 panel input nomor surat
+  - `SelectedAssetsBanner.tsx` — banner "X aset dipilih" + Generate + Cetak buttons
+  - `AssetTable.tsx` — tabel + pagination
+  - `PemeriksaEditor.tsx` / `PanitiaEditor.tsx` — list editors with employee select
+- **Section wrappers (`_components/sections/`)**: 8 section components (BaKoreksi, SkPenghentian, SkPanitia, SptjLimit, Sptjm, SpTugas, SkKebenaran, BaPemeriksaan)
+- **Behavior preservation**:
+  - Class names, IDs anchor (`*-preview`), layouts identical.
+  - Existing Document components, `SkBuilder`, `ReorderPanel`, `SummaryTile` UNTOUCHED.
+  - `_lib/` files UNTOUCHED.
+  - Print handlers (`handlePrintBa`, `handlePrintSk`, dll) unchanged — tetap di page.tsx, dipanggil dengan `orderedSelectedAssets` dan `skNumber` sama seperti original.
+  - Disable rules, validation toasts, scroll behavior identical.
+  - `kepalaBalai` shared between SK Penghentian dan SK Panitia (single source dari `useSkBuilderState`).
+  - Side effect rules dipertahankan: search/perPage/Reset reset orderedIds + showDocument; toggleSelect reset showDocument; toggleSelectAll reset showDocument hanya saat deselect-all.
+- **Validation**:
+  - `npx eslint --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
+- **Pattern reference**: Issue #340 (refactor sebelumnya yang split page.tsx jadi 6 file).
 
 ---
 

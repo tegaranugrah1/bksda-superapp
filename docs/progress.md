@@ -1,3 +1,49 @@
+# Progress - Phase 56: Refactor Auction Candidates Page
+
+> Document updated: 2026-05-23
+> Status: **MERGED** ✅
+
+---
+
+## Issue #365: Refactor auction-candidates page.tsx into hooks and section components
+
+### Completed:
+- [x] **Issue Created**: Issue #365.
+- [x] **PR Created/Merged**: PR #366 merged ke `main` (merge commit `d90a519`).
+- [x] **Branch Cleanup**: remote branch `issue/365-refactor-auction-candidates-page` deleted after merge.
+- [x] **page.tsx**: 1184 → 288 baris (~75% reduction).
+- [x] **8 custom hooks** baru di `_hooks/`:
+  - `useAuctionAssets` — query + selection + ordering + drag-drop
+  - `useDocumentToggles` — 8 show flags + handleProcess* + resetAllShows + scroll
+  - `useDocumentNumbers` — 11 number/date states
+  - `useEmployeeOptions` — sorted employees
+  - `usePemeriksaList` / `usePanitiaList` — CRUD + select pegawai
+  - `useSkBuilderState` / `useSkPanitiaBuilderState` — SK state
+- [x] **7 UI components** baru di `_components/`:
+  - `PageHeader`, `SearchBar`, `DocumentNumberInputs`, `SelectedAssetsBanner`, `AssetTable`, `PemeriksaEditor`, `PanitiaEditor`
+- [x] **8 section wrappers** baru di `_components/sections/`:
+  - BaKoreksi, SkPenghentian, SkPanitia, SptjLimit, Sptjm, SpTugas, SkKebenaran, BaPemeriksaan
+- [x] **Zero behavior change**: className, IDs, layouts, side-effects, validation toasts, disable rules — semua identical.
+- [x] **Existing files untouched**: Document components, SkBuilder, ReorderPanel, SummaryTile, `_lib/`.
+- [x] **Print handlers preserved**: `handlePrintBa`, `handlePrintSk`, dll tetap di page.tsx.
+- [x] **`kepalaBalai` shared**: SK Penghentian & SK Panitia pakai single source dari `useSkBuilderState`.
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/**/*.{ts,tsx}" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/page.tsx` (refactored)
+- `frontend/src/app/bmn/auction-candidates/_hooks/*.ts` (8 new files)
+- `frontend/src/app/bmn/auction-candidates/_components/*.tsx` (7 new files)
+- `frontend/src/app/bmn/auction-candidates/_components/sections/*.tsx` (8 new files)
+
+### Pattern Reference:
+- Issue #340 (refactor sebelumnya yang split page.tsx jadi 6 file).
+
+---
+
 # Progress - Phase 55: Generate ST Pemeriksaan Redirect (WIP)
 
 > Document updated: 2026-05-22 (sore)
