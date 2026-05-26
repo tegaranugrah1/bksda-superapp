@@ -92,10 +92,6 @@ const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
     dasarText: '',
     biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini tidak dibebankan pada anggaran manapun (DL 1 / tanpa biaya).'
   },
-  { id: 'bmn', label: 'BMN Penghapusan (tanpa biaya)',
-    dasarText: '',
-    biayaText: ''
-  },
   { id: 'other', label: 'Lainnya',
     dasarText: '',
     biayaText: ''
@@ -149,6 +145,7 @@ export default function STBuilderPage() {
 
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
+  const [templateType, setTemplateType] = useState<string | null>(null);
   const [headerTitle, setHeaderTitle] = useState("KEPALA BALAI,");
   const [namaKegiatan, setNamaKegiatan] = useState("");
   const [activityPrefix, setActivityPrefix] = useState("Perjalanan Dinas");
@@ -192,6 +189,16 @@ export default function STBuilderPage() {
     const selesaiFormatted = formatDateIndonesian(tanggalSelesai);
 
     let text = "";
+    const isBmnTemplate = templateType === "bmn-pemeriksaan";
+
+    // BMN template: always freeform, no date suffix
+    if (isBmnTemplate) {
+      text = namaKegiatan || "...";
+      if (!text.trim().endsWith(".") && !text.trim().endsWith(";")) {
+        text += ".";
+      }
+      return text;
+    }
 
     if (activityPrefix && kotaAsal) {
       // Structured mode: prefix + dari + ke + dalam rangka + kegiatan
@@ -217,8 +224,8 @@ export default function STBuilderPage() {
 
   // Build biaya text
   const buildBiayaText = (): string => {
-    // BMN Penghapusan: no biaya line in Untuk list
-    if (sumberDana === 'bmn') return '';
+    // BMN Penghapusan template: no biaya line in Untuk list (regardless of sumberDana)
+    if (templateType === 'bmn-pemeriksaan') return '';
     const opt = SUMBER_DANA_OPTIONS.find(o => o.id === sumberDana);
     if (opt?.biayaText) {
       const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
@@ -311,7 +318,13 @@ export default function STBuilderPage() {
   const applyBmnTemplate = () => {
     setHeaderTitle("KEPALA BALAI,");
     setKlasifikasi("KAP.05");
-    setSumberDana("bmn");
+    setSumberDana("dl1");
+    setTemplateType("bmn-pemeriksaan");
+
+    // Default tanggal kegiatan = hari ini (1 hari, user bisa ubah)
+    const today = new Date().toISOString().substring(0, 10);
+    setTanggalMulai(today);
+    setTanggalSelesai(today);
 
     setMenimbangItems([
       { id: "bmn-m1", text: "bahwa dalam rangka penghapusan Barang Milik Negara berupa Alat Angkutan Bermotor pada Balai Konservasi Sumber Daya Alam Kalimantan Timur;" },
@@ -334,9 +347,13 @@ export default function STBuilderPage() {
     setKotaAsal("");
     setKotaTujuan("");
     setTempatKegiatan("");
-    setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal {tanggal_pemeriksaan}");
+    setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal " + formatDateIndonesian(today));
 
     setTembusanItems([]);
+  };
+
+  const resetBmnTemplate = () => {
+    setTemplateType(null);
   };
 
   // Initial Fetch & Parse
@@ -385,6 +402,11 @@ export default function STBuilderPage() {
         const funding = normalizeSumberDana(data.sumber_dana);
         setSumberDana(funding);
         if (data.sumber_dana_other) setSumberDanaOther(data.sumber_dana_other);
+
+        // Load template type if present (for ST that was created with a template)
+        if (data.template_type) {
+          setTemplateType(data.template_type);
+        }
         
         setSelectedEmployees(data.employees || []);
         setKotaTujuan(data.tempat_tujuan || "");
@@ -550,6 +572,7 @@ export default function STBuilderPage() {
         tanggal_surat: tanggalSurat || null,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
+        template_type: templateType,
         menimbang: menimbangItems,
         dasar: dasarItems,
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
@@ -587,6 +610,7 @@ export default function STBuilderPage() {
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
+        template_type: templateType,
         menimbang: menimbangItems,
         dasar: dasarItems,
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
@@ -624,6 +648,7 @@ export default function STBuilderPage() {
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
+        template_type: templateType,
         menimbang: menimbangItems,
         dasar: dasarItems,
         employee_ids: selectedEmployees.map(e => e.id),
@@ -677,7 +702,7 @@ export default function STBuilderPage() {
           .kop-surat img { width: 18.8cm !important; height: auto !important; }
           .surat-content { margin-left: 1.25cm !important; width: calc(100% - 2.2cm) !important; margin-right: 0.95cm !important; }
           .field-section, .kepada-section, .kepada-list, .untuk-section, .untuk-list { break-inside: auto !important; page-break-inside: auto !important; }
-          .employee-entry, .untuk-entry { break-inside: avoid !important; page-break-inside: avoid !important; }
+          .employee-entry, .untuk-entry, .penutup-ttd-group { break-inside: avoid !important; page-break-inside: avoid !important; }
           div[style*="page-break-inside"] { page-break-inside: avoid; }
           /* thead spacer: hidden, not needed with @page margin */
           thead.page-spacer td { height: 0; padding: 0; line-height: 0; font-size: 0; }
@@ -714,6 +739,35 @@ export default function STBuilderPage() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
+          {/* === Template Card (paling atas, di atas Nomor Surat) === */}
+          <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-500/30 dark:bg-orange-500/10">
+            {templateType === "bmn-pemeriksaan" ? (
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-6 items-center rounded-full bg-orange-600 px-2 text-[10px] font-bold uppercase tracking-wider text-white">Template Aktif</span>
+                  <span className="text-xs font-semibold text-orange-800 dark:text-orange-300">BMN Penghapusan</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetBmnTemplate}
+                  className="rounded-lg border border-orange-300 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-700 transition hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300 dark:hover:bg-orange-500/20"
+                  title="Hapus template BMN dan kembali ke ST manual"
+                >
+                  Hapus Template
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={applyBmnTemplate}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 transition hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300 dark:hover:bg-orange-500/20"
+                title="One-click apply: Klasifikasi KAP.05 + Menimbang + Dasar (8 peraturan) + Untuk pemeriksaan BMN"
+              >
+                Apply Template BMN Penghapusan
+              </button>
+            )}
+          </div>
+
           <FormSection title="Nomor Surat">
             <div className="flex items-stretch bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/10">
               <div className="bg-zinc-100 dark:bg-zinc-700 px-3 flex items-center border-r border-zinc-200 dark:border-zinc-600 shrink-0"><span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">ST.</span></div>
@@ -748,14 +802,6 @@ export default function STBuilderPage() {
 
           <FormSection title="Sumber Dana">
             <div className="space-y-2">
-              <button
-                type="button"
-                onClick={applyBmnTemplate}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 transition hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/20"
-                title="One-click apply: Klasifikasi KAP.05 + Menimbang + Dasar (8 peraturan) + Untuk pemeriksaan BMN"
-              >
-                Apply Template BMN Penghapusan
-              </button>
               <select
                 value={sumberDana}
                 onChange={e => {
@@ -959,6 +1005,7 @@ export default function STBuilderPage() {
               tembusanItems={tembusanItems}
               headerTitle={headerTitle}
               sumberDana={sumberDana}
+              templateType={templateType}
             />
           </div>
           {/* Page break indicators */}

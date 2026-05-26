@@ -30,6 +30,7 @@ interface AssignmentLetter {
   tempat_tujuan: string;
   sumber_dana: string;
   sumber_dana_other: string | null;
+  template_type: string | null;
   file_surat_path: string | null;
   status: 'draft' | 'pending' | 'approved' | 'rejected' | 'completed';
   nomor_surat: string | null;
@@ -343,6 +344,17 @@ export default function SuratTugasInbox() {
                                         {l.maksud_tujuan}
                                     </h3>
 
+                                    {l.template_type === "bmn-pemeriksaan" && (
+                                        <div className="mb-2">
+                                            <span
+                                                className="inline-flex items-center rounded-md border border-orange-200 bg-orange-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300"
+                                                title="Template BMN Penghapusan"
+                                            >
+                                                Template BMN
+                                            </span>
+                                        </div>
+                                    )}
+
                                     <div className="flex items-center justify-between text-[9px] font-bold text-slate-500">
                                         <div className="flex items-center gap-2">
                                             <div className="flex items-center gap-1">
@@ -387,6 +399,11 @@ export default function SuratTugasInbox() {
                                         <div className={cn("px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider", getStatusStyle(selectedLetter.status))}>
                                             {getStatusLabel(selectedLetter.status)}
                                         </div>
+                                        {selectedLetter.template_type === "bmn-pemeriksaan" && (
+                                            <div className="px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-900/30 text-[9px] font-black uppercase tracking-wider">
+                                                Template BMN Penghapusan
+                                            </div>
+                                        )}
                                         {selectedLetter.nomor_surat ? (
                                             <div className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30 text-[9px] font-black tracking-wider flex items-center gap-1.5">
                                                 <Hash className="w-3 h-3" />

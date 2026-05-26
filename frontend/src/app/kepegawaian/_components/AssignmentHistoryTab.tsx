@@ -16,6 +16,7 @@ interface SuratTugasItem {
     tanggal_mulai: string;
     tanggal_selesai: string;
     status: string;
+    template_type?: string | null;
     employees?: { id: string; nama_lengkap: string; nip: string }[];
 }
 
@@ -153,6 +154,14 @@ export function AssignmentHistoryTab() {
                                             <span className="font-mono text-zinc-900 dark:text-zinc-100 font-bold text-[11px] bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
                                                 {item.nomor_surat || "Belum Input"}
                                             </span>
+                                            {item.template_type === "bmn-pemeriksaan" && (
+                                                <span
+                                                    className="ml-1.5 inline-flex items-center rounded-md border border-orange-200 bg-orange-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300"
+                                                    title="Template BMN Penghapusan"
+                                                >
+                                                    Template BMN
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 max-w-xs">
                                             <p className="text-zinc-900 dark:text-zinc-200 text-xs font-semibold line-clamp-2 leading-relaxed">{item.maksud_tujuan}</p>

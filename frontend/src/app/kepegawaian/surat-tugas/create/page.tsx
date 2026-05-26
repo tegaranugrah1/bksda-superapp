@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   FileText,
   Printer,
@@ -102,6 +102,8 @@ export default function STCreatePremiumPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialEmployeeId = searchParams.get("employee_id");
+  const initialTemplate = searchParams.get("template");
+  const templateAppliedRef = useRef(false);
 
   // --- Form State ---
   const [stNumber, setStNumber] = useState("");
@@ -120,6 +122,7 @@ export default function STCreatePremiumPage() {
 
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
+  const [templateType, setTemplateType] = useState<string | null>(null);
   const [namaKegiatan, setNamaKegiatan] = useState("");
   const [activityPrefix, setActivityPrefix] = useState("Perjalanan Dinas");
   const [tanggalMulai, setTanggalMulai] = useState("");
@@ -167,12 +170,67 @@ export default function STCreatePremiumPage() {
     setSelectedEmployees([normalized]);
   }, [allEmployees, initialEmployeeId, selectedEmployees.length]);
 
+  // Apply BMN Penghapusan template — extracted into a function so it can be triggered by query param OR sidebar button
+  const applyBmnTemplate = useCallback(() => {
+    setKlasifikasi("KAP.05");
+    setSumberDana("dl1");
+    setTemplateType("bmn-pemeriksaan");
+
+    const today = new Date().toISOString().substring(0, 10);
+    setTanggalMulai(today);
+    setTanggalSelesai(today);
+
+    setMenimbangItems([
+      { id: "bmn-m1", text: "bahwa dalam rangka penghapusan Barang Milik Negara berupa Alat Angkutan Bermotor pada Balai Konservasi Sumber Daya Alam Kalimantan Timur;" },
+      { id: "bmn-m2", text: "bahwa sehubungan dengan butir a tersebut di atas dipandang perlu untuk menugaskan staf tersebut di bawah ini untuk melakukan pemeriksaan Barang Milik Negara." },
+    ]);
+
+    setDasarItems([
+      { id: "bmn-d1", text: "Undang-Undang RI Nomor 17 Tahun 2003 tentang Keuangan Negara;" },
+      { id: "bmn-d2", text: "Undang-Undang RI Nomor 1 Tahun 2004 tentang Perbendaharaan Negara;" },
+      { id: "bmn-d3", text: "Peraturan Pemerintah Nomor 27 Tahun 2014 tentang Pengelolaan Barang Milik Negara/Daerah sebagaimana telah diubah dengan Peraturan Pemerintah Nomor 28 Tahun 2020;" },
+      { id: "bmn-d4", text: "Peraturan Presiden Nomor 175 Tahun 2024 tentang Kementerian Kehutanan;" },
+      { id: "bmn-d5", text: "Peraturan Menteri Keuangan Nomor 4/PMK.06/2015 tentang Pendelegasian Kewenangan dan Tanggung Jawab Tertentu Dari Pengelola Barang kepada Pengguna Barang;" },
+      { id: "bmn-d6", text: "Peraturan Menteri Keuangan Nomor 83/PMK.06/2016 tentang Tata Cara Pelaksanaan Pemusnahan dan Penghapusan Barang Milik Negara;" },
+      { id: "bmn-d7", text: "Peraturan Menteri Keuangan Nomor 181/PMK.06/2016 tentang Penatausahaan Barang Milik Negara;" },
+      { id: "bmn-d8", text: "Peraturan Menteri Lingkungan Hidup dan Kehutanan Nomor P.11/MENLHK/SETJEN/KAP.3/4/2018 tentang Tata Cara Pelaksanaan Pemindahtanganan Barang Milik Negara Lingkup Kementerian Lingkungan Hidup dan Kehutanan." },
+    ]);
+
+    setActivityPrefix("");
+    setKotaAsal("");
+    setKotaTujuan("");
+    setTempatKegiatan("");
+    setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal " + formatDateIndonesian(today));
+  }, []);
+
+  const resetBmnTemplate = useCallback(() => {
+    setTemplateType(null);
+  }, []);
+
+  // Apply BMN Pemeriksaan template from query param (one-shot)
+  useEffect(() => {
+    if (templateAppliedRef.current) return;
+    if (initialTemplate !== "bmn-pemeriksaan") return;
+    templateAppliedRef.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    applyBmnTemplate();
+  }, [initialTemplate, applyBmnTemplate]);
+
   // Helper for "Untuk" text
   const buildUntukText = (): string => {
     const days = daysBetween(tanggalMulai, tanggalSelesai);
     const daysWord = numberToWords(days);
     const mulaiFormatted = formatDateIndonesian(tanggalMulai);
     const selesaiFormatted = formatDateIndonesian(tanggalSelesai);
+
+    // BMN template: always freeform, no date suffix
+    if (templateType === "bmn-pemeriksaan") {
+      let text = namaKegiatan || "...";
+      if (!text.trim().endsWith(".") && !text.trim().endsWith(";")) {
+        text += ".";
+      }
+      return text;
+    }
 
     let text = `${activityPrefix} dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
     if (namaKegiatan) {
@@ -191,6 +249,8 @@ export default function STCreatePremiumPage() {
 
   // Build biaya text
   const buildBiayaText = (): string => {
+    // BMN Penghapusan template: skip biaya line entirely (regardless of sumberDana)
+    if (templateType === 'bmn-pemeriksaan') return '';
     const opt = SUMBER_DANA_OPTIONS.find(o => o.id === sumberDana);
     if (opt?.biayaText) {
       const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
@@ -270,6 +330,7 @@ export default function STCreatePremiumPage() {
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
+        template_type: templateType,
         menimbang: menimbangItems,
         dasar: dasarItems,
         employee_ids: selectedEmployees.map(e => e.id),
@@ -296,16 +357,35 @@ export default function STCreatePremiumPage() {
     if (!printContent) return;
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
+    const safeKegiatan = (namaKegiatan || "ST").replace(/[/\\?%*:|"<>]/g, '-');
     printWindow.document.write(`
       <html>
       <head>
-        <title>ST.${stNumber}/K.18/TU/${klasifikasi}/B</title>
+        <title>ST.${stNumber}-${safeKegiatan}</title>
         <style>
-          @page { size: A4; margin: 0; }
-          body { font-family: 'Bookman Old Style', serif; font-size: 11pt; line-height: 1.25; color: #000; margin: 0; padding: 0; }
-          #surat-preview-doc { padding: 0.4cm 1cm 1cm 3cm !important; box-sizing: border-box; }
+          @page { size: A4; margin: 3cm 1cm 1.9cm 1.55cm; }
+          @page :first { margin: 0.7cm 1cm 1.9cm 1.55cm; }
+          body {
+            font-family: 'Bookman Old Style', 'Georgia', serif;
+            font-size: 11pt;
+            line-height: 1.25;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            text-align: justify;
+          }
           table { width: 100%; border-collapse: collapse; }
           td { vertical-align: top; padding: 2px 0; font-size: 11pt; }
+          tr { page-break-inside: avoid; break-inside: avoid; }
+          img { max-width: none !important; }
+          .ttd-placeholder { height: 80px; }
+          .kop-surat { margin-left: 0 !important; margin-right: -0.95cm !important; margin-top: -0.25cm !important; margin-bottom: 2px !important; overflow: visible !important; }
+          .kop-surat img { width: 18.8cm !important; height: auto !important; }
+          .surat-content { margin-left: 1.25cm !important; width: calc(100% - 2.2cm) !important; margin-right: 0.95cm !important; }
+          .field-section, .kepada-section, .kepada-list, .untuk-section, .untuk-list { break-inside: auto !important; page-break-inside: auto !important; }
+          .employee-entry, .untuk-entry, .penutup-ttd-group { break-inside: avoid !important; page-break-inside: avoid !important; }
+          div[style*="page-break-inside"] { page-break-inside: avoid; }
+          thead.page-spacer td { height: 0; padding: 0; line-height: 0; font-size: 0; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -330,6 +410,35 @@ export default function STCreatePremiumPage() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
+          {/* === Template Card (paling atas, di atas Nomor Surat) === */}
+          <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-500/30 dark:bg-orange-500/10">
+            {templateType === "bmn-pemeriksaan" ? (
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-6 items-center rounded-full bg-orange-600 px-2 text-[10px] font-bold uppercase tracking-wider text-white">Template Aktif</span>
+                  <span className="text-xs font-semibold text-orange-800 dark:text-orange-300">BMN Penghapusan</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetBmnTemplate}
+                  className="rounded-lg border border-orange-300 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-700 transition hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300 dark:hover:bg-orange-500/20"
+                  title="Hapus template BMN dan kembali ke ST manual"
+                >
+                  Hapus Template
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={applyBmnTemplate}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 transition hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300 dark:hover:bg-orange-500/20"
+                title="One-click apply: Klasifikasi KAP.05 + Menimbang + Dasar (8 peraturan) + Untuk pemeriksaan BMN"
+              >
+                Apply Template BMN Penghapusan
+              </button>
+            )}
+          </div>
+
           <FormSection title="Nomor Surat">
             <div className="flex items-stretch bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/10">
               <div className="bg-slate-100 dark:bg-zinc-700 px-3 flex items-center border-r border-slate-200 dark:border-zinc-600 shrink-0"><span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">ST.</span></div>
@@ -518,6 +627,8 @@ export default function STCreatePremiumPage() {
               menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
               buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
+              sumberDana={sumberDana}
+              templateType={templateType}
             />
           </div>
           {/* Page break indicators */}
