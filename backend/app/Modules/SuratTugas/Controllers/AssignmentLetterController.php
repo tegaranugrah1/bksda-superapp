@@ -115,6 +115,7 @@ class AssignmentLetterController extends Controller
                 'tempat_tujuan' => $validated['tempat_tujuan'] ?? null,
                 'sumber_dana' => $validated['sumber_dana'] ?? 'dipa',
                 'sumber_dana_other' => $validated['sumber_dana_other'] ?? null,
+                'template_type' => $validated['template_type'] ?? null,
                 'nama_plh' => $request->input('nama_plh'),
                 'has_seksi_employee' => (bool) $request->input('has_seksi_employee', false),
                 'tanda_setuju' => $request->input('tanda_setuju'),
@@ -195,6 +196,7 @@ class AssignmentLetterController extends Controller
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'tempat_tujuan' => $validated['tempat_tujuan'],
+                'template_type' => $validated['template_type'] ?? null,
             ]);
 
             $pivotData = [];

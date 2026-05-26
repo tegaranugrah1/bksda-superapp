@@ -36,6 +36,7 @@ interface PreviewProps {
   tembusanItems?: string[];
   headerTitle?: string;
   sumberDana?: string;
+  templateType?: string | null;
 }
 
 export default function STBuilderPreview({
@@ -54,8 +55,10 @@ export default function STBuilderPreview({
   tembusanItems = [],
   headerTitle = "KEPALA BALAI,",
   sumberDana = "dipa",
+  templateType = null,
 }: PreviewProps) {
   const isFolu = sumberDana === "folu";
+  const isBmnTemplate = templateType === "bmn-pemeriksaan";
   const visibleTembusanItems = tembusanItems.filter(t => t && t.trim());
   const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
 
@@ -236,7 +239,9 @@ export default function STBuilderPreview({
                   {[
                     buildUntukText(),
                     buildBiayaText(),
-                    "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
+                    isBmnTemplate
+                      ? "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut."
+                      : "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
                   ]
                     .filter(item => item && item.trim())
                     .map((item, idx) => (
@@ -257,17 +262,18 @@ export default function STBuilderPreview({
                 </div>
               </div>
 
-              {/* === PENUTUP === */}
-              {isFolu ? (
-                <p className="penutup-surat" style={{ margin: "28px 0 0", textAlign: "justify" }}>
-                  Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.
-                </p>
-              ) : (
-                <p className="penutup-surat" style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
-              )}
+              {/* === PENUTUP + TTD + TEMBUSAN — keep together so TTD never breaks alone === */}
+              <div className="penutup-ttd-group" style={{ pageBreakInside: "avoid", breakInside: "avoid" }}>
+                {isFolu ? (
+                  <p className="penutup-surat" style={{ margin: "28px 0 0", textAlign: "justify" }}>
+                    Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.
+                  </p>
+                ) : (
+                  <p className="penutup-surat" style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
+                )}
 
-              {/* === TANDA TANGAN + TEMBUSAN === */}
-              <div className="ttd-tembusan-wrapper" style={{ pageBreakInside: "avoid" }}>
+                {/* === TANDA TANGAN + TEMBUSAN === */}
+                <div className="ttd-tembusan-wrapper" style={{ pageBreakInside: "avoid" }}>
                 {isFolu ? (
                   <>
                     {/* === FOLU TTD Layout — Dikeluarkan sejajar a.n., rata kanan === */}
@@ -349,6 +355,7 @@ export default function STBuilderPreview({
                     )}
                   </>
                 )}
+              </div>
               </div>
               </div>
             </td>

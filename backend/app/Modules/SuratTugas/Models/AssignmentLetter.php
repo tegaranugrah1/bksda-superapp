@@ -19,6 +19,7 @@ class AssignmentLetter extends Model
     protected $fillable = [
         'nomor_surat',
         'kode_surat',
+        'template_type',
         'dasar_hukum',
         'maksud_tujuan',
         'tanggal_mulai',
