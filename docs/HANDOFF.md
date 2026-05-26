@@ -128,16 +128,19 @@ git push origin main
 - [x] Issue #365: Refactor auction-candidates page.tsx (1184 → 288 lines) into hooks + section components. PR #366 merged ke `main` (merge commit `d90a519`); remote branch deleted.
 - [x] Issue #364: Finalize BMN Penghapusan template state (independent templateType from sumberDana, top-of-sidebar Apply/Reset card, list badge). PR #367 merged ke `main` (merge commit `560f752`); remote branch deleted.
 - [x] Issue #364: Finalize BMN Penghapusan template state (independent templateType from sumberDana, top-of-sidebar Apply/Reset card, list badge). PR #367 merged ke `main` (merge commit `560f752`); remote branch deleted.
+- [x] Issue #368: Cleanup auction-candidates layout (PageHeader simplified, DocumentActions card baru, DocumentNumberInputs collapsible, SelectedAssetsBanner Cetak-only) + fix bug Total Rusak Berat (dedicated count query). PR #369 merged ke `main` (merge commit `e2dee79`); remote branch deleted.
+- [x] **Production Deploy Batch (2026-05-23)**: Server pulled main `60151b2 → e2dee79` (39 commit batch: #346, #348, #350, #352, #354, #356, #358, #360, #361, #364, #365, #368). Backend + frontend rebuilt. Migrations applied: #358 `no_mesin`, #364 `template_type`. Production healthy: login HTTP 200, /bmn/auction-candidates HTTP 307 (protected, expected).
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #364: BMN Penghapusan template (PR #367 merged) |
+| **Issue Terakhir Selesai** | Issue #368: Auction layout cleanup + Total Rusak Berat fix (PR #369 merged + DEPLOYED) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `560f752` |
-| **Status** | DONE: BMN Penghapusan template di-finalize. Tombol Apply/Reset di paling atas sidebar (builder + create), templateType state independent dari sumberDana, kolom DB template_type, badge "Template BMN" di Inbox + History list. Print rule global TTD-not-orphaned. Deploy production pending (wajib `php artisan migrate`). |
+| **Commit Terakhir di Main** | `e2dee79` |
+| **Commit Production Server** | `e2dee79` (synced) |
+| **Status** | DONE + DEPLOYED: Auction-candidates layout cleaner (PageHeader simplified, DocumentActions grid, DocumentNumberInputs collapsible). Total Rusak Berat fix dengan dedicated count query. Production batch deploy selesai (39 commit), 2 migrations applied. Login HTTP 200, auction-candidates HTTP 307 protected. |
 | **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-23T13:00:00+08:00 |
+| **Timestamp** | 2026-05-23T15:30:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -172,7 +175,51 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Deploy batch BMN + ST template terbaru ke SSH production saat user siap. Wajib `php artisan migrate` di production untuk #358 (`no_mesin`) dan #364 (`template_type`).
+- [x] ~~Deploy batch BMN + ST template ke SSH production~~ — SELESAI 2026-05-23.
+- [ ] User end-to-end testing pada production setelah deploy.
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-23 - Issue #368 SELESAI + PRODUCTION DEPLOY BATCH):**
+- **Objective Issue #368**: Cleanup tampilan halaman /bmn/auction-candidates yang berantakan + fix bug Total Rusak Berat yang ikut perPage.
+- **Status**: MERGED (PR #369 → `e2dee79`) + DEPLOYED ke production.
+- **GitHub**:
+  - Issue: #368 `fix(bmn): cleanup auction-candidates layout and fix Total Rusak Berat count`
+  - PR: #369 merged → merge commit `e2dee79`
+  - Branch: `issue/368-cleanup-auction-layout` (deleted)
+- **Bug fix**:
+  - Tile "Total Rusak Berat" sebelumnya pakai `response?.total || assets.length` — kalau response.total undefined, fallback ke jumlah row di halaman aktif (10 saat perPage=10, atau jumlah yang tampil saat "Semua").
+  - Solusi: dedicated count query `bmn-auction-candidates-count` di `useAuctionAssets` dengan `per_page=1`. Response Laravel paginate tetap include total metadata, response kecil tapi angka stabil. Independent dari pagination.
+  - New `totalRusakBerat: number` di `UseAuctionAssetsResult`.
+- **UI cleanup**:
+  - **PageHeader**: simplify ke title + subtitle + tombol Reset Pilihan saja (hapus 8 Generate buttons yang berdesakan).
+  - **DocumentActions** (NEW): card "Generate Dokumen Lelang" di bawah summary tiles, grid 4-kolom × 2-baris untuk 8 Generate buttons. Disable rules sama (5 disabled saat 0 aset, 3 always enabled).
+  - **DocumentNumberInputs**: collapsible card "Pengaturan Nomor Surat" (default tertutup). Saat dibuka: grid 3-kolom compact + sub-card "Referensi Surat Tugas" untuk No ST + Tgl ST.
+  - **SelectedAssetsBanner**: hapus 8 Generate buttons (duplikat header). Hanya tampilkan tombol Cetak yang aktif (berdasarkan show flags). Pesan kontekstual.
+  - Spacing reduced from `space-y-8` to `space-y-6` for tighter layout.
+- **Behavior preservation**: Class names, IDs section preview, layouts identical. Print handlers unchanged. `_lib/`, Document components, hooks lain (kecuali useAuctionAssets) untouched.
+- **Validation**:
+  - `npx eslint --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
+
+### Production Deploy Batch (2026-05-23)
+- **Scope**: 39 commit batch dari `60151b2` (issue #344) → `e2dee79` (issue #368). Mencakup issue #346, #348, #350, #352, #354, #356, #358, #360, #361, #364, #365, #368.
+- **Server**: `ssh -i bksda-superapp.pem ec2-user@15.135.114.1`, app path `/home/ec2-user/bksda-superapp`.
+- **Steps executed**:
+  1. `git fetch origin && git pull origin main` di server (39 commit fast-forward).
+  2. `docker-compose -f docker-compose.prod.yml --env-file .env.prod build backend frontend` (build kedua image).
+  3. `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d backend frontend` (recreate containers).
+  4. `docker exec bksda-backend php artisan migrate --force` — applied 2 migrations:
+     - `2026_05_22_163000_add_no_mesin_to_bmn_assets_table` (34.46ms)
+     - `2026_05_23_100000_add_template_type_to_st_assignment_letters_table` (16.41ms)
+- **Verification**:
+  - `bksda-backend` Up 35s, `bksda-frontend` Up 35s, nginx + db + rustfs all healthy.
+  - `https://bksdakaltim.net/login` → HTTP 200.
+  - `https://bksdakaltim.net/bmn/auction-candidates` → HTTP 307 (protected, expected).
+  - `migrate:status` confirms kedua migration `Ran` (batch 4).
+- **Known issues (carried over)**:
+  - Server working tree masih punya untracked `backend/seed_admin.php` (peninggalan lama, tidak diutak-atik).
 
 ---
 

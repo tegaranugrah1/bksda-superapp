@@ -1,3 +1,62 @@
+# Progress - Phase 58: Auction Layout Cleanup + Production Deploy
+
+> Document updated: 2026-05-23
+> Status: **MERGED + DEPLOYED** ✅
+
+---
+
+## Issue #368: Cleanup auction-candidates layout + fix Total Rusak Berat
+
+### Completed:
+- [x] **Issue Created**: Issue #368.
+- [x] **PR Created/Merged**: PR #369 merged ke `main` (merge commit `e2dee79`).
+- [x] **Branch Cleanup**: remote branch `issue/368-cleanup-auction-layout` deleted after merge.
+- [x] **Bug fix Total Rusak Berat**: dedicated count query `bmn-auction-candidates-count` (per_page=1) di `useAuctionAssets`. Total stabil regardless dari pagination.
+- [x] **PageHeader simplified**: title + subtitle + Reset Pilihan saja.
+- [x] **DocumentActions (NEW)**: card grid 4-kolom × 2-baris untuk 8 Generate buttons.
+- [x] **DocumentNumberInputs collapsible**: default tertutup, grid 3-kolom + sub-card Referensi ST.
+- [x] **SelectedAssetsBanner Cetak-only**: hapus 8 Generate duplikat. Pesan kontekstual.
+- [x] **Spacing**: `space-y-8` → `space-y-6` untuk tighter layout.
+- [x] **Production deployed**: server pulled main, backend + frontend rebuilt, migrations applied.
+
+### Key Files:
+- `_hooks/useAuctionAssets.ts` (count query baru + `totalRusakBerat`)
+- `_components/PageHeader.tsx` (simplified)
+- `_components/DocumentActions.tsx` (NEW)
+- `_components/DocumentNumberInputs.tsx` (collapsible)
+- `_components/SelectedAssetsBanner.tsx` (Cetak-only)
+- `page.tsx` (wire up baru)
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+---
+
+## Production Deploy Batch (2026-05-23)
+
+### Scope:
+39 commit batch dari `60151b2` → `e2dee79`. Mencakup issue #346, #348, #350, #352, #354, #356, #358, #360, #361, #364, #365, #368.
+
+### Steps:
+- [x] SSH to `ec2-user@15.135.114.1` dengan `bksda-superapp.pem`
+- [x] `git pull origin main` di server (39 commit fast-forward)
+- [x] `docker-compose ... build backend frontend`
+- [x] `docker-compose ... up -d backend frontend` (recreate)
+- [x] `php artisan migrate --force` — 2 migrations applied:
+  - `add_no_mesin_to_bmn_assets_table` (34.46ms)
+  - `add_template_type_to_st_assignment_letters_table` (16.41ms)
+
+### Verification:
+- [x] Container `bksda-backend` Up
+- [x] Container `bksda-frontend` Up
+- [x] `https://bksdakaltim.net/login` → HTTP 200
+- [x] `https://bksdakaltim.net/bmn/auction-candidates` → HTTP 307 (protected, expected)
+- [x] `migrate:status` confirm 2 migrations `Ran` (batch 4)
+
+---
+
 # Progress - Phase 57: BMN Penghapusan Template Finalize
 
 > Document updated: 2026-05-23
