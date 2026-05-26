@@ -126,17 +126,18 @@ git push origin main
 - [x] Issue #360: Add Apply BMN Penghapusan template button to ST builder (one-click preset Menimbang + Dasar + Klasifikasi + Untuk freeform). PR #363 merged ke `main` (merge commit `270394d`); remote branch deleted.
 - [ ] Issue #364: Generate ST Pemeriksaan button on auction-candidates redirects to ST create with prefilled template. **WIP — siap testing user. Branch `issue/364-generate-st-pemeriksaan` pushed.**
 - [x] Issue #365: Refactor auction-candidates page.tsx (1184 → 288 lines) into hooks + section components. PR #366 merged ke `main` (merge commit `d90a519`); remote branch deleted.
+- [x] Issue #364: Finalize BMN Penghapusan template state (independent templateType from sumberDana, top-of-sidebar Apply/Reset card, list badge). PR #367 merged ke `main` (merge commit `560f752`); remote branch deleted.
+- [x] Issue #364: Finalize BMN Penghapusan template state (independent templateType from sumberDana, top-of-sidebar Apply/Reset card, list badge). PR #367 merged ke `main` (merge commit `560f752`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #365: Refactor auction-candidates page.tsx (PR #366 merged) |
-| **Issue Sedang Dikerjakan** | Issue #364: Generate ST Pemeriksaan redirect (WIP, siap user testing) |
-| **Branch Aktif** | `main` (WIP di `issue/364-generate-st-pemeriksaan`) |
-| **Commit Terakhir di Main** | `d90a519` |
-| **WIP Commit** | `8523646` di branch `issue/364-generate-st-pemeriksaan` |
-| **Status** | DONE: Refactor besar `/bmn/auction-candidates` selesai — 23 file baru (8 hooks + 15 components), page.tsx turun ~75% jadi 288 baris, zero behavior change. Issue #364 (Generate ST Pemeriksaan) masih WIP menunggu user testing. Deploy production pending. |
+| **Issue Terakhir Selesai** | Issue #364: BMN Penghapusan template (PR #367 merged) |
+| **Issue Sedang Dikerjakan** | None |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir di Main** | `560f752` |
+| **Status** | DONE: BMN Penghapusan template di-finalize. Tombol Apply/Reset di paling atas sidebar (builder + create), templateType state independent dari sumberDana, kolom DB template_type, badge "Template BMN" di Inbox + History list. Print rule global TTD-not-orphaned. Deploy production pending (wajib `php artisan migrate`). |
 | **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-23T10:00:00+08:00 |
+| **Timestamp** | 2026-05-23T13:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -171,8 +172,54 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] User testing untuk issue #364 (WIP).
-- [ ] Deploy batch BMN terbaru ke SSH production saat user siap (jangan lupa `php artisan migrate` di production untuk #358).
+- [ ] Deploy batch BMN + ST template terbaru ke SSH production saat user siap. Wajib `php artisan migrate` di production untuk #358 (`no_mesin`) dan #364 (`template_type`).
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-23 - Issue #364 SELESAI: BMN Penghapusan template finalize):**
+- **Objective**: Refactor finalisasi template BMN Penghapusan dengan templateType state independent dari sumberDana, tombol pindah ke paling atas sidebar, badge di list ST, dan print fix global TTD.
+- **Status**: MERGED (PR #367) ke `main` (merge commit `560f752`). Branch deleted. Local migration applied.
+- **GitHub**:
+  - Issue: #364 `feat(kepegawaian): finalize BMN Penghapusan template state with reset support and ST list badge`
+  - PR: #367 merged → merge commit `560f752`
+  - Branch: `issue/364-st-template-bmn` (deleted)
+  - WIP lama branch `issue/364-generate-st-pemeriksaan` dihapus karena scope berubah (tidak ada redirect dari modul BMN — modul Kepegawaian yang buat ST).
+- **Backend**:
+  - New migration `2026_05_23_100000_add_template_type_to_st_assignment_letters_table.php` — kolom `template_type` (nullable string max:50) `after('kode_surat')`.
+  - `AssignmentLetter` model `$fillable` ditambah `template_type`.
+  - `AssignmentLetterRequest` validation rule `'template_type' => 'nullable|string|max:50'`.
+  - `AssignmentLetterController` `store()` dan `update()` simpan `template_type`.
+- **Frontend Template state**:
+  - **Hapus opsi `bmn`** dari `SUMBER_DANA_OPTIONS` di builder (tidak diperlukan lagi).
+  - **`templateType` state independent** dari sumberDana di builder + create page.
+  - `buildBiayaText()` return `''` saat `templateType === 'bmn-pemeriksaan'` regardless of sumberDana.
+  - `buildUntukText()` paksa freeform mode tanpa date suffix saat templateType BMN.
+  - `STBuilderPreview` item ke-3 Untuk pakai "7 (tujuh) hari" (tanpa "kerja") saat `isBmnTemplate`.
+- **Tombol pindah ke paling atas sidebar** (builder + create):
+  - Card terpisah PALING ATAS, sebelum "Nomor Surat" (warna orange).
+  - Saat `templateType=null`: tombol "Apply Template BMN Penghapusan".
+  - Saat `templateType='bmn-pemeriksaan'`: badge "Template Aktif: BMN Penghapusan" + tombol "Hapus Template".
+- **applyBmnTemplate defaults baru**: `klasifikasi=KAP.05`, `sumberDana=dl1`, `tanggalMulai=tanggalSelesai=today` (1 hari default), Menimbang 2 items + Dasar 8 peraturan, freeform Untuk dengan kalimat default.
+- **resetBmnTemplate**: hanya `setTemplateType(null)`, state lain dibiarkan supaya user bisa revert manual.
+- **Print fix global**:
+  - `handlePrint` di create page disync dengan builder full CSS rules (KOP, surat-content, untuk-entry break-inside, @page margin 3cm/0.7cm).
+  - Wrap `Demikian + TTD + Tembusan` jadi `.penutup-ttd-group` dengan `pageBreakInside: avoid`. **Rule GLOBAL** untuk semua ST (bukan hanya BMN).
+  - CSS rule `.penutup-ttd-group` di builder + create print handlers.
+- **Badge "Template BMN" di ST list**:
+  - Inbox: badge orange di list cards (di bawah `maksud_tujuan`) dan detail panel (pill di samping status).
+  - History (AssignmentHistoryTab): badge orange di table cell di samping `nomor_surat`.
+  - `AssignmentLetter` (inbox) dan `SuratTugasItem` (history) interface ditambah `template_type`.
+- **Out of Scope (sesuai konfirmasi user)**:
+  - TIDAK ada tombol "Generate ST Pemeriksaan" di /bmn/auction-candidates.
+  - TIDAK ada redirect dari modul BMN.
+- **Validation**:
+  - `php -l` clean (4 file PHP).
+  - `npx eslint --max-warnings=0` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean (59/59 static pages).
+  - Local DB migration applied — kolom `template_type` ada.
+- **Production deploy notes**:
+  - Wajib `php artisan migrate` di backend container production setelah pull `main` agar kolom `template_type` tersedia.
 
 ---
 

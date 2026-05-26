@@ -1,3 +1,57 @@
+# Progress - Phase 57: BMN Penghapusan Template Finalize
+
+> Document updated: 2026-05-23
+> Status: **MERGED** ✅
+
+---
+
+## Issue #364: Finalize BMN Penghapusan Template State
+
+### Completed:
+- [x] **Issue Created**: Issue #364.
+- [x] **PR Created/Merged**: PR #367 merged ke `main` (merge commit `560f752`).
+- [x] **Branch Cleanup**: remote branch `issue/364-st-template-bmn` deleted after merge.
+- [x] **Backend migration**: `add_template_type_to_st_assignment_letters_table.php` — kolom `template_type` (nullable string max:50) `after('kode_surat')`.
+- [x] **Backend Model**: `AssignmentLetter` `$fillable` ditambah `template_type`.
+- [x] **Backend Request**: validation rule `template_type` nullable|string|max:50.
+- [x] **Backend Controller**: `store()` dan `update()` simpan `template_type`.
+- [x] **Frontend templateType state** independent dari sumberDana (builder + create).
+- [x] **buildBiayaText**: return `''` saat templateType BMN (skip baris biaya).
+- [x] **buildUntukText**: paksa freeform tanpa date suffix saat templateType BMN.
+- [x] **STBuilderPreview**: item ke-3 Untuk pakai "7 (tujuh) hari" (tanpa "kerja") saat templateType BMN.
+- [x] **Tombol Apply/Reset di paling atas sidebar** (builder + create) — card orange dengan toggle state.
+- [x] **applyBmnTemplate**: defaults `klasifikasi=KAP.05`, `sumberDana=dl1`, `tanggalMulai=tanggalSelesai=today`.
+- [x] **resetBmnTemplate**: clear templateType only (state lain dibiarkan).
+- [x] **handlePrint create page** disync dengan builder full CSS rules (KOP, surat-content, untuk-entry break-inside, @page margin).
+- [x] **Rule global `.penutup-ttd-group`**: bungkus `Demikian + TTD + Tembusan` dengan `pageBreakInside: avoid` (semua ST, bukan hanya BMN).
+- [x] **Badge "Template BMN" di Inbox**: list cards + detail panel pill.
+- [x] **Badge "Template BMN" di History**: table cell di samping `nomor_surat`.
+- [x] **API payloads** include `template_type` (3 di builder + 1 di create).
+- [x] **fetchAndParse** load `template_type` dari API saat edit existing ST.
+- [x] **Hapus opsi `bmn`** dari `SUMBER_DANA_OPTIONS` (tidak diperlukan lagi).
+- [x] **Local migration applied** — kolom `template_type` ada di local DB.
+
+### Pending / TODO:
+- [ ] **Production migrate**: Wajib `php artisan migrate` di backend container saat deploy ke SSH production.
+
+### Key Files:
+- Backend: `Migrations/2026_05_23_100000_*.php` (new), `Models/AssignmentLetter.php`, `Requests/AssignmentLetterRequest.php`, `Controllers/AssignmentLetterController.php`
+- Frontend builder: `surat-tugas/builder/[id]/page.tsx`, `STBuilderPreview.tsx`
+- Frontend create: `surat-tugas/create/page.tsx`
+- Frontend list: `surat-tugas/inbox/page.tsx`, `_components/AssignmentHistoryTab.tsx`
+
+### Validation:
+- [x] `php -l` clean (4 PHP files)
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+### Out of Scope (sesuai konfirmasi user):
+- ❌ TIDAK ada tombol "Generate ST Pemeriksaan" di /bmn/auction-candidates.
+- ❌ TIDAK ada redirect dari modul BMN.
+
+---
+
 # Progress - Phase 56: Refactor Auction Candidates Page
 
 > Document updated: 2026-05-23
