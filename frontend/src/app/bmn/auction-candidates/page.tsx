@@ -13,6 +13,7 @@ import { handlePrintSpTugas } from "./_components/SpTugasDocument";
 import { handlePrintSkKebenaran } from "./_components/SkKebenaranDokumenDocument";
 import { handlePrintBaPemeriksaan } from "./_components/BaPemeriksaanDocument";
 import { PageHeader } from "./_components/PageHeader";
+import { DocumentActions } from "./_components/DocumentActions";
 import { SearchBar } from "./_components/SearchBar";
 import { DocumentNumberInputs } from "./_components/DocumentNumberInputs";
 import { SelectedAssetsBanner } from "./_components/SelectedAssetsBanner";
@@ -58,6 +59,7 @@ export default function BmnAuctionCandidatesPage() {
     response,
     isLoading,
     isFetching,
+    totalRusakBerat,
     assets,
     selectedIds,
     orderedSelectedAssets,
@@ -128,10 +130,20 @@ export default function BmnAuctionCandidatesPage() {
   const handlePrintBaPemeriksaanDoc = () => handlePrintBaPemeriksaan();
 
   return (
-    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <PageHeader
         orderedIdsLength={orderedIds.length}
         onResetSelection={handleResetSelection}
+      />
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <SummaryTile label="Total Rusak Berat" value={totalRusakBerat.toLocaleString("id-ID")} tone="red" />
+        <SummaryTile label="Dipilih" value={orderedIds.length.toLocaleString("id-ID")} tone="emerald" />
+        <SummaryTile label="Nilai Terpilih" value={formatRupiah(selectedTotal)} tone="zinc" />
+      </div>
+
+      <DocumentActions
+        orderedIdsLength={orderedIds.length}
         onProcess={docToggles.handleProcess}
         onProcessSk={docToggles.handleProcessSk}
         onProcessSkPanitia={docToggles.handleProcessSkPanitia}
@@ -141,12 +153,6 @@ export default function BmnAuctionCandidatesPage() {
         onProcessSkKebenaran={docToggles.handleProcessSkKebenaran}
         onProcessBaPemeriksaan={docToggles.handleProcessBaPemeriksaan}
       />
-
-      <div className="grid gap-3 md:grid-cols-3">
-        <SummaryTile label="Total Rusak Berat" value={(response?.total || assets.length).toLocaleString("id-ID")} tone="red" />
-        <SummaryTile label="Dipilih" value={orderedIds.length.toLocaleString("id-ID")} tone="emerald" />
-        <SummaryTile label="Nilai Terpilih" value={formatRupiah(selectedTotal)} tone="zinc" />
-      </div>
 
       <SearchBar
         searchTerm={searchTerm}
@@ -167,14 +173,6 @@ export default function BmnAuctionCandidatesPage() {
         showSpTugas={docToggles.showSpTugas}
         showSkKebenaran={docToggles.showSkKebenaran}
         showBaPemeriksaan={docToggles.showBaPemeriksaan}
-        onProcess={docToggles.handleProcess}
-        onProcessSk={docToggles.handleProcessSk}
-        onProcessSkPanitia={docToggles.handleProcessSkPanitia}
-        onProcessSptjLimit={docToggles.handleProcessSptjLimit}
-        onProcessSptjm={docToggles.handleProcessSptjm}
-        onProcessSpTugas={docToggles.handleProcessSpTugas}
-        onProcessSkKebenaran={docToggles.handleProcessSkKebenaran}
-        onProcessBaPemeriksaan={docToggles.handleProcessBaPemeriksaan}
         onPrint={handlePrint}
         onPrintSk={handlePrintSkDoc}
         onPrintSkPanitia={handlePrintSkPanitiaDoc}

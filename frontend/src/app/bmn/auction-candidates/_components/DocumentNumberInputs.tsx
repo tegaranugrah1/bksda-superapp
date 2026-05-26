@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { ChevronDown, Settings2 } from "lucide-react";
 import { formatDateLong, getSkNumberSuffix } from "../_lib/auction-helpers";
 
 interface DocumentNumberInputsProps {
@@ -27,6 +29,12 @@ interface DocumentNumberInputsProps {
   setStTanggal: (value: string) => void;
 }
 
+const inputBoxClass =
+  "flex h-10 items-center rounded-lg border border-zinc-200 bg-white px-2.5 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white";
+
+const labelClass =
+  "text-[9px] font-bold uppercase tracking-wider text-zinc-400";
+
 export function DocumentNumberInputs({
   baNumber,
   setBaNumber,
@@ -51,199 +59,228 @@ export function DocumentNumberInputs({
   stTanggal,
   setStTanggal,
 }: DocumentNumberInputsProps) {
+  const [open, setOpen] = useState(false);
   const monthSuffix = `${String(new Date().getMonth() + 1).padStart(2, "0")}/${new Date().getFullYear()}`;
+  const skSuffix = getSkNumberSuffix();
 
   return (
-    <>
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <label htmlFor="ba-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-          Nomor Berita Acara
-        </label>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">BA.</span>
-            <input
-              id="ba-number"
-              type="text"
-              value={baNumber}
-              onChange={(event) => setBaNumber(event.target.value)}
-              placeholder="____"
-              className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
-            />
-            <span>/K.18/TU/</span>
-            <input
-              type="text"
-              value={baKap}
-              onChange={(event) => setBaKap(event.target.value)}
-              className="w-24 bg-transparent text-center font-semibold outline-none"
-            />
-            <span>/B/{monthSuffix}</span>
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Bulan dan tahun otomatis mengikuti tanggal generate dokumen.
-          </p>
+    <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+      >
+        <div className="flex items-center gap-2">
+          <Settings2 className="h-4 w-4 text-zinc-400" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            Pengaturan Nomor Surat
+          </span>
+          <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            9 dokumen
+          </span>
         </div>
-      </div>
+        <ChevronDown
+          className={`h-4 w-4 text-zinc-400 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <label htmlFor="sk-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-          Nomor SK Penghentian
-        </label>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SK.</span>
-            <input
-              id="sk-number"
-              type="text"
-              value={skNumber}
-              onChange={(event) => setSkNumber(event.target.value)}
-              placeholder="____"
-              className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
-            />
-            <span>/{getSkNumberSuffix()}</span>
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Tahun otomatis mengikuti tanggal generate dokumen.
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <label htmlFor="sk-panitia-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-          Nomor SK Panitia Penghapusan
-        </label>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SK.</span>
-            <input
-              id="sk-panitia-number"
-              type="text"
-              value={skPanitiaNumber}
-              onChange={(event) => setSkPanitiaNumber(event.target.value)}
-              placeholder="____"
-              className="mx-1 w-20 bg-transparent text-center font-semibold outline-none"
-            />
-            <span>/{getSkNumberSuffix()}</span>
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Tahun otomatis mengikuti tanggal generate dokumen.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <label htmlFor="sptj-limit-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor SPTJ Nilai Limit
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SM.</span>
-            <input
-              id="sptj-limit-number"
-              type="text"
-              value={sptjLimitNumber}
-              onChange={(event) => setSptjLimitNumber(event.target.value)}
-              placeholder="41"
-              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
-            />
-            <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <label htmlFor="sptjm-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor SPTJM
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SPTJM.</span>
-            <input
-              id="sptjm-number"
-              type="text"
-              value={sptjmNumber}
-              onChange={(event) => setSptjmNumber(event.target.value)}
-              placeholder="202"
-              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
-            />
-            <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <label htmlFor="sp-tugas-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor SP Tidak Mengganggu Tugas
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">SM.</span>
-            <input
-              id="sp-tugas-number"
-              type="text"
-              value={spTugasNumber}
-              onChange={(event) => setSpTugasNumber(event.target.value)}
-              placeholder="40"
-              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
-            />
-            <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <label htmlFor="sk-kebenaran-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor SK Kebenaran Dokumen
-          </label>
-          <div className="mt-2 flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-            <span className="font-semibold">KT.</span>
-            <input
-              id="sk-kebenaran-number"
-              type="text"
-              value={skKebenaranNumber}
-              onChange={(event) => setSkKebenaranNumber(event.target.value)}
-              placeholder="200"
-              className="mx-1 w-16 bg-transparent text-center font-semibold outline-none"
-            />
-            <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 xl:col-span-2">
-          <label htmlFor="ba-pemeriksaan-number" className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-            Nomor BA Pemeriksaan + Surat Tugas
-          </label>
-          <div className="mt-2 grid gap-2 lg:grid-cols-3">
-            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-              <span className="font-semibold">BA.</span>
-              <input
-                id="ba-pemeriksaan-number"
-                type="text"
-                value={baPemeriksaanNumber}
-                onChange={(event) => setBaPemeriksaanNumber(event.target.value)}
-                placeholder="158"
-                className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
-              />
-              <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+      {open && (
+        <div className="space-y-3 border-t border-zinc-100 p-4 dark:border-zinc-800">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {/* BA Koreksi */}
+            <div>
+              <label htmlFor="ba-number" className={labelClass}>
+                BA Koreksi
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">BA.</span>
+                <input
+                  id="ba-number"
+                  type="text"
+                  value={baNumber}
+                  onChange={(e) => setBaNumber(e.target.value)}
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={baKap}
+                  onChange={(e) => setBaKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
+              </div>
             </div>
-            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-              <span className="mr-2 shrink-0 text-[10px] font-bold uppercase tracking-wider text-zinc-400">No. ST</span>
-              <input
-                type="text"
-                value={stNumber}
-                onChange={(event) => setStNumber(event.target.value)}
-                placeholder="ST.xxx/K.18/TU/..."
-                className="w-full bg-transparent font-semibold outline-none"
-              />
+
+            {/* SK Penghentian */}
+            <div>
+              <label htmlFor="sk-number" className={labelClass}>
+                SK Penghentian
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">SK.</span>
+                <input
+                  id="sk-number"
+                  type="text"
+                  value={skNumber}
+                  onChange={(e) => setSkNumber(e.target.value)}
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/{skSuffix}</span>
+              </div>
             </div>
-            <div className="flex h-11 items-center rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-              <span className="mr-2 shrink-0 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Tgl ST</span>
-              <input
-                type="text"
-                value={stTanggal}
-                onChange={(event) => setStTanggal(event.target.value)}
-                placeholder={formatDateLong(new Date())}
-                className="w-full bg-transparent font-semibold outline-none"
-              />
+
+            {/* SK Panitia */}
+            <div>
+              <label htmlFor="sk-panitia-number" className={labelClass}>
+                SK Panitia
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">SK.</span>
+                <input
+                  id="sk-panitia-number"
+                  type="text"
+                  value={skPanitiaNumber}
+                  onChange={(e) => setSkPanitiaNumber(e.target.value)}
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/{skSuffix}</span>
+              </div>
+            </div>
+
+            {/* SPTJ Nilai Limit */}
+            <div>
+              <label htmlFor="sptj-limit-number" className={labelClass}>
+                SPTJ Nilai Limit
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">SM.</span>
+                <input
+                  id="sptj-limit-number"
+                  type="text"
+                  value={sptjLimitNumber}
+                  onChange={(e) => setSptjLimitNumber(e.target.value)}
+                  placeholder="41"
+                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+              </div>
+            </div>
+
+            {/* SPTJM */}
+            <div>
+              <label htmlFor="sptjm-number" className={labelClass}>
+                SPTJM
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">SPTJM.</span>
+                <input
+                  id="sptjm-number"
+                  type="text"
+                  value={sptjmNumber}
+                  onChange={(e) => setSptjmNumber(e.target.value)}
+                  placeholder="202"
+                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+              </div>
+            </div>
+
+            {/* SP Tidak Mengganggu Tugas */}
+            <div>
+              <label htmlFor="sp-tugas-number" className={labelClass}>
+                SP Tidak Mengganggu Tugas
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">SM.</span>
+                <input
+                  id="sp-tugas-number"
+                  type="text"
+                  value={spTugasNumber}
+                  onChange={(e) => setSpTugasNumber(e.target.value)}
+                  placeholder="40"
+                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+              </div>
+            </div>
+
+            {/* SK Kebenaran Dokumen */}
+            <div>
+              <label htmlFor="sk-kebenaran-number" className={labelClass}>
+                SK Kebenaran Dokumen
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">KT.</span>
+                <input
+                  id="sk-kebenaran-number"
+                  type="text"
+                  value={skKebenaranNumber}
+                  onChange={(e) => setSkKebenaranNumber(e.target.value)}
+                  placeholder="200"
+                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+              </div>
+            </div>
+
+            {/* BA Pemeriksaan */}
+            <div>
+              <label htmlFor="ba-pemeriksaan-number" className={labelClass}>
+                BA Pemeriksaan
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">BA.</span>
+                <input
+                  id="ba-pemeriksaan-number"
+                  type="text"
+                  value={baPemeriksaanNumber}
+                  onChange={(e) => setBaPemeriksaanNumber(e.target.value)}
+                  placeholder="158"
+                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+              </div>
             </div>
           </div>
+
+          {/* Surat Tugas reference (hanya untuk BA Pemeriksaan) */}
+          <div className="rounded-xl border border-dashed border-zinc-200 p-3 dark:border-zinc-800">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Referensi Surat Tugas (untuk BA Pemeriksaan)
+            </p>
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className={inputBoxClass}>
+                <span className="mr-2 shrink-0 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                  No. ST
+                </span>
+                <input
+                  type="text"
+                  value={stNumber}
+                  onChange={(e) => setStNumber(e.target.value)}
+                  placeholder="ST.xxx/K.18/TU/..."
+                  className="w-full bg-transparent font-semibold outline-none"
+                />
+              </div>
+              <div className={inputBoxClass}>
+                <span className="mr-2 shrink-0 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                  Tgl ST
+                </span>
+                <input
+                  type="text"
+                  value={stTanggal}
+                  onChange={(e) => setStTanggal(e.target.value)}
+                  placeholder={formatDateLong(new Date())}
+                  className="w-full bg-transparent font-semibold outline-none"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }

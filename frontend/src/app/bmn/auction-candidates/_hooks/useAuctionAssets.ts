@@ -18,6 +18,7 @@ export interface UseAuctionAssetsResult {
   response: AssetResponse | undefined;
   isLoading: boolean;
   isFetching: boolean;
+  totalRusakBerat: number;
   assets: AuctionAsset[];
   selectedIds: Set<string>;
   orderedSelectedAssets: AuctionAsset[];
@@ -54,6 +55,26 @@ export function useAuctionAssets(): UseAuctionAssetsResult {
         },
       });
       return res.data;
+    },
+    placeholderData: (prev) => prev,
+  });
+
+  // Total count of "Rusak Berat" assets — independent from pagination/perPage.
+  // Uses per_page=1 so the response is tiny but Laravel paginate still returns the total.
+  const { data: totalRusakBerat = 0 } = useQuery<number>({
+    queryKey: ["bmn-auction-candidates-count", debouncedSearch],
+    queryFn: async () => {
+      const res = await api.get("/bmn/assets", {
+        params: {
+          kondisi: "Rusak Berat",
+          search: debouncedSearch || undefined,
+          per_page: 1,
+          page: 1,
+        },
+      });
+      const data = res.data;
+      // Laravel paginate may return total at the top level (data.total) OR inside meta (data.meta.total).
+      return Number(data?.total ?? data?.meta?.total ?? 0);
     },
     placeholderData: (prev) => prev,
   });
@@ -153,6 +174,7 @@ export function useAuctionAssets(): UseAuctionAssetsResult {
     response,
     isLoading,
     isFetching,
+    totalRusakBerat,
     assets,
     selectedIds,
     orderedSelectedAssets,
