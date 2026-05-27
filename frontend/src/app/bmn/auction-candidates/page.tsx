@@ -13,6 +13,8 @@ import { handlePrintSptjm } from "./_components/SptjmDocument";
 import { handlePrintSpTugas } from "./_components/SpTugasDocument";
 import { handlePrintSkKebenaran } from "./_components/SkKebenaranDokumenDocument";
 import { handlePrintBaPemeriksaan } from "./_components/BaPemeriksaanDocument";
+import { handlePrintNotaDinas } from "./_components/NotaDinasDocument";
+import { handlePrintPermohonanKpknl } from "./_components/PermohonanKpknlDocument";
 import { PageHeader } from "./_components/PageHeader";
 import { DocumentActions } from "./_components/DocumentActions";
 import { SearchBar } from "./_components/SearchBar";
@@ -28,6 +30,8 @@ import { SptjmSection } from "./_components/sections/SptjmSection";
 import { SpTugasSection } from "./_components/sections/SpTugasSection";
 import { SkKebenaranSection } from "./_components/sections/SkKebenaranSection";
 import { BaPemeriksaanSection } from "./_components/sections/BaPemeriksaanSection";
+import { NotaDinasSection } from "./_components/sections/NotaDinasSection";
+import { PermohonanKpknlSection } from "./_components/sections/PermohonanKpknlSection";
 import { formatRupiah } from "./_lib/auction-helpers";
 
 import { useAuctionAssets } from "./_hooks/useAuctionAssets";
@@ -40,6 +44,7 @@ import { useTimPenilaiList } from "./_hooks/useTimPenilaiList";
 import { useSkBuilderState } from "./_hooks/useSkBuilderState";
 import { useSkPanitiaBuilderState } from "./_hooks/useSkPanitiaBuilderState";
 import { useSkTimPenilaiBuilderState } from "./_hooks/useSkTimPenilaiBuilderState";
+import { useNotaKpknlBuilderState } from "./_hooks/useNotaKpknlBuilderState";
 
 export default function BmnAuctionCandidatesPage() {
   const auctionAssets = useAuctionAssets();
@@ -52,6 +57,7 @@ export default function BmnAuctionCandidatesPage() {
   const sk = useSkBuilderState();
   const skPanitia = useSkPanitiaBuilderState();
   const skTimPenilai = useSkTimPenilaiBuilderState();
+  const notaKpknl = useNotaKpknlBuilderState();
 
   const {
     searchTerm,
@@ -135,6 +141,8 @@ export default function BmnAuctionCandidatesPage() {
   const handlePrintSpTugasDoc = () => handlePrintSpTugas();
   const handlePrintSkKebenaranDoc = () => handlePrintSkKebenaran();
   const handlePrintBaPemeriksaanDoc = () => handlePrintBaPemeriksaan();
+  const handlePrintNotaDinasDoc = () => handlePrintNotaDinas();
+  const handlePrintPermohonanKpknlDoc = () => handlePrintPermohonanKpknl();
 
   return (
     <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -160,6 +168,8 @@ export default function BmnAuctionCandidatesPage() {
         onProcessSpTugas={docToggles.handleProcessSpTugas}
         onProcessSkKebenaran={docToggles.handleProcessSkKebenaran}
         onProcessBaPemeriksaan={docToggles.handleProcessBaPemeriksaan}
+        onProcessNotaDinas={docToggles.handleProcessNotaDinas}
+        onProcessPermohonanKpknl={docToggles.handleProcessPermohonanKpknl}
       />
 
       <SearchBar
@@ -182,6 +192,8 @@ export default function BmnAuctionCandidatesPage() {
         showSpTugas={docToggles.showSpTugas}
         showSkKebenaran={docToggles.showSkKebenaran}
         showBaPemeriksaan={docToggles.showBaPemeriksaan}
+        showNotaDinas={docToggles.showNotaDinas}
+        showPermohonanKpknl={docToggles.showPermohonanKpknl}
         onPrint={handlePrint}
         onPrintSk={handlePrintSkDoc}
         onPrintSkPanitia={handlePrintSkPanitiaDoc}
@@ -191,6 +203,8 @@ export default function BmnAuctionCandidatesPage() {
         onPrintSpTugas={handlePrintSpTugasDoc}
         onPrintSkKebenaran={handlePrintSkKebenaranDoc}
         onPrintBaPemeriksaan={handlePrintBaPemeriksaanDoc}
+        onPrintNotaDinas={handlePrintNotaDinasDoc}
+        onPrintPermohonanKpknl={handlePrintPermohonanKpknlDoc}
       />
 
       <AssetTable
@@ -339,6 +353,48 @@ export default function BmnAuctionCandidatesPage() {
           onUpdatePemeriksa={pemeriksa.updatePemeriksaAnggota}
           onSelectPemeriksaEmployee={pemeriksa.selectPemeriksaEmployee}
           onPrint={handlePrintBaPemeriksaanDoc}
+        />
+      )}
+
+      {docToggles.showNotaDinas && orderedSelectedAssets.length > 0 && (
+        <NotaDinasSection
+          assets={orderedSelectedAssets}
+          number={docNumbers.notaDinasNumber}
+          kepalaBalai={sk.kepalaBalai}
+          perihal={notaKpknl.ndPerihal}
+          setPerihal={notaKpknl.setNdPerihal}
+          lampiran={notaKpknl.ndLampiran}
+          setLampiran={notaKpknl.setNdLampiran}
+          lokasi={notaKpknl.ndLokasi}
+          setLokasi={notaKpknl.setNdLokasi}
+          tembusan={notaKpknl.ndTembusan}
+          setTembusan={notaKpknl.setNdTembusan}
+          kesimpulan={notaKpknl.ndKesimpulan}
+          setKesimpulan={notaKpknl.setNdKesimpulan}
+          nilaiTaksiran={notaKpknl.ndNilaiTaksiran}
+          setNilaiTaksiran={notaKpknl.setNdNilaiTaksiran}
+          onPrint={handlePrintNotaDinasDoc}
+        />
+      )}
+
+      {docToggles.showPermohonanKpknl && orderedSelectedAssets.length > 0 && (
+        <PermohonanKpknlSection
+          assets={orderedSelectedAssets}
+          number={docNumbers.permohonanKpknlNumber}
+          kepalaBalai={sk.kepalaBalai}
+          perihal={notaKpknl.pkPerihal}
+          setPerihal={notaKpknl.setPkPerihal}
+          lampiran={notaKpknl.pkLampiran}
+          setLampiran={notaKpknl.setPkLampiran}
+          lokasi={notaKpknl.pkLokasi}
+          setLokasi={notaKpknl.setPkLokasi}
+          tembusan={notaKpknl.pkTembusan}
+          setTembusan={notaKpknl.setPkTembusan}
+          kesimpulan={notaKpknl.pkKesimpulan}
+          setKesimpulan={notaKpknl.setPkKesimpulan}
+          nilaiTaksiran={notaKpknl.pkNilaiTaksiran}
+          setNilaiTaksiran={notaKpknl.setPkNilaiTaksiran}
+          onPrint={handlePrintPermohonanKpknlDoc}
         />
       )}
     </div>

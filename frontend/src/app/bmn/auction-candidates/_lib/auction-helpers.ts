@@ -69,6 +69,7 @@ export const numberWords = [
 ];
 
 export function numberToWords(value: number): string {
+  if (value < 0) return "";
   if (value < 12) return numberWords[value];
   if (value < 20) return `${numberToWords(value - 10)} Belas`;
   if (value < 100) {
@@ -83,9 +84,24 @@ export function numberToWords(value: number): string {
     return `${numberToWords(hundreds)} Ratus${rest ? ` ${numberToWords(rest)}` : ""}`;
   }
   if (value < 2000) return `Seribu${value > 1000 ? ` ${numberToWords(value - 1000)}` : ""}`;
-  const thousands = Math.floor(value / 1000);
-  const rest = value % 1000;
-  return `${numberToWords(thousands)} Ribu${rest ? ` ${numberToWords(rest)}` : ""}`;
+  if (value < 1_000_000) {
+    const thousands = Math.floor(value / 1000);
+    const rest = value % 1000;
+    return `${numberToWords(thousands)} Ribu${rest ? ` ${numberToWords(rest)}` : ""}`;
+  }
+  if (value < 1_000_000_000) {
+    const millions = Math.floor(value / 1_000_000);
+    const rest = value % 1_000_000;
+    return `${numberToWords(millions)} Juta${rest ? ` ${numberToWords(rest)}` : ""}`;
+  }
+  if (value < 1_000_000_000_000) {
+    const billions = Math.floor(value / 1_000_000_000);
+    const rest = value % 1_000_000_000;
+    return `${numberToWords(billions)} Miliar${rest ? ` ${numberToWords(rest)}` : ""}`;
+  }
+  const trillions = Math.floor(value / 1_000_000_000_000);
+  const rest = value % 1_000_000_000_000;
+  return `${numberToWords(trillions)} Triliun${rest ? ` ${numberToWords(rest)}` : ""}`;
 }
 
 export function getSpelledDate(date = new Date()) {

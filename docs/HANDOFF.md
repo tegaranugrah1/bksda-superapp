@@ -131,17 +131,19 @@ git push origin main
 - [x] Issue #368: Cleanup auction-candidates layout (PageHeader simplified, DocumentActions card baru, DocumentNumberInputs collapsible, SelectedAssetsBanner Cetak-only) + fix bug Total Rusak Berat (dedicated count query). PR #369 merged ke `main` (merge commit `e2dee79`); remote branch deleted.
 - [x] **Production Deploy Batch (2026-05-23)**: Server pulled main `60151b2 → e2dee79` (39 commit batch: #346, #348, #350, #352, #354, #356, #358, #360, #361, #364, #365, #368). Backend + frontend rebuilt. Migrations applied: #358 `no_mesin`, #364 `template_type`. Production healthy: login HTTP 200, /bmn/auction-candidates HTTP 307 (protected, expected).
 - [x] Issue #370: Add SK Tim Penilai (Panitia Penaksir Harga BMN) document with print pagination (continuation words, BSrE safe area). PR #371 merged ke `main` (merge commit `5a9a9de`); remote branch deleted.
+- [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents (2-page each: portrait + landscape lampiran). Branch `issue/372-nota-dinas-kpknl` pushed (commit `cf8ec2c`). **Siap merge ke main.**
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #370: SK Tim Penilai (PR #371 merged) |
+| **Issue Terakhir Selesai** | Issue #372: Nota Dinas KSDAE & Surat Permohonan KPKNL (PR merged) |
 | **Issue Sedang Dikerjakan** | None |
-| **Branch Aktif** | `main` |
+| **Branch Aktif** | `main` (siap merge dari `issue/372-nota-dinas-kpknl`) |
+| **Commit Terakhir di Branch** | `cf8ec2c` (issue/372-nota-dinas-kpknl) |
 | **Commit Terakhir di Main** | `5a9a9de` |
-| **Commit Production Server** | `e2dee79` (1 commit behind — #370 belum di-deploy) |
-| **Status** | DONE: SK Tim Penilai jadi dokumen ke-11 di /bmn/auction-candidates. Print pagination mirror SK Panitia (continuation words pojok kanan bawah, margin BSrE 28mm bawah, 18mm atas continuation page). Belum deploy ke SSH (sesuai permintaan user). |
-| **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-23T17:00:00+08:00 |
+| **Commit Production Server** | `e2dee79` (2 commit behind — #370 & #372 belum di-deploy) |
+| **Status** | DONE: Nota Dinas KSDAE & Surat Permohonan KPKNL jadi dokumen ke-12 & ke-13 di /bmn/auction-candidates. Kedua dokumen 2 halaman (portrait page 1 + landscape lampiran page 2). Body paragraph indent 2.5em. Shared AssetLampiranLandscapeTable component. Belum merge ke main & belum deploy ke SSH (sesuai permintaan user). |
+| **Model Terakhir** | Claude Sonnet 4.5 |
+| **Timestamp** | 2026-05-27T15:30:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -176,7 +178,60 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Deploy issue #370 (SK Tim Penilai) ke SSH production saat user siap.
+- [ ] Merge issue #372 (Nota Dinas & Permohonan KPKNL) ke main saat user siap.
+- [ ] Deploy issue #370 & #372 ke SSH production saat user siap.
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-27 - Issue #372 SELESAI: Nota Dinas KSDAE & Surat Permohonan KPKNL):**
+- **Objective**: Tambah dokumen ke-12 & ke-13 di /bmn/auction-candidates: Nota Dinas Permohonan KSDAE dan Surat Permohonan Persetujuan KPKNL. Kedua dokumen 2 halaman (portrait page 1 + landscape lampiran page 2).
+- **Status**: COMMITTED & PUSHED (commit `cf8ec2c`). Branch `issue/372-nota-dinas-kpknl` siap merge ke `main`. **Belum merge & belum deploy ke SSH** (sesuai permintaan user).
+- **GitHub**:
+  - Issue: #372 `feat(bmn): add Nota Dinas KSDAE and Surat Permohonan KPKNL documents`
+  - Branch: `issue/372-nota-dinas-kpknl` (pushed, siap PR)
+  - Commit: `cf8ec2c`
+- **Struktur dokumen**:
+  - **Nota Dinas KSDAE** (`ND.270/K.18/TU/KAP.06.01/B/MM/YYYY`):
+    - Halaman 1 portrait: KOP + title "NOTA DINAS" + Nomor (tanpa underline) + meta grid (Yth/Dari/Perihal/Lampiran/Tanggal) + 2 body paragraphs (indent 2.5em) + TTD (tanpa label "Kepala Balai,") + Tembusan (conditional numbering)
+    - Halaman 2 landscape: lampiran tabel 10 kolom (No, Kode Barang, NUP, Nama Barang, Merk/Type, No Polisi, Tahun Perolehan, Nilai Perolehan, Nilai Taksiran, Kondisi, Keterangan)
+  - **Surat Permohonan KPKNL** (`S.331/K.18/TU/KAP.06.01/B/MM/YYYY`):
+    - Halaman 1 portrait: KOP + meta grid (Nomor/Sifat/Lampiran/Perihal + Tanggal) + Yth block + 2 body paragraphs (indent 2.5em) + TTD + Tembusan
+    - Halaman 2 landscape: lampiran tabel 10 kolom (sama dengan Nota Dinas)
+- **Shared component**: `AssetLampiranLandscapeTable.tsx` — reusable landscape table dengan prefix-aware CSS (nd- atau pkpknl-), 10 kolom, auto-fill dari assets, jumlah row, TTD Kepala Balai
+- **State management**: `useNotaKpknlBuilderState.ts` — perihal, lampiran, lokasi, tembusan (SkBuilderItem[]), kesimpulan, nilaiTaksiran
+- **Body paragraph formatting**:
+  - Indent 2.5em untuk "Dalam rangka..." dan "Demikian..." paragraphs
+  - Nilai perolehan + nilai taksiran dengan terbilang lowercase + suffix `,-`
+  - Lokasi inline editable di dalam paragraph pertama
+- **Tembusan conditional numbering**: jika 1 item → tanpa nomor, jika 2+ → numbered list `1.`, `2.`, dst
+- **TTD format**: tanpa label "Kepala Balai,", hanya `${ttd_pengirim}` placeholder + nama (tidak bold) + NIP
+- **Lampiran landscape**:
+  - Tabel 10 kolom dengan column widths optimized (Kode Barang 10%, Keterangan 13%)
+  - `whiteSpace: nowrap` untuk Kode Barang, Tahun Perolehan, Nilai Perolehan/Taksiran cells
+  - Jumlah row dengan background gray
+  - TTD Kepala Balai di kanan bawah
+- **numberToWords() fix**: Handle Juta/Miliar/Triliun correctly (sebelumnya hanya sampai Ribu, causing 246 million → "dua ratus empat puluh enam ribu..." instead of "dua ratus empat puluh enam juta...")
+- **File baru (8)**:
+  - `_lib/nota-kpknl-defaults.ts` — interfaces + defaults
+  - `_hooks/useNotaKpknlBuilderState.ts` — state hook
+  - `_components/AssetLampiranLandscapeTable.tsx` — shared landscape table
+  - `_components/NotaDinasDocument.tsx` — Nota Dinas document
+  - `_components/PermohonanKpknlDocument.tsx` — Permohonan KPKNL document
+  - `_components/sections/NotaDinasSection.tsx` — section editor Nota Dinas
+  - `_components/sections/PermohonanKpknlSection.tsx` — section editor Permohonan KPKNL
+- **File diubah (7)**:
+  - `_lib/auction-helpers.ts` — fixed numberToWords for millions/billions
+  - `_hooks/useDocumentToggles.ts` — showNotaDinas + showPermohonanKpknl flags
+  - `_hooks/useDocumentNumbers.ts` — notaDinasNumber + permohonanKpknlNumber
+  - `_components/DocumentActions.tsx` — 2 tombol baru (lime + violet), grid 3×4
+  - `_components/DocumentNumberInputs.tsx` — 2 panel input baru, label "12 dokumen"
+  - `_components/SelectedAssetsBanner.tsx` — 2 tombol Cetak baru
+  - `page.tsx` — wire imports, hooks, props, render sections
+- **Print window CSS**: Both documents have full print CSS with `@page` A4 portrait/landscape, margin BSrE safe area, body paragraph `text-indent: 2.5em`
+- **Validation**:
+  - `npx eslint --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
 
 ---
 

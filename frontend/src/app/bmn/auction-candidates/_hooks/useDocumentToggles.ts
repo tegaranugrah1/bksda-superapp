@@ -13,6 +13,8 @@ export interface UseDocumentTogglesResult {
   showSpTugas: boolean;
   showSkKebenaran: boolean;
   showBaPemeriksaan: boolean;
+  showNotaDinas: boolean;
+  showPermohonanKpknl: boolean;
   setShowDocument: React.Dispatch<React.SetStateAction<boolean>>;
   resetAllShows: () => void;
   handleProcess: () => void;
@@ -24,6 +26,8 @@ export interface UseDocumentTogglesResult {
   handleProcessSpTugas: () => void;
   handleProcessSkKebenaran: () => void;
   handleProcessBaPemeriksaan: () => void;
+  handleProcessNotaDinas: () => void;
+  handleProcessPermohonanKpknl: () => void;
 }
 
 const scrollIntoPreview = (id: string) => {
@@ -42,6 +46,8 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
   const [showSpTugas, setShowSpTugas] = useState(false);
   const [showSkKebenaran, setShowSkKebenaran] = useState(false);
   const [showBaPemeriksaan, setShowBaPemeriksaan] = useState(false);
+  const [showNotaDinas, setShowNotaDinas] = useState(false);
+  const [showPermohonanKpknl, setShowPermohonanKpknl] = useState(false);
 
   const resetAllShows = useCallback(() => {
     setShowDocument(false);
@@ -53,6 +59,8 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
     setShowSpTugas(false);
     setShowSkKebenaran(false);
     setShowBaPemeriksaan(false);
+    setShowNotaDinas(false);
+    setShowPermohonanKpknl(false);
   }, []);
 
   const handleProcess = useCallback(() => {
@@ -133,6 +141,26 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
     scrollIntoPreview("ba-pemeriksaan-preview");
   }, [orderedIdsLength, resetAllShows]);
 
+  const handleProcessNotaDinas = useCallback(() => {
+    if (orderedIdsLength === 0) {
+      toast.error("Pilih minimal satu aset untuk Nota Dinas Permohonan KSDAE.");
+      return;
+    }
+    resetAllShows();
+    setShowNotaDinas(true);
+    scrollIntoPreview("nota-dinas-preview");
+  }, [orderedIdsLength, resetAllShows]);
+
+  const handleProcessPermohonanKpknl = useCallback(() => {
+    if (orderedIdsLength === 0) {
+      toast.error("Pilih minimal satu aset untuk Surat Permohonan KPKNL.");
+      return;
+    }
+    resetAllShows();
+    setShowPermohonanKpknl(true);
+    scrollIntoPreview("permohonan-kpknl-preview");
+  }, [orderedIdsLength, resetAllShows]);
+
   return {
     showDocument,
     showSkDocument,
@@ -143,6 +171,8 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
     showSpTugas,
     showSkKebenaran,
     showBaPemeriksaan,
+    showNotaDinas,
+    showPermohonanKpknl,
     setShowDocument,
     resetAllShows,
     handleProcess,
@@ -154,5 +184,7 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
     handleProcessSpTugas,
     handleProcessSkKebenaran,
     handleProcessBaPemeriksaan,
+    handleProcessNotaDinas,
+    handleProcessPermohonanKpknl,
   };
 }

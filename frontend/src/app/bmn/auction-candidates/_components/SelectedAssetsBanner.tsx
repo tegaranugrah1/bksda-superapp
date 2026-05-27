@@ -14,6 +14,8 @@ interface SelectedAssetsBannerProps {
   showSpTugas: boolean;
   showSkKebenaran: boolean;
   showBaPemeriksaan: boolean;
+  showNotaDinas: boolean;
+  showPermohonanKpknl: boolean;
   onPrint: () => void;
   onPrintSk: () => void;
   onPrintSkPanitia: () => void;
@@ -23,6 +25,8 @@ interface SelectedAssetsBannerProps {
   onPrintSpTugas: () => void;
   onPrintSkKebenaran: () => void;
   onPrintBaPemeriksaan: () => void;
+  onPrintNotaDinas: () => void;
+  onPrintPermohonanKpknl: () => void;
 }
 
 interface PrintAction {
@@ -41,6 +45,8 @@ export function SelectedAssetsBanner({
   showSpTugas,
   showSkKebenaran,
   showBaPemeriksaan,
+  showNotaDinas,
+  showPermohonanKpknl,
   onPrint,
   onPrintSk,
   onPrintSkPanitia,
@@ -50,6 +56,8 @@ export function SelectedAssetsBanner({
   onPrintSpTugas,
   onPrintSkKebenaran,
   onPrintBaPemeriksaan,
+  onPrintNotaDinas,
+  onPrintPermohonanKpknl,
 }: SelectedAssetsBannerProps) {
   if (orderedIdsLength === 0) return null;
 
@@ -63,6 +71,8 @@ export function SelectedAssetsBanner({
   if (showSpTugas) printActions.push({ label: "Cetak SP Tugas", onClick: onPrintSpTugas });
   if (showSkKebenaran) printActions.push({ label: "Cetak SK Kebenaran", onClick: onPrintSkKebenaran });
   if (showBaPemeriksaan) printActions.push({ label: "Cetak BA Pemeriksaan", onClick: onPrintBaPemeriksaan });
+  if (showNotaDinas) printActions.push({ label: "Cetak Nota Dinas KSDAE", onClick: onPrintNotaDinas });
+  if (showPermohonanKpknl) printActions.push({ label: "Cetak Permohonan KPKNL", onClick: onPrintPermohonanKpknl });
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10 sm:flex-row sm:items-center sm:justify-between">
