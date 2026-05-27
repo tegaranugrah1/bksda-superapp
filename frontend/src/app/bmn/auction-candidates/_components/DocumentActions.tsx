@@ -14,6 +14,8 @@ interface DocumentActionsProps {
   onProcessSpTugas: () => void;
   onProcessSkKebenaran: () => void;
   onProcessBaPemeriksaan: () => void;
+  onProcessNotaDinas: () => void;
+  onProcessPermohonanKpknl: () => void;
 }
 
 export function DocumentActions({
@@ -27,6 +29,8 @@ export function DocumentActions({
   onProcessSpTugas,
   onProcessSkKebenaran,
   onProcessBaPemeriksaan,
+  onProcessNotaDinas,
+  onProcessPermohonanKpknl,
 }: DocumentActionsProps) {
   const noSelection = orderedIdsLength === 0;
   return (
@@ -115,6 +119,24 @@ export function DocumentActions({
         >
           <FileText className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">SP Tugas</span>
+        </Button>
+        <Button
+          size="sm"
+          className="h-auto rounded-xl gap-2 bg-lime-600 py-2.5 text-xs hover:bg-lime-500"
+          onClick={onProcessNotaDinas}
+          disabled={noSelection}
+        >
+          <FileText className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">Nota Dinas KSDAE</span>
+        </Button>
+        <Button
+          size="sm"
+          className="h-auto rounded-xl gap-2 bg-violet-600 py-2.5 text-xs hover:bg-violet-500"
+          onClick={onProcessPermohonanKpknl}
+          disabled={noSelection}
+        >
+          <FileText className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">Permohonan KPKNL</span>
         </Button>
       </div>
       {noSelection && (

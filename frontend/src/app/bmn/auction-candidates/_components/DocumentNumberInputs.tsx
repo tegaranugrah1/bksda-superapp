@@ -25,6 +25,10 @@ interface DocumentNumberInputsProps {
   setSkKebenaranNumber: (value: string) => void;
   baPemeriksaanNumber: string;
   setBaPemeriksaanNumber: (value: string) => void;
+  notaDinasNumber: string;
+  setNotaDinasNumber: (value: string) => void;
+  permohonanKpknlNumber: string;
+  setPermohonanKpknlNumber: (value: string) => void;
   stNumber: string;
   setStNumber: (value: string) => void;
   stTanggal: string;
@@ -58,6 +62,10 @@ export function DocumentNumberInputs({
   setSkKebenaranNumber,
   baPemeriksaanNumber,
   setBaPemeriksaanNumber,
+  notaDinasNumber,
+  setNotaDinasNumber,
+  permohonanKpknlNumber,
+  setPermohonanKpknlNumber,
   stNumber,
   setStNumber,
   stTanggal,
@@ -80,7 +88,7 @@ export function DocumentNumberInputs({
             Pengaturan Nomor Surat
           </span>
           <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-            10 dokumen
+            12 dokumen
           </span>
         </div>
         <ChevronDown
@@ -266,6 +274,44 @@ export function DocumentNumberInputs({
                   className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
                 />
                 <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+              </div>
+            </div>
+
+            {/* Nota Dinas KSDAE */}
+            <div>
+              <label htmlFor="nota-dinas-number" className={labelClass}>
+                Nota Dinas KSDAE
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">ND.</span>
+                <input
+                  id="nota-dinas-number"
+                  type="text"
+                  value={notaDinasNumber}
+                  onChange={(e) => setNotaDinasNumber(e.target.value)}
+                  placeholder="270"
+                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/K.18/TU/KAP.06.01/B/{monthSuffix}</span>
+              </div>
+            </div>
+
+            {/* Permohonan KPKNL */}
+            <div>
+              <label htmlFor="permohonan-kpknl-number" className={labelClass}>
+                Permohonan KPKNL
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">S.</span>
+                <input
+                  id="permohonan-kpknl-number"
+                  type="text"
+                  value={permohonanKpknlNumber}
+                  onChange={(e) => setPermohonanKpknlNumber(e.target.value)}
+                  placeholder="331"
+                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/K.18/TU/KAP.06.01/B/{monthSuffix}</span>
               </div>
             </div>
           </div>

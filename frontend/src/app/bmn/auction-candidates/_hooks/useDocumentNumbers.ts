@@ -24,6 +24,10 @@ export interface UseDocumentNumbersResult {
   setSkKebenaranNumber: React.Dispatch<React.SetStateAction<string>>;
   baPemeriksaanNumber: string;
   setBaPemeriksaanNumber: React.Dispatch<React.SetStateAction<string>>;
+  notaDinasNumber: string;
+  setNotaDinasNumber: React.Dispatch<React.SetStateAction<string>>;
+  permohonanKpknlNumber: string;
+  setPermohonanKpknlNumber: React.Dispatch<React.SetStateAction<string>>;
   stNumber: string;
   setStNumber: React.Dispatch<React.SetStateAction<string>>;
   stTanggal: string;
@@ -41,6 +45,8 @@ export function useDocumentNumbers(): UseDocumentNumbersResult {
   const [spTugasNumber, setSpTugasNumber] = useState("40");
   const [skKebenaranNumber, setSkKebenaranNumber] = useState("200");
   const [baPemeriksaanNumber, setBaPemeriksaanNumber] = useState("158");
+  const [notaDinasNumber, setNotaDinasNumber] = useState("270");
+  const [permohonanKpknlNumber, setPermohonanKpknlNumber] = useState("331");
   const [stNumber, setStNumber] = useState("");
   const [stTanggal, setStTanggal] = useState(formatDateLong(new Date()));
 
@@ -65,6 +71,10 @@ export function useDocumentNumbers(): UseDocumentNumbersResult {
     setSkKebenaranNumber,
     baPemeriksaanNumber,
     setBaPemeriksaanNumber,
+    notaDinasNumber,
+    setNotaDinasNumber,
+    permohonanKpknlNumber,
+    setPermohonanKpknlNumber,
     stNumber,
     setStNumber,
     stTanggal,
