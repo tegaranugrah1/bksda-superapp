@@ -1,7 +1,7 @@
 # Progress - Phase 62: Kertas Kerja Analisis Nilai Taksiran BMN
 
 > Document updated: 2026-05-27
-> Status: **READY FOR REVIEW** (PR akan dibuat dari branch `issue/376-asset-worksheet-form`)
+> Status: **PR OPEN** (PR #377 dari branch `issue/376-asset-worksheet-form`)
 
 ---
 
@@ -10,6 +10,7 @@
 ### Completed So Far:
 - [x] **Issue Created**: Issue #376 `feat(bmn): add asset worksheet form for auction candidates`.
 - [x] **Branch Created**: local branch `issue/376-asset-worksheet-form`.
+- [x] **PR Created**: PR #377 `feat(bmn): add asset worksheet form (#376)`.
 - [x] **Open worksheet action**: selected assets now show a Kertas Kerja button in `AssetTable` and `ReorderPanel`.
 - [x] **Auto numbering**: `Nomor Kertas Kerja` follows the selected asset order.
 - [x] **New worksheet component**: added `KertasKerjaAssetSection.tsx` with editor panel + print preview.
@@ -26,7 +27,7 @@
 - [x] **Final visual tweaks**: asset list shows direct police-number badge (example `KT 1989 BZ`) only for motor vehicles with `no_polisi`; header logo is larger with no right divider; print hides table input borders; long table text wraps and expands row height.
 
 ### Pending / Known Issues:
-- [ ] Review PR issue #376 and visually verify print preview from a logged-in browser session.
+- [ ] Review PR #377 issue #376 and visually verify print preview from a logged-in browser session.
 - [ ] Merge after maintainer/user approval.
 - [ ] Deploy to SSH production when user is ready.
 
@@ -44,7 +45,7 @@
 
 ### Git Status Notes:
 - Current branch: `issue/376-asset-worksheet-form`
-- Implementation is ready for PR review; branch will be pushed and PR opened next.
+- PR #377 is open and ready for review; not merged/deployed yet.
 - There are unrelated untracked local files already present; do not add them accidentally.
 
 ---

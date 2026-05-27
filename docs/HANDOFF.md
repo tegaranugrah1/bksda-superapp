@@ -133,7 +133,7 @@ git push origin main
 - [x] Issue #370: Add SK Tim Penilai (Panitia Penaksir Harga BMN) document with print pagination (continuation words, BSrE safe area). PR #371 merged ke `main` (merge commit `5a9a9de`); remote branch deleted.
 - [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents (2-page each: portrait + landscape lampiran). PR #373 merged ke `main` (merge commit `abecc91`); remote branch deleted.
 - [x] Issue #374: Align Surat Permohonan KPKNL page 1 print content + Nota Dinas/KPKNL landscape lampiran pagination. PR #375 merged ke `main` (merge commit `776722a`); remote branch deleted.
-- [ ] Issue #376: Add Kertas Kerja Analisis Nilai Taksiran BMN per selected auction asset. **Implementation complete on branch `issue/376-asset-worksheet-form`; ready for PR review.**
+- [ ] Issue #376: Add Kertas Kerja Analisis Nilai Taksiran BMN per selected auction asset. **PR #377 open from branch `issue/376-asset-worksheet-form`; ready for review.**
 
 | Field | Value |
 |-------|-------|
@@ -142,7 +142,7 @@ git push origin main
 | **Branch Aktif** | `issue/376-asset-worksheet-form` |
 | **Commit Terakhir di Main** | `776722a` |
 | **Commit Production Server** | `e2dee79` (#370, #372, #374 belum di-deploy) |
-| **Status** | READY FOR REVIEW: Issue #376 sudah punya form/preview Kertas Kerja per aset di `/bmn/auction-candidates`, tombol buka kertas kerja dari tabel aset dan reorder panel, nomor otomatis mengikuti urutan aset terpilih, kop pakai `logo_kemenhut.png`, checkbox jenis kendaraan/dokumen/masa berlaku ikut tampil saat print, data hasil lelang default 3 baris + tambah/hapus baris, panitia penaksir bisa pilih dari data pegawai dan diedit manual. Update terakhir: kategori lokasi bisa diedit dari panel kiri; kondisi kendaraan jadi pilihan tunggal 0,5/0,6/0,7 dan mengubah faktor limit; `Total` dan `Nilai taksiran` penyesuaian dihitung otomatis; summary nilai dirapikan seperti referensi; tanggal default otomatis hari ini; nomor polisi ditampilkan langsung untuk aset angkutan bermotor yang punya `no_polisi`, tanpa label `No Pol`; input/textarea table disembunyikan saat print; teks panjang di tabel bisa turun baris dan membuka tinggi row. Ready for PR review, belum merge/deploy. |
+| **Status** | PR OPEN: Issue #376 sudah punya form/preview Kertas Kerja per aset di `/bmn/auction-candidates`, tombol buka kertas kerja dari tabel aset dan reorder panel, nomor otomatis mengikuti urutan aset terpilih, kop pakai `logo_kemenhut.png`, checkbox jenis kendaraan/dokumen/masa berlaku ikut tampil saat print, data hasil lelang default 3 baris + tambah/hapus baris, panitia penaksir bisa pilih dari data pegawai dan diedit manual. Update terakhir: kategori lokasi bisa diedit dari panel kiri; kondisi kendaraan jadi pilihan tunggal 0,5/0,6/0,7 dan mengubah faktor limit; `Total` dan `Nilai taksiran` penyesuaian dihitung otomatis; summary nilai dirapikan seperti referensi; tanggal default otomatis hari ini; nomor polisi ditampilkan langsung untuk aset angkutan bermotor yang punya `no_polisi`, tanpa label `No Pol`; input/textarea table disembunyikan saat print; teks panjang di tabel bisa turun baris dan membuka tinggi row. PR #377 ready for review, belum merge/deploy. |
 | **Model Terakhir** | GPT-5 Codex |
 | **Timestamp** | 2026-05-27T16:01:30+08:00 |
 
@@ -179,7 +179,7 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Review dan merge PR issue #376 setelah user/maintainer approve.
+- [ ] Review dan merge PR #377 issue #376 setelah user/maintainer approve.
 - [ ] Setelah merge issue #376: update `main`, cleanup branch, lalu deploy saat user siap.
 - [ ] Deploy issue #370, #372, dan #374 ke SSH production saat user siap.
 
@@ -187,9 +187,10 @@ git push origin main
 
 **UPDATE SESI CODEX (2026-05-27 - Issue #376 READY FOR PR: Kertas Kerja Analisis Nilai Taksiran BMN):**
 - **Objective**: Tambah form/preview Kertas Kerja Analisis Penentuan Nilai Taksiran BMN untuk setiap aset yang dipilih di `/bmn/auction-candidates`.
-- **Status**: Implementation complete; ready for PR review, belum merge/deploy.
+- **Status**: PR #377 open; ready for review, belum merge/deploy.
 - **GitHub**:
   - Issue: #376 `feat(bmn): add asset worksheet form for auction candidates`
+  - PR: #377 `feat(bmn): add asset worksheet form (#376)`
   - Branch lokal: `issue/376-asset-worksheet-form`
 - **Changes sejauh ini**:
   - `AssetTable` dan `ReorderPanel` diberi tombol buka Kertas Kerja per aset terpilih; nomor kertas kerja auto mengikuti urutan aset terpilih.
