@@ -134,18 +134,19 @@ git push origin main
 - [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents (2-page each: portrait + landscape lampiran). PR #373 merged ke `main` (merge commit `abecc91`); remote branch deleted.
 - [x] Issue #374: Align Surat Permohonan KPKNL page 1 print content + Nota Dinas/KPKNL landscape lampiran pagination. PR #375 merged ke `main` (merge commit `776722a`); remote branch deleted.
 - [x] Issue #376: Add Kertas Kerja Analisis Nilai Taksiran BMN per selected auction asset. PR #377 merged ke `main` (merge commit `878a311`); remote branch deleted.
-- [ ] Issue #378: Make BA Pemeriksaan lampiran landscape and paginate final TTD page. **WIP lokal di branch `issue/378-ba-pemeriksaan-lampiran-landscape`; siap user visual check.**
+- [x] Issue #378: Make BA Pemeriksaan lampiran landscape and paginate final TTD page. PR #379 merged ke `main` (merge commit `550944f`); remote branch deleted; deployed to production.
+- [x] **Production Deploy Batch (2026-05-27)**: Server pulled main `e2dee79 -> 550944f` (issue #370, #372, #374, #376, #378). Frontend rebuilt/recreated. Production healthy: login HTTP 200, `/bmn/auction-candidates` HTTP 307 (protected, expected).
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #376: Kertas Kerja Analisis Nilai Taksiran BMN per aset terpilih (PR #377 merged) |
-| **Issue Sedang Dikerjakan** | Issue #378: BA Pemeriksaan lampiran landscape + pagination |
-| **Branch Aktif** | `issue/378-ba-pemeriksaan-lampiran-landscape` |
-| **Commit Terakhir di Main** | `efe9375` |
-| **Commit Production Server** | `e2dee79` (#370, #372, #374 belum di-deploy) |
-| **Status** | WIP: Issue #378 memperbaiki lampiran BA Pemeriksaan di `/bmn/auction-candidates` agar halaman lampiran memakai A4 landscape, tabel aset dipaginasi manual seperti Nota Dinas/KPKNL, halaman terakhir membawa aset + TTD pelaksana/kepala balai tanpa `${ttd_pengirim}`, dan jika aset banyak halaman terakhir dibatasi maksimal 6 aset dengan minimal 1 aset tetap tergabung bersama TTD 5 orang. Paginasi final page sekarang mempertimbangkan estimasi tinggi teks aset, sehingga 6 aset dengan nama/merk panjang bisa dikurangi agar TTD tidak jatuh sendiri. Baris `Lampiran` berisi teks editable `PEMERIKSAAN BARANG MILIK NEGARA BERUPA ALAT ANGKUTAN BERMOTOR`, row nomor kolom 1-11 hanya tampil pada halaman lanjutan, dan `Nilai Buku` selalu `-` di tengah. Shared lampiran Nota Dinas/KPKNL juga diubah agar halaman pertama tidak menampilkan row nomor kolom dan halaman lanjutan lebih aman dari single-row overflow. Belum commit/push/PR; siap visual check user. |
+| **Issue Terakhir Selesai** | Issue #378: BA Pemeriksaan lampiran landscape + Nota/KPKNL lampiran continuation safety (PR #379 merged + deployed) |
+| **Issue Sedang Dikerjakan** | None |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir di Main** | `550944f` |
+| **Commit Production Server** | `550944f` |
+| **Status** | DEPLOYED: Issue #378 memperbaiki lampiran BA Pemeriksaan di `/bmn/auction-candidates` agar halaman lampiran memakai A4 landscape, tabel aset dipaginasi manual seperti Nota Dinas/KPKNL, halaman terakhir membawa aset + TTD pelaksana/kepala balai tanpa `${ttd_pengirim}`, dan jika aset banyak halaman terakhir dibatasi maksimal 6 aset dengan minimal 1 aset tetap tergabung bersama TTD 5 orang. Paginasi final page mempertimbangkan estimasi tinggi teks aset, sehingga 6 aset dengan nama/merk panjang bisa dikurangi agar TTD tidak jatuh sendiri. Baris `Lampiran` berisi teks editable `PEMERIKSAAN BARANG MILIK NEGARA BERUPA ALAT ANGKUTAN BERMOTOR`, row nomor kolom 1-11 hanya tampil pada halaman lanjutan, dan `Nilai Buku` selalu `-` di tengah. Shared lampiran Nota Dinas/KPKNL juga diubah agar halaman pertama tidak menampilkan row nomor kolom dan halaman lanjutan lebih aman dari single-row overflow. PR #379 merged, branch remote deleted, production deployed. |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-27T16:35:00+08:00 |
+| **Timestamp** | 2026-05-27T17:02:30+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -180,18 +181,17 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] User visual check BA Pemeriksaan lampiran landscape issue #378 di `/bmn/auction-candidates`.
-- [ ] Setelah user approve: commit, push, PR issue #378; merge sesuai instruksi user.
-- [ ] Deploy issue #370, #372, #374, #376, dan #378 ke SSH production saat user siap.
+- [ ] User re-test BA Pemeriksaan, Nota Dinas, dan KPKNL lampiran di production setelah deploy.
 
 ---
 
-**UPDATE SESI CODEX (2026-05-27 - Issue #378 WIP: BA Pemeriksaan lampiran landscape):**
+**UPDATE SESI CODEX (2026-05-27 - Issue #378 MERGED + DEPLOYED: BA Pemeriksaan lampiran landscape):**
 - **Objective**: Ubah lampiran BA Pemeriksaan BMN menjadi A4 landscape dan paginasi manual saat aset banyak.
-- **Status**: WIP lokal; siap user visual check. Belum commit/push/PR.
+- **Status**: MERGED + DEPLOYED (PR #379 -> `550944f`). Remote branch deleted.
 - **GitHub**:
   - Issue: #378 `fix(bmn): make BA Pemeriksaan lampiran landscape`
-  - Branch lokal: `issue/378-ba-pemeriksaan-lampiran-landscape`
+  - PR: #379 `fix(bmn): align BA pemeriksaan lampiran pagination (#378)` merged
+  - Branch: `issue/378-ba-pemeriksaan-lampiran-landscape` deleted on remote
 - **Changes sejauh ini**:
   - `BaPemeriksaanDocument.tsx` sekarang memakai named print pages: halaman utama portrait dan halaman lampiran `ba-pem-landscape`.
   - Lampiran BA Pemeriksaan dirender sebagai halaman A4 landscape (`297mm`) dengan tabel selebar area landscape.
@@ -210,6 +210,13 @@ git push origin main
 - **Files changed**:
   - Modified: `frontend/src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx`
   - Modified: `frontend/src/app/bmn/auction-candidates/_components/AssetLampiranLandscapeTable.tsx`
+- **Production deploy**:
+  - Server: `ssh -i bksda-superapp.pem ec2-user@15.135.114.1`
+  - App path: `/home/ec2-user/bksda-superapp`
+  - Pulled `main` from `e2dee79` to `550944f`.
+  - Rebuilt frontend: `docker-compose -f docker-compose.prod.yml --env-file .env.prod build frontend`.
+  - Recreated frontend: `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d frontend`.
+  - Verified `bksda-frontend` Up, `https://bksdakaltim.net/login` HTTP 200, and `/bmn/auction-candidates` HTTP 307 protected redirect.
 - **Validation terakhir**:
   - `npx eslint "src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx" --max-warnings=0` clean.
   - `npx tsc --noEmit` clean.
