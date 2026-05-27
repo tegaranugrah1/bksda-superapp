@@ -1,7 +1,7 @@
 # Progress - Phase 62: Kertas Kerja Analisis Nilai Taksiran BMN
 
 > Document updated: 2026-05-27
-> Status: **PR OPEN** (PR #377 dari branch `issue/376-asset-worksheet-form`)
+> Status: **MERGED** ✅ (PR #377 merged ke `main`; deploy SSH ditunda)
 
 ---
 
@@ -10,7 +10,8 @@
 ### Completed So Far:
 - [x] **Issue Created**: Issue #376 `feat(bmn): add asset worksheet form for auction candidates`.
 - [x] **Branch Created**: local branch `issue/376-asset-worksheet-form`.
-- [x] **PR Created**: PR #377 `feat(bmn): add asset worksheet form (#376)`.
+- [x] **PR Created/Merged**: PR #377 `feat(bmn): add asset worksheet form (#376)` merged ke `main` (merge commit `878a311`).
+- [x] **Branch Cleanup**: remote branch `issue/376-asset-worksheet-form` deleted after merge.
 - [x] **Open worksheet action**: selected assets now show a Kertas Kerja button in `AssetTable` and `ReorderPanel`.
 - [x] **Auto numbering**: `Nomor Kertas Kerja` follows the selected asset order.
 - [x] **New worksheet component**: added `KertasKerjaAssetSection.tsx` with editor panel + print preview.
@@ -26,9 +27,7 @@
 - [x] **Summary/date alignment**: total/rata-rata/limit/pembulatan values moved to the right like the reference; limit row separates `x`, factor (`0,7`), and result; default location/date now uses today's date.
 - [x] **Final visual tweaks**: asset list shows direct police-number badge (example `KT 1989 BZ`) only for motor vehicles with `no_polisi`; header logo is larger with no right divider; print hides table input borders; long table text wraps and expands row height.
 
-### Pending / Known Issues:
-- [ ] Review PR #377 issue #376 and visually verify print preview from a logged-in browser session.
-- [ ] Merge after maintainer/user approval.
+### Pending:
 - [ ] Deploy to SSH production when user is ready.
 
 ### Key Files:
@@ -44,8 +43,8 @@
 - [x] `npm run build` clean (59/59 static pages)
 
 ### Git Status Notes:
-- Current branch: `issue/376-asset-worksheet-form`
-- PR #377 is open and ready for review; not merged/deployed yet.
+- Current branch: `main`
+- PR #377 is merged and remote branch deleted; not deployed yet.
 - There are unrelated untracked local files already present; do not add them accidentally.
 
 ---

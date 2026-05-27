@@ -133,18 +133,18 @@ git push origin main
 - [x] Issue #370: Add SK Tim Penilai (Panitia Penaksir Harga BMN) document with print pagination (continuation words, BSrE safe area). PR #371 merged ke `main` (merge commit `5a9a9de`); remote branch deleted.
 - [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents (2-page each: portrait + landscape lampiran). PR #373 merged ke `main` (merge commit `abecc91`); remote branch deleted.
 - [x] Issue #374: Align Surat Permohonan KPKNL page 1 print content + Nota Dinas/KPKNL landscape lampiran pagination. PR #375 merged ke `main` (merge commit `776722a`); remote branch deleted.
-- [ ] Issue #376: Add Kertas Kerja Analisis Nilai Taksiran BMN per selected auction asset. **PR #377 open from branch `issue/376-asset-worksheet-form`; ready for review.**
+- [x] Issue #376: Add Kertas Kerja Analisis Nilai Taksiran BMN per selected auction asset. PR #377 merged ke `main` (merge commit `878a311`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #374: Align Permohonan KPKNL content + Nota Dinas/KPKNL lampiran pagination (PR #375 merged) |
-| **Issue Sedang Dikerjakan** | Issue #376: Kertas Kerja Analisis Nilai Taksiran BMN per aset terpilih |
-| **Branch Aktif** | `issue/376-asset-worksheet-form` |
-| **Commit Terakhir di Main** | `776722a` |
+| **Issue Terakhir Selesai** | Issue #376: Kertas Kerja Analisis Nilai Taksiran BMN per aset terpilih (PR #377 merged) |
+| **Issue Sedang Dikerjakan** | None |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir di Main** | `878a311` |
 | **Commit Production Server** | `e2dee79` (#370, #372, #374 belum di-deploy) |
-| **Status** | PR OPEN: Issue #376 sudah punya form/preview Kertas Kerja per aset di `/bmn/auction-candidates`, tombol buka kertas kerja dari tabel aset dan reorder panel, nomor otomatis mengikuti urutan aset terpilih, kop pakai `logo_kemenhut.png`, checkbox jenis kendaraan/dokumen/masa berlaku ikut tampil saat print, data hasil lelang default 3 baris + tambah/hapus baris, panitia penaksir bisa pilih dari data pegawai dan diedit manual. Update terakhir: kategori lokasi bisa diedit dari panel kiri; kondisi kendaraan jadi pilihan tunggal 0,5/0,6/0,7 dan mengubah faktor limit; `Total` dan `Nilai taksiran` penyesuaian dihitung otomatis; summary nilai dirapikan seperti referensi; tanggal default otomatis hari ini; nomor polisi ditampilkan langsung untuk aset angkutan bermotor yang punya `no_polisi`, tanpa label `No Pol`; input/textarea table disembunyikan saat print; teks panjang di tabel bisa turun baris dan membuka tinggi row. PR #377 ready for review, belum merge/deploy. |
+| **Status** | MERGED: Issue #376 sudah punya form/preview Kertas Kerja per aset di `/bmn/auction-candidates`, tombol buka kertas kerja dari tabel aset dan reorder panel, nomor otomatis mengikuti urutan aset terpilih, kop pakai `logo_kemenhut.png`, checkbox jenis kendaraan/dokumen/masa berlaku ikut tampil saat print, data hasil lelang default 3 baris + tambah/hapus baris, panitia penaksir bisa pilih dari data pegawai dan diedit manual. Update terakhir: kategori lokasi bisa diedit dari panel kiri; kondisi kendaraan jadi pilihan tunggal 0,5/0,6/0,7 dan mengubah faktor limit; `Total` dan `Nilai taksiran` penyesuaian dihitung otomatis; summary nilai dirapikan seperti referensi; tanggal default otomatis hari ini; nomor polisi ditampilkan langsung untuk aset angkutan bermotor yang punya `no_polisi`, tanpa label `No Pol`; input/textarea table disembunyikan saat print; teks panjang di tabel bisa turun baris dan membuka tinggi row. PR #377 merged, branch remote deleted, belum deploy. |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-27T16:01:30+08:00 |
+| **Timestamp** | 2026-05-27T16:13:30+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -179,19 +179,17 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Review dan merge PR #377 issue #376 setelah user/maintainer approve.
-- [ ] Setelah merge issue #376: update `main`, cleanup branch, lalu deploy saat user siap.
-- [ ] Deploy issue #370, #372, dan #374 ke SSH production saat user siap.
+- [ ] Deploy issue #370, #372, #374, dan #376 ke SSH production saat user siap.
 
 ---
 
-**UPDATE SESI CODEX (2026-05-27 - Issue #376 READY FOR PR: Kertas Kerja Analisis Nilai Taksiran BMN):**
+**UPDATE SESI CODEX (2026-05-27 - Issue #376 MERGED: Kertas Kerja Analisis Nilai Taksiran BMN):**
 - **Objective**: Tambah form/preview Kertas Kerja Analisis Penentuan Nilai Taksiran BMN untuk setiap aset yang dipilih di `/bmn/auction-candidates`.
-- **Status**: PR #377 open; ready for review, belum merge/deploy.
+- **Status**: MERGED (PR #377 -> `878a311`) ke `main`. Remote branch deleted. Belum deploy ke SSH.
 - **GitHub**:
   - Issue: #376 `feat(bmn): add asset worksheet form for auction candidates`
-  - PR: #377 `feat(bmn): add asset worksheet form (#376)`
-  - Branch lokal: `issue/376-asset-worksheet-form`
+  - PR: #377 `feat(bmn): add asset worksheet form (#376)` merged
+  - Branch: `issue/376-asset-worksheet-form` deleted on remote
 - **Changes sejauh ini**:
   - `AssetTable` dan `ReorderPanel` diberi tombol buka Kertas Kerja per aset terpilih; nomor kertas kerja auto mengikuti urutan aset terpilih.
   - `page.tsx` menambahkan state `worksheetAssetId`, mapping nomor kertas kerja, dan render `KertasKerjaAssetSection`.
@@ -208,7 +206,7 @@ git push origin main
   - Update layout summary: nilai total/rata-rata/limit/pembulatan diposisikan seperti referensi dengan nominal di kanan; row limit memakai `x` dan faktor (`0,7`) di kolom terpisah; default lokasi/tanggal memakai tanggal hari ini.
   - Final tweaks: nomor polisi tampil langsung (mis. `KT 1989 BZ`) khusus aset `ALAT ANGKUTAN BERMOTOR` yang punya `no_polisi`; garis kanan logo dihapus dan logo diperbesar; kolom tabel disesuaikan; input/textarea table dibuat tidak terlihat saat print; teks panjang di `Tipe` turun baris dan row ikut membuka tinggi.
 - **Known issue terakhir dari user**:
-  - Tidak ada blocker yang diketahui saat commit; tetap perlu review visual PR sebelum merge/deploy.
+  - Tidak ada blocker yang diketahui setelah merge; belum deploy ke production.
 - **Files changed / added**:
   - Modified: `frontend/src/app/bmn/auction-candidates/page.tsx`
   - Modified: `frontend/src/app/bmn/auction-candidates/_components/AssetTable.tsx`
