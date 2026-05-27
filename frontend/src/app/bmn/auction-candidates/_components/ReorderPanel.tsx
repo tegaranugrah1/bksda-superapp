@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, ArrowDown, GripVertical } from "lucide-react";
+import { ArrowUp, ArrowDown, FileSpreadsheet, GripVertical } from "lucide-react";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 
 interface ReorderPanelProps {
@@ -11,6 +11,7 @@ interface ReorderPanelProps {
   onDragEnd: () => void;
   onMoveUp: (index: number) => void;
   onMoveDown: (index: number) => void;
+  onOpenWorksheet?: (assetId: string) => void;
 }
 
 export function ReorderPanel({
@@ -21,6 +22,7 @@ export function ReorderPanel({
   onDragEnd,
   onMoveUp,
   onMoveDown,
+  onOpenWorksheet,
 }: ReorderPanelProps) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 print:hidden">
@@ -59,6 +61,17 @@ export function ReorderPanel({
               </p>
             </div>
             <div className="flex shrink-0 gap-1">
+              {onOpenWorksheet && (
+                <button
+                  type="button"
+                  onClick={() => onOpenWorksheet(asset.id)}
+                  aria-label={`Buka kertas kerja aset nomor ${index + 1}`}
+                  className="flex h-7 items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 text-[10px] font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-500/30 dark:bg-zinc-900 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+                >
+                  <FileSpreadsheet className="h-3.5 w-3.5" />
+                  Kertas #{index + 1}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => onMoveUp(index)}

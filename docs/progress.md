@@ -1,3 +1,55 @@
+# Progress - Phase 62: Kertas Kerja Analisis Nilai Taksiran BMN
+
+> Document updated: 2026-05-27
+> Status: **PR OPEN** (PR #377 dari branch `issue/376-asset-worksheet-form`)
+
+---
+
+## Issue #376: Add asset worksheet form for auction candidates
+
+### Completed So Far:
+- [x] **Issue Created**: Issue #376 `feat(bmn): add asset worksheet form for auction candidates`.
+- [x] **Branch Created**: local branch `issue/376-asset-worksheet-form`.
+- [x] **PR Created**: PR #377 `feat(bmn): add asset worksheet form (#376)`.
+- [x] **Open worksheet action**: selected assets now show a Kertas Kerja button in `AssetTable` and `ReorderPanel`.
+- [x] **Auto numbering**: `Nomor Kertas Kerja` follows the selected asset order.
+- [x] **New worksheet component**: added `KertasKerjaAssetSection.tsx` with editor panel + print preview.
+- [x] **Header logo**: worksheet header uses `frontend/public/logo_kemenhut.png`.
+- [x] **Asset identity auto-fill**: name, location, brand/type, police number, NUP, and acquisition year are derived from selected `AuctionAsset`.
+- [x] **Checkboxes**: vehicle type, ownership documents, validity, and condition render as checkbox boxes and keep checked state in print.
+- [x] **Editable side panel**: supports editing object identity, owner document, vehicle usage, physical fields, date, and committee names.
+- [x] **Auction result rows**: default 3 rows; `Tambah Baris` adds a paired row for `DATA HASIL LELANG` and `PENYESUAIAN`; rows can be removed down to minimum 3.
+- [x] **Committee selector**: Panitia Penaksir can be selected from employee data (`/kepegawaian/employees/select`) and still edited manually.
+- [x] **Print compaction pass**: table fonts, cell heights, header, and signature spacing were reduced to target 1-page output.
+- [x] **Latest layout pass**: kategori lokasi editable from side panel; condition is single-choice radio and updates limit factor; print checkbox spacing increased; document ownership row forced into one line; summary values use compact grid; date and Panitia Penaksir label aligned with signature columns.
+- [x] **Adjustment calculation**: main colon column aligned with document ownership row; `Total` adjustment is auto-summed from Tipe/Merek/Waktu/Lokasi/Tahun Pembuatan percentages; row `Nilai taksiran` is auto-calculated from `Harga Lelang * (1 + Total%/100)`; total/rata-rata/limit use the calculated values.
+- [x] **Summary/date alignment**: total/rata-rata/limit/pembulatan values moved to the right like the reference; limit row separates `x`, factor (`0,7`), and result; default location/date now uses today's date.
+- [x] **Final visual tweaks**: asset list shows direct police-number badge (example `KT 1989 BZ`) only for motor vehicles with `no_polisi`; header logo is larger with no right divider; print hides table input borders; long table text wraps and expands row height.
+
+### Pending / Known Issues:
+- [ ] Review PR #377 issue #376 and visually verify print preview from a logged-in browser session.
+- [ ] Merge after maintainer/user approval.
+- [ ] Deploy to SSH production when user is ready.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/AssetTable.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/ReorderPanel.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/KertasKerjaAssetSection.tsx`
+- `frontend/public/logo_kemenhut.png`
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/**/*.{ts,tsx}" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+### Git Status Notes:
+- Current branch: `issue/376-asset-worksheet-form`
+- PR #377 is open and ready for review; not merged/deployed yet.
+- There are unrelated untracked local files already present; do not add them accidentally.
+
+---
+
 # Progress - Phase 61: Permohonan KPKNL Print Content Alignment
 
 > Document updated: 2026-05-27
