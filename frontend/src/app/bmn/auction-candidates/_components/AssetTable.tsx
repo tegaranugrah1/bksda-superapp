@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, Loader2, Package } from "lucide-react";
+import { Eye, FileSpreadsheet, Loader2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,8 @@ interface AssetTableProps {
   onToggleSelectAll: () => void;
   onPerPageChange: (value: number) => void;
   onPageChange: (value: number | ((prev: number) => number)) => void;
+  worksheetNumberByAssetId?: Map<string, number>;
+  onOpenWorksheet?: (assetId: string) => void;
 }
 
 export function AssetTable({
@@ -34,6 +36,8 @@ export function AssetTable({
   onToggleSelectAll,
   onPerPageChange,
   onPageChange,
+  worksheetNumberByAssetId,
+  onOpenWorksheet,
 }: AssetTableProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
@@ -83,6 +87,11 @@ export function AssetTable({
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <span className="font-mono text-[10px] font-bold text-red-700 dark:text-red-400">{asset.kode_barang}</span>
                       <span className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">NUP: {asset.nup}</span>
+                      {asset.no_polisi && asset.jenis_bmn?.toLowerCase().includes("angkutan bermotor") && (
+                        <span className="rounded bg-blue-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+                          {asset.no_polisi}
+                        </span>
+                      )}
                       {asset.nup_lama && <span className="font-mono text-[10px] text-zinc-400">NUP Lama: {asset.nup_lama}</span>}
                     </div>
                     {asset.merk_tipe && <p className="mt-1 text-[11px] text-zinc-400">{asset.merk_tipe}</p>}
@@ -100,10 +109,23 @@ export function AssetTable({
                     <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{formatRupiah(asset.nilai_perolehan)}</p>
                     <p className="text-[10px] text-zinc-400">Buku: {formatRupiah(asset.nilai_buku)}</p>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <Link href={`/bmn/assets/${asset.id}`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 transition hover:bg-blue-50 dark:hover:bg-blue-500/10">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-1">
+                    <Link href={`/bmn/assets/${asset.id}`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 transition hover:bg-blue-50 dark:hover:bg-blue-500/10" title="Lihat detail aset">
                       <Eye className="h-4 w-4" />
                     </Link>
+                    {selectedIds.has(asset.id) && onOpenWorksheet && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenWorksheet(asset.id)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-[10px] font-bold text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+                        title="Buka kertas kerja aset"
+                      >
+                        <FileSpreadsheet className="h-4 w-4" />
+                        #{worksheetNumberByAssetId?.get(asset.id) || "-"}
+                      </button>
+                    )}
+                    </div>
                   </td>
                 </tr>
               ))

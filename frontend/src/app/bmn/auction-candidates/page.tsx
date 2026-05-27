@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { ReorderPanel } from "./_components/ReorderPanel";
 import { SummaryTile } from "./_components/SummaryTile";
@@ -32,6 +32,7 @@ import { SkKebenaranSection } from "./_components/sections/SkKebenaranSection";
 import { BaPemeriksaanSection } from "./_components/sections/BaPemeriksaanSection";
 import { NotaDinasSection } from "./_components/sections/NotaDinasSection";
 import { PermohonanKpknlSection } from "./_components/sections/PermohonanKpknlSection";
+import { KertasKerjaAssetSection } from "./_components/KertasKerjaAssetSection";
 import { formatRupiah } from "./_lib/auction-helpers";
 
 import { useAuctionAssets } from "./_hooks/useAuctionAssets";
@@ -58,6 +59,7 @@ export default function BmnAuctionCandidatesPage() {
   const skPanitia = useSkPanitiaBuilderState();
   const skTimPenilai = useSkTimPenilaiBuilderState();
   const notaKpknl = useNotaKpknlBuilderState();
+  const [worksheetAssetId, setWorksheetAssetId] = useState<string | null>(null);
 
   const {
     searchTerm,
@@ -88,25 +90,50 @@ export default function BmnAuctionCandidatesPage() {
 
   const { setShowDocument } = docToggles;
 
+  const worksheetNumberByAssetId = useMemo(
+    () => new Map(orderedSelectedAssets.map((asset, index) => [asset.id, index + 1])),
+    [orderedSelectedAssets],
+  );
+  const activeWorksheetAsset = useMemo(
+    () => orderedSelectedAssets.find((asset) => asset.id === worksheetAssetId),
+    [orderedSelectedAssets, worksheetAssetId],
+  );
+  const activeWorksheetNumber = worksheetAssetId
+    ? worksheetNumberByAssetId.get(worksheetAssetId) || 1
+    : 1;
+
+  const handleOpenWorksheet = useCallback((assetId: string) => {
+    setWorksheetAssetId(assetId);
+    window.setTimeout(() => {
+      document.getElementById("kertas-kerja-preview")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  }, []);
+
   // Wrappers that combine selection mutations with showDocument reset to
   // preserve the original page behaviour.
   const handleResetSelection = useCallback(() => {
     setOrderedIds([]);
     setShowDocument(false);
+    setWorksheetAssetId(null);
   }, [setOrderedIds, setShowDocument]);
 
   const handleToggleSelect = useCallback(
     (id: string) => {
       toggleSelect(id);
       setShowDocument(false);
+      if (worksheetAssetId === id) setWorksheetAssetId(null);
     },
-    [toggleSelect, setShowDocument],
+    [toggleSelect, setShowDocument, worksheetAssetId],
   );
 
   const handleToggleSelectAll = useCallback(() => {
     if (allSelected) {
       toggleSelectAll();
       setShowDocument(false);
+      setWorksheetAssetId(null);
       return;
     }
     toggleSelectAll();
@@ -118,6 +145,7 @@ export default function BmnAuctionCandidatesPage() {
       setPage(1);
       setOrderedIds([]);
       setShowDocument(false);
+      setWorksheetAssetId(null);
     },
     [setSearchTerm, setPage, setOrderedIds, setShowDocument],
   );
@@ -128,6 +156,7 @@ export default function BmnAuctionCandidatesPage() {
       setPage(1);
       setOrderedIds([]);
       setShowDocument(false);
+      setWorksheetAssetId(null);
     },
     [setPerPage, setPage, setOrderedIds, setShowDocument],
   );
@@ -219,6 +248,8 @@ export default function BmnAuctionCandidatesPage() {
         onToggleSelectAll={handleToggleSelectAll}
         onPerPageChange={handlePerPageChange}
         onPageChange={setPage}
+        worksheetNumberByAssetId={worksheetNumberByAssetId}
+        onOpenWorksheet={handleOpenWorksheet}
       />
 
       {orderedIds.length > 0 && (
@@ -230,6 +261,17 @@ export default function BmnAuctionCandidatesPage() {
           onDragEnd={handleDragEnd}
           onMoveUp={moveUp}
           onMoveDown={moveDown}
+          onOpenWorksheet={handleOpenWorksheet}
+        />
+      )}
+
+      {activeWorksheetAsset && (
+        <KertasKerjaAssetSection
+          key={activeWorksheetAsset.id}
+          asset={activeWorksheetAsset}
+          worksheetNumber={activeWorksheetNumber}
+          employees={sortedEmployeesForPanitia}
+          onClose={() => setWorksheetAssetId(null)}
         />
       )}
 
