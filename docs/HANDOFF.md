@@ -132,18 +132,18 @@ git push origin main
 - [x] **Production Deploy Batch (2026-05-23)**: Server pulled main `60151b2 → e2dee79` (39 commit batch: #346, #348, #350, #352, #354, #356, #358, #360, #361, #364, #365, #368). Backend + frontend rebuilt. Migrations applied: #358 `no_mesin`, #364 `template_type`. Production healthy: login HTTP 200, /bmn/auction-candidates HTTP 307 (protected, expected).
 - [x] Issue #370: Add SK Tim Penilai (Panitia Penaksir Harga BMN) document with print pagination (continuation words, BSrE safe area). PR #371 merged ke `main` (merge commit `5a9a9de`); remote branch deleted.
 - [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents (2-page each: portrait + landscape lampiran). PR #373 merged ke `main` (merge commit `abecc91`); remote branch deleted.
-- [ ] Issue #374: Align Surat Permohonan KPKNL page 1 print content with reference. PR #375 open; branch `issue/374-kpknl-print-content` pushed.
+- [x] Issue #374: Align Surat Permohonan KPKNL page 1 print content + Nota Dinas/KPKNL landscape lampiran pagination. PR #375 merged ke `main` (merge commit `776722a`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #372: Nota Dinas KSDAE & Surat Permohonan KPKNL (PR #373 merged) |
-| **Issue Sedang Dikerjakan** | Issue #374: Align Surat Permohonan KPKNL page 1 print content (PR #375 open) |
-| **Branch Aktif** | `issue/374-kpknl-print-content` |
-| **Commit Terakhir di Main** | `abecc91` |
-| **Commit Production Server** | `e2dee79` (3 commit behind — #370 & #372 belum di-deploy) |
-| **Status** | WIP PR #375: Permohonan KPKNL page 1 now uses recipient `Kantor KPKNL Samarinda`, body copy from reference without Kabupaten Berau/nilai perolehan/nilai taksiran wording, default lokasi `Samarinda`, and `Kepala Balai,` label above TTD. Validation clean: lint, tsc, build. Awaiting user test/review before merge. |
+| **Issue Terakhir Selesai** | Issue #374: Align Permohonan KPKNL content + Nota Dinas/KPKNL lampiran pagination (PR #375 merged) |
+| **Issue Sedang Dikerjakan** | None |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir di Main** | `776722a` |
+| **Commit Production Server** | `e2dee79` (#370, #372, #374 belum di-deploy) |
+| **Status** | DONE: Permohonan KPKNL page 1 aligned dengan referensi (recipient, body, lokasi, label Kepala Balai). Lampiran landscape Nota Dinas dan KPKNL sekarang memakai shared pagination manual: row nomor kolom 1-11, page break eksplisit, header tabel berulang, halaman lanjutan lebih padat, dan halaman terakhir membawa aset + Jumlah + TTD dengan margin bawah aman BSrE/BSSN. PR #375 merged. Belum deploy ke SSH. |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-27T11:36:03+08:00 |
+| **Timestamp** | 2026-05-27T12:16:50+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -178,23 +178,26 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] User test/review PR #375, then merge issue #374 if print output matches reference.
-- [ ] Deploy issue #370 & #372 ke SSH production saat user siap.
+- [ ] Deploy issue #370, #372, dan #374 ke SSH production saat user siap.
 
 ---
 
-**UPDATE SESI CODEX (2026-05-27 - Issue #374 WIP: Permohonan KPKNL print content):**
-- **Objective**: Sesuaikan halaman 1 Surat Permohonan KPKNL dengan referensi user.
-- **Status**: PR #375 open, branch `issue/374-kpknl-print-content` pushed. Belum merge.
+**UPDATE SESI CODEX (2026-05-27 - Issue #374 SELESAI: Permohonan KPKNL print content + lampiran pagination):**
+- **Objective**: Sesuaikan halaman 1 Surat Permohonan KPKNL dengan referensi user dan rapikan lampiran landscape Nota Dinas/KPKNL saat aset banyak.
+- **Status**: MERGED (PR #375 -> `776722a`) ke `main`. Remote branch deleted. **Belum deploy ke SSH**.
 - **GitHub**:
   - Issue: #374 `fix(bmn): align Surat Permohonan KPKNL print content`
-  - PR: #375 `fix(bmn): align KPKNL request print content (#374)`
+  - PR: #375 `fix(bmn): align KPKNL request print content (#374)` merged -> merge commit `776722a`
 - **Changes**:
   - Recipient block changed to `Kepada Yth, / Kantor KPKNL Samarinda / di / Samarinda`.
   - Body paragraph changed to reference wording; removed Kabupaten Berau, total nilai perolehan, and nilai taksiran wording from page 1.
   - Default KPKNL location changed to `Samarinda` while Nota Dinas keeps `Kota Samarinda dan Kabupaten Berau`.
   - Added `Kepala Balai,` label above `${ttd_pengirim}` in KPKNL page 1.
   - Removed unused total nilai taksiran control/state from Permohonan KPKNL builder panel.
+  - Shared `AssetLampiranLandscapeTable` now paginates landscape lampiran manually for Nota Dinas and KPKNL.
+  - Added column-number row `1` through `11` above the lampiran table header.
+  - Continuation pages repeat the table header; final page includes total row and TTD only.
+  - Landscape lampiran keeps compact top spacing with bottom safe area for BSrE/BSSN footer.
 - **Validation**:
   - `npm run lint -- --max-warnings=0` clean.
   - `npx tsc --noEmit` clean.

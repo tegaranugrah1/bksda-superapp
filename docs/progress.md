@@ -1,7 +1,7 @@
 # Progress - Phase 61: Permohonan KPKNL Print Content Alignment
 
 > Document updated: 2026-05-27
-> Status: **PR OPEN** (awaiting user test/review)
+> Status: **MERGED** ✅ (deploy SSH ditunda)
 
 ---
 
@@ -9,20 +9,26 @@
 
 ### Completed:
 - [x] **Issue Created**: Issue #374.
-- [x] **PR Created**: PR #375 opened from `issue/374-kpknl-print-content`.
+- [x] **PR Created/Merged**: PR #375 merged ke `main` (merge commit `776722a`).
+- [x] **Branch Cleanup**: remote branch `issue/374-kpknl-print-content` deleted after merge.
 - [x] **Recipient block**: changed to `Kepada Yth, / Kantor KPKNL Samarinda / di / Samarinda`.
 - [x] **Body paragraph**: changed to reference wording and removed Kabupaten Berau, nilai perolehan, and nilai taksiran wording from page 1.
 - [x] **Default location**: Permohonan KPKNL now defaults to `Samarinda`; Nota Dinas keeps `Kota Samarinda dan Kabupaten Berau`.
 - [x] **Signature label**: added `Kepala Balai,` above `${ttd_pengirim}` on KPKNL page 1.
 - [x] **Builder cleanup**: removed unused total nilai taksiran control/state from the Permohonan KPKNL builder panel.
+- [x] **Lampiran pagination**: Nota Dinas and Permohonan KPKNL now use shared manual landscape pagination with explicit page breaks.
+- [x] **Column numbering**: lampiran table now has column-number row `1` through `11` above the regular header.
+- [x] **Continuation pages**: table header repeats on continuation pages; continuation pages are packed more densely.
+- [x] **Final page safety**: total row and TTD are only rendered on the final page; final page carries selected asset rows with safe bottom margin for BSrE/BSSN.
+- [x] **TTD layout**: KPKNL page 1 and both landscape lampiran TTD blocks follow the SK Penghentian spacing pattern.
 
 ### Pending:
-- [ ] User test/review print output against the provided reference.
-- [ ] Merge PR #375 if approved.
 - [ ] Deploy to SSH production after merge when user is ready.
 
 ### Key Files:
 - `frontend/src/app/bmn/auction-candidates/_components/PermohonanKpknlDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/NotaDinasDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/AssetLampiranLandscapeTable.tsx`
 - `frontend/src/app/bmn/auction-candidates/_components/sections/PermohonanKpknlSection.tsx`
 - `frontend/src/app/bmn/auction-candidates/_hooks/useNotaKpknlBuilderState.ts`
 - `frontend/src/app/bmn/auction-candidates/_lib/nota-kpknl-defaults.ts`
