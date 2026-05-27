@@ -17,6 +17,86 @@ interface AssetLampiranLandscapeTableProps {
   prefix: string;
 }
 
+interface LampiranPage {
+  assets: AuctionAsset[];
+  startIndex: number;
+  includeMeta: boolean;
+  includeTotal: boolean;
+  includeSignature: boolean;
+}
+
+function buildLampiranPages(assets: AuctionAsset[]): LampiranPage[] {
+  const firstPageLimit = 8;
+  const continuationPageLimit = 12;
+  const lastPageLimit = 4;
+  const pages: LampiranPage[] = [];
+
+  const pushPage = (pageAssets: AuctionAsset[], startIndex: number, includeMeta: boolean) => {
+    pages.push({
+      assets: pageAssets,
+      startIndex,
+      includeMeta,
+      includeTotal: false,
+      includeSignature: false,
+    });
+  };
+
+  if (assets.length <= firstPageLimit) {
+    pushPage(assets, 0, true);
+  } else {
+    const firstChunkSize = firstPageLimit;
+    const remainingAfterFirst = Math.max(0, assets.length - firstChunkSize);
+    const lastPageOptions = Array.from(
+      { length: Math.min(lastPageLimit, remainingAfterFirst) },
+      (_, index) => index + 1,
+    );
+    const [safeLastPageSize] = lastPageOptions.sort((a, b) => {
+      const middleA = remainingAfterFirst - a;
+      const middleB = remainingAfterFirst - b;
+      const middlePagesA = Math.ceil(middleA / continuationPageLimit);
+      const middlePagesB = Math.ceil(middleB / continuationPageLimit);
+      const totalPagesA = middlePagesA + 1;
+      const totalPagesB = middlePagesB + 1;
+      const lastMiddleChunkA = middleA > 0 ? middleA % continuationPageLimit || continuationPageLimit : 0;
+      const lastMiddleChunkB = middleB > 0 ? middleB % continuationPageLimit || continuationPageLimit : 0;
+      const hasSingleMiddleA = lastMiddleChunkA === 1;
+      const hasSingleMiddleB = lastMiddleChunkB === 1;
+
+      if (totalPagesA !== totalPagesB) return totalPagesA - totalPagesB;
+      if (hasSingleMiddleA !== hasSingleMiddleB) return hasSingleMiddleA ? 1 : -1;
+      return a - b;
+    });
+    const lastStartIndex = assets.length - safeLastPageSize;
+    const middleCount = lastStartIndex - firstChunkSize;
+
+    pushPage(assets.slice(0, firstChunkSize), 0, true);
+
+    if (middleCount > 0) {
+      let cursor = firstChunkSize;
+      let remainingMiddle = middleCount;
+
+      while (remainingMiddle > 0) {
+        const pageSize = Math.min(continuationPageLimit, remainingMiddle);
+        pushPage(assets.slice(cursor, cursor + pageSize), cursor, false);
+        cursor += pageSize;
+        remainingMiddle -= pageSize;
+      }
+    }
+
+    pushPage(assets.slice(lastStartIndex), lastStartIndex, false);
+  }
+
+  if (pages.length === 0) {
+    pushPage([], 0, true);
+  }
+
+  const lastPage = pages[pages.length - 1];
+  lastPage.includeTotal = true;
+  lastPage.includeSignature = true;
+
+  return pages;
+}
+
 /**
  * Shared landscape lampiran table (10-column DAFTAR BARANG MILIK NEGARA).
  * Used by NotaDinasDocument & PermohonanKpknlDocument.
@@ -39,9 +119,10 @@ export function AssetLampiranLandscapeTable({
     (sum, a) => sum + (a.nilai_perolehan || 0),
     0,
   );
+  const pages = buildLampiranPages(assets);
 
-  return (
-    <div className={`${prefix}lamp-root`}>
+  const renderMetaTitle = () => (
+    <>
       <div className={`${prefix}lamp-meta`}>
         <p className={`${prefix}lamp-meta-lampiran`}>
           Lampiran <span contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>{perihalLampiran}</span>
@@ -66,7 +147,10 @@ export function AssetLampiranLandscapeTable({
         <p>DAFTAR BARANG MILIK NEGARA</p>
         <p>PADA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</p>
       </div>
+    </>
+  );
 
+  const renderTable = (page: LampiranPage) => (
       <table className={`${prefix}lamp-table`}>
         <colgroup>
           <col style={{ width: "4%" }} />
@@ -82,6 +166,19 @@ export function AssetLampiranLandscapeTable({
           <col style={{ width: "13%" }} />
         </colgroup>
         <thead>
+          <tr className={`${prefix}lamp-column-number-row`}>
+            <th>1</th>
+            <th>2</th>
+            <th>3</th>
+            <th>4</th>
+            <th>5</th>
+            <th>6</th>
+            <th>7</th>
+            <th>8</th>
+            <th>9</th>
+            <th>10</th>
+            <th>11</th>
+          </tr>
           <tr>
             <th>No</th>
             <th>Kode Barang</th>
@@ -97,16 +194,16 @@ export function AssetLampiranLandscapeTable({
           </tr>
         </thead>
         <tbody>
-          {assets.length === 0 ? (
+          {page.assets.length === 0 ? (
             <tr>
               <td colSpan={11} style={{ padding: "12px", color: "#94a3b8", textAlign: "center" }}>
                 Belum ada aset terpilih.
               </td>
             </tr>
           ) : (
-            assets.map((asset, index) => (
+            page.assets.map((asset, index) => (
               <tr key={asset.id}>
-                <td>{index + 1}</td>
+                <td>{page.startIndex + index + 1}</td>
                 <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ whiteSpace: "nowrap", wordBreak: "keep-all", overflowWrap: "normal" }}>
                   {asset.kode_barang}
                 </td>
@@ -140,7 +237,7 @@ export function AssetLampiranLandscapeTable({
               </tr>
             ))
           )}
-          {assets.length > 0 && (
+          {page.includeTotal && assets.length > 0 && (
             <tr className={`${prefix}lamp-jumlah-row`}>
               <td colSpan={7} style={{ textAlign: "center", fontStyle: "italic", fontWeight: 600 }}>
                 Jumlah
@@ -156,13 +253,29 @@ export function AssetLampiranLandscapeTable({
           )}
         </tbody>
       </table>
+  );
 
+  const renderSignature = () => (
       <div className={`${prefix}lamp-ttd`}>
         <p>Kepala Balai,</p>
         <div className={`${prefix}lamp-ttd-placeholder`}>${"{ttd_pengirim}"}</div>
         <p className={`${prefix}lamp-ttd-name`}>{kepalaBalai.nama}</p>
         <p>NIP. {kepalaBalai.nip}</p>
       </div>
+  );
+
+  return (
+    <div className={`${prefix}lamp-root`}>
+      {pages.map((page, pageIndex) => (
+        <div
+          className={`${prefix}lamp-page${pageIndex > 0 ? ` ${prefix}lamp-page-continuation` : ""}${page.includeSignature ? ` ${prefix}lamp-page-with-signature` : ""}`}
+          key={`${prefix}lamp-page-${pageIndex}`}
+        >
+          {page.includeMeta && renderMetaTitle()}
+          {renderTable(page)}
+          {page.includeSignature && renderSignature()}
+        </div>
+      ))}
     </div>
   );
 }

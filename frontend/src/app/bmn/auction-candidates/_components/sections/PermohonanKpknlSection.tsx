@@ -21,8 +21,6 @@ interface PermohonanKpknlSectionProps {
   setTembusan: (items: SkBuilderItem[]) => void;
   kesimpulan: string;
   setKesimpulan: (v: string) => void;
-  nilaiTaksiran: number;
-  setNilaiTaksiran: (v: number) => void;
   onPrint: () => void;
 }
 
@@ -43,8 +41,6 @@ export function PermohonanKpknlSection({
   setTembusan,
   kesimpulan,
   setKesimpulan,
-  nilaiTaksiran,
-  setNilaiTaksiran,
   onPrint,
 }: PermohonanKpknlSectionProps) {
   return (
@@ -77,18 +73,6 @@ export function PermohonanKpknlSection({
               <div>
                 <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Lokasi BMN</label>
                 <input value={lokasi} onChange={(e) => setLokasi(e.target.value)} className={inputCls} />
-              </div>
-              <div>
-                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Nilai Taksiran (Rp)</label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  value={nilaiTaksiran || ""}
-                  onChange={(e) => setNilaiTaksiran(Number(e.target.value) || 0)}
-                  placeholder="contoh: 167024000"
-                  className={inputCls}
-                />
               </div>
               <div>
                 <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Kalimat Penutup</label>
@@ -146,7 +130,6 @@ export function PermohonanKpknlSection({
             lokasi={lokasi}
             tembusan={tembusan}
             kesimpulan={kesimpulan}
-            nilaiTaksiran={nilaiTaksiran}
           />
         </div>
       </div>

@@ -1,3 +1,40 @@
+# Progress - Phase 61: Permohonan KPKNL Print Content Alignment
+
+> Document updated: 2026-05-27
+> Status: **PR OPEN** (awaiting user test/review)
+
+---
+
+## Issue #374: Align Surat Permohonan KPKNL page 1 print content
+
+### Completed:
+- [x] **Issue Created**: Issue #374.
+- [x] **PR Created**: PR #375 opened from `issue/374-kpknl-print-content`.
+- [x] **Recipient block**: changed to `Kepada Yth, / Kantor KPKNL Samarinda / di / Samarinda`.
+- [x] **Body paragraph**: changed to reference wording and removed Kabupaten Berau, nilai perolehan, and nilai taksiran wording from page 1.
+- [x] **Default location**: Permohonan KPKNL now defaults to `Samarinda`; Nota Dinas keeps `Kota Samarinda dan Kabupaten Berau`.
+- [x] **Signature label**: added `Kepala Balai,` above `${ttd_pengirim}` on KPKNL page 1.
+- [x] **Builder cleanup**: removed unused total nilai taksiran control/state from the Permohonan KPKNL builder panel.
+
+### Pending:
+- [ ] User test/review print output against the provided reference.
+- [ ] Merge PR #375 if approved.
+- [ ] Deploy to SSH production after merge when user is ready.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/_components/PermohonanKpknlDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/sections/PermohonanKpknlSection.tsx`
+- `frontend/src/app/bmn/auction-candidates/_hooks/useNotaKpknlBuilderState.ts`
+- `frontend/src/app/bmn/auction-candidates/_lib/nota-kpknl-defaults.ts`
+- `frontend/src/app/bmn/auction-candidates/page.tsx`
+
+### Validation:
+- [x] `npm run lint -- --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+---
+
 # Progress - Phase 60: Nota Dinas KSDAE & Surat Permohonan KPKNL
 
 > Document updated: 2026-05-27
