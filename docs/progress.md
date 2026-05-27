@@ -1,3 +1,66 @@
+# Progress - Phase 60: Nota Dinas KSDAE & Surat Permohonan KPKNL
+
+> Document updated: 2026-05-27
+> Status: **COMMITTED & PUSHED** ⏳ (siap merge ke main)
+
+---
+
+## Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents
+
+### Completed:
+- [x] **Issue Created**: Issue #372.
+- [x] **Branch + Commit**: `issue/372-nota-dinas-kpknl` pushed (commit `cf8ec2c`).
+- [x] **Nota Dinas KSDAE** (`ND.270/K.18/TU/KAP.06.01/B/MM/YYYY`):
+  - Halaman 1 portrait: KOP + title "NOTA DINAS" + Nomor (tanpa underline) + meta grid (Yth/Dari/Perihal/Lampiran/Tanggal, tanpa garis horizontal di bawah Tanggal) + 2 body paragraphs (indent 2.5em) + TTD (tanpa label "Kepala Balai,", hanya `${ttd_pengirim}` + nama tidak bold + NIP) + Tembusan (conditional numbering: 1 item tanpa nomor, 2+ dengan nomor)
+  - Halaman 2 landscape: lampiran tabel 10 kolom (No, Kode Barang, NUP, Nama Barang, Merk/Type, No Polisi, Tahun Perolehan, Nilai Perolehan, Nilai Taksiran, Kondisi, Keterangan)
+- [x] **Surat Permohonan KPKNL** (`S.331/K.18/TU/KAP.06.01/B/MM/YYYY`):
+  - Halaman 1 portrait: KOP + meta grid (Nomor/Sifat/Lampiran/Perihal + Tanggal) + Yth block (Kepala KPKNL Samarinda) + 2 body paragraphs (indent 2.5em) + TTD + Tembusan
+  - Halaman 2 landscape: lampiran tabel 10 kolom (sama dengan Nota Dinas)
+- [x] **Shared component**: `AssetLampiranLandscapeTable.tsx` — reusable landscape table dengan prefix-aware CSS (nd- atau pkpknl-), 10 kolom, auto-fill dari assets, jumlah row, TTD Kepala Balai.
+- [x] **State hook**: `useNotaKpknlBuilderState.ts` — perihal, lampiran, lokasi, tembusan (SkBuilderItem[]), kesimpulan, nilaiTaksiran.
+- [x] **Section editors**: `NotaDinasSection.tsx` + `PermohonanKpknlSection.tsx` — builder panels dengan textarea + tembusan list editor + input nilai taksiran.
+- [x] **Body paragraph formatting**:
+  - Indent 2.5em untuk "Dalam rangka..." dan "Demikian..." paragraphs (preview + print window CSS)
+  - Nilai perolehan + nilai taksiran dengan terbilang lowercase + suffix `,-`
+  - Lokasi inline editable di dalam paragraph pertama
+- [x] **Tembusan conditional numbering**: jika 1 item → tanpa nomor, jika 2+ → numbered list `1.`, `2.`, dst.
+- [x] **TTD format**: tanpa label "Kepala Balai,", hanya `${ttd_pengirim}` placeholder + nama (tidak bold) + NIP.
+- [x] **Lampiran landscape**:
+  - Tabel 10 kolom dengan column widths optimized (Kode Barang 10%, Keterangan 13%)
+  - `whiteSpace: nowrap` untuk Kode Barang, Tahun Perolehan, Nilai Perolehan/Taksiran cells agar tidak pecah baris
+  - Jumlah row dengan background gray
+  - TTD Kepala Balai di kanan bawah
+- [x] **numberToWords() fix**: Handle Juta/Miliar/Triliun correctly di `auction-helpers.ts` (sebelumnya hanya sampai Ribu, causing 246 million → "dua ratus empat puluh enam ribu..." instead of "dua ratus empat puluh enam juta...").
+- [x] **Wire-up**: `useDocumentToggles` (showNotaDinas + showPermohonanKpknl), `useDocumentNumbers` (notaDinasNumber default "270" + permohonanKpknlNumber default "331"), `DocumentActions` (tombol lime + violet, grid 3×4), `DocumentNumberInputs` (2 panel input baru, label "12 dokumen"), `SelectedAssetsBanner` (2 tombol Cetak baru), `page.tsx` (render sections).
+- [x] **Print window CSS**: Both documents have full print CSS with `@page` A4 portrait/landscape, margin BSrE safe area, body paragraph `text-indent: 2.5em`.
+- [x] **Default numbers**: Nota Dinas `ND.270/...`, Permohonan KPKNL `S.331/...`.
+
+### Pending:
+- [ ] **PR + Merge**: Tunggu user konfirmasi "oke" setelah cek di browser, baru buat PR dan merge ke main.
+- [ ] **Deploy ke SSH production**: Ditunda sesuai permintaan user.
+
+### Key Files:
+- New (8): `_lib/nota-kpknl-defaults.ts`, `_hooks/useNotaKpknlBuilderState.ts`, `_components/AssetLampiranLandscapeTable.tsx`, `_components/NotaDinasDocument.tsx`, `_components/PermohonanKpknlDocument.tsx`, `_components/sections/NotaDinasSection.tsx`, `_components/sections/PermohonanKpknlSection.tsx`
+- Modified (7): `_lib/auction-helpers.ts`, `_hooks/useDocumentToggles.ts`, `_hooks/useDocumentNumbers.ts`, `_components/DocumentActions.tsx`, `_components/DocumentNumberInputs.tsx`, `_components/SelectedAssetsBanner.tsx`, `page.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/**/*.{ts,tsx}" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+### User Corrections Applied:
+1. ✅ Judul "NOTA DINAS" dan "Nomor : ..." TIDAK pakai garis bawah
+2. ✅ TIDAK ada garis horizontal di bawah baris Tanggal
+3. ✅ Tembusan: jika hanya 1 item → tampil tanpa nomor, jika 2+ → pakai numbered list
+4. ✅ TTD: TIDAK ada label "Kepala Balai,", hanya `${ttd_pengirim}` placeholder + nama (tidak bold) + NIP
+5. ✅ Tembusan title "Tembusan :" tidak bold
+6. ✅ Body paragraph indent 2.5em (masuk ke dalam) untuk "Dalam rangka..." dan "Demikian..."
+7. ✅ Lampiran landscape: Kode Barang tidak boleh pecah baris (nowrap), Keterangan harus cukup lebar (13%)
+8. ✅ Nilai terbilang pakai lowercase + suffix `,-` (contoh: "dua ratus empat puluh enam juta empat ratus sepuluh ribu rupiah")
+9. ✅ Fixed numberToWords() untuk handle Juta/Miliar/Triliun (was only handling up to Ribu)
+
+---
+
 # Progress - Phase 59: SK Tim Penilai (Panitia Penaksir Harga BMN)
 
 > Document updated: 2026-05-23
