@@ -19,6 +19,7 @@ export const DEFAULT_KPKNL_PERIHAL =
 export const DEFAULT_LAMPIRAN = "1 (satu) berkas";
 
 export const DEFAULT_LOKASI = "Kota Samarinda dan Kabupaten Berau";
+export const DEFAULT_KPKNL_LOKASI = "Samarinda";
 
 export const DEFAULT_NOTA_DINAS_TEMBUSAN: SkBuilderItem[] = [
   { id: makeId(), text: "Kepala Biro Umum Kementerian Kehutanan" },
@@ -32,4 +33,4 @@ export const DEFAULT_NOTA_DINAS_KESIMPULAN =
   "Demikian kami sampaikan, atas persetujuan Bapak diucapkan terima kasih.";
 
 export const DEFAULT_KPKNL_KESIMPULAN =
-  "Demikian kami sampaikan, atas persetujuan Bapak diucapkan terima kasih.";
+  "Demikian kami sampaikan atas perhatiannya dan kerjasamanya diucapkan terima kasih.";

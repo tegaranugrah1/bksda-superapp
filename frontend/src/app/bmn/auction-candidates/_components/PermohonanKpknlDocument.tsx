@@ -3,11 +3,7 @@
 import { toast } from "sonner";
 import { AssetLampiranLandscapeTable } from "./AssetLampiranLandscapeTable";
 import type { AuctionAsset } from "../_lib/auction-helpers";
-import {
-  formatDateLong,
-  formatPlainRupiah,
-  numberToWords,
-} from "../_lib/auction-helpers";
+import { formatDateLong } from "../_lib/auction-helpers";
 import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface PermohonanKpknlDocumentProps {
@@ -19,7 +15,6 @@ interface PermohonanKpknlDocumentProps {
   lokasi: string;
   tembusan: SkBuilderItem[];
   kesimpulan: string;
-  nilaiTaksiran: number;
 }
 
 const LAMPIRAN_TITLE = "Persetujuan Pemindahtanganan BMN dengan Penjualan Melalui Lelang Pada Balai KSDA Kalimantan Timur";
@@ -109,20 +104,10 @@ export function PermohonanKpknlDocument({
   lokasi,
   tembusan,
   kesimpulan,
-  nilaiTaksiran,
 }: PermohonanKpknlDocumentProps) {
   const today = new Date();
   const nomorText = buildNomor(number, today);
   const tanggalLong = formatDateLong(today);
-
-  const totalPerolehan = assets.reduce(
-    (sum, a) => sum + (a.nilai_perolehan || 0),
-    0,
-  );
-  const totalPerolehanText = formatPlainRupiah(totalPerolehan);
-  const totalPerolehanWords = totalPerolehan > 0 ? numberToWords(totalPerolehan) : "";
-  const taksiranText = formatPlainRupiah(nilaiTaksiran);
-  const taksiranWords = nilaiTaksiran > 0 ? numberToWords(nilaiTaksiran) : "";
 
   return (
     <div id="permohonan-kpknl-print-root" className="permohonan-kpknl-print-root">
@@ -221,14 +206,14 @@ export function PermohonanKpknlDocument({
 
         <div className="pkpknl-yth">
           <p>Kepada Yth,</p>
-          <p contentEditable suppressContentEditableWarning className="pkpknl-edit">Kepala Kantor Pelayanan Kekayaan Negara dan Lelang (KPKNL) Samarinda</p>
-          <p>di -</p>
-          <p style={{ paddingLeft: "8mm" }}>Samarinda</p>
+          <p contentEditable suppressContentEditableWarning className="pkpknl-edit">Kantor KPKNL Samarinda</p>
+          <p>di</p>
+          <p>Samarinda</p>
         </div>
 
         <div className="pkpknl-body">
           <p contentEditable suppressContentEditableWarning className="pkpknl-edit">
-            Dalam rangka proses penghapusan BMN yang tidak dapat dipergunakan dalam menunjang tugas dan fungsi Balai KSDA Kalimantan Timur, dengan hormat kami mengajukan permohonan persetujuan pemindahtanganan dengan penjualan melalui lelang BMN yang berada di <span contentEditable suppressContentEditableWarning className="pkpknl-edit" style={{ display: "inline" }}>{lokasi}</span> yang akan dilakukan penghapusan berupa Alat Angkutan Darat Bermotor dengan total nilai perolehan sebesar Rp{totalPerolehanText},-{totalPerolehanWords ? ` (${totalPerolehanWords.toLowerCase()} rupiah)` : ""} dan nilai taksiran sebesar Rp{taksiranText},-{taksiranWords ? ` (${taksiranWords.toLowerCase()} rupiah)` : ""} sebagaimana berkas terlampir.
+            Dalam rangka proses penghapusan BMN yang tidak dapat dipergunakan dalam menunjang tugas dan fungsi Balai KSDA Kalimantan Timur, bersama ini kami mengajukan permohonan persetujuan pemindahtanganan dengan penjualan BMN yang berada di <span contentEditable suppressContentEditableWarning className="pkpknl-edit" style={{ display: "inline" }}>{lokasi}</span> berupa Alat Angkutan Bermotor sebagaimana berkas terlampir.
           </p>
           <p contentEditable suppressContentEditableWarning className="pkpknl-edit">
             {kesimpulan}
@@ -236,6 +221,7 @@ export function PermohonanKpknlDocument({
         </div>
 
         <div className="pkpknl-ttd">
+          <p>Kepala Balai,</p>
           <div className="pkpknl-ttd-placeholder">${"{ttd_pengirim}"}</div>
           <p className="pkpknl-ttd-name">{kepalaBalai.nama}</p>
           <p>NIP. {kepalaBalai.nip}</p>

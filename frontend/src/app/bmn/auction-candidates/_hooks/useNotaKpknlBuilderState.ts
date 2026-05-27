@@ -6,6 +6,7 @@ import {
   DEFAULT_KPKNL_PERIHAL,
   DEFAULT_LAMPIRAN,
   DEFAULT_LOKASI,
+  DEFAULT_KPKNL_LOKASI,
   DEFAULT_NOTA_DINAS_TEMBUSAN,
   DEFAULT_KPKNL_TEMBUSAN,
   DEFAULT_NOTA_DINAS_KESIMPULAN,
@@ -38,8 +39,6 @@ export interface UseNotaKpknlBuilderResult {
   setPkTembusan: React.Dispatch<React.SetStateAction<SkBuilderItem[]>>;
   pkKesimpulan: string;
   setPkKesimpulan: React.Dispatch<React.SetStateAction<string>>;
-  pkNilaiTaksiran: number;
-  setPkNilaiTaksiran: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export function useNotaKpknlBuilderState(): UseNotaKpknlBuilderResult {
@@ -52,10 +51,9 @@ export function useNotaKpknlBuilderState(): UseNotaKpknlBuilderResult {
 
   const [pkPerihal, setPkPerihal] = useState(DEFAULT_KPKNL_PERIHAL);
   const [pkLampiran, setPkLampiran] = useState("1 (satu) Berkas");
-  const [pkLokasi, setPkLokasi] = useState(DEFAULT_LOKASI);
+  const [pkLokasi, setPkLokasi] = useState(DEFAULT_KPKNL_LOKASI);
   const [pkTembusan, setPkTembusan] = useState<SkBuilderItem[]>(DEFAULT_KPKNL_TEMBUSAN);
   const [pkKesimpulan, setPkKesimpulan] = useState(DEFAULT_KPKNL_KESIMPULAN);
-  const [pkNilaiTaksiran, setPkNilaiTaksiran] = useState(0);
 
   return {
     ndPerihal, setNdPerihal,
@@ -69,6 +67,5 @@ export function useNotaKpknlBuilderState(): UseNotaKpknlBuilderResult {
     pkLokasi, setPkLokasi,
     pkTembusan, setPkTembusan,
     pkKesimpulan, setPkKesimpulan,
-    pkNilaiTaksiran, setPkNilaiTaksiran,
   };
 }

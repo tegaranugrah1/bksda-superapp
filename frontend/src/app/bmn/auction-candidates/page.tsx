@@ -392,8 +392,6 @@ export default function BmnAuctionCandidatesPage() {
           setTembusan={notaKpknl.setPkTembusan}
           kesimpulan={notaKpknl.pkKesimpulan}
           setKesimpulan={notaKpknl.setPkKesimpulan}
-          nilaiTaksiran={notaKpknl.pkNilaiTaksiran}
-          setNilaiTaksiran={notaKpknl.setPkNilaiTaksiran}
           onPrint={handlePrintPermohonanKpknlDoc}
         />
       )}
