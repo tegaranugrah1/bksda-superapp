@@ -131,19 +131,18 @@ git push origin main
 - [x] Issue #368: Cleanup auction-candidates layout (PageHeader simplified, DocumentActions card baru, DocumentNumberInputs collapsible, SelectedAssetsBanner Cetak-only) + fix bug Total Rusak Berat (dedicated count query). PR #369 merged ke `main` (merge commit `e2dee79`); remote branch deleted.
 - [x] **Production Deploy Batch (2026-05-23)**: Server pulled main `60151b2 → e2dee79` (39 commit batch: #346, #348, #350, #352, #354, #356, #358, #360, #361, #364, #365, #368). Backend + frontend rebuilt. Migrations applied: #358 `no_mesin`, #364 `template_type`. Production healthy: login HTTP 200, /bmn/auction-candidates HTTP 307 (protected, expected).
 - [x] Issue #370: Add SK Tim Penilai (Panitia Penaksir Harga BMN) document with print pagination (continuation words, BSrE safe area). PR #371 merged ke `main` (merge commit `5a9a9de`); remote branch deleted.
-- [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents (2-page each: portrait + landscape lampiran). Branch `issue/372-nota-dinas-kpknl` pushed (commit `cf8ec2c`). **Siap merge ke main.**
+- [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents (2-page each: portrait + landscape lampiran). PR #373 merged ke `main` (merge commit `abecc91`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #372: Nota Dinas KSDAE & Surat Permohonan KPKNL (PR merged) |
+| **Issue Terakhir Selesai** | Issue #372: Nota Dinas KSDAE & Surat Permohonan KPKNL (PR #373 merged) |
 | **Issue Sedang Dikerjakan** | None |
-| **Branch Aktif** | `main` (siap merge dari `issue/372-nota-dinas-kpknl`) |
-| **Commit Terakhir di Branch** | `cf8ec2c` (issue/372-nota-dinas-kpknl) |
-| **Commit Terakhir di Main** | `5a9a9de` |
-| **Commit Production Server** | `e2dee79` (2 commit behind — #370 & #372 belum di-deploy) |
-| **Status** | DONE: Nota Dinas KSDAE & Surat Permohonan KPKNL jadi dokumen ke-12 & ke-13 di /bmn/auction-candidates. Kedua dokumen 2 halaman (portrait page 1 + landscape lampiran page 2). Body paragraph indent 2.5em. Shared AssetLampiranLandscapeTable component. Belum merge ke main & belum deploy ke SSH (sesuai permintaan user). |
+| **Branch Aktif** | `main` |
+| **Commit Terakhir di Main** | `abecc91` |
+| **Commit Production Server** | `e2dee79` (3 commit behind — #370 & #372 belum di-deploy) |
+| **Status** | DONE: Nota Dinas KSDAE & Surat Permohonan KPKNL jadi dokumen ke-12 & ke-13 di /bmn/auction-candidates. Kedua dokumen 2 halaman (portrait page 1 + landscape lampiran page 2). Body paragraph indent 2.5em. Shared AssetLampiranLandscapeTable component. Fixed numberToWords untuk Juta/Miliar/Triliun. Belum deploy ke SSH (sesuai permintaan user). |
 | **Model Terakhir** | Claude Sonnet 4.5 |
-| **Timestamp** | 2026-05-27T15:30:00+08:00 |
+| **Timestamp** | 2026-05-27T16:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -178,18 +177,17 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Merge issue #372 (Nota Dinas & Permohonan KPKNL) ke main saat user siap.
 - [ ] Deploy issue #370 & #372 ke SSH production saat user siap.
 
 ---
 
 **UPDATE SESI CLAUDE (2026-05-27 - Issue #372 SELESAI: Nota Dinas KSDAE & Surat Permohonan KPKNL):**
 - **Objective**: Tambah dokumen ke-12 & ke-13 di /bmn/auction-candidates: Nota Dinas Permohonan KSDAE dan Surat Permohonan Persetujuan KPKNL. Kedua dokumen 2 halaman (portrait page 1 + landscape lampiran page 2).
-- **Status**: COMMITTED & PUSHED (commit `cf8ec2c`). Branch `issue/372-nota-dinas-kpknl` siap merge ke `main`. **Belum merge & belum deploy ke SSH** (sesuai permintaan user).
+- **Status**: MERGED (PR #373 → `abecc91`) ke `main`. Remote branch deleted. **Belum deploy ke SSH** (sesuai permintaan user).
 - **GitHub**:
   - Issue: #372 `feat(bmn): add Nota Dinas KSDAE and Surat Permohonan KPKNL documents`
-  - Branch: `issue/372-nota-dinas-kpknl` (pushed, siap PR)
-  - Commit: `cf8ec2c`
+  - PR: #373 merged → merge commit `abecc91`
+  - Branch: `issue/372-nota-dinas-kpknl` (deleted)
 - **Struktur dokumen**:
   - **Nota Dinas KSDAE** (`ND.270/K.18/TU/KAP.06.01/B/MM/YYYY`):
     - Halaman 1 portrait: KOP + title "NOTA DINAS" + Nomor (tanpa underline) + meta grid (Yth/Dari/Perihal/Lampiran/Tanggal) + 2 body paragraphs (indent 2.5em) + TTD (tanpa label "Kepala Balai,") + Tembusan (conditional numbering)

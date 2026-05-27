@@ -1,7 +1,7 @@
 # Progress - Phase 60: Nota Dinas KSDAE & Surat Permohonan KPKNL
 
 > Document updated: 2026-05-27
-> Status: **COMMITTED & PUSHED** ⏳ (siap merge ke main)
+> Status: **MERGED** ✅ (deploy SSH ditunda)
 
 ---
 
@@ -9,7 +9,8 @@
 
 ### Completed:
 - [x] **Issue Created**: Issue #372.
-- [x] **Branch + Commit**: `issue/372-nota-dinas-kpknl` pushed (commit `cf8ec2c`).
+- [x] **PR Created/Merged**: PR #373 merged ke `main` (merge commit `abecc91`).
+- [x] **Branch Cleanup**: remote branch `issue/372-nota-dinas-kpknl` deleted after merge.
 - [x] **Nota Dinas KSDAE** (`ND.270/K.18/TU/KAP.06.01/B/MM/YYYY`):
   - Halaman 1 portrait: KOP + title "NOTA DINAS" + Nomor (tanpa underline) + meta grid (Yth/Dari/Perihal/Lampiran/Tanggal, tanpa garis horizontal di bawah Tanggal) + 2 body paragraphs (indent 2.5em) + TTD (tanpa label "Kepala Balai,", hanya `${ttd_pengirim}` + nama tidak bold + NIP) + Tembusan (conditional numbering: 1 item tanpa nomor, 2+ dengan nomor)
   - Halaman 2 landscape: lampiran tabel 10 kolom (No, Kode Barang, NUP, Nama Barang, Merk/Type, No Polisi, Tahun Perolehan, Nilai Perolehan, Nilai Taksiran, Kondisi, Keterangan)
@@ -36,7 +37,6 @@
 - [x] **Default numbers**: Nota Dinas `ND.270/...`, Permohonan KPKNL `S.331/...`.
 
 ### Pending:
-- [ ] **PR + Merge**: Tunggu user konfirmasi "oke" setelah cek di browser, baru buat PR dan merge ke main.
 - [ ] **Deploy ke SSH production**: Ditunda sesuai permintaan user.
 
 ### Key Files:
