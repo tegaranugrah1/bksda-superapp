@@ -27,7 +27,7 @@ interface LampiranPage {
 
 function buildLampiranPages(assets: AuctionAsset[]): LampiranPage[] {
   const firstPageLimit = 8;
-  const continuationPageLimit = 12;
+  const continuationPageLimit = 10;
   const lastPageLimit = 4;
   const pages: LampiranPage[] = [];
 
@@ -76,7 +76,12 @@ function buildLampiranPages(assets: AuctionAsset[]): LampiranPage[] {
       let remainingMiddle = middleCount;
 
       while (remainingMiddle > 0) {
-        const pageSize = Math.min(continuationPageLimit, remainingMiddle);
+        let pageSize = Math.min(continuationPageLimit, remainingMiddle);
+
+        if (remainingMiddle > 1 && remainingMiddle - pageSize === 1) {
+          pageSize -= 1;
+        }
+
         pushPage(assets.slice(cursor, cursor + pageSize), cursor, false);
         cursor += pageSize;
         remainingMiddle -= pageSize;
@@ -166,19 +171,21 @@ export function AssetLampiranLandscapeTable({
           <col style={{ width: "13%" }} />
         </colgroup>
         <thead>
-          <tr className={`${prefix}lamp-column-number-row`}>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-            <th>4</th>
-            <th>5</th>
-            <th>6</th>
-            <th>7</th>
-            <th>8</th>
-            <th>9</th>
-            <th>10</th>
-            <th>11</th>
-          </tr>
+          {!page.includeMeta && (
+            <tr className={`${prefix}lamp-column-number-row`}>
+              <th>1</th>
+              <th>2</th>
+              <th>3</th>
+              <th>4</th>
+              <th>5</th>
+              <th>6</th>
+              <th>7</th>
+              <th>8</th>
+              <th>9</th>
+              <th>10</th>
+              <th>11</th>
+            </tr>
+          )}
           <tr>
             <th>No</th>
             <th>Kode Barang</th>
