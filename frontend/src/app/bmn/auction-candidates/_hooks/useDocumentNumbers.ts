@@ -12,6 +12,8 @@ export interface UseDocumentNumbersResult {
   setSkNumber: React.Dispatch<React.SetStateAction<string>>;
   skPanitiaNumber: string;
   setSkPanitiaNumber: React.Dispatch<React.SetStateAction<string>>;
+  skTimPenilaiNumber: string;
+  setSkTimPenilaiNumber: React.Dispatch<React.SetStateAction<string>>;
   sptjLimitNumber: string;
   setSptjLimitNumber: React.Dispatch<React.SetStateAction<string>>;
   sptjmNumber: string;
@@ -33,6 +35,7 @@ export function useDocumentNumbers(): UseDocumentNumbersResult {
   const [baKap, setBaKap] = useState("KAP.06.01");
   const [skNumber, setSkNumber] = useState("");
   const [skPanitiaNumber, setSkPanitiaNumber] = useState("");
+  const [skTimPenilaiNumber, setSkTimPenilaiNumber] = useState("107");
   const [sptjLimitNumber, setSptjLimitNumber] = useState("41");
   const [sptjmNumber, setSptjmNumber] = useState("202");
   const [spTugasNumber, setSpTugasNumber] = useState("40");
@@ -50,6 +53,8 @@ export function useDocumentNumbers(): UseDocumentNumbersResult {
     setSkNumber,
     skPanitiaNumber,
     setSkPanitiaNumber,
+    skTimPenilaiNumber,
+    setSkTimPenilaiNumber,
     sptjLimitNumber,
     setSptjLimitNumber,
     sptjmNumber,

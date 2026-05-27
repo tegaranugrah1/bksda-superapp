@@ -7,6 +7,7 @@ import { SummaryTile } from "./_components/SummaryTile";
 import { handlePrintBa } from "./_components/BaKoreksiDocument";
 import { handlePrintSk } from "./_components/SkPenghentianDocument";
 import { handlePrintSkPanitia } from "./_components/SkPanitiaDocument";
+import { handlePrintSkTimPenilai } from "./_components/SkTimPenilaiDocument";
 import { handlePrintSptjLimit } from "./_components/SptjLimitDocument";
 import { handlePrintSptjm } from "./_components/SptjmDocument";
 import { handlePrintSpTugas } from "./_components/SpTugasDocument";
@@ -21,6 +22,7 @@ import { AssetTable } from "./_components/AssetTable";
 import { BaKoreksiSection } from "./_components/sections/BaKoreksiSection";
 import { SkPenghentianSection } from "./_components/sections/SkPenghentianSection";
 import { SkPanitiaSection } from "./_components/sections/SkPanitiaSection";
+import { SkTimPenilaiSection } from "./_components/sections/SkTimPenilaiSection";
 import { SptjLimitSection } from "./_components/sections/SptjLimitSection";
 import { SptjmSection } from "./_components/sections/SptjmSection";
 import { SpTugasSection } from "./_components/sections/SpTugasSection";
@@ -34,8 +36,10 @@ import { useDocumentNumbers } from "./_hooks/useDocumentNumbers";
 import { useEmployeeOptions } from "./_hooks/useEmployeeOptions";
 import { usePemeriksaList } from "./_hooks/usePemeriksaList";
 import { usePanitiaList } from "./_hooks/usePanitiaList";
+import { useTimPenilaiList } from "./_hooks/useTimPenilaiList";
 import { useSkBuilderState } from "./_hooks/useSkBuilderState";
 import { useSkPanitiaBuilderState } from "./_hooks/useSkPanitiaBuilderState";
+import { useSkTimPenilaiBuilderState } from "./_hooks/useSkTimPenilaiBuilderState";
 
 export default function BmnAuctionCandidatesPage() {
   const auctionAssets = useAuctionAssets();
@@ -44,8 +48,10 @@ export default function BmnAuctionCandidatesPage() {
   const { sortedEmployeesForPanitia } = useEmployeeOptions();
   const pemeriksa = usePemeriksaList();
   const panitia = usePanitiaList();
+  const timPenilai = useTimPenilaiList();
   const sk = useSkBuilderState();
   const skPanitia = useSkPanitiaBuilderState();
+  const skTimPenilai = useSkTimPenilaiBuilderState();
 
   const {
     searchTerm,
@@ -123,6 +129,7 @@ export default function BmnAuctionCandidatesPage() {
   const handlePrint = () => handlePrintBa(orderedSelectedAssets);
   const handlePrintSkDoc = () => handlePrintSk(orderedSelectedAssets, docNumbers.skNumber);
   const handlePrintSkPanitiaDoc = () => handlePrintSkPanitia();
+  const handlePrintSkTimPenilaiDoc = () => handlePrintSkTimPenilai();
   const handlePrintSptjLimitDoc = () => handlePrintSptjLimit();
   const handlePrintSptjmDoc = () => handlePrintSptjm();
   const handlePrintSpTugasDoc = () => handlePrintSpTugas();
@@ -147,6 +154,7 @@ export default function BmnAuctionCandidatesPage() {
         onProcess={docToggles.handleProcess}
         onProcessSk={docToggles.handleProcessSk}
         onProcessSkPanitia={docToggles.handleProcessSkPanitia}
+        onProcessSkTimPenilai={docToggles.handleProcessSkTimPenilai}
         onProcessSptjLimit={docToggles.handleProcessSptjLimit}
         onProcessSptjm={docToggles.handleProcessSptjm}
         onProcessSpTugas={docToggles.handleProcessSpTugas}
@@ -168,6 +176,7 @@ export default function BmnAuctionCandidatesPage() {
         showDocument={docToggles.showDocument}
         showSkDocument={docToggles.showSkDocument}
         showSkPanitia={docToggles.showSkPanitia}
+        showSkTimPenilai={docToggles.showSkTimPenilai}
         showSptjLimit={docToggles.showSptjLimit}
         showSptjm={docToggles.showSptjm}
         showSpTugas={docToggles.showSpTugas}
@@ -176,6 +185,7 @@ export default function BmnAuctionCandidatesPage() {
         onPrint={handlePrint}
         onPrintSk={handlePrintSkDoc}
         onPrintSkPanitia={handlePrintSkPanitiaDoc}
+        onPrintSkTimPenilai={handlePrintSkTimPenilaiDoc}
         onPrintSptjLimit={handlePrintSptjLimitDoc}
         onPrintSptjm={handlePrintSptjmDoc}
         onPrintSpTugas={handlePrintSpTugasDoc}
@@ -256,6 +266,29 @@ export default function BmnAuctionCandidatesPage() {
           onUpdatePanitia={panitia.updatePanitiaAnggota}
           onSelectPanitiaEmployee={panitia.selectPanitiaEmployee}
           onPrint={handlePrintSkPanitiaDoc}
+        />
+      )}
+
+      {docToggles.showSkTimPenilai && orderedIds.length > 0 && (
+        <SkTimPenilaiSection
+          skTimPenilaiNumber={docNumbers.skTimPenilaiNumber}
+          timPenilaiMenimbang={skTimPenilai.timPenilaiMenimbang}
+          setTimPenilaiMenimbang={skTimPenilai.setTimPenilaiMenimbang}
+          timPenilaiMengingat={skTimPenilai.timPenilaiMengingat}
+          setTimPenilaiMengingat={skTimPenilai.setTimPenilaiMengingat}
+          timPenilaiMemutuskan={skTimPenilai.timPenilaiMemutuskan}
+          setTimPenilaiMemutuskan={skTimPenilai.setTimPenilaiMemutuskan}
+          kepalaBalai={sk.kepalaBalai}
+          setKepalaBalai={sk.setKepalaBalai}
+          timPenilaiTembusan={skTimPenilai.timPenilaiTembusan}
+          setTimPenilaiTembusan={skTimPenilai.setTimPenilaiTembusan}
+          susunanTimPenilai={timPenilai.susunanTimPenilai}
+          employees={sortedEmployeesForPanitia}
+          onAddTimPenilai={timPenilai.addTimPenilaiAnggota}
+          onRemoveTimPenilai={timPenilai.removeTimPenilaiAnggota}
+          onUpdateTimPenilai={timPenilai.updateTimPenilaiAnggota}
+          onSelectTimPenilaiEmployee={timPenilai.selectTimPenilaiEmployee}
+          onPrint={handlePrintSkTimPenilaiDoc}
         />
       )}
 

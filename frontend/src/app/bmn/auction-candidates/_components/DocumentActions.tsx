@@ -8,6 +8,7 @@ interface DocumentActionsProps {
   onProcess: () => void;
   onProcessSk: () => void;
   onProcessSkPanitia: () => void;
+  onProcessSkTimPenilai: () => void;
   onProcessSptjLimit: () => void;
   onProcessSptjm: () => void;
   onProcessSpTugas: () => void;
@@ -20,6 +21,7 @@ export function DocumentActions({
   onProcess,
   onProcessSk,
   onProcessSkPanitia,
+  onProcessSkTimPenilai,
   onProcessSptjLimit,
   onProcessSptjm,
   onProcessSpTugas,
@@ -35,7 +37,7 @@ export function DocumentActions({
           Generate Dokumen Lelang
         </h2>
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Button
           size="sm"
           className="h-auto rounded-xl gap-2 bg-red-600 py-2.5 text-xs hover:bg-red-500"
@@ -65,12 +67,30 @@ export function DocumentActions({
         </Button>
         <Button
           size="sm"
+          className="h-auto rounded-xl gap-2 bg-emerald-600 py-2.5 text-xs hover:bg-emerald-500"
+          onClick={onProcessSkTimPenilai}
+          disabled={noSelection}
+        >
+          <FileText className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">SK Tim Penilai</span>
+        </Button>
+        <Button
+          size="sm"
           className="h-auto rounded-xl gap-2 bg-orange-600 py-2.5 text-xs hover:bg-orange-500"
           onClick={onProcessBaPemeriksaan}
           disabled={noSelection}
         >
           <FileText className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">BA Pemeriksaan</span>
+        </Button>
+        <Button
+          size="sm"
+          className="h-auto rounded-xl gap-2 bg-cyan-600 py-2.5 text-xs hover:bg-cyan-500"
+          onClick={onProcessSkKebenaran}
+          disabled={noSelection}
+        >
+          <FileText className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">SK Kebenaran</span>
         </Button>
         <Button
           size="sm"
@@ -95,15 +115,6 @@ export function DocumentActions({
         >
           <FileText className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">SP Tugas</span>
-        </Button>
-        <Button
-          size="sm"
-          className="h-auto rounded-xl gap-2 bg-cyan-600 py-2.5 text-xs hover:bg-cyan-500"
-          onClick={onProcessSkKebenaran}
-          disabled={noSelection}
-        >
-          <FileText className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">SK Kebenaran</span>
         </Button>
       </div>
       {noSelection && (

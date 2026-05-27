@@ -7,6 +7,7 @@ export interface UseDocumentTogglesResult {
   showDocument: boolean;
   showSkDocument: boolean;
   showSkPanitia: boolean;
+  showSkTimPenilai: boolean;
   showSptjLimit: boolean;
   showSptjm: boolean;
   showSpTugas: boolean;
@@ -17,6 +18,7 @@ export interface UseDocumentTogglesResult {
   handleProcess: () => void;
   handleProcessSk: () => void;
   handleProcessSkPanitia: () => void;
+  handleProcessSkTimPenilai: () => void;
   handleProcessSptjLimit: () => void;
   handleProcessSptjm: () => void;
   handleProcessSpTugas: () => void;
@@ -34,6 +36,7 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
   const [showDocument, setShowDocument] = useState(false);
   const [showSkDocument, setShowSkDocument] = useState(false);
   const [showSkPanitia, setShowSkPanitia] = useState(false);
+  const [showSkTimPenilai, setShowSkTimPenilai] = useState(false);
   const [showSptjLimit, setShowSptjLimit] = useState(false);
   const [showSptjm, setShowSptjm] = useState(false);
   const [showSpTugas, setShowSpTugas] = useState(false);
@@ -44,6 +47,7 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
     setShowDocument(false);
     setShowSkDocument(false);
     setShowSkPanitia(false);
+    setShowSkTimPenilai(false);
     setShowSptjLimit(false);
     setShowSptjm(false);
     setShowSpTugas(false);
@@ -79,6 +83,16 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
     resetAllShows();
     setShowSkPanitia(true);
     scrollIntoPreview("sk-panitia-preview");
+  }, [orderedIdsLength, resetAllShows]);
+
+  const handleProcessSkTimPenilai = useCallback(() => {
+    if (orderedIdsLength === 0) {
+      toast.error("Pilih minimal satu aset untuk diproses.");
+      return;
+    }
+    resetAllShows();
+    setShowSkTimPenilai(true);
+    scrollIntoPreview("sk-tim-penilai-preview");
   }, [orderedIdsLength, resetAllShows]);
 
   const handleProcessSptjLimit = useCallback(() => {
@@ -123,6 +137,7 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
     showDocument,
     showSkDocument,
     showSkPanitia,
+    showSkTimPenilai,
     showSptjLimit,
     showSptjm,
     showSpTugas,
@@ -133,6 +148,7 @@ export function useDocumentToggles(orderedIdsLength: number): UseDocumentToggles
     handleProcess,
     handleProcessSk,
     handleProcessSkPanitia,
+    handleProcessSkTimPenilai,
     handleProcessSptjLimit,
     handleProcessSptjm,
     handleProcessSpTugas,

@@ -8,6 +8,7 @@ interface SelectedAssetsBannerProps {
   showDocument: boolean;
   showSkDocument: boolean;
   showSkPanitia: boolean;
+  showSkTimPenilai: boolean;
   showSptjLimit: boolean;
   showSptjm: boolean;
   showSpTugas: boolean;
@@ -16,6 +17,7 @@ interface SelectedAssetsBannerProps {
   onPrint: () => void;
   onPrintSk: () => void;
   onPrintSkPanitia: () => void;
+  onPrintSkTimPenilai: () => void;
   onPrintSptjLimit: () => void;
   onPrintSptjm: () => void;
   onPrintSpTugas: () => void;
@@ -33,6 +35,7 @@ export function SelectedAssetsBanner({
   showDocument,
   showSkDocument,
   showSkPanitia,
+  showSkTimPenilai,
   showSptjLimit,
   showSptjm,
   showSpTugas,
@@ -41,6 +44,7 @@ export function SelectedAssetsBanner({
   onPrint,
   onPrintSk,
   onPrintSkPanitia,
+  onPrintSkTimPenilai,
   onPrintSptjLimit,
   onPrintSptjm,
   onPrintSpTugas,
@@ -53,6 +57,7 @@ export function SelectedAssetsBanner({
   if (showDocument) printActions.push({ label: "Cetak BA Koreksi", onClick: onPrint });
   if (showSkDocument) printActions.push({ label: "Cetak SK Penghentian", onClick: onPrintSk });
   if (showSkPanitia) printActions.push({ label: "Cetak SK Panitia", onClick: onPrintSkPanitia });
+  if (showSkTimPenilai) printActions.push({ label: "Cetak SK Tim Penilai", onClick: onPrintSkTimPenilai });
   if (showSptjLimit) printActions.push({ label: "Cetak SPTJ Limit", onClick: onPrintSptjLimit });
   if (showSptjm) printActions.push({ label: "Cetak SPTJM", onClick: onPrintSptjm });
   if (showSpTugas) printActions.push({ label: "Cetak SP Tugas", onClick: onPrintSpTugas });

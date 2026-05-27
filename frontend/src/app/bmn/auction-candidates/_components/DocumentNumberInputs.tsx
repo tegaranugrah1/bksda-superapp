@@ -13,6 +13,8 @@ interface DocumentNumberInputsProps {
   setSkNumber: (value: string) => void;
   skPanitiaNumber: string;
   setSkPanitiaNumber: (value: string) => void;
+  skTimPenilaiNumber: string;
+  setSkTimPenilaiNumber: (value: string) => void;
   sptjLimitNumber: string;
   setSptjLimitNumber: (value: string) => void;
   sptjmNumber: string;
@@ -44,6 +46,8 @@ export function DocumentNumberInputs({
   setSkNumber,
   skPanitiaNumber,
   setSkPanitiaNumber,
+  skTimPenilaiNumber,
+  setSkTimPenilaiNumber,
   sptjLimitNumber,
   setSptjLimitNumber,
   sptjmNumber,
@@ -76,7 +80,7 @@ export function DocumentNumberInputs({
             Pengaturan Nomor Surat
           </span>
           <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-            9 dokumen
+            10 dokumen
           </span>
         </div>
         <ChevronDown
@@ -148,6 +152,25 @@ export function DocumentNumberInputs({
                   className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
                 <span className="truncate">/{skSuffix}</span>
+              </div>
+            </div>
+
+            {/* SK Tim Penilai */}
+            <div>
+              <label htmlFor="sk-tim-penilai-number" className={labelClass}>
+                SK Tim Penilai
+              </label>
+              <div className={`${inputBoxClass} mt-1`}>
+                <span className="font-semibold">SK.</span>
+                <input
+                  id="sk-tim-penilai-number"
+                  type="text"
+                  value={skTimPenilaiNumber}
+                  onChange={(e) => setSkTimPenilaiNumber(e.target.value)}
+                  placeholder="107"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
+                />
+                <span className="truncate">/K.18/TU/KAP.06.01/B/{monthSuffix}</span>
               </div>
             </div>
 
