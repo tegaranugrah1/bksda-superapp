@@ -45,7 +45,7 @@ export function handlePrintPermohonanKpknl() {
           p { margin: 0; padding: 0; }
 
           .pkpknl-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 0; page: pkpknl-portrait; }
-          .pkpknl-page-landscape { width: 297mm; margin: 0 auto; padding: 12mm 15mm 12mm; page: pkpknl-landscape; page-break-before: always; break-before: page; }
+          .pkpknl-page-landscape { width: 297mm; margin: 0 auto; padding: 10mm 16mm 20mm; page: pkpknl-landscape; page-break-before: always; break-before: page; }
           .pkpknl-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 6px; text-align: center; }
           .pkpknl-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
           .pkpknl-meta-grid { width: 166mm; margin: 14px auto 0; display: grid; grid-template-columns: 1fr auto; gap: 16mm; }
@@ -58,33 +58,37 @@ export function handlePrintPermohonanKpknl() {
           .pkpknl-edit { outline: none; border-bottom: none !important; }
           .pkpknl-body { width: 166mm; margin: 14px auto 0; text-align: justify; text-justify: inter-word; }
           .pkpknl-body p { margin-bottom: 0.7rem; text-indent: 2.5em; }
-          .pkpknl-ttd { width: 80mm; margin: 1.5rem 0 0 auto; text-align: left; }
-          .pkpknl-ttd p { margin: 0; line-height: 1.3; }
-          .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 28mm; padding-top: 10mm; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; }
-          .pkpknl-ttd .pkpknl-ttd-name { font-weight: normal; margin-top: 0.4rem !important; }
+          .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
+          .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.15; }
+          .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; margin-top: 2rem; margin-bottom: 2rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+          .pkpknl-ttd .pkpknl-ttd-name { font-weight: normal; }
           .pkpknl-tembusan { width: 166mm; margin: 1.2rem auto 0; }
           .pkpknl-tembusan-title { font-weight: normal; }
           .pkpknl-tembusan-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); }
 
           /* Lampiran landscape (shared prefix-aware styles) */
-          .pkpknl-lamp-root { font-family: 'Bookman Old Style', Georgia, serif; }
-          .pkpknl-lamp-meta { width: 110mm; margin-left: auto; text-align: left; font-size: 10pt; }
-          .pkpknl-lamp-meta p { margin: 0 0 0.3rem 0; }
-          .pkpknl-lamp-meta .pkpknl-lamp-meta-lampiran { margin-bottom: 0.3rem; }
+          .pkpknl-lamp-root { width: 258mm; margin: 0 auto; font-family: 'Bookman Old Style', Georgia, serif; }
+          .pkpknl-lamp-page { page: pkpknl-landscape; break-inside: avoid; page-break-inside: avoid; }
+          .pkpknl-lamp-page-continuation { page-break-before: always; break-before: page; padding-top: 8mm; }
+          .pkpknl-lamp-page-with-signature { break-inside: avoid; page-break-inside: avoid; }
+          .pkpknl-lamp-meta { width: 128mm; margin-left: auto; text-align: left; font-size: 10pt; }
+          .pkpknl-lamp-meta p { margin: 0 0 0.45rem 0; }
+          .pkpknl-lamp-meta .pkpknl-lamp-meta-lampiran { margin-bottom: 0.45rem; }
           .pkpknl-lamp-meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); align-items: start; }
           .pkpknl-lamp-colon { text-align: center; }
           .pkpknl-lamp-edit { outline: none; }
           .pkpknl-lamp-title { text-align: center; font-weight: bold; font-size: 12pt; margin-top: 1rem; line-height: 1.3; }
           .pkpknl-lamp-title p { margin: 0; }
-          .pkpknl-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.6rem; table-layout: fixed; }
-          .pkpknl-lamp-table th, .pkpknl-lamp-table td { border: 1px solid #000; padding: 4px 3px; vertical-align: middle; overflow-wrap: anywhere; }
+          .pkpknl-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.75rem; table-layout: fixed; }
+          .pkpknl-lamp-table th, .pkpknl-lamp-table td { border: 1px solid #000; padding: 6px 4px; vertical-align: middle; overflow-wrap: anywhere; }
           .pkpknl-lamp-table thead { display: table-header-group; }
           .pkpknl-lamp-table tr { break-inside: avoid; page-break-inside: avoid; }
+          .pkpknl-lamp-column-number-row th { font-weight: normal; }
           .pkpknl-lamp-jumlah-row td { background: #f3f4f6; }
-          .pkpknl-lamp-ttd { width: 80mm; margin: 1.2rem 0 0 auto; text-align: left; }
-          .pkpknl-lamp-ttd p { margin: 0; line-height: 1.3; }
-          .pkpknl-lamp-ttd .pkpknl-lamp-ttd-placeholder { box-sizing: border-box; height: 28mm; padding-top: 10mm; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; }
-          .pkpknl-lamp-ttd .pkpknl-lamp-ttd-name { font-weight: normal; margin-top: 0.4rem !important; }
+          .pkpknl-lamp-ttd { width: 20rem; margin: 1rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
+          .pkpknl-lamp-ttd p { margin: 0; padding: 0; line-height: 1.15; }
+          .pkpknl-lamp-ttd .pkpknl-lamp-ttd-placeholder { box-sizing: border-box; height: 86px; padding-top: 28px; padding-left: 1.35cm; margin-top: 2rem; margin-bottom: 2rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+          .pkpknl-lamp-ttd .pkpknl-lamp-ttd-name { font-weight: normal; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -116,7 +120,7 @@ export function PermohonanKpknlDocument({
         .permohonan-kpknl-print-root .pkpknl-edit, .permohonan-kpknl-print-root .pkpknl-lamp-edit { outline: none; border-bottom: 1px dashed transparent; transition: border-bottom-color 0.15s ease; }
         .permohonan-kpknl-print-root .pkpknl-edit:hover, .permohonan-kpknl-print-root .pkpknl-lamp-edit:hover { border-bottom-color: #94a3b8; }
         .permohonan-kpknl-print-root .pkpknl-edit:focus, .permohonan-kpknl-print-root .pkpknl-lamp-edit:focus { border-bottom-color: #64748b; }
-        .permohonan-kpknl-print-root .pkpknl-page-landscape { width: 297mm !important; max-width: 297mm !important; }
+        .permohonan-kpknl-print-root .pkpknl-page-landscape { width: 297mm !important; max-width: 297mm !important; padding: 10mm 16mm 20mm !important; }
 
         /* ── Preview structural styles ── */
         .permohonan-kpknl-print-root p { margin: 0; padding: 0; }
@@ -131,28 +135,32 @@ export function PermohonanKpknlDocument({
         .permohonan-kpknl-print-root .pkpknl-yth p { margin: 0; line-height: 1.4; }
         .permohonan-kpknl-print-root .pkpknl-body { width: 166mm; margin: 14px auto 0; text-align: justify; text-justify: inter-word; }
         .permohonan-kpknl-print-root .pkpknl-body p { margin-bottom: 0.85rem; text-indent: 2.5em; }
-        .permohonan-kpknl-print-root .pkpknl-ttd { width: 80mm; margin: 1.5rem 0 0 auto; text-align: left; }
-        .permohonan-kpknl-print-root .pkpknl-ttd p { margin: 0; line-height: 1.3; }
-        .permohonan-kpknl-print-root .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 28mm; padding-top: 10mm; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; }
+        .permohonan-kpknl-print-root .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
+        .permohonan-kpknl-print-root .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.15; }
+        .permohonan-kpknl-print-root .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; margin-top: 2rem; margin-bottom: 2rem; color: #94a3b8; font-size: 9pt; text-align: left; }
         .permohonan-kpknl-print-root .pkpknl-ttd .pkpknl-ttd-name { font-weight: normal; }
         .permohonan-kpknl-print-root .pkpknl-tembusan { width: 166mm; margin: 1.2rem auto 0; }
         .permohonan-kpknl-print-root .pkpknl-tembusan-title { font-weight: normal; }
         .permohonan-kpknl-print-root .pkpknl-tembusan-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); }
 
         /* Lampiran landscape (preview) */
-        .permohonan-kpknl-print-root .pkpknl-lamp-root { font-family: 'Bookman Old Style', Georgia, serif; }
-        .permohonan-kpknl-print-root .pkpknl-lamp-meta { width: 110mm; margin-left: auto; text-align: left; font-size: 10pt; }
-        .permohonan-kpknl-print-root .pkpknl-lamp-meta p { margin: 0 0 0.3rem 0; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-root { width: 258mm; margin: 0 auto; font-family: 'Bookman Old Style', Georgia, serif; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-page { page: pkpknl-landscape; break-inside: avoid; page-break-inside: avoid; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-page-continuation { page-break-before: always; break-before: page; padding-top: 8mm; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-page-with-signature { break-inside: avoid; page-break-inside: avoid; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-meta { width: 128mm; margin-left: auto; text-align: left; font-size: 10pt; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-meta p { margin: 0 0 0.45rem 0; }
         .permohonan-kpknl-print-root .pkpknl-lamp-meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); align-items: start; }
         .permohonan-kpknl-print-root .pkpknl-lamp-colon { text-align: center; }
         .permohonan-kpknl-print-root .pkpknl-lamp-title { text-align: center; font-weight: bold; font-size: 12pt; margin-top: 1rem; line-height: 1.3; }
         .permohonan-kpknl-print-root .pkpknl-lamp-title p { margin: 0; }
-        .permohonan-kpknl-print-root .pkpknl-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.6rem; table-layout: fixed; }
-        .permohonan-kpknl-print-root .pkpknl-lamp-table th, .permohonan-kpknl-print-root .pkpknl-lamp-table td { border: 1px solid #000; padding: 4px 3px; vertical-align: middle; overflow-wrap: anywhere; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.75rem; table-layout: fixed; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-table th, .permohonan-kpknl-print-root .pkpknl-lamp-table td { border: 1px solid #000; padding: 6px 4px; vertical-align: middle; overflow-wrap: anywhere; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-column-number-row th { font-weight: normal; }
         .permohonan-kpknl-print-root .pkpknl-lamp-jumlah-row td { background: #f3f4f6; }
-        .permohonan-kpknl-print-root .pkpknl-lamp-ttd { width: 80mm; margin: 1.2rem 0 0 auto; text-align: left; }
-        .permohonan-kpknl-print-root .pkpknl-lamp-ttd p { margin: 0; line-height: 1.3; }
-        .permohonan-kpknl-print-root .pkpknl-lamp-ttd .pkpknl-lamp-ttd-placeholder { box-sizing: border-box; height: 28mm; padding-top: 10mm; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-ttd { width: 20rem; margin: 1rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-ttd p { margin: 0; padding: 0; line-height: 1.15; }
+        .permohonan-kpknl-print-root .pkpknl-lamp-ttd .pkpknl-lamp-ttd-placeholder { box-sizing: border-box; height: 86px; padding-top: 28px; padding-left: 1.35cm; margin-top: 2rem; margin-bottom: 2rem; color: #94a3b8; font-size: 9pt; text-align: left; }
         .permohonan-kpknl-print-root .pkpknl-lamp-ttd .pkpknl-lamp-ttd-name { font-weight: normal; }
 
         @media print {
@@ -162,7 +170,7 @@ export function PermohonanKpknlDocument({
           .permohonan-kpknl-print-root, .permohonan-kpknl-print-root * { visibility: visible; }
           .permohonan-kpknl-print-root { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; }
           .pkpknl-page { box-shadow: none !important; padding: 5mm 20mm 0; page: pkpknl-portrait; }
-          .pkpknl-page-landscape { box-shadow: none !important; padding: 12mm 15mm 12mm; page: pkpknl-landscape; page-break-before: always; }
+          .pkpknl-page-landscape { box-shadow: none !important; padding: 10mm 16mm 20mm; page: pkpknl-landscape; page-break-before: always; }
           .pkpknl-edit, .pkpknl-lamp-edit { border-bottom: none !important; }
         }
       `}</style>

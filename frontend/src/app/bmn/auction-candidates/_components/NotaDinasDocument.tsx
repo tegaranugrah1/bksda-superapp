@@ -50,7 +50,7 @@ export function handlePrintNotaDinas() {
           p { margin: 0; padding: 0; }
 
           .nd-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 0; page: nd-portrait; }
-          .nd-page-landscape { width: 297mm; margin: 0 auto; padding: 12mm 15mm 12mm; page: nd-landscape; page-break-before: always; break-before: page; }
+          .nd-page-landscape { width: 297mm; margin: 0 auto; padding: 10mm 16mm 20mm; page: nd-landscape; page-break-before: always; break-before: page; }
           .nd-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 6px; text-align: center; }
           .nd-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
           .nd-title { width: 166mm; margin: 12px auto 0; text-align: center; font-weight: bold; line-height: 1.3; font-size: 14pt; }
@@ -64,31 +64,35 @@ export function handlePrintNotaDinas() {
           .nd-edit { outline: none; border-bottom: none !important; }
           .nd-ttd { width: 80mm; margin: 1.5rem 0 0 auto; text-align: left; }
           .nd-ttd p { margin: 0; line-height: 1.3; }
-          .nd-ttd .nd-ttd-placeholder { box-sizing: border-box; height: 28mm; padding-top: 10mm; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; }
+          .nd-ttd .nd-ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; text-align: left; }
           .nd-ttd .nd-ttd-name { font-weight: normal; margin-top: 0.4rem !important; }
           .nd-tembusan { width: 166mm; margin: 1.2rem auto 0; }
           .nd-tembusan-title { font-weight: normal; }
           .nd-tembusan-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); }
 
           /* Lampiran landscape */
-          .nd-lamp-root { font-family: 'Bookman Old Style', Georgia, serif; }
-          .nd-lamp-meta { width: 110mm; margin-left: auto; text-align: left; font-size: 10pt; }
-          .nd-lamp-meta p { margin: 0 0 0.3rem 0; }
-          .nd-lamp-meta .nd-lamp-meta-lampiran { margin-bottom: 0.3rem; }
+          .nd-lamp-root { width: 258mm; margin: 0 auto; font-family: 'Bookman Old Style', Georgia, serif; }
+          .nd-lamp-page { page: nd-landscape; break-inside: avoid; page-break-inside: avoid; }
+          .nd-lamp-page-continuation { page-break-before: always; break-before: page; padding-top: 8mm; }
+          .nd-lamp-page-with-signature { break-inside: avoid; page-break-inside: avoid; }
+          .nd-lamp-meta { width: 128mm; margin-left: auto; text-align: left; font-size: 10pt; }
+          .nd-lamp-meta p { margin: 0 0 0.45rem 0; }
+          .nd-lamp-meta .nd-lamp-meta-lampiran { margin-bottom: 0.45rem; }
           .nd-lamp-meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); align-items: start; }
           .nd-lamp-colon { text-align: center; }
           .nd-lamp-edit { outline: none; }
           .nd-lamp-title { text-align: center; font-weight: bold; font-size: 12pt; margin-top: 1rem; line-height: 1.3; }
           .nd-lamp-title p { margin: 0; }
-          .nd-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.6rem; table-layout: fixed; }
-          .nd-lamp-table th, .nd-lamp-table td { border: 1px solid #000; padding: 4px 3px; vertical-align: middle; overflow-wrap: anywhere; }
+          .nd-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.75rem; table-layout: fixed; }
+          .nd-lamp-table th, .nd-lamp-table td { border: 1px solid #000; padding: 6px 4px; vertical-align: middle; overflow-wrap: anywhere; }
           .nd-lamp-table thead { display: table-header-group; }
           .nd-lamp-table tr { break-inside: avoid; page-break-inside: avoid; }
+          .nd-lamp-column-number-row th { font-weight: normal; }
           .nd-lamp-jumlah-row td { background: #f3f4f6; }
-          .nd-lamp-ttd { width: 80mm; margin: 1.2rem 0 0 auto; text-align: left; }
-          .nd-lamp-ttd p { margin: 0; line-height: 1.3; }
-          .nd-lamp-ttd .nd-lamp-ttd-placeholder { box-sizing: border-box; height: 28mm; padding-top: 10mm; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; }
-          .nd-lamp-ttd .nd-lamp-ttd-name { font-weight: normal; margin-top: 0.4rem !important; }
+          .nd-lamp-ttd { width: 20rem; margin: 1rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
+          .nd-lamp-ttd p { margin: 0; padding: 0; line-height: 1.15; }
+          .nd-lamp-ttd .nd-lamp-ttd-placeholder { box-sizing: border-box; height: 86px; padding-top: 28px; padding-left: 1.35cm; margin-top: 2rem; margin-bottom: 2rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+          .nd-lamp-ttd .nd-lamp-ttd-name { font-weight: normal; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -130,7 +134,7 @@ export function NotaDinasDocument({
         .nota-dinas-print-root .nd-edit, .nota-dinas-print-root .nd-lamp-edit { outline: none; border-bottom: 1px dashed transparent; transition: border-bottom-color 0.15s ease; }
         .nota-dinas-print-root .nd-edit:hover, .nota-dinas-print-root .nd-lamp-edit:hover { border-bottom-color: #94a3b8; }
         .nota-dinas-print-root .nd-edit:focus, .nota-dinas-print-root .nd-lamp-edit:focus { border-bottom-color: #64748b; }
-        .nota-dinas-print-root .nd-page-landscape { width: 297mm !important; max-width: 297mm !important; }
+        .nota-dinas-print-root .nd-page-landscape { width: 297mm !important; max-width: 297mm !important; padding: 10mm 16mm 20mm !important; }
 
         /* ── Preview structural styles (also injected for print via the cloned head) ── */
         .nota-dinas-print-root p { margin: 0; padding: 0; }
@@ -146,26 +150,30 @@ export function NotaDinasDocument({
         .nota-dinas-print-root .nd-body p { margin-bottom: 0.85rem; text-indent: 2.5em; }
         .nota-dinas-print-root .nd-ttd { width: 80mm; margin: 1.5rem 0 0 auto; text-align: left; }
         .nota-dinas-print-root .nd-ttd p { margin: 0; line-height: 1.3; }
-        .nota-dinas-print-root .nd-ttd .nd-ttd-placeholder { box-sizing: border-box; height: 28mm; padding-top: 10mm; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; }
+        .nota-dinas-print-root .nd-ttd .nd-ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; text-align: left; }
         .nota-dinas-print-root .nd-ttd .nd-ttd-name { font-weight: normal; }
         .nota-dinas-print-root .nd-tembusan { width: 166mm; margin: 1.2rem auto 0; }
         .nota-dinas-print-root .nd-tembusan-title { font-weight: normal; }
         .nota-dinas-print-root .nd-tembusan-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); }
 
         /* Lampiran landscape (preview) */
-        .nota-dinas-print-root .nd-lamp-root { font-family: 'Bookman Old Style', Georgia, serif; }
-        .nota-dinas-print-root .nd-lamp-meta { width: 110mm; margin-left: auto; text-align: left; font-size: 10pt; }
-        .nota-dinas-print-root .nd-lamp-meta p { margin: 0 0 0.3rem 0; }
+        .nota-dinas-print-root .nd-lamp-root { width: 258mm; margin: 0 auto; font-family: 'Bookman Old Style', Georgia, serif; }
+        .nota-dinas-print-root .nd-lamp-page { page: nd-landscape; break-inside: avoid; page-break-inside: avoid; }
+        .nota-dinas-print-root .nd-lamp-page-continuation { page-break-before: always; break-before: page; padding-top: 8mm; }
+        .nota-dinas-print-root .nd-lamp-page-with-signature { break-inside: avoid; page-break-inside: avoid; }
+        .nota-dinas-print-root .nd-lamp-meta { width: 128mm; margin-left: auto; text-align: left; font-size: 10pt; }
+        .nota-dinas-print-root .nd-lamp-meta p { margin: 0 0 0.45rem 0; }
         .nota-dinas-print-root .nd-lamp-meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); align-items: start; }
         .nota-dinas-print-root .nd-lamp-colon { text-align: center; }
         .nota-dinas-print-root .nd-lamp-title { text-align: center; font-weight: bold; font-size: 12pt; margin-top: 1rem; line-height: 1.3; }
         .nota-dinas-print-root .nd-lamp-title p { margin: 0; }
-        .nota-dinas-print-root .nd-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.6rem; table-layout: fixed; }
-        .nota-dinas-print-root .nd-lamp-table th, .nota-dinas-print-root .nd-lamp-table td { border: 1px solid #000; padding: 4px 3px; vertical-align: middle; overflow-wrap: anywhere; }
+        .nota-dinas-print-root .nd-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.75rem; table-layout: fixed; }
+        .nota-dinas-print-root .nd-lamp-table th, .nota-dinas-print-root .nd-lamp-table td { border: 1px solid #000; padding: 6px 4px; vertical-align: middle; overflow-wrap: anywhere; }
+        .nota-dinas-print-root .nd-lamp-column-number-row th { font-weight: normal; }
         .nota-dinas-print-root .nd-lamp-jumlah-row td { background: #f3f4f6; }
-        .nota-dinas-print-root .nd-lamp-ttd { width: 80mm; margin: 1.2rem 0 0 auto; text-align: left; }
-        .nota-dinas-print-root .nd-lamp-ttd p { margin: 0; line-height: 1.3; }
-        .nota-dinas-print-root .nd-lamp-ttd .nd-lamp-ttd-placeholder { box-sizing: border-box; height: 28mm; padding-top: 10mm; padding-left: 1.35cm; color: #94a3b8; font-size: 9pt; }
+        .nota-dinas-print-root .nd-lamp-ttd { width: 20rem; margin: 1rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
+        .nota-dinas-print-root .nd-lamp-ttd p { margin: 0; padding: 0; line-height: 1.15; }
+        .nota-dinas-print-root .nd-lamp-ttd .nd-lamp-ttd-placeholder { box-sizing: border-box; height: 86px; padding-top: 28px; padding-left: 1.35cm; margin-top: 2rem; margin-bottom: 2rem; color: #94a3b8; font-size: 9pt; text-align: left; }
         .nota-dinas-print-root .nd-lamp-ttd .nd-lamp-ttd-name { font-weight: normal; }
 
         @media print {
@@ -175,7 +183,7 @@ export function NotaDinasDocument({
           .nota-dinas-print-root, .nota-dinas-print-root * { visibility: visible; }
           .nota-dinas-print-root { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; }
           .nd-page { box-shadow: none !important; padding: 5mm 20mm 0; page: nd-portrait; }
-          .nd-page-landscape { box-shadow: none !important; padding: 12mm 15mm 12mm; page: nd-landscape; page-break-before: always; }
+          .nd-page-landscape { box-shadow: none !important; padding: 10mm 16mm 20mm; page: nd-landscape; page-break-before: always; }
           .nd-edit, .nd-lamp-edit { border-bottom: none !important; }
         }
       `}</style>
