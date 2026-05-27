@@ -134,17 +134,18 @@ git push origin main
 - [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL documents (2-page each: portrait + landscape lampiran). PR #373 merged ke `main` (merge commit `abecc91`); remote branch deleted.
 - [x] Issue #374: Align Surat Permohonan KPKNL page 1 print content + Nota Dinas/KPKNL landscape lampiran pagination. PR #375 merged ke `main` (merge commit `776722a`); remote branch deleted.
 - [x] Issue #376: Add Kertas Kerja Analisis Nilai Taksiran BMN per selected auction asset. PR #377 merged ke `main` (merge commit `878a311`); remote branch deleted.
+- [ ] Issue #378: Make BA Pemeriksaan lampiran landscape and paginate final TTD page. **WIP lokal di branch `issue/378-ba-pemeriksaan-lampiran-landscape`; siap user visual check.**
 
 | Field | Value |
 |-------|-------|
 | **Issue Terakhir Selesai** | Issue #376: Kertas Kerja Analisis Nilai Taksiran BMN per aset terpilih (PR #377 merged) |
-| **Issue Sedang Dikerjakan** | None |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `878a311` |
+| **Issue Sedang Dikerjakan** | Issue #378: BA Pemeriksaan lampiran landscape + pagination |
+| **Branch Aktif** | `issue/378-ba-pemeriksaan-lampiran-landscape` |
+| **Commit Terakhir di Main** | `efe9375` |
 | **Commit Production Server** | `e2dee79` (#370, #372, #374 belum di-deploy) |
-| **Status** | MERGED: Issue #376 sudah punya form/preview Kertas Kerja per aset di `/bmn/auction-candidates`, tombol buka kertas kerja dari tabel aset dan reorder panel, nomor otomatis mengikuti urutan aset terpilih, kop pakai `logo_kemenhut.png`, checkbox jenis kendaraan/dokumen/masa berlaku ikut tampil saat print, data hasil lelang default 3 baris + tambah/hapus baris, panitia penaksir bisa pilih dari data pegawai dan diedit manual. Update terakhir: kategori lokasi bisa diedit dari panel kiri; kondisi kendaraan jadi pilihan tunggal 0,5/0,6/0,7 dan mengubah faktor limit; `Total` dan `Nilai taksiran` penyesuaian dihitung otomatis; summary nilai dirapikan seperti referensi; tanggal default otomatis hari ini; nomor polisi ditampilkan langsung untuk aset angkutan bermotor yang punya `no_polisi`, tanpa label `No Pol`; input/textarea table disembunyikan saat print; teks panjang di tabel bisa turun baris dan membuka tinggi row. PR #377 merged, branch remote deleted, belum deploy. |
+| **Status** | WIP: Issue #378 memperbaiki lampiran BA Pemeriksaan di `/bmn/auction-candidates` agar halaman lampiran memakai A4 landscape, tabel aset dipaginasi manual seperti Nota Dinas/KPKNL, halaman terakhir membawa aset + TTD pelaksana/kepala balai tanpa `${ttd_pengirim}`, dan jika aset banyak halaman terakhir dibatasi maksimal 6 aset dengan minimal 1 aset tetap tergabung bersama TTD 5 orang. Paginasi final page sekarang mempertimbangkan estimasi tinggi teks aset, sehingga 6 aset dengan nama/merk panjang bisa dikurangi agar TTD tidak jatuh sendiri. Baris `Lampiran` berisi teks editable `PEMERIKSAAN BARANG MILIK NEGARA BERUPA ALAT ANGKUTAN BERMOTOR`, row nomor kolom 1-11 hanya tampil pada halaman lanjutan, dan `Nilai Buku` selalu `-` di tengah. Shared lampiran Nota Dinas/KPKNL juga diubah agar halaman pertama tidak menampilkan row nomor kolom dan halaman lanjutan lebih aman dari single-row overflow. Belum commit/push/PR; siap visual check user. |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-27T16:13:30+08:00 |
+| **Timestamp** | 2026-05-27T16:35:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -179,7 +180,40 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Deploy issue #370, #372, #374, dan #376 ke SSH production saat user siap.
+- [ ] User visual check BA Pemeriksaan lampiran landscape issue #378 di `/bmn/auction-candidates`.
+- [ ] Setelah user approve: commit, push, PR issue #378; merge sesuai instruksi user.
+- [ ] Deploy issue #370, #372, #374, #376, dan #378 ke SSH production saat user siap.
+
+---
+
+**UPDATE SESI CODEX (2026-05-27 - Issue #378 WIP: BA Pemeriksaan lampiran landscape):**
+- **Objective**: Ubah lampiran BA Pemeriksaan BMN menjadi A4 landscape dan paginasi manual saat aset banyak.
+- **Status**: WIP lokal; siap user visual check. Belum commit/push/PR.
+- **GitHub**:
+  - Issue: #378 `fix(bmn): make BA Pemeriksaan lampiran landscape`
+  - Branch lokal: `issue/378-ba-pemeriksaan-lampiran-landscape`
+- **Changes sejauh ini**:
+  - `BaPemeriksaanDocument.tsx` sekarang memakai named print pages: halaman utama portrait dan halaman lampiran `ba-pem-landscape`.
+  - Lampiran BA Pemeriksaan dirender sebagai halaman A4 landscape (`297mm`) dengan tabel selebar area landscape.
+  - Tabel aset dipaginasi manual, mirip pola Nota Dinas/KPKNL; halaman terakhir membawa aset + tanda tangan, halaman sebelumnya hanya tabel.
+  - Untuk banyak aset, halaman terakhir dibatasi maksimal 6 aset; minimal 1 aset tetap ikut bersama blok TTD.
+  - Lampiran BA Pemeriksaan yang berisi 7 aset atau lebih dipaksa turun minimal 1 aset bersama TTD, agar TTD tidak muncul sendiri di halaman baru.
+  - Paginasi final page mempertimbangkan estimasi tinggi teks nama/merk/no polisi/kondisi; kalau 6 aset terlalu tinggi, final page otomatis dikurangi agar TTD tetap satu halaman dengan aset.
+  - Kapasitas halaman lanjutan BA Pemeriksaan diturunkan menjadi 12 aset per halaman agar browser print tidak mendorong satu aset sendirian ke halaman berikutnya.
+  - Baris `Lampiran` di meta lampiran berisi teks editable `PEMERIKSAAN BARANG MILIK NEGARA BERUPA ALAT ANGKUTAN BERMOTOR` dan dibuat satu baris penuh.
+  - Tabel lampiran menambahkan row nomor kolom `1` sampai `11` hanya pada halaman lanjutan, bukan halaman lampiran pertama.
+  - Kolom `Nilai Buku` selalu menampilkan `-` rata tengah.
+  - Shared `AssetLampiranLandscapeTable.tsx` untuk Nota Dinas/KPKNL juga diubah agar row nomor kolom `1` sampai `11` tidak tampil pada halaman lampiran pertama.
+  - Kapasitas halaman lanjutan Nota Dinas/KPKNL diturunkan menjadi 10 aset dan paginator menghindari sisa 1 aset sendirian di halaman tengah.
+  - Blok TTD lampiran tidak memakai `${ttd_pengirim}`; tetap menampilkan pelaksana kegiatan/pemeriksa dan Kepala Balai.
+  - TTD final page memakai grid landscape: pelaksana kegiatan di kiri (pemeriksa 2 kolom) dan Kepala Balai di kanan.
+- **Files changed**:
+  - Modified: `frontend/src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx`
+  - Modified: `frontend/src/app/bmn/auction-candidates/_components/AssetLampiranLandscapeTable.tsx`
+- **Validation terakhir**:
+  - `npx eslint "src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx" --max-warnings=0` clean.
+  - `npx tsc --noEmit` clean.
+  - `npm run build` clean (59/59 static pages).
 
 ---
 

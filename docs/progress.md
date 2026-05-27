@@ -1,3 +1,49 @@
+# Progress - Phase 63: BA Pemeriksaan Lampiran Landscape
+
+> Document updated: 2026-05-27
+> Status: **WIP LOCAL** (siap user visual check; belum commit/push/PR)
+
+---
+
+## Issue #378: Make BA Pemeriksaan lampiran landscape
+
+### Completed So Far:
+- [x] **Issue Created**: Issue #378 `fix(bmn): make BA Pemeriksaan lampiran landscape`.
+- [x] **Branch Created**: local branch `issue/378-ba-pemeriksaan-lampiran-landscape`.
+- [x] **Landscape lampiran**: BA Pemeriksaan lampiran now uses named A4 landscape pages instead of portrait `.doc-page`.
+- [x] **Manual pagination**: selected assets are chunked manually, following the Nota Dinas/KPKNL pattern instead of relying on browser table splitting.
+- [x] **Final page rule**: final lampiran page includes the TTD block and carries selected assets; for many assets the final page is capped at 6 assets, with a minimum of 1 asset kept together with TTD.
+- [x] **Seven asset edge case**: BA Pemeriksaan lampiran with 7+ assets now forces at least 1 asset onto the final TTD page, so the signature block does not fall alone.
+- [x] **Tall row handling**: final-page pagination estimates row height from long asset names/brand/type text; if 6 assets are too tall, fewer assets are kept on the TTD page.
+- [x] **Continuation page safety**: continuation page capacity reduced to 12 assets so browser print does not push a single overflow row onto its own page.
+- [x] **No `${ttd_pengirim}` placeholder**: BA Pemeriksaan lampiran signature block only renders Pelaksana Kegiatan/pemeriksa and Kepala Balai text.
+- [x] **Landscape TTD layout**: final page uses a wider landscape grid with pemeriksa names in two columns and Kepala Balai on the right.
+- [x] **Lampiran details**: `Lampiran` meta text is editable, stays on one full-width line, and defaults to `PEMERIKSAAN BARANG MILIK NEGARA BERUPA ALAT ANGKUTAN BERMOTOR`.
+- [x] **Table details**: column-number row `1` through `11` appears only on continuation pages; `Nilai Buku` always renders centered `-`.
+- [x] **Nota/KPKNL shared lampiran**: first landscape lampiran page no longer shows the `1` through `11` column-number row; continuation pages still show it.
+- [x] **Nota/KPKNL overflow safety**: shared continuation page capacity reduced to 10 assets and paginator avoids leaving a single asset alone on a middle page.
+
+### Pending:
+- [ ] User visual check at `/bmn/auction-candidates`.
+- [ ] Commit/push/PR after user approval.
+- [ ] Deploy to SSH production when user is ready.
+
+### Key Files:
+- `frontend/src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx`
+- `frontend/src/app/bmn/auction-candidates/_components/AssetLampiranLandscapeTable.tsx`
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+### Git Status Notes:
+- Current branch: `issue/378-ba-pemeriksaan-lampiran-landscape`
+- Work is local and not committed/pushed yet.
+- There are unrelated untracked local files already present; do not add them accidentally.
+
+---
+
 # Progress - Phase 62: Kertas Kerja Analisis Nilai Taksiran BMN
 
 > Document updated: 2026-05-27
