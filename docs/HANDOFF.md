@@ -130,17 +130,18 @@ git push origin main
 - [x] Issue #364: Finalize BMN Penghapusan template state (independent templateType from sumberDana, top-of-sidebar Apply/Reset card, list badge). PR #367 merged ke `main` (merge commit `560f752`); remote branch deleted.
 - [x] Issue #368: Cleanup auction-candidates layout (PageHeader simplified, DocumentActions card baru, DocumentNumberInputs collapsible, SelectedAssetsBanner Cetak-only) + fix bug Total Rusak Berat (dedicated count query). PR #369 merged ke `main` (merge commit `e2dee79`); remote branch deleted.
 - [x] **Production Deploy Batch (2026-05-23)**: Server pulled main `60151b2 → e2dee79` (39 commit batch: #346, #348, #350, #352, #354, #356, #358, #360, #361, #364, #365, #368). Backend + frontend rebuilt. Migrations applied: #358 `no_mesin`, #364 `template_type`. Production healthy: login HTTP 200, /bmn/auction-candidates HTTP 307 (protected, expected).
+- [x] Issue #370: Add SK Tim Penilai (Panitia Penaksir Harga BMN) document with print pagination (continuation words, BSrE safe area). PR #371 merged ke `main` (merge commit `5a9a9de`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #368: Auction layout cleanup + Total Rusak Berat fix (PR #369 merged + DEPLOYED) |
+| **Issue Terakhir Selesai** | Issue #370: SK Tim Penilai (PR #371 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `e2dee79` |
-| **Commit Production Server** | `e2dee79` (synced) |
-| **Status** | DONE + DEPLOYED: Auction-candidates layout cleaner (PageHeader simplified, DocumentActions grid, DocumentNumberInputs collapsible). Total Rusak Berat fix dengan dedicated count query. Production batch deploy selesai (39 commit), 2 migrations applied. Login HTTP 200, auction-candidates HTTP 307 protected. |
+| **Commit Terakhir di Main** | `5a9a9de` |
+| **Commit Production Server** | `e2dee79` (1 commit behind — #370 belum di-deploy) |
+| **Status** | DONE: SK Tim Penilai jadi dokumen ke-11 di /bmn/auction-candidates. Print pagination mirror SK Panitia (continuation words pojok kanan bawah, margin BSrE 28mm bawah, 18mm atas continuation page). Belum deploy ke SSH (sesuai permintaan user). |
 | **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-23T15:30:00+08:00 |
+| **Timestamp** | 2026-05-23T17:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -175,8 +176,52 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [x] ~~Deploy batch BMN + ST template ke SSH production~~ — SELESAI 2026-05-23.
-- [ ] User end-to-end testing pada production setelah deploy.
+- [ ] Deploy issue #370 (SK Tim Penilai) ke SSH production saat user siap.
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-23 - Issue #370 SELESAI: SK Tim Penilai dengan print pagination):**
+- **Objective**: Tambah dokumen ke-11 di /bmn/auction-candidates: SK Pembentukan Panitia Penaksir Harga BMN. Mirror struktur SK Panitia tapi konteks penaksir harga.
+- **Status**: MERGED (PR #371) ke `main` (merge commit `5a9a9de`). Remote branch deleted. **Belum deploy ke SSH** (sesuai permintaan user).
+- **GitHub**:
+  - Issue: #370 `feat(bmn): add SK Tim Penilai (Panitia Penaksir Harga BMN) document`
+  - PR: #371 merged → merge commit `5a9a9de`
+  - Branch: `issue/370-sk-tim-penilai` (deleted)
+- **Perbedaan vs SK Panitia**:
+  - Nomor: `SK.107/K.18/TU/KAP.06.01/B/MM/YYYY` (vs `KAP.05` di SK Panitia)
+  - Title: "PEMBENTUKAN PANITIA PENAKSIR HARGA BMN PADA BALAI KSDA KALIMANTAN TIMUR"
+  - Menimbang: 1 paragraph (vs 2 items)
+  - Mengingat: **13 peraturan** (vs 8) — tambah PP 71/2010, PMK 246/2014, PMK 173/2020, PMK 122/2023, KMK 375/2024
+  - Memutuskan: **4 keputusan (KESATU, KEDUA, KETIGA, KEEMPAT)** dengan interface baru `SkTimPenilaiMemutuskan` (5 fields)
+  - Tabel lampiran: **4 kolom** (No, Nama/NIP, Jabatan dalam Kegiatan, Keterangan) — vs 3 kolom di Panitia
+  - Default susunan: 3 anggota (Ketua/Sekretaris/Anggota) — tanpa Kepala Balai sebagai Penanggung Jawab
+- **File baru (7)**:
+  - `_lib/sk-tim-penilai-defaults.ts` — interface `TimPenilaiAnggota` (4 fields), `SkTimPenilaiMemutuskan` (5 fields), defaults
+  - `_hooks/useSkTimPenilaiBuilderState.ts`
+  - `_hooks/useTimPenilaiList.ts`
+  - `_components/SkTimPenilaiBuilder.tsx` — varian SkBuilder dengan textarea KEEMPAT + ring emerald
+  - `_components/SkTimPenilaiDocument.tsx` — CSS prefix `sktp-`, baris KEEMPAT, tabel 4 kolom, JS print pagination
+  - `_components/TimPenilaiEditor.tsx` — list editor + field Keterangan
+  - `_components/sections/SkTimPenilaiSection.tsx` — preview wrapper
+- **File diubah (6)**:
+  - `_hooks/useDocumentToggles.ts` — `showSkTimPenilai` flag + `handleProcessSkTimPenilai`
+  - `_hooks/useDocumentNumbers.ts` — `skTimPenilaiNumber` (default `"107"`)
+  - `_components/DocumentActions.tsx` — tombol baru "SK Tim Penilai" (emerald), grid 3-col × 3-row
+  - `_components/DocumentNumberInputs.tsx` — input panel SK Tim Penilai, label "10 dokumen"
+  - `_components/SelectedAssetsBanner.tsx` — tombol Cetak SK Tim Penilai conditional
+  - `page.tsx` — wire imports, hooks, props, render `<SkTimPenilaiSection>`
+- **Print pagination (mirror SK Panitia)**:
+  - `@page` A4 dengan `margin: 0`, padding-bottom 28mm di halaman utama untuk safe area BSrE/BSSN footer
+  - Halaman lanjutan padded 18mm di atas
+  - JS pagination setelah window load: split jadi halaman A4 eksplisit, ukur tinggi setiap blok
+  - `firstPageContentH=264mm`, `continuationContentH=251mm`, `markerReserveH=9mm`
+  - **Sambungan kata** di pojok kanan bawah saat blok berikutnya tidak fit: `{nomor}. {first_word}.....` atau `LABEL.....`
+  - Blok yang dipaginate: Menimbang items → Mengingat items → MEMUTUSKAN+Menetapkan group → KESATU → KEDUA → KETIGA → KEEMPAT+TTD+Tembusan group
+  - Lampiran tetap halaman terpisah via `page-break-before: always`
+- **Validation**:
+  - `npx eslint --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
 
 ---
 

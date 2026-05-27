@@ -1,3 +1,40 @@
+# Progress - Phase 59: SK Tim Penilai (Panitia Penaksir Harga BMN)
+
+> Document updated: 2026-05-23
+> Status: **MERGED** ✅ (deploy SSH ditunda)
+
+---
+
+## Issue #370: Add SK Tim Penilai document with print pagination
+
+### Completed:
+- [x] **Issue Created**: Issue #370.
+- [x] **PR Created/Merged**: PR #371 merged ke `main` (merge commit `5a9a9de`).
+- [x] **Branch Cleanup**: remote branch `issue/370-sk-tim-penilai` deleted after merge.
+- [x] **Defaults**: `_lib/sk-tim-penilai-defaults.ts` — `TimPenilaiAnggota` interface (4 fields), `SkTimPenilaiMemutuskan` (5 fields incl. keempat), 13 peraturan default, 3 anggota default.
+- [x] **Builder hook**: `useSkTimPenilaiBuilderState` — state Menimbang/Mengingat/Memutuskan/Tembusan.
+- [x] **List hook**: `useTimPenilaiList` — CRUD + select pegawai.
+- [x] **Builder UI**: `SkTimPenilaiBuilder` — varian SkBuilder dengan KEEMPAT textarea + ring emerald.
+- [x] **Document**: `SkTimPenilaiDocument` — judul beda, 4 keputusan + KEEMPAT row, lampiran tabel 4 kolom, JS print pagination dengan continuation words.
+- [x] **Editor**: `TimPenilaiEditor` — list editor + field Keterangan.
+- [x] **Section**: `SkTimPenilaiSection` — preview wrapper.
+- [x] **Wire-up**: `useDocumentToggles` (showSkTimPenilai), `useDocumentNumbers` (skTimPenilaiNumber default "107"), `DocumentActions` (tombol emerald, grid 3×3), `DocumentNumberInputs` (panel SK Tim Penilai), `SelectedAssetsBanner` (Cetak SK Tim Penilai), `page.tsx` (render section).
+- [x] **Print pagination**: mirror SK Panitia mechanism — sambungan kata pojok kanan bawah, margin BSrE 28mm bawah halaman utama, 18mm atas halaman lanjutan, blok-blok dipaginate (Menimbang → Mengingat → MEMUTUSKAN+Menetapkan → KESATU → KEDUA → KETIGA → KEEMPAT+TTD+Tembusan).
+
+### Pending:
+- [ ] Deploy ke SSH production (ditunda sesuai permintaan user).
+
+### Key Files:
+- New: `_lib/sk-tim-penilai-defaults.ts`, `_hooks/useSkTimPenilaiBuilderState.ts`, `_hooks/useTimPenilaiList.ts`, `_components/SkTimPenilaiBuilder.tsx`, `_components/SkTimPenilaiDocument.tsx`, `_components/TimPenilaiEditor.tsx`, `_components/sections/SkTimPenilaiSection.tsx`
+- Modified: `_hooks/useDocumentToggles.ts`, `_hooks/useDocumentNumbers.ts`, `_components/DocumentActions.tsx`, `_components/DocumentNumberInputs.tsx`, `_components/SelectedAssetsBanner.tsx`, `page.tsx`
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+---
+
 # Progress - Phase 58: Auction Layout Cleanup + Production Deploy
 
 > Document updated: 2026-05-23
