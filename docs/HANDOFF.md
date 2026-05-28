@@ -139,17 +139,18 @@ git push origin main
 - [x] Issue #380: Change KOP `header-new.png → header-terbaru.png` for 4 documents (BA Pemeriksaan, SK Kebenaran, KPKNL, Nota Dinas) + unify nomor format with `/B/` for SK Penghentian/Panitia + make KAP editable for all 11 documents (default `KAP.06.01`, special `KAP.05.01` for SK Penghentian/Panitia) + clear all default numbers. PR #381 merged ke `main` (merge commit `79a4278`); remote branch deleted.
 - [x] Issue #382: Add global Kepala Balai picker at `/bmn/auction-candidates` (sorted alpha dropdown from kepegawaian API, auto-UPPERCASE name + auto-format NIP) + replace hardcoded BA Koreksi name/NIP + change default to mixed case `M. ARI WIBAWANTO, S.Hut., M.Sc.`. PR #383 merged ke `main` (merge commit `94f9a19`); remote branch deleted.
 - [x] Issue #384: Add "Beda Hari" template for ST Builder + Create. PR #385 merged ke `main` (merge commit `f8b6d56`); remote branch deleted. Dropdown 3 template (Default, Penghapusan BMN, Beda Hari). Saat Beda Hari aktif: field "Kepada" jadi "Daftar nama terlampir.", input tanggal global di-hide diganti banner info, tiap pegawai dapet input tanggal mulai/selesai sendiri, halaman 2 lampiran auto-generate (meta + tabel 4 kolom + TTD Kepala Balai). Print PDF lampiran sudah di-fine-tune: konten naik, meta digeser kiri, posisi TTD mengikuti halaman 1, tabel fixed-layout, kolom Nama/NIP diperbesar, tanggal nowrap.
+- [x] Issue #386: Add searchable ST Penandatangan picker + persist signer fields. PR #387 merged ke `main` (merge commit `ac6f5d9`); remote branch deleted. ST Create dan Builder edit sekarang bisa cari pegawai penandatangan dari API kepegawaian, auto-fill nama/NIP, tetap editable manual, default tetap `M. Ari Wibawanto, S.Hut., M.Sc.` / `19740514 199903 1 001`. Backend tambah migration `penandatangan_nama` + `penandatangan_nip`.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #384: ST "Beda Hari" template for ST Builder + Create (PR #385 merged) |
-| **Issue Sedang Dikerjakan** | Next: editable ST Penandatangan/Kepala Balai default + edit builder (issue belum dibuat) |
+| **Issue Terakhir Selesai** | Issue #386: Searchable ST Penandatangan picker + persist signer fields (PR #387 merged) |
+| **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `f8b6d56` |
-| **Commit Production Server** | `550944f` (#380, #382, #384 belum di-deploy) |
-| **Status** | Issue #384 selesai dan merged. Lanjut berikutnya: buat issue baru untuk membuat field Penandatangan ST default/edit tetap editable dengan default `M. Ari Wibawanto, S.Hut., M.Sc.` dan NIP `19740514 199903 1 001`, lalu ikuti git workflow dari awal. |
+| **Commit Terakhir di Main** | `ac6f5d9` |
+| **Commit Production Server** | `550944f` (#380, #382, #384, #386 belum di-deploy) |
+| **Status** | Issue #386 selesai dan merged. Penandatangan ST di create/edit bisa dipilih dari daftar pegawai seperti search personil, tetap bisa diedit manual, dan tersimpan ke database. Saat deploy wajib jalankan migration baru `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php`. |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-28T16:14:58+08:00 |
+| **Timestamp** | 2026-05-28T16:28:32+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -184,8 +185,8 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Buat GitHub issue baru untuk editable Penandatangan/Kepala Balai di ST create + builder edit.
-- [ ] Deploy issue #380, #382, dan #384 ke SSH production saat user siap.
+- [ ] Deploy issue #380, #382, #384, dan #386 ke SSH production saat user siap.
+- [ ] Saat deploy #386, jalankan backend migration untuk kolom `penandatangan_nama` dan `penandatangan_nip`.
 
 ---
 
@@ -201,6 +202,21 @@ git push origin main
   - `npx tsc --noEmit`
   - `npm run build` (59/59 static pages)
 - **Catatan**: `employeeDates` masih state frontend; persist backend bisa jadi issue terpisah kalau dibutuhkan.
+
+---
+**UPDATE SESI CODEX (2026-05-28 - Issue #386 SELESAI: Searchable ST Penandatangan picker):**
+- **Status**: MERGED (PR #387 -> `ac6f5d9`) ke `main`. Remote branch `issue/386-editable-st-penandatangan` deleted. **Belum deploy ke SSH**.
+- **GitHub**:
+  - Issue: #386 `feat(kepegawaian): make ST penandatangan editable` (closed)
+  - PR: #387 merged -> merge commit `ac6f5d9`
+- **Summary**: Section Penandatangan di ST Create dan ST Builder edit sekarang punya search pegawai dari API `/kepegawaian/employees/select`. Klik hasil pencarian auto-fill nama + NIP, tetapi dua input tetap bisa diedit manual.
+- **Default**: `M. Ari Wibawanto, S.Hut., M.Sc.` dan `19740514 199903 1 001`.
+- **Backend**: tambah kolom `penandatangan_nama` dan `penandatangan_nip` di `st_assignment_letters`, model fillable, validation, direct store, dan approve/update flow.
+- **Validation clean**:
+  - `php -l` SuratTugas controller/model/request/migration
+  - `npx eslint "src/app/kepegawaian/surat-tugas/**/*.{ts,tsx}" --max-warnings=0`
+  - `npx tsc --noEmit`
+  - `npm run build` (59/59 static pages)
 
 ---
 **UPDATE SESI CLAUDE (2026-05-28 - Issue #382 SELESAI: Global Kepala Balai picker):**

@@ -1,3 +1,42 @@
+# Progress - Phase 67: Searchable ST Penandatangan Picker (MERGED)
+
+> Document updated: 2026-05-28
+> Status: **MERGED** (PR #387 merged ke `main`, deploy SSH ditunda)
+
+---
+
+## Issue #386: Make ST penandatangan editable/searchable
+
+### Completed:
+- [x] **Issue Created**: Issue #386.
+- [x] **Branch Created/Pushed**: `issue/386-editable-st-penandatangan`.
+- [x] **PR Created/Merged**: PR #387 merged ke `main` (merge commit `ac6f5d9`).
+- [x] **Branch Cleanup**: remote branch deleted after merge.
+- [x] **Frontend**: ST Create dan ST Builder edit sekarang punya searchable employee picker di section Penandatangan.
+- [x] **Default signer**: `M. Ari Wibawanto, S.Hut., M.Sc.` dengan NIP `19740514 199903 1 001`.
+- [x] **Manual override**: Nama dan NIP tetap editable setelah user pilih pegawai dari search.
+- [x] **Backend persist**: tambah kolom `penandatangan_nama` dan `penandatangan_nip`; direct create dan builder approve/save mengirim dan membaca ulang field ini.
+
+### Pending:
+- [ ] **Deploy ke SSH production**: ditunda sampai user siap.
+- [ ] **Migration production**: jalankan migration baru `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php`.
+
+### Validation:
+- [x] `php -l` SuratTugas controller/model/request/migration clean
+- [x] `npx eslint "src/app/kepegawaian/surat-tugas/**/*.{ts,tsx}" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+### Key Files:
+- `backend/app/Modules/SuratTugas/Migrations/2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php`
+- `backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php`
+- `backend/app/Modules/SuratTugas/Models/AssignmentLetter.php`
+- `backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`
+
+---
+
 # Progress - Phase 66: ST "Beda Hari" Template (MERGED)
 
 > Document updated: 2026-05-28
