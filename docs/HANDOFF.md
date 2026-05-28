@@ -138,17 +138,18 @@ git push origin main
 - [x] **Production Deploy Batch (2026-05-27)**: Server pulled main `e2dee79 -> 550944f` (issue #370, #372, #374, #376, #378). Frontend rebuilt/recreated. Production healthy: login HTTP 200, `/bmn/auction-candidates` HTTP 307 (protected, expected).
 - [x] Issue #380: Change KOP `header-new.png → header-terbaru.png` for 4 documents (BA Pemeriksaan, SK Kebenaran, KPKNL, Nota Dinas) + unify nomor format with `/B/` for SK Penghentian/Panitia + make KAP editable for all 11 documents (default `KAP.06.01`, special `KAP.05.01` for SK Penghentian/Panitia) + clear all default numbers. PR #381 merged ke `main` (merge commit `79a4278`); remote branch deleted.
 - [x] Issue #382: Add global Kepala Balai picker at `/bmn/auction-candidates` (sorted alpha dropdown from kepegawaian API, auto-UPPERCASE name + auto-format NIP) + replace hardcoded BA Koreksi name/NIP + change default to mixed case `M. ARI WIBAWANTO, S.Hut., M.Sc.`. PR #383 merged ke `main` (merge commit `94f9a19`); remote branch deleted.
+- [x] Issue #384: Add "Beda Hari" template for ST Builder + Create. PR #385 merged ke `main` (merge commit `f8b6d56`); remote branch deleted. Dropdown 3 template (Default, Penghapusan BMN, Beda Hari). Saat Beda Hari aktif: field "Kepada" jadi "Daftar nama terlampir.", input tanggal global di-hide diganti banner info, tiap pegawai dapet input tanggal mulai/selesai sendiri, halaman 2 lampiran auto-generate (meta + tabel 4 kolom + TTD Kepala Balai). Print PDF lampiran sudah di-fine-tune: konten naik, meta digeser kiri, posisi TTD mengikuti halaman 1, tabel fixed-layout, kolom Nama/NIP diperbesar, tanggal nowrap.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #382: Global Kepala Balai picker for all auction documents (PR #383 merged) |
-| **Issue Sedang Dikerjakan** | None |
+| **Issue Terakhir Selesai** | Issue #384: ST "Beda Hari" template for ST Builder + Create (PR #385 merged) |
+| **Issue Sedang Dikerjakan** | Next: editable ST Penandatangan/Kepala Balai default + edit builder (issue belum dibuat) |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `94f9a19` |
-| **Commit Production Server** | `550944f` (2 commit behind — #380 & #382 belum di-deploy) |
-| **Status** | DONE: Issue #382 menambahkan picker Kepala Balai global di atas list dokumen `/bmn/auction-candidates`. Dropdown ambil dari API kepegawaian, sorted alfabetis. Saat dipilih: nama auto-UPPERCASE, NIP auto-format spasi (`XXXXXXXX XXXXXX X XXX`). Default Kepala Balai diubah ke mixed case `M. ARI WIBAWANTO, S.Hut., M.Sc.` (sebelumnya UPPERCASE penuh). BA Koreksi sebelumnya hardcoded di 3 lokasi (tabel identitas + TTD halaman 1 + TTD lampiran), sekarang terima prop `kepalaBalai` dan render dari state shared yang sama dengan 10 dokumen lain. Picker selalu visible di halaman tanpa harus generate dokumen dulu. PR #383 merged, remote branch deleted, belum deploy ke SSH. |
-| **Model Terakhir** | Claude Sonnet 4.5 |
-| **Timestamp** | 2026-05-28T13:00:00+08:00 |
+| **Commit Terakhir di Main** | `f8b6d56` |
+| **Commit Production Server** | `550944f` (#380, #382, #384 belum di-deploy) |
+| **Status** | Issue #384 selesai dan merged. Lanjut berikutnya: buat issue baru untuk membuat field Penandatangan ST default/edit tetap editable dengan default `M. Ari Wibawanto, S.Hut., M.Sc.` dan NIP `19740514 199903 1 001`, lalu ikuti git workflow dari awal. |
+| **Model Terakhir** | GPT-5 Codex |
+| **Timestamp** | 2026-05-28T16:14:58+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -183,10 +184,25 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Deploy issue #380 & #382 ke SSH production saat user siap.
+- [ ] Buat GitHub issue baru untuk editable Penandatangan/Kepala Balai di ST create + builder edit.
+- [ ] Deploy issue #380, #382, dan #384 ke SSH production saat user siap.
 
 ---
 
+**UPDATE SESI CODEX (2026-05-28 - Issue #384 SELESAI: ST "Beda Hari" template):**
+- **Status**: MERGED (PR #385 -> `f8b6d56`) ke `main`. Remote branch `issue/384-st-template-beda-hari` deleted. **Belum deploy ke SSH**.
+- **GitHub**:
+  - Issue: #384 `feat(kepegawaian): add Beda Hari template for ST Builder with attached daftar pegawai` (closed)
+  - PR: #385 merged -> merge commit `f8b6d56`
+- **Summary**: Dropdown template ST sekarang punya Default, Penghapusan BMN, dan Beda Hari. Mode Beda Hari mengubah Kepada menjadi "Daftar nama terlampir.", menyembunyikan tanggal global, menambahkan tanggal per pegawai, menghitung rentang Untuk dari MIN/MAX tanggal pegawai, dan membuat halaman lampiran otomatis.
+- **Print final**: lampiran PDF sudah di-fine-tune: halaman naik, meta `Lampiran/Nomor/Tanggal` digeser kiri, TTD Kepala Balai mengikuti posisi halaman 1, tabel fixed-layout, kolom Nama/NIP diperbesar, tanggal nowrap untuk bulan panjang seperti September.
+- **Validation clean**:
+  - `npm run lint -- --max-warnings=0`
+  - `npx tsc --noEmit`
+  - `npm run build` (59/59 static pages)
+- **Catatan**: `employeeDates` masih state frontend; persist backend bisa jadi issue terpisah kalau dibutuhkan.
+
+---
 **UPDATE SESI CLAUDE (2026-05-28 - Issue #382 SELESAI: Global Kepala Balai picker):**
 - **Objective**: Sediakan picker Kepala Balai dari daftar pegawai yang reflect ke semua dokumen di `/bmn/auction-candidates`. BA Koreksi yang sebelumnya hardcoded juga ikut.
 - **Status**: MERGED (PR #383 → `94f9a19`) ke `main`. Remote branch deleted. **Belum deploy ke SSH** (sesuai permintaan user).

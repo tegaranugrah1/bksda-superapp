@@ -1,3 +1,41 @@
+# Progress - Phase 66: ST "Beda Hari" Template (MERGED)
+
+> Document updated: 2026-05-28
+> Status: **MERGED** (PR #385 merged ke `main`, deploy SSH ditunda)
+
+---
+
+## Issue #384: Add "Beda Hari" template for ST Builder + Create page
+
+### Completed:
+- [x] **Issue Created**: Issue #384.
+- [x] **Branch Created/Pushed**: `issue/384-st-template-beda-hari`.
+- [x] **PR Created/Merged**: PR #385 merged ke `main` (merge commit `f8b6d56`).
+- [x] **Branch Cleanup**: remote branch `issue/384-st-template-beda-hari` deleted after merge.
+- [x] **New Component**: `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STLampiranBedaHari.tsx`.
+- [x] **STBuilderPreview update**: Beda Hari renders `Kepada: Daftar nama terlampir.` and adds page 2 lampiran.
+- [x] **ST Create + Builder page update**: dropdown template, per-employee dates, lampiran title input, hide global dates in Beda Hari mode, and MIN/MAX date calculation for `Untuk`.
+- [x] **Print layout lampiran final**: content moved up, custom print page added, meta block shifted left, TTD follows page 1 position, table uses fixed layout, Nama/NIP widened, date column nowrap for long month names.
+
+### Pending:
+- [ ] **Backend persist (opsional)**: `employeeDates` masih state frontend; persist backend bisa jadi issue terpisah kalau dibutuhkan.
+- [ ] **Deploy ke SSH production**: ditunda sampai user siap.
+
+### Validation:
+- [x] `npm run lint -- --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+### Key Files:
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STLampiranBedaHari.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`
+
+### Next:
+- [ ] Buat issue baru untuk editable ST Penandatangan/Kepala Balai di create + builder edit.
+
+---
 # Progress - Phase 65: Global Kepala Balai Picker
 
 > Document updated: 2026-05-28
