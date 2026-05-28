@@ -22,6 +22,8 @@ class AssignmentLetterRequest extends FormRequest
             'sumber_dana' => 'required|string',
             'sumber_dana_other' => 'nullable|string',
             'template_type' => 'nullable|string|max:50',
+            'penandatangan_nama' => 'nullable|string|max:255',
+            'penandatangan_nip' => 'nullable|string|max:50',
             'employees' => 'required|array|min:1',
             'employees.*.id' => 'required|exists:kpg_employees,id',
             'employees.*.peran' => 'nullable|string|max:100',

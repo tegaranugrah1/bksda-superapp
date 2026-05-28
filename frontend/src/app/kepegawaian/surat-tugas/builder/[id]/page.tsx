@@ -21,6 +21,7 @@ import { isAxiosError } from "axios";
 import STBuilderPreview from "./STBuilderPreview";
 import {
   formatDateIndonesian,
+  formatNIP,
   daysBetween,
   numberToWords,
   indexToLetter,
@@ -43,6 +44,11 @@ interface DasarItem {
   id: string;
   text: string;
 }
+
+const DEFAULT_KEPALA_BALAI = {
+  name: "M. Ari Wibawanto, S.Hut., M.Sc.",
+  nip: "19740514 199903 1 001",
+};
 
 interface SumberDanaOption {
   id: string;
@@ -158,13 +164,15 @@ export default function STBuilderPage() {
   // Beda Hari template: tanggal per pegawai
   const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
   const [judulLampiranBedaHari, setJudulLampiranBedaHari] = useState("DAFTAR PEGAWAI MENGIKUTI PATROLI");
-  const [kepalaBalai, setKepalaBalai] = useState({ name: "M. Ari Wibawanto, S.Hut., M.Sc.", nip: "19740514 199903 1 001" });
+  const [kepalaBalai, setKepalaBalai] = useState(DEFAULT_KEPALA_BALAI);
   const [tanggalSurat, setTanggalSurat] = useState(new Date().toISOString().substring(0, 10));
   const [kotaSurat, setKotaSurat] = useState("Samarinda");
   const [tembusanItems, setTembusanItems] = useState<string[]>([]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [penandatanganSearchQuery, setPenandatanganSearchQuery] = useState("");
+  const [showPenandatanganDropdown, setShowPenandatanganDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [suratStatus, setSuratStatus] = useState<string>("");
@@ -183,6 +191,26 @@ export default function STBuilderPage() {
       (emp.nip?.toLowerCase() || "").includes(searchQuery.toLowerCase())
     )
     .slice(0, 50);
+
+  const penandatanganSearchResults = allEmployees
+    .filter((emp: Employee) => {
+      const query = penandatanganSearchQuery.toLowerCase();
+      if (!query) return true;
+      const name = emp.nama_lengkap?.toLowerCase() || emp.name?.toLowerCase() || "";
+      const nip = emp.nip?.toLowerCase() || "";
+      const position = emp.jabatan?.toLowerCase() || emp.position?.toLowerCase() || "";
+      return name.includes(query) || nip.includes(query) || position.includes(query);
+    })
+    .slice(0, 8);
+
+  const handleSelectPenandatangan = (emp: Employee) => {
+    setKepalaBalai({
+      name: emp.nama_lengkap || emp.name || DEFAULT_KEPALA_BALAI.name,
+      nip: formatNIP(emp.nip || DEFAULT_KEPALA_BALAI.nip),
+    });
+    setPenandatanganSearchQuery("");
+    setShowPenandatanganDropdown(false);
+  };
 
   // Helper for "Untuk" text
   const buildUntukText = (): string => {
@@ -451,6 +479,12 @@ export default function STBuilderPage() {
         if (data.template_type) {
           setTemplateType(data.template_type);
         }
+        if (data.penandatangan_nama || data.penandatangan_nip) {
+          setKepalaBalai({
+            name: data.penandatangan_nama || DEFAULT_KEPALA_BALAI.name,
+            nip: data.penandatangan_nip ? formatNIP(data.penandatangan_nip) : DEFAULT_KEPALA_BALAI.nip,
+          });
+        }
         
         setSelectedEmployees(data.employees || []);
         setKotaTujuan(data.tempat_tujuan || "");
@@ -620,6 +654,8 @@ export default function STBuilderPage() {
         menimbang: menimbangItems,
         dasar: dasarItems,
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
+        penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
+        penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
         employee_ids: selectedEmployees.map(e => e.id),
         tanggal_mulai: tanggalMulai || null,
         tanggal_selesai: tanggalSelesai || null,
@@ -658,6 +694,8 @@ export default function STBuilderPage() {
         menimbang: menimbangItems,
         dasar: dasarItems,
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
+        penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
+        penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
         employee_ids: selectedEmployees.map(e => e.id),
         tanggal_mulai: tanggalMulai,
         tanggal_selesai: tanggalSelesai,
@@ -695,6 +733,8 @@ export default function STBuilderPage() {
         template_type: templateType,
         menimbang: menimbangItems,
         dasar: dasarItems,
+        penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
+        penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
         employee_ids: selectedEmployees.map(e => e.id),
         tanggal_mulai: tanggalMulai,
         tanggal_selesai: tanggalSelesai,
@@ -1074,8 +1114,54 @@ export default function STBuilderPage() {
           </FormSection>
 
           <FormSection title="Penandatangan">
+            <div className="relative mb-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <input
+                  value={penandatanganSearchQuery}
+                  onChange={e => {
+                    setPenandatanganSearchQuery(e.target.value);
+                    setShowPenandatanganDropdown(true);
+                  }}
+                  onFocus={() => setShowPenandatanganDropdown(true)}
+                  placeholder="Cari pegawai penandatangan..."
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-9 py-2 text-sm outline-none text-zinc-900 focus:bg-white dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:bg-zinc-700"
+                />
+              </div>
+              {showPenandatanganDropdown && (
+                <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
+                  {isSearching ? (
+                    <div className="flex items-center gap-2 px-3 py-2 text-xs text-zinc-500">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat pegawai...
+                    </div>
+                  ) : penandatanganSearchResults.length > 0 ? (
+                    penandatanganSearchResults.map((emp: Employee) => (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => handleSelectPenandatangan(emp)}
+                        className="w-full border-b border-zinc-100 px-3 py-2 text-left last:border-0 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-700"
+                      >
+                        <div className="text-xs font-bold text-zinc-900 dark:text-white">{emp.nama_lengkap || emp.name}</div>
+                        <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                          NIP. {formatNIP(emp.nip)}{(emp.jabatan || emp.position) ? ` - ${emp.jabatan || emp.position}` : ""}
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-xs text-zinc-500">Pegawai tidak ditemukan.</div>
+                  )}
+                </div>
+              )}
+            </div>
             <input value={kepalaBalai.name} onChange={e => setKepalaBalai({...kepalaBalai, name: e.target.value})} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm mb-2 outline-none text-zinc-900 dark:text-white" />
-            <input value={kepalaBalai.nip} onChange={e => setKepalaBalai({...kepalaBalai, nip: e.target.value})} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+            <input
+              value={kepalaBalai.nip}
+              onChange={e => setKepalaBalai({...kepalaBalai, nip: e.target.value})}
+              onBlur={() => setKepalaBalai(prev => ({ ...prev, nip: formatNIP(prev.nip) }))}
+              className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white"
+            />
           </FormSection>
         </div>
 

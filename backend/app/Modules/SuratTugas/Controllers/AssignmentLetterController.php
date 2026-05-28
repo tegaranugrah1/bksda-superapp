@@ -116,6 +116,8 @@ class AssignmentLetterController extends Controller
                 'sumber_dana' => $validated['sumber_dana'] ?? 'dipa',
                 'sumber_dana_other' => $validated['sumber_dana_other'] ?? null,
                 'template_type' => $validated['template_type'] ?? null,
+                'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
+                'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
                 'nama_plh' => $request->input('nama_plh'),
                 'has_seksi_employee' => (bool) $request->input('has_seksi_employee', false),
                 'tanda_setuju' => $request->input('tanda_setuju'),
@@ -197,6 +199,8 @@ class AssignmentLetterController extends Controller
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'tempat_tujuan' => $validated['tempat_tujuan'],
                 'template_type' => $validated['template_type'] ?? null,
+                'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
+                'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
             ]);
 
             $pivotData = [];
@@ -348,6 +352,8 @@ class AssignmentLetterController extends Controller
             'menimbang' => 'nullable|array',
             'dasar' => 'nullable|array',
             'tembusan' => 'nullable|array',
+            'penandatangan_nama' => 'nullable|string|max:255',
+            'penandatangan_nip' => 'nullable|string|max:50',
             'employee_ids' => 'nullable|array',
             'status' => 'nullable|in:pending,approved',
         ]);
@@ -371,6 +377,8 @@ class AssignmentLetterController extends Controller
                 'menimbang' => $request->menimbang,
                 'dasar' => $request->dasar,
                 'tembusan' => $request->tembusan,
+                'penandatangan_nama' => $request->penandatangan_nama,
+                'penandatangan_nip' => $request->penandatangan_nip,
             ], fn($v) => $v !== null);
 
             // Only update status if explicitly provided
@@ -457,6 +465,8 @@ class AssignmentLetterController extends Controller
             'sumber_dana_other' => 'nullable|string',
             'menimbang' => 'nullable|array',
             'dasar' => 'nullable|array',
+            'penandatangan_nama' => 'nullable|string|max:255',
+            'penandatangan_nip' => 'nullable|string|max:50',
             'employee_ids' => 'required|array',
         ]);
 
@@ -474,6 +484,8 @@ class AssignmentLetterController extends Controller
                 'sumber_dana_other' => $request->sumber_dana_other,
                 'menimbang' => $request->menimbang,
                 'dasar' => $request->dasar,
+                'penandatangan_nama' => $request->penandatangan_nama,
+                'penandatangan_nip' => $request->penandatangan_nip,
                 'status' => 'approved',
                 'created_by' => (int) auth()->id(),
                 'approved_by' => (int) auth()->id(),
