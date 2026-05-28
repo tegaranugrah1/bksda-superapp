@@ -12,6 +12,7 @@ import type { PemeriksaAnggota } from "../_lib/pemeriksa-defaults";
 
 interface BaPemeriksaanDocumentProps {
   number: string;
+  kap: string;
   pemeriksaList: PemeriksaAnggota[];
   stNumber: string;
   stTanggal: string;
@@ -26,9 +27,9 @@ interface BaLampiranPage {
   includeSignature: boolean;
 }
 
-function buildNomorText(number: string, today: Date) {
+function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `BA.${number.trim() || "158"}/K.18/TU/KAP.06.01/${month}/${today.getFullYear()}`;
+  return `BA.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 function buildBaLampiranPages(assets: AuctionAsset[]): BaLampiranPage[] {
@@ -201,6 +202,7 @@ export function handlePrintBaPemeriksaan() {
 
 export function BaPemeriksaanDocument({
   number,
+  kap,
   pemeriksaList,
   stNumber,
   stTanggal,
@@ -208,7 +210,7 @@ export function BaPemeriksaanDocument({
   kepalaBalai,
 }: BaPemeriksaanDocumentProps) {
   const today = new Date();
-  const nomorText = buildNomorText(number, today);
+  const nomorText = buildNomorText(number, kap, today);
   const { day, dateText, month, yearText } = getSpelledDate(today);
   const tanggalLong = formatDateLong(today);
   const lampiranPages = buildBaLampiranPages(assets);
@@ -268,7 +270,7 @@ export function BaPemeriksaanDocument({
       >
         <div className="doc-header -mx-18 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-new.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
+          <img src="/header-terbaru.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
         <div className="doc-title mt-2 text-center font-bold leading-snug">

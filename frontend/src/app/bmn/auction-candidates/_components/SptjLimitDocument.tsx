@@ -6,12 +6,13 @@ import type { SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface SptjLimitDocumentProps {
   number: string;
+  kap: string;
   kepalaBalai: SkKepalaBalai;
 }
 
-function buildNomorText(number: string, today: Date) {
+function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `SM.${number.trim() || "41"}/K.18/TU/KAP.06.01/${month}/${today.getFullYear()}`;
+  return `SM.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 export function handlePrintSptjLimit() {
@@ -72,9 +73,9 @@ export function handlePrintSptjLimit() {
   setTimeout(() => printWindow.print(), 500);
 }
 
-export function SptjLimitDocument({ number, kepalaBalai }: SptjLimitDocumentProps) {
+export function SptjLimitDocument({ number, kap, kepalaBalai }: SptjLimitDocumentProps) {
   const today = new Date();
-  const nomorText = buildNomorText(number, today);
+  const nomorText = buildNomorText(number, kap, today);
 
   return (
     <div id="sptj-limit-print-root" className="sptj-limit-print-root">

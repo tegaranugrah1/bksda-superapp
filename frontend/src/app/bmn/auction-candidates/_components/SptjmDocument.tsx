@@ -6,12 +6,13 @@ import type { SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface SptjmDocumentProps {
   number: string;
+  kap: string;
   kepalaBalai: SkKepalaBalai;
 }
 
-function buildNomorText(number: string, today: Date) {
+function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `SPTJM.${number.trim() || "202"}/K.18/TU/KAP.06.01/${month}/${today.getFullYear()}`;
+  return `SPTJM.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 export function handlePrintSptjm() {
@@ -66,9 +67,9 @@ export function handlePrintSptjm() {
   setTimeout(() => printWindow.print(), 500);
 }
 
-export function SptjmDocument({ number, kepalaBalai }: SptjmDocumentProps) {
+export function SptjmDocument({ number, kap, kepalaBalai }: SptjmDocumentProps) {
   const today = new Date();
-  const nomorText = buildNomorText(number, today);
+  const nomorText = buildNomorText(number, kap, today);
 
   return (
     <div id="sptjm-print-root" className="sptjm-print-root">

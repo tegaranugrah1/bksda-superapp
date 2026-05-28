@@ -7,11 +7,12 @@ import type { SkKepalaBalai } from "../../_lib/sk-defaults";
 
 interface SptjLimitSectionProps {
   number: string;
+  kap: string;
   kepalaBalai: SkKepalaBalai;
   onPrint: () => void;
 }
 
-export function SptjLimitSection({ number, kepalaBalai, onPrint }: SptjLimitSectionProps) {
+export function SptjLimitSection({ number, kap, kepalaBalai, onPrint }: SptjLimitSectionProps) {
   return (
     <section id="sptj-limit-preview" className="space-y-4">
       <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
@@ -24,7 +25,7 @@ export function SptjLimitSection({ number, kepalaBalai, onPrint }: SptjLimitSect
           Cetak / Save PDF
         </Button>
       </div>
-      <SptjLimitDocument number={number} kepalaBalai={kepalaBalai} />
+      <SptjLimitDocument number={number} kap={kap} kepalaBalai={kepalaBalai} />
     </section>
   );
 }

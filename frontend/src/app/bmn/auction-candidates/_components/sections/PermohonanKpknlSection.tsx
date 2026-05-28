@@ -10,6 +10,7 @@ import { newSkBuilderItem } from "../../_lib/sk-defaults";
 interface PermohonanKpknlSectionProps {
   assets: AuctionAsset[];
   number: string;
+  kap: string;
   kepalaBalai: SkKepalaBalai;
   perihal: string;
   setPerihal: (v: string) => void;
@@ -30,6 +31,7 @@ const inputCls =
 export function PermohonanKpknlSection({
   assets,
   number,
+  kap,
   kepalaBalai,
   perihal,
   setPerihal,
@@ -123,6 +125,7 @@ export function PermohonanKpknlSection({
         <div>
           <PermohonanKpknlDocument
             number={number}
+            kap={kap}
             assets={assets}
             kepalaBalai={kepalaBalai}
             perihal={perihal}

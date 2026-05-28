@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, Settings2 } from "lucide-react";
-import { formatDateLong, getSkNumberSuffix } from "../_lib/auction-helpers";
+import { formatDateLong } from "../_lib/auction-helpers";
 
 interface DocumentNumberInputsProps {
   baNumber: string;
@@ -11,24 +11,44 @@ interface DocumentNumberInputsProps {
   setBaKap: (value: string) => void;
   skNumber: string;
   setSkNumber: (value: string) => void;
+  skKap: string;
+  setSkKap: (value: string) => void;
   skPanitiaNumber: string;
   setSkPanitiaNumber: (value: string) => void;
+  skPanitiaKap: string;
+  setSkPanitiaKap: (value: string) => void;
   skTimPenilaiNumber: string;
   setSkTimPenilaiNumber: (value: string) => void;
+  skTimPenilaiKap: string;
+  setSkTimPenilaiKap: (value: string) => void;
   sptjLimitNumber: string;
   setSptjLimitNumber: (value: string) => void;
+  sptjLimitKap: string;
+  setSptjLimitKap: (value: string) => void;
   sptjmNumber: string;
   setSptjmNumber: (value: string) => void;
+  sptjmKap: string;
+  setSptjmKap: (value: string) => void;
   spTugasNumber: string;
   setSpTugasNumber: (value: string) => void;
+  spTugasKap: string;
+  setSpTugasKap: (value: string) => void;
   skKebenaranNumber: string;
   setSkKebenaranNumber: (value: string) => void;
+  skKebenaranKap: string;
+  setSkKebenaranKap: (value: string) => void;
   baPemeriksaanNumber: string;
   setBaPemeriksaanNumber: (value: string) => void;
+  baPemeriksaanKap: string;
+  setBaPemeriksaanKap: (value: string) => void;
   notaDinasNumber: string;
   setNotaDinasNumber: (value: string) => void;
+  notaDinasKap: string;
+  setNotaDinasKap: (value: string) => void;
   permohonanKpknlNumber: string;
   setPermohonanKpknlNumber: (value: string) => void;
+  permohonanKpknlKap: string;
+  setPermohonanKpknlKap: (value: string) => void;
   stNumber: string;
   setStNumber: (value: string) => void;
   stTanggal: string;
@@ -48,24 +68,44 @@ export function DocumentNumberInputs({
   setBaKap,
   skNumber,
   setSkNumber,
+  skKap,
+  setSkKap,
   skPanitiaNumber,
   setSkPanitiaNumber,
+  skPanitiaKap,
+  setSkPanitiaKap,
   skTimPenilaiNumber,
   setSkTimPenilaiNumber,
+  skTimPenilaiKap,
+  setSkTimPenilaiKap,
   sptjLimitNumber,
   setSptjLimitNumber,
+  sptjLimitKap,
+  setSptjLimitKap,
   sptjmNumber,
   setSptjmNumber,
+  sptjmKap,
+  setSptjmKap,
   spTugasNumber,
   setSpTugasNumber,
+  spTugasKap,
+  setSpTugasKap,
   skKebenaranNumber,
   setSkKebenaranNumber,
+  skKebenaranKap,
+  setSkKebenaranKap,
   baPemeriksaanNumber,
   setBaPemeriksaanNumber,
+  baPemeriksaanKap,
+  setBaPemeriksaanKap,
   notaDinasNumber,
   setNotaDinasNumber,
+  notaDinasKap,
+  setNotaDinasKap,
   permohonanKpknlNumber,
   setPermohonanKpknlNumber,
+  permohonanKpknlKap,
+  setPermohonanKpknlKap,
   stNumber,
   setStNumber,
   stTanggal,
@@ -73,7 +113,6 @@ export function DocumentNumberInputs({
 }: DocumentNumberInputsProps) {
   const [open, setOpen] = useState(false);
   const monthSuffix = `${String(new Date().getMonth() + 1).padStart(2, "0")}/${new Date().getFullYear()}`;
-  const skSuffix = getSkNumberSuffix();
 
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
@@ -140,7 +179,14 @@ export function DocumentNumberInputs({
                   placeholder="____"
                   className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/{skSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={skKap}
+                  onChange={(e) => setSkKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -159,7 +205,14 @@ export function DocumentNumberInputs({
                   placeholder="____"
                   className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/{skSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={skPanitiaKap}
+                  onChange={(e) => setSkPanitiaKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -175,10 +228,17 @@ export function DocumentNumberInputs({
                   type="text"
                   value={skTimPenilaiNumber}
                   onChange={(e) => setSkTimPenilaiNumber(e.target.value)}
-                  placeholder="107"
+                  placeholder="____"
                   className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/K.18/TU/KAP.06.01/B/{monthSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={skTimPenilaiKap}
+                  onChange={(e) => setSkTimPenilaiKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -194,10 +254,17 @@ export function DocumentNumberInputs({
                   type="text"
                   value={sptjLimitNumber}
                   onChange={(e) => setSptjLimitNumber(e.target.value)}
-                  placeholder="41"
-                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={sptjLimitKap}
+                  onChange={(e) => setSptjLimitKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -213,10 +280,17 @@ export function DocumentNumberInputs({
                   type="text"
                   value={sptjmNumber}
                   onChange={(e) => setSptjmNumber(e.target.value)}
-                  placeholder="202"
-                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={sptjmKap}
+                  onChange={(e) => setSptjmKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -232,10 +306,17 @@ export function DocumentNumberInputs({
                   type="text"
                   value={spTugasNumber}
                   onChange={(e) => setSpTugasNumber(e.target.value)}
-                  placeholder="40"
-                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={spTugasKap}
+                  onChange={(e) => setSpTugasKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -251,10 +332,17 @@ export function DocumentNumberInputs({
                   type="text"
                   value={skKebenaranNumber}
                   onChange={(e) => setSkKebenaranNumber(e.target.value)}
-                  placeholder="200"
-                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={skKebenaranKap}
+                  onChange={(e) => setSkKebenaranKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -270,10 +358,17 @@ export function DocumentNumberInputs({
                   type="text"
                   value={baPemeriksaanNumber}
                   onChange={(e) => setBaPemeriksaanNumber(e.target.value)}
-                  placeholder="158"
-                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/K.18/TU/KAP.06.01/{monthSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={baPemeriksaanKap}
+                  onChange={(e) => setBaPemeriksaanKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -289,10 +384,17 @@ export function DocumentNumberInputs({
                   type="text"
                   value={notaDinasNumber}
                   onChange={(e) => setNotaDinasNumber(e.target.value)}
-                  placeholder="270"
-                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/K.18/TU/KAP.06.01/B/{monthSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={notaDinasKap}
+                  onChange={(e) => setNotaDinasKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
 
@@ -308,10 +410,17 @@ export function DocumentNumberInputs({
                   type="text"
                   value={permohonanKpknlNumber}
                   onChange={(e) => setPermohonanKpknlNumber(e.target.value)}
-                  placeholder="331"
-                  className="mx-1 w-12 bg-transparent text-center font-semibold outline-none"
+                  placeholder="____"
+                  className="mx-1 w-14 bg-transparent text-center font-semibold outline-none"
                 />
-                <span className="truncate">/K.18/TU/KAP.06.01/B/{monthSuffix}</span>
+                <span>/K.18/TU/</span>
+                <input
+                  type="text"
+                  value={permohonanKpknlKap}
+                  onChange={(e) => setPermohonanKpknlKap(e.target.value)}
+                  className="w-20 bg-transparent text-center font-semibold outline-none"
+                />
+                <span>/B/{monthSuffix}</span>
               </div>
             </div>
           </div>

@@ -8,6 +8,7 @@ import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface PermohonanKpknlDocumentProps {
   number: string;
+  kap: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
   perihal: string;
@@ -19,9 +20,9 @@ interface PermohonanKpknlDocumentProps {
 
 const LAMPIRAN_TITLE = "Persetujuan Pemindahtanganan BMN dengan Penjualan Melalui Lelang Pada Balai KSDA Kalimantan Timur";
 
-function buildNomor(number: string, today: Date) {
+function buildNomor(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `S.${(number || "331").trim()}/K.18/TU/KAP.06.01/B/${month}/${today.getFullYear()}`;
+  return `S.${(number || "").trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 export function handlePrintPermohonanKpknl() {
@@ -101,6 +102,7 @@ export function handlePrintPermohonanKpknl() {
 
 export function PermohonanKpknlDocument({
   number,
+  kap,
   assets,
   kepalaBalai,
   perihal,
@@ -110,7 +112,7 @@ export function PermohonanKpknlDocument({
   kesimpulan,
 }: PermohonanKpknlDocumentProps) {
   const today = new Date();
-  const nomorText = buildNomor(number, today);
+  const nomorText = buildNomor(number, kap, today);
   const tanggalLong = formatDateLong(today);
 
   return (
@@ -181,7 +183,7 @@ export function PermohonanKpknlDocument({
       >
         <div className="pkpknl-kop -mx-18 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-new.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
+          <img src="/header-terbaru.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
         <div className="pkpknl-meta-grid">

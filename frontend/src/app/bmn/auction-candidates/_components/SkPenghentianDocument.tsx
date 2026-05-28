@@ -6,7 +6,6 @@ import type { AuctionAsset, AttachmentPage } from "../_lib/auction-helpers";
 import {
   formatPlainRupiah,
   formatDateLong,
-  getSkNumberSuffix,
 } from "../_lib/auction-helpers";
 import type {
   SkBuilderItem,
@@ -17,6 +16,7 @@ import type {
 interface SkPenghentianDocumentProps {
   assets: AuctionAsset[];
   skNumber: string;
+  skKap: string;
   menimbang: SkBuilderItem[];
   mengingat: SkBuilderItem[];
   memutuskan: SkMemutuskan;
@@ -451,6 +451,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
 export function SkPenghentianDocument({
   assets,
   skNumber,
+  skKap,
   menimbang,
   mengingat,
   memutuskan,
@@ -458,7 +459,8 @@ export function SkPenghentianDocument({
   tembusan,
 }: SkPenghentianDocumentProps) {
   const today = new Date();
-  const skNumberText = `SK.${skNumber.trim() || "____"}/${getSkNumberSuffix(today)}`;
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${today.getFullYear()}`;
   const totalNilai = assets.reduce((sum, a) => sum + (a.nilai_perolehan || 0), 0);
   const attachmentPages = useMemo<AttachmentPage[]>(() => {
     const firstPageLimit = 15;

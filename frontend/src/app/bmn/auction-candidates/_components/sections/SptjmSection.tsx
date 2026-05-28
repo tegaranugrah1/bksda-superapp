@@ -7,11 +7,12 @@ import type { SkKepalaBalai } from "../../_lib/sk-defaults";
 
 interface SptjmSectionProps {
   number: string;
+  kap: string;
   kepalaBalai: SkKepalaBalai;
   onPrint: () => void;
 }
 
-export function SptjmSection({ number, kepalaBalai, onPrint }: SptjmSectionProps) {
+export function SptjmSection({ number, kap, kepalaBalai, onPrint }: SptjmSectionProps) {
   return (
     <section id="sptjm-preview" className="space-y-4">
       <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
@@ -24,7 +25,7 @@ export function SptjmSection({ number, kepalaBalai, onPrint }: SptjmSectionProps
           Cetak / Save PDF
         </Button>
       </div>
-      <SptjmDocument number={number} kepalaBalai={kepalaBalai} />
+      <SptjmDocument number={number} kap={kap} kepalaBalai={kepalaBalai} />
     </section>
   );
 }

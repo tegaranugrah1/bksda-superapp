@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { formatDateLong, getSkNumberSuffix } from "../_lib/auction-helpers";
+import { formatDateLong } from "../_lib/auction-helpers";
 import type {
   SkBuilderItem,
   SkKepalaBalai,
@@ -11,6 +11,7 @@ import type { PanitiaAnggota } from "../_lib/sk-panitia-defaults";
 
 interface SkPanitiaDocumentProps {
   skNumber: string;
+  skKap: string;
   menimbang: SkBuilderItem[];
   mengingat: SkBuilderItem[];
   memutuskan: SkMemutuskan;
@@ -465,6 +466,7 @@ export function handlePrintSkPanitia() {
 
 export function SkPanitiaDocument({
   skNumber,
+  skKap,
   menimbang,
   mengingat,
   memutuskan,
@@ -473,7 +475,8 @@ export function SkPanitiaDocument({
   susunanPanitia,
 }: SkPanitiaDocumentProps) {
   const today = new Date();
-  const skNumberText = `SK.${skNumber.trim() || "____"}/${getSkNumberSuffix(today)}`;
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${today.getFullYear()}`;
 
   const mengingatTexts = mengingat.map((m) => m.text);
 
