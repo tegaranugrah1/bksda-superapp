@@ -131,6 +131,9 @@ export default function STCreatePremiumPage() {
   const [kotaTujuan, setKotaTujuan] = useState("");
   const [tempatKegiatan, setTempatKegiatan] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
+  // Beda Hari template: tanggal per pegawai
+  const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
+  const [judulLampiranBedaHari, setJudulLampiranBedaHari] = useState("DAFTAR PEGAWAI MENGIKUTI PATROLI");
   const [kepalaBalai, setKepalaBalai] = useState({ name: "M. Ari Wibawanto, S.Hut., M.Sc.", nip: "19740514 199903 1 001" });
   const [tanggalSurat, setTanggalSurat] = useState(new Date().toISOString().substring(0, 10));
   const [kotaSurat, setKotaSurat] = useState("Samarinda");
@@ -203,9 +206,34 @@ export default function STCreatePremiumPage() {
     setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal " + formatDateIndonesian(today));
   }, []);
 
-  const resetBmnTemplate = useCallback(() => {
-    setTemplateType(null);
-  }, []);
+  // Apply Beda Hari template — Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
+  const applyBedaHariTemplate = useCallback(() => {
+    setTemplateType("beda-hari");
+    // Initialize employeeDates dari tanggalMulai/Selesai global jika sudah diisi
+    setEmployeeDates((prev) => {
+      const next = { ...prev };
+      selectedEmployees.forEach((emp) => {
+        if (!next[emp.id]) {
+          next[emp.id] = { mulai: tanggalMulai || "", selesai: tanggalSelesai || "" };
+        }
+      });
+      return next;
+    });
+  }, [selectedEmployees, tanggalMulai, tanggalSelesai]);
+
+  // Generic template handler: dropdown 3 pilihan
+  const handleTemplateChange = useCallback(
+    (value: string) => {
+      if (value === "bmn-pemeriksaan") {
+        applyBmnTemplate();
+      } else if (value === "beda-hari") {
+        applyBedaHariTemplate();
+      } else {
+        setTemplateType(null);
+      }
+    },
+    [applyBmnTemplate, applyBedaHariTemplate],
+  );
 
   // Apply BMN Pemeriksaan template from query param (one-shot)
   useEffect(() => {
@@ -218,10 +246,29 @@ export default function STCreatePremiumPage() {
 
   // Helper for "Untuk" text
   const buildUntukText = (): string => {
-    const days = daysBetween(tanggalMulai, tanggalSelesai);
+    // Beda Hari: hitung MIN tanggal mulai dan MAX tanggal selesai dari semua pegawai
+    const isBedaHariTemplate = templateType === "beda-hari";
+    let effectiveMulai = tanggalMulai;
+    let effectiveSelesai = tanggalSelesai;
+    if (isBedaHariTemplate) {
+      const allMulai = selectedEmployees
+        .map((emp) => employeeDates[emp.id]?.mulai)
+        .filter((d): d is string => Boolean(d));
+      const allSelesai = selectedEmployees
+        .map((emp) => employeeDates[emp.id]?.selesai)
+        .filter((d): d is string => Boolean(d));
+      if (allMulai.length > 0) {
+        effectiveMulai = allMulai.reduce((min, d) => (d < min ? d : min), allMulai[0]);
+      }
+      if (allSelesai.length > 0) {
+        effectiveSelesai = allSelesai.reduce((max, d) => (d > max ? d : max), allSelesai[0]);
+      }
+    }
+
+    const days = daysBetween(effectiveMulai, effectiveSelesai);
     const daysWord = numberToWords(days);
-    const mulaiFormatted = formatDateIndonesian(tanggalMulai);
-    const selesaiFormatted = formatDateIndonesian(tanggalSelesai);
+    const mulaiFormatted = formatDateIndonesian(effectiveMulai);
+    const selesaiFormatted = formatDateIndonesian(effectiveSelesai);
 
     // BMN template: always freeform, no date suffix
     if (templateType === "bmn-pemeriksaan") {
@@ -365,6 +412,7 @@ export default function STCreatePremiumPage() {
         <style>
           @page { size: A4; margin: 3cm 1cm 1.9cm 1.55cm; }
           @page :first { margin: 0.7cm 1cm 1.9cm 1.55cm; }
+          @page st-lampiran-beda-hari { size: A4; margin: 2cm 1cm 1.9cm 1.55cm; }
           body {
             font-family: 'Bookman Old Style', 'Georgia', serif;
             font-size: 11pt;
@@ -385,6 +433,12 @@ export default function STCreatePremiumPage() {
           .field-section, .kepada-section, .kepada-list, .untuk-section, .untuk-list { break-inside: auto !important; page-break-inside: auto !important; }
           .employee-entry, .untuk-entry, .penutup-ttd-group { break-inside: avoid !important; page-break-inside: avoid !important; }
           div[style*="page-break-inside"] { page-break-inside: avoid; }
+          .st-lampiran-page-wrapper { page: st-lampiran-beda-hari; padding-top: 0 !important; break-before: page !important; page-break-before: always !important; }
+          .st-lampiran-page { margin-left: 1.25cm !important; width: calc(100% - 2.2cm) !important; box-sizing: border-box !important; line-height: 1.25 !important; }
+          .lampiran-meta { margin-left: 7.3cm !important; margin-bottom: 0.8rem !important; }
+          .lampiran-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
+          .lampiran-table th, .lampiran-table td { border: 1px solid #000 !important; padding: 4px 6px !important; font-size: 10.5pt !important; line-height: 1.2 !important; vertical-align: middle !important; }
+          .lampiran-ttd { margin-left: 9.2cm !important; margin-top: 1.6rem !important; text-align: left !important; }
           thead.page-spacer td { height: 0; padding: 0; line-height: 0; font-size: 0; }
         </style>
       </head>
@@ -412,30 +466,30 @@ export default function STCreatePremiumPage() {
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
           {/* === Template Card (paling atas, di atas Nomor Surat) === */}
           <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-500/30 dark:bg-orange-500/10">
-            {templateType === "bmn-pemeriksaan" ? (
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-6 items-center rounded-full bg-orange-600 px-2 text-[10px] font-bold uppercase tracking-wider text-white">Template Aktif</span>
-                  <span className="text-xs font-semibold text-orange-800 dark:text-orange-300">BMN Penghapusan</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={resetBmnTemplate}
-                  className="rounded-lg border border-orange-300 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-700 transition hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300 dark:hover:bg-orange-500/20"
-                  title="Hapus template BMN dan kembali ke ST manual"
-                >
-                  Hapus Template
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={applyBmnTemplate}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 transition hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300 dark:hover:bg-orange-500/20"
-                title="One-click apply: Klasifikasi KAP.05 + Menimbang + Dasar (8 peraturan) + Untuk pemeriksaan BMN"
-              >
-                Apply Template BMN Penghapusan
-              </button>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex h-5 items-center rounded-full bg-orange-600 px-2 text-[9px] font-bold uppercase tracking-wider text-white">Template</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+                Pilih Template ST
+              </span>
+            </div>
+            <select
+              value={templateType ?? ""}
+              onChange={(e) => handleTemplateChange(e.target.value)}
+              className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 outline-none transition focus:ring-2 focus:ring-orange-500/20 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300"
+            >
+              <option value="">Default (Manual)</option>
+              <option value="bmn-pemeriksaan">Penghapusan BMN</option>
+              <option value="beda-hari">Beda Hari (Daftar Lampiran)</option>
+            </select>
+            {templateType === "beda-hari" && (
+              <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
+                Kepada surat akan otomatis &quot;Daftar nama terlampir.&quot; Set tanggal per pegawai di section di bawah.
+              </p>
+            )}
+            {templateType === "bmn-pemeriksaan" && (
+              <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
+                Klasifikasi KAP.05 + 8 peraturan dasar + freeform Untuk telah diterapkan.
+              </p>
             )}
           </div>
 
@@ -538,7 +592,14 @@ export default function STCreatePremiumPage() {
                     {searchResults.map((emp: Employee) => (
                       <button key={emp.id} onClick={() => { 
                         const normalized = { ...emp, nama_lengkap: emp.nama_lengkap || emp.name || "", jabatan: emp.jabatan || emp.position || "" };
-                        setSelectedEmployees([...selectedEmployees, normalized]); 
+                        setSelectedEmployees([...selectedEmployees, normalized]);
+                        // Auto-init employeeDates jika template Beda Hari aktif
+                        if (templateType === "beda-hari") {
+                          setEmployeeDates((prev) => ({
+                            ...prev,
+                            [normalized.id]: prev[normalized.id] || { mulai: tanggalMulai || "", selesai: tanggalSelesai || "" },
+                          }));
+                        }
                         setSearchQuery(""); 
                         setShowDropdown(false); 
                       }} className="w-full px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-zinc-700 border-b border-slate-100 dark:border-zinc-700 last:border-0">
@@ -551,14 +612,71 @@ export default function STCreatePremiumPage() {
               </AnimatePresence>
             </div>
             <div className="space-y-2 mt-3">
-              {selectedEmployees.map((emp, idx) => (
-                <div key={emp.id} className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl group">
-                  <span className="text-[10px] font-bold text-slate-400">{idx+1}</span>
-                  <div className="flex-1 truncate text-xs font-bold text-zinc-900 dark:text-white">{emp.nama_lengkap || emp.name}</div>
-                  <button onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== emp.id))} className="text-slate-300 hover:text-red-500"><X className="w-4 h-4" /></button>
-                </div>
-              ))}
+              {selectedEmployees.map((emp, idx) => {
+                const dateRange = employeeDates[emp.id] || { mulai: "", selesai: "" };
+                return (
+                  <div key={emp.id} className="rounded-xl border border-slate-200 bg-slate-50 p-2 dark:border-zinc-700 dark:bg-zinc-800">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-slate-400">{idx + 1}</span>
+                      <div className="flex-1 truncate text-xs font-bold text-zinc-900 dark:text-white">{emp.nama_lengkap || emp.name}</div>
+                      <button onClick={() => {
+                        setSelectedEmployees(selectedEmployees.filter(e => e.id !== emp.id));
+                        setEmployeeDates((prev) => {
+                          const next = { ...prev };
+                          delete next[emp.id];
+                          return next;
+                        });
+                      }} className="text-slate-300 hover:text-red-500"><X className="w-4 h-4" /></button>
+                    </div>
+                    {templateType === "beda-hari" && (
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="mb-0.5 block text-[9px] font-bold uppercase tracking-wider text-slate-400">Tanggal Mulai</label>
+                          <input
+                            type="date"
+                            value={dateRange.mulai}
+                            onChange={(e) =>
+                              setEmployeeDates((prev) => ({
+                                ...prev,
+                                [emp.id]: { ...dateRange, mulai: e.target.value },
+                              }))
+                            }
+                            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none dark:border-zinc-600 dark:bg-zinc-900 dark:text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-0.5 block text-[9px] font-bold uppercase tracking-wider text-slate-400">Tanggal Selesai</label>
+                          <input
+                            type="date"
+                            value={dateRange.selesai}
+                            onChange={(e) =>
+                              setEmployeeDates((prev) => ({
+                                ...prev,
+                                [emp.id]: { ...dateRange, selesai: e.target.value },
+                              }))
+                            }
+                            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none dark:border-zinc-600 dark:bg-zinc-900 dark:text-white"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+            {templateType === "beda-hari" && (
+              <div className="mt-3 rounded-xl border border-orange-200 bg-orange-50 p-2 dark:border-orange-500/30 dark:bg-orange-500/10">
+                <label className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+                  Judul Lampiran
+                </label>
+                <input
+                  type="text"
+                  value={judulLampiranBedaHari}
+                  onChange={(e) => setJudulLampiranBedaHari(e.target.value)}
+                  className="w-full rounded-lg border border-orange-300 bg-white px-2 py-1 text-xs outline-none dark:border-orange-500/30 dark:bg-zinc-900 dark:text-white"
+                />
+              </div>
+            )}
           </FormSection>
 
           <FormSection title="Detail Kegiatan">
@@ -587,10 +705,15 @@ export default function STCreatePremiumPage() {
                   updateFoluMenimbang(namaKegiatan, nextPlace);
                 }
               }} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid grid-cols-2 gap-2 ${templateType === "beda-hari" ? "hidden" : ""}`}>
                 <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
                 <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               </div>
+              {templateType === "beda-hari" && (
+                <p className="rounded-lg bg-orange-50 px-3 py-2 text-[10px] text-orange-700 dark:bg-orange-500/10 dark:text-orange-300">
+                  Mode Beda Hari aktif: tanggal kegiatan dihitung otomatis dari tanggal mulai paling awal sampai tanggal selesai paling akhir di daftar pegawai.
+                </p>
+              )}
             </div>
           </FormSection>
 
@@ -629,6 +752,8 @@ export default function STCreatePremiumPage() {
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               sumberDana={sumberDana}
               templateType={templateType}
+              employeeDates={employeeDates}
+              judulLampiranBedaHari={judulLampiranBedaHari}
             />
           </div>
           {/* Page break indicators */}
