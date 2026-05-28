@@ -140,17 +140,18 @@ git push origin main
 - [x] Issue #382: Add global Kepala Balai picker at `/bmn/auction-candidates` (sorted alpha dropdown from kepegawaian API, auto-UPPERCASE name + auto-format NIP) + replace hardcoded BA Koreksi name/NIP + change default to mixed case `M. ARI WIBAWANTO, S.Hut., M.Sc.`. PR #383 merged ke `main` (merge commit `94f9a19`); remote branch deleted.
 - [x] Issue #384: Add "Beda Hari" template for ST Builder + Create. PR #385 merged ke `main` (merge commit `f8b6d56`); remote branch deleted. Dropdown 3 template (Default, Penghapusan BMN, Beda Hari). Saat Beda Hari aktif: field "Kepada" jadi "Daftar nama terlampir.", input tanggal global di-hide diganti banner info, tiap pegawai dapet input tanggal mulai/selesai sendiri, halaman 2 lampiran auto-generate (meta + tabel 4 kolom + TTD Kepala Balai). Print PDF lampiran sudah di-fine-tune: konten naik, meta digeser kiri, posisi TTD mengikuti halaman 1, tabel fixed-layout, kolom Nama/NIP diperbesar, tanggal nowrap.
 - [x] Issue #386: Add searchable ST Penandatangan picker + persist signer fields. PR #387 merged ke `main` (merge commit `ac6f5d9`); remote branch deleted. ST Create dan Builder edit sekarang bisa cari pegawai penandatangan dari API kepegawaian, auto-fill nama/NIP, tetap editable manual, default tetap `M. Ari Wibawanto, S.Hut., M.Sc.` / `19740514 199903 1 001`. Backend tambah migration `penandatangan_nama` + `penandatangan_nip`.
+- [x] **Production Deploy Batch (2026-05-28)**: Server pulled main `550944f -> 7d5212b` (issue #380, #382, #384, #386 + docs). Backend + frontend rebuilt/recreated. Migration applied: #386 `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php` (`penandatangan_nama`, `penandatangan_nip`). Production healthy: login HTTP 200, `/bmn/auction-candidates` HTTP 307 redirect ke `/login` (protected, expected).
 
 | Field | Value |
 |-------|-------|
 | **Issue Terakhir Selesai** | Issue #386: Searchable ST Penandatangan picker + persist signer fields (PR #387 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `ac6f5d9` |
-| **Commit Production Server** | `550944f` (#380, #382, #384, #386 belum di-deploy) |
-| **Status** | Issue #386 selesai dan merged. Penandatangan ST di create/edit bisa dipilih dari daftar pegawai seperti search personil, tetap bisa diedit manual, dan tersimpan ke database. Saat deploy wajib jalankan migration baru `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php`. |
+| **Commit Terakhir di Main** | `7d5212b` (app/docs sebelum commit catatan deploy ini) |
+| **Commit Production Server** | `7d5212b` (#380, #382, #384, #386 sudah deploy) |
+| **Status** | Issue #386 selesai, merged, dan deployed. Penandatangan ST di create/edit bisa dipilih dari daftar pegawai seperti search personil, tetap bisa diedit manual, tersimpan ke database, dan migration production sudah jalan. |
 | **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-28T16:28:32+08:00 |
+| **Timestamp** | 2026-05-28T16:34:39+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -185,18 +186,19 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Deploy issue #380, #382, #384, dan #386 ke SSH production saat user siap.
-- [ ] Saat deploy #386, jalankan backend migration untuk kolom `penandatangan_nama` dan `penandatangan_nip`.
+- [x] Deploy issue #380, #382, #384, dan #386 ke SSH production.
+- [x] Saat deploy #386, jalankan backend migration untuk kolom `penandatangan_nama` dan `penandatangan_nip`.
 
 ---
 
 **UPDATE SESI CODEX (2026-05-28 - Issue #384 SELESAI: ST "Beda Hari" template):**
-- **Status**: MERGED (PR #385 -> `f8b6d56`) ke `main`. Remote branch `issue/384-st-template-beda-hari` deleted. **Belum deploy ke SSH**.
+- **Status**: MERGED + DEPLOYED (PR #385 -> `f8b6d56`) ke `main`. Remote branch `issue/384-st-template-beda-hari` deleted. Production app commit setelah batch deploy: `7d5212b`.
 - **GitHub**:
   - Issue: #384 `feat(kepegawaian): add Beda Hari template for ST Builder with attached daftar pegawai` (closed)
   - PR: #385 merged -> merge commit `f8b6d56`
 - **Summary**: Dropdown template ST sekarang punya Default, Penghapusan BMN, dan Beda Hari. Mode Beda Hari mengubah Kepada menjadi "Daftar nama terlampir.", menyembunyikan tanggal global, menambahkan tanggal per pegawai, menghitung rentang Untuk dari MIN/MAX tanggal pegawai, dan membuat halaman lampiran otomatis.
 - **Print final**: lampiran PDF sudah di-fine-tune: halaman naik, meta `Lampiran/Nomor/Tanggal` digeser kiri, TTD Kepala Balai mengikuti posisi halaman 1, tabel fixed-layout, kolom Nama/NIP diperbesar, tanggal nowrap untuk bulan panjang seperti September.
+- **Production deploy**: included in 2026-05-28 batch deploy (`550944f` -> `7d5212b`), frontend rebuilt/recreated, production health checks passed.
 - **Validation clean**:
   - `npm run lint -- --max-warnings=0`
   - `npx tsc --noEmit`
@@ -205,13 +207,14 @@ git push origin main
 
 ---
 **UPDATE SESI CODEX (2026-05-28 - Issue #386 SELESAI: Searchable ST Penandatangan picker):**
-- **Status**: MERGED (PR #387 -> `ac6f5d9`) ke `main`. Remote branch `issue/386-editable-st-penandatangan` deleted. **Belum deploy ke SSH**.
+- **Status**: MERGED + DEPLOYED (PR #387 -> `ac6f5d9`) ke `main`. Remote branch `issue/386-editable-st-penandatangan` deleted. Production app commit setelah batch deploy: `7d5212b`.
 - **GitHub**:
   - Issue: #386 `feat(kepegawaian): make ST penandatangan editable` (closed)
   - PR: #387 merged -> merge commit `ac6f5d9`
 - **Summary**: Section Penandatangan di ST Create dan ST Builder edit sekarang punya search pegawai dari API `/kepegawaian/employees/select`. Klik hasil pencarian auto-fill nama + NIP, tetapi dua input tetap bisa diedit manual.
 - **Default**: `M. Ari Wibawanto, S.Hut., M.Sc.` dan `19740514 199903 1 001`.
 - **Backend**: tambah kolom `penandatangan_nama` dan `penandatangan_nip` di `st_assignment_letters`, model fillable, validation, direct store, dan approve/update flow.
+- **Production deploy**: EC2 pulled `main` dari `550944f` ke `7d5212b`, backend + frontend rebuilt/recreated, migration `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php` applied, `/login` HTTP 200, `/bmn/auction-candidates` HTTP 307 redirect ke `/login` (expected protected route).
 - **Validation clean**:
   - `php -l` SuratTugas controller/model/request/migration
   - `npx eslint "src/app/kepegawaian/surat-tugas/**/*.{ts,tsx}" --max-warnings=0`
@@ -221,7 +224,7 @@ git push origin main
 ---
 **UPDATE SESI CLAUDE (2026-05-28 - Issue #382 SELESAI: Global Kepala Balai picker):**
 - **Objective**: Sediakan picker Kepala Balai dari daftar pegawai yang reflect ke semua dokumen di `/bmn/auction-candidates`. BA Koreksi yang sebelumnya hardcoded juga ikut.
-- **Status**: MERGED (PR #383 → `94f9a19`) ke `main`. Remote branch deleted. **Belum deploy ke SSH** (sesuai permintaan user).
+- **Status**: MERGED + DEPLOYED (PR #383 → `94f9a19`) ke `main`. Remote branch deleted. Production app commit setelah batch deploy: `7d5212b`.
 - **GitHub**:
   - Issue: #382 `feat(bmn): add global Kepala Balai picker for all auction documents`
   - PR: #383 merged → merge commit `94f9a19`
@@ -271,7 +274,7 @@ git push origin main
   2. Tambah `/B/` di format nomor SK Penghentian dan SK Panitia (sebelumnya tidak punya).
   3. Buat KAP editable di semua dokumen (sebelumnya hanya BA Koreksi).
   4. Kosongkan semua default nomor agar user wajib isi sendiri.
-- **Status**: MERGED (PR #381 → `79a4278`) ke `main`. Remote branch deleted. **Belum deploy ke SSH** (sesuai permintaan user).
+- **Status**: MERGED + DEPLOYED (PR #381 → `79a4278`) ke `main`. Remote branch deleted. Production app commit setelah batch deploy: `7d5212b`.
 - **GitHub**:
   - Issue: #380 `fix(bmn): change KOP to header-terbaru.png for 4 auction documents`
   - PR: #381 merged → merge commit `79a4278`

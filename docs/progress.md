@@ -1,7 +1,7 @@
-# Progress - Phase 67: Searchable ST Penandatangan Picker (MERGED)
+# Progress - Phase 67: Searchable ST Penandatangan Picker (MERGED + DEPLOYED)
 
 > Document updated: 2026-05-28
-> Status: **MERGED** (PR #387 merged ke `main`, deploy SSH ditunda)
+> Status: **MERGED + DEPLOYED** (PR #387 merged ke `main`; production app commit `7d5212b`)
 
 ---
 
@@ -16,10 +16,12 @@
 - [x] **Default signer**: `M. Ari Wibawanto, S.Hut., M.Sc.` dengan NIP `19740514 199903 1 001`.
 - [x] **Manual override**: Nama dan NIP tetap editable setelah user pilih pegawai dari search.
 - [x] **Backend persist**: tambah kolom `penandatangan_nama` dan `penandatangan_nip`; direct create dan builder approve/save mengirim dan membaca ulang field ini.
+- [x] **Production deploy**: EC2 pulled `main` dari `550944f` ke `7d5212b`, backend + frontend rebuilt/recreated.
+- [x] **Migration production**: `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php` applied.
+- [x] **Production health**: `/login` HTTP 200; `/bmn/auction-candidates` HTTP 307 redirect ke `/login` (protected, expected).
 
 ### Pending:
-- [ ] **Deploy ke SSH production**: ditunda sampai user siap.
-- [ ] **Migration production**: jalankan migration baru `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php`.
+- [ ] **Manual browser check**: user akan cek langsung di browser.
 
 ### Validation:
 - [x] `php -l` SuratTugas controller/model/request/migration clean
@@ -37,10 +39,10 @@
 
 ---
 
-# Progress - Phase 66: ST "Beda Hari" Template (MERGED)
+# Progress - Phase 66: ST "Beda Hari" Template (MERGED + DEPLOYED)
 
 > Document updated: 2026-05-28
-> Status: **MERGED** (PR #385 merged ke `main`, deploy SSH ditunda)
+> Status: **MERGED + DEPLOYED** (PR #385 merged ke `main`; production app commit `7d5212b`)
 
 ---
 
@@ -55,10 +57,10 @@
 - [x] **STBuilderPreview update**: Beda Hari renders `Kepada: Daftar nama terlampir.` and adds page 2 lampiran.
 - [x] **ST Create + Builder page update**: dropdown template, per-employee dates, lampiran title input, hide global dates in Beda Hari mode, and MIN/MAX date calculation for `Untuk`.
 - [x] **Print layout lampiran final**: content moved up, custom print page added, meta block shifted left, TTD follows page 1 position, table uses fixed layout, Nama/NIP widened, date column nowrap for long month names.
+- [x] **Production deploy**: included in 2026-05-28 batch deploy (`550944f` -> `7d5212b`), frontend rebuilt/recreated, production health checks passed.
 
 ### Pending:
 - [ ] **Backend persist (opsional)**: `employeeDates` masih state frontend; persist backend bisa jadi issue terpisah kalau dibutuhkan.
-- [ ] **Deploy ke SSH production**: ditunda sampai user siap.
 
 ### Validation:
 - [x] `npm run lint -- --max-warnings=0` clean
@@ -72,13 +74,13 @@
 - `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`
 
 ### Next:
-- [ ] Buat issue baru untuk editable ST Penandatangan/Kepala Balai di create + builder edit.
+- [x] Buat issue baru untuk editable ST Penandatangan/Kepala Balai di create + builder edit (selesai sebagai #386).
 
 ---
 # Progress - Phase 65: Global Kepala Balai Picker
 
 > Document updated: 2026-05-28
-> Status: **MERGED** ✅ (deploy SSH ditunda)
+> Status: **MERGED + DEPLOYED** (production app commit `7d5212b`)
 
 ---
 
@@ -106,9 +108,10 @@
   - Pakai existing state `sk.kepalaBalai` (dari `useSkBuilderState`), share state dengan picker di `SkBuilder` dan dengan semua 11 dokumen.
   - `BaKoreksiSection` ditambah prop `kepalaBalai={sk.kepalaBalai}`.
 - [x] **10 dokumen lain reflect otomatis**: SK Penghentian, SK Panitia, SK Tim Penilai, BA Pemeriksaan, SK Kebenaran, SPTJ Limit, SPTJM, SP Tugas, Nota Dinas, Permohonan KPKNL — sudah pakai state `sk.kepalaBalai` dari awal, jadi tidak perlu perubahan tambahan.
+- [x] **Production deploy**: included in 2026-05-28 batch deploy (`550944f` -> `7d5212b`), backend + frontend rebuilt/recreated, production health checks passed.
 
 ### Pending:
-- [ ] Deploy ke SSH production (ditunda sesuai permintaan user).
+- [ ] Manual browser check by user.
 
 ### Key Files:
 - New (1): `_components/KepalaBalaiPicker.tsx`
@@ -124,7 +127,7 @@
 # Progress - Phase 64: KOP Unification + Editable KAP for All Documents
 
 > Document updated: 2026-05-28
-> Status: **MERGED** ✅ (deploy SSH ditunda)
+> Status: **MERGED + DEPLOYED** (production app commit `7d5212b`)
 
 ---
 
@@ -149,6 +152,7 @@
   - 9 dokumen → `KAP.06.01` (BA Koreksi, SK Tim Penilai, SPTJ Limit, SPTJM, SP Tugas, SK Kebenaran, BA Pemeriksaan, Nota Dinas, Permohonan KPKNL)
   - 2 dokumen → `KAP.05.01` (SK Penghentian, SK Panitia)
 - [x] **Default Nomor Cleared**: Semua state nomor default kosong (placeholder `____`). User wajib isi sendiri.
+- [x] **Production deploy**: included in 2026-05-28 batch deploy (`550944f` -> `7d5212b`), backend + frontend rebuilt/recreated, production health checks passed.
 
 ### Implementation:
 - [x] `useDocumentNumbers` ditambah 11 pasang state KAP: `baKap`, `skKap`, `skPanitiaKap`, `skTimPenilaiKap`, `sptjLimitKap`, `sptjmKap`, `spTugasKap`, `skKebenaranKap`, `baPemeriksaanKap`, `notaDinasKap`, `permohonanKpknlKap`.
@@ -158,7 +162,7 @@
 - [x] `getSkNumberSuffix` masih ada di `auction-helpers.ts` tapi tidak dipakai SK Penghentian/Panitia lagi. `getTimPenilaiNumberSuffix` dihapus dari SkTimPenilaiDocument.
 
 ### Pending:
-- [ ] Deploy ke SSH production (ditunda sesuai permintaan user).
+- [ ] Manual browser check by user.
 
 ### Key Files (23):
 - Hook: `_hooks/useDocumentNumbers.ts`
