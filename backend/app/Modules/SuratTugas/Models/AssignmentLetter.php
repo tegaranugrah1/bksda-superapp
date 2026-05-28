@@ -37,6 +37,8 @@ class AssignmentLetter extends Model
         'menimbang',
         'dasar',
         'tembusan',
+        'penandatangan_nama',
+        'penandatangan_nip',
         'created_by',
         'approved_by',
     ];
