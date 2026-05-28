@@ -1,3 +1,56 @@
+# Progress - Phase 64: KOP Unification + Editable KAP for All Documents
+
+> Document updated: 2026-05-28
+> Status: **MERGED** ✅ (deploy SSH ditunda)
+
+---
+
+## Issue #380: Change KOP and make all document numbers fully editable
+
+### Completed:
+- [x] **Issue Created**: Issue #380.
+- [x] **PR Created/Merged**: PR #381 merged ke `main` (merge commit `79a4278`).
+- [x] **Branch Cleanup**: remote branch `issue/380-kop-header-terbaru` deleted after merge.
+- [x] **KOP Change**: 4 dokumen ganti KOP dari `/header-new.png` ke `/header-terbaru.png` agar konsisten dengan BA Koreksi:
+  - BA Pemeriksaan BMN
+  - SK Kebenaran Fotokopi Dokumen
+  - Surat Permohonan KPKNL
+  - Nota Dinas KSDAE
+- [x] **Format Nomor Unified**: Semua 11 dokumen sekarang format `{prefix}.{nomor}/K.18/TU/{KAP}/B/{MM}/{YYYY}`.
+  - SK Penghentian dan SK Panitia sebelumnya tidak punya `/B/`, sekarang ditambahkan.
+  - SK Tim Penilai sebelumnya pakai `getTimPenilaiNumberSuffix` helper (KAP.06.01 hardcoded), sekarang inline dengan `kap` parameter editable.
+- [x] **Editable KAP**: Sebelumnya hanya BA Koreksi yang KAP-nya editable. Sekarang semua 11 dokumen punya 2 input editable di panel "Pengaturan Nomor Surat":
+  - Nomor (placeholder `____`)
+  - KAP (text editable)
+- [x] **Default KAP**:
+  - 9 dokumen → `KAP.06.01` (BA Koreksi, SK Tim Penilai, SPTJ Limit, SPTJM, SP Tugas, SK Kebenaran, BA Pemeriksaan, Nota Dinas, Permohonan KPKNL)
+  - 2 dokumen → `KAP.05.01` (SK Penghentian, SK Panitia)
+- [x] **Default Nomor Cleared**: Semua state nomor default kosong (placeholder `____`). User wajib isi sendiri.
+
+### Implementation:
+- [x] `useDocumentNumbers` ditambah 11 pasang state KAP: `baKap`, `skKap`, `skPanitiaKap`, `skTimPenilaiKap`, `sptjLimitKap`, `sptjmKap`, `spTugasKap`, `skKebenaranKap`, `baPemeriksaanKap`, `notaDinasKap`, `permohonanKpknlKap`.
+- [x] `DocumentNumberInputs` UI: 2 input editable per dokumen, prefix dan suffix tetap fixed.
+- [x] 11 Document components: interface props menerima `kap: string` dan fungsi `buildNomor`/`buildNomorText` membaca KAP dari prop.
+- [x] 9 Section wrappers: forward `kap` prop dari `page.tsx` ke document.
+- [x] `getSkNumberSuffix` masih ada di `auction-helpers.ts` tapi tidak dipakai SK Penghentian/Panitia lagi. `getTimPenilaiNumberSuffix` dihapus dari SkTimPenilaiDocument.
+
+### Pending:
+- [ ] Deploy ke SSH production (ditunda sesuai permintaan user).
+
+### Key Files (23):
+- Hook: `_hooks/useDocumentNumbers.ts`
+- Panel UI: `_components/DocumentNumberInputs.tsx`
+- Document components (11): `BaPemeriksaanDocument`, `SkKebenaranDokumenDocument`, `PermohonanKpknlDocument`, `NotaDinasDocument`, `SkPenghentianDocument`, `SkPanitiaDocument`, `SkTimPenilaiDocument`, `SpTugasDocument`, `SptjmDocument`, `SptjLimitDocument` (BaKoreksiDocument unchanged)
+- Section wrappers (9): `BaPemeriksaanSection`, `NotaDinasSection`, `PermohonanKpknlSection`, `SkKebenaranSection`, `SkPanitiaSection`, `SkPenghentianSection`, `SkTimPenilaiSection`, `SpTugasSection`, `SptjLimitSection`, `SptjmSection`
+- `page.tsx` (forward 11 kap props)
+
+### Validation:
+- [x] `npx eslint "src/app/bmn/auction-candidates/**/*.{ts,tsx}" --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+---
+
 # Progress - Phase 63: BA Pemeriksaan Lampiran Landscape + Deploy
 
 > Document updated: 2026-05-27

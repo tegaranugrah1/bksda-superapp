@@ -136,17 +136,18 @@ git push origin main
 - [x] Issue #376: Add Kertas Kerja Analisis Nilai Taksiran BMN per selected auction asset. PR #377 merged ke `main` (merge commit `878a311`); remote branch deleted.
 - [x] Issue #378: Make BA Pemeriksaan lampiran landscape and paginate final TTD page. PR #379 merged ke `main` (merge commit `550944f`); remote branch deleted; deployed to production.
 - [x] **Production Deploy Batch (2026-05-27)**: Server pulled main `e2dee79 -> 550944f` (issue #370, #372, #374, #376, #378). Frontend rebuilt/recreated. Production healthy: login HTTP 200, `/bmn/auction-candidates` HTTP 307 (protected, expected).
+- [x] Issue #380: Change KOP `header-new.png → header-terbaru.png` for 4 documents (BA Pemeriksaan, SK Kebenaran, KPKNL, Nota Dinas) + unify nomor format with `/B/` for SK Penghentian/Panitia + make KAP editable for all 11 documents (default `KAP.06.01`, special `KAP.05.01` for SK Penghentian/Panitia) + clear all default numbers. PR #381 merged ke `main` (merge commit `79a4278`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #378: BA Pemeriksaan lampiran landscape + Nota/KPKNL lampiran continuation safety (PR #379 merged + deployed) |
+| **Issue Terakhir Selesai** | Issue #380: KOP `header-terbaru.png` for 4 docs + editable KAP for all + unified `/B/` format (PR #381 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `550944f` |
-| **Commit Production Server** | `550944f` |
-| **Status** | DEPLOYED: Issue #378 memperbaiki lampiran BA Pemeriksaan di `/bmn/auction-candidates` agar halaman lampiran memakai A4 landscape, tabel aset dipaginasi manual seperti Nota Dinas/KPKNL, halaman terakhir membawa aset + TTD pelaksana/kepala balai tanpa `${ttd_pengirim}`, dan jika aset banyak halaman terakhir dibatasi maksimal 6 aset dengan minimal 1 aset tetap tergabung bersama TTD 5 orang. Paginasi final page mempertimbangkan estimasi tinggi teks aset, sehingga 6 aset dengan nama/merk panjang bisa dikurangi agar TTD tidak jatuh sendiri. Baris `Lampiran` berisi teks editable `PEMERIKSAAN BARANG MILIK NEGARA BERUPA ALAT ANGKUTAN BERMOTOR`, row nomor kolom 1-11 hanya tampil pada halaman lanjutan, dan `Nilai Buku` selalu `-` di tengah. Shared lampiran Nota Dinas/KPKNL juga diubah agar halaman pertama tidak menampilkan row nomor kolom dan halaman lanjutan lebih aman dari single-row overflow. PR #379 merged, branch remote deleted, production deployed. |
-| **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-27T17:02:30+08:00 |
+| **Commit Terakhir di Main** | `79a4278` |
+| **Commit Production Server** | `550944f` (1 commit behind — #380 belum di-deploy) |
+| **Status** | DONE: Issue #380 mengganti KOP 4 dokumen utama (BA Pemeriksaan, SK Kebenaran, KPKNL, Nota Dinas) ke `/header-terbaru.png` agar konsisten dengan BA Koreksi. Semua 11 dokumen sekarang punya format nomor seragam `{prefix}.{nomor}/K.18/TU/{KAP}/B/{MM}/{YYYY}` — sebelumnya SK Penghentian dan SK Panitia tidak punya `/B/`, sekarang ditambahkan. KAP sekarang editable di semua dokumen (sebelumnya hanya BA Koreksi), default `KAP.06.01` kecuali SK Penghentian dan SK Panitia yang default `KAP.05.01`. Default nomor dikosongkan semua dengan placeholder `____`. PR #381 merged, remote branch deleted, belum deploy ke SSH (sesuai permintaan user). |
+| **Model Terakhir** | Claude Sonnet 4.5 |
+| **Timestamp** | 2026-05-28T11:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -181,7 +182,49 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] User re-test BA Pemeriksaan, Nota Dinas, dan KPKNL lampiran di production setelah deploy.
+- [ ] Deploy issue #380 ke SSH production saat user siap.
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-28 - Issue #380 SELESAI: KOP unification + editable KAP for all):**
+- **Objective**: 
+  1. Ganti KOP 4 dokumen (BA Pemeriksaan, SK Kebenaran, Permohonan KPKNL, Nota Dinas KSDAE) dari `/header-new.png` ke `/header-terbaru.png` agar konsisten dengan BA Koreksi.
+  2. Tambah `/B/` di format nomor SK Penghentian dan SK Panitia (sebelumnya tidak punya).
+  3. Buat KAP editable di semua dokumen (sebelumnya hanya BA Koreksi).
+  4. Kosongkan semua default nomor agar user wajib isi sendiri.
+- **Status**: MERGED (PR #381 → `79a4278`) ke `main`. Remote branch deleted. **Belum deploy ke SSH** (sesuai permintaan user).
+- **GitHub**:
+  - Issue: #380 `fix(bmn): change KOP to header-terbaru.png for 4 auction documents`
+  - PR: #381 merged → merge commit `79a4278`
+  - Branch: `issue/380-kop-header-terbaru` (deleted local + remote)
+- **KOP Changes**:
+  - 4 dokumen ubah dari `/header-new.png` ke `/header-terbaru.png`: BaPemeriksaanDocument, SkKebenaranDokumenDocument, PermohonanKpknlDocument, NotaDinasDocument.
+  - 6 dokumen lain tetap pakai `/header-new.png`: SpTugas, Sptjm, SptjLimit, SkTimPenilai, SkPenghentian, SkPanitia (sesuai instruksi user).
+- **Format Nomor Unified** (semua 11 dokumen):
+  - Format: `{prefix}.{nomor}/K.18/TU/{KAP}/B/{MM}/{YYYY}`
+  - Sebelumnya SK Penghentian dan SK Panitia pakai `getSkNumberSuffix()` yang return `K.18/TU/KAP.05/{MM}/{YYYY}` (tanpa `/B/`).
+  - Sekarang inline build dengan `kap` parameter dan suffix `/B/`.
+  - `getSkNumberSuffix` masih ada di `auction-helpers.ts` tapi tidak dipakai oleh dokumen-dokumen ini lagi.
+  - `getTimPenilaiNumberSuffix` di-inline dan dihapus dari SkTimPenilaiDocument.
+- **Editable KAP everywhere**:
+  - Hooks `useDocumentNumbers` ditambah 11 pasang state KAP: `baKap`, `skKap`, `skPanitiaKap`, `skTimPenilaiKap`, `sptjLimitKap`, `sptjmKap`, `spTugasKap`, `skKebenaranKap`, `baPemeriksaanKap`, `notaDinasKap`, `permohonanKpknlKap`.
+  - Default KAP: 9 dokumen → `KAP.06.01`, 2 SK (Penghentian/Panitia) → `KAP.05.01`.
+  - Panel UI `DocumentNumberInputs` punya 2 input editable per dokumen: nomor (placeholder `____`) + KAP.
+  - Document components terima prop `kap: string` dan pakai itu di builder fungsi.
+  - Section wrappers (9 file) forward `kap` prop dari `page.tsx` ke document.
+- **Default values cleared**:
+  - Semua state nomor default kosong: `baNumber`, `skNumber`, `skPanitiaNumber`, `skTimPenilaiNumber`, `sptjLimitNumber`, `sptjmNumber`, `spTugasNumber`, `skKebenaranNumber`, `baPemeriksaanNumber`, `notaDinasNumber`, `permohonanKpknlNumber`.
+  - Placeholder `____` muncul saat kosong.
+- **File diubah (23)**:
+  - 1 hook: `useDocumentNumbers.ts`
+  - 1 panel UI: `DocumentNumberInputs.tsx`
+  - 11 Document components: BaPemeriksaan, SkKebenaran, PermohonanKpknl, NotaDinas, SkPenghentian, SkPanitia, SkTimPenilai, SpTugas, Sptjm, SptjLimit (BaKoreksi tidak diubah)
+  - 9 Section wrappers: BaPemeriksaan, NotaDinas, PermohonanKpknl, SkKebenaran, SkPanitia, SkPenghentian, SkTimPenilai, SpTugas, SptjLimit, Sptjm
+  - `page.tsx` (forward 11 kap props)
+- **Validation**:
+  - `npx eslint --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
 
 ---
 
