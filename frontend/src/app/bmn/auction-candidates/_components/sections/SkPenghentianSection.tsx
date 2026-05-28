@@ -10,6 +10,7 @@ import type { SkBuilderItem, SkKepalaBalai, SkMemutuskan } from "../../_lib/sk-d
 interface SkPenghentianSectionProps {
   assets: AuctionAsset[];
   skNumber: string;
+  skKap: string;
   menimbang: SkBuilderItem[];
   setMenimbang: (items: SkBuilderItem[]) => void;
   mengingat: SkBuilderItem[];
@@ -26,6 +27,7 @@ interface SkPenghentianSectionProps {
 export function SkPenghentianSection({
   assets,
   skNumber,
+  skKap,
   menimbang,
   setMenimbang,
   mengingat,
@@ -69,6 +71,7 @@ export function SkPenghentianSection({
           <SkPenghentianDocument
             assets={assets}
             skNumber={skNumber}
+            skKap={skKap}
             menimbang={menimbang}
             mengingat={mengingat}
             memutuskan={memutuskan}

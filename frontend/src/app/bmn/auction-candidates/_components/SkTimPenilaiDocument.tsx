@@ -10,18 +10,13 @@ import type {
 
 interface SkTimPenilaiDocumentProps {
   skNumber: string;
+  skKap: string;
   menimbang: SkBuilderItem[];
   mengingat: SkBuilderItem[];
   memutuskan: SkTimPenilaiMemutuskan;
   kepalaBalai: SkKepalaBalai;
   tembusan: SkBuilderItem[];
   susunanTimPenilai: TimPenilaiAnggota[];
-}
-
-// SK Tim Penilai uses a custom KAP suffix (KAP.06.01/B) — different from getSkNumberSuffix() which is KAP.05.
-function getTimPenilaiNumberSuffix(date = new Date()) {
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `K.18/TU/KAP.06.01/B/${month}/${date.getFullYear()}`;
 }
 
 function renderKeduaText(text: string) {
@@ -483,6 +478,7 @@ export function handlePrintSkTimPenilai() {
 
 export function SkTimPenilaiDocument({
   skNumber,
+  skKap,
   menimbang,
   mengingat,
   memutuskan,
@@ -491,7 +487,8 @@ export function SkTimPenilaiDocument({
   susunanTimPenilai,
 }: SkTimPenilaiDocumentProps) {
   const today = new Date();
-  const skNumberText = `SK.${skNumber.trim() || "____"}/${getTimPenilaiNumberSuffix(today)}`;
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
   const mengingatTexts = mengingat.map((m) => m.text);
 
   const pageStyle: React.CSSProperties = {

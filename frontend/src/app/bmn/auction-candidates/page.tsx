@@ -288,6 +288,7 @@ export default function BmnAuctionCandidatesPage() {
         <SkPenghentianSection
           assets={orderedSelectedAssets}
           skNumber={docNumbers.skNumber}
+          skKap={docNumbers.skKap}
           menimbang={sk.menimbang}
           setMenimbang={sk.setMenimbang}
           mengingat={sk.mengingat}
@@ -305,6 +306,7 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSkPanitia && orderedIds.length > 0 && (
         <SkPanitiaSection
           skPanitiaNumber={docNumbers.skPanitiaNumber}
+          skPanitiaKap={docNumbers.skPanitiaKap}
           panitiaMenimbang={skPanitia.panitiaMenimbang}
           setPanitiaMenimbang={skPanitia.setPanitiaMenimbang}
           panitiaMengingat={skPanitia.panitiaMengingat}
@@ -328,6 +330,7 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSkTimPenilai && orderedIds.length > 0 && (
         <SkTimPenilaiSection
           skTimPenilaiNumber={docNumbers.skTimPenilaiNumber}
+          skTimPenilaiKap={docNumbers.skTimPenilaiKap}
           timPenilaiMenimbang={skTimPenilai.timPenilaiMenimbang}
           setTimPenilaiMenimbang={skTimPenilai.setTimPenilaiMenimbang}
           timPenilaiMengingat={skTimPenilai.timPenilaiMengingat}
@@ -351,6 +354,7 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSptjLimit && (
         <SptjLimitSection
           number={docNumbers.sptjLimitNumber}
+          kap={docNumbers.sptjLimitKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrintSptjLimitDoc}
         />
@@ -359,6 +363,7 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSptjm && (
         <SptjmSection
           number={docNumbers.sptjmNumber}
+          kap={docNumbers.sptjmKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrintSptjmDoc}
         />
@@ -367,6 +372,7 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSpTugas && (
         <SpTugasSection
           number={docNumbers.spTugasNumber}
+          kap={docNumbers.spTugasKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrintSpTugasDoc}
         />
@@ -376,6 +382,7 @@ export default function BmnAuctionCandidatesPage() {
         <SkKebenaranSection
           assets={orderedSelectedAssets}
           number={docNumbers.skKebenaranNumber}
+          kap={docNumbers.skKebenaranKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrintSkKebenaranDoc}
         />
@@ -385,6 +392,7 @@ export default function BmnAuctionCandidatesPage() {
         <BaPemeriksaanSection
           assets={orderedSelectedAssets}
           number={docNumbers.baPemeriksaanNumber}
+          kap={docNumbers.baPemeriksaanKap}
           stNumber={docNumbers.stNumber}
           stTanggal={docNumbers.stTanggal}
           kepalaBalai={sk.kepalaBalai}
@@ -402,6 +410,7 @@ export default function BmnAuctionCandidatesPage() {
         <NotaDinasSection
           assets={orderedSelectedAssets}
           number={docNumbers.notaDinasNumber}
+          kap={docNumbers.notaDinasKap}
           kepalaBalai={sk.kepalaBalai}
           perihal={notaKpknl.ndPerihal}
           setPerihal={notaKpknl.setNdPerihal}
@@ -423,6 +432,7 @@ export default function BmnAuctionCandidatesPage() {
         <PermohonanKpknlSection
           assets={orderedSelectedAssets}
           number={docNumbers.permohonanKpknlNumber}
+          kap={docNumbers.permohonanKpknlKap}
           kepalaBalai={sk.kepalaBalai}
           perihal={notaKpknl.pkPerihal}
           setPerihal={notaKpknl.setPkPerihal}

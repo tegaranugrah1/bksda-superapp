@@ -12,6 +12,7 @@ import type { EmployeeOption } from "../../_hooks/useEmployeeOptions";
 interface BaPemeriksaanSectionProps {
   assets: AuctionAsset[];
   number: string;
+  kap: string;
   stNumber: string;
   stTanggal: string;
   kepalaBalai: SkKepalaBalai;
@@ -27,6 +28,7 @@ interface BaPemeriksaanSectionProps {
 export function BaPemeriksaanSection({
   assets,
   number,
+  kap,
   stNumber,
   stTanggal,
   kepalaBalai,
@@ -64,6 +66,7 @@ export function BaPemeriksaanSection({
         <div>
           <BaPemeriksaanDocument
             number={number}
+            kap={kap}
             pemeriksaList={pemeriksaList}
             stNumber={stNumber}
             stTanggal={stTanggal}

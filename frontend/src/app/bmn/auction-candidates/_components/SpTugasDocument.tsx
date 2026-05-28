@@ -6,12 +6,13 @@ import type { SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface SpTugasDocumentProps {
   number: string;
+  kap: string;
   kepalaBalai: SkKepalaBalai;
 }
 
-function buildNomorText(number: string, today: Date) {
+function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `SM.${number.trim() || "40"}/K.18/TU/KAP.06.01/${month}/${today.getFullYear()}`;
+  return `SM.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 export function handlePrintSpTugas() {
@@ -62,9 +63,9 @@ export function handlePrintSpTugas() {
   setTimeout(() => printWindow.print(), 500);
 }
 
-export function SpTugasDocument({ number, kepalaBalai }: SpTugasDocumentProps) {
+export function SpTugasDocument({ number, kap, kepalaBalai }: SpTugasDocumentProps) {
   const today = new Date();
-  const nomorText = buildNomorText(number, today);
+  const nomorText = buildNomorText(number, kap, today);
 
   return (
     <div id="sp-tugas-print-root" className="sp-tugas-print-root">

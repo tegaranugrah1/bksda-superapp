@@ -10,6 +10,7 @@ import { newSkBuilderItem } from "../../_lib/sk-defaults";
 interface NotaDinasSectionProps {
   assets: AuctionAsset[];
   number: string;
+  kap: string;
   kepalaBalai: SkKepalaBalai;
   perihal: string;
   setPerihal: (v: string) => void;
@@ -32,6 +33,7 @@ const inputCls =
 export function NotaDinasSection({
   assets,
   number,
+  kap,
   kepalaBalai,
   perihal,
   setPerihal,
@@ -139,6 +141,7 @@ export function NotaDinasSection({
         <div>
           <NotaDinasDocument
             number={number}
+            kap={kap}
             assets={assets}
             kepalaBalai={kepalaBalai}
             perihal={perihal}

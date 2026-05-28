@@ -14,6 +14,7 @@ import type { EmployeeOption } from "../../_hooks/useEmployeeOptions";
 
 interface SkTimPenilaiSectionProps {
   skTimPenilaiNumber: string;
+  skTimPenilaiKap: string;
   timPenilaiMenimbang: SkBuilderItem[];
   setTimPenilaiMenimbang: (items: SkBuilderItem[]) => void;
   timPenilaiMengingat: SkBuilderItem[];
@@ -35,6 +36,7 @@ interface SkTimPenilaiSectionProps {
 
 export function SkTimPenilaiSection({
   skTimPenilaiNumber,
+  skTimPenilaiKap,
   timPenilaiMenimbang,
   setTimPenilaiMenimbang,
   timPenilaiMengingat,
@@ -92,6 +94,7 @@ export function SkTimPenilaiSection({
         <div>
           <SkTimPenilaiDocument
             skNumber={skTimPenilaiNumber}
+            skKap={skTimPenilaiKap}
             menimbang={timPenilaiMenimbang}
             mengingat={timPenilaiMengingat}
             memutuskan={timPenilaiMemutuskan}

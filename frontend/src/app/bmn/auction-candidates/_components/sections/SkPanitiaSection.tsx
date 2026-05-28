@@ -11,6 +11,7 @@ import type { EmployeeOption } from "../../_hooks/useEmployeeOptions";
 
 interface SkPanitiaSectionProps {
   skPanitiaNumber: string;
+  skPanitiaKap: string;
   panitiaMenimbang: SkBuilderItem[];
   setPanitiaMenimbang: (items: SkBuilderItem[]) => void;
   panitiaMengingat: SkBuilderItem[];
@@ -32,6 +33,7 @@ interface SkPanitiaSectionProps {
 
 export function SkPanitiaSection({
   skPanitiaNumber,
+  skPanitiaKap,
   panitiaMenimbang,
   setPanitiaMenimbang,
   panitiaMengingat,
@@ -89,6 +91,7 @@ export function SkPanitiaSection({
         <div>
           <SkPanitiaDocument
             skNumber={skPanitiaNumber}
+            skKap={skPanitiaKap}
             menimbang={panitiaMenimbang}
             mengingat={panitiaMengingat}
             memutuskan={panitiaMemutuskan}

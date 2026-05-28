@@ -7,13 +7,14 @@ import type { SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface SkKebenaranDokumenDocumentProps {
   number: string;
+  kap: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
 }
 
-function buildNomorText(number: string, today: Date) {
+function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `KT.${number.trim() || "200"}/K.18/TU/KAP.06.01/${month}/${today.getFullYear()}`;
+  return `KT.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 export function handlePrintSkKebenaran() {
@@ -67,9 +68,9 @@ export function handlePrintSkKebenaran() {
   setTimeout(() => printWindow.print(), 500);
 }
 
-export function SkKebenaranDokumenDocument({ number, assets, kepalaBalai }: SkKebenaranDokumenDocumentProps) {
+export function SkKebenaranDokumenDocument({ number, kap, assets, kepalaBalai }: SkKebenaranDokumenDocumentProps) {
   const today = new Date();
-  const nomorText = buildNomorText(number, today);
+  const nomorText = buildNomorText(number, kap, today);
 
   return (
     <div id="sk-kebenaran-print-root" className="sk-kebenaran-print-root">
@@ -105,7 +106,7 @@ export function SkKebenaranDokumenDocument({ number, assets, kepalaBalai }: SkKe
       >
         <div className="doc-header -mx-18 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-new.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
+          <img src="/header-terbaru.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
         <div className="doc-title mt-2 text-center font-bold leading-snug">
