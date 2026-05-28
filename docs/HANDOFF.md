@@ -137,17 +137,18 @@ git push origin main
 - [x] Issue #378: Make BA Pemeriksaan lampiran landscape and paginate final TTD page. PR #379 merged ke `main` (merge commit `550944f`); remote branch deleted; deployed to production.
 - [x] **Production Deploy Batch (2026-05-27)**: Server pulled main `e2dee79 -> 550944f` (issue #370, #372, #374, #376, #378). Frontend rebuilt/recreated. Production healthy: login HTTP 200, `/bmn/auction-candidates` HTTP 307 (protected, expected).
 - [x] Issue #380: Change KOP `header-new.png → header-terbaru.png` for 4 documents (BA Pemeriksaan, SK Kebenaran, KPKNL, Nota Dinas) + unify nomor format with `/B/` for SK Penghentian/Panitia + make KAP editable for all 11 documents (default `KAP.06.01`, special `KAP.05.01` for SK Penghentian/Panitia) + clear all default numbers. PR #381 merged ke `main` (merge commit `79a4278`); remote branch deleted.
+- [x] Issue #382: Add global Kepala Balai picker at `/bmn/auction-candidates` (sorted alpha dropdown from kepegawaian API, auto-UPPERCASE name + auto-format NIP) + replace hardcoded BA Koreksi name/NIP + change default to mixed case `M. ARI WIBAWANTO, S.Hut., M.Sc.`. PR #383 merged ke `main` (merge commit `94f9a19`); remote branch deleted.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #380: KOP `header-terbaru.png` for 4 docs + editable KAP for all + unified `/B/` format (PR #381 merged) |
+| **Issue Terakhir Selesai** | Issue #382: Global Kepala Balai picker for all auction documents (PR #383 merged) |
 | **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `79a4278` |
-| **Commit Production Server** | `550944f` (1 commit behind — #380 belum di-deploy) |
-| **Status** | DONE: Issue #380 mengganti KOP 4 dokumen utama (BA Pemeriksaan, SK Kebenaran, KPKNL, Nota Dinas) ke `/header-terbaru.png` agar konsisten dengan BA Koreksi. Semua 11 dokumen sekarang punya format nomor seragam `{prefix}.{nomor}/K.18/TU/{KAP}/B/{MM}/{YYYY}` — sebelumnya SK Penghentian dan SK Panitia tidak punya `/B/`, sekarang ditambahkan. KAP sekarang editable di semua dokumen (sebelumnya hanya BA Koreksi), default `KAP.06.01` kecuali SK Penghentian dan SK Panitia yang default `KAP.05.01`. Default nomor dikosongkan semua dengan placeholder `____`. PR #381 merged, remote branch deleted, belum deploy ke SSH (sesuai permintaan user). |
+| **Commit Terakhir di Main** | `94f9a19` |
+| **Commit Production Server** | `550944f` (2 commit behind — #380 & #382 belum di-deploy) |
+| **Status** | DONE: Issue #382 menambahkan picker Kepala Balai global di atas list dokumen `/bmn/auction-candidates`. Dropdown ambil dari API kepegawaian, sorted alfabetis. Saat dipilih: nama auto-UPPERCASE, NIP auto-format spasi (`XXXXXXXX XXXXXX X XXX`). Default Kepala Balai diubah ke mixed case `M. ARI WIBAWANTO, S.Hut., M.Sc.` (sebelumnya UPPERCASE penuh). BA Koreksi sebelumnya hardcoded di 3 lokasi (tabel identitas + TTD halaman 1 + TTD lampiran), sekarang terima prop `kepalaBalai` dan render dari state shared yang sama dengan 10 dokumen lain. Picker selalu visible di halaman tanpa harus generate dokumen dulu. PR #383 merged, remote branch deleted, belum deploy ke SSH. |
 | **Model Terakhir** | Claude Sonnet 4.5 |
-| **Timestamp** | 2026-05-28T11:00:00+08:00 |
+| **Timestamp** | 2026-05-28T13:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -182,7 +183,53 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Deploy issue #380 ke SSH production saat user siap.
+- [ ] Deploy issue #380 & #382 ke SSH production saat user siap.
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-28 - Issue #382 SELESAI: Global Kepala Balai picker):**
+- **Objective**: Sediakan picker Kepala Balai dari daftar pegawai yang reflect ke semua dokumen di `/bmn/auction-candidates`. BA Koreksi yang sebelumnya hardcoded juga ikut.
+- **Status**: MERGED (PR #383 → `94f9a19`) ke `main`. Remote branch deleted. **Belum deploy ke SSH** (sesuai permintaan user).
+- **GitHub**:
+  - Issue: #382 `feat(bmn): add global Kepala Balai picker for all auction documents`
+  - PR: #383 merged → merge commit `94f9a19`
+  - Branch: `issue/382-kepala-balai-picker` (deleted local + remote)
+- **New file**: `_components/KepalaBalaiPicker.tsx`
+  - Card baru dengan icon `UserCheck` dan judul "Penandatangan Kepala Balai".
+  - Dropdown pakai API `/kepegawaian/employees/select` dengan `useQuery` (`staleTime: 5 menit`).
+  - List sorted alfabetis berdasarkan `nama_lengkap` atau `name`.
+  - Saat user pilih pegawai: nama auto-UPPERCASE, NIP auto-format spasi via `formatNip`.
+  - Preview Nama (UPPERCASE) + NIP (mono font) di card di bawah dropdown.
+- **Default updated** (`sk-defaults.ts`):
+  - Sebelum: `M. ARI WIBAWANTO, S.HUT., M.SC.` (UPPERCASE penuh)
+  - Sesudah: `M. ARI WIBAWANTO, S.Hut., M.Sc.` (mixed case sesuai referensi user)
+  - NIP tetap: `19740514 199903 1 001`
+- **BA Koreksi (was hardcoded)**:
+  - 3 lokasi hardcoded sebelumnya: tabel identitas Nama+NIP, TTD halaman 1, `AttachmentSignature` lampiran.
+  - Sekarang `BaKoreksiDocument` import `SkKepalaBalai` type dan terima prop `kepalaBalai`.
+  - `AttachmentSignature` jadi typed `({ kepalaBalai }: { kepalaBalai: SkKepalaBalai })`.
+  - `BaLampiranPageContent` ditambah prop `kepalaBalai` untuk forward ke `AttachmentSignature`.
+  - Tetap editable inline lewat `contentEditable` (untuk override per dokumen).
+- **BaKoreksiSection**: forward `kepalaBalai` prop dari page.tsx.
+- **page.tsx**:
+  - Import `KepalaBalaiPicker` dari `_components/`.
+  - Render picker di antara `<DocumentNumberInputs>` dan `<SelectedAssetsBanner>` — selalu visible sebelum/saat user pilih aset.
+  - Pakai existing state `sk.kepalaBalai` dan `sk.setKepalaBalai` (dari `useSkBuilderState`), jadi picker baru share state yang sama dengan picker di SkBuilder dan dengan semua dokumen lain.
+  - `BaKoreksiSection` ditambah prop `kepalaBalai={sk.kepalaBalai}`.
+- **10 dokumen lain** (SK Penghentian, SK Panitia, SK Tim Penilai, BA Pemeriksaan, SK Kebenaran, SPTJ Limit, SPTJM, SP Tugas, Nota Dinas, Permohonan KPKNL): sudah pakai `kepalaBalai` state shared, jadi otomatis reflect ke picker baru tanpa perubahan tambahan.
+- **Files modified (4)**:
+  - `_lib/sk-defaults.ts`
+  - `_components/BaKoreksiDocument.tsx`
+  - `_components/sections/BaKoreksiSection.tsx`
+  - `page.tsx`
+- **Files new (1)**:
+  - `_components/KepalaBalaiPicker.tsx`
+- **Validation**:
+  - `npx eslint --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean (59/59 static pages)
+
+---
 
 ---
 

@@ -1,3 +1,49 @@
+# Progress - Phase 65: Global Kepala Balai Picker
+
+> Document updated: 2026-05-28
+> Status: **MERGED** ✅ (deploy SSH ditunda)
+
+---
+
+## Issue #382: Add global Kepala Balai picker for all auction documents
+
+### Completed:
+- [x] **Issue Created**: Issue #382.
+- [x] **PR Created/Merged**: PR #383 merged ke `main` (merge commit `94f9a19`).
+- [x] **Branch Cleanup**: remote branch `issue/382-kepala-balai-picker` deleted after merge.
+- [x] **New Component**: `_components/KepalaBalaiPicker.tsx`
+  - Card baru dengan icon `UserCheck` dan judul "Penandatangan Kepala Balai".
+  - Dropdown dari API `/kepegawaian/employees/select`, sorted alfabetis.
+  - `useQuery` dengan `staleTime: 5 menit` untuk caching.
+  - Saat user pilih pegawai: nama auto-UPPERCASE, NIP auto-format spasi via `formatNip`.
+  - Preview Nama (UPPERCASE) + NIP (mono font) di card.
+- [x] **Default Updated**: `DEFAULT_KEPALA_BALAI` di `sk-defaults.ts` ubah ke mixed case `M. ARI WIBAWANTO, S.Hut., M.Sc.` (sebelumnya UPPERCASE penuh `M. ARI WIBAWANTO, S.HUT., M.SC.`).
+- [x] **BA Koreksi (was hardcoded)**:
+  - 3 lokasi hardcoded sebelumnya: tabel identitas Nama+NIP, TTD halaman 1, `AttachmentSignature` lampiran.
+  - Sekarang `BaKoreksiDocument` import `SkKepalaBalai` type dan terima prop `kepalaBalai`.
+  - `AttachmentSignature` jadi typed `({ kepalaBalai }: { kepalaBalai: SkKepalaBalai })`.
+  - `BaLampiranPageContent` ditambah prop `kepalaBalai` untuk forward ke `AttachmentSignature`.
+  - Tetap editable inline lewat `contentEditable`.
+- [x] **Page integration**:
+  - Render picker di antara `<DocumentNumberInputs>` dan `<SelectedAssetsBanner>`.
+  - Pakai existing state `sk.kepalaBalai` (dari `useSkBuilderState`), share state dengan picker di `SkBuilder` dan dengan semua 11 dokumen.
+  - `BaKoreksiSection` ditambah prop `kepalaBalai={sk.kepalaBalai}`.
+- [x] **10 dokumen lain reflect otomatis**: SK Penghentian, SK Panitia, SK Tim Penilai, BA Pemeriksaan, SK Kebenaran, SPTJ Limit, SPTJM, SP Tugas, Nota Dinas, Permohonan KPKNL — sudah pakai state `sk.kepalaBalai` dari awal, jadi tidak perlu perubahan tambahan.
+
+### Pending:
+- [ ] Deploy ke SSH production (ditunda sesuai permintaan user).
+
+### Key Files:
+- New (1): `_components/KepalaBalaiPicker.tsx`
+- Modified (4): `_lib/sk-defaults.ts`, `_components/BaKoreksiDocument.tsx`, `_components/sections/BaKoreksiSection.tsx`, `page.tsx`
+
+### Validation:
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 static pages)
+
+---
+
 # Progress - Phase 64: KOP Unification + Editable KAP for All Documents
 
 > Document updated: 2026-05-28
