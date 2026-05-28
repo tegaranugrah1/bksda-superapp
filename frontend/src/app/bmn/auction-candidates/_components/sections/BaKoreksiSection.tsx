@@ -4,15 +4,17 @@ import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CorrectionDocument } from "../BaKoreksiDocument";
 import type { AuctionAsset } from "../../_lib/auction-helpers";
+import type { SkKepalaBalai } from "../../_lib/sk-defaults";
 
 interface BaKoreksiSectionProps {
   assets: AuctionAsset[];
   baNumber: string;
   baKap: string;
+  kepalaBalai: SkKepalaBalai;
   onPrint: () => void;
 }
 
-export function BaKoreksiSection({ assets, baNumber, baKap, onPrint }: BaKoreksiSectionProps) {
+export function BaKoreksiSection({ assets, baNumber, baKap, kepalaBalai, onPrint }: BaKoreksiSectionProps) {
   return (
     <section id="ba-koreksi-preview" className="space-y-4">
       <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
@@ -25,7 +27,7 @@ export function BaKoreksiSection({ assets, baNumber, baKap, onPrint }: BaKoreksi
           Cetak / Save PDF
         </Button>
       </div>
-      <CorrectionDocument assets={assets} baNumber={baNumber} baKap={baKap} />
+      <CorrectionDocument assets={assets} baNumber={baNumber} baKap={baKap} kepalaBalai={kepalaBalai} />
     </section>
   );
 }

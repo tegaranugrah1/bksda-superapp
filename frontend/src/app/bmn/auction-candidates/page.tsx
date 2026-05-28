@@ -19,6 +19,7 @@ import { PageHeader } from "./_components/PageHeader";
 import { DocumentActions } from "./_components/DocumentActions";
 import { SearchBar } from "./_components/SearchBar";
 import { DocumentNumberInputs } from "./_components/DocumentNumberInputs";
+import { KepalaBalaiPicker } from "./_components/KepalaBalaiPicker";
 import { SelectedAssetsBanner } from "./_components/SelectedAssetsBanner";
 import { AssetTable } from "./_components/AssetTable";
 import { BaKoreksiSection } from "./_components/sections/BaKoreksiSection";
@@ -210,6 +211,8 @@ export default function BmnAuctionCandidatesPage() {
 
       <DocumentNumberInputs {...docNumbers} />
 
+      <KepalaBalaiPicker kepalaBalai={sk.kepalaBalai} setKepalaBalai={sk.setKepalaBalai} />
+
       <SelectedAssetsBanner
         orderedIdsLength={orderedIds.length}
         showDocument={docToggles.showDocument}
@@ -280,6 +283,7 @@ export default function BmnAuctionCandidatesPage() {
           assets={orderedSelectedAssets}
           baNumber={docNumbers.baNumber}
           baKap={docNumbers.baKap}
+          kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrint}
         />
       )}

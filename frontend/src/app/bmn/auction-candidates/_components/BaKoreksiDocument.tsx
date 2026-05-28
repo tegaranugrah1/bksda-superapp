@@ -3,6 +3,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { AuctionAsset } from "../_lib/auction-helpers";
+import type { SkKepalaBalai } from "../_lib/sk-defaults";
 import {
   formatPlainRupiah,
   formatDateLong,
@@ -220,13 +221,13 @@ function AttachmentMeta({ baNumberText, today }: { baNumberText: string; today: 
   );
 }
 
-function AttachmentSignature() {
+function AttachmentSignature({ kepalaBalai }: { kepalaBalai: SkKepalaBalai }) {
   return (
     <div className="signature attachment-signature mt-6 ml-auto w-80">
       <p className="m-0">Kepala Balai,</p>
       <div className="ttd-placeholder mt-8 h-[92px] box-border pt-[30px] pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-      <p className="m-0 mt-8">M. ARI WIBAWANTO, S.Hut., M.Sc.</p>
-      <p className="m-0">NIP. 19740514 199903 1 001</p>
+      <p className="m-0 mt-8">{kepalaBalai.nama}</p>
+      <p className="m-0">NIP. {kepalaBalai.nip}</p>
     </div>
   );
 }
@@ -255,10 +256,12 @@ function BaLampiranSectionBlock({
 function BaLampiranPageContent({
   page,
   baNumberText,
+  kepalaBalai,
   today,
 }: {
   page: BaLampiranPage;
   baNumberText: string;
+  kepalaBalai: SkKepalaBalai;
   today: Date;
 }) {
   return (
@@ -272,7 +275,7 @@ function BaLampiranPageContent({
         />
       ))}
 
-      {page.showSignature ? <AttachmentSignature /> : null}
+      {page.showSignature ? <AttachmentSignature kepalaBalai={kepalaBalai} /> : null}
     </>
   );
 }
@@ -444,7 +447,7 @@ function buildFallbackLampiranPages(assets: AuctionAsset[]) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function CorrectionDocument({ assets, baNumber, baKap }: { assets: AuctionAsset[]; baNumber: string; baKap: string }) {
+export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { assets: AuctionAsset[]; baNumber: string; baKap: string; kepalaBalai: SkKepalaBalai }) {
   const measurementRef = useRef<HTMLDivElement>(null);
   const fallbackLampiranPages = useMemo(() => buildFallbackLampiranPages(assets), [assets]);
   const [lampiranPages, setLampiranPages] = useState<BaLampiranPage[]>(fallbackLampiranPages);
@@ -645,7 +648,7 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
                     suppressContentEditableWarning
                     className="ba-editable"
                   >
-                    M. ARI WIBAWANTO, S.Hut., M.Sc.
+                    {kepalaBalai.nama}
                   </span>
                 </td>
               </tr>
@@ -658,7 +661,7 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
                     suppressContentEditableWarning
                     className="ba-editable"
                   >
-                    19740514 199903 1 001
+                    {kepalaBalai.nip}
                   </span>
                 </td>
               </tr>
@@ -716,14 +719,14 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
             suppressContentEditableWarning
             className="ba-editable m-0 mt-8"
           >
-            M. ARI WIBAWANTO, S.Hut., M.Sc.
+            {kepalaBalai.nama}
           </p>
           <p
             contentEditable="true"
             suppressContentEditableWarning
             className="ba-editable m-0"
           >
-            NIP. 19740514 199903 1 001
+            NIP. {kepalaBalai.nip}
           </p>
         </div>
       </article>
@@ -743,7 +746,7 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
           />
         </div>
         <div data-ba-measure="signature">
-          <AttachmentSignature />
+          <AttachmentSignature kepalaBalai={kepalaBalai} />
         </div>
         <div className="ba-lampiran-body mx-auto w-[166mm]">
           <BaLampiranSectionBlock
@@ -767,6 +770,7 @@ export function CorrectionDocument({ assets, baNumber, baKap }: { assets: Auctio
             <BaLampiranPageContent
               page={page}
               baNumberText={baNumberText}
+              kepalaBalai={kepalaBalai}
               today={today}
             />
           </div>

@@ -80,7 +80,7 @@ export const DEFAULT_MEMUTUSKAN: SkMemutuskan = {
 };
 
 export const DEFAULT_KEPALA_BALAI: SkKepalaBalai = {
-  nama: "M. ARI WIBAWANTO, S.HUT., M.SC.",
+  nama: "M. ARI WIBAWANTO, S.Hut., M.Sc.",
   nip: "19740514 199903 1 001",
 };
 
