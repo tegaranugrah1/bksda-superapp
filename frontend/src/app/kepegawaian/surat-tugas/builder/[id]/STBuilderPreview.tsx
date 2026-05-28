@@ -6,6 +6,7 @@ import {
   formatNIP,
   indexToLetter,
 } from "@/lib/letter-utils";
+import STLampiranBedaHari, { type EmployeeDateRange } from "./STLampiranBedaHari";
 
 interface Employee {
   id: string;
@@ -37,6 +38,8 @@ interface PreviewProps {
   headerTitle?: string;
   sumberDana?: string;
   templateType?: string | null;
+  employeeDates?: Record<string, EmployeeDateRange>;
+  judulLampiranBedaHari?: string;
 }
 
 export default function STBuilderPreview({
@@ -56,9 +59,12 @@ export default function STBuilderPreview({
   headerTitle = "KEPALA BALAI,",
   sumberDana = "dipa",
   templateType = null,
+  employeeDates = {},
+  judulLampiranBedaHari = "DAFTAR PEGAWAI MENGIKUTI PATROLI",
 }: PreviewProps) {
   const isFolu = sumberDana === "folu";
   const isBmnTemplate = templateType === "bmn-pemeriksaan";
+  const isBedaHariTemplate = templateType === "beda-hari";
   const visibleTembusanItems = tembusanItems.filter(t => t && t.trim());
   const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
 
@@ -183,7 +189,9 @@ export default function STBuilderPreview({
                 <div style={{ padding: "2px 0" }}>Kepada</div>
                 <div style={{ padding: "2px 0" }}>:</div>
                 <div className="kepada-list" style={{ padding: "2px 0" }}>
-                  {selectedEmployees.length === 0 ? (
+                  {isBedaHariTemplate ? (
+                    <div style={{ padding: "2px 0" }}>Daftar nama terlampir.</div>
+                  ) : selectedEmployees.length === 0 ? (
                     <div style={{ padding: "4px 0", fontStyle: "italic", color: "#999" }}>
                       ( Belum ada pegawai dipilih )
                     </div>
@@ -362,6 +370,30 @@ export default function STBuilderPreview({
           </tr>
         </tbody>
       </table>
+
+      {/* === HALAMAN 2: LAMPIRAN BEDA HARI === */}
+      {isBedaHariTemplate && (
+        <div
+          className="st-lampiran-page-wrapper"
+          style={{
+            pageBreakBefore: "always",
+            breakBefore: "page",
+            paddingTop: "0.2cm",
+          }}
+        >
+          <STLampiranBedaHari
+            stNumber={stNumber}
+            stCode={stCode}
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            tanggalSurat={tanggalSurat}
+            selectedEmployees={selectedEmployees}
+            employeeDates={employeeDates}
+            kepalaBalai={kepalaBalai}
+            judulLampiran={judulLampiranBedaHari}
+          />
+        </div>
+      )}
     </div>
   );
 }
