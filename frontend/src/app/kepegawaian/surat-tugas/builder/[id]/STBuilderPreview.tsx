@@ -28,6 +28,7 @@ interface PreviewProps {
   currentYear: string;
   menimbangItems: DasarItem[];
   dasarItems: DasarItem[];
+  untukItems?: DasarItem[];
   selectedEmployees: Employee[];
   buildUntukText: () => string;
   buildBiayaText: () => string;
@@ -49,6 +50,7 @@ export default function STBuilderPreview({
   currentYear,
   menimbangItems,
   dasarItems,
+  untukItems,
   selectedEmployees,
   buildUntukText,
   buildBiayaText,
@@ -68,6 +70,16 @@ export default function STBuilderPreview({
   const isPlhTemplate = templateType === "plh";
   const visibleTembusanItems = tembusanItems.filter(t => t && t.trim());
   const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
+  const fallbackUntukItems = [
+    isPlhTemplate
+      ? "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai."
+      : isBmnTemplate
+      ? "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut."
+      : "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
+  ];
+  const additionalUntukItems = untukItems
+    ? untukItems.map((item) => item.text)
+    : fallbackUntukItems;
 
   return (
     <div
@@ -247,12 +259,8 @@ export default function STBuilderPreview({
                 <div className="untuk-list" style={{ padding: "2px 0" }}>
                   {[
                     buildUntukText(),
+                    ...additionalUntukItems,
                     buildBiayaText(),
-                    isPlhTemplate
-                      ? "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai."
-                      : isBmnTemplate
-                      ? "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut."
-                      : "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
                   ]
                     .filter(item => item && item.trim())
                     .map((item, idx) => (

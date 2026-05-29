@@ -67,6 +67,34 @@ function cleanPlhKegiatanKasi(text?: string | null) {
     .trim();
 }
 
+function getDefaultUntukItem(templateType?: string | null) {
+  if (templateType === "plh") {
+    return "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai.";
+  }
+  if (templateType === "bmn-pemeriksaan") {
+    return "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut.";
+  }
+  return "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.";
+}
+
+function splitStoredUntukItems(value?: string | null) {
+  return (value || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function isGeneratedBiayaItem(value: string) {
+  return /^(Segala biaya yang timbul|Sumber dana dibebankan)/i.test(value.trim());
+}
+
+function toDasarItems(items: string[], prefix: string): DasarItem[] {
+  return items.map((text, idx) => ({
+    id: `${prefix}-${idx}-${Date.now()}`,
+    text,
+  }));
+}
+
 interface SumberDanaOption {
   id: string;
   label: string;
@@ -165,6 +193,9 @@ export default function STBuilderPage() {
     { id: "1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
     { id: "2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.` },
   ]);
+  const [untukItems, setUntukItems] = useState<DasarItem[]>([
+    { id: "untuk-default", text: getDefaultUntukItem(null) },
+  ]);
 
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
@@ -245,6 +276,11 @@ export default function STBuilderPage() {
       ? menimbangItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
       : menimbangItems;
 
+  const getPreviewUntukItems = () =>
+    templateType === "plh"
+      ? untukItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
+      : untukItems;
+
   const getTempatTujuanForPayload = () => {
     if (templateType === "plh") {
       return plhWilayah.trim() || kotaTujuan.trim() || tempatKegiatan.trim();
@@ -323,6 +359,14 @@ export default function STBuilderPage() {
     }
     return text;
   };
+
+  const buildMaksudTujuanText = (): string =>
+    [
+      buildUntukText(),
+      ...getPreviewUntukItems().map((item) => item.text),
+    ]
+      .filter((item) => item && item.trim())
+      .join("\n");
 
   // Build biaya text
   const buildBiayaText = (): string => {
@@ -452,6 +496,7 @@ export default function STBuilderPage() {
     setKotaTujuan("");
     setTempatKegiatan("");
     setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal " + formatDateIndonesian(today));
+    setUntukItems([{ id: "bmn-untuk-1", text: getDefaultUntukItem("bmn-pemeriksaan") }]);
 
     setTembusanItems([]);
   };
@@ -459,6 +504,7 @@ export default function STBuilderPage() {
   // Apply Beda Hari template — Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
   const applyBedaHariTemplate = () => {
     setTemplateType("beda-hari");
+    setUntukItems([{ id: "untuk-default", text: getDefaultUntukItem("beda-hari") }]);
     // Initialize employeeDates dari tanggalMulai/Selesai global jika sudah diisi
     setEmployeeDates((prev) => {
       const next = { ...prev };
@@ -507,6 +553,7 @@ export default function STBuilderPage() {
     setNamaKegiatan(
       `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`,
     );
+    setUntukItems([{ id: "plh-untuk-1", text: getDefaultUntukItem("plh") }]);
 
     setTembusanItems([
       "Direktur Jenderal KSDAE;",
@@ -524,6 +571,7 @@ export default function STBuilderPage() {
       applyPlhTemplate();
     } else {
       setTemplateType(null);
+      setUntukItems([{ id: "untuk-default", text: getDefaultUntukItem(null) }]);
     }
   };
 
@@ -606,7 +654,17 @@ export default function STBuilderPage() {
           setTembusanItems(data.tembusan.filter((t: unknown): t is string => typeof t === 'string'));
         }
 
-        const activityStr = data.maksud_tujuan || "";
+        const storedUntukLines = splitStoredUntukItems(data.maksud_tujuan);
+        const storedAdditionalUntuk = storedUntukLines
+          .slice(1)
+          .filter((item) => !isGeneratedBiayaItem(item));
+        setUntukItems(
+          storedAdditionalUntuk.length > 0
+            ? toDasarItems(storedAdditionalUntuk, "stored-untuk")
+            : [{ id: "untuk-default", text: getDefaultUntukItem(data.template_type) }],
+        );
+
+        const activityStr = storedUntukLines[0] || data.maksud_tujuan || "";
         // Strip "selama X hari terhitung..." suffix that buildUntukText appends
         const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*$/i;
         const cleanedActivity = activityStr.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
@@ -751,7 +809,7 @@ export default function STBuilderPage() {
       const payload = {
         nomor_surat: fullNomorSurat || null,
         kode_surat: stCode || null,
-        nama_kegiatan: buildUntukText(),
+        nama_kegiatan: buildMaksudTujuanText(),
         tempat_tujuan: getTempatTujuanForPayload() || null,
         tanggal_surat: tanggalSurat || null,
         sumber_dana: sumberDana,
@@ -793,7 +851,7 @@ export default function STBuilderPage() {
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
-        nama_kegiatan: buildUntukText(),
+        nama_kegiatan: buildMaksudTujuanText(),
         tempat_tujuan: tempatTujuanPayload || null,
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
@@ -836,7 +894,7 @@ export default function STBuilderPage() {
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
-        nama_kegiatan: buildUntukText(),
+        nama_kegiatan: buildMaksudTujuanText(),
         tempat_tujuan: tempatTujuanPayload || null,
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
@@ -1052,6 +1110,26 @@ export default function STBuilderPage() {
                   <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 1}.</span>
                   <textarea value={item.text} onChange={e => { const n = [...dasarItems]; n[idx].text = e.target.value; setDasarItems(n); }} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white" />
                   <button onClick={() => setDasarItems(dasarItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              ))}
+            </div>
+          </FormSection>
+
+          <FormSection title="Untuk" action={<button onClick={() => setUntukItems([...untukItems, { id: Math.random().toString(), text: "" }])} className="text-[10px] text-blue-600 font-bold uppercase"><Plus className="w-3 h-3" /> Tambah</button>}>
+            <div className="space-y-3">
+              {untukItems.map((item, idx) => (
+                <div key={item.id} className="flex gap-2">
+                  <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 2}.</span>
+                  <textarea
+                    value={item.text}
+                    onChange={e => {
+                      const nextItems = [...untukItems];
+                      nextItems[idx].text = e.target.value;
+                      setUntukItems(nextItems);
+                    }}
+                    className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white"
+                  />
+                  <button onClick={() => setUntukItems(untukItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               ))}
             </div>
@@ -1344,7 +1422,7 @@ export default function STBuilderPage() {
           >
             <STBuilderPreview 
               stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
-              menimbangItems={getPreviewMenimbangItems()} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
+              menimbangItems={getPreviewMenimbangItems()} dasarItems={dasarItems} untukItems={getPreviewUntukItems()} selectedEmployees={selectedEmployees}
               buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               tembusanItems={tembusanItems}
