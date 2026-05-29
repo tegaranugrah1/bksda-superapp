@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: bksda_superapp
       POSTGRES_USER: bksda_prod
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-BksdaProd2026!}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +24,7 @@ services:
     command: server /data --address ":9000" --console-address ":9001"
     environment:
       RUSTFS_ROOT_USER: ${RUSTFS_USER:-bksda_admin}
-      RUSTFS_ROOT_PASSWORD: ${RUSTFS_PASSWORD:-BksdaStorage2026!}
+      RUSTFS_ROOT_PASSWORD: ${RUSTFS_PASSWORD:?RUSTFS_PASSWORD is required}
     volumes:
       - rustfs-data:/data
 
@@ -43,19 +43,19 @@ services:
     environment:
       APP_NAME: "BKSDA SuperApp"
       APP_ENV: production
-      APP_DEBUG: "true"
+      APP_DEBUG: "false"
       APP_URL: https://api.bksdakaltim.net
       FRONTEND_URL: https://bksdakaltim.net
-      APP_KEY: ${APP_KEY}
+      APP_KEY: ${APP_KEY:?APP_KEY is required}
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
       DB_DATABASE: bksda_superapp
       DB_USERNAME: bksda_prod
-      DB_PASSWORD: ${DB_PASSWORD:-BksdaProd2026!}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       FILESYSTEM_DISK: s3
       AWS_ACCESS_KEY_ID: ${RUSTFS_USER:-bksda_admin}
-      AWS_SECRET_ACCESS_KEY: ${RUSTFS_PASSWORD:-BksdaStorage2026!}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_PASSWORD:?RUSTFS_PASSWORD is required}
       AWS_DEFAULT_REGION: us-east-1
       AWS_BUCKET: bksda
       AWS_ENDPOINT: http://rustfs:9000

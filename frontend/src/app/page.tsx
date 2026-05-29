@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import axios from "axios";
-import { cn } from "@/lib/utils";
+import { cn, sanitizeHtml } from "@/lib/utils";
 import PublicLayout from "@/components/layout/PublicLayout";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -23,11 +23,6 @@ function imgUrl(path?: string | null): string {
   if (!path) return "";
   if (path.startsWith("http")) return path;
   return `${STORAGE}/${path}`;
-}
-
-function sanitizeHtml(html: string): string {
-  // Basic sanitization — strips scripts but keeps safe tags
-  return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
 }
 
 export default function PublicBeranda() {
