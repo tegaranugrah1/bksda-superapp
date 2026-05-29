@@ -633,8 +633,10 @@ export default function STBuilderPage() {
         // Hanya load dari API jika sudah pernah disimpan (bukan tanggal lama dari pengajuan)
         setTanggalSurat(new Date().toISOString().substring(0, 10));
 
-        setTanggalMulai(data.tanggal_mulai?.split("T")[0] || "");
-        setTanggalSelesai(data.tanggal_selesai?.split("T")[0] || "");
+        const loadedTanggalMulai = data.tanggal_mulai?.split("T")[0] || "";
+        const loadedTanggalSelesai = data.tanggal_selesai?.split("T")[0] || "";
+        setTanggalMulai(loadedTanggalMulai);
+        setTanggalSelesai(loadedTanggalSelesai);
         
         const funding = normalizeSumberDana(data.sumber_dana);
         setSumberDana(funding);
@@ -691,13 +693,19 @@ export default function STBuilderPage() {
         const regex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const singleDayActivity = cleanedActivity.replace(/\s+pada\s+tanggal\s+.+$/i, "").replace(/[;,.]$/, "").trim();
         const isParsedSingleDayActivity = /^Melaksanakan\s+/i.test(singleDayActivity) && /\s+pada\s+tanggal\s+/i.test(cleanedActivity);
+        const isOneDayFromSubmittedForm =
+          loadedTanggalMulai &&
+          loadedTanggalSelesai &&
+          loadedTanggalMulai === loadedTanggalSelesai &&
+          !["bmn-pemeriksaan", "beda-hari", "plh"].includes(data.template_type || "");
 
         const match = cleanedActivity.match(regex);
 
-        if (isParsedSingleDayActivity) {
+        if (isParsedSingleDayActivity || isOneDayFromSubmittedForm) {
           setActivityPrefix("Melaksanakan Kegiatan");
           setKotaAsal("");
           setKotaTujuan("");
+          setTempatKegiatan("");
           setNamaKegiatan(singleDayActivity);
         } else if (match) {
           setActivityPrefix(match[1]);
