@@ -95,6 +95,10 @@ function toDasarItems(items: string[], prefix: string): DasarItem[] {
   }));
 }
 
+function isSingleDayActivityPrefix(prefix: string) {
+  return prefix === "Melaksanakan Kegiatan";
+}
+
 interface SumberDanaOption {
   id: string;
   label: string;
@@ -226,6 +230,7 @@ export default function STBuilderPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [suratStatus, setSuratStatus] = useState<string>("");
+  const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder"],
@@ -317,6 +322,7 @@ export default function STBuilderPage() {
     let text = "";
     const isBmnTemplate = templateType === "bmn-pemeriksaan";
     const isPlhTemplate = templateType === "plh";
+    const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
 
     // BMN template: always freeform, no date suffix
     if (isBmnTemplate) {
@@ -333,6 +339,16 @@ export default function STBuilderPage() {
       if (days > 0) {
         text += ` selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
       } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
+        text += ".";
+      }
+      return text;
+    }
+
+    if (isSingleDayActivity) {
+      text = (namaKegiatan || "...").replace(/[;.\s]+$/, "").trim();
+      if (effectiveMulai) {
+        text += ` pada tanggal ${mulaiFormatted}.`;
+      } else if (!text.trim().endsWith(".") && !text.trim().endsWith(";")) {
         text += ".";
       }
       return text;
@@ -671,9 +687,17 @@ export default function STBuilderPage() {
         
         // Try to parse structured activity text: "[Melaksanakan] Perjalanan Dinas dari X ke Y [dalam rangka Z] [di W]"
         const regex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+        const singleDayActivity = cleanedActivity.replace(/\s+pada\s+tanggal\s+.+$/i, "").replace(/[;,.]$/, "").trim();
+        const isParsedSingleDayActivity = /^Melaksanakan\s+/i.test(singleDayActivity) && /\s+pada\s+tanggal\s+/i.test(cleanedActivity);
+
         const match = cleanedActivity.match(regex);
 
-        if (match) {
+        if (isParsedSingleDayActivity) {
+          setActivityPrefix("Melaksanakan Kegiatan");
+          setKotaAsal("");
+          setKotaTujuan("");
+          setNamaKegiatan(singleDayActivity);
+        } else if (match) {
           setActivityPrefix(match[1]);
           setKotaAsal(match[2].trim());
           setKotaTujuan(match[3].trim());
@@ -795,6 +819,19 @@ export default function STBuilderPage() {
         }
         return newItems;
       });
+    }
+  };
+
+  const handleActivityPrefixChange = (value: string) => {
+    setActivityPrefix(value);
+    if (isSingleDayActivityPrefix(value)) {
+      const singleDate = tanggalMulai || tanggalSelesai;
+      setKotaAsal("");
+      setKotaTujuan("");
+      if (singleDate) {
+        setTanggalMulai(singleDate);
+        setTanggalSelesai(singleDate);
+      }
     }
   };
 
@@ -1249,30 +1286,47 @@ export default function STBuilderPage() {
                 <label className="text-[10px] font-bold text-zinc-400 uppercase">Jenis Tugas</label>
                 <select 
                   value={activityPrefix} 
-                  onChange={e => setActivityPrefix(e.target.value)} 
+                  onChange={e => handleActivityPrefixChange(e.target.value)} 
                   className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
                 >
                   <option value="Perjalanan Dinas">Perjalanan Dinas</option>
+                  <option value="Melaksanakan Kegiatan">Melaksanakan Kegiatan (1 Hari)</option>
                   <option value="Melaksanakan Tugas">Melaksanakan Tugas</option>
                   <option value="Menugaskan Staf">Menugaskan Staf</option>
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-                <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-              </div>
-              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
-              <input value={tempatKegiatan} onChange={e => {
-                const nextPlace = e.target.value;
-                setTempatKegiatan(nextPlace);
-                if (sumberDana === "folu") {
-                  updateFoluMenimbang(namaKegiatan, nextPlace);
-                }
-              }} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-              <div className={`grid grid-cols-2 gap-2 ${templateType === "beda-hari" ? "hidden" : ""}`}>
-                <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-                <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-              </div>
+              {!isSingleDayActivity && (
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                  <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                </div>
+              )}
+              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={isSingleDayActivity ? "Contoh: Melaksanakan Pemeriksaan dan Penilaian Barang Milik Negara berupa Alat Angkutan Bermotor" : "Kegiatan..."} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+              {!isSingleDayActivity && (
+                <input value={tempatKegiatan} onChange={e => {
+                  const nextPlace = e.target.value;
+                  setTempatKegiatan(nextPlace);
+                  if (sumberDana === "folu") {
+                    updateFoluMenimbang(namaKegiatan, nextPlace);
+                  }
+                }} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+              )}
+              {isSingleDayActivity ? (
+                <input
+                  type="date"
+                  value={tanggalMulai}
+                  onChange={e => {
+                    setTanggalMulai(e.target.value);
+                    setTanggalSelesai(e.target.value);
+                  }}
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white"
+                />
+              ) : (
+                <div className={`grid grid-cols-2 gap-2 ${templateType === "beda-hari" ? "hidden" : ""}`}>
+                  <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                  <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                </div>
+              )}
               {templateType === "beda-hari" && (
                 <p className="rounded-lg bg-orange-50 px-3 py-2 text-[10px] text-orange-700 dark:bg-orange-500/10 dark:text-orange-300">
                   Mode Beda Hari aktif: tanggal kegiatan dihitung otomatis dari tanggal mulai paling awal sampai tanggal selesai paling akhir di daftar pegawai.
