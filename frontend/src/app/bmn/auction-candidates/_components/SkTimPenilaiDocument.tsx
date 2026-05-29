@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { formatDateLong } from "../_lib/auction-helpers";
+import { runSkPagination } from "../_lib/sk-print";
 import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 import type {
   SkTimPenilaiMemutuskan,
@@ -188,292 +189,20 @@ export function handlePrintSkTimPenilai() {
   printWindow.document.close();
   printWindow.focus();
 
-  // JS pagination: split main page into explicit A4 pages,
-  // inject continuation words at page breaks, with bottom safe area for BSrE
-  // and top safe area on continuation pages.
-  setTimeout(() => {
-    try {
-      const doc = printWindow.document;
-      const body = doc.body;
-      if (!body) {
-        printWindow.print();
-        return;
-      }
-
-      const paginationStyle = doc.createElement("style");
-      paginationStyle.textContent = `
-        @page sktp-main { size: A4; margin: 0; }
-        @page sktp-main:first { size: A4; margin: 0; }
-        .sktp-print-root .sktp-page.sktp-main-document.sktp-main-paginated {
-          height: 297mm !important;
-          min-height: 297mm !important;
-          padding: 5mm 20mm 28mm !important;
-          overflow: hidden !important;
-          position: relative !important;
-          box-shadow: none !important;
-        }
-        .sktp-print-root .sktp-page.sktp-main-document.sktp-main-paginated.sktp-main-continuation-page {
-          padding-top: 18mm !important;
-        }
-        .sktp-print-root .sktp-main-document.sktp-main-page-break {
-          page-break-after: always;
-          break-after: page;
-        }
-        .sktp-main-paginated .sktp-paginated-field-section + .sktp-paginated-field-section {
-          margin-top: 0 !important;
-        }
-        .sktp-main-paginated .sktp-paginated-field-section.sktp-section-start {
-          margin-top: 0.5rem !important;
-        }
-        .sktp-continuation-word {
-          position: absolute !important;
-          right: 23mm !important;
-          bottom: 31mm !important;
-          width: 163mm !important;
-          height: 0 !important;
-          line-height: 11pt !important;
-          overflow: visible !important;
-          white-space: nowrap !important;
-          text-align: right !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          font-weight: normal !important;
-          font-size: 11pt !important;
-          z-index: 20 !important;
-        }
-      `;
-      body.appendChild(paginationStyle);
-
-      void body.offsetHeight;
-
-      const mmToPx = 96 / 25.4;
-      const firstPageContentH = 264 * mmToPx;
-      const continuationContentH = 251 * mmToPx;
-      const markerReserveH = 9 * mmToPx;
-
-      const mainDoc = doc.querySelector(".sktp-main-document");
-      if (!mainDoc) {
-        printWindow.print();
-        return;
-      }
-
-      const root = mainDoc.parentElement;
-      if (!root) {
-        printWindow.print();
-        return;
-      }
-
-      const continuationLabel = (num: string, text: string) => {
-        const firstWord = text.trim().split(/\s+/)[0] || "";
-        return `${num.trim()} ${firstWord ? `${firstWord}.....` : "....."}`;
-      };
-
-      const cloneElement = <T extends HTMLElement>(el: T) => el.cloneNode(true) as T;
-
-      const createFieldBlock = (
-        sectionLabel: string,
-        item: HTMLElement,
-        showSectionLabel: boolean,
-        marginTop = false,
-      ) => {
-        const section = doc.createElement("div");
-        section.className = "sktp-field-section sktp-paginated-field-section";
-        section.style.marginTop = marginTop ? "0.75rem" : "0";
-        if (marginTop) section.classList.add("sktp-section-start");
-
-        const label = doc.createElement("div");
-        label.className = "sktp-field-label";
-        label.textContent = showSectionLabel ? sectionLabel : "";
-
-        const colon = doc.createElement("div");
-        colon.className = "sktp-field-colon";
-        colon.textContent = showSectionLabel ? ":" : "";
-
-        const list = doc.createElement("div");
-        list.className = "sktp-mengingat-list";
-        const itemClone = cloneElement(item);
-        itemClone.style.paddingTop = "0";
-        list.appendChild(itemClone);
-
-        section.append(label, colon, list);
-        return section;
-      };
-
-      const createDecisionBlock = (rows: HTMLElement[]) => {
-        const table = doc.createElement("table");
-        table.className = "sktp-mengingat-table";
-        table.style.borderCollapse = "collapse";
-
-        const tbody = doc.createElement("tbody");
-        rows.forEach((row) => tbody.appendChild(cloneElement(row)));
-        table.appendChild(tbody);
-        return table;
-      };
-
-      const createMemutuskanMenetapkanBlock = (heading: HTMLElement, row: HTMLElement) => {
-        const block = doc.createElement("div");
-        block.appendChild(cloneElement(heading));
-        block.appendChild(createDecisionBlock([row]));
-        return block;
-      };
-
-      const makePage = (isFirstPage: boolean) => {
-        const page = doc.createElement("article");
-        page.className = "sktp-page sktp-page-ttd sktp-main-document sktp-main-paginated mx-auto max-w-[210mm] bg-white px-24 py-9 text-black";
-        if (!isFirstPage) page.classList.add("sktp-main-continuation-page");
-        page.style.cssText = [
-          "width: 210mm",
-          "height: 297mm",
-          "min-height: 297mm",
-          "margin: 0 auto",
-          `padding: ${isFirstPage ? "5mm" : "18mm"} 20mm 28mm`,
-          "overflow: hidden",
-          "position: relative",
-          "box-sizing: border-box",
-          "background: white",
-          "color: black",
-        ].join("; ");
-
-        const flow = doc.createElement("div");
-        flow.className = "sktp-main-flow";
-        page.appendChild(flow);
-
-        const bodyWrap = doc.createElement("div");
-        bodyWrap.className = "sktp-body";
-        flow.appendChild(bodyWrap);
-
-        return { page, flow, bodyWrap };
-      };
-
-      const addContinuationWord = (page: HTMLElement, label: string) => {
-        const contWord = doc.createElement("p");
-        contWord.className = "sktp-continuation-word";
-        contWord.textContent = label;
-        page.appendChild(contWord);
-      };
-
-      const measureFlowContentHeight = (flow: HTMLElement) => {
-        const flowTop = flow.getBoundingClientRect().top;
-        return Array.from(flow.children).reduce((maxBottom, child) => {
-          const rect = (child as HTMLElement).getBoundingClientRect();
-          return Math.max(maxBottom, rect.bottom - flowTop);
-        }, 0);
-      };
-
-      const measureOuterHeight = (el: HTMLElement) => {
-        const rect = el.getBoundingClientRect();
-        const style = printWindow.getComputedStyle(el);
-        const marginTop = Number.parseFloat(style.marginTop || "0") || 0;
-        const marginBottom = Number.parseFloat(style.marginBottom || "0") || 0;
-        return rect.height + marginTop + marginBottom;
-      };
-
-      const contentWrap = mainDoc.querySelector<HTMLElement>(".sktp-subtitle");
-      const contentSections = contentWrap?.querySelector<HTMLElement>("div");
-      const fieldSections = contentSections?.querySelectorAll<HTMLElement>(":scope > .sktp-field-section");
-      const menimbangItems = fieldSections?.[0]?.querySelectorAll<HTMLElement>(".sktp-mengingat-item") || [];
-      const mengingatItems = fieldSections?.[1]?.querySelectorAll<HTMLElement>(".sktp-mengingat-item") || [];
-
-      const explicitMemutuskanHeading = mainDoc.querySelector<HTMLElement>(".sktp-memutuskan");
-      const explicitMemRows = Array.from(mainDoc.querySelectorAll<HTMLElement>(".sktp-mengingat-row"));
-      const keempatGroup = mainDoc.querySelector<HTMLElement>(".sktp-keempat-group");
-
-      let currentPage = makePage(true);
-      root.insertBefore(currentPage.page, mainDoc);
-
-      const kop = mainDoc.querySelector<HTMLElement>(".sktp-kop");
-      const title = mainDoc.querySelector<HTMLElement>(".sktp-title");
-      const intro = doc.createElement("div");
-      intro.className = "sktp-subtitle sktp-body";
-      const introParagraphs = Array.from(contentWrap?.children || []).filter((child) => {
-        return child.tagName === "P" && !(child as HTMLElement).classList.contains("sktp-memutuskan");
-      });
-      introParagraphs.forEach((child) => intro.appendChild(cloneElement(child as HTMLElement)));
-
-      const firstBody = currentPage.bodyWrap;
-      currentPage.flow.insertBefore(intro, firstBody);
-      if (title) currentPage.flow.insertBefore(cloneElement(title), intro);
-      if (kop) currentPage.flow.insertBefore(cloneElement(kop), currentPage.flow.firstChild);
-      let currentUsedHeight = measureFlowContentHeight(currentPage.flow);
-
-      const blocks: { el: HTMLElement; label: string }[] = [];
-
-      // Menimbang items
-      Array.from(menimbangItems).forEach((item, index) => {
-        const num = item.querySelector("div:first-child")?.textContent || "";
-        const text = item.querySelector(".sktp-mengingat-text")?.textContent || "";
-        blocks.push({
-          el: createFieldBlock("Menimbang", item, index === 0),
-          label: continuationLabel(num || (index === 0 ? "" : ""), text),
-        });
-      });
-
-      // Mengingat items
-      Array.from(mengingatItems).forEach((item, index) => {
-        const num = item.querySelector("div:first-child")?.textContent || "";
-        const text = item.querySelector(".sktp-mengingat-text")?.textContent || "";
-        blocks.push({
-          el: createFieldBlock("Mengingat", item, index === 0, index === 0),
-          label: continuationLabel(num, text),
-        });
-      });
-
-      // Memutuskan + Menetapkan + KESATU + KEDUA + KETIGA + KEEMPAT
-      if (explicitMemutuskanHeading && explicitMemRows[0]) {
-        blocks.push({
-          el: createMemutuskanMenetapkanBlock(explicitMemutuskanHeading, explicitMemRows[0]),
-          label: "MEMUTUSKAN.....",
-        });
-      } else if (explicitMemutuskanHeading) {
-        blocks.push({ el: cloneElement(explicitMemutuskanHeading), label: "MEMUTUSKAN....." });
-      } else if (explicitMemRows[0]) {
-        blocks.push({ el: createDecisionBlock([explicitMemRows[0]]), label: "Menetapkan....." });
-      }
-      if (explicitMemRows[1]) {
-        blocks.push({ el: createDecisionBlock([explicitMemRows[1]]), label: "KESATU....." });
-      }
-      if (explicitMemRows[2]) {
-        blocks.push({ el: createDecisionBlock([explicitMemRows[2]]), label: "KEDUA....." });
-      }
-      if (explicitMemRows[3]) {
-        blocks.push({ el: createDecisionBlock([explicitMemRows[3]]), label: "KETIGA....." });
-      }
-      if (keempatGroup) {
-        blocks.push({ el: cloneElement(keempatGroup), label: "KEEMPAT....." });
-      }
-
-      blocks.forEach((block, index) => {
-        const isLastBlock = index === blocks.length - 1;
-        const contentLimit = currentPage.page.classList.contains("sktp-main-continuation-page")
-          ? continuationContentH
-          : firstPageContentH;
-        const maxFlowHeight = contentLimit - (isLastBlock ? 0 : markerReserveH);
-        const markerSafeHeight = contentLimit - markerReserveH;
-
-        currentPage.bodyWrap.appendChild(block.el);
-        const blockHeight = measureOuterHeight(block.el);
-        const flowHeight = currentUsedHeight + blockHeight;
-        const canMoveToNextPage = currentPage.bodyWrap.children.length > 1;
-        if ((flowHeight > maxFlowHeight || (!isLastBlock && flowHeight > markerSafeHeight)) && canMoveToNextPage) {
-          currentPage.bodyWrap.removeChild(block.el);
-          currentPage.page.classList.add("sktp-main-page-break");
-          addContinuationWord(currentPage.page, block.label);
-
-          currentPage = makePage(false);
-          root.insertBefore(currentPage.page, mainDoc);
-          currentPage.bodyWrap.appendChild(block.el);
-          currentUsedHeight = measureOuterHeight(block.el);
-        } else {
-          currentUsedHeight = flowHeight;
-        }
-      });
-
-      root.removeChild(mainDoc);
-    } catch {
-      // Silently fail — print without continuation words
-    }
-    setTimeout(() => printWindow.print(), 300);
-  }, 600);
+  // JS pagination: split main page into explicit A4 pages, inject continuation
+  // words at page breaks, with bottom safe area for BSrE and top safe area on
+  // continuation pages. Shared with the other SK documents via runSkPagination.
+  setTimeout(
+    () =>
+      runSkPagination(printWindow, {
+        prefix: "sktp",
+        sectionStartMarginTop: "0.5rem",
+        decisionRowLabels: ["KESATU.....", "KEDUA.....", "KETIGA....."],
+        finalGroupClass: "sktp-keempat-group",
+        finalGroupLabel: "KEEMPAT.....",
+      }),
+    600,
+  );
 }
 
 export function SkTimPenilaiDocument({
@@ -704,7 +433,7 @@ export function SkTimPenilaiDocument({
               <tr className="sktp-mengingat-row">
                 <td style={{ width: "28mm", verticalAlign: "top" }}>Menetapkan</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
-                <td style={{ verticalAlign: "top", textTransform: "uppercase", textAlign: "justify" }}>
+                <td style={{ verticalAlign: "top", textTransform: "uppercase", textAlign: "justify", fontWeight: "bold" }}>
                   {memutuskan.menetapkan}
                 </td>
               </tr>
