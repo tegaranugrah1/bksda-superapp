@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { formatDateLong } from "../_lib/auction-helpers";
+import { runSkPagination } from "../_lib/sk-print";
 import type {
   SkBuilderItem,
   SkKepalaBalai,
@@ -195,272 +196,17 @@ export function handlePrintSkPanitia() {
   `);
   printWindow.document.close();
   printWindow.focus();
-  setTimeout(() => {
-    try {
-      const doc = printWindow.document;
-      const body = doc.body;
-      if (!body) { printWindow.print(); return; }
-
-      const paginationStyle = doc.createElement("style");
-      paginationStyle.textContent = `
-        @page skp-main { size: A4; margin: 0; }
-        @page skp-main:first { size: A4; margin: 0; }
-        .skp-print-root .skp-page.skp-main-document.skp-main-paginated {
-          height: 297mm !important;
-          min-height: 297mm !important;
-          padding: 5mm 20mm 28mm !important;
-          overflow: hidden !important;
-          position: relative !important;
-          box-shadow: none !important;
-        }
-        .skp-print-root .skp-page.skp-main-document.skp-main-paginated.skp-main-continuation-page {
-          padding-top: 18mm !important;
-        }
-        .skp-print-root .skp-main-document.skp-main-page-break {
-          page-break-after: always;
-          break-after: page;
-        }
-        .skp-main-paginated .skp-paginated-field-section + .skp-paginated-field-section {
-          margin-top: 0 !important;
-        }
-        .skp-main-paginated .skp-paginated-field-section.skp-section-start {
-          margin-top: 0.5rem !important;
-        }
-        .skp-continuation-word {
-          position: absolute !important;
-          right: 23mm !important;
-          bottom: 31mm !important;
-          width: 163mm !important;
-          height: 0 !important;
-          line-height: 11pt !important;
-          overflow: visible !important;
-          white-space: nowrap !important;
-          text-align: right !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          font-weight: normal !important;
-          font-size: 11pt !important;
-          z-index: 20 !important;
-        }
-      `;
-      body.appendChild(paginationStyle);
-
-      void body.offsetHeight;
-
-      const mmToPx = 96 / 25.4;
-      const firstPageContentH = 264 * mmToPx;
-      const continuationContentH = 251 * mmToPx;
-      const markerReserveH = 9 * mmToPx;
-
-      const mainDoc = doc.querySelector(".skp-main-document");
-      if (!mainDoc) { printWindow.print(); return; }
-
-      const root = mainDoc.parentElement;
-      if (!root) { printWindow.print(); return; }
-
-      const continuationLabel = (num: string, text: string) => {
-        const firstWord = text.trim().split(/\s+/)[0] || "";
-        return `${num.trim()} ${firstWord ? `${firstWord}.....` : "....."}`;
-      };
-
-      const cloneElement = <T extends HTMLElement>(el: T) => el.cloneNode(true) as T;
-
-      const createFieldBlock = (
-        sectionLabel: string,
-        item: HTMLElement,
-        showSectionLabel: boolean,
-        marginTop = false,
-      ) => {
-        const section = doc.createElement("div");
-        section.className = "skp-field-section skp-paginated-field-section";
-        section.style.marginTop = marginTop ? "0.75rem" : "0";
-        if (marginTop) section.classList.add("skp-section-start");
-
-        const label = doc.createElement("div");
-        label.className = "skp-field-label";
-        label.textContent = showSectionLabel ? sectionLabel : "";
-
-        const colon = doc.createElement("div");
-        colon.className = "skp-field-colon";
-        colon.textContent = showSectionLabel ? ":" : "";
-
-        const list = doc.createElement("div");
-        list.className = "skp-mengingat-list";
-        const itemClone = cloneElement(item);
-        itemClone.style.paddingTop = "0";
-        list.appendChild(itemClone);
-
-        section.append(label, colon, list);
-        return section;
-      };
-
-      const createDecisionBlock = (rows: HTMLElement[]) => {
-        const table = doc.createElement("table");
-        table.className = "skp-mengingat-table";
-        table.style.borderCollapse = "collapse";
-
-        const tbody = doc.createElement("tbody");
-        rows.forEach((row) => tbody.appendChild(cloneElement(row)));
-        table.appendChild(tbody);
-        return table;
-      };
-
-      const createMemutuskanMenetapkanBlock = (heading: HTMLElement, row: HTMLElement) => {
-        const block = doc.createElement("div");
-        block.appendChild(cloneElement(heading));
-        block.appendChild(createDecisionBlock([row]));
-        return block;
-      };
-
-      const makePage = (isFirstPage: boolean) => {
-        const page = doc.createElement("article");
-        page.className = "skp-page skp-page-ttd skp-main-document skp-main-paginated mx-auto max-w-[210mm] bg-white px-24 py-9 text-black";
-        if (!isFirstPage) page.classList.add("skp-main-continuation-page");
-        page.style.cssText = [
-          "width: 210mm",
-          "height: 297mm",
-          "min-height: 297mm",
-          "margin: 0 auto",
-          `padding: ${isFirstPage ? "5mm" : "18mm"} 20mm 28mm`,
-          "overflow: hidden",
-          "position: relative",
-          "box-sizing: border-box",
-          "background: white",
-          "color: black",
-        ].join("; ");
-
-        const flow = doc.createElement("div");
-        flow.className = "skp-main-flow";
-        page.appendChild(flow);
-
-        const bodyWrap = doc.createElement("div");
-        bodyWrap.className = "skp-body";
-        flow.appendChild(bodyWrap);
-
-        return { page, flow, bodyWrap };
-      };
-
-      const addContinuationWord = (page: HTMLElement, label: string) => {
-        const contWord = doc.createElement("p");
-        contWord.className = "skp-continuation-word";
-        contWord.textContent = label;
-        page.appendChild(contWord);
-      };
-
-      const measureFlowContentHeight = (flow: HTMLElement) => {
-        const flowTop = flow.getBoundingClientRect().top;
-        return Array.from(flow.children).reduce((maxBottom, child) => {
-          const rect = (child as HTMLElement).getBoundingClientRect();
-          return Math.max(maxBottom, rect.bottom - flowTop);
-        }, 0);
-      };
-
-      const measureOuterHeight = (el: HTMLElement) => {
-        const rect = el.getBoundingClientRect();
-        const style = printWindow.getComputedStyle(el);
-        const marginTop = Number.parseFloat(style.marginTop || "0") || 0;
-        const marginBottom = Number.parseFloat(style.marginBottom || "0") || 0;
-        return rect.height + marginTop + marginBottom;
-      };
-
-      const contentWrap = mainDoc.querySelector<HTMLElement>(".skp-subtitle");
-      const contentSections = contentWrap?.querySelector<HTMLElement>("div");
-      const fieldSections = contentSections?.querySelectorAll<HTMLElement>(":scope > .skp-field-section");
-      const menimbangItems = fieldSections?.[0]?.querySelectorAll<HTMLElement>(".skp-mengingat-item") || [];
-      const mengingatItems = fieldSections?.[1]?.querySelectorAll<HTMLElement>(".skp-mengingat-item") || [];
-
-      const explicitMemutuskanHeading = mainDoc.querySelector<HTMLElement>(".skp-memutuskan");
-      const explicitMemRows = Array.from(mainDoc.querySelectorAll<HTMLElement>(".skp-mengingat-row"));
-      const ketigaGroup = mainDoc.querySelector<HTMLElement>(".skp-ketiga-group");
-
-      let currentPage = makePage(true);
-      root.insertBefore(currentPage.page, mainDoc);
-
-      const kop = mainDoc.querySelector<HTMLElement>(".skp-kop");
-      const title = mainDoc.querySelector<HTMLElement>(".skp-title");
-      const intro = doc.createElement("div");
-      intro.className = "skp-subtitle skp-body";
-      const introParagraphs = Array.from(contentWrap?.children || []).filter((child) => {
-        return child.tagName === "P" && !(child as HTMLElement).classList.contains("skp-memutuskan");
-      });
-      introParagraphs.forEach((child) => intro.appendChild(cloneElement(child as HTMLElement)));
-
-      const firstBody = currentPage.bodyWrap;
-      currentPage.flow.insertBefore(intro, firstBody);
-      if (title) currentPage.flow.insertBefore(cloneElement(title), intro);
-      if (kop) currentPage.flow.insertBefore(cloneElement(kop), currentPage.flow.firstChild);
-      let currentUsedHeight = measureFlowContentHeight(currentPage.flow);
-
-      const blocks: { el: HTMLElement; label: string }[] = [];
-      Array.from(menimbangItems).forEach((item, index) => {
-        const num = item.querySelector("div:first-child")?.textContent || "";
-        const text = item.querySelector(".skp-mengingat-text")?.textContent || "";
-        blocks.push({
-          el: createFieldBlock("Menimbang", item, index === 0),
-          label: continuationLabel(num, text),
-        });
-      });
-
-      Array.from(mengingatItems).forEach((item, index) => {
-        const num = item.querySelector("div:first-child")?.textContent || "";
-        const text = item.querySelector(".skp-mengingat-text")?.textContent || "";
-        blocks.push({
-          el: createFieldBlock("Mengingat", item, index === 0, index === 0),
-          label: continuationLabel(num, text),
-        });
-      });
-
-      if (explicitMemutuskanHeading && explicitMemRows[0]) {
-        const memutuskanBlock = createMemutuskanMenetapkanBlock(explicitMemutuskanHeading, explicitMemRows[0]);
-        blocks.push({ el: memutuskanBlock, label: "MEMUTUSKAN....." });
-      } else if (explicitMemutuskanHeading) {
-        blocks.push({ el: cloneElement(explicitMemutuskanHeading), label: "MEMUTUSKAN....." });
-      } else if (explicitMemRows[0]) {
-        blocks.push({ el: createDecisionBlock([explicitMemRows[0]]), label: "Menetapkan....." });
-      }
-      if (explicitMemRows[1]) {
-        blocks.push({ el: createDecisionBlock([explicitMemRows[1]]), label: "KESATU....." });
-      }
-      if (explicitMemRows[2]) {
-        blocks.push({ el: createDecisionBlock([explicitMemRows[2]]), label: "KEDUA....." });
-      }
-      if (ketigaGroup) {
-        blocks.push({ el: cloneElement(ketigaGroup), label: "KETIGA....." });
-      }
-
-      blocks.forEach((block, index) => {
-        const isLastBlock = index === blocks.length - 1;
-        const contentLimit = currentPage.page.classList.contains("skp-main-continuation-page")
-          ? continuationContentH
-          : firstPageContentH;
-        const maxFlowHeight = contentLimit - (isLastBlock ? 0 : markerReserveH);
-        const markerSafeHeight = contentLimit - markerReserveH;
-
-        currentPage.bodyWrap.appendChild(block.el);
-        const blockHeight = measureOuterHeight(block.el);
-        const flowHeight = currentUsedHeight + blockHeight;
-        const canMoveToNextPage = currentPage.bodyWrap.children.length > 1;
-        if ((flowHeight > maxFlowHeight || (!isLastBlock && flowHeight > markerSafeHeight)) && canMoveToNextPage) {
-          currentPage.bodyWrap.removeChild(block.el);
-          currentPage.page.classList.add("skp-main-page-break");
-          addContinuationWord(currentPage.page, block.label);
-
-          currentPage = makePage(false);
-          root.insertBefore(currentPage.page, mainDoc);
-          currentPage.bodyWrap.appendChild(block.el);
-          currentUsedHeight = measureOuterHeight(block.el);
-        } else {
-          currentUsedHeight = flowHeight;
-        }
-      });
-
-      root.removeChild(mainDoc);
-
-    } catch {
-      // Silently fail — print without continuation words
-    }
-    setTimeout(() => printWindow.print(), 300);
-  }, 600);
+  setTimeout(
+    () =>
+      runSkPagination(printWindow, {
+        prefix: "skp",
+        sectionStartMarginTop: "0.5rem",
+        decisionRowLabels: ["KESATU.....", "KEDUA....."],
+        finalGroupClass: "skp-ketiga-group",
+        finalGroupLabel: "KETIGA.....",
+      }),
+    600,
+  );
 }
 
 
@@ -751,7 +497,7 @@ export function SkPanitiaDocument({
               <tr className="skp-mengingat-row">
                 <td style={{ width: "28mm", verticalAlign: "top" }}>Menetapkan</td>
                 <td style={{ width: "8mm", textAlign: "center", verticalAlign: "top" }}>:</td>
-                <td style={{ verticalAlign: "top", textTransform: "uppercase", textAlign: "justify" }}>
+                <td style={{ verticalAlign: "top", textTransform: "uppercase", textAlign: "justify", fontWeight: "bold" }}>
                   {memutuskan.menetapkan}
                 </td>
               </tr>
