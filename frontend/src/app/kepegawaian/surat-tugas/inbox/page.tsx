@@ -22,6 +22,11 @@ interface Employee {
   jabatan?: string;
 }
 
+interface LetterItem {
+  id: string;
+  text: string;
+}
+
 interface AssignmentLetter {
   id: string;
   maksud_tujuan: string;
@@ -31,6 +36,7 @@ interface AssignmentLetter {
   sumber_dana: string;
   sumber_dana_other: string | null;
   template_type: string | null;
+  dasar?: LetterItem[] | null;
   file_surat_path: string | null;
   status: 'draft' | 'pending' | 'approved' | 'rejected' | 'completed';
   nomor_surat: string | null;
@@ -81,6 +87,45 @@ export default function SuratTugasInbox() {
     });
 
     const letters: AssignmentLetter[] = React.useMemo(() => data || [], [data]);
+
+    const findExistingPlhDraft = React.useCallback(
+        (parentLetter: AssignmentLetter) => {
+            return letters.find((letter) => {
+                if (letter.id === parentLetter.id) return false;
+                if (letter.template_type !== 'plh') return false;
+                if (!['draft', 'pending'].includes(letter.status)) return false;
+
+                const hasParentNumber = Boolean(
+                    parentLetter.nomor_surat &&
+                    letter.dasar?.some((item) => item.text?.includes(parentLetter.nomor_surat || ''))
+                );
+                if (hasParentNumber) return true;
+
+                const parentPlhName = parentLetter.nama_plh?.trim().toLowerCase();
+                const hasSamePlhPerson = Boolean(
+                    parentPlhName &&
+                    letter.employees.some((employee) => employee.nama_lengkap?.trim().toLowerCase() === parentPlhName)
+                );
+
+                return hasSamePlhPerson && letter.maksud_tujuan.toLowerCase().includes('pelaksana harian');
+            });
+        },
+        [letters],
+    );
+
+    const openPlhBuilder = React.useCallback(
+        (parentLetter: AssignmentLetter) => {
+            const existingDraft = findExistingPlhDraft(parentLetter);
+            if (existingDraft) {
+                toast.info('Draft ST PLH yang sudah ada dibuka.');
+                router.push(`/kepegawaian/surat-tugas/builder/${existingDraft.id}`);
+                return;
+            }
+
+            router.push(`/kepegawaian/surat-tugas/create?template=plh&parent_st_id=${parentLetter.id}`);
+        },
+        [findExistingPlhDraft, router],
+    );
 
     // Sync selectedLetter with current list — if selected item no longer exists, pick first
     const resolvedSelected = React.useMemo(() => {
@@ -449,12 +494,29 @@ export default function SuratTugasInbox() {
                                 {(selectedLetter.nama_plh || selectedLetter.has_seksi_employee) && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         {selectedLetter.nama_plh && (
-                                            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 space-y-1">
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 block">Nama PLH</span>
-                                                <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
-                                                    <UserIcon className="w-3.5 h-3.5 text-blue-500" />
-                                                    {selectedLetter.nama_plh}
+                                            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 space-y-3">
+                                                {(() => {
+                                                    const existingPlhDraft = findExistingPlhDraft(selectedLetter);
+                                                    return (
+                                                        <>
+                                                <div className="space-y-1">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 block">Nama PLH</span>
+                                                    <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
+                                                        <UserIcon className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                                        <span className="truncate">{selectedLetter.nama_plh}</span>
+                                                    </div>
                                                 </div>
+                                                <Button
+                                                    onClick={() => openPlhBuilder(selectedLetter)}
+                                                    className="w-full h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-widest shadow-md shadow-blue-500/20"
+                                                    title={existingPlhDraft ? "Buka draft ST PLH yang sudah ada" : "Generate Surat Tugas PLH dari data ini"}
+                                                >
+                                                    <FileText className="w-3.5 h-3.5 mr-1.5" />
+                                                    {existingPlhDraft ? "Buka Draft ST PLH" : "Buat ST PLH"}
+                                                </Button>
+                                                        </>
+                                                    );
+                                                })()}
                                             </div>
                                         )}
                                         {selectedLetter.has_seksi_employee && (

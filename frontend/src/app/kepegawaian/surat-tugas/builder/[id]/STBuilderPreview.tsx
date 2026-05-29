@@ -65,6 +65,7 @@ export default function STBuilderPreview({
   const isFolu = sumberDana === "folu";
   const isBmnTemplate = templateType === "bmn-pemeriksaan";
   const isBedaHariTemplate = templateType === "beda-hari";
+  const isPlhTemplate = templateType === "plh";
   const visibleTembusanItems = tembusanItems.filter(t => t && t.trim());
   const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
 
@@ -247,7 +248,9 @@ export default function STBuilderPreview({
                   {[
                     buildUntukText(),
                     buildBiayaText(),
-                    isBmnTemplate
+                    isPlhTemplate
+                      ? "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai."
+                      : isBmnTemplate
                       ? "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut."
                       : "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
                   ]
