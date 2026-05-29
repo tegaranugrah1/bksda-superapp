@@ -145,17 +145,19 @@ git push origin main
 - [x] Issue #390: Make ST Builder Untuk items editable + one-day activity task type. PR #391 merged ke `main` (merge commit `de9da95`); remote branch deleted. Untuk items sekarang dynamic list (add/remove) seperti Menimbang/Dasar. Tambah one-day activity task type, auto-detect same-date tasks sebagai one-day, skip auto biaya untuk one-day tasks. Biaya editable di untuk items. Persist via `maksud_tujuan` dan parse saat re-open.
 - [x] **Production Deploy Batch (2026-05-29)**: Server pulled main `7d5212b -> de9da95` (issue #388, #390 + docs). Backend + frontend rebuilt/recreated. No new migrations. Production healthy: login HTTP 200, `bksda-backend` Up, `bksda-frontend` Up.
 - [x] Issue #392: Refactor modul kepegawaian (DRY — shared components + libs). PR #393 merged ke `main` (merge commit `f326ed3`); remote branch deleted. Extract duplikasi builder↔create ke `surat-tugas/_lib/` (types, constants, helpers, print) + shared `_components/` (FormSection, EditableItemListSection, TembusanSection, PenandatanganSection). Inbox extract `inbox/_lib/` (types, status-helpers). Zero behavior change. builder 1500→1195, create 1119→882, inbox 704→654. Belum deploy SSH.
+- [x] Issue #394: Refactor modul BMN auction-candidates (DRY — shared print engine + shell). PR #395 merged ke `main` (merge commit `057a575`); remote branch deleted. Extract `_lib/print-pernyataan.ts` + `_components/PernyataanDocument.tsx` (3 surat pernyataan: SPTJM/Nilai Limit/Tugas → 61/61/47 baris) dan `_lib/sk-print.ts` `runSkPagination()` (engine pagination ~230 baris yang sebelumnya copy-paste 3x di SK Penghentian/Panitia/Tim Penilai → 800/638/572 baris). Plus fix: isi "Menetapkan" pada MEMUTUSKAN jadi bold di 3 SK. Zero behavior change, net −536 baris. **Sudah deploy SSH.**
+- [x] **Production Deploy Batch (2026-05-29 #2)**: Server pulled main `de9da95 -> 057a575` (issue #392 + #394 + docs). Frontend rebuilt/recreated (build 59/59). No new migrations (no backend changes). Production healthy: `bksda-frontend` Up, `bksda-backend` Up, public `/bmn/auction-candidates` HTTPS 307 (protected, expected).
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #392: Refactor kepegawaian DRY (PR #393 merged) |
-| **Issue Sedang Dikerjakan** | None (next: refactor BMN dengan teknik DRY yang sama) |
+| **Issue Terakhir Selesai** | Issue #394: Refactor BMN auction-candidates DRY (PR #395 merged + deployed) |
+| **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `f326ed3` |
-| **Commit Production Server** | `de9da95` (#392 belum di-deploy) |
-| **Status** | Issue #392 selesai & merged. Refactor DRY modul kepegawaian: duplikasi builder↔create dihilangkan via shared `surat-tugas/_lib/` (8 file) + `_components/` (4 file) + `inbox/_lib/` (2 file). builder 1500→1195, create 1119→882, inbox 704→654. Zero behavior change, user sudah test manual aman. Belum deploy SSH. **Next: refactor modul BMN dengan teknik DRY yang sama (cari shared component yang bisa dipakai bersama).** |
-| **Model Terakhir** | Claude Sonnet 4.5 |
-| **Timestamp** | 2026-05-29T15:30:00+08:00 |
+| **Commit Terakhir di Main** | `057a575` |
+| **Commit Production Server** | `057a575` (#392 + #394 sudah di-deploy) |
+| **Status** | Issue #394 selesai, merged & deployed. Refactor DRY modul BMN auction-candidates: 3 surat pernyataan share `_lib/print-pernyataan.ts` + `_components/PernyataanDocument.tsx`; 3 SK (Penghentian/Panitia/Tim Penilai) share engine pagination `_lib/sk-print.ts` `runSkPagination()` (sebelumnya copy-paste 3x). Plus fix isi "Menetapkan" jadi bold di 3 SK. Zero behavior change, net −536 baris. Production sudah di-deploy ke `057a575` (frontend rebuild, no migration). |
+| **Model Terakhir** | Claude Opus 4.8 |
+| **Timestamp** | 2026-05-29T17:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.

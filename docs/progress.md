@@ -1,16 +1,78 @@
+# Progress - Phase 71: Refactor Modul BMN auction-candidates (DRY Shared Components) — MERGED + DEPLOYED
+
+> Document updated: 2026-05-29
+> Status: **MERGED + DEPLOYED** (PR #395 merged ke `main` commit `057a575`; production server di `057a575`)
+
+---
+
+## Issue #394: Refactor BMN auction-candidates — hilangkan duplikasi antar-dokumen (DRY)
+
+### Status: MERGED + DEPLOYED
+- PR #395 merged ke `main` (merge commit `057a575`). Remote branch deleted.
+- User sudah test manual (preview + cetak/PDF semua dokumen) — aman.
+- Sudah deploy SSH (frontend rebuild, no migration; backend tidak berubah).
+
+### Filosofi
+Sama seperti #392: tujuan utama **DRY**, bukan line count. Modul BMM sebelumnya sudah di-refactor (#340, #365) tapi fokusnya memecah `page.tsx` jadi section components, BUKAN menghilangkan duplikasi kode antar-dokumen. Issue ini mencari single source of truth untuk kode yang copy-paste antar-dokumen.
+
+### Completed:
+- [x] **Issue Created**: Issue #394.
+- [x] **Branch**: `issue/394-refactor-bmn-dry` (merged + deleted).
+- [x] **Surat Pernyataan (SPTJM, Nilai Limit, Tugas)** — tiga dokumen ~95% identik:
+  - `_lib/print-pernyataan.ts` — `PERNYATAAN_PRINT_CSS`, `buildPernyataanNomor(prefix,...)`, `printPernyataan({rootId,title,emptyMessage})`
+  - `_components/PernyataanDocument.tsx` — shell bersama (scoped style, KOP, judul/nomor, blok TTD) + `PernyataanIdentity`
+  - Tiap dokumen sekarang tinggal body unik + delegasi handler (nama ekspor `handlePrintSptjm` dll tidak berubah).
+- [x] **SK documents (Penghentian, Panitia, Tim Penilai)** — engine pagination JS ~230 baris copy-paste 3x:
+  - `_lib/sk-print.ts` — `runSkPagination(printWindow, config)` terparameter `prefix` (`sk`/`skp`/`sktp`), `sectionStartMarginTop`, `decisionRowLabels`, `finalGroupClass`, `finalGroupLabel`. Plus `openSkPrintWindow` helper (belum dipakai, tersedia untuk konsolidasi lanjutan).
+  - CSS statis tiap dokumen sengaja dibiarkan inline (tweak per-dokumen tetap aman).
+- [x] **Fix tampilan**: isi baris "Menetapkan" pada MEMUTUSKAN jadi **bold** di 3 SK (heading MEMUTUSKAN tetap bold, label "Menetapkan" tetap normal). Berlaku di preview & cetak/PDF (inline `fontWeight` ikut ter-clone saat pagination).
+
+### Hasil Pengurangan Baris:
+| File | Awal | Sekarang | Berkurang |
+|------|------|----------|-----------|
+| `SptjmDocument.tsx` | 151 | 61 | −90 |
+| `SptjLimitDocument.tsx` | 157 | 61 | −96 |
+| `SpTugasDocument.tsx` | 133 | 47 | −86 |
+| `SkPenghentianDocument.tsx` | 1061 | 800 | −261 |
+| `SkPanitiaDocument.tsx` | 893 | 638 | −255 |
+| `SkTimPenilaiDocument.tsx` | 782 | 572 | −210 |
+| **File baru** | — | print-pernyataan 86 + PernyataanDocument 109 + sk-print 359 | +554 |
+
+Net: 9 file changed, +705 / −1241 (−536 baris).
+
+### Validation (sudah lulus):
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 pages) — lokal & di server Docker
+- [x] Zero behavior change pada output cetak/PDF
+
+### Catatan Pendekatan:
+- **Extraction bertahap, reversible, validate tiap langkah** — sama seperti #392.
+- Diekstrak = "high-value duplication": shell + CSS surat pernyataan, dan engine pagination SK (algoritma kompleks yang sebelumnya 3x copy-paste).
+- TIDAK diekstrak (sengaja): CSS statis per-dokumen & rendering tabel lampiran — punya nilai spesifik per dokumen, konsolidasi berisiko regresi dengan benefit kecil.
+
+### Deploy SSH (2026-05-29 #2):
+1. Server pulled main `de9da95 -> 057a575` (issue #392 + #394 + docs).
+2. `docker-compose build frontend` — image rebuilt (build 59/59).
+3. `docker-compose up -d frontend` — container recreated.
+4. No new migrations (no backend changes since `de9da95`).
+5. Production healthy: `bksda-frontend` Up, `bksda-backend` Up, public `/bmn/auction-candidates` HTTPS 307 (protected, expected).
+
+---
+
 # Progress - Phase 70: Refactor Modul Kepegawaian (DRY Shared Components) — MERGED
 
 > Document updated: 2026-05-29
-> Status: **MERGED** (PR #393 merged ke `main` commit `f326ed3`; deploy SSH ditunda)
+> Status: **MERGED + DEPLOYED** (PR #393 merged ke `main` commit `f326ed3`; di-deploy bersama #394 di server commit `057a575`)
 
 ---
 
 ## Issue #392: Refactor kepegawaian — hilangkan duplikasi builder↔create (DRY)
 
-### Status: MERGED
+### Status: MERGED + DEPLOYED
 - PR #393 merged ke `main` (merge commit `f326ed3`). Remote branch deleted.
 - User sudah test manual semua flow (4 template × create + edit, inbox) — aman.
-- Belum deploy SSH.
+- Sudah deploy SSH (bersama batch #394, server di `057a575`).
 
 
 ### Filosofi
