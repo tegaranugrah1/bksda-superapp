@@ -1,7 +1,68 @@
-# Progress - Phase 68: PLH Template + Buat ST PLH Button (MERGED)
+# Progress - Phase 69: ST Builder Untuk Items Editable + One-Day Activity (MERGED + DEPLOYED)
 
 > Document updated: 2026-05-29
-> Status: **MERGED** (PR #389 merged ke `main`; deploy SSH tidak dilakukan)
+> Status: **MERGED + DEPLOYED** (PR #391 merged ke `main`; production app commit `de9da95`)
+
+---
+
+## Issue #390: Make ST Builder Untuk items editable + one-day activity task type
+
+### Completed:
+- [x] **Issue Created**: Issue #390.
+- [x] **Branch Created/Pushed**: `issue/390-st-builder-untuk-items`.
+- [x] **PR Created/Merged**: PR #391 merged ke `main` (merge commit `de9da95`).
+- [x] **Branch Cleanup**: remote branch `issue/390-st-builder-untuk-items` deleted after merge.
+- [x] **Editable Untuk items**: dynamic list dengan add/remove, mirror behavior dari Menimbang/Dasar.
+- [x] **Editor placement**: dipindah ke bawah input tanggal di sidebar.
+- [x] **One-day activity task type**: task type baru untuk kegiatan 1 hari (skip auto biaya, render single-day format).
+- [x] **Auto-detect same-date tasks**: kalau `tanggal_mulai === tanggal_selesai`, auto-render sebagai one-day di builder.
+- [x] **Journey fields editable**: untuk same-date tasks tetap bisa edit asal/tujuan/kegiatan.
+- [x] **Biaya line editable**: biaya sekarang masuk ke untuk items list dan bisa di-edit, bukan auto-generated tersembunyi lagi.
+- [x] **Persist via `maksud_tujuan`**: custom Untuk items disimpan di field `maksud_tujuan` dan diparse saat re-open ST.
+- [x] **Production deploy**: included in 2026-05-29 batch deploy (`7d5212b` -> `de9da95`), backend + frontend rebuilt/recreated, no new migrations, production health checks passed.
+
+### Implementation Notes (9 commits di branch sebelum merged):
+1. `70bd40c feat: make ST builder untuk items editable`
+2. `769ec7a fix: move ST builder untuk editor below dates`
+3. `1488bcf feat: add one-day activity task type`
+4. `57869ed fix: skip auto biaya for one-day ST builder tasks`
+5. `6d51def fix: auto-detect one-day submitted ST tasks`
+6. `367d1ed fix: render same-date ST builder tasks as one-day`
+7. `4e86599 fix: keep journey fields editable for same-date tasks`
+8. `24f807a fix: keep ST builder biaya out of editable untuk preview`
+9. `0c3f3bf feat: make ST builder biaya editable in untuk items`
+
+### Files Modified (2):
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx` (+296/-46)
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx` (+19/-3)
+- Total: +293 / -55 lines
+
+### Validation:
+- [x] `npm run lint -- --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean
+
+### Production Deploy:
+- [x] Server: `ssh -i bksda-superapp.pem ec2-user@15.135.114.1`
+- [x] App path: `/home/ec2-user/bksda-superapp`
+- [x] `git pull origin main` (`7d5212b -> de9da95`, includes #388 + #390 + docs)
+- [x] `docker-compose -f docker-compose.prod.yml --env-file .env.prod build backend frontend`
+- [x] `docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d backend frontend`
+- [x] `php artisan migrate --force` → `Nothing to migrate`
+- [x] Container status: `bksda-backend` Up, `bksda-frontend` Up, all 9 containers running
+- [x] `https://bksdakaltim.net/login` → HTTP 200
+
+### Note:
+- Implementation oleh AI Codex (di branch `issue/390-st-builder-untuk-items`).
+- Merge + deploy oleh Claude Sonnet 4.5.
+- Issue #388 (PLH template) yang sebelumnya merged tapi belum deploy ikut ter-deploy di batch ini.
+
+---
+
+# Progress - Phase 68: PLH Template + Buat ST PLH Button (MERGED + DEPLOYED)
+
+> Document updated: 2026-05-29
+> Status: **MERGED + DEPLOYED** (PR #389 merged ke `main`; production app commit `de9da95`)
 
 ---
 

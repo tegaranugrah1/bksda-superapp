@@ -142,17 +142,19 @@ git push origin main
 - [x] Issue #386: Add searchable ST Penandatangan picker + persist signer fields. PR #387 merged ke `main` (merge commit `ac6f5d9`); remote branch deleted. ST Create dan Builder edit sekarang bisa cari pegawai penandatangan dari API kepegawaian, auto-fill nama/NIP, tetap editable manual, default tetap `M. Ari Wibawanto, S.Hut., M.Sc.` / `19740514 199903 1 001`. Backend tambah migration `penandatangan_nama` + `penandatangan_nip`.
 - [x] **Production Deploy Batch (2026-05-28)**: Server pulled main `550944f -> 7d5212b` (issue #380, #382, #384, #386 + docs). Backend + frontend rebuilt/recreated. Migration applied: #386 `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php` (`penandatangan_nama`, `penandatangan_nip`). Production healthy: login HTTP 200, `/bmn/auction-candidates` HTTP 307 redirect ke `/login` (protected, expected).
 - [x] Issue #388: Add PLH template for ST Builder + "Buat ST PLH" button in Inbox. PR #389 merged ke `main` (merge commit `ad179a9`); remote branch deleted. Tidak deploy/push ke SSH.
+- [x] Issue #390: Make ST Builder Untuk items editable + one-day activity task type. PR #391 merged ke `main` (merge commit `de9da95`); remote branch deleted. Untuk items sekarang dynamic list (add/remove) seperti Menimbang/Dasar. Tambah one-day activity task type, auto-detect same-date tasks sebagai one-day, skip auto biaya untuk one-day tasks. Biaya editable di untuk items. Persist via `maksud_tujuan` dan parse saat re-open.
+- [x] **Production Deploy Batch (2026-05-29)**: Server pulled main `7d5212b -> de9da95` (issue #388, #390 + docs). Backend + frontend rebuilt/recreated. No new migrations. Production healthy: login HTTP 200, `bksda-backend` Up, `bksda-frontend` Up.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #388: PLH template + Buat ST PLH button (PR #389 merged) |
-| **Issue Sedang Dikerjakan** | Siap membuat issue baru: editable item "Untuk" di ST Builder |
+| **Issue Terakhir Selesai** | Issue #390: ST Builder Untuk items editable + one-day activity (PR #391 merged + deployed) |
+| **Issue Sedang Dikerjakan** | None |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `ad179a9` |
-| **Commit Production Server** | `7d5212b` (#380, #382, #384, #386 sudah deploy) |
-| **Status** | Issue #388 selesai dan merged. PLH template tersedia di create + builder edit, tombol Inbox membuka draft PLH existing bila ada, draft PLH menyimpan nomor/kode/tanggal surat, dan auto-select pegawai PLH stabil saat data pegawai lambat load. Validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `php -l` controller/request. |
-| **Model Terakhir** | Codex GPT-5 |
-| **Timestamp** | 2026-05-29T12:20:00+08:00 |
+| **Commit Terakhir di Main** | `de9da95` (sebelum docs update ini) |
+| **Commit Production Server** | `de9da95` (#388 + #390 sudah deploy) |
+| **Status** | Issue #390 selesai, merged, dan deployed. ST Builder Untuk items sekarang editable dynamic list dengan add/remove (mirip Menimbang/Dasar). Tambah one-day activity task type dengan auto-detect same-date tasks, skip biaya untuk one-day, biaya editable di untuk items. Persist via `maksud_tujuan` field dan parse saat re-open. Production server pulled `7d5212b -> de9da95`, backend + frontend rebuilt/recreated, no new migrations needed. Login HTTP 200, semua container running. |
+| **Model Terakhir** | Claude Sonnet 4.5 |
+| **Timestamp** | 2026-05-29T13:10:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -187,9 +189,42 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
-- [ ] Buat issue baru: item "Untuk" di ST Builder harus bisa ditambah/dikurangi seperti Menimbang dan Dasar.
-- [x] Deploy issue #380, #382, #384, dan #386 ke SSH production.
-- [x] Saat deploy #386, jalankan backend migration untuk kolom `penandatangan_nama` dan `penandatangan_nip`.
+- [x] Issue #390 (ST Builder Untuk items editable) merged + deployed ke SSH production.
+- [ ] (Opsional) Manual browser smoke test pada production untuk fitur #388 (PLH) + #390 (Untuk editable + one-day activity).
+
+---
+
+**UPDATE SESI CLAUDE (2026-05-29 - Issue #390 MERGED + DEPLOYED):**
+- **Status**: MERGED + DEPLOYED. PR #391 merged ke `main` (merge commit `de9da95`). Remote branch deleted. Production server pulled `7d5212b -> de9da95`, backend + frontend rebuilt/recreated, no migrations needed. Production healthy.
+- **GitHub**:
+  - Issue: #390 `feat(kepegawaian): make ST Builder Untuk items editable`
+  - PR: #391 merged → merge commit `de9da95`
+  - Branch: `issue/390-st-builder-untuk-items` (deleted local + remote)
+- **Implementation summary** (9 commits di branch sebelum merged, dikerjakan oleh AI Codex):
+  - **Editable Untuk items**: dynamic list dengan add/remove, mirror behavior dari Menimbang/Dasar.
+  - **Editor placement**: dipindah ke bawah input tanggal di sidebar.
+  - **One-day activity task type**: task type baru untuk kegiatan 1 hari.
+  - **Auto-detect same-date** tasks sebagai one-day di builder.
+  - **Skip auto biaya** untuk one-day tasks.
+  - **Journey fields tetap editable** untuk same-date tasks (asal/tujuan).
+  - **Biaya line editable**: biaya sekarang masuk ke untuk items dan editable, bukan auto-generated lagi.
+  - **Persist via `maksud_tujuan`**: custom Untuk items disimpan di `maksud_tujuan` dan diparse saat re-open ST.
+- **Files modified (2)**:
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx` (+296/-46)
+  - `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx` (+19/-3)
+  - Total: +293 / -55 lines
+- **Validation** (sebelum merge):
+  - `npm run lint -- --max-warnings=0` clean
+  - `npx tsc --noEmit` clean
+  - `npm run build` clean
+- **Production deploy steps (oleh Claude Sonnet 4.5)**:
+  1. SSH ke `ec2-user@15.135.114.1` — pulled `7d5212b -> de9da95` (8 files, +968/-97 termasuk #388 yang sebelumnya belum deploy).
+  2. `docker-compose build backend frontend` — both images rebuilt successfully.
+  3. `docker-compose up -d backend frontend` — containers recreated.
+  4. `php artisan migrate --force` → `Nothing to migrate`.
+  5. Container status: `bksda-backend` Up, `bksda-frontend` Up, others Up 10-11 days.
+  6. Production health: `https://bksdakaltim.net/login` → HTTP 200.
+- **Catatan**: Issue #388 (PLH template) yang sebelumnya merged tapi belum di-deploy ikut ke-deploy bersamaan di batch ini.
 
 ---
 
