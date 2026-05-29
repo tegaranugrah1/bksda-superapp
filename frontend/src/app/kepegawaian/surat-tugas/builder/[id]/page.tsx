@@ -1115,26 +1115,6 @@ export default function STBuilderPage() {
             </div>
           </FormSection>
 
-          <FormSection title="Untuk" action={<button onClick={() => setUntukItems([...untukItems, { id: Math.random().toString(), text: "" }])} className="text-[10px] text-blue-600 font-bold uppercase"><Plus className="w-3 h-3" /> Tambah</button>}>
-            <div className="space-y-3">
-              {untukItems.map((item, idx) => (
-                <div key={item.id} className="flex gap-2">
-                  <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 2}.</span>
-                  <textarea
-                    value={item.text}
-                    onChange={e => {
-                      const nextItems = [...untukItems];
-                      nextItems[idx].text = e.target.value;
-                      setUntukItems(nextItems);
-                    }}
-                    className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white"
-                  />
-                  <button onClick={() => setUntukItems(untukItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              ))}
-            </div>
-          </FormSection>
-
           <FormSection title="Kepada (Personil)" action={<span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">{selectedEmployees.length}</span>}>
             <div className="relative" ref={dropdownRef}>
               <div className="relative">
@@ -1298,6 +1278,32 @@ export default function STBuilderPage() {
                   Mode Beda Hari aktif: tanggal kegiatan dihitung otomatis dari tanggal mulai paling awal sampai tanggal selesai paling akhir di daftar pegawai.
                 </p>
               )}
+
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Untuk</h3>
+                  <button onClick={() => setUntukItems([...untukItems, { id: Math.random().toString(), text: "" }])} className="inline-flex items-center gap-1 text-[10px] text-blue-600 font-bold uppercase">
+                    <Plus className="w-3 h-3" /> Tambah
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {untukItems.map((item, idx) => (
+                    <div key={item.id} className="flex gap-2">
+                      <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 2}.</span>
+                      <textarea
+                        value={item.text}
+                        onChange={e => {
+                          const nextItems = [...untukItems];
+                          nextItems[idx].text = e.target.value;
+                          setUntukItems(nextItems);
+                        }}
+                        className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white"
+                      />
+                      <button onClick={() => setUntukItems(untukItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </FormSection>
 
