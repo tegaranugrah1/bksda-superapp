@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import axios from "axios";
 import { MapPin, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { sanitizeHtml } from "@/lib/utils";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 const KawasanMap = dynamic(() => import("../_components/KawasanMap"), {
@@ -100,7 +101,7 @@ export default function KawasanDetailPage() {
       {/* Konten Deskripsi */}
       <div
         className="prose prose-green max-w-none text-gray-700 leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: data.deskripsi || "" }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.deskripsi || "") }}
       />
 
       {/* Peta Lokasi */}

@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
 import { ArrowLeft, Loader2, Shield } from "lucide-react";
+import { sanitizeHtml } from "@/lib/utils";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -157,7 +158,7 @@ export default function TslDetailPage() {
       {/* Deskripsi */}
       <div
         className="prose prose-green prose-lg max-w-none text-gray-700"
-        dangerouslySetInnerHTML={{ __html: data.deskripsi || "" }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.deskripsi || "") }}
       />
     </div>
   );

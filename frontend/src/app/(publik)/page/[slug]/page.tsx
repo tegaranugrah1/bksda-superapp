@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { sanitizeHtml } from "@/lib/utils";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 const STORAGE = process.env.NEXT_PUBLIC_STORAGE_URL;
@@ -120,7 +121,7 @@ export default function GenericCmsPage() {
             prose-a:text-green-700 prose-a:no-underline hover:prose-a:underline
             prose-strong:text-gray-900
             prose-ul:text-gray-600 prose-ol:text-gray-600"
-          dangerouslySetInnerHTML={{ __html: page.konten }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(page.konten) }}
         />
 
         {/* Back Link */}

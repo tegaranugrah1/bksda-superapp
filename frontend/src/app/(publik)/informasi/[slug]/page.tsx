@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
+import { sanitizeHtml } from "@/lib/utils";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 const STORAGE = process.env.NEXT_PUBLIC_STORAGE_URL;
@@ -175,7 +176,7 @@ export default function InformasiDetailPage() {
             `}} />
             <div
               className="cms-content text-gray-700 text-base md:text-lg leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: berita.konten.replace(/&nbsp;/g, " ") }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(berita.konten.replace(/&nbsp;/g, " ")) }}
             />
           </article>
 
