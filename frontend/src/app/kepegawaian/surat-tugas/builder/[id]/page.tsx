@@ -407,6 +407,7 @@ export default function STBuilderPage() {
     [
       buildUntukText(),
       ...getPreviewUntukItems().map((item) => item.text),
+      buildBiayaText(),
     ]
       .filter((item) => item && item.trim())
       .join("\n");
@@ -1520,7 +1521,7 @@ export default function STBuilderPage() {
             <STBuilderPreview 
               stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
               menimbangItems={getPreviewMenimbangItems()} dasarItems={dasarItems} untukItems={getPreviewUntukItems()} selectedEmployees={selectedEmployees}
-              buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
+              buildUntukText={buildUntukText}
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               tembusanItems={tembusanItems}
               headerTitle={headerTitle}

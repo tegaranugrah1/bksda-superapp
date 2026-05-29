@@ -31,7 +31,7 @@ interface PreviewProps {
   untukItems?: DasarItem[];
   selectedEmployees: Employee[];
   buildUntukText: () => string;
-  buildBiayaText: () => string;
+  buildBiayaText?: () => string;
   kotaSurat: string;
   tanggalSurat: string;
   kepalaBalai: { name: string; nip: string };
@@ -53,7 +53,6 @@ export default function STBuilderPreview({
   untukItems,
   selectedEmployees,
   buildUntukText,
-  buildBiayaText,
   kotaSurat,
   tanggalSurat,
   kepalaBalai,
@@ -260,7 +259,6 @@ export default function STBuilderPreview({
                   {[
                     buildUntukText(),
                     ...additionalUntukItems,
-                    buildBiayaText(),
                   ]
                     .filter(item => item && item.trim())
                     .map((item, idx) => (
