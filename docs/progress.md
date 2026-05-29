@@ -1,3 +1,69 @@
+# Progress - Phase 72: Security Hardening + Migrasi VPS ke Dokploy
+
+> Document updated: 2026-05-29
+> Status: Issue #396 **MERGED** (PR #397, commit `6c06307`); **TIDAK deploy ke SSH lama** karena akan migrasi VPS ke Dokploy panel.
+
+---
+
+## Issue #396: Security hardening menyeluruh hasil audit
+
+### Status: MERGED (tidak di-deploy ke server lama)
+- PR #397 merged ke `main` (merge commit `6c06307`). Remote branch deleted.
+- Commit hardening: `cc62fe7`.
+- Audit dijalankan dengan skill `security-review` + `ui-ux-pro-max` (`uipro-cli` di-install via `npm i -g uipro-cli` lalu `uipro init --ai kiro` → `.kiro/steering/ui-ux-pro-max/`).
+
+### Filosofi
+Audit dulu (read-only), lapor temuan dengan severity, lalu fix tanpa mengubah style/desain. Kombinasi review kode + config deploy + dependency.
+
+### HIGH yang diperbaiki
+1. **`APP_DEBUG: "true"` → `"false"`** di `docker-compose.prod.yml`. Mencegah kebocoran stack trace, env, dan query DB ke user di production.
+2. **Stored XSS** — 4 halaman CMS publik kini sanitasi via DOMPurify:
+   - `app/(publik)/page/[slug]/page.tsx`
+   - `app/(publik)/informasi/[slug]/page.tsx`
+   - `app/(publik)/tsl/[slug]/page.tsx`
+   - `app/(publik)/kawasan/[slug]/page.tsx`
+   
+   Bonus finding: homepage (`app/page.tsx`) sebelumnya pakai `sanitizeHtml` lokal yang **lemah** (cuma regex strip `<script>`, tidak blok `onerror=`/`javascript:`) → diganti pakai versi DOMPurify dari `@/lib/utils`.
+3. **Kredensial fallback hardcoded dihapus** — `DB_PASSWORD`/`RUSTFS_PASSWORD`/`APP_KEY` jadi `${VAR:?required}` agar gagal jelas saat secret hilang. `RUSTFS_USER` tetap default (bukan secret, & tidak ada di server `.env.prod`) supaya deploy tidak putus.
+
+### MODERATE yang diperbaiki
+4. **Dependencies**: Next.js 16.2.4 → **16.2.6** (middleware/proxy bypass, CSP-nonce XSS, cache poisoning, image DoS, SSRF) + `qs` DoS + `brace-expansion` via `npm audit fix` (non-breaking). Sisa `quill`/`react-quill-new` (admin CMS, XSS pada fitur export yang tidak dipakai, output sudah disanitasi) dibiarkan — fix-nya breaking downgrade → accepted risk.
+5. **nginx security headers** (`deploy/nginx.conf`, server 443): HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.
+
+### Validasi (sudah lulus)
+- `npx eslint --max-warnings=0` clean
+- `npx tsc --noEmit` clean
+- `npm run build` clean (59/59)
+- `docker compose -f docker-compose.prod.yml config` valid (dengan dummy env)
+- Server `.env.prod` keys verified: `APP_KEY`, `DB_PASSWORD`, `RUSTFS_PASSWORD` set; `RUSTFS_USER` tidak ada (sengaja default)
+
+### Catatan: TIDAK deploy ke server lama
+Setelah PR #397 merged, server di-pull `057a575 -> 6c06307` tapi **container tidak di-rebuild/recreate**. User memilih migrasi VPS ke Dokploy panel daripada deploy ulang ke setup AWS lama. Jadi #396 akan aktif setelah Dokploy redeploy selesai.
+
+---
+
+## Migrasi VPS → Dokploy (in progress)
+
+### Latar Belakang
+- VPS lama: Amazon Linux 2023, single 20GB disk, **92% penuh** (1.7GB free).
+- Disk usage: real data cuma ~88 MB (DB 23 MB, rustfs 10 MB, backend-storage 12 KB), tapi Docker images 7.3 GB + build cache 8.5 GB = ~14 GB Docker bloat.
+- User ingin pakai Dokploy panel untuk learning + cleanup.
+
+### Domain (sudah confirmed dari user)
+- `bksdakaltim.net` — A `@`/`api`/`storage` → `15.135.114.1`, CNAME `www` → `bksdakaltim.net.`. Provider: NEO DNS.
+
+### Plan
+1. **Backup** (in progress): `pg_dump` database, `tar` rustfs files, copy `.env.prod` → download ke lokal.
+2. **Wipe**: `docker compose down -v`, `docker system prune -a --volumes` (free ~14 GB), opsional hapus repo dir.
+3. **Install Dokploy**: `curl -sSL https://dokploy.com/install.sh | sh` (pasang Traefik + Postgres + Redis + dashboard di port 3000).
+4. **Redeploy via Dokploy panel** (user-driven untuk belajar): create project → add Postgres → add app dari GitHub repo → set env vars → restore DB dump → restore rustfs files → arahkan domain. Pakai Dokploy "Docker Compose" service type, reuse `docker-compose.prod.yml` minus nginx/certbot custom (Traefik handle SSL otomatis).
+
+### Status saat ini
+- Docs sudah di-update.
+- Backup belum dimulai (next step).
+
+---
+
 # Progress - Phase 71: Refactor Modul BMN auction-candidates (DRY Shared Components) — MERGED + DEPLOYED
 
 > Document updated: 2026-05-29

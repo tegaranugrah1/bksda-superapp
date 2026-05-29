@@ -147,17 +147,19 @@ git push origin main
 - [x] Issue #392: Refactor modul kepegawaian (DRY — shared components + libs). PR #393 merged ke `main` (merge commit `f326ed3`); remote branch deleted. Extract duplikasi builder↔create ke `surat-tugas/_lib/` (types, constants, helpers, print) + shared `_components/` (FormSection, EditableItemListSection, TembusanSection, PenandatanganSection). Inbox extract `inbox/_lib/` (types, status-helpers). Zero behavior change. builder 1500→1195, create 1119→882, inbox 704→654. Belum deploy SSH.
 - [x] Issue #394: Refactor modul BMN auction-candidates (DRY — shared print engine + shell). PR #395 merged ke `main` (merge commit `057a575`); remote branch deleted. Extract `_lib/print-pernyataan.ts` + `_components/PernyataanDocument.tsx` (3 surat pernyataan: SPTJM/Nilai Limit/Tugas → 61/61/47 baris) dan `_lib/sk-print.ts` `runSkPagination()` (engine pagination ~230 baris yang sebelumnya copy-paste 3x di SK Penghentian/Panitia/Tim Penilai → 800/638/572 baris). Plus fix: isi "Menetapkan" pada MEMUTUSKAN jadi bold di 3 SK. Zero behavior change, net −536 baris. **Sudah deploy SSH.**
 - [x] **Production Deploy Batch (2026-05-29 #2)**: Server pulled main `de9da95 -> 057a575` (issue #392 + #394 + docs). Frontend rebuilt/recreated (build 59/59). No new migrations (no backend changes). Production healthy: `bksda-frontend` Up, `bksda-backend` Up, public `/bmn/auction-candidates` HTTPS 307 (protected, expected).
+- [x] Issue #396: Security hardening menyeluruh hasil audit (skill `security-review` + `ui-ux-pro-max`). PR #397 merged ke `main` (merge commit `6c06307`); remote branch deleted. **HIGH**: `APP_DEBUG` true→false di `docker-compose.prod.yml`; XSS sanitization 4 halaman CMS publik (page/informasi/tsl/kawasan) pakai `sanitizeHtml()` DOMPurify dari `@/lib/utils` (homepage juga: ganti `sanitizeHtml` lokal yang lemah dengan versi DOMPurify); kredensial fallback hardcoded dihapus (`${VAR:?required}` untuk `DB_PASSWORD`/`RUSTFS_PASSWORD`/`APP_KEY`). **MODERATE**: Next.js 16.2.4→16.2.6 (middleware bypass, CSP-nonce XSS, cache poisoning, image DoS, SSRF) + qs DoS + brace-expansion via `npm audit fix`; nginx security headers di server 443 (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy). Validasi: eslint clean, tsc clean, build 59/59, `docker compose config` valid. Zero perubahan style/desain. **TIDAK deploy ke SSH lama** (akan migrasi VPS ke Dokploy).
+- [ ] **Migrasi VPS ke Dokploy**: rencana wipe VPS lama (Amazon Linux 2023, 20GB, 92% penuh — 14GB Docker bloat) lalu install Dokploy panel. Backup database (`bksda_superapp` 23 MB) + rustfs files (10 MB) + `.env.prod` ke lokal dulu, baru wipe. Kemudian Dokploy install (Traefik + Postgres + Redis + dashboard), redeploy via panel pakai docker-compose service type (tanpa nginx/certbot custom — Traefik handle SSL). Domain: `bksdakaltim.net` (A `@`/`api`/`storage` → 15.135.114.1, CNAME `www`).
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #394: Refactor BMN auction-candidates DRY (PR #395 merged + deployed) |
-| **Issue Sedang Dikerjakan** | None |
+| **Issue Terakhir Selesai** | Issue #396: Security hardening (PR #397 merged, belum deploy SSH) |
+| **Issue Sedang Dikerjakan** | Migrasi VPS ke Dokploy (backup → wipe → install Dokploy → redeploy) |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `057a575` |
-| **Commit Production Server** | `057a575` (#392 + #394 sudah di-deploy) |
-| **Status** | Issue #394 selesai, merged & deployed. Refactor DRY modul BMN auction-candidates: 3 surat pernyataan share `_lib/print-pernyataan.ts` + `_components/PernyataanDocument.tsx`; 3 SK (Penghentian/Panitia/Tim Penilai) share engine pagination `_lib/sk-print.ts` `runSkPagination()` (sebelumnya copy-paste 3x). Plus fix isi "Menetapkan" jadi bold di 3 SK. Zero behavior change, net −536 baris. Production sudah di-deploy ke `057a575` (frontend rebuild, no migration). |
-| **Model Terakhir** | Claude Opus 4.8 |
-| **Timestamp** | 2026-05-29T17:00:00+08:00 |
+| **Commit Terakhir di Main** | `6c06307` |
+| **Commit Production Server** | `057a575` (server di-pull ke `6c06307` tapi container belum di-rebuild; #396 BELUM aktif di production — akan ditinggal karena migrasi ke Dokploy) |
+| **Status** | Issue #396 selesai & merged. Security hardening: APP_DEBUG=false, sanitize 4 halaman CMS + homepage (DOMPurify konsisten), hapus credential fallback, Next.js 16.2.6, nginx security headers. **TIDAK deploy ke server lama.** Next: backup data lalu migrasi VPS ke Dokploy panel (untuk learning + cleanup 14GB Docker bloat). |
+| **Model Terakhir** | Claude Opus 4.7 |
+| **Timestamp** | 2026-05-29T18:30:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
