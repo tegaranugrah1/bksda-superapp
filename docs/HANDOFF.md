@@ -148,18 +148,33 @@ git push origin main
 - [x] Issue #394: Refactor modul BMN auction-candidates (DRY — shared print engine + shell). PR #395 merged ke `main` (merge commit `057a575`); remote branch deleted. Extract `_lib/print-pernyataan.ts` + `_components/PernyataanDocument.tsx` (3 surat pernyataan: SPTJM/Nilai Limit/Tugas → 61/61/47 baris) dan `_lib/sk-print.ts` `runSkPagination()` (engine pagination ~230 baris yang sebelumnya copy-paste 3x di SK Penghentian/Panitia/Tim Penilai → 800/638/572 baris). Plus fix: isi "Menetapkan" pada MEMUTUSKAN jadi bold di 3 SK. Zero behavior change, net −536 baris. **Sudah deploy SSH.**
 - [x] **Production Deploy Batch (2026-05-29 #2)**: Server pulled main `de9da95 -> 057a575` (issue #392 + #394 + docs). Frontend rebuilt/recreated (build 59/59). No new migrations (no backend changes). Production healthy: `bksda-frontend` Up, `bksda-backend` Up, public `/bmn/auction-candidates` HTTPS 307 (protected, expected).
 - [x] Issue #396: Security hardening menyeluruh hasil audit (skill `security-review` + `ui-ux-pro-max`). PR #397 merged ke `main` (merge commit `6c06307`); remote branch deleted. **HIGH**: `APP_DEBUG` true→false di `docker-compose.prod.yml`; XSS sanitization 4 halaman CMS publik (page/informasi/tsl/kawasan) pakai `sanitizeHtml()` DOMPurify dari `@/lib/utils` (homepage juga: ganti `sanitizeHtml` lokal yang lemah dengan versi DOMPurify); kredensial fallback hardcoded dihapus (`${VAR:?required}` untuk `DB_PASSWORD`/`RUSTFS_PASSWORD`/`APP_KEY`). **MODERATE**: Next.js 16.2.4→16.2.6 (middleware bypass, CSP-nonce XSS, cache poisoning, image DoS, SSRF) + qs DoS + brace-expansion via `npm audit fix`; nginx security headers di server 443 (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy). Validasi: eslint clean, tsc clean, build 59/59, `docker compose config` valid. Zero perubahan style/desain. **TIDAK deploy ke SSH lama** (akan migrasi VPS ke Dokploy).
-- [ ] **Migrasi VPS ke Dokploy**: rencana wipe VPS lama (Amazon Linux 2023, 20GB, 92% penuh — 14GB Docker bloat) lalu install Dokploy panel. Backup database (`bksda_superapp` 23 MB) + rustfs files (10 MB) + `.env.prod` ke lokal dulu, baru wipe. Kemudian Dokploy install (Traefik + Postgres + Redis + dashboard), redeploy via panel pakai docker-compose service type (tanpa nginx/certbot custom — Traefik handle SSL). Domain: `bksdakaltim.net` (A `@`/`api`/`storage` → 15.135.114.1, CNAME `www`).
+- [~] **Migrasi VPS ke Dokploy** (in progress, paused 2026-05-29 sore):
+  - [x] Backup data ke lokal `backups/pre-dokploy-20260529-163240/`: `bksda_db.dump` (920KB pg_dump custom format), `bksda_db.sql` (13MB plain SQL, 45 CREATE TABLE), `rustfs-data.tar.gz` (9.4MB), `backend-storage.tar.gz` (231B), `env.prod.bak` (.env.prod copy, perm 600). Folder `backups/` di-gitignore.
+  - [x] Wipe VPS: `docker-compose down -v --remove-orphans` + `docker system prune -a --volumes -f`. Reclaimed 15.75GB. Disk 92%→23% (16GB free).
+  - [x] Install Dokploy v0.29.5: `curl -sSL https://dokploy.com/install.sh | sudo sh`. Containers up: `dokploy.1` (healthy), `dokploy-postgres`, `dokploy-redis`, `dokploy-traefik`. Port 3000 listening.
+  - [x] AWS Security Group `launch-wizard-2` (`sg-01fc49e036062a26c`): tambah inbound rule TCP 3000 source `0.0.0.0/0` (sementara untuk akses dashboard awal — **harus ditutup setelah HTTPS dashboard aktif**).
+  - [x] Akses dashboard `http://15.135.114.1:3000` & registrasi super admin pertama (akun di password manager user).
+  - [x] DNS NEO DNS: tambah A record `dokploy` → `15.135.114.1` (5 records total: `@`/`api`/`dokploy`/`storage` + CNAME `www`). DNS belum propagasi penuh ke nameserver authoritative (`satu`/`dua.neodns.id.`) saat sesi berakhir — tunggu propagasi semalam.
+  - [ ] **NEXT (besok)**: setup domain dashboard `dokploy.bksdakaltim.net` + HTTPS (Settings → Web Server di Dokploy, Let's Encrypt auto). Setelah HTTPS aktif & terbukti, **TUTUP port 3000 di Security Group AWS**.
+  - [ ] Create project "BKSDA SuperApp" di Dokploy.
+  - [ ] Add Postgres database service di project + restore dump (`pg_restore -Fc bksda_db.dump`).
+  - [ ] Add application via Docker Compose service type — pakai `docker-compose.prod.yml` repo, **drop service `nginx`/`certbot` custom** (Traefik handle SSL otomatis), keep `backend`/`frontend`/`rustfs`/`db` (atau ganti `db` ke Postgres yang dikelola Dokploy).
+  - [ ] Set environment variables di Dokploy panel (paste dari `env.prod.bak` lokal — `APP_KEY`, `DB_PASSWORD`, `RUSTFS_PASSWORD`).
+  - [ ] Setup domains produksi: `bksdakaltim.net` → frontend, `api.bksdakaltim.net` → backend, `storage.bksdakaltim.net` → rustfs. Traefik issue Let's Encrypt cert otomatis untuk masing-masing.
+  - [ ] Restore rustfs files: `tar -xzf rustfs-data.tar.gz` ke volume rustfs baru.
+  - [ ] Deploy + smoke test (login, list aset BMN, list employee, generate ST, cek file storage).
+  - [ ] Setelah stabil ≥1 minggu: hapus `bksda-superapp.pem` lama (kalau key SSH masih valid) atau pertimbangkan cleanup AWS-side.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #396: Security hardening (PR #397 merged, belum deploy SSH) |
-| **Issue Sedang Dikerjakan** | Migrasi VPS ke Dokploy (backup → wipe → install Dokploy → redeploy) |
+| **Issue Terakhir Selesai** | Issue #396: Security hardening (PR #397 merged, akan aktif setelah Dokploy redeploy) |
+| **Issue Sedang Dikerjakan** | Migrasi VPS ke Dokploy (paused — DNS propagasi pending, lanjut besok) |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `6c06307` |
-| **Commit Production Server** | `057a575` (server di-pull ke `6c06307` tapi container belum di-rebuild; #396 BELUM aktif di production — akan ditinggal karena migrasi ke Dokploy) |
-| **Status** | Issue #396 selesai & merged. Security hardening: APP_DEBUG=false, sanitize 4 halaman CMS + homepage (DOMPurify konsisten), hapus credential fallback, Next.js 16.2.6, nginx security headers. **TIDAK deploy ke server lama.** Next: backup data lalu migrasi VPS ke Dokploy panel (untuk learning + cleanup 14GB Docker bloat). |
+| **Commit Terakhir di Main** | `6c06307` (kode) + `eef13ad` (docs) + `50dfeab` (gitignore) |
+| **Commit Production Server** | N/A — VPS sudah di-wipe, Dokploy fresh install (dashboard `http://15.135.114.1:3000`, belum redeploy app) |
+| **Status** | Phase 1 (backup) ✅, Phase 2 (wipe, free 15.75GB) ✅, Phase 3 (install Dokploy v0.29.5) ✅, Phase 4 (redeploy app) **paused — DNS `dokploy.bksdakaltim.net` belum propagasi**. Production app currently **DOWN** (intentional — sedang migrasi). Dashboard Dokploy live di IP. |
 | **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-29T18:30:00+08:00 |
+| **Timestamp** | 2026-05-29T20:00:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
