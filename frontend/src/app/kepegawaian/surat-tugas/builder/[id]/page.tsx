@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   FileText,
+  GripVertical,
   Printer,
   Plus,
   Trash2,
@@ -77,6 +78,14 @@ function getDefaultUntukItem(templateType?: string | null) {
   return "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.";
 }
 
+function getDefaultUntukItems(templateType?: string | null, biayaText = ""): DasarItem[] {
+  const items = [{ id: "untuk-default", text: getDefaultUntukItem(templateType) }];
+  if (biayaText.trim()) {
+    items.push({ id: "untuk-biaya", text: biayaText });
+  }
+  return items;
+}
+
 function splitStoredUntukItems(value?: string | null) {
   return (value || "")
     .split(/\r?\n/)
@@ -111,6 +120,24 @@ function shouldRenderAsSingleDayActivity(
     startDate === endDate &&
     (isSingleDayActivityPrefix(prefix) || !["bmn-pemeriksaan", "beda-hari", "plh"].includes(templateType || ""))
   );
+}
+
+function buildBiayaTextFor(
+  fundingId: string,
+  otherSource: string,
+  letterDate: string,
+  templateType?: string | null,
+) {
+  if (templateType === "bmn-pemeriksaan" || templateType === "plh") return "";
+  const opt = SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
+  if (opt?.biayaText) {
+    const tahun = letterDate ? new Date(letterDate).getFullYear().toString() : new Date().getFullYear().toString();
+    return opt.biayaText.replace(/{tahun}/g, tahun);
+  }
+  if (fundingId === 'other') {
+    return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${otherSource || '...'};`;
+  }
+  return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;`;
 }
 
 interface SumberDanaOption {
@@ -211,9 +238,7 @@ export default function STBuilderPage() {
     { id: "1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
     { id: "2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.` },
   ]);
-  const [untukItems, setUntukItems] = useState<DasarItem[]>([
-    { id: "untuk-default", text: getDefaultUntukItem(null) },
-  ]);
+  const [untukItems, setUntukItems] = useState<DasarItem[]>(getDefaultUntukItems(null));
 
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
@@ -244,6 +269,7 @@ export default function STBuilderPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [suratStatus, setSuratStatus] = useState<string>("");
+  const [draggedUntukIndex, setDraggedUntukIndex] = useState<number | null>(null);
   const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
@@ -407,28 +433,44 @@ export default function STBuilderPage() {
     [
       buildUntukText(),
       ...getPreviewUntukItems().map((item) => item.text),
-      buildBiayaText(),
     ]
       .filter((item) => item && item.trim())
       .join("\n");
 
-  // Build biaya text
-  const buildBiayaText = (): string => {
-    // One-day kegiatan mode keeps every extra "Untuk" line user-managed.
-    if (isSingleDayActivity) return '';
-    // BMN Penghapusan template: no biaya line in Untuk list (regardless of sumberDana)
-    if (templateType === 'bmn-pemeriksaan') return '';
-    // PLH template: skip biaya line (PLH tugas internal, tidak ada biaya)
-    if (templateType === 'plh') return '';
-    const opt = SUMBER_DANA_OPTIONS.find(o => o.id === sumberDana);
-    if (opt?.biayaText) {
-      const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
-      return opt.biayaText.replace(/{tahun}/g, tahun);
+  const syncBiayaUntukItem = (nextBiayaText: string) => {
+    setUntukItems((prev) => {
+      const existingIndex = prev.findIndex((item) => isGeneratedBiayaItem(item.text));
+      if (!nextBiayaText.trim()) {
+        return existingIndex >= 0 ? prev.filter((_, idx) => idx !== existingIndex) : prev;
+      }
+      if (existingIndex >= 0) {
+        return prev.map((item, idx) => idx === existingIndex ? { ...item, text: nextBiayaText } : item);
+      }
+      return [...prev, { id: "untuk-biaya", text: nextBiayaText }];
+    });
+  };
+
+  const handleSumberDanaChange = (newFunding: string) => {
+    setSumberDana(newFunding);
+    updateDasarFromFunding(newFunding, tanggalSurat);
+    syncBiayaUntukItem(buildBiayaTextFor(newFunding, sumberDanaOther, tanggalSurat, templateType));
+  };
+
+  const handleSumberDanaOtherChange = (value: string) => {
+    setSumberDanaOther(value);
+    if (sumberDana === "other") {
+      syncBiayaUntukItem(buildBiayaTextFor("other", value, tanggalSurat, templateType));
     }
-    if (sumberDana === 'other') {
-      return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${sumberDanaOther || '...'};`;
-    }
-    return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;`;
+  };
+
+  const moveUntukItem = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+    setUntukItems((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
   };
 
   // Function to update Dasar items based on Funding
@@ -542,7 +584,7 @@ export default function STBuilderPage() {
     setKotaTujuan("");
     setTempatKegiatan("");
     setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal " + formatDateIndonesian(today));
-    setUntukItems([{ id: "bmn-untuk-1", text: getDefaultUntukItem("bmn-pemeriksaan") }]);
+    setUntukItems(getDefaultUntukItems("bmn-pemeriksaan"));
 
     setTembusanItems([]);
   };
@@ -550,7 +592,7 @@ export default function STBuilderPage() {
   // Apply Beda Hari template — Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
   const applyBedaHariTemplate = () => {
     setTemplateType("beda-hari");
-    setUntukItems([{ id: "untuk-default", text: getDefaultUntukItem("beda-hari") }]);
+    setUntukItems(getDefaultUntukItems("beda-hari", buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, "beda-hari")));
     // Initialize employeeDates dari tanggalMulai/Selesai global jika sudah diisi
     setEmployeeDates((prev) => {
       const next = { ...prev };
@@ -599,7 +641,7 @@ export default function STBuilderPage() {
     setNamaKegiatan(
       `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`,
     );
-    setUntukItems([{ id: "plh-untuk-1", text: getDefaultUntukItem("plh") }]);
+    setUntukItems(getDefaultUntukItems("plh"));
 
     setTembusanItems([
       "Direktur Jenderal KSDAE;",
@@ -617,7 +659,7 @@ export default function STBuilderPage() {
       applyPlhTemplate();
     } else {
       setTemplateType(null);
-      setUntukItems([{ id: "untuk-default", text: getDefaultUntukItem(null) }]);
+      setUntukItems(getDefaultUntukItems(null, buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, null)));
     }
   };
 
@@ -704,12 +746,11 @@ export default function STBuilderPage() {
 
         const storedUntukLines = splitStoredUntukItems(data.maksud_tujuan);
         const storedAdditionalUntuk = storedUntukLines
-          .slice(1)
-          .filter((item) => !isGeneratedBiayaItem(item));
+          .slice(1);
         setUntukItems(
           storedAdditionalUntuk.length > 0
             ? toDasarItems(storedAdditionalUntuk, "stored-untuk")
-            : [{ id: "untuk-default", text: getDefaultUntukItem(data.template_type) }],
+            : getDefaultUntukItems(data.template_type, buildBiayaTextFor(funding, data.sumber_dana_other || "", new Date().toISOString().substring(0, 10), data.template_type)),
         );
 
         const activityStr = storedUntukLines[0] || data.maksud_tujuan || "";
@@ -1135,6 +1176,7 @@ export default function STBuilderPage() {
                     const newDate = e.target.value;
                     setTanggalSurat(newDate);
                     updateDasarFromFunding(sumberDana, newDate);
+                    syncBiayaUntukItem(buildBiayaTextFor(sumberDana, sumberDanaOther, newDate, templateType));
                   }} 
                   className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 text-zinc-900 dark:text-white" 
                 />
@@ -1144,13 +1186,9 @@ export default function STBuilderPage() {
 
           <FormSection title="Sumber Dana">
             <div className="space-y-2">
-              <select
-                value={sumberDana}
-                onChange={e => {
-                  const newFunding = e.target.value;
-                  setSumberDana(newFunding);
-                  updateDasarFromFunding(newFunding, tanggalSurat);
-                }}
+              <select 
+                value={sumberDana} 
+                onChange={e => handleSumberDanaChange(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
               >
                 {SUMBER_DANA_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
@@ -1158,7 +1196,7 @@ export default function STBuilderPage() {
               {sumberDana === 'other' && (
                 <input 
                   value={sumberDanaOther} 
-                  onChange={e => setSumberDanaOther(e.target.value)} 
+                  onChange={e => handleSumberDanaOtherChange(e.target.value)} 
                   placeholder="Sebutkan sumber dana..." 
                   className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 animate-in slide-in-from-top-1 text-zinc-900 dark:text-white" 
                 />
@@ -1380,8 +1418,24 @@ export default function STBuilderPage() {
                 </div>
                 <div className="space-y-3">
                   {untukItems.map((item, idx) => (
-                    <div key={item.id} className="flex gap-2">
+                    <div
+                      key={item.id}
+                      draggable
+                      onDragStart={() => setDraggedUntukIndex(idx)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (draggedUntukIndex !== null) {
+                          moveUntukItem(draggedUntukIndex, idx);
+                        }
+                        setDraggedUntukIndex(null);
+                      }}
+                      onDragEnd={() => setDraggedUntukIndex(null)}
+                      className={`flex gap-2 rounded-xl ${draggedUntukIndex === idx ? "opacity-50" : ""}`}
+                    >
                       <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 2}.</span>
+                      <span className="mt-2 cursor-grab text-zinc-300 active:cursor-grabbing dark:text-zinc-600" title="Geser untuk mengubah urutan">
+                        <GripVertical className="w-3.5 h-3.5" />
+                      </span>
                       <textarea
                         value={item.text}
                         onChange={e => {

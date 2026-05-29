@@ -53,6 +53,7 @@ export default function STBuilderPreview({
   untukItems,
   selectedEmployees,
   buildUntukText,
+  buildBiayaText,
   kotaSurat,
   tanggalSurat,
   kepalaBalai,
@@ -75,6 +76,7 @@ export default function STBuilderPreview({
       : isBmnTemplate
       ? "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut."
       : "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
+    buildBiayaText?.() || "",
   ];
   const additionalUntukItems = untukItems
     ? untukItems.map((item) => item.text)
