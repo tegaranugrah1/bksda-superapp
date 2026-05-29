@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -25,199 +25,34 @@ import {
   formatNIP,
   daysBetween,
   numberToWords,
-  indexToLetter,
   buildFoluMenimbangText,
   isGeneratedFoluMenimbangText,
 } from "@/lib/letter-utils";
+import {
+  DEFAULT_KEPALA_BALAI,
+  PLH_WILAYAH_PLACEHOLDER,
+  PLH_KEGIATAN_KASI_PLACEHOLDER,
+  SUMBER_DANA_OPTIONS,
+  buildBiayaTextFor,
+  cleanPlhKegiatanKasi,
+  extractPlhWilayahFromPosition,
+  getDefaultUntukItems,
+  isGeneratedBiayaItem,
+  isSingleDayActivityPrefix,
+  normalizeSumberDana,
+  shouldRenderAsSingleDayActivity,
+  splitStoredUntukItems,
+  toDasarItems,
+  printSuratTugas,
+  type DasarItem,
+  type Employee,
+} from "../../_lib";
+import { FormSection } from "../../_components/FormSection";
+import { EditableItemListSection } from "../../_components/EditableItemListSection";
+import { TembusanSection } from "../../_components/TembusanSection";
+import { PenandatanganSection } from "../../_components/PenandatanganSection";
 
-// --- Types ---
-interface Employee {
-  id: string;
-  nama_lengkap: string;
-  name?: string;
-  nip: string;
-  jabatan: string;
-  department?: string;
-  position?: string;
-}
-
-interface DasarItem {
-  id: string;
-  text: string;
-}
-
-const DEFAULT_KEPALA_BALAI = {
-  name: "M. Ari Wibawanto, S.Hut., M.Sc.",
-  nip: "19740514 199903 1 001",
-};
-
-const PLH_WILAYAH_PLACEHOLDER = "{wilayah}";
-const PLH_KEGIATAN_KASI_PLACEHOLDER = "{kegiatan Kepala Seksi}";
-
-function extractPlhWilayahFromPosition(position?: string | null) {
-  const text = (position || "").trim();
-  const match = text.match(/Seksi\s+KSDA\s+Wilayah\s+(.+)$/i);
-  return match?.[1]?.trim() || text;
-}
-
-function cleanPlhKegiatanKasi(text?: string | null) {
-  return (text || "")
-    .replace(/\s+/g, " ")
-    .replace(/,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*?(?:;|\.)?$/i, "")
-    .replace(/[;.\s]+$/, "")
-    .trim();
-}
-
-function getDefaultUntukItem(templateType?: string | null) {
-  if (templateType === "plh") {
-    return "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai.";
-  }
-  if (templateType === "bmn-pemeriksaan") {
-    return "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut.";
-  }
-  return "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.";
-}
-
-function getDefaultUntukItems(templateType?: string | null, biayaText = ""): DasarItem[] {
-  const items = [{ id: "untuk-default", text: getDefaultUntukItem(templateType) }];
-  if (biayaText.trim()) {
-    items.push({ id: "untuk-biaya", text: biayaText });
-  }
-  return items;
-}
-
-function splitStoredUntukItems(value?: string | null) {
-  return (value || "")
-    .split(/\r?\n/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function isGeneratedBiayaItem(value: string) {
-  return /^(Segala biaya yang timbul|Sumber dana dibebankan)/i.test(value.trim());
-}
-
-function toDasarItems(items: string[], prefix: string): DasarItem[] {
-  return items.map((text, idx) => ({
-    id: `${prefix}-${idx}-${Date.now()}`,
-    text,
-  }));
-}
-
-function isSingleDayActivityPrefix(prefix: string) {
-  return prefix === "Melaksanakan Kegiatan";
-}
-
-function shouldRenderAsSingleDayActivity(
-  prefix: string,
-  startDate?: string | null,
-  endDate?: string | null,
-  templateType?: string | null,
-) {
-  return (
-    Boolean(startDate) &&
-    Boolean(endDate) &&
-    startDate === endDate &&
-    (isSingleDayActivityPrefix(prefix) || !["bmn-pemeriksaan", "beda-hari", "plh"].includes(templateType || ""))
-  );
-}
-
-function buildBiayaTextFor(
-  fundingId: string,
-  otherSource: string,
-  letterDate: string,
-  templateType?: string | null,
-) {
-  if (templateType === "bmn-pemeriksaan" || templateType === "plh") return "";
-  const opt = SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
-  if (opt?.biayaText) {
-    const tahun = letterDate ? new Date(letterDate).getFullYear().toString() : new Date().getFullYear().toString();
-    return opt.biayaText.replace(/{tahun}/g, tahun);
-  }
-  if (fundingId === 'other') {
-    return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${otherSource || '...'};`;
-  }
-  return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;`;
-}
-
-interface SumberDanaOption {
-  id: string;
-  label: string;
-  dasarText: string;
-  biayaText: string;
-}
-
-const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
-  { id: 'dipa', label: 'DIPA', 
-    dasarText: 'Surat Pengesahan DIPA Tahun Anggaran {tahun} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/{tahun} tanggal 24 April 2026.',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran {tahun};'
-  },
-  { id: 'kja', label: 'Dana Kerjasama KJA',
-    dasarText: 'Perjanjian kerjasama antara Balai KSDA Kalimantan Timur dan PT Kideco Jaya Agung Nomor : PKS.140/K.18/TU /Teknis/08/2023 dan Nomor : 213/KJA/LGL/CON/VIII/2023 tanggal 08 Agustus 2023.',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan PT Kideco Jaya Agung;'
-  },
-  { id: 'mja', label: 'Dana Kerjasama MJA',
-    dasarText: 'Perjanjian Kerjasama antara Kepala Balai KSDA Kalimantan Timur dengan Direktur PT Multi Jayantara Abadi Nomor : PKS.36/K.18/TU/Teknis/02/2023 dan Nomor : 001/MJA-Dir/ TPG/II /2023 tanggal 01 Februari 2023.',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan PT Multi Jayantara Abadi;'
-  },
-  { id: 'cop', label: 'Dana Kerjasama COP',
-    dasarText: 'Perjanjian Kerja Sama Antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dan Centre for Orangutan Protection (COP) Nomor: PKS.191/K.18/TU/Teknis/10/2023 dan Nomor 17/HQ10/COP/2023.',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Biaya Kerjasama BKSDA Kalimantan Timur dan Centre for Orangutan Protection (COP);'
-  },
-  { id: 'tjiwi_kimia', label: 'Dana Kerjasama PT. Tjiwi Kimia Tbk.',
-    dasarText: 'Perjanjian kerjasama antara Balai KSDA Kalimantan Timur dan PT. Pabrik Kertas Tjiwi Kimia Tbk., Nomor PKS.205/K.18/ TU/PK/12/ 2022 dan Nomor: 76/SSE JKT/APP/PKS/12/ 2022 tentang penguatan fungsi Kawasan Cagar Alam Muara Kaman Sedulang dan Pelestarian Keanekaragaman Hayati yang Dilindungi di Wilayah Kerja Balai KSDA Kalimantan Timur.',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Anggaran Perjanjian Kerja Sama antara Balai KSDA Kalimantan Timur dan PT Pabrik Kertas Tjiwi Kimia Tbk;'
-  },
-  { id: 'bosf', label: 'Dana Kerjasama BOSF',
-    dasarText: 'Perjanjian Kerjasama antara Kepala Balai KSDA Kalimantan Timur dengan Ketua Pengurus Yayasan Penyelamatan Orangutan Borneo Nomor : PKS.184/K.18/TU/PK12/2021 dan Nomor 176/YBOS /XII/2021 tanggal 6 Desember 2021.',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan Yayasan Penyelamatan Orangutan Borneo (BOSF);'
-  },
-  { id: 'can', label: 'Dana Kerjasama CAN',
-    dasarText: 'Perjanjian Kerja Sama antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dengan Conservation Action Network (CAN) Nomor : PKS.45/K.18/TU/KSA.2.5/03/2025 dan 007/K-JAK/PKS/III/2025 tanggal 14 Maret 2025.',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Biaya Kerjasama BKSDA Kalimantan Timur dan Conservation Action Network (CAN);'
-  },
-  { id: 'alert', label: 'Dana Kerjasama ALeRT',
-    dasarText: 'Perjanjian Kerjasama Antara Kepala Balai KSDA Kalimantan Timur dengan Direktur Aliansi Lestrai Rimba Terpadu (AleRT) Nomor: PKS.192/K.18/TU/Teknis/10/2023 dan Nomor: 51/PKS-ALeRT/ X/2023.',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan ALeRT (Aliansi Lestari Rimba Terpadu);'
-  },
-  { id: 'folu', label: 'Dana Kerjasama FOLU NC 2&3',
-    dasarText: '',
-    biayaText: 'Sumber dana dibebankan pada anggaran Proyek FOLU Net Sink 2030 RBC Norwegia Tahap II dan III (FOLU NC 2&3) pada AWP KSDAE - Tahun Anggaran {tahun};'
-  },
-  { id: 'dl1', label: 'DL 1 / Tidak ada biaya',
-    dasarText: '',
-    biayaText: 'Segala biaya yang timbul akibat Surat Tugas ini tidak dibebankan pada anggaran manapun (DL 1 / tanpa biaya).'
-  },
-  { id: 'other', label: 'Lainnya',
-    dasarText: '',
-    biayaText: ''
-  },
-];
-
-function normalizeSumberDana(value: string | null | undefined): string {
-  if (!value) return "dipa";
-
-  const normalized = value.toLowerCase().replace(/\s+/g, " ").trim();
-  const exactId = SUMBER_DANA_OPTIONS.find(option => option.id === normalized);
-  if (exactId) return exactId.id;
-
-  const exactLabel = SUMBER_DANA_OPTIONS.find(option => option.label.toLowerCase() === normalized);
-  if (exactLabel) return exactLabel.id;
-
-  if (normalized.includes("folu")) return "folu";
-  if (normalized.includes("dipa")) return "dipa";
-  if (normalized.includes("kja")) return "kja";
-  if (normalized.includes("mja")) return "mja";
-  if (normalized.includes("cop")) return "cop";
-  if (normalized.includes("tjiwi")) return "tjiwi_kimia";
-  if (normalized.includes("bosf")) return "bosf";
-  if (normalized.includes("can")) return "can";
-  if (normalized.includes("alert")) return "alert";
-  if (normalized.includes("dl 1") || normalized.includes("tidak ada biaya")) return "dl1";
-
-  return "other";
-}
-
+// --- Local types & constants below moved to ../../_lib ---
 export default function STBuilderPage() {
   const params = useParams();
   const router = useRouter();
@@ -264,8 +99,6 @@ export default function STBuilderPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [penandatanganSearchQuery, setPenandatanganSearchQuery] = useState("");
-  const [showPenandatanganDropdown, setShowPenandatanganDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [suratStatus, setSuratStatus] = useState<string>("");
@@ -286,26 +119,6 @@ export default function STBuilderPage() {
       (emp.nip?.toLowerCase() || "").includes(searchQuery.toLowerCase())
     )
     .slice(0, 50);
-
-  const penandatanganSearchResults = allEmployees
-    .filter((emp: Employee) => {
-      const query = penandatanganSearchQuery.toLowerCase();
-      if (!query) return true;
-      const name = emp.nama_lengkap?.toLowerCase() || emp.name?.toLowerCase() || "";
-      const nip = emp.nip?.toLowerCase() || "";
-      const position = emp.jabatan?.toLowerCase() || emp.position?.toLowerCase() || "";
-      return name.includes(query) || nip.includes(query) || position.includes(query);
-    })
-    .slice(0, 8);
-
-  const handleSelectPenandatangan = (emp: Employee) => {
-    setKepalaBalai({
-      name: emp.nama_lengkap || emp.name || DEFAULT_KEPALA_BALAI.name,
-      nip: formatNIP(emp.nip || DEFAULT_KEPALA_BALAI.nip),
-    });
-    setPenandatanganSearchQuery("");
-    setShowPenandatanganDropdown(false);
-  };
 
   const replacePlhPlaceholders = (value: string) => {
     if (templateType !== "plh") return value;
@@ -589,7 +402,7 @@ export default function STBuilderPage() {
     setTembusanItems([]);
   };
 
-  // Apply Beda Hari template — Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
+  // Apply Beda Hari template â€” Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
   const applyBedaHariTemplate = () => {
     setTemplateType("beda-hari");
     setUntukItems(getDefaultUntukItems("beda-hari", buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, "beda-hari")));
@@ -605,7 +418,7 @@ export default function STBuilderPage() {
     });
   };
 
-  // Apply PLH template — pelaksana harian Kepala Seksi
+  // Apply PLH template â€” pelaksana harian Kepala Seksi
   const applyPlhTemplate = () => {
     setTemplateType("plh");
     setHeaderTitle("KEPALA BALAI,");
@@ -791,7 +604,7 @@ export default function STBuilderPage() {
             setNamaKegiatan(rest.replace(/[;,.]$/, '').trim());
           }
         } else {
-          // Text doesn't match structured pattern — put entire text as namaKegiatan
+          // Text doesn't match structured pattern â€” put entire text as namaKegiatan
           // and clear prefix/kota so buildUntukText just outputs namaKegiatan directly
           setActivityPrefix("");
           setKotaAsal("");
@@ -915,7 +728,7 @@ export default function STBuilderPage() {
   };
 
   // Handlers
-  // Simpan draft — save semua data tanpa ubah status
+  // Simpan draft â€” save semua data tanpa ubah status
   const handleSave = async () => {
     try {
       const stCode = `K.18/TU/${klasifikasi}/B`;
@@ -952,7 +765,7 @@ export default function STBuilderPage() {
     }
   };
 
-  // Ajukan persetujuan — ubah status ke "pending" (menunggu persetujuan kasubag)
+  // Ajukan persetujuan â€” ubah status ke "pending" (menunggu persetujuan kasubag)
   const handleSubmitForApproval = async () => {
     if (!stNumber) return toast.error("Nomor surat harus diisi.");
     if (!klasifikasi) return toast.error("Klasifikasi harus diisi.");
@@ -998,7 +811,7 @@ export default function STBuilderPage() {
     }
   };
 
-  // Setujui — ubah status ke "approved" (hanya kasubag/admin)
+  // Setujui â€” ubah status ke "approved" (hanya kasubag/admin)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleApprove = async () => {
     const tempatTujuanPayload = getTempatTujuanForPayload();
@@ -1042,55 +855,7 @@ export default function STBuilderPage() {
   };
 
   const handlePrint = () => {
-    const printContent = document.getElementById("surat-preview-doc");
-    if (!printContent) return;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <html>
-      <head>
-        <title>ST.${stNumber}-${namaKegiatan.replace(/[/\\?%*:|"<>]/g, '-')}</title>
-        <style>
-          @page { size: A4; margin: 3cm 1cm 1.9cm 1.55cm; }
-          @page :first { margin: 0.7cm 1cm 1.9cm 1.55cm; }
-          @page st-lampiran-beda-hari { size: A4; margin: 2cm 1cm 1.9cm 1.55cm; }
-          body { 
-            font-family: 'Bookman Old Style', 'Georgia', serif; 
-            font-size: 11pt; 
-            line-height: 1.25; 
-            color: #000; 
-            margin: 0; 
-            padding: 0; 
-            text-align: justify; 
-          }
-          table { width: 100%; border-collapse: collapse; }
-          td { vertical-align: top; padding: 2px 0; font-size: 11pt; }
-          tr { page-break-inside: avoid; break-inside: avoid; }
-          img { max-width: none !important; }
-          .ttd-placeholder { height: 80px; }
-          /* First page gets its own safe letterhead area; page 2+ keeps the 3cm @page margin. */
-          .kop-surat { margin-left: 0 !important; margin-right: -0.95cm !important; margin-top: -0.25cm !important; margin-bottom: 2px !important; overflow: visible !important; }
-          .kop-surat img { width: 18.8cm !important; height: auto !important; }
-          .surat-content { margin-left: 1.25cm !important; width: calc(100% - 2.2cm) !important; margin-right: 0.95cm !important; }
-          .field-section, .kepada-section, .kepada-list, .untuk-section, .untuk-list { break-inside: auto !important; page-break-inside: auto !important; }
-          .employee-entry, .untuk-entry, .penutup-ttd-group { break-inside: avoid !important; page-break-inside: avoid !important; }
-          div[style*="page-break-inside"] { page-break-inside: avoid; }
-          .st-lampiran-page-wrapper { page: st-lampiran-beda-hari; padding-top: 0 !important; break-before: page !important; page-break-before: always !important; }
-          .st-lampiran-page { margin-left: 1.25cm !important; width: calc(100% - 2.2cm) !important; box-sizing: border-box !important; line-height: 1.25 !important; }
-          .lampiran-meta { margin-left: 7.3cm !important; margin-bottom: 0.8rem !important; }
-          .lampiran-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
-          .lampiran-table th, .lampiran-table td { border: 1px solid #000 !important; padding: 4px 6px !important; font-size: 10.5pt !important; line-height: 1.2 !important; vertical-align: middle !important; }
-          .lampiran-ttd { margin-left: 9.2cm !important; margin-top: 1.6rem !important; text-align: left !important; }
-          /* thead spacer: hidden, not needed with @page margin */
-          thead.page-spacer td { height: 0; padding: 0; line-height: 0; font-size: 0; }
-        </style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 500);
+    printSuratTugas(stNumber, namaKegiatan);
   };
 
   if (isInitializing) {
@@ -1204,29 +969,19 @@ export default function STBuilderPage() {
             </div>
           </FormSection>
 
-          <FormSection title="Menimbang" action={<button onClick={() => setMenimbangItems([...menimbangItems, { id: Math.random().toString(), text: "" }])} className="text-[10px] text-blue-600 font-bold uppercase"><Plus className="w-3 h-3" /> Tambah</button>}>
-            <div className="space-y-3">
-              {menimbangItems.map((item, idx) => (
-                <div key={item.id} className="flex gap-2">
-                  <span className="text-xs font-bold text-zinc-400 mt-2">{indexToLetter(idx)}</span>
-                  <textarea value={item.text} onChange={e => { const n = [...menimbangItems]; n[idx].text = e.target.value; setMenimbangItems(n); }} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white" />
-                  <button onClick={() => setMenimbangItems(menimbangItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              ))}
-            </div>
-          </FormSection>
+          <EditableItemListSection
+            title="Menimbang"
+            items={menimbangItems}
+            onChange={setMenimbangItems}
+            marker="letter"
+          />
 
-          <FormSection title="Dasar" action={<button onClick={() => setDasarItems([...dasarItems, { id: Math.random().toString(), text: "" }])} className="text-[10px] text-blue-600 font-bold uppercase"><Plus className="w-3 h-3" /> Tambah</button>}>
-            <div className="space-y-3">
-              {dasarItems.map((item, idx) => (
-                <div key={item.id} className="flex gap-2">
-                  <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 1}.</span>
-                  <textarea value={item.text} onChange={e => { const n = [...dasarItems]; n[idx].text = e.target.value; setDasarItems(n); }} className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white" />
-                  <button onClick={() => setDasarItems(dasarItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              ))}
-            </div>
-          </FormSection>
+          <EditableItemListSection
+            title="Dasar"
+            items={dasarItems}
+            onChange={setDasarItems}
+            marker="number"
+          />
 
           <FormSection title="Kepada (Personil)" action={<span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">{selectedEmployees.length}</span>}>
             <div className="relative" ref={dropdownRef}>
@@ -1257,7 +1012,7 @@ export default function STBuilderPage() {
                         setSearchQuery(""); 
                         setShowDropdown(false); 
                       }} className={`w-full px-4 py-2 text-left border-b border-zinc-100 dark:border-zinc-700 last:border-0 ${isSelected ? "opacity-40 cursor-not-allowed bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"}`}>
-                        <p className={`text-sm font-bold ${isSelected ? "text-zinc-400" : "text-zinc-800 dark:text-zinc-200"}`}>{emp.nama_lengkap || emp.name} {isSelected ? "✓" : ""}</p>
+                        <p className={`text-sm font-bold ${isSelected ? "text-zinc-400" : "text-zinc-800 dark:text-zinc-200"}`}>{emp.nama_lengkap || emp.name} {isSelected ? "âœ“" : ""}</p>
                         <p className="text-[10px] text-zinc-400">{emp.nip}</p>
                       </button>
                       );
@@ -1453,86 +1208,14 @@ export default function STBuilderPage() {
             </div>
           </FormSection>
 
-          <FormSection title="Tembusan" action={
-            <button onClick={() => setTembusanItems([...tembusanItems, ""])} className="text-blue-600 hover:text-blue-700">
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-          }>
-            <div className="space-y-2">
-              {tembusanItems.length === 0 && (
-                <p className="text-[11px] text-zinc-400 italic">Belum ada tembusan. Klik + untuk menambah.</p>
-              )}
-              {tembusanItems.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-1">
-                  <span className="text-[10px] text-zinc-400 w-4">{idx + 1}.</span>
-                  <input
-                    value={item}
-                    onChange={(e) => {
-                      const updated = [...tembusanItems];
-                      updated[idx] = e.target.value;
-                      setTembusanItems(updated);
-                    }}
-                    placeholder="Nama penerima tembusan..."
-                    className="flex-1 px-2 py-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs outline-none text-zinc-900 dark:text-white"
-                  />
-                  <button onClick={() => setTembusanItems(tembusanItems.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600 p-1">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </FormSection>
+          <TembusanSection items={tembusanItems} onChange={setTembusanItems} />
 
-          <FormSection title="Penandatangan">
-            <div className="relative mb-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                <input
-                  value={penandatanganSearchQuery}
-                  onChange={e => {
-                    setPenandatanganSearchQuery(e.target.value);
-                    setShowPenandatanganDropdown(true);
-                  }}
-                  onFocus={() => setShowPenandatanganDropdown(true)}
-                  placeholder="Cari pegawai penandatangan..."
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-9 py-2 text-sm outline-none text-zinc-900 focus:bg-white dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:bg-zinc-700"
-                />
-              </div>
-              {showPenandatanganDropdown && (
-                <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
-                  {isSearching ? (
-                    <div className="flex items-center gap-2 px-3 py-2 text-xs text-zinc-500">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat pegawai...
-                    </div>
-                  ) : penandatanganSearchResults.length > 0 ? (
-                    penandatanganSearchResults.map((emp: Employee) => (
-                      <button
-                        key={emp.id}
-                        type="button"
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => handleSelectPenandatangan(emp)}
-                        className="w-full border-b border-zinc-100 px-3 py-2 text-left last:border-0 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-700"
-                      >
-                        <div className="text-xs font-bold text-zinc-900 dark:text-white">{emp.nama_lengkap || emp.name}</div>
-                        <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
-                          NIP. {formatNIP(emp.nip)}{(emp.jabatan || emp.position) ? ` - ${emp.jabatan || emp.position}` : ""}
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-3 py-2 text-xs text-zinc-500">Pegawai tidak ditemukan.</div>
-                  )}
-                </div>
-              )}
-            </div>
-            <input value={kepalaBalai.name} onChange={e => setKepalaBalai({...kepalaBalai, name: e.target.value})} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm mb-2 outline-none text-zinc-900 dark:text-white" />
-            <input
-              value={kepalaBalai.nip}
-              onChange={e => setKepalaBalai({...kepalaBalai, nip: e.target.value})}
-              onBlur={() => setKepalaBalai(prev => ({ ...prev, nip: formatNIP(prev.nip) }))}
-              className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white"
-            />
-          </FormSection>
+          <PenandatanganSection
+            kepalaBalai={kepalaBalai}
+            setKepalaBalai={setKepalaBalai}
+            allEmployees={allEmployees}
+            isLoading={isSearching}
+          />
         </div>
 
         <footer className="p-6 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2">
@@ -1598,18 +1281,6 @@ export default function STBuilderPage() {
           </div>
         </div>
       </main>
-    </div>
-  );
-}
-
-function FormSection({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{title}</label>
-        {action}
-      </div>
-      {children}
     </div>
   );
 }
