@@ -144,17 +144,18 @@ git push origin main
 - [x] Issue #388: Add PLH template for ST Builder + "Buat ST PLH" button in Inbox. PR #389 merged ke `main` (merge commit `ad179a9`); remote branch deleted. Tidak deploy/push ke SSH.
 - [x] Issue #390: Make ST Builder Untuk items editable + one-day activity task type. PR #391 merged ke `main` (merge commit `de9da95`); remote branch deleted. Untuk items sekarang dynamic list (add/remove) seperti Menimbang/Dasar. Tambah one-day activity task type, auto-detect same-date tasks sebagai one-day, skip auto biaya untuk one-day tasks. Biaya editable di untuk items. Persist via `maksud_tujuan` dan parse saat re-open.
 - [x] **Production Deploy Batch (2026-05-29)**: Server pulled main `7d5212b -> de9da95` (issue #388, #390 + docs). Backend + frontend rebuilt/recreated. No new migrations. Production healthy: login HTTP 200, `bksda-backend` Up, `bksda-frontend` Up.
+- [x] Issue #392: Refactor modul kepegawaian (DRY — shared components + libs). PR #393 merged ke `main` (merge commit `f326ed3`); remote branch deleted. Extract duplikasi builder↔create ke `surat-tugas/_lib/` (types, constants, helpers, print) + shared `_components/` (FormSection, EditableItemListSection, TembusanSection, PenandatanganSection). Inbox extract `inbox/_lib/` (types, status-helpers). Zero behavior change. builder 1500→1195, create 1119→882, inbox 704→654. Belum deploy SSH.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #390: ST Builder Untuk items editable + one-day activity (PR #391 merged + deployed) |
-| **Issue Sedang Dikerjakan** | None |
+| **Issue Terakhir Selesai** | Issue #392: Refactor kepegawaian DRY (PR #393 merged) |
+| **Issue Sedang Dikerjakan** | None (next: refactor BMN dengan teknik DRY yang sama) |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `de9da95` (sebelum docs update ini) |
-| **Commit Production Server** | `de9da95` (#388 + #390 sudah deploy) |
-| **Status** | Issue #390 selesai, merged, dan deployed. ST Builder Untuk items sekarang editable dynamic list dengan add/remove (mirip Menimbang/Dasar). Tambah one-day activity task type dengan auto-detect same-date tasks, skip biaya untuk one-day, biaya editable di untuk items. Persist via `maksud_tujuan` field dan parse saat re-open. Production server pulled `7d5212b -> de9da95`, backend + frontend rebuilt/recreated, no new migrations needed. Login HTTP 200, semua container running. |
+| **Commit Terakhir di Main** | `f326ed3` |
+| **Commit Production Server** | `de9da95` (#392 belum di-deploy) |
+| **Status** | Issue #392 selesai & merged. Refactor DRY modul kepegawaian: duplikasi builder↔create dihilangkan via shared `surat-tugas/_lib/` (8 file) + `_components/` (4 file) + `inbox/_lib/` (2 file). builder 1500→1195, create 1119→882, inbox 704→654. Zero behavior change, user sudah test manual aman. Belum deploy SSH. **Next: refactor modul BMN dengan teknik DRY yang sama (cari shared component yang bisa dipakai bersama).** |
 | **Model Terakhir** | Claude Sonnet 4.5 |
-| **Timestamp** | 2026-05-29T13:10:00+08:00 |
+| **Timestamp** | 2026-05-29T15:30:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.

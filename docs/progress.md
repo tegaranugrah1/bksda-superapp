@@ -1,3 +1,74 @@
+# Progress - Phase 70: Refactor Modul Kepegawaian (DRY Shared Components) — MERGED
+
+> Document updated: 2026-05-29
+> Status: **MERGED** (PR #393 merged ke `main` commit `f326ed3`; deploy SSH ditunda)
+
+---
+
+## Issue #392: Refactor kepegawaian — hilangkan duplikasi builder↔create (DRY)
+
+### Status: MERGED
+- PR #393 merged ke `main` (merge commit `f326ed3`). Remote branch deleted.
+- User sudah test manual semua flow (4 template × create + edit, inbox) — aman.
+- Belum deploy SSH.
+
+
+### Filosofi
+Tujuan utama **DRY (Don't Repeat Yourself)**, bukan sekadar menurunkan line count. Masalah inti modul ini adalah `builder/[id]/page.tsx` dan `create/page.tsx` ~80% kembar — bug fix harus dilakukan di dua tempat (terbukti di issue #384, #388, #390). Refactor ini membuat satu sumber kebenaran (single source of truth).
+
+### Completed (di branch, belum commit):
+- [x] **Issue Created**: Issue #392.
+- [x] **Branch**: `issue/392-refactor-kepegawaian` (lokal, belum push).
+- [x] **Shared `surat-tugas/_lib/` (8 file)**:
+  - `types.ts` — Employee, DasarItem, SumberDanaOption, KepalaBalaiInfo, EmployeeDates, TemplateType
+  - `constants.ts` — DEFAULT_KEPALA_BALAI, PLH placeholders, SUMBER_DANA_OPTIONS (11 opsi)
+  - `sumber-dana.ts` — normalizeSumberDana
+  - `plh-helpers.ts` — extractPlhWilayahFromPosition, cleanPlhKegiatanKasi, normalizeEmployeeForSelection
+  - `untuk-helpers.ts` — getDefaultUntukItem(s), splitStoredUntukItems, isGeneratedBiayaItem, toDasarItems
+  - `activity-helpers.ts` — isSingleDayActivityPrefix, shouldRenderAsSingleDayActivity, buildBiayaTextFor
+  - `print-st.ts` — printSuratTugas (print handler + CSS, sebelumnya duplikat ~50 baris di 2 file)
+  - `index.ts` — barrel export
+- [x] **Shared `surat-tugas/_components/` (4 file)**:
+  - `FormSection.tsx` — section wrapper (sebelumnya duplikat di builder + create)
+  - `EditableItemListSection.tsx` — list editor add/remove untuk Menimbang (marker huruf) + Dasar (marker angka)
+  - `TembusanSection.tsx` — daftar tembusan string list
+  - `PenandatanganSection.tsx` — searchable employee picker untuk Kepala Balai (state search dikelola lokal)
+- [x] **`inbox/_lib/` (2 file)**:
+  - `types.ts` — AssignmentLetter, InboxEmployee, LetterItem, LetterStatus
+  - `status-helpers.ts` — getStatusStyle, getStatusLabel
+- [x] **Eliminasi duplikasi**: builder + create sekarang import dari `_lib` + `_components` yang sama.
+
+### Hasil Pengurangan Baris:
+| File | Awal | Sekarang | Berkurang |
+|------|------|----------|-----------|
+| `builder/[id]/page.tsx` | 1500 | 1195 | −305 (−20%) |
+| `create/page.tsx` | 1119 | 882 | −237 (−21%) |
+| `inbox/page.tsx` | 704 | 654 | −50 |
+
+### Pending (belum dikerjakan):
+- [ ] User test browser semua flow (4 template × create + edit, inbox).
+- [ ] (Opsional) Extract Detail Kegiatan + Kepada (Personil) sections — lebih kompleks karena banyak interdependensi state (employeeDates, PLH fields, single-day toggle).
+- [ ] Commit + push + PR + merge setelah user OK.
+- [ ] Deploy SSH (tunggu user siap).
+
+### Validation (sudah lulus):
+- [x] `npx eslint --max-warnings=0` clean
+- [x] `npx tsc --noEmit` clean
+- [x] `npm run build` clean (59/59 pages)
+- [x] Zero behavior change — semua fitur (BMN, Beda Hari, PLH, FOLU, one-day) tetap utuh
+
+### Key Files Baru (14):
+- `surat-tugas/_lib/`: types, constants, sumber-dana, plh-helpers, untuk-helpers, activity-helpers, print-st, index (8)
+- `surat-tugas/_components/`: FormSection, EditableItemListSection, TembusanSection, PenandatanganSection (4)
+- `surat-tugas/inbox/_lib/`: types, status-helpers (2)
+
+### Catatan Pendekatan:
+- **Extraction bertahap, reversible, validate tiap langkah** — bukan big-bang rewrite.
+- Yang sudah diextract = "low-risk, high-value": konstanta, types, helper murni, print handler, dan section UI yang struktur-nya identik.
+- Belum extract Detail Kegiatan & Kepada (Personil) section karena punya banyak state interdependent (PLH placeholder, FOLU auto-fill, Beda Hari date, one-day detection) — perlu hati-hati supaya tidak regresi.
+
+---
+
 # Progress - Phase 69: ST Builder Untuk Items Editable + One-Day Activity (MERGED + DEPLOYED)
 
 > Document updated: 2026-05-29
