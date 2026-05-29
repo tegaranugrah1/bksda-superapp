@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   FileText,
+  GripVertical,
   Printer,
   Plus,
   Trash2,
@@ -65,6 +66,78 @@ function cleanPlhKegiatanKasi(text?: string | null) {
     .replace(/,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*?(?:;|\.)?$/i, "")
     .replace(/[;.\s]+$/, "")
     .trim();
+}
+
+function getDefaultUntukItem(templateType?: string | null) {
+  if (templateType === "plh") {
+    return "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai.";
+  }
+  if (templateType === "bmn-pemeriksaan") {
+    return "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut.";
+  }
+  return "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.";
+}
+
+function getDefaultUntukItems(templateType?: string | null, biayaText = ""): DasarItem[] {
+  const items = [{ id: "untuk-default", text: getDefaultUntukItem(templateType) }];
+  if (biayaText.trim()) {
+    items.push({ id: "untuk-biaya", text: biayaText });
+  }
+  return items;
+}
+
+function splitStoredUntukItems(value?: string | null) {
+  return (value || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function isGeneratedBiayaItem(value: string) {
+  return /^(Segala biaya yang timbul|Sumber dana dibebankan)/i.test(value.trim());
+}
+
+function toDasarItems(items: string[], prefix: string): DasarItem[] {
+  return items.map((text, idx) => ({
+    id: `${prefix}-${idx}-${Date.now()}`,
+    text,
+  }));
+}
+
+function isSingleDayActivityPrefix(prefix: string) {
+  return prefix === "Melaksanakan Kegiatan";
+}
+
+function shouldRenderAsSingleDayActivity(
+  prefix: string,
+  startDate?: string | null,
+  endDate?: string | null,
+  templateType?: string | null,
+) {
+  return (
+    Boolean(startDate) &&
+    Boolean(endDate) &&
+    startDate === endDate &&
+    (isSingleDayActivityPrefix(prefix) || !["bmn-pemeriksaan", "beda-hari", "plh"].includes(templateType || ""))
+  );
+}
+
+function buildBiayaTextFor(
+  fundingId: string,
+  otherSource: string,
+  letterDate: string,
+  templateType?: string | null,
+) {
+  if (templateType === "bmn-pemeriksaan" || templateType === "plh") return "";
+  const opt = SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
+  if (opt?.biayaText) {
+    const tahun = letterDate ? new Date(letterDate).getFullYear().toString() : new Date().getFullYear().toString();
+    return opt.biayaText.replace(/{tahun}/g, tahun);
+  }
+  if (fundingId === 'other') {
+    return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${otherSource || '...'};`;
+  }
+  return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;`;
 }
 
 interface SumberDanaOption {
@@ -165,6 +238,7 @@ export default function STBuilderPage() {
     { id: "1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
     { id: "2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.` },
   ]);
+  const [untukItems, setUntukItems] = useState<DasarItem[]>(getDefaultUntukItems(null));
 
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
@@ -195,6 +269,8 @@ export default function STBuilderPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [suratStatus, setSuratStatus] = useState<string>("");
+  const [draggedUntukIndex, setDraggedUntukIndex] = useState<number | null>(null);
+  const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder"],
@@ -245,6 +321,11 @@ export default function STBuilderPage() {
       ? menimbangItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
       : menimbangItems;
 
+  const getPreviewUntukItems = () =>
+    templateType === "plh"
+      ? untukItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
+      : untukItems;
+
   const getTempatTujuanForPayload = () => {
     if (templateType === "plh") {
       return plhWilayah.trim() || kotaTujuan.trim() || tempatKegiatan.trim();
@@ -281,6 +362,7 @@ export default function STBuilderPage() {
     let text = "";
     const isBmnTemplate = templateType === "bmn-pemeriksaan";
     const isPlhTemplate = templateType === "plh";
+    const isSingleDayActivity = shouldRenderAsSingleDayActivity(activityPrefix, effectiveMulai, effectiveSelesai, templateType);
 
     // BMN template: always freeform, no date suffix
     if (isBmnTemplate) {
@@ -297,6 +379,29 @@ export default function STBuilderPage() {
       if (days > 0) {
         text += ` selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
       } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
+        text += ".";
+      }
+      return text;
+    }
+
+    if (isSingleDayActivity) {
+      if (isSingleDayActivityPrefix(activityPrefix)) {
+        text = namaKegiatan || "...";
+      } else if (activityPrefix && kotaAsal) {
+        text = `${activityPrefix} dari ${kotaAsal} ke ${kotaTujuan || "..."}`;
+        if (namaKegiatan) {
+          text += ` dalam rangka ${namaKegiatan}`;
+        }
+        if (tempatKegiatan) {
+          text += ` di ${tempatKegiatan}`;
+        }
+      } else {
+        text = namaKegiatan || "...";
+      }
+      text = text.replace(/[;.\s]+$/, "").trim();
+      if (effectiveMulai) {
+        text += ` pada tanggal ${mulaiFormatted}.`;
+      } else if (!text.trim().endsWith(".") && !text.trim().endsWith(";")) {
         text += ".";
       }
       return text;
@@ -324,21 +429,48 @@ export default function STBuilderPage() {
     return text;
   };
 
-  // Build biaya text
-  const buildBiayaText = (): string => {
-    // BMN Penghapusan template: no biaya line in Untuk list (regardless of sumberDana)
-    if (templateType === 'bmn-pemeriksaan') return '';
-    // PLH template: skip biaya line (PLH tugas internal, tidak ada biaya)
-    if (templateType === 'plh') return '';
-    const opt = SUMBER_DANA_OPTIONS.find(o => o.id === sumberDana);
-    if (opt?.biayaText) {
-      const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
-      return opt.biayaText.replace(/{tahun}/g, tahun);
+  const buildMaksudTujuanText = (): string =>
+    [
+      buildUntukText(),
+      ...getPreviewUntukItems().map((item) => item.text),
+    ]
+      .filter((item) => item && item.trim())
+      .join("\n");
+
+  const syncBiayaUntukItem = (nextBiayaText: string) => {
+    setUntukItems((prev) => {
+      const existingIndex = prev.findIndex((item) => isGeneratedBiayaItem(item.text));
+      if (!nextBiayaText.trim()) {
+        return existingIndex >= 0 ? prev.filter((_, idx) => idx !== existingIndex) : prev;
+      }
+      if (existingIndex >= 0) {
+        return prev.map((item, idx) => idx === existingIndex ? { ...item, text: nextBiayaText } : item);
+      }
+      return [...prev, { id: "untuk-biaya", text: nextBiayaText }];
+    });
+  };
+
+  const handleSumberDanaChange = (newFunding: string) => {
+    setSumberDana(newFunding);
+    updateDasarFromFunding(newFunding, tanggalSurat);
+    syncBiayaUntukItem(buildBiayaTextFor(newFunding, sumberDanaOther, tanggalSurat, templateType));
+  };
+
+  const handleSumberDanaOtherChange = (value: string) => {
+    setSumberDanaOther(value);
+    if (sumberDana === "other") {
+      syncBiayaUntukItem(buildBiayaTextFor("other", value, tanggalSurat, templateType));
     }
-    if (sumberDana === 'other') {
-      return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${sumberDanaOther || '...'};`;
-    }
-    return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;`;
+  };
+
+  const moveUntukItem = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+    setUntukItems((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
   };
 
   // Function to update Dasar items based on Funding
@@ -452,6 +584,7 @@ export default function STBuilderPage() {
     setKotaTujuan("");
     setTempatKegiatan("");
     setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal " + formatDateIndonesian(today));
+    setUntukItems(getDefaultUntukItems("bmn-pemeriksaan"));
 
     setTembusanItems([]);
   };
@@ -459,6 +592,7 @@ export default function STBuilderPage() {
   // Apply Beda Hari template — Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
   const applyBedaHariTemplate = () => {
     setTemplateType("beda-hari");
+    setUntukItems(getDefaultUntukItems("beda-hari", buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, "beda-hari")));
     // Initialize employeeDates dari tanggalMulai/Selesai global jika sudah diisi
     setEmployeeDates((prev) => {
       const next = { ...prev };
@@ -507,6 +641,7 @@ export default function STBuilderPage() {
     setNamaKegiatan(
       `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`,
     );
+    setUntukItems(getDefaultUntukItems("plh"));
 
     setTembusanItems([
       "Direktur Jenderal KSDAE;",
@@ -524,6 +659,7 @@ export default function STBuilderPage() {
       applyPlhTemplate();
     } else {
       setTemplateType(null);
+      setUntukItems(getDefaultUntukItems(null, buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, null)));
     }
   };
 
@@ -567,8 +703,10 @@ export default function STBuilderPage() {
         // Hanya load dari API jika sudah pernah disimpan (bukan tanggal lama dari pengajuan)
         setTanggalSurat(new Date().toISOString().substring(0, 10));
 
-        setTanggalMulai(data.tanggal_mulai?.split("T")[0] || "");
-        setTanggalSelesai(data.tanggal_selesai?.split("T")[0] || "");
+        const loadedTanggalMulai = data.tanggal_mulai?.split("T")[0] || "";
+        const loadedTanggalSelesai = data.tanggal_selesai?.split("T")[0] || "";
+        setTanggalMulai(loadedTanggalMulai);
+        setTanggalSelesai(loadedTanggalSelesai);
         
         const funding = normalizeSumberDana(data.sumber_dana);
         setSumberDana(funding);
@@ -606,16 +744,39 @@ export default function STBuilderPage() {
           setTembusanItems(data.tembusan.filter((t: unknown): t is string => typeof t === 'string'));
         }
 
-        const activityStr = data.maksud_tujuan || "";
+        const storedUntukLines = splitStoredUntukItems(data.maksud_tujuan);
+        const storedAdditionalUntuk = storedUntukLines
+          .slice(1);
+        setUntukItems(
+          storedAdditionalUntuk.length > 0
+            ? toDasarItems(storedAdditionalUntuk, "stored-untuk")
+            : getDefaultUntukItems(data.template_type, buildBiayaTextFor(funding, data.sumber_dana_other || "", new Date().toISOString().substring(0, 10), data.template_type)),
+        );
+
+        const activityStr = storedUntukLines[0] || data.maksud_tujuan || "";
         // Strip "selama X hari terhitung..." suffix that buildUntukText appends
         const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*$/i;
         const cleanedActivity = activityStr.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
         
         // Try to parse structured activity text: "[Melaksanakan] Perjalanan Dinas dari X ke Y [dalam rangka Z] [di W]"
         const regex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+        const singleDayActivity = cleanedActivity.replace(/\s+pada\s+tanggal\s+.+$/i, "").replace(/[;,.]$/, "").trim();
+        const isParsedSingleDayActivity = /^Melaksanakan\s+/i.test(singleDayActivity) && /\s+pada\s+tanggal\s+/i.test(cleanedActivity);
+        const isOneDayFromSubmittedForm =
+          loadedTanggalMulai &&
+          loadedTanggalSelesai &&
+          loadedTanggalMulai === loadedTanggalSelesai &&
+          !["bmn-pemeriksaan", "beda-hari", "plh"].includes(data.template_type || "");
+
         const match = cleanedActivity.match(regex);
 
-        if (match) {
+        if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match)) {
+          setActivityPrefix("Melaksanakan Kegiatan");
+          setKotaAsal("");
+          setKotaTujuan("");
+          setTempatKegiatan("");
+          setNamaKegiatan(singleDayActivity);
+        } else if (match) {
           setActivityPrefix(match[1]);
           setKotaAsal(match[2].trim());
           setKotaTujuan(match[3].trim());
@@ -740,6 +901,19 @@ export default function STBuilderPage() {
     }
   };
 
+  const handleActivityPrefixChange = (value: string) => {
+    setActivityPrefix(value);
+    if (isSingleDayActivityPrefix(value)) {
+      const singleDate = tanggalMulai || tanggalSelesai;
+      setKotaAsal("");
+      setKotaTujuan("");
+      if (singleDate) {
+        setTanggalMulai(singleDate);
+        setTanggalSelesai(singleDate);
+      }
+    }
+  };
+
   // Handlers
   // Simpan draft — save semua data tanpa ubah status
   const handleSave = async () => {
@@ -751,7 +925,7 @@ export default function STBuilderPage() {
       const payload = {
         nomor_surat: fullNomorSurat || null,
         kode_surat: stCode || null,
-        nama_kegiatan: buildUntukText(),
+        nama_kegiatan: buildMaksudTujuanText(),
         tempat_tujuan: getTempatTujuanForPayload() || null,
         tanggal_surat: tanggalSurat || null,
         sumber_dana: sumberDana,
@@ -793,7 +967,7 @@ export default function STBuilderPage() {
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
-        nama_kegiatan: buildUntukText(),
+        nama_kegiatan: buildMaksudTujuanText(),
         tempat_tujuan: tempatTujuanPayload || null,
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
@@ -836,7 +1010,7 @@ export default function STBuilderPage() {
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
-        nama_kegiatan: buildUntukText(),
+        nama_kegiatan: buildMaksudTujuanText(),
         tempat_tujuan: tempatTujuanPayload || null,
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
@@ -1002,6 +1176,7 @@ export default function STBuilderPage() {
                     const newDate = e.target.value;
                     setTanggalSurat(newDate);
                     updateDasarFromFunding(sumberDana, newDate);
+                    syncBiayaUntukItem(buildBiayaTextFor(sumberDana, sumberDanaOther, newDate, templateType));
                   }} 
                   className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 text-zinc-900 dark:text-white" 
                 />
@@ -1011,13 +1186,9 @@ export default function STBuilderPage() {
 
           <FormSection title="Sumber Dana">
             <div className="space-y-2">
-              <select
-                value={sumberDana}
-                onChange={e => {
-                  const newFunding = e.target.value;
-                  setSumberDana(newFunding);
-                  updateDasarFromFunding(newFunding, tanggalSurat);
-                }}
+              <select 
+                value={sumberDana} 
+                onChange={e => handleSumberDanaChange(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
               >
                 {SUMBER_DANA_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
@@ -1025,7 +1196,7 @@ export default function STBuilderPage() {
               {sumberDana === 'other' && (
                 <input 
                   value={sumberDanaOther} 
-                  onChange={e => setSumberDanaOther(e.target.value)} 
+                  onChange={e => handleSumberDanaOtherChange(e.target.value)} 
                   placeholder="Sebutkan sumber dana..." 
                   className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 animate-in slide-in-from-top-1 text-zinc-900 dark:text-white" 
                 />
@@ -1191,35 +1362,94 @@ export default function STBuilderPage() {
                 <label className="text-[10px] font-bold text-zinc-400 uppercase">Jenis Tugas</label>
                 <select 
                   value={activityPrefix} 
-                  onChange={e => setActivityPrefix(e.target.value)} 
+                  onChange={e => handleActivityPrefixChange(e.target.value)} 
                   className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
                 >
                   <option value="Perjalanan Dinas">Perjalanan Dinas</option>
+                  <option value="Melaksanakan Kegiatan">Melaksanakan Kegiatan (1 Hari)</option>
                   <option value="Melaksanakan Tugas">Melaksanakan Tugas</option>
                   <option value="Menugaskan Staf">Menugaskan Staf</option>
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-                <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-              </div>
-              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
-              <input value={tempatKegiatan} onChange={e => {
-                const nextPlace = e.target.value;
-                setTempatKegiatan(nextPlace);
-                if (sumberDana === "folu") {
-                  updateFoluMenimbang(namaKegiatan, nextPlace);
-                }
-              }} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-              <div className={`grid grid-cols-2 gap-2 ${templateType === "beda-hari" ? "hidden" : ""}`}>
-                <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-                <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-              </div>
+              {!isSingleDayActivity && (
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                  <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                </div>
+              )}
+              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={isSingleDayActivity ? "Contoh: Melaksanakan Pemeriksaan dan Penilaian Barang Milik Negara berupa Alat Angkutan Bermotor" : "Kegiatan..."} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+              {!isSingleDayActivity && (
+                <input value={tempatKegiatan} onChange={e => {
+                  const nextPlace = e.target.value;
+                  setTempatKegiatan(nextPlace);
+                  if (sumberDana === "folu") {
+                    updateFoluMenimbang(namaKegiatan, nextPlace);
+                  }
+                }} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+              )}
+              {isSingleDayActivity ? (
+                <input
+                  type="date"
+                  value={tanggalMulai}
+                  onChange={e => {
+                    setTanggalMulai(e.target.value);
+                    setTanggalSelesai(e.target.value);
+                  }}
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white"
+                />
+              ) : (
+                <div className={`grid grid-cols-2 gap-2 ${templateType === "beda-hari" ? "hidden" : ""}`}>
+                  <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                  <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                </div>
+              )}
               {templateType === "beda-hari" && (
                 <p className="rounded-lg bg-orange-50 px-3 py-2 text-[10px] text-orange-700 dark:bg-orange-500/10 dark:text-orange-300">
                   Mode Beda Hari aktif: tanggal kegiatan dihitung otomatis dari tanggal mulai paling awal sampai tanggal selesai paling akhir di daftar pegawai.
                 </p>
               )}
+
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Untuk</h3>
+                  <button onClick={() => setUntukItems([...untukItems, { id: Math.random().toString(), text: "" }])} className="inline-flex items-center gap-1 text-[10px] text-blue-600 font-bold uppercase">
+                    <Plus className="w-3 h-3" /> Tambah
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {untukItems.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      draggable
+                      onDragStart={() => setDraggedUntukIndex(idx)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (draggedUntukIndex !== null) {
+                          moveUntukItem(draggedUntukIndex, idx);
+                        }
+                        setDraggedUntukIndex(null);
+                      }}
+                      onDragEnd={() => setDraggedUntukIndex(null)}
+                      className={`flex gap-2 rounded-xl ${draggedUntukIndex === idx ? "opacity-50" : ""}`}
+                    >
+                      <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 2}.</span>
+                      <span className="mt-2 cursor-grab text-zinc-300 active:cursor-grabbing dark:text-zinc-600" title="Geser untuk mengubah urutan">
+                        <GripVertical className="w-3.5 h-3.5" />
+                      </span>
+                      <textarea
+                        value={item.text}
+                        onChange={e => {
+                          const nextItems = [...untukItems];
+                          nextItems[idx].text = e.target.value;
+                          setUntukItems(nextItems);
+                        }}
+                        className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white"
+                      />
+                      <button onClick={() => setUntukItems(untukItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </FormSection>
 
@@ -1344,8 +1574,8 @@ export default function STBuilderPage() {
           >
             <STBuilderPreview 
               stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
-              menimbangItems={getPreviewMenimbangItems()} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
-              buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
+              menimbangItems={getPreviewMenimbangItems()} dasarItems={dasarItems} untukItems={getPreviewUntukItems()} selectedEmployees={selectedEmployees}
+              buildUntukText={buildUntukText}
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               tembusanItems={tembusanItems}
               headerTitle={headerTitle}
