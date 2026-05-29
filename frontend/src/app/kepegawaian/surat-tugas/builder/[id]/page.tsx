@@ -99,6 +99,20 @@ function isSingleDayActivityPrefix(prefix: string) {
   return prefix === "Melaksanakan Kegiatan";
 }
 
+function shouldRenderAsSingleDayActivity(
+  prefix: string,
+  startDate?: string | null,
+  endDate?: string | null,
+  templateType?: string | null,
+) {
+  return (
+    Boolean(startDate) &&
+    Boolean(endDate) &&
+    startDate === endDate &&
+    (isSingleDayActivityPrefix(prefix) || !["bmn-pemeriksaan", "beda-hari", "plh"].includes(templateType || ""))
+  );
+}
+
 interface SumberDanaOption {
   id: string;
   label: string;
@@ -230,7 +244,7 @@ export default function STBuilderPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [suratStatus, setSuratStatus] = useState<string>("");
-  const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
+  const isSingleDayActivity = shouldRenderAsSingleDayActivity(activityPrefix, tanggalMulai, tanggalSelesai, templateType);
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder"],
@@ -322,7 +336,7 @@ export default function STBuilderPage() {
     let text = "";
     const isBmnTemplate = templateType === "bmn-pemeriksaan";
     const isPlhTemplate = templateType === "plh";
-    const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
+    const isSingleDayActivity = shouldRenderAsSingleDayActivity(activityPrefix, effectiveMulai, effectiveSelesai, templateType);
 
     // BMN template: always freeform, no date suffix
     if (isBmnTemplate) {
@@ -345,7 +359,20 @@ export default function STBuilderPage() {
     }
 
     if (isSingleDayActivity) {
-      text = (namaKegiatan || "...").replace(/[;.\s]+$/, "").trim();
+      if (isSingleDayActivityPrefix(activityPrefix)) {
+        text = namaKegiatan || "...";
+      } else if (activityPrefix && kotaAsal) {
+        text = `${activityPrefix} dari ${kotaAsal} ke ${kotaTujuan || "..."}`;
+        if (namaKegiatan) {
+          text += ` dalam rangka ${namaKegiatan}`;
+        }
+        if (tempatKegiatan) {
+          text += ` di ${tempatKegiatan}`;
+        }
+      } else {
+        text = namaKegiatan || "...";
+      }
+      text = text.replace(/[;.\s]+$/, "").trim();
       if (effectiveMulai) {
         text += ` pada tanggal ${mulaiFormatted}.`;
       } else if (!text.trim().endsWith(".") && !text.trim().endsWith(";")) {
@@ -387,7 +414,7 @@ export default function STBuilderPage() {
   // Build biaya text
   const buildBiayaText = (): string => {
     // One-day kegiatan mode keeps every extra "Untuk" line user-managed.
-    if (isSingleDayActivityPrefix(activityPrefix)) return '';
+    if (isSingleDayActivity) return '';
     // BMN Penghapusan template: no biaya line in Untuk list (regardless of sumberDana)
     if (templateType === 'bmn-pemeriksaan') return '';
     // PLH template: skip biaya line (PLH tugas internal, tidak ada biaya)
