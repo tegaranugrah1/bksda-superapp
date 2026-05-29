@@ -1,3 +1,46 @@
+# Progress - Phase 68: PLH Template + Buat ST PLH Button (MERGED)
+
+> Document updated: 2026-05-29
+> Status: **MERGED** (PR #389 merged ke `main`; deploy SSH tidak dilakukan)
+
+---
+
+## Issue #388: Add PLH template for ST Builder + "Buat ST PLH" button in Inbox
+
+### Completed:
+- [x] **Issue Created**: Issue #388.
+- [x] **Branch Created/Pushed**: `issue/388-st-plh-template`.
+- [x] **PR Created/Merged**: PR #389 merged ke `main` (merge commit `ad179a9`); remote branch deleted.
+- [x] **Inbox tombol "Buat ST PLH"**: di card "Nama PLH" redirect ke `/kepegawaian/surat-tugas/create?template=plh&parent_st_id={selectedLetter.id}`.
+- [x] **Existing PLH draft reuse**: tombol Inbox membuka draft PLH existing bila sudah pernah dibuat, bukan membuat draft baru terus.
+- [x] **Template PLH baru** di create + builder edit: klasifikasi `PEG.09.01`, sumber dana `dl1`, Menimbang/Dasar/Untuk/Tembusan default PLH.
+- [x] **Auto-fetch ST Induk**: prefill nomor/tanggal dasar, tanggal mulai/selesai, wilayah dari pegawai utama ST induk, kegiatan Kepala Seksi, dan nama PLH.
+- [x] **Auto-select pegawai PLH stabil** walaupun data pegawai lambat load.
+- [x] **Draft PLH persist nomor surat**: `nomor_surat`, `kode_surat`, dan `tanggal_surat` ikut tersimpan saat Simpan Draft.
+- [x] **STBuilderPreview update**: item kedua di "Untuk" jadi `"Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai."` saat PLH.
+- [x] **`buildBiayaText`**: skip biaya line saat PLH.
+- [x] **`buildUntukText`**: format durasi PLH memakai `selama X (kata) hari terhitung...`.
+- [x] **Tembusan section** di create page: input dinamis dengan add/remove, terisi default saat PLH aktif.
+
+### Pending:
+- [ ] Deploy ke SSH production belum dilakukan sesuai instruksi user.
+- [ ] Issue baru: item "Untuk" di ST Builder harus bisa ditambah/dikurangi seperti Menimbang dan Dasar.
+
+### Key Files Modified:
+- `frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`
+- `frontend/src/app/kepegawaian/surat-tugas/builder/[id]/STBuilderPreview.tsx`
+- `backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php`
+- `backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php`
+
+### Validation:
+- [x] `npm run lint -- --max-warnings=0`
+- [x] `npx tsc --noEmit`
+- [x] `npm run build`
+- [x] `php -l` SuratTugas controller/request clean
+
+---
 # Progress - Phase 67: Searchable ST Penandatangan Picker (MERGED + DEPLOYED)
 
 > Document updated: 2026-05-28

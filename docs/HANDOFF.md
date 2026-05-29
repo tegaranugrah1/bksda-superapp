@@ -141,17 +141,18 @@ git push origin main
 - [x] Issue #384: Add "Beda Hari" template for ST Builder + Create. PR #385 merged ke `main` (merge commit `f8b6d56`); remote branch deleted. Dropdown 3 template (Default, Penghapusan BMN, Beda Hari). Saat Beda Hari aktif: field "Kepada" jadi "Daftar nama terlampir.", input tanggal global di-hide diganti banner info, tiap pegawai dapet input tanggal mulai/selesai sendiri, halaman 2 lampiran auto-generate (meta + tabel 4 kolom + TTD Kepala Balai). Print PDF lampiran sudah di-fine-tune: konten naik, meta digeser kiri, posisi TTD mengikuti halaman 1, tabel fixed-layout, kolom Nama/NIP diperbesar, tanggal nowrap.
 - [x] Issue #386: Add searchable ST Penandatangan picker + persist signer fields. PR #387 merged ke `main` (merge commit `ac6f5d9`); remote branch deleted. ST Create dan Builder edit sekarang bisa cari pegawai penandatangan dari API kepegawaian, auto-fill nama/NIP, tetap editable manual, default tetap `M. Ari Wibawanto, S.Hut., M.Sc.` / `19740514 199903 1 001`. Backend tambah migration `penandatangan_nama` + `penandatangan_nip`.
 - [x] **Production Deploy Batch (2026-05-28)**: Server pulled main `550944f -> 7d5212b` (issue #380, #382, #384, #386 + docs). Backend + frontend rebuilt/recreated. Migration applied: #386 `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php` (`penandatangan_nama`, `penandatangan_nip`). Production healthy: login HTTP 200, `/bmn/auction-candidates` HTTP 307 redirect ke `/login` (protected, expected).
+- [x] Issue #388: Add PLH template for ST Builder + "Buat ST PLH" button in Inbox. PR #389 merged ke `main` (merge commit `ad179a9`); remote branch deleted. Tidak deploy/push ke SSH.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #386: Searchable ST Penandatangan picker + persist signer fields (PR #387 merged) |
-| **Issue Sedang Dikerjakan** | None |
+| **Issue Terakhir Selesai** | Issue #388: PLH template + Buat ST PLH button (PR #389 merged) |
+| **Issue Sedang Dikerjakan** | Siap membuat issue baru: editable item "Untuk" di ST Builder |
 | **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `7d5212b` (app/docs sebelum commit catatan deploy ini) |
+| **Commit Terakhir di Main** | `ad179a9` |
 | **Commit Production Server** | `7d5212b` (#380, #382, #384, #386 sudah deploy) |
-| **Status** | Issue #386 selesai, merged, dan deployed. Penandatangan ST di create/edit bisa dipilih dari daftar pegawai seperti search personil, tetap bisa diedit manual, tersimpan ke database, dan migration production sudah jalan. |
-| **Model Terakhir** | GPT-5 Codex |
-| **Timestamp** | 2026-05-28T16:34:39+08:00 |
+| **Status** | Issue #388 selesai dan merged. PLH template tersedia di create + builder edit, tombol Inbox membuka draft PLH existing bila ada, draft PLH menyimpan nomor/kode/tanggal surat, dan auto-select pegawai PLH stabil saat data pegawai lambat load. Validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `php -l` controller/request. |
+| **Model Terakhir** | Codex GPT-5 |
+| **Timestamp** | 2026-05-29T12:20:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -186,10 +187,20 @@ git push origin main
 - [x] Full validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `git diff --check`.
 
 ### Next Steps:
+- [ ] Buat issue baru: item "Untuk" di ST Builder harus bisa ditambah/dikurangi seperti Menimbang dan Dasar.
 - [x] Deploy issue #380, #382, #384, dan #386 ke SSH production.
 - [x] Saat deploy #386, jalankan backend migration untuk kolom `penandatangan_nama` dan `penandatangan_nip`.
 
 ---
+
+**UPDATE SESI CODEX (2026-05-29 - Issue #388 MERGED):**
+- Issue #388 selesai: commit `b10af55`, PR #389 merged ke `main` pada merge commit `ad179a9`.
+- Remote branch `issue/388-st-plh-template` sudah dihapus/pruned.
+- Tidak ada deploy/push ke SSH production sesuai instruksi user.
+- Perbaikan akhir setelah user test: tombol Inbox reuse draft PLH existing, draft PLH menyimpan nomor/kode/tanggal surat, auto-select pegawai PLH stabil saat query pegawai lambat.
+- Validation clean: `npm run lint -- --max-warnings=0`, `npx tsc --noEmit`, `npm run build`, `php -l` controller/request.
+- Next issue yang akan dibuat: item "Untuk" di ST Builder harus bisa ditambah/dikurangi seperti Menimbang dan Dasar.
+
 
 **UPDATE SESI CODEX (2026-05-28 - Issue #384 SELESAI: ST "Beda Hari" template):**
 - **Status**: MERGED + DEPLOYED (PR #385 -> `f8b6d56`) ke `main`. Remote branch `issue/384-st-template-beda-hari` deleted. Production app commit setelah batch deploy: `7d5212b`.
