@@ -386,6 +386,8 @@ export default function STBuilderPage() {
 
   // Build biaya text
   const buildBiayaText = (): string => {
+    // One-day kegiatan mode keeps every extra "Untuk" line user-managed.
+    if (isSingleDayActivityPrefix(activityPrefix)) return '';
     // BMN Penghapusan template: no biaya line in Untuk list (regardless of sumberDana)
     if (templateType === 'bmn-pemeriksaan') return '';
     // PLH template: skip biaya line (PLH tugas internal, tidak ada biaya)
