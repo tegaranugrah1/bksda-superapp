@@ -244,7 +244,7 @@ export default function STBuilderPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [suratStatus, setSuratStatus] = useState<string>("");
-  const isSingleDayActivity = shouldRenderAsSingleDayActivity(activityPrefix, tanggalMulai, tanggalSelesai, templateType);
+  const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder"],
@@ -728,7 +728,7 @@ export default function STBuilderPage() {
 
         const match = cleanedActivity.match(regex);
 
-        if (isParsedSingleDayActivity || isOneDayFromSubmittedForm) {
+        if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match)) {
           setActivityPrefix("Melaksanakan Kegiatan");
           setKotaAsal("");
           setKotaTujuan("");
