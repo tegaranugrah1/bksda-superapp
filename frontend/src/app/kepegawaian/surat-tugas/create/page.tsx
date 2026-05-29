@@ -14,6 +14,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { api } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,6 +50,31 @@ const DEFAULT_KEPALA_BALAI = {
   name: "M. Ari Wibawanto, S.Hut., M.Sc.",
   nip: "19740514 199903 1 001",
 };
+
+const PLH_WILAYAH_PLACEHOLDER = "{wilayah}";
+const PLH_KEGIATAN_KASI_PLACEHOLDER = "{kegiatan Kepala Seksi}";
+
+function extractPlhWilayahFromPosition(position?: string | null) {
+  const text = (position || "").trim();
+  const match = text.match(/Seksi\s+KSDA\s+Wilayah\s+(.+)$/i);
+  return match?.[1]?.trim() || text;
+}
+
+function cleanPlhKegiatanKasi(text?: string | null) {
+  return (text || "")
+    .replace(/\s+/g, " ")
+    .replace(/,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*?(?:;|\.)?$/i, "")
+    .replace(/[;.\s]+$/, "")
+    .trim();
+}
+
+function normalizeEmployeeForSelection(employee: Employee): Employee {
+  return {
+    ...employee,
+    nama_lengkap: employee.nama_lengkap || employee.name || "",
+    jabatan: employee.jabatan || employee.position || "",
+  };
+}
 
 interface SumberDanaOption {
   id: string;
@@ -106,6 +132,7 @@ const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
 
 export default function STCreatePremiumPage() {
   const router = useRouter();
+  const confirm = useConfirm();
   const searchParams = useSearchParams();
   const initialEmployeeId = searchParams.get("employee_id");
   const initialTemplate = searchParams.get("template");
@@ -136,6 +163,9 @@ export default function STCreatePremiumPage() {
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
   const [kotaTujuan, setKotaTujuan] = useState("");
   const [tempatKegiatan, setTempatKegiatan] = useState("");
+  const [plhWilayah, setPlhWilayah] = useState("");
+  const [plhKegiatanKasi, setPlhKegiatanKasi] = useState("");
+  const [pendingPlhEmployeeName, setPendingPlhEmployeeName] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
   // Beda Hari template: tanggal per pegawai
   const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
@@ -143,6 +173,7 @@ export default function STCreatePremiumPage() {
   const [kepalaBalai, setKepalaBalai] = useState(DEFAULT_KEPALA_BALAI);
   const [tanggalSurat, setTanggalSurat] = useState(new Date().toISOString().substring(0, 10));
   const [kotaSurat, setKotaSurat] = useState("Samarinda");
+  const [tembusanItems, setTembusanItems] = useState<string[]>([]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -176,6 +207,31 @@ export default function STCreatePremiumPage() {
     })
     .slice(0, 8);
 
+  const selectPlhEmployeeByName = useCallback(
+    (plhName?: string | null) => {
+      const name = plhName?.trim().toLowerCase();
+      if (!name || allEmployees.length === 0) return false;
+
+      const matched = allEmployees.find((emp: Employee) => {
+        const fullName = (emp.nama_lengkap || emp.name || "").toLowerCase();
+        return fullName === name || fullName.includes(name);
+      });
+
+      if (!matched) return false;
+
+      setSelectedEmployees([normalizeEmployeeForSelection(matched)]);
+      setPendingPlhEmployeeName("");
+      return true;
+    },
+    [allEmployees],
+  );
+
+  useEffect(() => {
+    if (templateType !== "plh" || selectedEmployees.length > 0 || !pendingPlhEmployeeName) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    selectPlhEmployeeByName(pendingPlhEmployeeName);
+  }, [pendingPlhEmployeeName, selectPlhEmployeeByName, selectedEmployees.length, templateType]);
+
   const handleSelectPenandatangan = (emp: Employee) => {
     setKepalaBalai({
       name: emp.nama_lengkap || emp.name || DEFAULT_KEPALA_BALAI.name,
@@ -183,6 +239,30 @@ export default function STCreatePremiumPage() {
     });
     setPenandatanganSearchQuery("");
     setShowPenandatanganDropdown(false);
+  };
+
+  const replacePlhPlaceholders = useCallback(
+    (value: string) => {
+      if (templateType !== "plh") return value;
+      return value
+        .split(PLH_WILAYAH_PLACEHOLDER)
+        .join(plhWilayah.trim() || "...")
+        .split(PLH_KEGIATAN_KASI_PLACEHOLDER)
+        .join(plhKegiatanKasi.trim() || "...");
+    },
+    [plhKegiatanKasi, plhWilayah, templateType],
+  );
+
+  const getPreviewMenimbangItems = () =>
+    templateType === "plh"
+      ? menimbangItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
+      : menimbangItems;
+
+  const getTempatTujuanForPayload = () => {
+    if (templateType === "plh") {
+      return plhWilayah.trim() || kotaTujuan.trim() || tempatKegiatan.trim();
+    }
+    return kotaTujuan.trim();
   };
 
   useEffect(() => {
@@ -249,18 +329,93 @@ export default function STCreatePremiumPage() {
     });
   }, [selectedEmployees, tanggalMulai, tanggalSelesai]);
 
-  // Generic template handler: dropdown 3 pilihan
+  // Apply PLH template — pelaksana harian Kepala Seksi
+  const applyPlhTemplate = useCallback(
+    (
+      parentSt?: {
+        nomor_surat?: string | null;
+        tanggal_surat?: string | null;
+        tanggal_mulai?: string | null;
+        tanggal_selesai?: string | null;
+        tempat_tujuan?: string | null;
+        maksud_tujuan?: string | null;
+        employees?: Employee[];
+      },
+      plhName?: string,
+    ) => {
+      setTemplateType("plh");
+      setKlasifikasi("PEG.09.01");
+      setSumberDana("dl1");
+
+      // Default tanggal: ikut tanggal ST induk kalau ada
+      const today = new Date().toISOString().substring(0, 10);
+      const mulai = parentSt?.tanggal_mulai?.split("T")[0] || today;
+      const selesai = parentSt?.tanggal_selesai?.split("T")[0] || today;
+      setTanggalMulai(mulai);
+      setTanggalSelesai(selesai);
+
+      const nomorInduk = parentSt?.nomor_surat || "...";
+      const tanggalInduk = parentSt?.tanggal_surat
+        ? formatDateIndonesian(parentSt.tanggal_surat.split("T")[0])
+        : "...";
+      const parentLeadEmployee = parentSt?.employees?.[0];
+      setPlhWilayah(extractPlhWilayahFromPosition(parentLeadEmployee?.jabatan || parentLeadEmployee?.position || ""));
+      setPlhKegiatanKasi(cleanPlhKegiatanKasi(parentSt?.maksud_tujuan));
+
+      setMenimbangItems([
+        {
+          id: "plh-m1",
+          text: `bahwa Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER} akan melaksanakan ${PLH_KEGIATAN_KASI_PLACEHOLDER};`,
+        },
+        {
+          id: "plh-m2",
+          text: `bahwa sehubungan dengan hal tersebut di atas untuk kelancaran pelaksanaan tugas sehari-hari maka perlu ada pejabat sementara yang menggantikan tugas Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}.`,
+        },
+      ]);
+
+      setDasarItems([
+        {
+          id: "plh-d1",
+          text: `Surat Tugas Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor : ${nomorInduk} tanggal ${tanggalInduk}.`,
+        },
+      ]);
+
+      // Freeform: clear structured fields, set namaKegiatan ke kalimat PLH
+      setActivityPrefix("");
+      setKotaAsal("");
+      setKotaTujuan("");
+      setTempatKegiatan("");
+      setNamaKegiatan(
+        `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`,
+      );
+
+      setTembusanItems([
+        "Direktur Jenderal KSDAE;",
+        "Sekretaris Direktorat Jenderal KSDAE.",
+      ]);
+
+      if (plhName?.trim()) {
+        setPendingPlhEmployeeName(plhName.trim());
+        selectPlhEmployeeByName(plhName);
+      }
+    },
+    [selectPlhEmployeeByName],
+  );
+
+  // Generic template handler: dropdown 4 pilihan
   const handleTemplateChange = useCallback(
     (value: string) => {
       if (value === "bmn-pemeriksaan") {
         applyBmnTemplate();
       } else if (value === "beda-hari") {
         applyBedaHariTemplate();
+      } else if (value === "plh") {
+        applyPlhTemplate();
       } else {
         setTemplateType(null);
       }
     },
-    [applyBmnTemplate, applyBedaHariTemplate],
+    [applyBmnTemplate, applyBedaHariTemplate, applyPlhTemplate],
   );
 
   // Apply BMN Pemeriksaan template from query param (one-shot)
@@ -271,6 +426,45 @@ export default function STCreatePremiumPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     applyBmnTemplate();
   }, [initialTemplate, applyBmnTemplate]);
+
+  // Apply PLH template from query param + fetch parent ST data
+  useEffect(() => {
+    if (templateAppliedRef.current) return;
+    if (initialTemplate !== "plh") return;
+    templateAppliedRef.current = true;
+
+    const parentStId = searchParams.get("parent_st_id");
+    if (!parentStId) {
+      // Apply tanpa data induk
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      applyPlhTemplate();
+      return;
+    }
+
+    // Fetch parent ST data, then apply template with parent info
+    (async () => {
+      try {
+        const res = await api.get(`/surat-tugas/${parentStId}`);
+        const parentData = res.data?.data;
+        applyPlhTemplate(
+          {
+            nomor_surat: parentData?.nomor_surat,
+            tanggal_surat: parentData?.tanggal_surat,
+            tanggal_mulai: parentData?.tanggal_mulai,
+            tanggal_selesai: parentData?.tanggal_selesai,
+            tempat_tujuan: parentData?.tempat_tujuan,
+            maksud_tujuan: parentData?.maksud_tujuan,
+            employees: parentData?.employees || [],
+          },
+          parentData?.nama_plh,
+        );
+      } catch (err) {
+        console.error("Failed to fetch parent ST:", err);
+        toast.error("Gagal memuat data ST induk. Template PLH diterapkan tanpa data referensi.");
+        applyPlhTemplate();
+      }
+    })();
+  }, [initialTemplate, searchParams, applyPlhTemplate]);
 
   // Helper for "Untuk" text
   const buildUntukText = (): string => {
@@ -307,6 +501,17 @@ export default function STCreatePremiumPage() {
       return text;
     }
 
+    // PLH template: durasi tampil di bagian Untuk, bukan di kegiatan Kepala Seksi.
+    if (templateType === "plh") {
+      let text = replacePlhPlaceholders(namaKegiatan || "...");
+      if (days > 0) {
+        text += ` selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
+      } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
+        text += ".";
+      }
+      return text;
+    }
+
     let text = `${activityPrefix} dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
     if (namaKegiatan) {
       text += ` dalam rangka ${namaKegiatan}`;
@@ -326,6 +531,8 @@ export default function STCreatePremiumPage() {
   const buildBiayaText = (): string => {
     // BMN Penghapusan template: skip biaya line entirely (regardless of sumberDana)
     if (templateType === 'bmn-pemeriksaan') return '';
+    // PLH template: skip biaya line (PLH tugas internal, tidak ada biaya)
+    if (templateType === 'plh') return '';
     const opt = SUMBER_DANA_OPTIONS.find(o => o.id === sumberDana);
     if (opt?.biayaText) {
       const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
@@ -393,9 +600,81 @@ export default function STCreatePremiumPage() {
   };
 
   // Handlers
+  const buildDraftPayload = () => {
+    const tempatTujuanPayload = getTempatTujuanForPayload();
+    const trimmedNumber = stNumber.trim();
+    const trimmedKlasifikasi = klasifikasi.trim();
+    const fullNomorSurat = trimmedNumber && trimmedKlasifikasi
+      ? `ST.${trimmedNumber}/K.18/TU/${trimmedKlasifikasi}/B/${currentMonth}/${currentYear}`
+      : null;
+
+    return {
+      nomor_surat: fullNomorSurat,
+      kode_surat: trimmedKlasifikasi ? `K.18/TU/${trimmedKlasifikasi}/B` : null,
+      tanggal_surat: tanggalSurat || null,
+      maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
+      tanggal_mulai: tanggalMulai,
+      tanggal_selesai: tanggalSelesai,
+      tempat_tujuan: tempatTujuanPayload,
+      sumber_dana: sumberDana,
+      sumber_dana_other: sumberDanaOther,
+      template_type: templateType,
+      menimbang: getPreviewMenimbangItems(),
+      dasar: dasarItems,
+      tembusan: tembusanItems.length > 0 ? tembusanItems : null,
+      penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
+      penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
+      employees: selectedEmployees.map((employee) => ({ id: employee.id })),
+    };
+  };
+
+  const handleSaveDraft = async () => {
+    if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
+    const tempatTujuanPayload = getTempatTujuanForPayload();
+    if (!tempatTujuanPayload) {
+      return toast.error(templateType === "plh" ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi.");
+    }
+    if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
+
+    const confirmed = await confirm({
+      title: "Simpan sebagai draft?",
+      description: "Surat Tugas akan disimpan ke Inbox sebagai draft dan masih bisa diedit sebelum diterbitkan.",
+      confirmText: "Simpan Draft",
+      cancelText: "Batal",
+      variant: "default",
+    });
+    if (!confirmed) return;
+
+    try {
+      await api.post("/surat-tugas", buildDraftPayload());
+      toast.success("Draft Surat Tugas berhasil disimpan.");
+      router.push("/kepegawaian/surat-tugas/inbox");
+    } catch (err: unknown) {
+      console.error(err);
+      let errorMessage = "Gagal menyimpan draft.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
   const handleApprove = async () => {
     if (!stNumber) return toast.error("Nomor surat harus diisi.");
     if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
+    const tempatTujuanPayload = getTempatTujuanForPayload();
+    if (!tempatTujuanPayload) {
+      return toast.error(templateType === "plh" ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi.");
+    }
+
+    const confirmed = await confirm({
+      title: "Terbitkan Surat Tugas?",
+      description: "Surat Tugas akan langsung diterbitkan dan masuk ke riwayat. Pastikan nomor, personil, tanggal, dan isi dokumen sudah benar.",
+      confirmText: "Terbitkan",
+      cancelText: "Batal",
+      variant: "warning",
+    });
+    if (!confirmed) return;
 
     try {
       const fullNomorSurat = `ST.${stNumber}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`;
@@ -405,14 +684,15 @@ export default function STCreatePremiumPage() {
         tanggal_surat: tanggalSurat,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
-        template_type: templateType,
-        menimbang: menimbangItems,
-        dasar: dasarItems,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
         employee_ids: selectedEmployees.map(e => e.id),
-        maksud_tujuan: buildUntukText() + "\n" + buildBiayaText(),
-        tempat_tujuan: kotaTujuan,
+        maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
+        tempat_tujuan: tempatTujuanPayload,
+        template_type: templateType,
+        menimbang: getPreviewMenimbangItems(),
+        dasar: dasarItems,
+        tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         tanggal_mulai: tanggalMulai,
         tanggal_selesai: tanggalSelesai
       };
@@ -510,6 +790,7 @@ export default function STCreatePremiumPage() {
               <option value="">Default (Manual)</option>
               <option value="bmn-pemeriksaan">Penghapusan BMN</option>
               <option value="beda-hari">Beda Hari (Daftar Lampiran)</option>
+              <option value="plh">PLH (Pelaksana Harian Kepala Seksi)</option>
             </select>
             {templateType === "beda-hari" && (
               <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
@@ -519,6 +800,11 @@ export default function STCreatePremiumPage() {
             {templateType === "bmn-pemeriksaan" && (
               <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
                 Klasifikasi KAP.05 + 8 peraturan dasar + freeform Untuk telah diterapkan.
+              </p>
+            )}
+            {templateType === "plh" && (
+              <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
+                Template PLH aktif. Ganti placeholder <code>{"{wilayah}"}</code> dan <code>{"{kegiatan Kepala Seksi}"}</code> di Menimbang/Untuk dengan nilai sesuai.
               </p>
             )}
           </div>
@@ -711,6 +997,28 @@ export default function STCreatePremiumPage() {
 
           <FormSection title="Detail Kegiatan">
             <div className="space-y-3">
+              {templateType === "plh" && (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 space-y-2 dark:border-blue-500/30 dark:bg-blue-500/10">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-blue-700 uppercase dark:text-blue-300">Wilayah Kepala Seksi</label>
+                    <input
+                      value={plhWilayah}
+                      onChange={(e) => setPlhWilayah(e.target.value)}
+                      placeholder="Contoh: Wilayah II Tenggarong"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm outline-none text-zinc-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-blue-700 uppercase dark:text-blue-300">Kegiatan Kepala Seksi</label>
+                    <textarea
+                      value={plhKegiatanKasi}
+                      onChange={(e) => setPlhKegiatanKasi(e.target.value)}
+                      placeholder="Kegiatan Kepala Seksi yang menjadi dasar PLH"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm min-h-[72px] outline-none text-zinc-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              )}
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase">Jenis Tugas</label>
                 <select 
@@ -744,6 +1052,36 @@ export default function STCreatePremiumPage() {
                   Mode Beda Hari aktif: tanggal kegiatan dihitung otomatis dari tanggal mulai paling awal sampai tanggal selesai paling akhir di daftar pegawai.
                 </p>
               )}
+            </div>
+          </FormSection>
+
+          <FormSection title="Tembusan" action={
+            <button onClick={() => setTembusanItems([...tembusanItems, ""])} className="text-blue-600 hover:text-blue-700">
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          }>
+            <div className="space-y-2">
+              {tembusanItems.length === 0 && (
+                <p className="text-[11px] text-slate-400 italic">Belum ada tembusan. Klik + untuk menambah.</p>
+              )}
+              {tembusanItems.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-1">
+                  <span className="text-[10px] text-slate-400 w-4">{idx + 1}.</span>
+                  <input
+                    value={item}
+                    onChange={(e) => {
+                      const updated = [...tembusanItems];
+                      updated[idx] = e.target.value;
+                      setTembusanItems(updated);
+                    }}
+                    placeholder="Nama penerima tembusan..."
+                    className="flex-1 px-2 py-1.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs outline-none text-zinc-900 dark:text-white"
+                  />
+                  <button onClick={() => setTembusanItems(tembusanItems.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600 p-1">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
             </div>
           </FormSection>
 
@@ -800,6 +1138,9 @@ export default function STCreatePremiumPage() {
         </div>
 
         <footer className="p-6 border-t border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0">
+          <Button onClick={handleSaveDraft} variant="outline" className="w-full h-10 rounded-xl font-bold text-slate-600 dark:text-zinc-300 border-slate-200 dark:border-zinc-700 mb-2">
+            <FileText className="w-4 h-4 mr-2" /> Simpan Draft
+          </Button>
           <Button onClick={handleApprove} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold mb-3"><CheckCircle className="w-5 h-5 mr-2" /> Terbitkan & Cetak</Button>
           <Button variant="outline" onClick={handlePrint} className="w-full h-12 rounded-xl font-bold text-slate-600 dark:text-zinc-400"><Printer className="w-5 h-5 mr-2" /> Preview Cetak</Button>
         </footer>
@@ -823,13 +1164,14 @@ export default function STCreatePremiumPage() {
           >
             <STBuilderPreview 
               stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
-              menimbangItems={menimbangItems} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
+              menimbangItems={getPreviewMenimbangItems()} dasarItems={dasarItems} selectedEmployees={selectedEmployees}
               buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               sumberDana={sumberDana}
               templateType={templateType}
               employeeDates={employeeDates}
               judulLampiranBedaHari={judulLampiranBedaHari}
+              tembusanItems={tembusanItems}
             />
           </div>
           {/* Page break indicators */}
