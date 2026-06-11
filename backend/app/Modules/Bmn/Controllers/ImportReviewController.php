@@ -5,6 +5,7 @@ namespace App\Modules\Bmn\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Imports\AssetStagingImport;
 use App\Modules\Bmn\Models\Asset;
+use App\Modules\Bmn\Models\AssetUpdate;
 use App\Modules\Bmn\Models\ImportBatch;
 use App\Modules\Bmn\Models\ImportStaging;
 use Exception;
@@ -136,11 +137,50 @@ class ImportReviewController extends Controller
             'selected' => 'required|boolean',
         ]);
 
-        ImportStaging::whereIn('id', $request->ids)
+        $rows = ImportStaging::whereIn('id', $request->ids)
             ->whereIn('diff_status', ['new', 'updated'])
-            ->update(['selected' => $request->selected]);
+            ->get();
+
+        foreach ($rows as $row) {
+            $updates = ['selected' => $request->selected];
+
+            if ($row->diff_status === 'updated') {
+                $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], $request->boolean('selected'));
+            }
+
+            $row->update($updates);
+        }
 
         return response()->json(['message' => 'Seleksi diperbarui.']);
+    }
+
+    /**
+     * Step 2bb: Toggle approval of one changed field in an updated row.
+     */
+    public function toggleFieldSelection(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'row_id' => 'required|string|exists:bmn_import_staging,id',
+            'field' => 'required|string|max:255',
+            'selected' => 'required|boolean',
+        ]);
+
+        $row = ImportStaging::where('diff_status', 'updated')
+            ->whereHas('batch', fn ($query) => $query->where('status', 'pending'))
+            ->findOrFail($validated['row_id']);
+
+        $changedFields = $row->changed_fields ?? [];
+        if (!array_key_exists($validated['field'], $changedFields)) {
+            return response()->json(['error' => 'Kolom perubahan tidak ditemukan.'], 422);
+        }
+
+        $changedFields[$validated['field']]['selected'] = $validated['selected'];
+        $row->update([
+            'changed_fields' => $changedFields,
+            'selected' => $this->hasSelectedChangedField($changedFields),
+        ]);
+
+        return response()->json(['message' => 'Seleksi kolom diperbarui.']);
     }
 
     /**
@@ -161,9 +201,19 @@ class ImportReviewController extends Controller
 
         if ($validated['action'] === 'select_changed') {
             // Select ALL changed rows (new + updated)
-            $selected = (clone $baseQuery)
+            $rows = (clone $baseQuery)
                 ->whereIn('diff_status', ['new', 'updated'])
-                ->update(['selected' => true]);
+                ->get();
+
+            $selected = 0;
+            foreach ($rows as $row) {
+                $updates = ['selected' => true];
+                if ($row->diff_status === 'updated') {
+                    $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], true);
+                }
+                $row->update($updates);
+                $selected++;
+            }
 
             return response()->json([
                 'message' => "{$selected} baris (baru + update) dipilih.",
@@ -173,9 +223,17 @@ class ImportReviewController extends Controller
 
         if ($validated['action'] === 'select_new_only') {
             // Clear all, then select only new rows
-            (clone $baseQuery)
+            $changedRows = (clone $baseQuery)
                 ->where('diff_status', '!=', 'unchanged')
-                ->update(['selected' => false]);
+                ->get();
+
+            foreach ($changedRows as $row) {
+                $updates = ['selected' => false];
+                if ($row->diff_status === 'updated') {
+                    $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], false);
+                }
+                $row->update($updates);
+            }
 
             $selected = (clone $baseQuery)
                 ->where('diff_status', 'new')
@@ -187,9 +245,19 @@ class ImportReviewController extends Controller
             ]);
         }
 
-        $affected = $baseQuery
+        $rows = $baseQuery
             ->where('diff_status', '!=', 'unchanged')
-            ->update(['selected' => false]);
+            ->get();
+
+        $affected = 0;
+        foreach ($rows as $row) {
+            $updates = ['selected' => false];
+            if ($row->diff_status === 'updated') {
+                $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], false);
+            }
+            $row->update($updates);
+            $affected++;
+        }
 
         return response()->json([
             'message' => 'Seleksi massal diperbarui.',
@@ -257,12 +325,26 @@ class ImportReviewController extends Controller
                             $changedFields = $row->changed_fields ?? [];
                             $updateData = [];
                             foreach ($changedFields as $field => $values) {
+                                if (($values['selected'] ?? true) === false) {
+                                    continue;
+                                }
                                 $updateData[$field] = $values['new'];
                             }
                             if (!empty($updateData)) {
+                                foreach ($updateData as $field => $newValue) {
+                                    AssetUpdate::create([
+                                        'asset_id' => $asset->id,
+                                        'user_id' => $request->user()->id,
+                                        'field_changed' => $field,
+                                        'old_value' => $this->historyValue($changedFields[$field]['old'] ?? $asset->{$field}),
+                                        'new_value' => $this->historyValue($newValue),
+                                        'alasan_perubahan' => "Import review: {$batch->filename}",
+                                    ]);
+                                }
+
                                 $asset->update($updateData);
+                                $updated++;
                             }
-                            $updated++;
                         }
                     }
                 }
@@ -312,6 +394,39 @@ class ImportReviewController extends Controller
             ->paginate($request->integer('per_page', 10));
 
         return response()->json($batches);
+    }
+
+    private function setAllFieldSelection(array $changedFields, bool $selected): array
+    {
+        foreach ($changedFields as $field => $values) {
+            $changedFields[$field]['selected'] = $selected;
+        }
+
+        return $changedFields;
+    }
+
+    private function hasSelectedChangedField(array $changedFields): bool
+    {
+        foreach ($changedFields as $values) {
+            if (($values['selected'] ?? true) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function historyValue($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        return (string) $value;
     }
 
     private function buildFilteredRowsQuery(ImportBatch $batch, Request $request)

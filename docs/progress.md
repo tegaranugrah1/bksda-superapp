@@ -1,3 +1,39 @@
+# Progress - Phase 73: BMN Import Review Per-Field Approval
+
+> Document updated: 2026-06-11
+> Status: Issue #398 **READY TO MERGE** (PR #399, branch `issue/398-import-review-per-field-approval`). Production Dokploy sudah live; issue #398 belum deploy production.
+
+---
+
+## Issue #398: Approve perubahan Import Review BMN per kolom
+
+### Status: READY TO MERGE
+- GitHub Issue: #398 `feat(bmn): approve import review changes per field`
+- Branch: `issue/398-import-review-per-field-approval`
+- PR: #399 `feat(bmn): approve import review changes per field (#398)`
+- Tujuan: reviewer bisa menerima hanya kolom tertentu pada baris `Update`, misalnya hanya `tanggal_pengapusan`, tanpa ikut mengubah `nup_lama` atau `foto_geotag_url`.
+
+### Implementasi
+- Backend: tambah endpoint `POST /api/bmn/import-review/toggle-field-selection`.
+- Pilihan kolom disimpan backward-compatible di JSON `changed_fields[field].selected`.
+- Data staging lama yang belum punya `selected` tetap dianggap terpilih.
+- `approve()` sekarang hanya apply changed field dengan `selected !== false`.
+- Setiap field yang benar-benar di-apply dari import review dicatat ke `bmn_asset_updates` dengan alasan `Import review: <filename>`, jadi tab Riwayat aset hanya menampilkan kolom yang disetujui.
+- Row checkbox dan bulk selection tetap berfungsi: pilih row = semua kolom update dipilih; batal row = semua kolom update batal.
+- `updated` counter hanya bertambah jika ada minimal satu kolom yang benar-benar di-update.
+- Frontend: setiap diff kolom pada baris `Update` punya checkbox dan indikator `Kolom disetujui: X/Y`.
+- Label ditambah untuk `nup_lama`, `tanggal_pengapusan`, dan `foto_geotag_url`.
+
+### Validasi
+- `php -l backend/app/Modules/Bmn/Controllers/ImportReviewController.php` clean.
+- `php -l backend/app/Modules/Bmn/Routes/api.php` clean.
+- `cd backend; php artisan route:list` clean dan route toggle-field terdaftar.
+- `cd frontend; npm run lint -- --max-warnings=0` clean.
+- `cd frontend; npx tsc --noEmit` clean.
+- `cd frontend; npm run build` clean (59/59 routes).
+
+---
+
 # Progress - Phase 72: Security Hardening + Migrasi VPS ke Dokploy
 
 > Document updated: 2026-05-29 (malam)

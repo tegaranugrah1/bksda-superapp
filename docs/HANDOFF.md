@@ -102,6 +102,7 @@ git push origin main
 
 ## Status Saat Ini
 
+- [x] Issue #398: BMN Import Review approve per changed field. PR #399 siap squash merge. Backend tambah `toggle-field-selection`; approve hanya apply kolom `changed_fields[field].selected !== false` dan mencatat history hanya untuk field yang di-apply; frontend tambah checkbox per kolom diff + indikator `Kolom disetujui: X/Y`. Validasi clean: PHP syntax, route:list, eslint 0 warning, tsc, build 59/59. Belum deploy production.
 - [x] Create GitHub issue #334 for BMN Aset Akan Di Lelang and BA Koreksi Kondisi document workflow.
 - [x] Add BMN sidebar route `/bmn/auction-candidates` for Rusak Berat assets with search, pagination, bulk select, and process/print document flow.
 - [x] Generate BA Koreksi Perubahan Kondisi BMN preview/print using `header-terbaru.png`, tuned A4 margins, two-page print output, and lampiran table layout.
@@ -167,12 +168,12 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #396: Security hardening (PR #397 merged, akan aktif setelah Dokploy redeploy) |
-| **Issue Sedang Dikerjakan** | Migrasi VPS ke Dokploy (paused — DNS propagasi pending, lanjut besok) |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `6c06307` (kode) + `eef13ad` (docs) + `50dfeab` (gitignore) |
-| **Commit Production Server** | N/A — VPS sudah di-wipe, Dokploy fresh install (dashboard `http://15.135.114.1:3000`, belum redeploy app) |
-| **Status** | Phase 1 (backup) ✅, Phase 2 (wipe, free 15.75GB) ✅, Phase 3 (install Dokploy v0.29.5) ✅, Phase 4 (redeploy app) **paused — DNS `dokploy.bksdakaltim.net` belum propagasi**. Production app currently **DOWN** (intentional — sedang migrasi). Dashboard Dokploy live di IP. |
+| **Issue Terakhir Selesai** | Issue #396: Security hardening (PR #397 merged) + Dokploy migration/redeploy production completed on 2026-06-11 |
+| **Issue Sedang Dikerjakan** | Issue #398: BMN Import Review approve per changed field (PR #399 siap squash merge) |
+| **Branch Aktif** | `issue/398-import-review-per-field-approval` |
+| **Commit Terakhir di Main** | `2d0c075` (deploy: add Dokploy compose file) |
+| **Commit Production Server** | Dokploy compose at `2d0c075`; issue #398 belum deploy production |
+| **Status** | Production app live via Dokploy (`bksdakaltim.net`, `api.bksdakaltim.net`, `storage.bksdakaltim.net`), DB/RustFS restored. Current work: #398 per-field import approval awaiting PR/testing/deploy. |
 | **Model Terakhir** | Claude Opus 4.7 |
 | **Timestamp** | 2026-05-29T20:00:00+08:00 |
 
