@@ -98,6 +98,7 @@ class AssetResource extends JsonResource
             'status_foto_geotag' => $this->status_foto_geotag,
             'foto_geotag_url' => $this->foto_geotag_url,
             'foto_geotag_path' => $this->foto_geotag_path ? Storage::url($this->foto_geotag_path) : null,
+            'foto_depan_url' => $this->foto_depan_path ? Storage::url($this->foto_depan_path) : null,
             'foto_belakang_url' => $this->foto_belakang_path ? Storage::url($this->foto_belakang_path) : null,
             'foto_kiri_url' => $this->foto_kiri_path ? Storage::url($this->foto_kiri_path) : null,
             'foto_kanan_url' => $this->foto_kanan_path ? Storage::url($this->foto_kanan_path) : null,

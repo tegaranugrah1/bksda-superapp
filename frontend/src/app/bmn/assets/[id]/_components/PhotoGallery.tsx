@@ -15,10 +15,12 @@ interface PhotoGalleryProps {
   nup: string;
   fotoGeotagUrl: string | null;
   fotoGeotagPath: string | null;
+  fotoDepanUrl: string | null;
   fotoBelakangUrl: string | null;
   fotoKiriUrl: string | null;
   fotoKananUrl: string | null;
-  fotoLokasiUrl: string | null;
+  frontLocationNote?: string | null;
+  onSaveFrontLocation?: (value: string) => Promise<void>;
   fotoBpkb1Url?: string | null;
   fotoBpkb2Url?: string | null;
   fotoBpkb3Url?: string | null;
@@ -32,11 +34,11 @@ interface PhotoGalleryProps {
 }
 
 const PHOTO_SLOTS = [
-  { key: "geotag", label: "Tampak Depan (Foto Geotag)", type: "hybrid" },
+  { key: "geotag", label: "Foto Geotag", type: "hybrid" },
+  { key: "depan", label: "Tampak Depan", type: "upload" },
   { key: "belakang", label: "Tampak Belakang", type: "upload" },
   { key: "kiri", label: "Tampak Kiri", type: "upload" },
   { key: "kanan", label: "Tampak Kanan", type: "upload" },
-  { key: "lokasi", label: "Lokasi Barang", type: "upload" },
 ] as const;
 
 const DOC_SLOTS = [
@@ -55,12 +57,14 @@ function driveToThumbnail(url: string): string | null {
   return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
 }
 
-export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
+export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, frontLocationNote, onSaveFrontLocation, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
   const [geotagInput, setGeotagInput] = useState("");
   const [showGeotagInput, setShowGeotagInput] = useState(false);
+  const [frontLocationDraft, setFrontLocationDraft] = useState(frontLocationNote || "");
+  const [savingFrontLocation, setSavingFrontLocation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
 
@@ -69,10 +73,10 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
 
   const photos: Record<string, string | null> = {
     geotag: resolvedGeotagUrl,
+    depan: fotoDepanUrl,
     belakang: fotoBelakangUrl,
     kiri: fotoKiriUrl,
     kanan: fotoKananUrl,
-    lokasi: fotoLokasiUrl,
     bpkb_1: fotoBpkb1Url || null,
     bpkb_2: fotoBpkb2Url || null,
     bpkb_3: fotoBpkb3Url || null,
@@ -217,6 +221,19 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
     toast.success("Link disalin ke clipboard.");
   };
 
+  const saveFrontLocation = async () => {
+    if (!onSaveFrontLocation) return;
+    const nextValue = frontLocationDraft.trim();
+    if (nextValue === (frontLocationNote || "")) return;
+
+    setSavingFrontLocation(true);
+    try {
+      await onSaveFrontLocation(nextValue);
+    } finally {
+      setSavingFrontLocation(false);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm ring-1 ring-zinc-200/60 dark:ring-zinc-800 overflow-hidden">
       <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 dark:from-zinc-800/50 to-white dark:to-zinc-900 flex items-center justify-between">
@@ -251,7 +268,25 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
 
       <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {PHOTO_SLOTS.map((slot) => (
-          <PhotoSlot key={slot.key} slot={slot} url={photos[slot.key]} openLightbox={openLightbox} handleDownload={handleDownload} copyLink={copyLink} handleDelete={handleDelete} setUploadTarget={setUploadTarget} fileInputRef={fileInputRef} setShowGeotagInput={setShowGeotagInput} canWrite={canWrite} fotoGeotagPath={fotoGeotagPath} fotoGeotagUrl={fotoGeotagUrl} />
+          <PhotoSlot
+            key={slot.key}
+            slot={slot}
+            url={photos[slot.key]}
+            frontLocationDraft={slot.key === "depan" ? frontLocationDraft : undefined}
+            onFrontLocationChange={slot.key === "depan" ? setFrontLocationDraft : undefined}
+            onSaveFrontLocation={slot.key === "depan" ? saveFrontLocation : undefined}
+            savingFrontLocation={slot.key === "depan" ? savingFrontLocation : false}
+            openLightbox={openLightbox}
+            handleDownload={handleDownload}
+            copyLink={copyLink}
+            handleDelete={handleDelete}
+            setUploadTarget={setUploadTarget}
+            fileInputRef={fileInputRef}
+            setShowGeotagInput={setShowGeotagInput}
+            canWrite={canWrite}
+            fotoGeotagPath={fotoGeotagPath}
+            fotoGeotagUrl={fotoGeotagUrl}
+          />
         ))}
       </div>
 
@@ -369,6 +404,10 @@ function Lightbox({ url, label, index, total, onClose, onPrev, onNext }: {
 interface PhotoSlotProps {
   slot: { key: string; label: string; type: string };
   url: string | null;
+  frontLocationDraft?: string;
+  onFrontLocationChange?: (value: string) => void;
+  onSaveFrontLocation?: () => void;
+  savingFrontLocation?: boolean;
   openLightbox: (key: string) => void;
   handleDownload: (key: string) => void;
   copyLink: (url: string) => void;
@@ -381,9 +420,10 @@ interface PhotoSlotProps {
   fotoGeotagUrl: string | null;
 }
 
-function PhotoSlot({ slot, url, openLightbox, handleDownload, copyLink, handleDelete, setUploadTarget, fileInputRef, setShowGeotagInput, canWrite, fotoGeotagPath, fotoGeotagUrl }: PhotoSlotProps) {
+function PhotoSlot({ slot, url, frontLocationDraft, onFrontLocationChange, onSaveFrontLocation, savingFrontLocation, openLightbox, handleDownload, copyLink, handleDelete, setUploadTarget, fileInputRef, setShowGeotagInput, canWrite, fotoGeotagPath, fotoGeotagUrl }: PhotoSlotProps) {
   const isHybrid = slot.type === "hybrid";
   const isExternalOnly = isHybrid && !fotoGeotagPath && !!fotoGeotagUrl;
+  const isFrontView = slot.key === "depan";
 
   return (
     <div className="group relative">
@@ -419,6 +459,26 @@ function PhotoSlot({ slot, url, openLightbox, handleDownload, copyLink, handleDe
 
       {/* Label */}
       <p className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 text-center mt-1.5">{slot.label}</p>
+      {isFrontView && canWrite && onFrontLocationChange && onSaveFrontLocation && (
+        <input
+          value={frontLocationDraft || ""}
+          onChange={(event) => onFrontLocationChange(event.target.value)}
+          onBlur={onSaveFrontLocation}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.currentTarget.blur();
+            }
+          }}
+          disabled={savingFrontLocation}
+          placeholder="Isi lokasi/ruangan barang..."
+          className="mt-1 h-7 w-full rounded-md border border-zinc-200 bg-white px-2 text-center text-[10px] font-medium text-zinc-600 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+        />
+      )}
+      {isFrontView && !canWrite && frontLocationDraft && (
+        <p className="mt-0.5 min-h-4 truncate text-center text-[9px] font-medium text-zinc-400 dark:text-zinc-500" title={frontLocationDraft}>
+          {frontLocationDraft}
+        </p>
+      )}
 
       {/* Actions */}
       <div className="flex items-center justify-center gap-1 mt-1">

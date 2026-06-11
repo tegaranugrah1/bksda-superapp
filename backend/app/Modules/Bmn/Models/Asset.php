@@ -29,7 +29,7 @@ class Asset extends Model
         'sbsk', 'optimalisasi', 'penghuni', 'pengguna', 'kode_kpknl', 'uraian_kpknl',
         'uraian_kanwil_djkn', 'nama_kl', 'nama_e1', 'nama_korwil', 'kode_register', 'lokasi_ruang',
         'jenis_identitas', 'no_identitas', 'no_stnk', 'no_mesin', 'no_rangka', 'nama_pengguna', 'status_pmk',
-        'status_foto_geotag', 'foto_geotag_url', 'foto_geotag_path', 'foto_belakang_path',
+        'status_foto_geotag', 'foto_geotag_url', 'foto_geotag_path', 'foto_depan_path', 'foto_belakang_path',
         'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path',
         'foto_bpkb_1_path', 'foto_bpkb_2_path', 'foto_bpkb_3_path', 'foto_bpkb_4_path',
         'foto_stnk_1_path', 'foto_stnk_2_path',
@@ -82,6 +82,7 @@ class Asset extends Model
         static::forceDeleted(function ($asset) {
             $paths = [
                 $asset->foto_geotag_path,
+                $asset->foto_depan_path,
                 $asset->foto_belakang_path,
                 $asset->foto_kiri_path,
                 $asset->foto_kanan_path,
