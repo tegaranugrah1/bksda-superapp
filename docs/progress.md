@@ -1,15 +1,16 @@
 # Progress - Phase 73: BMN Import Review Per-Field Approval
 
 > Document updated: 2026-06-11
-> Status: Issue #398 **WIP - branch siap PR/testing** (`issue/398-import-review-per-field-approval`). Production Dokploy sudah live; issue #398 belum deploy production.
+> Status: Issue #398 **READY TO MERGE** (PR #399, branch `issue/398-import-review-per-field-approval`). Production Dokploy sudah live; issue #398 belum deploy production.
 
 ---
 
 ## Issue #398: Approve perubahan Import Review BMN per kolom
 
-### Status: WIP - siap PR/testing
+### Status: READY TO MERGE
 - GitHub Issue: #398 `feat(bmn): approve import review changes per field`
 - Branch: `issue/398-import-review-per-field-approval`
+- PR: #399 `feat(bmn): approve import review changes per field (#398)`
 - Tujuan: reviewer bisa menerima hanya kolom tertentu pada baris `Update`, misalnya hanya `tanggal_pengapusan`, tanpa ikut mengubah `nup_lama` atau `foto_geotag_url`.
 
 ### Implementasi
