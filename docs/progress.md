@@ -1,16 +1,48 @@
+# Progress - Phase 74: BMN Asset Photo Documentation Layout
+
+> Document updated: 2026-06-11
+> Status: Issue #400 **WIP - branch siap PR/testing** (`issue/400-asset-photo-layout`). Production Dokploy live; issue #400 belum deploy production.
+
+---
+
+## Issue #400: Rombak layout dokumentasi foto detail aset BMN
+
+### Status: WIP - siap PR/testing
+- GitHub Issue: #400 `feat(bmn): restructure asset photo documentation layout`
+- Branch: `issue/400-asset-photo-layout`
+- Scope: halaman detail aset `/bmn/assets/[id]`.
+
+### Implementasi
+- Slot foto utama diubah menjadi:
+  - `Foto Geotag` (khusus foto geotag, tidak lagi menjadi tampak depan).
+  - `Tampak Depan` memakai field foto existing `foto_lokasi_*`.
+  - `Tampak Belakang` memakai `foto_belakang_*`.
+  - `Tampak Kiri` memakai `foto_kiri_*`.
+  - `Tampak Kanan` memakai `foto_kanan_*`.
+- Di bawah label `Tampak Depan` ditambahkan input teks manual untuk lokasi/ruangan barang.
+- Input lokasi/ruangan menyimpan ke field existing `lokasi_spesifik` via update asset API.
+- Tidak lagi auto-menampilkan `lokasi_ruang/resor` sebagai keterangan Tampak Depan karena posisi barang bisa lebih spesifik di ruangan tertentu.
+
+### Validasi
+- `cd frontend; npm run lint -- --max-warnings=0` clean.
+- `cd frontend; npx tsc --noEmit` clean.
+- `cd frontend; npm run build` clean (59/59 routes).
+
+---
+
 # Progress - Phase 73: BMN Import Review Per-Field Approval
 
 > Document updated: 2026-06-11
-> Status: Issue #398 **READY TO MERGE** (PR #399, branch `issue/398-import-review-per-field-approval`). Production Dokploy sudah live; issue #398 belum deploy production.
+> Status: Issue #398 **MERGED** (PR #399 squash merged ke `main`, commit `cc2f84f`). Production Dokploy sudah live; issue #398 belum deploy production.
 
 ---
 
 ## Issue #398: Approve perubahan Import Review BMN per kolom
 
-### Status: READY TO MERGE
+### Status: MERGED
 - GitHub Issue: #398 `feat(bmn): approve import review changes per field`
 - Branch: `issue/398-import-review-per-field-approval`
-- PR: #399 `feat(bmn): approve import review changes per field (#398)`
+- PR: #399 `feat(bmn): approve import review changes per field (#398)` squash merged ke `main` commit `cc2f84f`.
 - Tujuan: reviewer bisa menerima hanya kolom tertentu pada baris `Update`, misalnya hanya `tanggal_pengapusan`, tanpa ikut mengubah `nup_lama` atau `foto_geotag_url`.
 
 ### Implementasi

@@ -210,6 +210,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
         fotoKiriUrl={asset.foto_kiri_url}
         fotoKananUrl={asset.foto_kanan_url}
         fotoLokasiUrl={asset.foto_lokasi_url}
+        frontLocationNote={asset.lokasi_spesifik || ""}
+        onSaveFrontLocation={(value) => handleFieldSave("lokasi_spesifik", value)}
         fotoBpkb1Url={asset.foto_bpkb_1_url}
         fotoBpkb2Url={asset.foto_bpkb_2_url}
         fotoBpkb3Url={asset.foto_bpkb_3_url}
