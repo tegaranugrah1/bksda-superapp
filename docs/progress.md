@@ -1,15 +1,16 @@
 # Progress - Phase 74: BMN Asset Photo Documentation Layout
 
 > Document updated: 2026-06-11
-> Status: Issue #400 **WIP - branch siap PR/testing** (`issue/400-asset-photo-layout`). Production Dokploy live; issue #400 belum deploy production.
+> Status: Issue #400 **MERGED + DEPLOYED** (PR #401 squash merged ke `main`, commit `6c7f1fd`). Production Dokploy running on new EC2 public IP `15.134.31.68`; DNS masih perlu diarahkan dari `15.135.114.1` ke IP baru.
 
 ---
 
 ## Issue #400: Rombak layout dokumentasi foto detail aset BMN
 
-### Status: WIP - siap PR/testing
+### Status: MERGED + DEPLOYED
 - GitHub Issue: #400 `feat(bmn): restructure asset photo documentation layout`
 - Branch: `issue/400-asset-photo-layout`
+- PR: #401 `feat(bmn): restructure asset photo documentation layout (#400)` squash merged ke `main` commit `6c7f1fd`.
 - Scope: halaman detail aset `/bmn/assets/[id]`.
 
 ### Implementasi
@@ -33,6 +34,19 @@
 - `cd frontend; npm run lint -- --max-warnings=0` clean.
 - `cd frontend; npx tsc --noEmit` clean.
 - `cd frontend; npm run build` clean (59/59 routes).
+
+### Production Deploy
+- EC2 sempat reboot/stop-start karena build frontend membuat VPS 2GB RAM tidak responsif.
+- Public IPv4 berubah dari `15.135.114.1` ke `15.134.31.68`; semua A record produksi perlu diarahkan ke IP baru (`@`, `api`, `storage`, `dokploy`).
+- Swap 2GB ditambahkan permanen di VPS (`/swapfile`) supaya build berikutnya tidak mudah membekukan host.
+- Dokploy repo server berada di commit `6c7f1fd`.
+- Backend image baru di-recreate, migration `2026_06_11_120000_add_foto_depan_path_to_bmn_assets_table` sukses `DONE`.
+- Frontend image rebuilt/recreated.
+- Traefik `dokploy-traefik` sempat exited setelah reboot dan sudah di-start ulang.
+- Smoke test via `curl --resolve ...:443:15.134.31.68` clean:
+  - `https://bksdakaltim.net/login` HTTP 200.
+  - `https://api.bksdakaltim.net/api/health` HTTP 200.
+  - `https://dokploy.bksdakaltim.net` HTTP 200.
 
 ---
 
