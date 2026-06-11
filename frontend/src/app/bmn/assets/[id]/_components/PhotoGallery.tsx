@@ -15,10 +15,10 @@ interface PhotoGalleryProps {
   nup: string;
   fotoGeotagUrl: string | null;
   fotoGeotagPath: string | null;
+  fotoDepanUrl: string | null;
   fotoBelakangUrl: string | null;
   fotoKiriUrl: string | null;
   fotoKananUrl: string | null;
-  fotoLokasiUrl: string | null;
   frontLocationNote?: string | null;
   onSaveFrontLocation?: (value: string) => Promise<void>;
   fotoBpkb1Url?: string | null;
@@ -35,7 +35,7 @@ interface PhotoGalleryProps {
 
 const PHOTO_SLOTS = [
   { key: "geotag", label: "Foto Geotag", type: "hybrid" },
-  { key: "lokasi", label: "Tampak Depan", type: "upload" },
+  { key: "depan", label: "Tampak Depan", type: "upload" },
   { key: "belakang", label: "Tampak Belakang", type: "upload" },
   { key: "kiri", label: "Tampak Kiri", type: "upload" },
   { key: "kanan", label: "Tampak Kanan", type: "upload" },
@@ -57,7 +57,7 @@ function driveToThumbnail(url: string): string | null {
   return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
 }
 
-export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, fotoLokasiUrl, frontLocationNote, onSaveFrontLocation, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
+export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, frontLocationNote, onSaveFrontLocation, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
   const { canWrite } = useRole();
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
@@ -73,10 +73,10 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
 
   const photos: Record<string, string | null> = {
     geotag: resolvedGeotagUrl,
+    depan: fotoDepanUrl,
     belakang: fotoBelakangUrl,
     kiri: fotoKiriUrl,
     kanan: fotoKananUrl,
-    lokasi: fotoLokasiUrl,
     bpkb_1: fotoBpkb1Url || null,
     bpkb_2: fotoBpkb2Url || null,
     bpkb_3: fotoBpkb3Url || null,
@@ -272,10 +272,10 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
             key={slot.key}
             slot={slot}
             url={photos[slot.key]}
-            frontLocationDraft={slot.key === "lokasi" ? frontLocationDraft : undefined}
-            onFrontLocationChange={slot.key === "lokasi" ? setFrontLocationDraft : undefined}
-            onSaveFrontLocation={slot.key === "lokasi" ? saveFrontLocation : undefined}
-            savingFrontLocation={slot.key === "lokasi" ? savingFrontLocation : false}
+            frontLocationDraft={slot.key === "depan" ? frontLocationDraft : undefined}
+            onFrontLocationChange={slot.key === "depan" ? setFrontLocationDraft : undefined}
+            onSaveFrontLocation={slot.key === "depan" ? saveFrontLocation : undefined}
+            savingFrontLocation={slot.key === "depan" ? savingFrontLocation : false}
             openLightbox={openLightbox}
             handleDownload={handleDownload}
             copyLink={copyLink}
@@ -423,7 +423,7 @@ interface PhotoSlotProps {
 function PhotoSlot({ slot, url, frontLocationDraft, onFrontLocationChange, onSaveFrontLocation, savingFrontLocation, openLightbox, handleDownload, copyLink, handleDelete, setUploadTarget, fileInputRef, setShowGeotagInput, canWrite, fotoGeotagPath, fotoGeotagUrl }: PhotoSlotProps) {
   const isHybrid = slot.type === "hybrid";
   const isExternalOnly = isHybrid && !fotoGeotagPath && !!fotoGeotagUrl;
-  const isFrontView = slot.key === "lokasi";
+  const isFrontView = slot.key === "depan";
 
   return (
     <div className="group relative">

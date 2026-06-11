@@ -15,15 +15,21 @@
 ### Implementasi
 - Slot foto utama diubah menjadi:
   - `Foto Geotag` (khusus foto geotag, tidak lagi menjadi tampak depan).
-  - `Tampak Depan` memakai field foto existing `foto_lokasi_*`.
+  - `Tampak Depan` memakai kolom khusus baru `foto_depan_path`.
   - `Tampak Belakang` memakai `foto_belakang_*`.
   - `Tampak Kiri` memakai `foto_kiri_*`.
   - `Tampak Kanan` memakai `foto_kanan_*`.
 - Di bawah label `Tampak Depan` ditambahkan input teks manual untuk lokasi/ruangan barang.
 - Input lokasi/ruangan menyimpan ke field existing `lokasi_spesifik` via update asset API.
+- Backend ditambah migration `foto_depan_path`, valid upload type `depan`, resource URL `foto_depan_url`, dan cleanup file saat force delete aset.
 - Tidak lagi auto-menampilkan `lokasi_ruang/resor` sebagai keterangan Tampak Depan karena posisi barang bisa lebih spesifik di ruangan tertentu.
 
 ### Validasi
+- `cd backend; php -l app/Modules/Bmn/Controllers/AssetPhotoController.php` clean.
+- `cd backend; php -l app/Modules/Bmn/Models/Asset.php` clean.
+- `cd backend; php -l app/Modules/Bmn/Resources/AssetResource.php` clean.
+- `cd backend; php -l app/Modules/Bmn/Migrations/2026_06_11_120000_add_foto_depan_path_to_bmn_assets_table.php` clean.
+- `cd backend; php artisan route:list` clean.
 - `cd frontend; npm run lint -- --max-warnings=0` clean.
 - `cd frontend; npx tsc --noEmit` clean.
 - `cd frontend; npm run build` clean (59/59 routes).

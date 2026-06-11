@@ -102,7 +102,7 @@ git push origin main
 
 ## Status Saat Ini
 
-- [ ] Issue #400: Rombak layout dokumentasi foto detail aset BMN. Branch `issue/400-asset-photo-layout` WIP siap PR/testing. Slot utama sekarang `Foto Geotag`, `Tampak Depan` (pakai field existing `foto_lokasi_*`), `Tampak Belakang`, `Tampak Kiri`, `Tampak Kanan`. Di bawah `Tampak Depan` ada input manual lokasi/ruangan barang yang menyimpan ke `lokasi_spesifik`; tidak auto-fill dari `lokasi_ruang/resor`. Validasi clean: eslint 0 warning, tsc, build 59/59. Belum deploy production.
+- [ ] Issue #400: Rombak layout dokumentasi foto detail aset BMN. Branch `issue/400-asset-photo-layout` / PR #401 WIP. Slot utama sekarang `Foto Geotag`, `Tampak Depan` (kolom baru `foto_depan_path`), `Tampak Belakang`, `Tampak Kiri`, `Tampak Kanan`. Di bawah `Tampak Depan` ada input manual lokasi/ruangan barang yang menyimpan ke `lokasi_spesifik`; tidak auto-fill dari `lokasi_ruang/resor`. Validasi clean: PHP syntax, route:list, eslint 0 warning, tsc, build 59/59. Belum deploy production.
 - [x] Issue #398: BMN Import Review approve per changed field. PR #399 squash merged ke `main` (commit `cc2f84f`). Backend tambah `toggle-field-selection`; approve hanya apply kolom `changed_fields[field].selected !== false` dan mencatat history hanya untuk field yang di-apply; frontend tambah checkbox per kolom diff + indikator `Kolom disetujui: X/Y`. Validasi clean: PHP syntax, route:list, eslint 0 warning, tsc, build 59/59. Belum deploy production.
 - [x] Create GitHub issue #334 for BMN Aset Akan Di Lelang and BA Koreksi Kondisi document workflow.
 - [x] Add BMN sidebar route `/bmn/auction-candidates` for Rusak Berat assets with search, pagination, bulk select, and process/print document flow.

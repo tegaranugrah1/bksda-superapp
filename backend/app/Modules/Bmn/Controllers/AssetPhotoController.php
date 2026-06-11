@@ -13,7 +13,7 @@ use ZipArchive;
 
 class AssetPhotoController extends Controller
 {
-    private const VALID_TYPES = ['belakang', 'kiri', 'kanan', 'lokasi', 'bpkb_1', 'bpkb_2', 'bpkb_3', 'bpkb_4', 'stnk_1', 'stnk_2'];
+    private const VALID_TYPES = ['depan', 'belakang', 'kiri', 'kanan', 'lokasi', 'bpkb_1', 'bpkb_2', 'bpkb_3', 'bpkb_4', 'stnk_1', 'stnk_2'];
 
     /** Get the configured storage disk for BMN photos. */
     private function disk(): \Illuminate\Contracts\Filesystem\Filesystem

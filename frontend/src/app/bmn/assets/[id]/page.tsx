@@ -206,10 +206,10 @@ function AssetDetail({ assetId }: { assetId: string }) {
         nup={asset.nup}
         fotoGeotagUrl={asset.foto_geotag_url}
         fotoGeotagPath={asset.foto_geotag_path}
+        fotoDepanUrl={asset.foto_depan_url}
         fotoBelakangUrl={asset.foto_belakang_url}
         fotoKiriUrl={asset.foto_kiri_url}
         fotoKananUrl={asset.foto_kanan_url}
-        fotoLokasiUrl={asset.foto_lokasi_url}
         frontLocationNote={asset.lokasi_spesifik || ""}
         onSaveFrontLocation={(value) => handleFieldSave("lokasi_spesifik", value)}
         fotoBpkb1Url={asset.foto_bpkb_1_url}
