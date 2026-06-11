@@ -5,6 +5,7 @@ namespace App\Modules\Bmn\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Imports\AssetStagingImport;
 use App\Modules\Bmn\Models\Asset;
+use App\Modules\Bmn\Models\AssetUpdate;
 use App\Modules\Bmn\Models\ImportBatch;
 use App\Modules\Bmn\Models\ImportStaging;
 use Exception;
@@ -330,6 +331,17 @@ class ImportReviewController extends Controller
                                 $updateData[$field] = $values['new'];
                             }
                             if (!empty($updateData)) {
+                                foreach ($updateData as $field => $newValue) {
+                                    AssetUpdate::create([
+                                        'asset_id' => $asset->id,
+                                        'user_id' => $request->user()->id,
+                                        'field_changed' => $field,
+                                        'old_value' => $this->historyValue($changedFields[$field]['old'] ?? $asset->{$field}),
+                                        'new_value' => $this->historyValue($newValue),
+                                        'alasan_perubahan' => "Import review: {$batch->filename}",
+                                    ]);
+                                }
+
                                 $asset->update($updateData);
                                 $updated++;
                             }
@@ -402,6 +414,19 @@ class ImportReviewController extends Controller
         }
 
         return false;
+    }
+
+    private function historyValue($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        return (string) $value;
     }
 
     private function buildFilteredRowsQuery(ImportBatch $batch, Request $request)

@@ -17,6 +17,7 @@
 - Pilihan kolom disimpan backward-compatible di JSON `changed_fields[field].selected`.
 - Data staging lama yang belum punya `selected` tetap dianggap terpilih.
 - `approve()` sekarang hanya apply changed field dengan `selected !== false`.
+- Setiap field yang benar-benar di-apply dari import review dicatat ke `bmn_asset_updates` dengan alasan `Import review: <filename>`, jadi tab Riwayat aset hanya menampilkan kolom yang disetujui.
 - Row checkbox dan bulk selection tetap berfungsi: pilih row = semua kolom update dipilih; batal row = semua kolom update batal.
 - `updated` counter hanya bertambah jika ada minimal satu kolom yang benar-benar di-update.
 - Frontend: setiap diff kolom pada baris `Update` punya checkbox dan indikator `Kolom disetujui: X/Y`.

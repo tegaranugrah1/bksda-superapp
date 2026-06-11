@@ -102,7 +102,7 @@ git push origin main
 
 ## Status Saat Ini
 
-- [ ] Issue #398: BMN Import Review approve per changed field. Branch `issue/398-import-review-per-field-approval` WIP siap PR/testing. Backend tambah `toggle-field-selection`; approve hanya apply kolom `changed_fields[field].selected !== false`; frontend tambah checkbox per kolom diff + indikator `Kolom disetujui: X/Y`. Validasi clean: PHP syntax, route:list, eslint 0 warning, tsc, build 59/59. Belum deploy production.
+- [ ] Issue #398: BMN Import Review approve per changed field. Branch `issue/398-import-review-per-field-approval` WIP siap PR/testing. Backend tambah `toggle-field-selection`; approve hanya apply kolom `changed_fields[field].selected !== false` dan mencatat history hanya untuk field yang di-apply; frontend tambah checkbox per kolom diff + indikator `Kolom disetujui: X/Y`. Validasi clean: PHP syntax, route:list, eslint 0 warning, tsc, build 59/59. Belum deploy production.
 - [x] Create GitHub issue #334 for BMN Aset Akan Di Lelang and BA Koreksi Kondisi document workflow.
 - [x] Add BMN sidebar route `/bmn/auction-candidates` for Rusak Berat assets with search, pagination, bulk select, and process/print document flow.
 - [x] Generate BA Koreksi Perubahan Kondisi BMN preview/print using `header-terbaru.png`, tuned A4 margins, two-page print output, and lampiran table layout.
