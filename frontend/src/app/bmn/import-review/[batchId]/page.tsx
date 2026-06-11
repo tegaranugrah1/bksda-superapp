@@ -28,6 +28,7 @@ import React from "react";
 interface ChangedField {
   old: string | number | null;
   new: string | number | null;
+  selected?: boolean;
 }
 
 interface StagingRow {
@@ -70,6 +71,9 @@ interface RowsPagination {
 
 // Human-readable field labels
 const FIELD_LABELS: Record<string, string> = {
+  nup_lama: "NUP Lama",
+  tanggal_pengapusan: "Tanggal Penghapusan",
+  foto_geotag_url: "Foto Geotag URL",
   nama_barang: "Nama Barang",
   jenis_bmn: "Jenis BMN",
   merk: "Merk",
@@ -122,6 +126,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [bulkAction, setBulkAction] = useState<"select_changed" | "clear_changed" | "select_new_only" | null>(null);
+  const [fieldAction, setFieldAction] = useState<string | null>(null);
 
   const handleStatusFilterChange = (nextFilter: "all" | "new" | "updated" | "unchanged") => {
     setPage(1);
@@ -167,6 +172,23 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       queryClient.invalidateQueries({ queryKey: ["bmn-import-batch", batchId] });
     } catch {
       toast.error("Gagal mengubah seleksi.");
+    }
+  };
+
+  const handleToggleField = async (rowId: string, field: string, selected: boolean) => {
+    const actionKey = `${rowId}:${field}`;
+    setFieldAction(actionKey);
+    try {
+      await api.post("/bmn/import-review/toggle-field-selection", {
+        row_id: rowId,
+        field,
+        selected,
+      });
+      queryClient.invalidateQueries({ queryKey: ["bmn-import-batch", batchId] });
+    } catch {
+      toast.error("Gagal mengubah seleksi kolom.");
+    } finally {
+      setFieldAction(null);
     }
   };
 
@@ -497,7 +519,13 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                         <span className="text-xs text-slate-400">Tidak ada perubahan</span>
                       )}
                       {row.diff_status === "updated" && row.changed_fields && (
-                        <DiffFields fields={row.changed_fields} />
+                        <DiffFields
+                          fields={row.changed_fields}
+                          rowId={row.id}
+                          isPending={isPending}
+                          fieldAction={fieldAction}
+                          onToggleField={handleToggleField}
+                        />
                       )}
                     </td>
                   </tr>
@@ -568,16 +596,48 @@ function DiffStatusBadge({ status }: { status: string }) {
   }
 }
 
-function DiffFields({ fields }: { fields: Record<string, ChangedField> }) {
+function DiffFields({
+  fields,
+  rowId,
+  isPending,
+  fieldAction,
+  onToggleField,
+}: {
+  fields: Record<string, ChangedField>;
+  rowId: string;
+  isPending: boolean;
+  fieldAction: string | null;
+  onToggleField: (rowId: string, field: string, selected: boolean) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const entries = Object.entries(fields);
   const visible = expanded ? entries : entries.slice(0, 4);
   const remaining = entries.length - 4;
+  const selectedCount = entries.filter(([, values]) => values.selected !== false).length;
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
+      {isPending && (
+        <div className="mb-1 text-[10px] font-medium text-slate-500">
+          Kolom disetujui: <span className="text-slate-700">{selectedCount}</span>/{entries.length}
+        </div>
+      )}
       {visible.map(([field, values]) => (
-        <div key={field} className="flex items-center gap-2 text-xs">
+        <div
+          key={field}
+          className={cn(
+            "flex items-center gap-2 text-xs",
+            values.selected === false && "opacity-50"
+          )}
+        >
+          {isPending && (
+            <Checkbox
+              checked={values.selected !== false}
+              disabled={fieldAction === `${rowId}:${field}`}
+              onCheckedChange={(checked) => onToggleField(rowId, field, checked === true)}
+              className="size-3.5 shrink-0"
+            />
+          )}
           <span className="text-slate-500 font-medium min-w-[100px]">
             {FIELD_LABELS[field] || field}:
           </span>
