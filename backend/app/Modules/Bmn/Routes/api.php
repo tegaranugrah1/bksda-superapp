@@ -7,6 +7,7 @@ use App\Modules\Bmn\Controllers\ExportController;
 use App\Modules\Bmn\Controllers\ImportReviewController;
 use App\Modules\Bmn\Controllers\LoanController;
 use App\Modules\Bmn\Controllers\MaintenanceController;
+use App\Modules\Bmn\Controllers\UsageAgreementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +33,11 @@ Route::get('/ping', function () {
 Route::get('assets/export', [ExportController::class, 'assets']);
 Route::get('loans/export', [ExportController::class, 'loans']);
 Route::get('maintenances/export', [ExportController::class, 'maintenances']);
+
+// 4b. BERITA ACARA PEMAKAIAN BMN
+Route::get('usage-agreements', [UsageAgreementController::class, 'index']);
+Route::post('usage-agreements', [UsageAgreementController::class, 'store']);
+Route::get('usage-agreements/{agreement}', [UsageAgreementController::class, 'show']);
 
 // 1. JALUR MASTER ASET
 Route::apiResource('assets', AssetController::class)->except(['destroy']);
