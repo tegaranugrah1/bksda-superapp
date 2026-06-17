@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { loadStoredKepalaBalaiDefault } from "../_components/KepalaBalaiPicker";
 import {
   DEFAULT_KEPALA_BALAI,
   DEFAULT_MEMUTUSKAN,
@@ -29,7 +30,9 @@ export function useSkBuilderState(): UseSkBuilderStateResult {
   const [menimbang, setMenimbang] = useState<SkBuilderItem[]>(DEFAULT_MENIMBANG);
   const [mengingat, setMengingat] = useState<SkBuilderItem[]>(DEFAULT_MENGINGAT);
   const [memutuskan, setMemutuskan] = useState<SkMemutuskan>(DEFAULT_MEMUTUSKAN);
-  const [kepalaBalai, setKepalaBalai] = useState<SkKepalaBalai>(DEFAULT_KEPALA_BALAI);
+  const [kepalaBalai, setKepalaBalai] = useState<SkKepalaBalai>(
+    () => loadStoredKepalaBalaiDefault() ?? DEFAULT_KEPALA_BALAI,
+  );
   const [tembusan, setTembusan] = useState<SkBuilderItem[]>(DEFAULT_TEMBUSAN);
 
   return {

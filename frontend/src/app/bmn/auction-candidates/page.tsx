@@ -18,9 +18,9 @@ import { handlePrintPermohonanKpknl } from "./_components/PermohonanKpknlDocumen
 import { PageHeader } from "./_components/PageHeader";
 import { DocumentActions } from "./_components/DocumentActions";
 import { SearchBar } from "./_components/SearchBar";
-import { DocumentNumberInputs } from "./_components/DocumentNumberInputs";
-import { KepalaBalaiPicker } from "./_components/KepalaBalaiPicker";
 import { SelectedAssetsBanner } from "./_components/SelectedAssetsBanner";
+import { WorkflowSteps } from "./_components/WorkflowSteps";
+import { KepalaBalaiPicker } from "./_components/KepalaBalaiPicker";
 import { AssetTable } from "./_components/AssetTable";
 import { BaKoreksiSection } from "./_components/sections/BaKoreksiSection";
 import { SkPenghentianSection } from "./_components/sections/SkPenghentianSection";
@@ -102,6 +102,35 @@ export default function BmnAuctionCandidatesPage() {
   const activeWorksheetNumber = worksheetAssetId
     ? worksheetNumberByAssetId.get(worksheetAssetId) || 1
     : 1;
+  const generatedDocumentCount = useMemo(
+    () =>
+      [
+        docToggles.showDocument,
+        docToggles.showSkDocument,
+        docToggles.showSkPanitia,
+        docToggles.showSkTimPenilai,
+        docToggles.showSptjLimit,
+        docToggles.showSptjm,
+        docToggles.showSpTugas,
+        docToggles.showSkKebenaran,
+        docToggles.showBaPemeriksaan,
+        docToggles.showNotaDinas,
+        docToggles.showPermohonanKpknl,
+      ].filter(Boolean).length,
+    [
+      docToggles.showDocument,
+      docToggles.showSkDocument,
+      docToggles.showSkPanitia,
+      docToggles.showSkTimPenilai,
+      docToggles.showSptjLimit,
+      docToggles.showSptjm,
+      docToggles.showSpTugas,
+      docToggles.showSkKebenaran,
+      docToggles.showBaPemeriksaan,
+      docToggles.showNotaDinas,
+      docToggles.showPermohonanKpknl,
+    ],
+  );
 
   const handleOpenWorksheet = useCallback((assetId: string) => {
     setWorksheetAssetId(assetId);
@@ -187,19 +216,9 @@ export default function BmnAuctionCandidatesPage() {
         <SummaryTile label="Nilai Terpilih" value={formatRupiah(selectedTotal)} tone="zinc" />
       </div>
 
-      <DocumentActions
-        orderedIdsLength={orderedIds.length}
-        onProcess={docToggles.handleProcess}
-        onProcessSk={docToggles.handleProcessSk}
-        onProcessSkPanitia={docToggles.handleProcessSkPanitia}
-        onProcessSkTimPenilai={docToggles.handleProcessSkTimPenilai}
-        onProcessSptjLimit={docToggles.handleProcessSptjLimit}
-        onProcessSptjm={docToggles.handleProcessSptjm}
-        onProcessSpTugas={docToggles.handleProcessSpTugas}
-        onProcessSkKebenaran={docToggles.handleProcessSkKebenaran}
-        onProcessBaPemeriksaan={docToggles.handleProcessBaPemeriksaan}
-        onProcessNotaDinas={docToggles.handleProcessNotaDinas}
-        onProcessPermohonanKpknl={docToggles.handleProcessPermohonanKpknl}
+      <WorkflowSteps
+        selectedCount={orderedIds.length}
+        generatedDocumentCount={generatedDocumentCount}
       />
 
       <SearchBar
@@ -209,9 +228,21 @@ export default function BmnAuctionCandidatesPage() {
         isLoading={isLoading}
       />
 
-      <DocumentNumberInputs {...docNumbers} />
-
-      <KepalaBalaiPicker kepalaBalai={sk.kepalaBalai} setKepalaBalai={sk.setKepalaBalai} />
+      <AssetTable
+        assets={assets}
+        selectedIds={selectedIds}
+        allSelected={allSelected}
+        isLoading={isLoading}
+        response={response}
+        page={page}
+        perPage={perPage}
+        onToggleSelect={handleToggleSelect}
+        onToggleSelectAll={handleToggleSelectAll}
+        onPerPageChange={handlePerPageChange}
+        onPageChange={setPage}
+        worksheetNumberByAssetId={worksheetNumberByAssetId}
+        onOpenWorksheet={handleOpenWorksheet}
+      />
 
       <SelectedAssetsBanner
         orderedIdsLength={orderedIds.length}
@@ -239,21 +270,25 @@ export default function BmnAuctionCandidatesPage() {
         onPrintPermohonanKpknl={handlePrintPermohonanKpknlDoc}
       />
 
-      <AssetTable
-        assets={assets}
-        selectedIds={selectedIds}
-        allSelected={allSelected}
-        isLoading={isLoading}
-        response={response}
-        page={page}
-        perPage={perPage}
-        onToggleSelect={handleToggleSelect}
-        onToggleSelectAll={handleToggleSelectAll}
-        onPerPageChange={handlePerPageChange}
-        onPageChange={setPage}
-        worksheetNumberByAssetId={worksheetNumberByAssetId}
-        onOpenWorksheet={handleOpenWorksheet}
-      />
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="space-y-5">
+          <KepalaBalaiPicker kepalaBalai={sk.kepalaBalai} setKepalaBalai={sk.setKepalaBalai} />
+        </div>
+        <DocumentActions
+          orderedIdsLength={orderedIds.length}
+          onProcess={docToggles.handleProcess}
+          onProcessSk={docToggles.handleProcessSk}
+          onProcessSkPanitia={docToggles.handleProcessSkPanitia}
+          onProcessSkTimPenilai={docToggles.handleProcessSkTimPenilai}
+          onProcessSptjLimit={docToggles.handleProcessSptjLimit}
+          onProcessSptjm={docToggles.handleProcessSptjm}
+          onProcessSpTugas={docToggles.handleProcessSpTugas}
+          onProcessSkKebenaran={docToggles.handleProcessSkKebenaran}
+          onProcessBaPemeriksaan={docToggles.handleProcessBaPemeriksaan}
+          onProcessNotaDinas={docToggles.handleProcessNotaDinas}
+          onProcessPermohonanKpknl={docToggles.handleProcessPermohonanKpknl}
+        />
+      </div>
 
       {orderedIds.length > 0 && (
         <ReorderPanel
@@ -282,7 +317,9 @@ export default function BmnAuctionCandidatesPage() {
         <BaKoreksiSection
           assets={orderedSelectedAssets}
           baNumber={docNumbers.baNumber}
+          setBaNumber={docNumbers.setBaNumber}
           baKap={docNumbers.baKap}
+          setBaKap={docNumbers.setBaKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrint}
         />
@@ -292,7 +329,9 @@ export default function BmnAuctionCandidatesPage() {
         <SkPenghentianSection
           assets={orderedSelectedAssets}
           skNumber={docNumbers.skNumber}
+          setSkNumber={docNumbers.setSkNumber}
           skKap={docNumbers.skKap}
+          setSkKap={docNumbers.setSkKap}
           menimbang={sk.menimbang}
           setMenimbang={sk.setMenimbang}
           mengingat={sk.mengingat}
@@ -310,7 +349,9 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSkPanitia && orderedIds.length > 0 && (
         <SkPanitiaSection
           skPanitiaNumber={docNumbers.skPanitiaNumber}
+          setSkPanitiaNumber={docNumbers.setSkPanitiaNumber}
           skPanitiaKap={docNumbers.skPanitiaKap}
+          setSkPanitiaKap={docNumbers.setSkPanitiaKap}
           panitiaMenimbang={skPanitia.panitiaMenimbang}
           setPanitiaMenimbang={skPanitia.setPanitiaMenimbang}
           panitiaMengingat={skPanitia.panitiaMengingat}
@@ -334,7 +375,9 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSkTimPenilai && orderedIds.length > 0 && (
         <SkTimPenilaiSection
           skTimPenilaiNumber={docNumbers.skTimPenilaiNumber}
+          setSkTimPenilaiNumber={docNumbers.setSkTimPenilaiNumber}
           skTimPenilaiKap={docNumbers.skTimPenilaiKap}
+          setSkTimPenilaiKap={docNumbers.setSkTimPenilaiKap}
           timPenilaiMenimbang={skTimPenilai.timPenilaiMenimbang}
           setTimPenilaiMenimbang={skTimPenilai.setTimPenilaiMenimbang}
           timPenilaiMengingat={skTimPenilai.timPenilaiMengingat}
@@ -358,7 +401,9 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSptjLimit && (
         <SptjLimitSection
           number={docNumbers.sptjLimitNumber}
+          setNumber={docNumbers.setSptjLimitNumber}
           kap={docNumbers.sptjLimitKap}
+          setKap={docNumbers.setSptjLimitKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrintSptjLimitDoc}
         />
@@ -367,7 +412,9 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSptjm && (
         <SptjmSection
           number={docNumbers.sptjmNumber}
+          setNumber={docNumbers.setSptjmNumber}
           kap={docNumbers.sptjmKap}
+          setKap={docNumbers.setSptjmKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrintSptjmDoc}
         />
@@ -376,7 +423,9 @@ export default function BmnAuctionCandidatesPage() {
       {docToggles.showSpTugas && (
         <SpTugasSection
           number={docNumbers.spTugasNumber}
+          setNumber={docNumbers.setSpTugasNumber}
           kap={docNumbers.spTugasKap}
+          setKap={docNumbers.setSpTugasKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrintSpTugasDoc}
         />
@@ -386,7 +435,9 @@ export default function BmnAuctionCandidatesPage() {
         <SkKebenaranSection
           assets={orderedSelectedAssets}
           number={docNumbers.skKebenaranNumber}
+          setNumber={docNumbers.setSkKebenaranNumber}
           kap={docNumbers.skKebenaranKap}
+          setKap={docNumbers.setSkKebenaranKap}
           kepalaBalai={sk.kepalaBalai}
           onPrint={handlePrintSkKebenaranDoc}
         />
@@ -396,9 +447,13 @@ export default function BmnAuctionCandidatesPage() {
         <BaPemeriksaanSection
           assets={orderedSelectedAssets}
           number={docNumbers.baPemeriksaanNumber}
+          setNumber={docNumbers.setBaPemeriksaanNumber}
           kap={docNumbers.baPemeriksaanKap}
+          setKap={docNumbers.setBaPemeriksaanKap}
           stNumber={docNumbers.stNumber}
+          setStNumber={docNumbers.setStNumber}
           stTanggal={docNumbers.stTanggal}
+          setStTanggal={docNumbers.setStTanggal}
           kepalaBalai={sk.kepalaBalai}
           pemeriksaList={pemeriksa.pemeriksaList}
           employees={sortedEmployeesForPanitia}
@@ -414,7 +469,9 @@ export default function BmnAuctionCandidatesPage() {
         <NotaDinasSection
           assets={orderedSelectedAssets}
           number={docNumbers.notaDinasNumber}
+          setNumber={docNumbers.setNotaDinasNumber}
           kap={docNumbers.notaDinasKap}
+          setKap={docNumbers.setNotaDinasKap}
           kepalaBalai={sk.kepalaBalai}
           perihal={notaKpknl.ndPerihal}
           setPerihal={notaKpknl.setNdPerihal}
@@ -436,7 +493,9 @@ export default function BmnAuctionCandidatesPage() {
         <PermohonanKpknlSection
           assets={orderedSelectedAssets}
           number={docNumbers.permohonanKpknlNumber}
+          setNumber={docNumbers.setPermohonanKpknlNumber}
           kap={docNumbers.permohonanKpknlKap}
+          setKap={docNumbers.setPermohonanKpknlKap}
           kepalaBalai={sk.kepalaBalai}
           perihal={notaKpknl.pkPerihal}
           setPerihal={notaKpknl.setPkPerihal}

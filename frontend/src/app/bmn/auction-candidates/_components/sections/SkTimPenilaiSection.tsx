@@ -2,6 +2,7 @@
 
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DocumentNumberInlineCard } from "../DocumentNumberInputs";
 import { SkTimPenilaiBuilder } from "../SkTimPenilaiBuilder";
 import { SkTimPenilaiDocument } from "../SkTimPenilaiDocument";
 import { TimPenilaiEditor } from "../TimPenilaiEditor";
@@ -14,7 +15,9 @@ import type { EmployeeOption } from "../../_hooks/useEmployeeOptions";
 
 interface SkTimPenilaiSectionProps {
   skTimPenilaiNumber: string;
+  setSkTimPenilaiNumber: (value: string) => void;
   skTimPenilaiKap: string;
+  setSkTimPenilaiKap: (value: string) => void;
   timPenilaiMenimbang: SkBuilderItem[];
   setTimPenilaiMenimbang: (items: SkBuilderItem[]) => void;
   timPenilaiMengingat: SkBuilderItem[];
@@ -36,7 +39,9 @@ interface SkTimPenilaiSectionProps {
 
 export function SkTimPenilaiSection({
   skTimPenilaiNumber,
+  setSkTimPenilaiNumber,
   skTimPenilaiKap,
+  setSkTimPenilaiKap,
   timPenilaiMenimbang,
   setTimPenilaiMenimbang,
   timPenilaiMengingat,
@@ -68,7 +73,15 @@ export function SkTimPenilaiSection({
         </Button>
       </div>
       <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
-        <div className="print:hidden">
+        <div className="space-y-4 print:hidden">
+          <DocumentNumberInlineCard
+            label="SK Tim Penilai"
+            prefix="SK."
+            number={skTimPenilaiNumber}
+            setNumber={setSkTimPenilaiNumber}
+            kap={skTimPenilaiKap}
+            setKap={setSkTimPenilaiKap}
+          />
           <SkTimPenilaiBuilder
             menimbang={timPenilaiMenimbang}
             setMenimbang={setTimPenilaiMenimbang}

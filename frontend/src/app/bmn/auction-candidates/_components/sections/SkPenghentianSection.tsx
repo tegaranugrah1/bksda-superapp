@@ -2,6 +2,7 @@
 
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DocumentNumberInlineCard } from "../DocumentNumberInputs";
 import { SkBuilder } from "../SkBuilder";
 import { SkPenghentianDocument } from "../SkPenghentianDocument";
 import type { AuctionAsset } from "../../_lib/auction-helpers";
@@ -10,7 +11,9 @@ import type { SkBuilderItem, SkKepalaBalai, SkMemutuskan } from "../../_lib/sk-d
 interface SkPenghentianSectionProps {
   assets: AuctionAsset[];
   skNumber: string;
+  setSkNumber: (value: string) => void;
   skKap: string;
+  setSkKap: (value: string) => void;
   menimbang: SkBuilderItem[];
   setMenimbang: (items: SkBuilderItem[]) => void;
   mengingat: SkBuilderItem[];
@@ -27,7 +30,9 @@ interface SkPenghentianSectionProps {
 export function SkPenghentianSection({
   assets,
   skNumber,
+  setSkNumber,
   skKap,
+  setSkKap,
   menimbang,
   setMenimbang,
   mengingat,
@@ -53,7 +58,15 @@ export function SkPenghentianSection({
         </Button>
       </div>
       <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
-        <div className="print:hidden">
+        <div className="space-y-4 print:hidden">
+          <DocumentNumberInlineCard
+            label="SK Penghentian"
+            prefix="SK."
+            number={skNumber}
+            setNumber={setSkNumber}
+            kap={skKap}
+            setKap={setSkKap}
+          />
           <SkBuilder
             menimbang={menimbang}
             setMenimbang={setMenimbang}

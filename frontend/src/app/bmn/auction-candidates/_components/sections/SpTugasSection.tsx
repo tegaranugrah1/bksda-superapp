@@ -2,17 +2,20 @@
 
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DocumentNumberInlineCard } from "../DocumentNumberInputs";
 import { SpTugasDocument } from "../SpTugasDocument";
 import type { SkKepalaBalai } from "../../_lib/sk-defaults";
 
 interface SpTugasSectionProps {
   number: string;
+  setNumber: (value: string) => void;
   kap: string;
+  setKap: (value: string) => void;
   kepalaBalai: SkKepalaBalai;
   onPrint: () => void;
 }
 
-export function SpTugasSection({ number, kap, kepalaBalai, onPrint }: SpTugasSectionProps) {
+export function SpTugasSection({ number, setNumber, kap, setKap, kepalaBalai, onPrint }: SpTugasSectionProps) {
   return (
     <section id="sp-tugas-preview" className="space-y-4">
       <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
@@ -25,7 +28,19 @@ export function SpTugasSection({ number, kap, kepalaBalai, onPrint }: SpTugasSec
           Cetak / Save PDF
         </Button>
       </div>
-      <SpTugasDocument number={number} kap={kap} kepalaBalai={kepalaBalai} />
+      <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
+        <div className="print:hidden">
+          <DocumentNumberInlineCard
+            label="SP Tidak Mengganggu Tugas"
+            prefix="SM."
+            number={number}
+            setNumber={setNumber}
+            kap={kap}
+            setKap={setKap}
+          />
+        </div>
+        <SpTugasDocument number={number} kap={kap} kepalaBalai={kepalaBalai} />
+      </div>
     </section>
   );
 }

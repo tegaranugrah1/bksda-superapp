@@ -1,3 +1,48 @@
+# Progress - Phase 78: UX Polish Aset Akan Dilelang
+
+> Document updated: 2026-06-17
+> Status: WIP lokal (`codex/auction-candidates-ux-polish`). Belum PR, belum deploy production.
+
+---
+
+## Halaman `/bmn/auction-candidates`
+
+### Status: WIP - siap dicek lokal
+- Scope: UI/UX halaman `Aset Akan Di Lelang`.
+- Tujuan: menaikkan kualitas pengalaman kerja menuju 9/10 dengan alur yang lebih jelas, warna lebih tenang, dan aksi dokumen lebih mudah dipahami.
+
+### Implementasi
+- Menambahkan stepper workflow 3 langkah:
+  - `Pilih aset`
+  - `Atur detail`
+  - `Generate dokumen`
+- Menyusun ulang halaman agar tabel aset menjadi fokus awal sebelum detail nomor surat dan generate dokumen.
+- Mengubah `Generate Dokumen Lelang` dari tombol warna-warni menjadi panel dokumen netral yang dikelompokkan:
+  - Berita acara
+  - Surat keputusan
+  - Surat pendukung
+- Memindahkan pengaturan nomor surat dari panel global ke masing-masing preview dokumen:
+  - kartu nomor muncul di panel kiri preview,
+  - untuk BA Pemeriksaan posisinya di atas form `Pemeriksa`,
+  - setiap kartu menampilkan preview nomor, input nomor, dan input KAP.
+- Menambahkan state disabled yang lebih konsisten untuk dokumen yang membutuhkan aset terpilih.
+- Mengubah banner aset terpilih menjadi sticky action bar bernuansa emerald:
+  - menampilkan jumlah aset terpilih,
+  - menampilkan jumlah dokumen siap cetak,
+  - menyediakan tombol cetak cepat untuk dokumen yang sudah digenerate.
+- Merapikan panel `Urutan Aset Terpilih`:
+  - teks instruksi lebih bersih,
+  - separator metadata tidak mojibake,
+  - ukuran tombol naik/turun lebih nyaman.
+- Merapikan picker `Penandatangan Kepala Balai` agar teks placeholder kosong tidak menampilkan karakter mojibake.
+- Menambahkan tombol `Jadikan ini sebagai default` pada picker global `Penandatangan Kepala Balai`; pilihan tersimpan lokal dan otomatis dipakai kembali saat halaman dibuka.
+
+### Validasi
+- `cd frontend; npm run lint` clean.
+- `cd frontend; npx tsc --noEmit` clean.
+
+---
+
 # Progress - Phase 77: Pagination Riwayat Dokumen BMN
 
 > Document updated: 2026-06-17

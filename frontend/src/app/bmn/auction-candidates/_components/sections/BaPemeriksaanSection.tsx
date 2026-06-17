@@ -3,6 +3,7 @@
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BaPemeriksaanDocument } from "../BaPemeriksaanDocument";
+import { DocumentNumberInlineCard } from "../DocumentNumberInputs";
 import { PemeriksaEditor } from "../PemeriksaEditor";
 import type { AuctionAsset } from "../../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../../_lib/sk-defaults";
@@ -12,9 +13,13 @@ import type { EmployeeOption } from "../../_hooks/useEmployeeOptions";
 interface BaPemeriksaanSectionProps {
   assets: AuctionAsset[];
   number: string;
+  setNumber: (value: string) => void;
   kap: string;
+  setKap: (value: string) => void;
   stNumber: string;
+  setStNumber: (value: string) => void;
   stTanggal: string;
+  setStTanggal: (value: string) => void;
   kepalaBalai: SkKepalaBalai;
   pemeriksaList: PemeriksaAnggota[];
   employees: EmployeeOption[];
@@ -28,9 +33,13 @@ interface BaPemeriksaanSectionProps {
 export function BaPemeriksaanSection({
   assets,
   number,
+  setNumber,
   kap,
+  setKap,
   stNumber,
+  setStNumber,
   stTanggal,
+  setStTanggal,
   kepalaBalai,
   pemeriksaList,
   employees,
@@ -53,7 +62,19 @@ export function BaPemeriksaanSection({
         </Button>
       </div>
       <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
-        <div className="print:hidden">
+        <div className="space-y-4 print:hidden">
+          <DocumentNumberInlineCard
+            label="BA Pemeriksaan"
+            prefix="BA."
+            number={number}
+            setNumber={setNumber}
+            kap={kap}
+            setKap={setKap}
+            stNumber={stNumber}
+            setStNumber={setStNumber}
+            stTanggal={stTanggal}
+            setStTanggal={setStTanggal}
+          />
           <PemeriksaEditor
             pemeriksaList={pemeriksaList}
             employees={employees}
