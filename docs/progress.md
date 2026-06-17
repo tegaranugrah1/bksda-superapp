@@ -1,15 +1,16 @@
 # Progress - Phase 75: BA Pemakaian BMN Per Pegawai
 
 > Document updated: 2026-06-12
-> Status: Issue #402 **WIP - branch siap PR/testing** (`issue/402-ba-pemakaian-bmn`). Belum deploy production.
+> Status: Issue #402 **WIP - redesign UI lokal siap dicek user** (`issue/402-ba-pemakaian-bmn`). PR #403 sudah ada, tetapi belum diupdate lagi setelah redesign tab. Belum deploy production.
 
 ---
 
 ## Issue #402: Generate BA Pemakaian BMN per pegawai
 
-### Status: WIP - siap PR/testing
+### Status: WIP - UI lokal siap dicek
 - GitHub Issue: #402 `feat(bmn): generate BA pemakaian BMN per pegawai`
 - Branch: `issue/402-ba-pemakaian-bmn`
+- PR: #403 `feat(bmn): generate BA pemakaian BMN per pegawai (#402)`; belum di-push ulang setelah redesign tab karena menunggu review user.
 - Scope: halaman `/bmn/reports`, backend history/snapshot BA Pemakaian BMN.
 
 ### Implementasi
@@ -24,15 +25,23 @@
   - `POST /api/bmn/usage-agreements`
   - `GET /api/bmn/usage-agreements/{agreement}`
 - Backend membatasi aset yang disimpan agar tetap aset yang terasosiasi dengan pegawai terkait.
-- Frontend `/bmn/reports` menambah panel `BA Pemakaian BMN`:
+- Frontend `/bmn/reports` memakai workspace bertab:
+  - `Export Laporan` untuk katalog aset, riwayat peminjaman, dan biaya pemeliharaan,
+  - `Generate Dokumen` untuk builder dokumen BMN,
+  - `Riwayat Dokumen` untuk history dokumen pegawai.
+- Tab `Generate Dokumen` menambah builder `BA Pemakaian BMN`:
   - pilih pegawai,
+  - tampilkan BA terakhir pegawai terpilih sebagai referensi,
+  - aksi arsip pegawai: lihat, cetak, atau duplikasi sebagai BA baru,
   - auto-load aset BMN pegawai,
   - pilih aset yang masuk BA,
-  - edit nomor/KAP/tanggal/pihak pertama/catatan,
+  - edit nomor/KAP/tanggal/catatan,
+  - Pihak Pertama bisa dipilih dari data pegawai atau memakai default M. Ari Wibawanto,
   - preview dokumen A4 dengan kop `/header-terbaru.png`,
   - tombol cetak,
-  - tombol simpan riwayat,
-  - daftar riwayat BA pegawai.
+  - tombol simpan riwayat.
+- Tab `Riwayat Dokumen` default menampilkan semua BA Pemakaian yang pernah digenerate, dengan filter pegawai dan pencarian nomor BA/nama/NIP/pembuat.
+- Dokumen tersimpan diperlakukan sebagai arsip/final: tidak diedit langsung, tetapi bisa dilihat, dicetak ulang, diduplikasi sebagai BA baru, atau dihapus melalui konfirmasi.
 - Portal pegawai belum ditampilkan, tetapi struktur history sudah siap dipakai endpoint `employee_id` di masa depan.
 
 ### Validasi

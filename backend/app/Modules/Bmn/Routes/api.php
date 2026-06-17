@@ -38,6 +38,7 @@ Route::get('maintenances/export', [ExportController::class, 'maintenances']);
 Route::get('usage-agreements', [UsageAgreementController::class, 'index']);
 Route::post('usage-agreements', [UsageAgreementController::class, 'store']);
 Route::get('usage-agreements/{agreement}', [UsageAgreementController::class, 'show']);
+Route::delete('usage-agreements/{agreement}', [UsageAgreementController::class, 'destroy']);
 
 // 1. JALUR MASTER ASET
 Route::apiResource('assets', AssetController::class)->except(['destroy']);

@@ -3,9 +3,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Archive, Download, FileClock, FileText, Handshake, Loader2, Package, Printer, Save, UserRound, Wrench } from "lucide-react";
+import { Archive, Download, Eye, FileClock, FileText, Handshake, Loader2, Package, Printer, Save, Trash2, UserRound, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   handlePrintUsageAgreement,
   UsageAgreementDocument,
@@ -26,16 +27,20 @@ interface UsageAgreementHistory {
   id: string;
   number: string;
   document_date: string;
-  second_party_snapshot?: UsageAgreementParty & { unit?: string | null };
+  first_party_snapshot?: UsageAgreementParty;
+  second_party_snapshot?: UsageAgreementParty & { id?: number; unit?: string | null };
   assets_snapshot?: UsageAgreementAsset[];
+  asset_ids?: string[];
+  notes?: string | null;
+  employee?: Pick<EmployeeOption, "id" | "nama_lengkap" | "nip" | "jabatan" | "pangkat_golongan">;
   generator?: { name: string };
   created_at?: string;
 }
 
 const DEFAULT_FIRST_PARTY: UsageAgreementParty = {
-  name: "M. ARI WIBAWANTO, S.Hut., M.Sc.",
+  name: "M. Ari Wibawanto, S.Hut., M.Sc.",
   nip: "19740514 199903 1 001",
-  rank: "Pembina Tingkat I / IV b",
+  rank: "Pembina Tingkat I (IV/b)",
   position: "Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur",
 };
 
@@ -62,19 +67,56 @@ function formatDate(value?: string) {
   return new Date(value).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function makeDummyUsageAssets(seedAssets: UsageAgreementAsset[]): UsageAgreementAsset[] {
+  const source = seedAssets.length > 0 ? seedAssets : [{
+    id: "dummy-seed",
+    nama_barang: "Kursi Fiber Glas/Plastik",
+    kode_barang: "3050201020",
+    nup: "84",
+    merk_tipe: "Matrix",
+    kondisi: "Baik",
+    no_polisi: "-",
+    no_rangka: "-",
+    no_mesin: "-",
+  }];
+
+  return Array.from({ length: 5 }, (_, index) => {
+    const base = source[index % source.length];
+    return {
+      ...base,
+      id: `dummy-usage-${index + 1}`,
+      nama_barang: index % 3 === 0 ? "Laptop Operasional Lapangan" : index % 3 === 1 ? "Kamera Dokumentasi" : base.nama_barang,
+      kode_barang: base.kode_barang || `30502010${String(index + 1).padStart(2, "0")}`,
+      nup: String(index + 1).padStart(2, "0"),
+      merk_tipe: index % 3 === 0 ? "Lenovo ThinkPad / T14" : index % 3 === 1 ? "Canon / EOS 80D" : base.merk_tipe || "Matrix",
+      kondisi: index % 5 === 0 ? "Rusak Ringan" : base.kondisi || "Baik",
+      no_polisi: index % 4 === 0 ? `KT ${6500 + index} BZ` : "-",
+      no_rangka: index % 4 === 0 ? `MH1JF${index}TEST${index}` : "-",
+      no_mesin: index % 4 === 0 ? `JF${index}E${2020 + index}` : "-",
+    };
+  });
+}
+
 export default function BmnReportsPage() {
+  const confirm = useConfirm();
   const [loadingAsset, setLoadingAsset] = useState(false);
   const [loadingLoan, setLoadingLoan] = useState(false);
   const [loadingMaintenance, setLoadingMaintenance] = useState(false);
+  const [activeTab, setActiveTab] = useState<"exports" | "documents" | "history">("exports");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [assets, setAssets] = useState<UsageAgreementAsset[]>([]);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [history, setHistory] = useState<UsageAgreementHistory[]>([]);
+  const [selectedHistoryAgreement, setSelectedHistoryAgreement] = useState<UsageAgreementHistory | null>(null);
+  const [historyEmployeeFilter, setHistoryEmployeeFilter] = useState("");
+  const [historySearch, setHistorySearch] = useState("");
+  const [useDummyUsageAssets, setUseDummyUsageAssets] = useState(false);
   const [loadingUsageData, setLoadingUsageData] = useState(false);
   const [savingUsageAgreement, setSavingUsageAgreement] = useState(false);
   const [baSequence, setBaSequence] = useState("");
   const [kap, setKap] = useState("KAP.03.02");
   const [documentDate, setDocumentDate] = useState(todayInputValue());
+  const [firstPartyEmployeeId, setFirstPartyEmployeeId] = useState("");
   const [firstParty, setFirstParty] = useState<UsageAgreementParty>(DEFAULT_FIRST_PARTY);
   const [notes, setNotes] = useState("Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA.");
 
@@ -82,6 +124,23 @@ export default function BmnReportsPage() {
     queryKey: ["bmn-usage-employees"],
     queryFn: async () => {
       const response = await api.get("/kepegawaian/employees", { params: { is_active: true, per_page: 300 } });
+      return response.data.data || [];
+    },
+  });
+
+  const {
+    data: allHistory = [],
+    isLoading: loadingAllHistory,
+    refetch: refetchAllHistory,
+  } = useQuery<UsageAgreementHistory[]>({
+    queryKey: ["bmn-usage-agreements", historyEmployeeFilter],
+    queryFn: async () => {
+      const response = await api.get("/bmn/usage-agreements", {
+        params: {
+          ...(historyEmployeeFilter ? { employee_id: historyEmployeeFilter } : {}),
+          per_page: 100,
+        },
+      });
       return response.data.data || [];
     },
   });
@@ -119,9 +178,38 @@ export default function BmnReportsPage() {
     [assets, selectedAssetIds],
   );
 
+  const documentAssets = useMemo(
+    () => useDummyUsageAssets ? makeDummyUsageAssets(selectedAssets) : selectedAssets,
+    [selectedAssets, useDummyUsageAssets],
+  );
+
   const fullBaNumber = useMemo(
     () => buildBaNumber(baSequence, kap, documentDate),
     [baSequence, kap, documentDate],
+  );
+
+  const filteredAllHistory = useMemo(() => {
+    const needle = historySearch.trim().toLocaleLowerCase("id-ID");
+    if (!needle) return allHistory;
+
+    return allHistory.filter((item) => {
+      const searchable = [
+        item.number,
+        item.second_party_snapshot?.name,
+        item.second_party_snapshot?.nip,
+        item.employee?.nama_lengkap,
+        item.employee?.nip,
+        item.generator?.name,
+        item.document_date,
+      ].filter(Boolean).join(" ").toLocaleLowerCase("id-ID");
+
+      return searchable.includes(needle);
+    });
+  }, [allHistory, historySearch]);
+
+  const recentEmployeeHistory = useMemo(
+    () => history.slice(0, 5),
+    [history],
   );
 
   const loadUsageData = useCallback(async (employeeId: string) => {
@@ -129,6 +217,7 @@ export default function BmnReportsPage() {
       setAssets([]);
       setSelectedAssetIds([]);
       setHistory([]);
+      setSelectedHistoryAgreement(null);
       return;
     }
 
@@ -141,7 +230,11 @@ export default function BmnReportsPage() {
       const nextAssets = assetsResponse.data.data || [];
       setAssets(nextAssets);
       setSelectedAssetIds(nextAssets.map((asset: UsageAgreementAsset) => asset.id));
-      setHistory(historyResponse.data.data || []);
+      const nextHistory = historyResponse.data.data || [];
+      setHistory(nextHistory);
+      setSelectedHistoryAgreement((current) =>
+        current && nextHistory.some((item: UsageAgreementHistory) => item.id === current.id) ? current : null,
+      );
     } catch {
       toast.error("Gagal memuat aset atau riwayat BA pegawai.");
     } finally {
@@ -152,6 +245,60 @@ export default function BmnReportsPage() {
   const handleEmployeeChange = (employeeId: string) => {
     setSelectedEmployeeId(employeeId);
     loadUsageData(employeeId);
+  };
+
+  const handleHistoryEmployeeFilterChange = (employeeId: string) => {
+    setHistoryEmployeeFilter(employeeId);
+    setSelectedHistoryAgreement(null);
+  };
+
+  const handleFirstPartyEmployeeChange = (employeeId: string) => {
+    setFirstPartyEmployeeId(employeeId);
+    if (!employeeId) {
+      setFirstParty(DEFAULT_FIRST_PARTY);
+      return;
+    }
+
+    const employee = employees.find((item) => String(item.id) === employeeId);
+    if (!employee) return;
+    setFirstParty({
+      name: employee.nama_lengkap,
+      nip: employee.nip,
+      rank: employee.pangkat_golongan || "",
+      position: employee.jabatan || "",
+    });
+  };
+
+  const viewHistoryAgreement = (agreement: UsageAgreementHistory) => {
+    setSelectedHistoryAgreement(agreement);
+  };
+
+  const printHistoryAgreement = (agreement: UsageAgreementHistory) => {
+    setSelectedHistoryAgreement(agreement);
+    setActiveTab("history");
+    window.setTimeout(() => handlePrintUsageAgreement("ba-pemakaian-history-print-root"), 100);
+  };
+
+  const deleteHistoryAgreement = async (agreement: UsageAgreementHistory) => {
+    const ok = await confirm({
+      title: "Hapus Riwayat BA?",
+      description: `Riwayat ${agreement.number} akan dihapus permanen dari daftar BA Pemakaian.`,
+      confirmText: "Ya, Hapus",
+      variant: "danger",
+    });
+    if (!ok) return;
+
+    try {
+      await api.delete(`/bmn/usage-agreements/${agreement.id}`);
+      toast.success("Riwayat BA Pemakaian dihapus.");
+      setSelectedHistoryAgreement((current) => current?.id === agreement.id ? null : current);
+      if (selectedEmployeeId) {
+        await loadUsageData(selectedEmployeeId);
+      }
+      await refetchAllHistory();
+    } catch {
+      toast.error("Gagal menghapus riwayat BA.");
+    }
   };
 
   const toggleAsset = (assetId: string) => {
@@ -185,6 +332,7 @@ export default function BmnReportsPage() {
       });
       toast.success("Riwayat BA Pemakaian berhasil disimpan.");
       await loadUsageData(String(selectedEmployee.id));
+      await refetchAllHistory();
     } catch {
       toast.error("Gagal menyimpan riwayat BA Pemakaian.");
     } finally {
@@ -192,208 +340,544 @@ export default function BmnReportsPage() {
     }
   };
 
+  const duplicateHistoryAgreement = async (agreement: UsageAgreementHistory) => {
+    setActiveTab("documents");
+    const employeeId = agreement.second_party_snapshot?.id;
+    if (employeeId) {
+      setSelectedEmployeeId(String(employeeId));
+      await loadUsageData(String(employeeId));
+    }
+    setBaSequence("");
+    setKap("KAP.03.02");
+    setDocumentDate(todayInputValue());
+    setFirstPartyEmployeeId("");
+    setFirstParty(agreement.first_party_snapshot || DEFAULT_FIRST_PARTY);
+    setSelectedAssetIds(agreement.asset_ids || []);
+    setNotes(agreement.notes || "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA.");
+    toast.info("Data arsip disalin sebagai BA baru. Nomor dan tanggal silakan disesuaikan.");
+  };
+
   const reports = [
-    { title: "Katalog Aset BMN", desc: "Rekapitulasi seluruh aset beserta nilai perolehan.", icon: <Package className="w-6 h-6" />, color: "emerald", loading: loadingAsset, action: () => executeDownload("/bmn/assets/export", "Katalog_Aset_BMN.xlsx", setLoadingAsset) },
-    { title: "Riwayat Peminjaman", desc: "Catatan historis serah-terima aset kepada pegawai.", icon: <Handshake className="w-6 h-6" />, color: "amber", loading: loadingLoan, action: () => executeDownload("/bmn/loans/export", "Peminjaman_BMN.xlsx", setLoadingLoan) },
-    { title: "Biaya Pemeliharaan", desc: "Rekap pengeluaran dana untuk servis dan perbaikan.", icon: <Wrench className="w-6 h-6" />, color: "blue", loading: loadingMaintenance, action: () => executeDownload("/bmn/maintenances/export", "Pemeliharaan_BMN.xlsx", setLoadingMaintenance) },
+    { title: "Katalog Aset BMN", desc: "Rekapitulasi seluruh aset beserta nilai perolehan.", icon: <Package className="w-6 h-6" />, color: "emerald", loading: loadingAsset, buttonLabel: "Unduh Excel", buttonIcon: Download, action: () => executeDownload("/bmn/assets/export", "Katalog_Aset_BMN.xlsx", setLoadingAsset) },
+    { title: "Riwayat Peminjaman", desc: "Catatan historis serah-terima aset kepada pegawai.", icon: <Handshake className="w-6 h-6" />, color: "amber", loading: loadingLoan, buttonLabel: "Unduh Excel", buttonIcon: Download, action: () => executeDownload("/bmn/loans/export", "Peminjaman_BMN.xlsx", setLoadingLoan) },
+    { title: "Biaya Pemeliharaan", desc: "Rekap pengeluaran dana untuk servis dan perbaikan.", icon: <Wrench className="w-6 h-6" />, color: "blue", loading: loadingMaintenance, buttonLabel: "Unduh Excel", buttonIcon: Download, action: () => executeDownload("/bmn/maintenances/export", "Pemeliharaan_BMN.xlsx", setLoadingMaintenance) },
   ];
+
+  const tabs = [
+    { id: "exports", label: "Export Laporan", icon: Download },
+    { id: "documents", label: "Generate Dokumen", icon: Archive },
+    { id: "history", label: "Riwayat Dokumen", icon: FileClock },
+  ] as const;
 
   const colorMap: Record<string, { iconBg: string; iconText: string; btnBg: string }> = {
     emerald: { iconBg: "bg-emerald-50 dark:bg-emerald-500/10", iconText: "text-emerald-600", btnBg: "bg-emerald-600 hover:bg-emerald-500" },
     amber: { iconBg: "bg-amber-50 dark:bg-amber-500/10", iconText: "text-amber-600", btnBg: "bg-amber-600 hover:bg-amber-500" },
     blue: { iconBg: "bg-blue-50 dark:bg-blue-500/10", iconText: "text-blue-600", btnBg: "bg-blue-600 hover:bg-blue-500" },
+    violet: { iconBg: "bg-violet-50 dark:bg-violet-500/10", iconText: "text-violet-600", btnBg: "bg-violet-600 hover:bg-violet-500" },
   };
 
   return (
-    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-          <FileText className="w-6 h-6 text-emerald-500" /> Laporan
-        </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Unduh laporan Excel dan buat dokumen berita acara BMN.</p>
+    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+            <FileText className="w-6 h-6 text-emerald-500" /> Laporan
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Export laporan dan generate dokumen BMN dari satu workspace.</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {reports.map((report) => {
-          const c = colorMap[report.color] || colorMap.emerald;
+      <div className="inline-flex max-w-full overflow-x-auto rounded-2xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
+        {tabs.map((tab) => {
+          const TabIcon = tab.icon;
+          const active = activeTab === tab.id;
           return (
-            <div key={report.title} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 flex flex-col">
-              <div className={`w-12 h-12 rounded-xl ${c.iconBg} ${c.iconText} flex items-center justify-center mb-4`}>
-                {report.icon}
-              </div>
-              <h3 className="text-base font-bold text-zinc-900 dark:text-white mb-1">{report.title}</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6 flex-1">{report.desc}</p>
-              <Button
-                onClick={report.action}
-                disabled={report.loading}
-                className={`w-full rounded-xl text-white font-semibold ${c.btnBg}`}
-              >
-                {report.loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
-                Unduh Excel
-              </Button>
-            </div>
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${
+                active
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <TabIcon className="w-4 h-4" />
+              {tab.label}
+            </button>
           );
         })}
       </div>
 
-      <section className="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-6">
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                <Archive className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-zinc-900 dark:text-white">BA Pemakaian BMN</h2>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">Generate berita acara pemakaian per pegawai.</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <label className="block">
-                <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Pegawai</span>
-                <select
-                  value={selectedEmployeeId}
-                  onChange={(event) => handleEmployeeChange(event.target.value)}
-                  disabled={loadingEmployees}
-                  className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                >
-                  <option value="">{loadingEmployees ? "Memuat pegawai..." : "Pilih pegawai"}</option>
-                  {employees.map((employee) => (
-                    <option key={employee.id} value={employee.id}>
-                      {employee.nama_lengkap} - {employee.nip}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Nomor BA</span>
-                  <input
-                    value={baSequence}
-                    onChange={(event) => setBaSequence(event.target.value)}
-                    placeholder="contoh: 015"
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">KAP</span>
-                  <input
-                    value={kap}
-                    onChange={(event) => setKap(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                  />
-                </label>
-              </div>
-
-              <label className="block">
-                <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Tanggal Dokumen</span>
-                <input
-                  type="date"
-                  value={documentDate}
-                  onChange={(event) => setDocumentDate(event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                />
-              </label>
-
-              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-200">
-                  <UserRound className="w-3.5 h-3.5" /> Pihak Pertama
+      {activeTab === "exports" && (
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {reports.map((report) => {
+            const c = colorMap[report.color] || colorMap.emerald;
+            const ButtonIcon = report.buttonIcon;
+            return (
+              <div key={report.title} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 flex flex-col">
+                <div className={`w-12 h-12 rounded-xl ${c.iconBg} ${c.iconText} flex items-center justify-center mb-4`}>
+                  {report.icon}
                 </div>
-                <input value={firstParty.name} onChange={(event) => setFirstParty({ ...firstParty, name: event.target.value })} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-                <input value={firstParty.nip || ""} onChange={(event) => setFirstParty({ ...firstParty, nip: event.target.value })} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-                <input value={firstParty.rank || ""} onChange={(event) => setFirstParty({ ...firstParty, rank: event.target.value })} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-                <textarea value={firstParty.position || ""} onChange={(event) => setFirstParty({ ...firstParty, position: event.target.value })} rows={2} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white mb-1">{report.title}</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6 flex-1">{report.desc}</p>
+                <Button
+                  onClick={report.action}
+                  disabled={report.loading}
+                  className={`w-full rounded-xl text-white font-semibold ${c.btnBg}`}
+                >
+                  {report.loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ButtonIcon className="w-4 h-4 mr-2" />}
+                  {report.buttonLabel}
+                </Button>
               </div>
+            );
+          })}
+        </section>
+      )}
 
-              <textarea
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                rows={3}
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-              />
+      {activeTab === "documents" && (
+        <section className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-5">
+          <aside className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="px-2 pb-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">Jenis Dokumen</p>
             </div>
-          </div>
+            <button
+              type="button"
+              className="flex w-full items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-left dark:border-emerald-500/20 dark:bg-emerald-500/10"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-zinc-950">
+                <Archive className="w-5 h-5" />
+              </span>
+              <span>
+                <span className="block text-sm font-bold text-zinc-900 dark:text-white">BA Pemakaian BMN</span>
+                <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">Generate berita acara pemakaian per pegawai.</span>
+              </span>
+            </button>
+          </aside>
 
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Aset Dipakai</h3>
-              {loadingUsageData && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
-            </div>
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-              {!selectedEmployee ? (
-                <p className="text-xs text-zinc-500">Pilih pegawai untuk melihat aset BMN.</p>
-              ) : assets.length === 0 ? (
-                <p className="text-xs text-zinc-500">Belum ada aset BMN yang terhubung dengan pegawai ini.</p>
-              ) : assets.map((asset) => (
-                <label key={asset.id} className="flex gap-3 rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 text-xs">
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div>
+                <h2 className="text-base font-bold text-zinc-900 dark:text-white">Generate BA Pemakaian BMN</h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">{selectedEmployee ? fullBaNumber : "Pilih pegawai untuk mulai membuat dokumen."}</p>
+              </div>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <label className="flex h-9 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
                   <input
                     type="checkbox"
-                    checked={selectedAssetIds.includes(asset.id)}
-                    onChange={() => toggleAsset(asset.id)}
-                    className="mt-0.5"
+                    checked={useDummyUsageAssets}
+                    onChange={(event) => setUseDummyUsageAssets(event.target.checked)}
                   />
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-zinc-800 dark:text-zinc-100">{asset.nama_barang}</span>
-                    <span className="block text-zinc-500">{asset.kode_barang} - NUP {asset.nup}</span>
-                  </span>
+                  Dummy banyak barang
                 </label>
-              ))}
+                <Button variant="outline" className="rounded-xl gap-2" onClick={saveUsageAgreement} disabled={savingUsageAgreement || !selectedEmployee}>
+                  {savingUsageAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Simpan Riwayat
+                </Button>
+                <Button className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500" onClick={() => handlePrintUsageAgreement()} disabled={!selectedEmployee}>
+                  <Printer className="w-4 h-4" />
+                  Cetak
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <FileClock className="w-4 h-4 text-emerald-600" />
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Riwayat BA Pegawai</h3>
-            </div>
-            <div className="space-y-2 max-h-56 overflow-y-auto">
-              {!selectedEmployee ? (
-                <p className="text-xs text-zinc-500">Riwayat akan tampil setelah pegawai dipilih.</p>
-              ) : history.length === 0 ? (
-                <p className="text-xs text-zinc-500">Belum ada riwayat BA Pemakaian.</p>
-              ) : history.map((item) => (
-                <div key={item.id} className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3">
-                  <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">{item.number}</p>
-                  <p className="text-[11px] text-zinc-500">{formatDate(item.document_date)} - {item.assets_snapshot?.length || 0} aset</p>
-                  {item.generator?.name && <p className="text-[11px] text-zinc-400">oleh {item.generator.name}</p>}
+            <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">1. Pilih Pegawai</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Aset dan riwayat BA akan dimuat otomatis dari pegawai terpilih.</p>
                 </div>
-              ))}
+                {loadingUsageData && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
+              </div>
+              <select
+                value={selectedEmployeeId}
+                onChange={(event) => handleEmployeeChange(event.target.value)}
+                disabled={loadingEmployees}
+                className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              >
+                <option value="">{loadingEmployees ? "Memuat pegawai..." : "Pilih pegawai"}</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.nama_lengkap} - {employee.nip}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
-        </div>
 
-        <div className="min-w-0 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div>
-              <p className="text-sm font-bold text-zinc-900 dark:text-white">Preview Dokumen</p>
-              <p className="text-xs text-zinc-500">{fullBaNumber}</p>
+            {!selectedEmployee ? (
+              <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10">
+                  <Archive className="w-6 h-6" />
+                </div>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Belum ada dokumen yang dibuat</h3>
+                <p className="mx-auto mt-1 max-w-md text-xs text-zinc-500 dark:text-zinc-400">
+                  Pilih pegawai terlebih dahulu. Setelah itu kamu bisa memilih aset, melengkapi nomor BA, lalu preview dan cetak dokumen.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-zinc-900 dark:text-white">BA Terakhir Pegawai Ini</h3>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">Gunakan arsip lama sebagai referensi, cetak ulang, atau duplikasi sebagai BA baru.</p>
+                    </div>
+                    {loadingUsageData && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
+                  </div>
+                  {recentEmployeeHistory.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-zinc-200 px-4 py-5 text-center text-xs text-zinc-500 dark:border-zinc-800">
+                      Belum ada BA Pemakaian yang pernah digenerate untuk pegawai ini.
+                    </div>
+                  ) : (
+                    <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                      <table className="w-full min-w-[720px] text-left text-xs">
+                        <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                          <tr>
+                            <th className="px-3 py-2">Nomor</th>
+                            <th className="px-3 py-2">Tanggal</th>
+                            <th className="px-3 py-2">Aset</th>
+                            <th className="px-3 py-2">Pembuat</th>
+                            <th className="px-3 py-2 text-right">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                          {recentEmployeeHistory.map((item) => (
+                            <tr key={item.id} className="text-zinc-700 dark:text-zinc-200">
+                              <td className="px-3 py-2 font-semibold">{item.number}</td>
+                              <td className="px-3 py-2 text-zinc-500">{formatDate(item.document_date)}</td>
+                              <td className="px-3 py-2 text-zinc-500">{item.assets_snapshot?.length || 0} aset</td>
+                              <td className="px-3 py-2 text-zinc-500">{item.generator?.name || "-"}</td>
+                              <td className="px-3 py-2">
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 rounded-lg px-2 text-xs"
+                                    onClick={() => {
+                                      setActiveTab("history");
+                                      viewHistoryAgreement(item);
+                                    }}
+                                  >
+                                    <Eye className="mr-1 h-3.5 w-3.5" />
+                                    Lihat
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 rounded-lg px-2 text-xs"
+                                    onClick={() => printHistoryAgreement(item)}
+                                  >
+                                    <Printer className="mr-1 h-3.5 w-3.5" />
+                                    Cetak
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    className="h-8 rounded-lg bg-emerald-600 px-2 text-xs hover:bg-emerald-500"
+                                    onClick={() => duplicateHistoryAgreement(item)}
+                                  >
+                                    <FileText className="mr-1 h-3.5 w-3.5" />
+                                    Duplikasi
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
+                                    onClick={() => deleteHistoryAgreement(item)}
+                                  >
+                                    <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                    Hapus
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-zinc-900 dark:text-white">2. Pilih Aset Dipakai</h3>
+                      <p className="text-xs text-zinc-500">{selectedAssets.length} dari {assets.length} aset dipilih</p>
+                    </div>
+                  </div>
+                  <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                    <table className="w-full min-w-[640px] text-left text-xs">
+                      <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                        <tr>
+                          <th className="w-10 px-3 py-2"></th>
+                          <th className="px-3 py-2">Barang</th>
+                          <th className="px-3 py-2">Kode</th>
+                          <th className="px-3 py-2">NUP</th>
+                          <th className="px-3 py-2">Kondisi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        {assets.length === 0 ? (
+                          <tr><td colSpan={5} className="px-3 py-6 text-center text-zinc-500">Belum ada aset BMN yang terhubung dengan pegawai ini.</td></tr>
+                        ) : assets.map((asset) => (
+                          <tr key={asset.id} className="text-zinc-700 dark:text-zinc-200">
+                            <td className="px-3 py-2">
+                              <input
+                                type="checkbox"
+                                checked={selectedAssetIds.includes(asset.id)}
+                                onChange={() => toggleAsset(asset.id)}
+                              />
+                            </td>
+                            <td className="px-3 py-2 font-semibold">{asset.nama_barang}</td>
+                            <td className="px-3 py-2 text-zinc-500">{asset.kode_barang}</td>
+                            <td className="px-3 py-2 text-zinc-500">{asset.nup}</td>
+                            <td className="px-3 py-2 text-zinc-500">{asset.kondisi || "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-5">
+                  <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                    <h3 className="mb-4 text-sm font-bold text-zinc-900 dark:text-white">3. Detail BA</h3>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className="block">
+                          <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Nomor BA</span>
+                          <input
+                            value={baSequence}
+                            onChange={(event) => setBaSequence(event.target.value)}
+                            placeholder="contoh: 015"
+                            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">KAP</span>
+                          <input
+                            value={kap}
+                            onChange={(event) => setKap(event.target.value)}
+                            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                      </div>
+
+                      <label className="block">
+                        <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Tanggal Dokumen</span>
+                        <input
+                          type="date"
+                          value={documentDate}
+                          onChange={(event) => setDocumentDate(event.target.value)}
+                          className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                        />
+                      </label>
+
+                      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 space-y-2">
+                        <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-200">
+                          <UserRound className="w-3.5 h-3.5" /> Pihak Pertama
+                        </div>
+                        <select
+                          value={firstPartyEmployeeId}
+                          onChange={(event) => handleFirstPartyEmployeeChange(event.target.value)}
+                          disabled={loadingEmployees}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                        >
+                          <option value="">Default Kepala Balai - M. Ari Wibawanto</option>
+                          {employees.map((employee) => (
+                            <option key={employee.id} value={employee.id}>
+                              {employee.nama_lengkap} - {employee.nip}
+                            </option>
+                          ))}
+                        </select>
+                        <input value={firstParty.name} onChange={(event) => setFirstParty({ ...firstParty, name: event.target.value })} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                        <input value={firstParty.nip || ""} onChange={(event) => setFirstParty({ ...firstParty, nip: event.target.value })} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                        <input value={firstParty.rank || ""} onChange={(event) => setFirstParty({ ...firstParty, rank: event.target.value })} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                        <textarea value={firstParty.position || ""} onChange={(event) => setFirstParty({ ...firstParty, position: event.target.value })} rows={2} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                      </div>
+
+                      <textarea
+                        value={notes}
+                        onChange={(event) => setNotes(event.target.value)}
+                        rows={3}
+                        className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">4. Preview Dokumen</h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullBaNumber}</p>
+                      </div>
+                    </div>
+                    {useDummyUsageAssets && (
+                      <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+                        Mode dummy aktif untuk test pagination preview/cetak. Data dummy tidak ikut disimpan ke riwayat.
+                      </div>
+                    )}
+                    <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                      <UsageAgreementDocument
+                        number={fullBaNumber}
+                        documentDate={documentDate}
+                        firstParty={firstParty}
+                        secondParty={secondParty}
+                        assets={documentAssets}
+                        notes={notes}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === "history" && (
+        <section className="space-y-4">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10">
+                <FileClock className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-zinc-900 dark:text-white">Riwayat Dokumen</h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Semua BA Pemakaian yang pernah digenerate, dengan filter pegawai dan pencarian.</p>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="rounded-xl gap-2" onClick={saveUsageAgreement} disabled={savingUsageAgreement || !selectedEmployee}>
-                {savingUsageAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Simpan Riwayat
-              </Button>
-              <Button className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500" onClick={handlePrintUsageAgreement} disabled={!selectedEmployee}>
-                <Printer className="w-4 h-4" />
-                Cetak
-              </Button>
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
+              <input
+                value={historySearch}
+                onChange={(event) => setHistorySearch(event.target.value)}
+                placeholder="Cari nomor BA, nama pegawai, NIP, atau pembuat..."
+                className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              />
+              <select
+                value={historyEmployeeFilter}
+                onChange={(event) => handleHistoryEmployeeFilterChange(event.target.value)}
+                disabled={loadingEmployees}
+                className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              >
+                <option value="">{loadingEmployees ? "Memuat pegawai..." : "Semua pegawai"}</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.nama_lengkap} - {employee.nip}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
-            <UsageAgreementDocument
-              number={fullBaNumber}
-              documentDate={documentDate}
-              firstParty={firstParty}
-              secondParty={secondParty}
-              assets={selectedAssets}
-              notes={notes}
-            />
+          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Daftar BA Pemakaian</h3>
+                <p className="text-xs text-zinc-500">{filteredAllHistory.length} dari {allHistory.length} dokumen</p>
+              </div>
+              {loadingAllHistory && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
+            </div>
+            <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+              <table className="w-full min-w-[760px] text-left text-xs">
+                <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                  <tr>
+                    <th className="px-3 py-2">Nomor</th>
+                    <th className="px-3 py-2">Tanggal</th>
+                    <th className="px-3 py-2">Pegawai</th>
+                    <th className="px-3 py-2">Aset</th>
+                    <th className="px-3 py-2">Pembuat</th>
+                    <th className="px-3 py-2 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {filteredAllHistory.length === 0 ? (
+                    <tr><td colSpan={6} className="px-3 py-8 text-center text-zinc-500">Belum ada riwayat BA yang sesuai filter.</td></tr>
+                  ) : filteredAllHistory.map((item) => (
+                    <tr
+                      key={item.id}
+                      className={`text-zinc-700 dark:text-zinc-200 ${selectedHistoryAgreement?.id === item.id ? "bg-emerald-50/70 dark:bg-emerald-500/10" : ""}`}
+                    >
+                      <td className="px-3 py-2 font-semibold">{item.number}</td>
+                      <td className="px-3 py-2 text-zinc-500">{formatDate(item.document_date)}</td>
+                      <td className="px-3 py-2 text-zinc-500">{item.second_party_snapshot?.name || item.employee?.nama_lengkap || "-"}</td>
+                      <td className="px-3 py-2 text-zinc-500">{item.assets_snapshot?.length || 0} aset</td>
+                      <td className="px-3 py-2 text-zinc-500">{item.generator?.name || "-"}</td>
+                      <td className="px-3 py-2">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-lg px-2 text-xs"
+                            onClick={() => viewHistoryAgreement(item)}
+                          >
+                            <Eye className="mr-1 h-3.5 w-3.5" />
+                            Lihat
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-8 rounded-lg bg-emerald-600 px-2 text-xs hover:bg-emerald-500"
+                            onClick={() => printHistoryAgreement(item)}
+                          >
+                            <Printer className="mr-1 h-3.5 w-3.5" />
+                            Cetak
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
+                            onClick={() => deleteHistoryAgreement(item)}
+                          >
+                            <Trash2 className="mr-1 h-3.5 w-3.5" />
+                            Hapus
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </section>
+
+          {selectedHistoryAgreement && (
+            <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Preview Arsip BA</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {selectedHistoryAgreement.number} - {formatDate(selectedHistoryAgreement.document_date)}
+                  </p>
+                </div>
+                <Button
+                  className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+                  onClick={() => handlePrintUsageAgreement("ba-pemakaian-history-print-root")}
+                >
+                  <Printer className="w-4 h-4" />
+                  Cetak Arsip
+                </Button>
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <UsageAgreementDocument
+                  documentId="ba-pemakaian-history-print-root"
+                  number={selectedHistoryAgreement.number}
+                  documentDate={selectedHistoryAgreement.document_date}
+                  firstParty={selectedHistoryAgreement.first_party_snapshot || DEFAULT_FIRST_PARTY}
+                  secondParty={selectedHistoryAgreement.second_party_snapshot || { name: "", nip: "", rank: "", position: "" }}
+                  assets={selectedHistoryAgreement.assets_snapshot || []}
+                  notes={selectedHistoryAgreement.notes || ""}
+                />
+              </div>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

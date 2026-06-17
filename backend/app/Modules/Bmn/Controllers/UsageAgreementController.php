@@ -38,6 +38,16 @@ class UsageAgreementController extends Controller
         return response()->json(['data' => new UsageAgreementResource($agreement)]);
     }
 
+    public function destroy(string $id): JsonResponse
+    {
+        $agreement = UsageAgreement::findOrFail($id);
+        $agreement->delete();
+
+        return response()->json([
+            'message' => 'Riwayat BA Pemakaian BMN berhasil dihapus.',
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
