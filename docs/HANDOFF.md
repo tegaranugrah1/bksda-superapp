@@ -102,6 +102,7 @@ git push origin main
 
 ## Status Saat Ini
 
+- [ ] Issue #402: Generate BA Pemakaian BMN per pegawai di `/bmn/reports`. Branch `issue/402-ba-pemakaian-bmn` WIP siap testing lokal (PR #403 sudah ada, jangan update PR sebelum user approve UI terbaru). Backend tambah tabel `bmn_usage_agreements` + API `GET/POST/DELETE /api/bmn/usage-agreements` dan snapshot pihak pertama/pihak kedua/aset. Frontend `/bmn/reports` dirombak menjadi workspace bertab: `Export Laporan`, `Generate Dokumen`, dan `Riwayat Dokumen`. Builder `BA Pemakaian BMN` ada di tab Generate Dokumen, memakai pilih pegawai, auto-load aset, Pihak Pertama bisa pilih pegawai/default M. Ari Wibawanto, preview A4 pakai `/header-terbaru.png`, cetak, dan simpan riwayat. Setelah pegawai dipilih, builder menampilkan BA terakhir pegawai tersebut dengan aksi lihat/cetak/duplikasi/hapus. Tab `Riwayat Dokumen` default menampilkan semua BA, bisa filter pegawai dan search; arsip final tidak diedit langsung, hanya lihat/cetak/duplikasi sebagai BA baru, atau hapus lewat konfirmasi. Portal pegawai belum dibuat, tapi data history sudah siap difilter `employee_id`. Validasi frontend clean: eslint 0 warning, tsc, build 59/59. Belum deploy production.
 - [x] Issue #400: Rombak layout dokumentasi foto detail aset BMN. PR #401 squash merged ke `main` (commit `6c7f1fd`) dan deployed ke Dokploy. Slot utama sekarang `Foto Geotag`, `Tampak Depan` (kolom baru `foto_depan_path`), `Tampak Belakang`, `Tampak Kiri`, `Tampak Kanan`. Di bawah `Tampak Depan` ada input manual lokasi/ruangan barang yang menyimpan ke `lokasi_spesifik`; tidak auto-fill dari `lokasi_ruang/resor`. Migration `foto_depan_path` sudah applied. VPS tambah swap 2GB. Smoke test via IP baru `15.134.31.68` clean; DNS masih perlu update A record dari `15.135.114.1` ke `15.134.31.68`.
 - [x] Issue #398: BMN Import Review approve per changed field. PR #399 squash merged ke `main` (commit `cc2f84f`). Backend tambah `toggle-field-selection`; approve hanya apply kolom `changed_fields[field].selected !== false` dan mencatat history hanya untuk field yang di-apply; frontend tambah checkbox per kolom diff + indikator `Kolom disetujui: X/Y`. Validasi clean: PHP syntax, route:list, eslint 0 warning, tsc, build 59/59. Belum deploy production.
 - [x] Create GitHub issue #334 for BMN Aset Akan Di Lelang and BA Koreksi Kondisi document workflow.
@@ -170,9 +171,9 @@ git push origin main
 | Field | Value |
 |-------|-------|
 | **Issue Terakhir Selesai** | Issue #400: BMN Asset Photo Documentation Layout (PR #401 squash merged ke `main`, commit `6c7f1fd`) |
-| **Issue Sedang Dikerjakan** | Tidak ada |
-| **Branch Aktif** | `main` |
-| **Commit Terakhir di Main** | `6c7f1fd` (feat(bmn): restructure asset photo documentation layout #400/#401) |
+| **Issue Sedang Dikerjakan** | Issue #402: Generate BA Pemakaian BMN per pegawai |
+| **Branch Aktif** | `issue/402-ba-pemakaian-bmn` |
+| **Commit Terakhir di Main** | `ce51f16` (docs: update deployment status for issue #400) |
 | **Commit Production Server** | Dokploy compose at `6c7f1fd`; migration `foto_depan_path` applied |
 | **Status** | Production app live via Dokploy on new EC2 IP `15.134.31.68`; smoke test via `curl --resolve` clean for frontend/API/Dokploy. DNS records still point to old IP `15.135.114.1` and must be updated. |
 | **Model Terakhir** | Claude Opus 4.7 |
