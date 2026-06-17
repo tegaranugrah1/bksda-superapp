@@ -2,6 +2,7 @@
 
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DocumentNumberInlineCard } from "../DocumentNumberInputs";
 import { SkBuilder } from "../SkBuilder";
 import { SkPanitiaDocument } from "../SkPanitiaDocument";
 import { PanitiaEditor } from "../PanitiaEditor";
@@ -11,7 +12,9 @@ import type { EmployeeOption } from "../../_hooks/useEmployeeOptions";
 
 interface SkPanitiaSectionProps {
   skPanitiaNumber: string;
+  setSkPanitiaNumber: (value: string) => void;
   skPanitiaKap: string;
+  setSkPanitiaKap: (value: string) => void;
   panitiaMenimbang: SkBuilderItem[];
   setPanitiaMenimbang: (items: SkBuilderItem[]) => void;
   panitiaMengingat: SkBuilderItem[];
@@ -33,7 +36,9 @@ interface SkPanitiaSectionProps {
 
 export function SkPanitiaSection({
   skPanitiaNumber,
+  setSkPanitiaNumber,
   skPanitiaKap,
+  setSkPanitiaKap,
   panitiaMenimbang,
   setPanitiaMenimbang,
   panitiaMengingat,
@@ -65,7 +70,15 @@ export function SkPanitiaSection({
         </Button>
       </div>
       <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
-        <div className="print:hidden">
+        <div className="space-y-4 print:hidden">
+          <DocumentNumberInlineCard
+            label="SK Panitia"
+            prefix="SK."
+            number={skPanitiaNumber}
+            setNumber={setSkPanitiaNumber}
+            kap={skPanitiaKap}
+            setKap={setSkPanitiaKap}
+          />
           <SkBuilder
             menimbang={panitiaMenimbang}
             setMenimbang={setPanitiaMenimbang}

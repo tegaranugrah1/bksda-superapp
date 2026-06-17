@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, ArrowDown, FileSpreadsheet, GripVertical } from "lucide-react";
+import { ArrowDown, ArrowUp, FileSpreadsheet, GripVertical } from "lucide-react";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 
 interface ReorderPanelProps {
@@ -26,14 +26,14 @@ export function ReorderPanel({
 }: ReorderPanelProps) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 print:hidden">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold text-zinc-900 dark:text-white">Urutan Aset Terpilih</h2>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Drag atau gunakan tombol ↑↓ untuk mengatur nomor urut di dokumen.
+            Drag atau gunakan tombol naik/turun untuk mengatur nomor urut di dokumen.
           </p>
         </div>
-        <span className="rounded-lg bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 dark:bg-red-500/10 dark:text-red-400">
+        <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
           {orderedIds.length} aset
         </span>
       </div>
@@ -45,7 +45,7 @@ export function ReorderPanel({
             onDragStart={() => onDragStart(index)}
             onDragEnter={() => onDragEnter(index)}
             onDragEnd={onDragEnd}
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(event) => event.preventDefault()}
             className="flex cursor-grab items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 transition active:cursor-grabbing active:opacity-60 dark:border-zinc-800 dark:bg-zinc-800/50"
           >
             <GripVertical className="h-4 w-4 shrink-0 text-zinc-400" />
@@ -54,10 +54,10 @@ export function ReorderPanel({
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-zinc-900 dark:text-zinc-100">{asset.nama_barang}</p>
-              <p className="font-mono text-[10px] text-zinc-400">
-                {asset.kode_barang} · NUP {asset.nup}
-                {asset.merk_tipe ? ` · ${asset.merk_tipe}` : ""}
-                {asset.no_polisi ? ` · ${asset.no_polisi}` : ""}
+              <p className="truncate font-mono text-[10px] text-zinc-400">
+                {asset.kode_barang} - NUP {asset.nup}
+                {asset.merk_tipe ? ` - ${asset.merk_tipe}` : ""}
+                {asset.no_polisi ? ` - ${asset.no_polisi}` : ""}
               </p>
             </div>
             <div className="flex shrink-0 gap-1">
@@ -66,7 +66,7 @@ export function ReorderPanel({
                   type="button"
                   onClick={() => onOpenWorksheet(asset.id)}
                   aria-label={`Buka kertas kerja aset nomor ${index + 1}`}
-                  className="flex h-7 items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 text-[10px] font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-500/30 dark:bg-zinc-900 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+                  className="flex h-8 items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 text-[10px] font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-500/30 dark:bg-zinc-900 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
                 >
                   <FileSpreadsheet className="h-3.5 w-3.5" />
                   Kertas #{index + 1}
@@ -77,7 +77,7 @@ export function ReorderPanel({
                 onClick={() => onMoveUp(index)}
                 disabled={index === 0}
                 aria-label="Pindah ke atas"
-                className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition hover:bg-zinc-100 disabled:opacity-30 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-700"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition hover:bg-zinc-100 disabled:opacity-30 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-700"
               >
                 <ArrowUp className="h-3.5 w-3.5" />
               </button>
@@ -86,7 +86,7 @@ export function ReorderPanel({
                 onClick={() => onMoveDown(index)}
                 disabled={index === orderedIds.length - 1}
                 aria-label="Pindah ke bawah"
-                className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition hover:bg-zinc-100 disabled:opacity-30 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-700"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition hover:bg-zinc-100 disabled:opacity-30 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-700"
               >
                 <ArrowDown className="h-3.5 w-3.5" />
               </button>

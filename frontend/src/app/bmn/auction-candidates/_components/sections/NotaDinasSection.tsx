@@ -2,6 +2,7 @@
 
 import { Printer, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DocumentNumberInlineCard } from "../DocumentNumberInputs";
 import { NotaDinasDocument } from "../NotaDinasDocument";
 import type { AuctionAsset } from "../../_lib/auction-helpers";
 import type { SkBuilderItem, SkKepalaBalai } from "../../_lib/sk-defaults";
@@ -10,7 +11,9 @@ import { newSkBuilderItem } from "../../_lib/sk-defaults";
 interface NotaDinasSectionProps {
   assets: AuctionAsset[];
   number: string;
+  setNumber: (v: string) => void;
   kap: string;
+  setKap: (v: string) => void;
   kepalaBalai: SkKepalaBalai;
   perihal: string;
   setPerihal: (v: string) => void;
@@ -33,7 +36,9 @@ const inputCls =
 export function NotaDinasSection({
   assets,
   number,
+  setNumber,
   kap,
+  setKap,
   kepalaBalai,
   perihal,
   setPerihal,
@@ -63,6 +68,14 @@ export function NotaDinasSection({
       </div>
       <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
         <div className="space-y-4 print:hidden">
+          <DocumentNumberInlineCard
+            label="Nota Dinas KSDAE"
+            prefix="ND."
+            number={number}
+            setNumber={setNumber}
+            kap={kap}
+            setKap={setKap}
+          />
           <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Pengaturan Nota Dinas
