@@ -3149,3 +3149,22 @@ Setelah semua command clean:
   - `npx tsc --noEmit` ✅ (No type errors).
   - `npm run dev` ✅ (Verified manual loading and direct navigation).
 - **Handoff**: The auth synchronization and route protection are now stable. Next step is to proceed with the next feature module or refine existing ones.
+## Current Active Issue - 2026-06-17
+
+- Issue: #404 `feat(bmn): add BA serah terima document generator`
+- Branch: `codex/404-ba-serah-terima`
+- Status: WIP, implementation complete locally and waiting for user review. PR #405 was created then closed after scope revision.
+- Scope:
+  - Backend history API/table/model/resource for BA Serah Terima.
+  - `/bmn/reports` adds BA Serah Terima generator next to BA Pemakaian.
+  - Two variants supported:
+    - `general_goods`: item rows can be selected from BMN assets or added manually.
+    - `vehicle`: vehicle items must be selected from BMN assets.
+  - History tab includes BA Serah Terima search/filter plus view, print, duplicate, delete.
+- Validation clean:
+  - PHP lint for new backend files.
+  - `php artisan route:list --path=bmn/handover-agreements`.
+  - `npm run lint`.
+  - `npx tsc --noEmit`.
+  - `npm run build`.
+- Browser note: local `/bmn/reports` redirected to `/login`, so authenticated visual review is still pending user session/login.
