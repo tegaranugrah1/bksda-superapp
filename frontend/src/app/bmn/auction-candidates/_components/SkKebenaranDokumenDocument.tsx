@@ -17,6 +17,10 @@ function buildNomorText(number: string, kap: string, today: Date) {
   return `KT.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
+function getOwnershipDocumentNumber(asset: AuctionAsset) {
+  return asset.no_bpkp || asset.no_dokumen || asset.no_sertifikat || asset.no_identitas || "";
+}
+
 export function handlePrintSkKebenaran() {
   const printContent = document.getElementById("sk-kebenaran-print-root");
   if (!printContent) {
@@ -164,7 +168,7 @@ export function SkKebenaranDokumenDocument({ number, kap, assets, kepalaBalai }:
                 assets.map((asset, index) => (
                   <tr key={asset.id}>
                     <td>{index + 1}.</td>
-                    <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.no_identitas || ""}</td>
+                    <td contentEditable suppressContentEditableWarning className="doc-editable">{getOwnershipDocumentNumber(asset)}</td>
                     <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.merk_tipe || ""}</td>
                     <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.no_mesin || ""}</td>
                     <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.no_rangka || ""}</td>
