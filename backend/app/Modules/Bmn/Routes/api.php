@@ -4,6 +4,7 @@ use App\Modules\Bmn\Controllers\AssetController;
 use App\Modules\Bmn\Controllers\AssetPhotoController;
 use App\Modules\Bmn\Controllers\DashboardController;
 use App\Modules\Bmn\Controllers\ExportController;
+use App\Modules\Bmn\Controllers\HandoverAgreementController;
 use App\Modules\Bmn\Controllers\ImportReviewController;
 use App\Modules\Bmn\Controllers\LoanController;
 use App\Modules\Bmn\Controllers\MaintenanceController;
@@ -39,6 +40,12 @@ Route::get('usage-agreements', [UsageAgreementController::class, 'index']);
 Route::post('usage-agreements', [UsageAgreementController::class, 'store']);
 Route::get('usage-agreements/{agreement}', [UsageAgreementController::class, 'show']);
 Route::delete('usage-agreements/{agreement}', [UsageAgreementController::class, 'destroy']);
+
+// 4c. BERITA ACARA SERAH TERIMA BMN
+Route::get('handover-agreements', [HandoverAgreementController::class, 'index']);
+Route::post('handover-agreements', [HandoverAgreementController::class, 'store']);
+Route::get('handover-agreements/{agreement}', [HandoverAgreementController::class, 'show']);
+Route::delete('handover-agreements/{agreement}', [HandoverAgreementController::class, 'destroy']);
 
 // 1. JALUR MASTER ASET
 Route::apiResource('assets', AssetController::class)->except(['destroy']);

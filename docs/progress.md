@@ -1,3 +1,57 @@
+# Progress - Phase 76: BA Serah Terima BMN
+
+> Document updated: 2026-06-17
+> Status: Issue #404 **WIP - PR siap direview** (`codex/404-ba-serah-terima`). Belum deploy production.
+
+---
+
+## Issue #404: Generate BA Serah Terima BMN
+
+### Status: WIP - siap PR
+- GitHub Issue: #404 `feat(bmn): add BA serah terima document generator`
+- Branch: `codex/404-ba-serah-terima`
+- Scope: halaman `/bmn/reports`, backend history/snapshot BA Serah Terima BMN.
+
+### Implementasi
+- Backend menambah tabel `bmn_handover_agreements` untuk histori BA Serah Terima.
+- Setiap BA menyimpan snapshot:
+  - varian dokumen (`general_goods` atau `vehicle`),
+  - pihak kesatu,
+  - pihak kedua,
+  - pejabat mengetahui,
+  - daftar barang/kendaraan,
+  - nomor, KAP, tanggal dokumen, metadata keterangan, pembuat.
+- API baru:
+  - `GET /api/bmn/handover-agreements`
+  - `POST /api/bmn/handover-agreements`
+  - `GET /api/bmn/handover-agreements/{agreement}`
+  - `DELETE /api/bmn/handover-agreements/{agreement}`
+- Untuk varian `vehicle`, item wajib berasal dari `bmn_assets` melalui `asset_ids`; tidak ada input kendaraan manual.
+- Untuk varian `general_goods`, item bisa ditambah manual dengan nama barang, jumlah, dan NUP.
+- Frontend `/bmn/reports` menambah dokumen `BA Serah Terima` di tab `Generate Dokumen`.
+- Builder BA Serah Terima mendukung:
+  - pilihan varian barang umum atau kendaraan,
+  - detail judul/nomor/KAP/tanggal/keterangan,
+  - Pihak Kesatu dan Pihak Kedua dari data pegawai lalu bisa diedit,
+  - blok `Mengetahui`,
+  - preview A4 memakai kop `/header-terbaru.png`,
+  - tombol cetak,
+  - tombol simpan riwayat.
+- Tab `Riwayat Dokumen` menampilkan daftar BA Serah Terima dengan pencarian/filter pegawai dan aksi lihat, cetak, duplikasi, hapus.
+
+### Validasi
+- `php -l backend/app/Modules/Bmn/Controllers/HandoverAgreementController.php` clean.
+- `php -l backend/app/Modules/Bmn/Models/HandoverAgreement.php` clean.
+- `php -l backend/app/Modules/Bmn/Resources/HandoverAgreementResource.php` clean.
+- `php -l backend/app/Modules/Bmn/Migrations/2026_06_17_090000_create_bmn_handover_agreements_table.php` clean.
+- `cd backend; php artisan route:list --path=bmn/handover-agreements` clean.
+- `cd frontend; npm run lint` clean.
+- `cd frontend; npx tsc --noEmit` clean.
+- `cd frontend; npm run build` clean (59/59 routes).
+- Browser lokal redirect ke `/login`, sehingga visual authenticated page belum diverifikasi dari sesi Codex.
+
+---
+
 # Progress - Phase 75: BA Pemakaian BMN Per Pegawai
 
 > Document updated: 2026-06-12

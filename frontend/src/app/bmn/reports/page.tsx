@@ -13,6 +13,14 @@ import {
   type UsageAgreementAsset,
   type UsageAgreementParty,
 } from "./_components/UsageAgreementDocument";
+import {
+  handlePrintHandoverAgreement,
+  HandoverAgreementDocument,
+  type HandoverItem,
+  type HandoverParty,
+  type HandoverVariant,
+  type HandoverWitness,
+} from "./_components/HandoverAgreementDocument";
 
 interface EmployeeOption {
   id: number;
@@ -35,6 +43,22 @@ interface UsageAgreementHistory {
   employee?: Pick<EmployeeOption, "id" | "nama_lengkap" | "nip" | "jabatan" | "pangkat_golongan">;
   generator?: { name: string };
   created_at?: string;
+}
+
+interface HandoverAgreementHistory {
+  id: string;
+  document_type: "handover_agreement";
+  variant: HandoverVariant;
+  title: string;
+  number: string;
+  document_date: string;
+  first_party_snapshot: HandoverParty;
+  second_party_snapshot: HandoverParty;
+  witness_snapshot?: HandoverWitness | null;
+  items_snapshot: HandoverItem[];
+  asset_ids?: string[] | null;
+  metadata?: { description?: string };
+  generator?: { name: string };
 }
 
 const DEFAULT_FIRST_PARTY: UsageAgreementParty = {
@@ -97,6 +121,20 @@ function makeDummyUsageAssets(seedAssets: UsageAgreementAsset[]): UsageAgreement
   });
 }
 
+function employeeToHandoverParty(employee?: EmployeeOption | null): HandoverParty {
+  return {
+    name: employee?.nama_lengkap || "",
+    nip: employee?.nip || "",
+    rank: employee?.pangkat_golongan || "",
+    position: employee?.jabatan || "",
+    address: "Jl. Teuku Umar Samarinda.",
+  };
+}
+
+function emptyGeneralItem(): HandoverItem {
+  return { name: "", quantity: 1, nup: "" };
+}
+
 export default function BmnReportsPage() {
   const confirm = useConfirm();
   const [loadingAsset, setLoadingAsset] = useState(false);
@@ -113,12 +151,28 @@ export default function BmnReportsPage() {
   const [useDummyUsageAssets, setUseDummyUsageAssets] = useState(false);
   const [loadingUsageData, setLoadingUsageData] = useState(false);
   const [savingUsageAgreement, setSavingUsageAgreement] = useState(false);
+  const [activeDocumentType, setActiveDocumentType] = useState<"usage" | "handover">("usage");
   const [baSequence, setBaSequence] = useState("");
   const [kap, setKap] = useState("KAP.03.02");
   const [documentDate, setDocumentDate] = useState(todayInputValue());
   const [firstPartyEmployeeId, setFirstPartyEmployeeId] = useState("");
   const [firstParty, setFirstParty] = useState<UsageAgreementParty>(DEFAULT_FIRST_PARTY);
   const [notes, setNotes] = useState("Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA.");
+  const [handoverVariant, setHandoverVariant] = useState<HandoverVariant>("general_goods");
+  const [handoverTitle, setHandoverTitle] = useState("Berita Acara Serah Terima Barang");
+  const [handoverSequence, setHandoverSequence] = useState("");
+  const [handoverKap, setHandoverKap] = useState("KAP.03.02");
+  const [handoverDate, setHandoverDate] = useState(todayInputValue());
+  const [handoverFirstEmployeeId, setHandoverFirstEmployeeId] = useState("");
+  const [handoverSecondEmployeeId, setHandoverSecondEmployeeId] = useState("");
+  const [handoverFirstParty, setHandoverFirstParty] = useState<HandoverParty>({ name: "", nip: "", rank: "", position: "", address: "Jl. Teuku Umar Samarinda." });
+  const [handoverSecondParty, setHandoverSecondParty] = useState<HandoverParty>({ name: "", nip: "", rank: "", position: "", address: "Jl. Teuku Umar Samarinda." });
+  const [handoverWitness, setHandoverWitness] = useState<HandoverWitness>({ label: "Mengetahui,", position: "Kepala Sub Bagian Tata Usaha,", name: "Dheny Mardiono, S.Hut., M.Sc.", nip: "19750314 199903 1 004" });
+  const [handoverItems, setHandoverItems] = useState<HandoverItem[]>([emptyGeneralItem()]);
+  const [selectedVehicleAssetIds, setSelectedVehicleAssetIds] = useState<string[]>([]);
+  const [handoverDescription, setHandoverDescription] = useState("");
+  const [savingHandoverAgreement, setSavingHandoverAgreement] = useState(false);
+  const [selectedHandoverAgreement, setSelectedHandoverAgreement] = useState<HandoverAgreementHistory | null>(null);
 
   const { data: employees = [], isLoading: loadingEmployees } = useQuery<EmployeeOption[]>({
     queryKey: ["bmn-usage-employees"],
@@ -141,6 +195,31 @@ export default function BmnReportsPage() {
           per_page: 100,
         },
       });
+      return response.data.data || [];
+    },
+  });
+
+  const {
+    data: handoverHistory = [],
+    isLoading: loadingHandoverHistory,
+    refetch: refetchHandoverHistory,
+  } = useQuery<HandoverAgreementHistory[]>({
+    queryKey: ["bmn-handover-agreements", historyEmployeeFilter],
+    queryFn: async () => {
+      const response = await api.get("/bmn/handover-agreements", {
+        params: {
+          ...(historyEmployeeFilter ? { employee_id: historyEmployeeFilter } : {}),
+          per_page: 100,
+        },
+      });
+      return response.data.data || [];
+    },
+  });
+
+  const { data: allBmnAssets = [], isLoading: loadingBmnAssets } = useQuery<UsageAgreementAsset[]>({
+    queryKey: ["bmn-report-assets"],
+    queryFn: async () => {
+      const response = await api.get("/bmn/assets", { params: { per_page: 500 } });
       return response.data.data || [];
     },
   });
@@ -207,6 +286,68 @@ export default function BmnReportsPage() {
     });
   }, [allHistory, historySearch]);
 
+  const filteredHandoverHistory = useMemo(() => {
+    const needle = historySearch.trim().toLocaleLowerCase("id-ID");
+    if (!needle) return handoverHistory;
+
+    return handoverHistory.filter((item) => {
+      const searchable = [
+        item.number,
+        item.title,
+        item.first_party_snapshot?.name,
+        item.first_party_snapshot?.nip,
+        item.second_party_snapshot?.name,
+        item.second_party_snapshot?.nip,
+        item.generator?.name,
+        item.document_date,
+      ].filter(Boolean).join(" ").toLocaleLowerCase("id-ID");
+
+      return searchable.includes(needle);
+    });
+  }, [handoverHistory, historySearch]);
+
+  const vehicleAssets = useMemo(() => (
+    allBmnAssets.filter((asset) => {
+      const text = [
+        asset.nama_barang,
+        asset.merk_tipe,
+        asset.no_polisi,
+        asset.no_mesin,
+        asset.no_rangka,
+      ].filter(Boolean).join(" ").toLocaleLowerCase("id-ID");
+
+      return Boolean(asset.no_polisi || asset.no_mesin || asset.no_rangka)
+        || text.includes("kendaraan")
+        || text.includes("motor")
+        || text.includes("mobil")
+        || text.includes("sepeda");
+    })
+  ), [allBmnAssets]);
+
+  const selectedVehicleAssets = useMemo(
+    () => vehicleAssets.filter((asset) => selectedVehicleAssetIds.includes(asset.id)),
+    [selectedVehicleAssetIds, vehicleAssets],
+  );
+
+  const handoverVehicleItems = useMemo<HandoverItem[]>(() => selectedVehicleAssets.map((asset) => ({
+    name: asset.nama_barang,
+    vehicle_type: asset.nama_barang,
+    no_polisi: asset.no_polisi || "-",
+    no_mesin: asset.no_mesin || "-",
+    no_rangka: asset.no_rangka || "-",
+    nup: asset.nup || "",
+  })), [selectedVehicleAssets]);
+
+  const handoverDocumentItems = useMemo(
+    () => handoverVariant === "vehicle" ? handoverVehicleItems : handoverItems,
+    [handoverItems, handoverVariant, handoverVehicleItems],
+  );
+
+  const fullHandoverNumber = useMemo(
+    () => buildBaNumber(handoverSequence, handoverKap, handoverDate),
+    [handoverDate, handoverKap, handoverSequence],
+  );
+
   const recentEmployeeHistory = useMemo(
     () => history.slice(0, 5),
     [history],
@@ -269,6 +410,40 @@ export default function BmnReportsPage() {
     });
   };
 
+  const handleHandoverPartyEmployeeChange = (role: "first" | "second", employeeId: string) => {
+    const employee = employees.find((item) => String(item.id) === employeeId);
+    if (role === "first") {
+      setHandoverFirstEmployeeId(employeeId);
+      setHandoverFirstParty(employeeToHandoverParty(employee));
+      return;
+    }
+
+    setHandoverSecondEmployeeId(employeeId);
+    setHandoverSecondParty(employeeToHandoverParty(employee));
+  };
+
+  const updateHandoverItem = (index: number, key: keyof HandoverItem, value: string | number) => {
+    setHandoverItems((current) => current.map((item, itemIndex) => (
+      itemIndex === index ? { ...item, [key]: value } : item
+    )));
+  };
+
+  const addHandoverItem = () => {
+    setHandoverItems((current) => [...current, emptyGeneralItem()]);
+  };
+
+  const removeHandoverItem = (index: number) => {
+    setHandoverItems((current) => current.length === 1 ? current : current.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  const toggleVehicleAsset = (assetId: string) => {
+    setSelectedVehicleAssetIds((current) =>
+      current.includes(assetId)
+        ? current.filter((id) => id !== assetId)
+        : [...current, assetId],
+    );
+  };
+
   const viewHistoryAgreement = (agreement: UsageAgreementHistory) => {
     setSelectedHistoryAgreement(agreement);
   };
@@ -277,6 +452,12 @@ export default function BmnReportsPage() {
     setSelectedHistoryAgreement(agreement);
     setActiveTab("history");
     window.setTimeout(() => handlePrintUsageAgreement("ba-pemakaian-history-print-root"), 100);
+  };
+
+  const printHandoverHistoryAgreement = (agreement: HandoverAgreementHistory) => {
+    setSelectedHandoverAgreement(agreement);
+    setActiveTab("history");
+    window.setTimeout(() => handlePrintHandoverAgreement("ba-serah-terima-history-print-root"), 100);
   };
 
   const deleteHistoryAgreement = async (agreement: UsageAgreementHistory) => {
@@ -298,6 +479,25 @@ export default function BmnReportsPage() {
       await refetchAllHistory();
     } catch {
       toast.error("Gagal menghapus riwayat BA.");
+    }
+  };
+
+  const deleteHandoverHistoryAgreement = async (agreement: HandoverAgreementHistory) => {
+    const ok = await confirm({
+      title: "Hapus Riwayat BA Serah Terima?",
+      description: `Riwayat ${agreement.number} akan dihapus permanen.`,
+      confirmText: "Ya, Hapus",
+      variant: "danger",
+    });
+    if (!ok) return;
+
+    try {
+      await api.delete(`/bmn/handover-agreements/${agreement.id}`);
+      toast.success("Riwayat BA Serah Terima dihapus.");
+      setSelectedHandoverAgreement((current) => current?.id === agreement.id ? null : current);
+      await refetchHandoverHistory();
+    } catch {
+      toast.error("Gagal menghapus riwayat BA Serah Terima.");
     }
   };
 
@@ -338,6 +538,68 @@ export default function BmnReportsPage() {
     } finally {
       setSavingUsageAgreement(false);
     }
+  };
+
+  const saveHandoverAgreement = async () => {
+    const validGeneralItems = handoverItems.filter((item) => String(item.name || "").trim() !== "");
+    if (!handoverTitle.trim()) {
+      toast.error("Judul BA Serah Terima wajib diisi.");
+      return;
+    }
+    if (!handoverFirstParty.name.trim() || !handoverSecondParty.name.trim()) {
+      toast.error("Pihak Kesatu dan Pihak Kedua wajib diisi.");
+      return;
+    }
+    if (handoverVariant === "general_goods" && validGeneralItems.length === 0) {
+      toast.error("Tambahkan minimal satu barang umum.");
+      return;
+    }
+    if (handoverVariant === "vehicle" && selectedVehicleAssetIds.length === 0) {
+      toast.error("Pilih minimal satu kendaraan dari data BMN.");
+      return;
+    }
+
+    setSavingHandoverAgreement(true);
+    try {
+      await api.post("/bmn/handover-agreements", {
+        variant: handoverVariant,
+        title: handoverTitle,
+        number: fullHandoverNumber,
+        kap: handoverKap,
+        document_date: handoverDate,
+        first_party_employee_id: handoverFirstEmployeeId || null,
+        second_party_employee_id: handoverSecondEmployeeId || null,
+        first_party: handoverFirstParty,
+        second_party: handoverSecondParty,
+        witness: handoverWitness.name ? handoverWitness : null,
+        items: handoverVariant === "general_goods" ? validGeneralItems : [],
+        asset_ids: handoverVariant === "vehicle" ? selectedVehicleAssetIds : [],
+        metadata: { description: handoverDescription },
+      });
+      toast.success("Riwayat BA Serah Terima berhasil disimpan.");
+      await refetchHandoverHistory();
+    } catch {
+      toast.error("Gagal menyimpan riwayat BA Serah Terima.");
+    } finally {
+      setSavingHandoverAgreement(false);
+    }
+  };
+
+  const duplicateHandoverAgreement = (agreement: HandoverAgreementHistory) => {
+    setActiveTab("documents");
+    setActiveDocumentType("handover");
+    setHandoverVariant(agreement.variant);
+    setHandoverTitle(agreement.title);
+    setHandoverSequence("");
+    setHandoverKap("KAP.03.02");
+    setHandoverDate(todayInputValue());
+    setHandoverFirstParty(agreement.first_party_snapshot);
+    setHandoverSecondParty(agreement.second_party_snapshot);
+    setHandoverWitness(agreement.witness_snapshot || { label: "Mengetahui,", position: "", name: "", nip: "" });
+    setHandoverItems(agreement.variant === "general_goods" ? agreement.items_snapshot : [emptyGeneralItem()]);
+    setSelectedVehicleAssetIds(agreement.variant === "vehicle" ? agreement.asset_ids || [] : []);
+    setHandoverDescription(agreement.metadata?.description || "");
+    toast.info("Arsip BA Serah Terima disalin sebagai dokumen baru. Nomor dan tanggal silakan disesuaikan.");
   };
 
   const duplicateHistoryAgreement = async (agreement: UsageAgreementHistory) => {
@@ -443,7 +705,12 @@ export default function BmnReportsPage() {
             </div>
             <button
               type="button"
-              className="flex w-full items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-left dark:border-emerald-500/20 dark:bg-emerald-500/10"
+              onClick={() => setActiveDocumentType("usage")}
+              className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${
+                activeDocumentType === "usage"
+                  ? "border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10"
+                  : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              }`}
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-zinc-950">
                 <Archive className="w-5 h-5" />
@@ -453,9 +720,28 @@ export default function BmnReportsPage() {
                 <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">Generate berita acara pemakaian per pegawai.</span>
               </span>
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveDocumentType("handover")}
+              className={`mt-2 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${
+                activeDocumentType === "handover"
+                  ? "border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10"
+                  : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-zinc-950">
+                <Handshake className="w-5 h-5" />
+              </span>
+              <span>
+                <span className="block text-sm font-bold text-zinc-900 dark:text-white">BA Serah Terima</span>
+                <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">Dua versi: barang umum manual atau kendaraan BMN.</span>
+              </span>
+            </button>
           </aside>
 
           <div className="space-y-5">
+            {activeDocumentType === "usage" && (
+              <>
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
               <div>
                 <h2 className="text-base font-bold text-zinc-900 dark:text-white">Generate BA Pemakaian BMN</h2>
@@ -734,6 +1020,261 @@ export default function BmnReportsPage() {
                 </div>
               </>
             )}
+              </>
+            )}
+
+            {activeDocumentType === "handover" && (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div>
+                    <h2 className="text-base font-bold text-zinc-900 dark:text-white">Generate BA Serah Terima</h2>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullHandoverNumber}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button variant="outline" className="rounded-xl gap-2" onClick={saveHandoverAgreement} disabled={savingHandoverAgreement}>
+                      {savingHandoverAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Simpan Riwayat
+                    </Button>
+                    <Button className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500" onClick={() => handlePrintHandoverAgreement()}>
+                      <Printer className="w-4 h-4" />
+                      Cetak
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white">1. Tipe Serah Terima</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Barang umum bisa ditambah manual. Kendaraan wajib dipilih dari data BMN.</p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {([
+                      ["general_goods", "Barang Umum", "Input nama barang, jumlah, dan NUP secara manual."],
+                      ["vehicle", "Kendaraan", "Pilih kendaraan dari katalog BMN, tanpa input manual."],
+                    ] as const).map(([variant, label, description]) => (
+                      <button
+                        key={variant}
+                        type="button"
+                        onClick={() => setHandoverVariant(variant)}
+                        className={`rounded-xl border p-4 text-left transition ${
+                          handoverVariant === variant
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100"
+                            : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+                        }`}
+                      >
+                        <span className="block text-sm font-bold">{label}</span>
+                        <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">{description}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 2xl:grid-cols-[430px_minmax(0,1fr)] gap-5">
+                  <div className="space-y-5">
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                      <h3 className="mb-4 text-sm font-bold text-zinc-900 dark:text-white">2. Detail Dokumen</h3>
+                      <div className="space-y-3">
+                        <label className="block">
+                          <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Judul BA</span>
+                          <input
+                            value={handoverTitle}
+                            onChange={(event) => setHandoverTitle(event.target.value)}
+                            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <label className="block">
+                            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Nomor BA</span>
+                            <input
+                              value={handoverSequence}
+                              onChange={(event) => setHandoverSequence(event.target.value)}
+                              placeholder="contoh: 129"
+                              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                            />
+                          </label>
+                          <label className="block">
+                            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">KAP</span>
+                            <input
+                              value={handoverKap}
+                              onChange={(event) => setHandoverKap(event.target.value)}
+                              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                            />
+                          </label>
+                        </div>
+                        <label className="block">
+                          <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Tanggal Dokumen</span>
+                          <input
+                            type="date"
+                            value={handoverDate}
+                            onChange={(event) => setHandoverDate(event.target.value)}
+                            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Keterangan Barang</span>
+                          <textarea
+                            value={handoverDescription}
+                            onChange={(event) => setHandoverDescription(event.target.value)}
+                            rows={3}
+                            placeholder={handoverVariant === "vehicle" ? "contoh: 1 (satu) unit Kendaraan Roda Dua" : "contoh: 34 (tiga puluh empat) unit Perlengkapan Kebakaran"}
+                            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                      <h3 className="mb-4 text-sm font-bold text-zinc-900 dark:text-white">3. Para Pihak</h3>
+                      <div className="space-y-4">
+                        {([
+                          ["first", "Pihak Kesatu", handoverFirstEmployeeId, handoverFirstParty, setHandoverFirstParty],
+                          ["second", "Pihak Kedua", handoverSecondEmployeeId, handoverSecondParty, setHandoverSecondParty],
+                        ] as const).map(([role, label, employeeId, party, setParty]) => (
+                          <div key={role} className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                            <div className="mb-2 flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-200">
+                              <UserRound className="w-3.5 h-3.5" /> {label}
+                            </div>
+                            <select
+                              value={employeeId}
+                              onChange={(event) => handleHandoverPartyEmployeeChange(role, event.target.value)}
+                              disabled={loadingEmployees}
+                              className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                            >
+                              <option value="">Pilih pegawai</option>
+                              {employees.map((employee) => (
+                                <option key={employee.id} value={employee.id}>
+                                  {employee.nama_lengkap} - {employee.nip}
+                                </option>
+                              ))}
+                            </select>
+                            <input value={party.name} onChange={(event) => setParty({ ...party, name: event.target.value })} placeholder="Nama" className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            <input value={party.nip || ""} onChange={(event) => setParty({ ...party, nip: event.target.value })} placeholder="NIP" className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            <input value={party.position || ""} onChange={(event) => setParty({ ...party, position: event.target.value })} placeholder="Jabatan" className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            <input value={party.address || ""} onChange={(event) => setParty({ ...party, address: event.target.value })} placeholder="Alamat" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                      <h3 className="mb-4 text-sm font-bold text-zinc-900 dark:text-white">4. Mengetahui</h3>
+                      <div className="space-y-2">
+                        <input value={handoverWitness.label || ""} onChange={(event) => setHandoverWitness({ ...handoverWitness, label: event.target.value })} placeholder="Label" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                        <input value={handoverWitness.position || ""} onChange={(event) => setHandoverWitness({ ...handoverWitness, position: event.target.value })} placeholder="Jabatan" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                        <input value={handoverWitness.name || ""} onChange={(event) => setHandoverWitness({ ...handoverWitness, name: event.target.value })} placeholder="Nama" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                        <input value={handoverWitness.nip || ""} onChange={(event) => setHandoverWitness({ ...handoverWitness, nip: event.target.value })} placeholder="NIP" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-5 min-w-0">
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">5. Barang Diserahterimakan</h3>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {handoverVariant === "vehicle"
+                              ? `${selectedVehicleAssetIds.length} dari ${vehicleAssets.length} kendaraan dipilih`
+                              : `${handoverItems.filter((item) => String(item.name || "").trim()).length} barang terisi`}
+                          </p>
+                        </div>
+                        {handoverVariant === "general_goods" && (
+                          <Button type="button" variant="outline" size="sm" className="rounded-lg" onClick={addHandoverItem}>
+                            Tambah Barang
+                          </Button>
+                        )}
+                      </div>
+
+                      {handoverVariant === "vehicle" ? (
+                        <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                          <table className="w-full min-w-[820px] text-left text-xs">
+                            <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                              <tr>
+                                <th className="w-10 px-3 py-2"></th>
+                                <th className="px-3 py-2">Kendaraan</th>
+                                <th className="px-3 py-2">NUP</th>
+                                <th className="px-3 py-2">No. Polisi</th>
+                                <th className="px-3 py-2">No. Mesin</th>
+                                <th className="px-3 py-2">No. Rangka</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                              {vehicleAssets.length === 0 ? (
+                                <tr><td colSpan={6} className="px-3 py-8 text-center text-zinc-500">{loadingBmnAssets ? "Memuat kendaraan..." : "Belum ada kendaraan terdeteksi dari data BMN."}</td></tr>
+                              ) : vehicleAssets.map((asset) => (
+                                <tr key={asset.id} className="text-zinc-700 dark:text-zinc-200">
+                                  <td className="px-3 py-2">
+                                    <input type="checkbox" checked={selectedVehicleAssetIds.includes(asset.id)} onChange={() => toggleVehicleAsset(asset.id)} />
+                                  </td>
+                                  <td className="px-3 py-2 font-semibold">{asset.nama_barang}</td>
+                                  <td className="px-3 py-2 text-zinc-500">{asset.nup || "-"}</td>
+                                  <td className="px-3 py-2 text-zinc-500">{asset.no_polisi || "-"}</td>
+                                  <td className="px-3 py-2 text-zinc-500">{asset.no_mesin || "-"}</td>
+                                  <td className="px-3 py-2 text-zinc-500">{asset.no_rangka || "-"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                          <table className="w-full min-w-[760px] text-left text-xs">
+                            <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                              <tr>
+                                <th className="px-3 py-2">Nama Barang</th>
+                                <th className="w-28 px-3 py-2">Jumlah</th>
+                                <th className="w-32 px-3 py-2">NUP</th>
+                                <th className="w-20 px-3 py-2 text-right">Aksi</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                              {handoverItems.map((item, index) => (
+                                <tr key={index}>
+                                  <td className="px-3 py-2">
+                                    <input value={item.name || ""} onChange={(event) => updateHandoverItem(index, "name", event.target.value)} placeholder="Nama barang" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <input type="number" min={1} value={item.quantity || 1} onChange={(event) => updateHandoverItem(index, "quantity", Number(event.target.value) || 1)} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <input value={item.nup || ""} onChange={(event) => updateHandoverItem(index, "nup", event.target.value)} placeholder="-" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                  </td>
+                                  <td className="px-3 py-2 text-right">
+                                    <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50" onClick={() => removeHandoverItem(index)} disabled={handoverItems.length === 1}>
+                                      Hapus
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                      <div className="mb-4">
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">6. Preview Dokumen</h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullHandoverNumber}</p>
+                      </div>
+                      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <HandoverAgreementDocument
+                          number={fullHandoverNumber}
+                          title={handoverTitle}
+                          variant={handoverVariant}
+                          documentDate={handoverDate}
+                          firstParty={handoverFirstParty}
+                          secondParty={handoverSecondParty}
+                          witness={handoverWitness}
+                          items={handoverDocumentItems}
+                          description={handoverDescription}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </section>
       )}
@@ -747,7 +1288,7 @@ export default function BmnReportsPage() {
               </div>
               <div>
                 <h2 className="text-base font-bold text-zinc-900 dark:text-white">Riwayat Dokumen</h2>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">Semua BA Pemakaian yang pernah digenerate, dengan filter pegawai dan pencarian.</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Semua BA Pemakaian dan BA Serah Terima yang pernah digenerate, dengan filter pegawai dan pencarian.</p>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
@@ -846,6 +1387,91 @@ export default function BmnReportsPage() {
             </div>
           </div>
 
+          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Daftar BA Serah Terima</h3>
+                <p className="text-xs text-zinc-500">{filteredHandoverHistory.length} dari {handoverHistory.length} dokumen</p>
+              </div>
+              {loadingHandoverHistory && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
+            </div>
+            <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+              <table className="w-full min-w-[900px] text-left text-xs">
+                <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                  <tr>
+                    <th className="px-3 py-2">Nomor</th>
+                    <th className="px-3 py-2">Tanggal</th>
+                    <th className="px-3 py-2">Jenis</th>
+                    <th className="px-3 py-2">Pihak Kesatu</th>
+                    <th className="px-3 py-2">Pihak Kedua</th>
+                    <th className="px-3 py-2">Barang</th>
+                    <th className="px-3 py-2 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {filteredHandoverHistory.length === 0 ? (
+                    <tr><td colSpan={7} className="px-3 py-8 text-center text-zinc-500">Belum ada riwayat BA Serah Terima yang sesuai filter.</td></tr>
+                  ) : filteredHandoverHistory.map((item) => (
+                    <tr
+                      key={item.id}
+                      className={`text-zinc-700 dark:text-zinc-200 ${selectedHandoverAgreement?.id === item.id ? "bg-emerald-50/70 dark:bg-emerald-500/10" : ""}`}
+                    >
+                      <td className="px-3 py-2 font-semibold">{item.number}</td>
+                      <td className="px-3 py-2 text-zinc-500">{formatDate(item.document_date)}</td>
+                      <td className="px-3 py-2 text-zinc-500">{item.variant === "vehicle" ? "Kendaraan" : "Barang umum"}</td>
+                      <td className="px-3 py-2 text-zinc-500">{item.first_party_snapshot?.name || "-"}</td>
+                      <td className="px-3 py-2 text-zinc-500">{item.second_party_snapshot?.name || "-"}</td>
+                      <td className="px-3 py-2 text-zinc-500">{item.items_snapshot?.length || 0} item</td>
+                      <td className="px-3 py-2">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-lg px-2 text-xs"
+                            onClick={() => setSelectedHandoverAgreement(item)}
+                          >
+                            <Eye className="mr-1 h-3.5 w-3.5" />
+                            Lihat
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-8 rounded-lg bg-emerald-600 px-2 text-xs hover:bg-emerald-500"
+                            onClick={() => printHandoverHistoryAgreement(item)}
+                          >
+                            <Printer className="mr-1 h-3.5 w-3.5" />
+                            Cetak
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-lg px-2 text-xs"
+                            onClick={() => duplicateHandoverAgreement(item)}
+                          >
+                            <FileText className="mr-1 h-3.5 w-3.5" />
+                            Duplikasi
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
+                            onClick={() => deleteHandoverHistoryAgreement(item)}
+                          >
+                            <Trash2 className="mr-1 h-3.5 w-3.5" />
+                            Hapus
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {selectedHistoryAgreement && (
             <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -872,6 +1498,40 @@ export default function BmnReportsPage() {
                   secondParty={selectedHistoryAgreement.second_party_snapshot || { name: "", nip: "", rank: "", position: "" }}
                   assets={selectedHistoryAgreement.assets_snapshot || []}
                   notes={selectedHistoryAgreement.notes || ""}
+                />
+              </div>
+            </div>
+          )}
+
+          {selectedHandoverAgreement && (
+            <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Preview Arsip BA Serah Terima</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {selectedHandoverAgreement.number} - {formatDate(selectedHandoverAgreement.document_date)}
+                  </p>
+                </div>
+                <Button
+                  className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+                  onClick={() => handlePrintHandoverAgreement("ba-serah-terima-history-print-root")}
+                >
+                  <Printer className="w-4 h-4" />
+                  Cetak Arsip
+                </Button>
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <HandoverAgreementDocument
+                  documentId="ba-serah-terima-history-print-root"
+                  number={selectedHandoverAgreement.number}
+                  title={selectedHandoverAgreement.title}
+                  variant={selectedHandoverAgreement.variant}
+                  documentDate={selectedHandoverAgreement.document_date}
+                  firstParty={selectedHandoverAgreement.first_party_snapshot}
+                  secondParty={selectedHandoverAgreement.second_party_snapshot}
+                  witness={selectedHandoverAgreement.witness_snapshot}
+                  items={selectedHandoverAgreement.items_snapshot || []}
+                  description={selectedHandoverAgreement.metadata?.description || ""}
                 />
               </div>
             </div>
