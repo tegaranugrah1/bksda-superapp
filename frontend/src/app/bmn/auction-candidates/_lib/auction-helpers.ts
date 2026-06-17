@@ -14,6 +14,9 @@ export interface AuctionAsset {
   lokasi_spesifik?: string | null;
   tahun_perolehan?: number | null;
   no_polisi?: string | null;
+  no_dokumen?: string | null;
+  no_bpkp?: string | null;
+  no_sertifikat?: string | null;
   no_identitas?: string | null;
   no_mesin?: string | null;
   no_rangka?: string | null;
