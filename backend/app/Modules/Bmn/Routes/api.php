@@ -3,6 +3,7 @@
 use App\Modules\Bmn\Controllers\AssetController;
 use App\Modules\Bmn\Controllers\AssetPhotoController;
 use App\Modules\Bmn\Controllers\DashboardController;
+use App\Modules\Bmn\Controllers\DocumentHistoryController;
 use App\Modules\Bmn\Controllers\ExportController;
 use App\Modules\Bmn\Controllers\HandoverAgreementController;
 use App\Modules\Bmn\Controllers\ImportReviewController;
@@ -34,6 +35,7 @@ Route::get('/ping', function () {
 Route::get('assets/export', [ExportController::class, 'assets']);
 Route::get('loans/export', [ExportController::class, 'loans']);
 Route::get('maintenances/export', [ExportController::class, 'maintenances']);
+Route::get('document-histories', [DocumentHistoryController::class, 'index']);
 
 // 4b. BERITA ACARA PEMAKAIAN BMN
 Route::get('usage-agreements', [UsageAgreementController::class, 'index']);

@@ -36,6 +36,7 @@ interface EmployeeOption {
 
 interface UsageAgreementHistory {
   id: string;
+  document_type?: "usage_agreement";
   number: string;
   document_date: string;
   first_party_snapshot?: UsageAgreementParty;
@@ -66,6 +67,23 @@ interface HandoverAgreementHistory {
   asset_ids?: string[] | null;
   metadata?: { description?: string };
   generator?: { name: string };
+}
+
+type DocumentHistoryType = "all" | "usage_agreement" | "handover_agreement";
+type DocumentHistoryItem =
+  | (UsageAgreementHistory & { document_type: "usage_agreement" })
+  | HandoverAgreementHistory;
+
+interface PaginatedDocumentHistory {
+  data: DocumentHistoryItem[];
+  meta: {
+    current_page: number;
+    from: number | null;
+    last_page: number;
+    per_page: number;
+    to: number | null;
+    total: number;
+  };
 }
 
 const DEFAULT_FIRST_PARTY: UsageAgreementParty = {
@@ -132,6 +150,10 @@ export default function BmnReportsPage() {
   const [selectedHistoryAgreement, setSelectedHistoryAgreement] = useState<UsageAgreementHistory | null>(null);
   const [historyEmployeeFilter, setHistoryEmployeeFilter] = useState("");
   const [historySearch, setHistorySearch] = useState("");
+  const [debouncedHistorySearch] = useDebounce(historySearch, 300);
+  const [historyDocumentType, setHistoryDocumentType] = useState<DocumentHistoryType>("all");
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPerPage, setHistoryPerPage] = useState(10);
   const [loadingUsageData, setLoadingUsageData] = useState(false);
   const [savingUsageAgreement, setSavingUsageAgreement] = useState(false);
   const [activeDocumentType, setActiveDocumentType] = useState<"usage" | "handover">("usage");
@@ -170,36 +192,25 @@ export default function BmnReportsPage() {
   });
 
   const {
-    data: allHistory = [],
-    isLoading: loadingAllHistory,
-    refetch: refetchAllHistory,
-  } = useQuery<UsageAgreementHistory[]>({
-    queryKey: ["bmn-usage-agreements", historyEmployeeFilter],
+    data: documentHistory,
+    isLoading: loadingDocumentHistory,
+    isFetching: fetchingDocumentHistory,
+    refetch: refetchDocumentHistory,
+  } = useQuery<PaginatedDocumentHistory>({
+    queryKey: ["bmn-document-histories", historyDocumentType, historyEmployeeFilter, debouncedHistorySearch, historyPage, historyPerPage],
+    enabled: activeTab === "history",
     queryFn: async () => {
-      const response = await api.get("/bmn/usage-agreements", {
+      const response = await api.get("/bmn/document-histories", {
         params: {
+          type: historyDocumentType,
+          page: historyPage,
+          per_page: historyPerPage,
           ...(historyEmployeeFilter ? { employee_id: historyEmployeeFilter } : {}),
-          per_page: 100,
+          ...(debouncedHistorySearch.trim() ? { search: debouncedHistorySearch.trim() } : {}),
         },
       });
-      return response.data.data || [];
-    },
-  });
 
-  const {
-    data: handoverHistory = [],
-    isLoading: loadingHandoverHistory,
-    refetch: refetchHandoverHistory,
-  } = useQuery<HandoverAgreementHistory[]>({
-    queryKey: ["bmn-handover-agreements", historyEmployeeFilter],
-    queryFn: async () => {
-      const response = await api.get("/bmn/handover-agreements", {
-        params: {
-          ...(historyEmployeeFilter ? { employee_id: historyEmployeeFilter } : {}),
-          per_page: 100,
-        },
-      });
-      return response.data.data || [];
+      return response.data;
     },
   });
 
@@ -266,44 +277,15 @@ export default function BmnReportsPage() {
     [baSequence, kap, documentDate],
   );
 
-  const filteredAllHistory = useMemo(() => {
-    const needle = historySearch.trim().toLocaleLowerCase("id-ID");
-    if (!needle) return allHistory;
-
-    return allHistory.filter((item) => {
-      const searchable = [
-        item.number,
-        item.second_party_snapshot?.name,
-        item.second_party_snapshot?.nip,
-        item.employee?.nama_lengkap,
-        item.employee?.nip,
-        item.generator?.name,
-        item.document_date,
-      ].filter(Boolean).join(" ").toLocaleLowerCase("id-ID");
-
-      return searchable.includes(needle);
-    });
-  }, [allHistory, historySearch]);
-
-  const filteredHandoverHistory = useMemo(() => {
-    const needle = historySearch.trim().toLocaleLowerCase("id-ID");
-    if (!needle) return handoverHistory;
-
-    return handoverHistory.filter((item) => {
-      const searchable = [
-        item.number,
-        item.title,
-        item.first_party_snapshot?.name,
-        item.first_party_snapshot?.nip,
-        item.second_party_snapshot?.name,
-        item.second_party_snapshot?.nip,
-        item.generator?.name,
-        item.document_date,
-      ].filter(Boolean).join(" ").toLocaleLowerCase("id-ID");
-
-      return searchable.includes(needle);
-    });
-  }, [handoverHistory, historySearch]);
+  const documentHistoryItems = documentHistory?.data || [];
+  const documentHistoryMeta = documentHistory?.meta || {
+    current_page: 1,
+    from: null,
+    last_page: 1,
+    per_page: historyPerPage,
+    to: null,
+    total: 0,
+  };
 
   const selectedGeneralAssetIds = useMemo(
     () => new Set(handoverItems.map((item) => item.asset_id).filter(Boolean)),
@@ -355,6 +337,28 @@ export default function BmnReportsPage() {
     ? handoverVehicleDescription
     : handoverGeneralDescription;
 
+  const isUsageHistoryItem = (item: DocumentHistoryItem): item is UsageAgreementHistory & { document_type: "usage_agreement" } => (
+    item.document_type === "usage_agreement"
+  );
+
+  const documentTypeLabel = (item: DocumentHistoryItem) => (
+    isUsageHistoryItem(item)
+      ? "BA Pemakaian"
+      : item.variant === "vehicle" ? "BA Serah Terima Kendaraan" : "BA Serah Terima Barang"
+  );
+
+  const documentPartiesLabel = (item: DocumentHistoryItem) => (
+    isUsageHistoryItem(item)
+      ? item.second_party_snapshot?.name || item.employee?.nama_lengkap || "-"
+      : `${item.first_party_snapshot?.name || "-"} -> ${item.second_party_snapshot?.name || "-"}`
+  );
+
+  const documentItemCountLabel = (item: DocumentHistoryItem) => (
+    isUsageHistoryItem(item)
+      ? `${item.assets_snapshot?.length || 0} aset`
+      : `${item.items_snapshot?.length || 0} item`
+  );
+
   const recentEmployeeHistory = useMemo(
     () => history.slice(0, 5),
     [history],
@@ -397,7 +401,9 @@ export default function BmnReportsPage() {
 
   const handleHistoryEmployeeFilterChange = (employeeId: string) => {
     setHistoryEmployeeFilter(employeeId);
+    setHistoryPage(1);
     setSelectedHistoryAgreement(null);
+    setSelectedHandoverAgreement(null);
   };
 
   const handleFirstPartyEmployeeChange = (employeeId: string) => {
@@ -472,16 +478,19 @@ export default function BmnReportsPage() {
   };
 
   const viewHistoryAgreement = (agreement: UsageAgreementHistory) => {
+    setSelectedHandoverAgreement(null);
     setSelectedHistoryAgreement(agreement);
   };
 
   const printHistoryAgreement = (agreement: UsageAgreementHistory) => {
+    setSelectedHandoverAgreement(null);
     setSelectedHistoryAgreement(agreement);
     setActiveTab("history");
     window.setTimeout(() => handlePrintUsageAgreement("ba-pemakaian-history-print-root"), 100);
   };
 
   const printHandoverHistoryAgreement = (agreement: HandoverAgreementHistory) => {
+    setSelectedHistoryAgreement(null);
     setSelectedHandoverAgreement(agreement);
     setActiveTab("history");
     window.setTimeout(() => handlePrintHandoverAgreement("ba-serah-terima-history-print-root"), 100);
@@ -503,7 +512,7 @@ export default function BmnReportsPage() {
       if (selectedEmployeeId) {
         await loadUsageData(selectedEmployeeId);
       }
-      await refetchAllHistory();
+      await refetchDocumentHistory();
     } catch {
       toast.error("Gagal menghapus riwayat BA.");
     }
@@ -522,7 +531,7 @@ export default function BmnReportsPage() {
       await api.delete(`/bmn/handover-agreements/${agreement.id}`);
       toast.success("Riwayat BA Serah Terima dihapus.");
       setSelectedHandoverAgreement((current) => current?.id === agreement.id ? null : current);
-      await refetchHandoverHistory();
+      await refetchDocumentHistory();
     } catch {
       toast.error("Gagal menghapus riwayat BA Serah Terima.");
     }
@@ -559,7 +568,7 @@ export default function BmnReportsPage() {
       });
       toast.success("Riwayat BA Pemakaian berhasil disimpan.");
       await loadUsageData(String(selectedEmployee.id));
-      await refetchAllHistory();
+      await refetchDocumentHistory();
     } catch {
       toast.error("Gagal menyimpan riwayat BA Pemakaian.");
     } finally {
@@ -604,7 +613,7 @@ export default function BmnReportsPage() {
         metadata: { description: activeHandoverDescription },
       });
       toast.success("Riwayat BA Serah Terima berhasil disimpan.");
-      await refetchHandoverHistory();
+      await refetchDocumentHistory();
     } catch {
       toast.error("Gagal menyimpan riwayat BA Serah Terima.");
     } finally {
@@ -1393,11 +1402,39 @@ export default function BmnReportsPage() {
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">Semua BA Pemakaian dan BA Serah Terima yang pernah digenerate, dengan filter pegawai dan pencarian.</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
+            <div className="mb-3 flex flex-wrap gap-2">
+              {([
+                ["all", "Semua"],
+                ["usage_agreement", "BA Pemakaian"],
+                ["handover_agreement", "BA Serah Terima"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setHistoryDocumentType(value);
+                    setHistoryPage(1);
+                    setSelectedHistoryAgreement(null);
+                    setSelectedHandoverAgreement(null);
+                  }}
+                  className={`h-9 rounded-xl border px-3 text-xs font-semibold transition ${
+                    historyDocumentType === value
+                      ? "border-emerald-500 bg-emerald-600 text-white"
+                      : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(240px,320px)_140px]">
               <input
                 value={historySearch}
-                onChange={(event) => setHistorySearch(event.target.value)}
-                placeholder="Cari nomor BA, nama pegawai, NIP, atau pembuat..."
+                onChange={(event) => {
+                  setHistorySearch(event.target.value);
+                  setHistoryPage(1);
+                }}
+                placeholder="Cari nomor BA, nama pegawai, NIP, pembuat, atau barang..."
                 className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
               />
               <select
@@ -1413,41 +1450,71 @@ export default function BmnReportsPage() {
                   </option>
                 ))}
               </select>
+              <select
+                value={historyPerPage}
+                onChange={(event) => {
+                  setHistoryPerPage(Number(event.target.value));
+                  setHistoryPage(1);
+                }}
+                className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              >
+                {[10, 25, 50].map((value) => (
+                  <option key={value} value={value}>{value} / halaman</option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Daftar BA Pemakaian</h3>
-                <p className="text-xs text-zinc-500">{filteredAllHistory.length} dari {allHistory.length} dokumen</p>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Daftar Riwayat Dokumen</h3>
+                <p className="text-xs text-zinc-500">
+                  {documentHistoryMeta.total === 0
+                    ? "0 dokumen"
+                    : `${documentHistoryMeta.from || 0}-${documentHistoryMeta.to || 0} dari ${documentHistoryMeta.total} dokumen`}
+                </p>
               </div>
-              {loadingAllHistory && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
+              {(loadingDocumentHistory || fetchingDocumentHistory) && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
             </div>
             <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-              <table className="w-full min-w-[760px] text-left text-xs">
+              <table className="w-full min-w-[1040px] text-left text-xs">
                 <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
                   <tr>
+                    <th className="px-3 py-2">Jenis</th>
                     <th className="px-3 py-2">Nomor</th>
                     <th className="px-3 py-2">Tanggal</th>
-                    <th className="px-3 py-2">Pegawai</th>
-                    <th className="px-3 py-2">Aset</th>
+                    <th className="px-3 py-2">Pegawai / Pihak</th>
+                    <th className="px-3 py-2">Barang</th>
                     <th className="px-3 py-2">Pembuat</th>
                     <th className="px-3 py-2 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {filteredAllHistory.length === 0 ? (
-                    <tr><td colSpan={6} className="px-3 py-8 text-center text-zinc-500">Belum ada riwayat BA yang sesuai filter.</td></tr>
-                  ) : filteredAllHistory.map((item) => (
+                  {documentHistoryItems.length === 0 ? (
+                    <tr><td colSpan={7} className="px-3 py-8 text-center text-zinc-500">Belum ada riwayat dokumen yang sesuai filter.</td></tr>
+                  ) : documentHistoryItems.map((item) => (
                     <tr
                       key={item.id}
-                      className={`text-zinc-700 dark:text-zinc-200 ${selectedHistoryAgreement?.id === item.id ? "bg-emerald-50/70 dark:bg-emerald-500/10" : ""}`}
+                      className={`text-zinc-700 dark:text-zinc-200 ${
+                        selectedHistoryAgreement?.id === item.id || selectedHandoverAgreement?.id === item.id
+                          ? "bg-emerald-50/70 dark:bg-emerald-500/10"
+                          : ""
+                      }`}
                     >
+                      <td className="px-3 py-2">
+                        <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
+                          isUsageHistoryItem(item)
+                            ? "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300"
+                            : "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+                        }`}>
+                          {documentTypeLabel(item)}
+                        </span>
+                      </td>
                       <td className="px-3 py-2 font-semibold">{item.number}</td>
                       <td className="px-3 py-2 text-zinc-500">{formatDate(item.document_date)}</td>
-                      <td className="px-3 py-2 text-zinc-500">{item.second_party_snapshot?.name || item.employee?.nama_lengkap || "-"}</td>
-                      <td className="px-3 py-2 text-zinc-500">{item.assets_snapshot?.length || 0} aset</td>
+                      <td className="px-3 py-2 text-zinc-500">{documentPartiesLabel(item)}</td>
+                      <td className="px-3 py-2 text-zinc-500">{documentItemCountLabel(item)}</td>
                       <td className="px-3 py-2 text-zinc-500">{item.generator?.name || "-"}</td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-2">
@@ -1456,7 +1523,7 @@ export default function BmnReportsPage() {
                             variant="outline"
                             size="sm"
                             className="h-8 rounded-lg px-2 text-xs"
-                            onClick={() => viewHistoryAgreement(item)}
+                            onClick={() => isUsageHistoryItem(item) ? viewHistoryAgreement(item) : (setSelectedHistoryAgreement(null), setSelectedHandoverAgreement(item))}
                           >
                             <Eye className="mr-1 h-3.5 w-3.5" />
                             Lihat
@@ -1465,82 +1532,7 @@ export default function BmnReportsPage() {
                             type="button"
                             size="sm"
                             className="h-8 rounded-lg bg-emerald-600 px-2 text-xs hover:bg-emerald-500"
-                            onClick={() => printHistoryAgreement(item)}
-                          >
-                            <Printer className="mr-1 h-3.5 w-3.5" />
-                            Cetak
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
-                            onClick={() => deleteHistoryAgreement(item)}
-                          >
-                            <Trash2 className="mr-1 h-3.5 w-3.5" />
-                            Hapus
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Daftar BA Serah Terima</h3>
-                <p className="text-xs text-zinc-500">{filteredHandoverHistory.length} dari {handoverHistory.length} dokumen</p>
-              </div>
-              {loadingHandoverHistory && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
-            </div>
-            <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-              <table className="w-full min-w-[900px] text-left text-xs">
-                <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
-                  <tr>
-                    <th className="px-3 py-2">Nomor</th>
-                    <th className="px-3 py-2">Tanggal</th>
-                    <th className="px-3 py-2">Jenis</th>
-                    <th className="px-3 py-2">Pihak Kesatu</th>
-                    <th className="px-3 py-2">Pihak Kedua</th>
-                    <th className="px-3 py-2">Barang</th>
-                    <th className="px-3 py-2 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {filteredHandoverHistory.length === 0 ? (
-                    <tr><td colSpan={7} className="px-3 py-8 text-center text-zinc-500">Belum ada riwayat BA Serah Terima yang sesuai filter.</td></tr>
-                  ) : filteredHandoverHistory.map((item) => (
-                    <tr
-                      key={item.id}
-                      className={`text-zinc-700 dark:text-zinc-200 ${selectedHandoverAgreement?.id === item.id ? "bg-emerald-50/70 dark:bg-emerald-500/10" : ""}`}
-                    >
-                      <td className="px-3 py-2 font-semibold">{item.number}</td>
-                      <td className="px-3 py-2 text-zinc-500">{formatDate(item.document_date)}</td>
-                      <td className="px-3 py-2 text-zinc-500">{item.variant === "vehicle" ? "Kendaraan" : "Barang umum"}</td>
-                      <td className="px-3 py-2 text-zinc-500">{item.first_party_snapshot?.name || "-"}</td>
-                      <td className="px-3 py-2 text-zinc-500">{item.second_party_snapshot?.name || "-"}</td>
-                      <td className="px-3 py-2 text-zinc-500">{item.items_snapshot?.length || 0} item</td>
-                      <td className="px-3 py-2">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-8 rounded-lg px-2 text-xs"
-                            onClick={() => setSelectedHandoverAgreement(item)}
-                          >
-                            <Eye className="mr-1 h-3.5 w-3.5" />
-                            Lihat
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="h-8 rounded-lg bg-emerald-600 px-2 text-xs hover:bg-emerald-500"
-                            onClick={() => printHandoverHistoryAgreement(item)}
+                            onClick={() => isUsageHistoryItem(item) ? printHistoryAgreement(item) : printHandoverHistoryAgreement(item)}
                           >
                             <Printer className="mr-1 h-3.5 w-3.5" />
                             Cetak
@@ -1550,7 +1542,7 @@ export default function BmnReportsPage() {
                             variant="outline"
                             size="sm"
                             className="h-8 rounded-lg px-2 text-xs"
-                            onClick={() => duplicateHandoverAgreement(item)}
+                            onClick={() => isUsageHistoryItem(item) ? duplicateHistoryAgreement(item) : duplicateHandoverAgreement(item)}
                           >
                             <FileText className="mr-1 h-3.5 w-3.5" />
                             Duplikasi
@@ -1560,7 +1552,7 @@ export default function BmnReportsPage() {
                             variant="outline"
                             size="sm"
                             className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
-                            onClick={() => deleteHandoverHistoryAgreement(item)}
+                            onClick={() => isUsageHistoryItem(item) ? deleteHistoryAgreement(item) : deleteHandoverHistoryAgreement(item)}
                           >
                             <Trash2 className="mr-1 h-3.5 w-3.5" />
                             Hapus
@@ -1571,6 +1563,33 @@ export default function BmnReportsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="mt-4 flex flex-col gap-3 border-t border-zinc-100 pt-4 text-xs text-zinc-500 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                Halaman {documentHistoryMeta.current_page} dari {documentHistoryMeta.last_page || 1}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg px-3 text-xs"
+                  disabled={documentHistoryMeta.current_page <= 1 || loadingDocumentHistory || fetchingDocumentHistory}
+                  onClick={() => setHistoryPage((page) => Math.max(1, page - 1))}
+                >
+                  Sebelumnya
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg px-3 text-xs"
+                  disabled={documentHistoryMeta.current_page >= documentHistoryMeta.last_page || loadingDocumentHistory || fetchingDocumentHistory}
+                  onClick={() => setHistoryPage((page) => Math.min(documentHistoryMeta.last_page || page, page + 1))}
+                >
+                  Berikutnya
+                </Button>
+              </div>
             </div>
           </div>
 

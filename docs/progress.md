@@ -1,15 +1,60 @@
+# Progress - Phase 77: Pagination Riwayat Dokumen BMN
+
+> Document updated: 2026-06-17
+> Status: WIP lokal (`codex/reports-history-pagination`). Belum PR, belum deploy production.
+
+---
+
+## Riwayat Dokumen `/bmn/reports`
+
+### Status: WIP - siap dicek
+- Scope: tab `Riwayat Dokumen` pada halaman `/bmn/reports`.
+- Tujuan: memperbaiki UX arsip dokumen dan mencegah loading lambat saat histori BA makin banyak.
+
+### Implementasi
+- Backend menambah endpoint arsip gabungan:
+  - `GET /api/bmn/document-histories`
+- Endpoint menggabungkan data:
+  - BA Pemakaian BMN (`bmn_usage_agreements`)
+  - BA Serah Terima BMN (`bmn_handover_agreements`)
+- Endpoint mendukung filter server-side:
+  - `type=all|usage_agreement|handover_agreement`
+  - `employee_id`
+  - `search`
+  - `page`
+  - `per_page`
+- Frontend tab `Riwayat Dokumen` diubah menjadi satu tabel arsip gabungan.
+- UI baru menambahkan:
+  - segmented filter `Semua / BA Pemakaian / BA Serah Terima`,
+  - search debounce,
+  - filter pegawai,
+  - pilihan 10/25/50 data per halaman,
+  - pagination `Sebelumnya/Berikutnya`,
+  - badge jenis dokumen,
+  - aksi `Lihat`, `Cetak`, `Duplikasi`, `Hapus`.
+- Query riwayat hanya aktif saat tab `Riwayat Dokumen` dibuka agar tab lain tidak ikut memuat arsip.
+
+### Validasi
+- `php -l backend/app/Modules/Bmn/Controllers/DocumentHistoryController.php` clean.
+- `php -l backend/app/Modules/Bmn/Routes/api.php` clean.
+- `cd backend; php artisan route:list --path=bmn/document-histories` clean.
+- `cd frontend; npm run lint` clean.
+- `cd frontend; npx tsc --noEmit` clean.
+
+---
+
 # Progress - Phase 76: BA Serah Terima BMN
 
 > Document updated: 2026-06-17
-> Status: Issue #404 **WIP - revisi lokal siap dicek user** (`codex/404-ba-serah-terima`). PR #405 sempat dibuat lalu ditutup karena scope direvisi. Belum deploy production.
+> Status: Issue #404 **MERGED**. PR #406 squash merged ke `main` (commit `a50cd1b`). Belum deploy production.
 
 ---
 
 ## Issue #404: Generate BA Serah Terima BMN
 
-### Status: WIP - siap PR
+### Status: MERGED
 - GitHub Issue: #404 `feat(bmn): add BA serah terima document generator`
-- Branch: `codex/404-ba-serah-terima`
+- PR: #406 `feat(bmn): add BA serah terima generator (#404)` squash merged.
 - Scope: halaman `/bmn/reports`, backend history/snapshot BA Serah Terima BMN.
 
 ### Implementasi
