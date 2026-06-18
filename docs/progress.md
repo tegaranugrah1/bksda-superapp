@@ -4430,3 +4430,17 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 ### Next Steps
 - [ ] Start implementation from task 1 using the contracts as mandatory guardrails.
 
+## [2026-06-18] Mobile App Planning - Local Task Instructions
+
+### Completed (Selesai)
+- [x] Corrected the low-model score framing: 10/10 depends on reading each task together with its local instruction row.
+- [x] Added a `Local Instruction Matrix` to `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md`.
+- [x] Added one local instruction row for every task 1-90, including focus, required contract, explicit "do not" guardrail, and local check.
+- [x] Made task execution safer for smaller models that may not reliably infer details from the global contracts alone.
+
+### Verification
+- [x] Confirmed all 90 task IDs have a matching local instruction row.
+
+### Next Steps
+- [ ] When delegating a task to a smaller model, include both the numbered task and its row from the `Local Instruction Matrix`.
+

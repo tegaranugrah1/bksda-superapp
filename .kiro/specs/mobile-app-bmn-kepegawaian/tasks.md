@@ -2,7 +2,7 @@
 
 ## Score
 
-Rencana implementasi ini saya nilai **10/10 untuk eksekusi bertahap oleh AI model rendah**.
+Rencana implementasi ini ditargetkan **10/10 untuk eksekusi bertahap oleh AI model rendah setelah local instruction matrix diikuti**.
 
 Alasan:
 
@@ -12,15 +12,16 @@ Alasan:
 - Task menghindari instruksi seperti "bangun flow lengkap" yang terlalu luas.
 - Setiap fase punya exit criteria sehingga pekerjaan bisa berhenti di checkpoint yang jelas.
 - Implementation contracts ditulis eksplisit supaya task pendek tetap punya arahan detail.
+- Local instruction matrix memberi arahan khusus per task agar model kecil tidak perlu menebak konteks.
 - Component props, API hook shape, error handling, permission behavior, and do/don't rules tersedia sebagai rujukan.
 
-Subscore setelah penguatan arahan:
+Subscore setelah local instruction matrix ditambahkan:
 
 - Struktur urutan: **10/10**
 - Ukuran task: **10/10**
 - Kejelasan acceptance check: **10/10**
 - Detail implementasi per task: **10/10**
-- Kemungkinan model kecil langsung benar tanpa banyak koreksi: **10/10** untuk task yang dikerjakan berurutan dan tidak melompati kontrak implementasi.
+- Kemungkinan model kecil langsung benar tanpa banyak koreksi: **10/10** jika model membaca task kecil + baris local instruction untuk task tersebut.
 
 Sisa risiko yang tetap harus diawasi manusia/model kuat:
 
@@ -90,6 +91,7 @@ Covered tasks: 87-90.
 - Jangan mengubah scope MVP: generator dokumen BMN tetap tidak masuk mobile MVP.
 - Jangan menaruh token/password di log, local storage biasa, atau screenshot.
 - Update `docs/progress.md` setelah satu issue/PR selesai.
+- Untuk setiap task, baca juga baris task tersebut di `Local Instruction Matrix`.
 
 ## Implementation Contracts for Small Models
 
@@ -509,6 +511,103 @@ A task is done only when:
 - TypeScript/lint/test command relevant to the touched area passes, or the reason it cannot run is documented.
 - No unrelated files are reformatted.
 - `docs/progress.md` is updated after the issue/PR is considered complete.
+
+## Local Instruction Matrix
+
+Use this matrix together with the numbered task. A lower-capability model should read the row for the task number before editing files.
+
+| Task | Local focus | Must follow | Do not | Local check |
+| --- | --- | --- | --- | --- |
+| 1 | Scaffold Expo app in `mobile/` | Workspace/library contract | Do not modify backend/frontend app folders | `mobile/package.json` exists |
+| 2 | Add env template | Security contract | Do not commit real API URL secrets or tokens | `.env.example` has placeholders only |
+| 3 | Write run guide | Workspace contract | Do not describe unsupported workflows | README has Android run command |
+| 4 | Configure aliases | Folder contract | Do not create aliases that hide feature boundaries | TypeScript resolves one alias import |
+| 5 | Add lint/type/test scripts | Workspace contract | Do not add unrelated tooling | scripts exist in `mobile/package.json` |
+| 6 | Create source folders | Folder contract | Do not put feature files at root | expected folders exist |
+| 7 | Define design tokens | Workspace/library contract | Do not hardcode app colors in components later | token file exports colors/spacing/type |
+| 8 | Build `AppButton` | Shared Component Contracts > AppButton | Do not allow press while disabled/loading | min height 48dp and role button |
+| 9 | Build `IconButton` | Shared Component Contracts > IconButton | Do not allow missing accessibility label | TypeScript requires label |
+| 10 | Build `AppTextInput` | Shared Component Contracts > AppTextInput | Do not render input without label | error text is visible |
+| 11 | Build `SearchInput` | Shared Component Contracts > SearchInput | Do not put debounce inside visual component | clear button works |
+| 12 | Build `StatusBadge` | Shared Component Contracts > state/text rules | Do not use color-only status | badge always has text |
+| 13 | Build `SectionCard` | Screen state/layout contract | Do not create nested decorative card patterns | title/action/content render |
+| 14 | Build `EmptyState` | State component contract | Do not make it feature-specific | reusable props only |
+| 15 | Build `ErrorState` | State component contract | Do not show raw technical errors | retry callback works |
+| 16 | Build `LoadingSkeleton` | State component contract | Do not cause layout shift | card/list/detail variants exist |
+| 17 | Build `ConfirmDialog` | Screen state contract | Do not run destructive action without confirm | cancel and confirm handlers work |
+| 18 | Add API config | API Client Contract | Do not hardcode production URL in source | missing env has dev-friendly error |
+| 19 | Add secure token storage | Security contract | Do not use plain AsyncStorage for token | get/set/clear functions exist |
+| 20 | Add response normalizer | API Client Contract | Do not assume only one backend response shape | handles `data/meta/message` |
+| 21 | Add error normalizer | API Client Contract | Do not expose raw stack/HTML/SQL | 422 maps field errors |
+| 22 | Add central API client | API Client Contract | Do not log auth headers | sends auth, accept, `X-Client` |
+| 23 | Add mobile params helper | API Client Contract | Do not override explicit page/per_page | adds `mobile=true` and default 20 |
+| 24 | Add auth API service | Auth/API contracts | Do not store token here directly | login/logout/me endpoints exist |
+| 25 | Add auth provider | Auth and security contracts | Do not mix navigation logic into API client | exposes auth/loading/user states |
+| 26 | Add permission helpers | Permission Contract | Do not hardcode user names/NIP | missing data fails closed |
+| 27 | Add root navigation | Navigation and folder contracts | Do not show app tabs before auth resolves | Login/AppTabs split works |
+| 28 | Add role-based tabs | Permission Contract | Do not use display role text only | tabs hide by helper/allowed access |
+| 29 | Verify dashboard API | API Client Contract | Do not create new endpoint unless missing is confirmed | endpoint returns summaries only |
+| 30 | Add dashboard hook | Query Hook Contract | Do not fetch large lists | exposes loading/error/refetch |
+| 31 | Add dashboard components | Shared component contracts | Do not hardcode permission decisions in UI card | quick actions accept permission props |
+| 32 | Build dashboard screen | Screen State Contract | Do not omit loading/error/refresh states | retry and pull refresh work |
+| 33 | Verify BMN list API | BMN Data Contract | Do not request all assets | response has pagination meta |
+| 34 | Add BMN types | BMN Data Contract | Do not use `any` for asset card data | list/detail types compile |
+| 35 | Add BMN list hook | Query Hook Contract | Do not fetch all pages at once | supports page/search/filter |
+| 36 | Add AssetCard | BMN Data Contract | Do not create table row layout | card shows name, NUP, status |
+| 37 | Build asset list shell | Screen State Contract | Do not implement full detail here | header/search/filter/list shell exists |
+| 38 | Add BMN pagination | Query Hook Contract | Do not reload all previous data unnecessarily | next page appends/loads correctly |
+| 39 | Add BMN debounce search | Query Hook Contract | Do not call API on every keystroke | debounce 300-500ms |
+| 40 | Add BMN filter sheet | Screen State Contract | Do not use horizontal desktop filters | apply filter resets to page 1 |
+| 41 | Add BMN list states | Screen State Contract | Do not reuse error state as empty state | skeleton/empty/error/retry present |
+| 42 | Add detail hook | Query Hook Contract | Do not swallow 403/404 | forbidden/not-found states exposed |
+| 43 | Add detail section components | BMN Data Contract | Do not put data fetching in presentational sections | typed props only |
+| 44 | Build detail screen | Screen State Contract | Do not show missing vehicle fields as fake data | vehicle fields conditional |
+| 45 | Add asset action bar | Permission Contract | Do not show actions from UI guess only if backend disallows | actions gated by helpers/allowed actions |
+| 46 | Add asset form schema | Form/screen state contract | Do not use English validation messages | Zod schema returns Indonesian messages |
+| 47 | Build asset form shell | Form/screen state contract | Do not create one huge ungrouped form | sectioned layout without horizontal scroll |
+| 48 | Wire asset submit | API/error/permission contracts | Do not ignore backend 422 | maps field errors and refreshes |
+| 49 | Add photo slot | BMN Data Contract | Do not request camera from display-only component | slot renders placeholder/image/actions |
+| 50 | Add camera permission helper | Security/screen state contract | Do not capture before permission result | denied state is friendly |
+| 51 | Add geotag location helper | BMN Data Contract | Do not request location for normal photo | geotag-only location request |
+| 52 | Build photo capture screen | Screen state contract | Do not submit without selected photo | preview/retake/submit flow works |
+| 53 | Wire photo upload | API/security/BMN contracts | Do not log file path/token | progress and retry states work |
+| 54 | Build verification action | Permission/screen state contracts | Do not verify without confirmation | success refreshes detail |
+| 55 | Build loan form shell | Employee selector/form contracts | Do not submit without asset/employee/date | disabled submit until valid |
+| 56 | Wire loan/return submit | API/permission contracts | Do not bypass backend status checks | success refreshes asset/history |
+| 57 | Verify ST list API | Surat Tugas Data Contract | Do not load all assignments | personal/management pagination works |
+| 58 | Verify ST detail API | Surat Tugas Data Contract | Do not expose forbidden detail | forbidden user receives 403 |
+| 59 | Add ST types | Surat Tugas Data Contract | Do not use `any` for card/detail | typed list/detail data compiles |
+| 60 | Add ST list hook | Query Hook Contract | Do not merge personal and management assumptions | supports mode/page/search/status |
+| 61 | Add AssignmentCard | Surat Tugas Data Contract | Do not rely on color-only status | card shows text status |
+| 62 | Build ST list shell | Screen State Contract | Do not build form/detail here | header/search/filter/list shell exists |
+| 63 | Add ST pagination/states | Query and Screen State contracts | Do not conflate empty/error | loading/empty/error/refresh/next page |
+| 64 | Add ST detail hook | Query Hook Contract | Do not swallow forbidden/not-found | states exposed |
+| 65 | Add ST detail sections | Surat Tugas Data Contract | Do not use horizontal document layout | readable mobile sections |
+| 66 | Build ST detail screen | Permission and Screen State contracts | Do not show file action without authorization | gated actions render correctly |
+| 67 | Add ST form schema | Form contract | Do not use vague validation | field messages are Indonesian |
+| 68 | Build ST form shell | Form/screen state contract | Do not make a single giant form | sectioned form and keyboard-safe |
+| 69 | Wire ST submit | API/error contract | Do not ignore 422 | success opens/refreshes detail/list |
+| 70 | Add approval action component | Permission/screen state contracts | Do not run status action without confirm | confirm required |
+| 71 | Wire approval/status API | API/permission contract | Do not assume invalid transition succeeds | error shown and data refreshes |
+| 72 | Add authenticated download helper | File/Security contract | Do not expose unauthenticated URLs | uses auth request |
+| 73 | Add file share helper | File contract | Do not crash on missing file | friendly missing-file error |
+| 74 | Add employee search hook | Employee Selector Contract | Do not fetch all employees | paginated name/NIP search |
+| 75 | Add employee selector sheet | Employee Selector Contract | Do not return partial unusable object | selected employee shape returned |
+| 76 | Build profile screen | Security/permission contracts | Do not display token/session data | profile and logout visible |
+| 77 | Add logout flow | Security contract | Do not leave token after failed API logout | local cleanup always happens |
+| 78 | Add online status | Online-only/screen state contracts | Do not add offline queue | offline banner/state exists |
+| 79 | Add foreground refresh | Query Hook Contract | Do not refetch every second constantly | refetch on app resume |
+| 80 | Add API tests | API Client Contract | Do not test only happy path | success/error/mobile params covered |
+| 81 | Add permission tests | Permission Contract | Do not let missing data grant access | fail-closed tests pass |
+| 82 | Add form tests | Form contracts | Do not test only valid data | required/invalid date tested |
+| 83 | Add accessibility pass | Component contracts | Do not leave icon-only actions unlabeled | labels verified |
+| 84 | Add security pass | Security contract | Do not keep debug token logs | `rg` finds no token/password logs |
+| 85 | Validate superadmin path | Milestone validation | Do not skip device/emulator check if available | no crash on main admin path |
+| 86 | Validate employee path | Milestone validation | Do not expose admin-only actions | forbidden actions hidden/blocked |
+| 87 | Configure app metadata | Release contract | Do not leave placeholder app identity | app name/package/icon set |
+| 88 | Build Android artifact | Release contract | Do not call release done without installable artifact | APK/AAB generated |
+| 89 | Write release notes | Documentation contract | Do not omit limitations | mentions online-only and no generators |
+| 90 | Update progress | Documentation contract | Do not leave progress stale | date/completed/verification/next steps |
 
 ## Tasks
 
