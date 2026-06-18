@@ -1,13 +1,54 @@
+# Progress - Phase 82: BMN Admin-only UI Visibility
+
+> Document updated: 2026-06-18
+> Status: Implemented locally on branch `codex/bmn-admin-ui-visibility`; siap PR.
+
+---
+
+## Sinkronisasi UI dengan Authorization Backend BMN
+
+### Status: SELESAI DI LOKAL
+- Scope: frontend visibility guard untuk aksi sensitif BMN yang sudah diproteksi backend di Phase 81.
+- Tujuan: user non-admin tidak melihat tombol/aksi yang pasti ditolak backend, sementara admin/super admin tetap bisa bekerja normal.
+
+### Implementasi
+- Halaman `Aset Dihapus`:
+  - checkbox seleksi, bulk restore, dan hapus permanen hanya tampil untuk `admin` / `super_admin`.
+  - mode non-admin menjadi read-only.
+- Halaman `Import Review`:
+  - upload file import hanya tampil untuk `admin` / `super_admin`.
+  - user non-admin melihat notice read-only dan tetap bisa membuka riwayat.
+- Detail `Import Review`:
+  - approve/reject, bulk selection, checkbox row, dan checkbox perubahan per kolom hanya aktif untuk `admin` / `super_admin`.
+  - non-admin bisa melihat detail batch sebagai read-only.
+- Halaman `Laporan > Riwayat Dokumen`:
+  - tombol hapus arsip BA Pemakaian dan BA Serah Terima hanya tampil untuk `admin` / `super_admin`.
+
+### Validasi
+- `npm run lint`: pass.
+- `npm run build`: pass.
+- Browser bawaan Codex:
+  - login superadmin lokal berhasil.
+  - `/bmn/reports`: tab Riwayat Dokumen terbuka, tombol `Lihat`, `Cetak`, `Duplikasi`, dan `Hapus` tampil untuk superadmin.
+  - `/bmn/import-review`: upload file tampil untuk superadmin.
+  - `/bmn/disposal`: deskripsi dan mode aksi admin tampil untuk superadmin.
+
+### Catatan
+- Backend tetap menjadi sumber kebenaran authorization. UI guard ini untuk UX dan mengurangi peluang aksi tidak sah dari permukaan aplikasi.
+- File untracked lokal `frontend/public/header.png` tidak disentuh.
+
+---
+
 # Progress - Phase 81: BMN Authorization Hardening
 
 > Document updated: 2026-06-18
-> Status: Implemented locally on branch `codex/bmn-authorization-hardening`; siap PR.
+> Status: PR #411 squash merged ke `main` (commit `84d933d`). Branch remote `codex/bmn-authorization-hardening` sudah dihapus.
 
 ---
 
 ## Hardening Aksi Sensitif BMN
 
-### Status: SELESAI - siap PR
+### Status: SELESAI
 - Scope: backend route protection untuk modul BMN.
 - Tujuan: mencegah user yang hanya punya akses modul BMN menjalankan aksi destruktif/mutasi besar langsung lewat API.
 
