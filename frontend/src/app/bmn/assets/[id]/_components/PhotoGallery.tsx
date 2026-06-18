@@ -58,7 +58,8 @@ function driveToThumbnail(url: string): string | null {
 }
 
 export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, frontLocationNote, onSaveFrontLocation, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
-  const { canWrite } = useRole();
+  const { hasPermission } = useRole();
+  const canUpdate = hasPermission("bmn.asset.update");
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
   const [geotagInput, setGeotagInput] = useState("");
@@ -242,7 +243,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
           <h3 className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Dokumentasi Foto</h3>
         </div>
         <div className="flex items-center gap-2">
-          {canWrite && (
+          {canUpdate && (
             <Button variant="outline" size="sm" className="text-[10px] rounded-lg h-7 gap-1" onClick={handleVerify}>
               <ShieldCheck className="w-3 h-3" /> Verifikasi BMN
             </Button>
@@ -283,7 +284,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
             setUploadTarget={setUploadTarget}
             fileInputRef={fileInputRef}
             setShowGeotagInput={setShowGeotagInput}
-            canWrite={canWrite}
+            canWrite={canUpdate}
             fotoGeotagPath={fotoGeotagPath}
             fotoGeotagUrl={fotoGeotagUrl}
           />
@@ -298,7 +299,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
           </div>
           <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             {DOC_SLOTS.map((slot) => (
-              <PhotoSlot key={slot.key} slot={slot} url={photos[slot.key]} openLightbox={openLightbox} handleDownload={handleDownload} copyLink={copyLink} handleDelete={handleDelete} setUploadTarget={setUploadTarget} fileInputRef={fileInputRef} setShowGeotagInput={setShowGeotagInput} canWrite={canWrite} fotoGeotagPath={null} fotoGeotagUrl={null} />
+              <PhotoSlot key={slot.key} slot={slot} url={photos[slot.key]} openLightbox={openLightbox} handleDownload={handleDownload} copyLink={copyLink} handleDelete={handleDelete} setUploadTarget={setUploadTarget} fileInputRef={fileInputRef} setShowGeotagInput={setShowGeotagInput} canWrite={canUpdate} fotoGeotagPath={null} fotoGeotagUrl={null} />
             ))}
           </div>
         </>

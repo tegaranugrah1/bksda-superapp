@@ -27,6 +27,7 @@ class User extends Authenticatable
         'password',
         'role',
         'access_modules',
+        'permissions',
         'is_active',
         'dereporting_role',
         'dereporting_bidang_id',
@@ -55,6 +56,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'access_modules' => 'array', // Mengubah JSON DB menjadi Array PHP
+            'permissions' => 'array',
             'is_active' => 'boolean',
         ];
     }
@@ -65,5 +67,32 @@ class User extends Authenticatable
     public function dereportingBidang()
     {
         return $this->belongsTo(Bidang::class, 'dereporting_bidang_id');
+    }
+
+    /**
+     * Mengecek apakah user memiliki permission tertentu secara granular
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // 1. Super Admin bypass (selalu diizinkan)
+        if ($this->role === 'super_admin') {
+            return true;
+        }
+
+        // 2. Jika kolom permissions bernilai null, gunakan fallback backward compatibility:
+        // Izinkan aksi BMN jika user memiliki akses modul BMN. Aksi penulisan tetap memerlukan role admin.
+        if (is_null($this->permissions)) {
+            if (str_starts_with($permission, 'bmn.')) {
+                $isReadPermission = in_array($permission, ['bmn.view', 'bmn.document.history.view']);
+                if ($isReadPermission) {
+                    return in_array('bmn', $this->access_modules ?? []);
+                }
+                return $this->role === 'admin' && in_array('bmn', $this->access_modules ?? []);
+            }
+            return false;
+        }
+
+        // 3. Cek apakah permission terdaftar di array permissions user
+        return in_array($permission, $this->permissions);
     }
 }

@@ -60,7 +60,8 @@ function CreateRedirect() {
 function AssetDetail({ assetId }: { assetId: string }) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { canWrite } = useRole();
+  const { hasPermission } = useRole();
+  const canWrite = hasPermission("bmn.asset.update");
   const { data: asset, isLoading, isError, refetch } = useQuery({
     queryKey: ["bmn-asset", assetId],
     queryFn: async () => {

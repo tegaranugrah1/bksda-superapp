@@ -29,7 +29,11 @@ interface IResponse { data: IDisposedAsset[]; last_page: number; total?: number 
 
 export default function BmnDisposalPage() {
   const queryClient = useQueryClient();
-  const { canWrite } = useRole();
+  const { hasPermission } = useRole();
+  const canDispose = hasPermission("bmn.asset.dispose");
+  const canForceDelete = hasPermission("bmn.asset.force_delete");
+  const canWrite = canDispose || canForceDelete;
+
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -70,7 +74,7 @@ export default function BmnDisposalPage() {
   };
 
   const handleRestore = async () => {
-    if (!canWrite || selectedIds.size === 0) return;
+    if (!canDispose || selectedIds.size === 0) return;
     setIsRestoring(true);
     try {
       await api.post("/bmn/assets/bulk-restore", { ids: Array.from(selectedIds) });
@@ -86,7 +90,7 @@ export default function BmnDisposalPage() {
   };
 
   const handleForceDelete = async () => {
-    if (!canWrite || selectedIds.size === 0) return;
+    if (!canForceDelete || selectedIds.size === 0) return;
     setIsDeleting(true);
     try {
       await api.post("/bmn/assets/bulk-force-delete", { ids: Array.from(selectedIds) });

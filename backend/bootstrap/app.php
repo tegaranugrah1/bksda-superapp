@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'module.access' => CheckModuleAccess::class,
             'role' => CheckRole::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
 
         // 2. Mendaftarkan Global API Middleware (Berjalan otomatis di seluruh rute /api/*)

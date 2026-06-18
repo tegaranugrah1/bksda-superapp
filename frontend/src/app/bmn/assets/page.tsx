@@ -79,7 +79,12 @@ export default function BmnAssetsPage() {
   const [lokasiFilter, setLokasiFilter] = useState(searchParams.get("lokasi_ruang") || "Semua");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const debouncedSearch = useDebounce(searchTerm, 400);
-  const { canWrite } = useRole();
+  const { hasPermission } = useRole();
+  const canCreate = hasPermission("bmn.asset.create");
+  const canUpdate = hasPermission("bmn.asset.update");
+  const canDispose = hasPermission("bmn.asset.dispose");
+  const canImport = hasPermission("bmn.import.review");
+  const canWrite = canCreate || canUpdate || canDispose || canImport;
   const queryClient = useQueryClient();
 
   const updateUrl = (overrides: Record<string, string | number>) => {
@@ -232,12 +237,14 @@ export default function BmnAssetsPage() {
           </div>
           {canWrite && (
             <>
-              <AssetImportDialog onImportSuccess={() => { setPage(1); queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }); }} />
-              <Link href="/bmn/assets/create">
-                <Button size="sm" className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-500">
-                  <Plus className="w-3.5 h-3.5" /> Tambah Aset
-                </Button>
-              </Link>
+              {canImport && <AssetImportDialog onImportSuccess={() => { setPage(1); queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }); }} />}
+              {canCreate && (
+                <Link href="/bmn/assets/create">
+                  <Button size="sm" className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-500">
+                    <Plus className="w-3.5 h-3.5" /> Tambah Aset
+                  </Button>
+                </Link>
+              )}
             </>
           )}
         </div>
@@ -314,36 +321,40 @@ export default function BmnAssetsPage() {
       {canWrite && selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl">
           <span className="text-sm font-semibold text-red-700 dark:text-red-400">{selectedIds.size} aset dipilih</span>
-          <select
-            onChange={async (e) => {
-              const newKondisi = e.target.value;
-              if (!newKondisi) return;
-              const ok = await confirm({
-                title: "Ubah Kondisi",
-                description: `Ubah kondisi ${selectedIds.size} aset terpilih menjadi "${newKondisi}"?`,
-                confirmText: "Ya, Ubah",
-                variant: "warning",
-              });
-              if (!ok) { e.target.value = ""; return; }
-              try {
-                await api.post("/bmn/assets/bulk-update-kondisi", { ids: Array.from(selectedIds), kondisi: newKondisi });
-                toast.success(`${selectedIds.size} aset diubah ke ${newKondisi}.`);
-                setSelectedIds(new Set());
-                queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
-              } catch { toast.error("Gagal mengubah kondisi."); }
-              e.target.value = "";
-            }}
-            className="h-8 px-2 text-xs border border-amber-300 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
-            defaultValue=""
-          >
-            <option value="" disabled>Ubah Kondisi...</option>
-            <option value="Baik">Baik</option>
-            <option value="Rusak Ringan">Rusak Ringan</option>
-            <option value="Rusak Berat">Rusak Berat</option>
-          </select>
-          <Button size="sm" variant="destructive" className="rounded-lg gap-1 text-xs" onClick={handleBulkDispose}>
-            <Trash2 className="w-3.5 h-3.5" /> Hapus Terpilih
-          </Button>
+          {canUpdate && (
+            <select
+              onChange={async (e) => {
+                const newKondisi = e.target.value;
+                if (!newKondisi) return;
+                const ok = await confirm({
+                  title: "Ubah Kondisi",
+                  description: `Ubah kondisi ${selectedIds.size} aset terpilih menjadi "${newKondisi}"?`,
+                  confirmText: "Ya, Ubah",
+                  variant: "warning",
+                });
+                if (!ok) { e.target.value = ""; return; }
+                try {
+                  await api.post("/bmn/assets/bulk-update-kondisi", { ids: Array.from(selectedIds), kondisi: newKondisi });
+                  toast.success(`${selectedIds.size} aset diubah ke ${newKondisi}.`);
+                  setSelectedIds(new Set());
+                  queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+                } catch { toast.error("Gagal mengubah kondisi."); }
+                e.target.value = "";
+              }}
+              className="h-8 px-2 text-xs border border-amber-300 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+              defaultValue=""
+            >
+              <option value="" disabled>Ubah Kondisi...</option>
+              <option value="Baik">Baik</option>
+              <option value="Rusak Ringan">Rusak Ringan</option>
+              <option value="Rusak Berat">Rusak Berat</option>
+            </select>
+          )}
+          {canDispose && (
+            <Button size="sm" variant="destructive" className="rounded-lg gap-1 text-xs" onClick={handleBulkDispose}>
+              <Trash2 className="w-3.5 h-3.5" /> Hapus Terpilih
+            </Button>
+          )}
           <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={() => setSelectedIds(new Set())}>Batal</Button>
         </div>
       )}
@@ -370,7 +381,7 @@ export default function BmnAssetsPage() {
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kondisi</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Nilai Perolehan</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lokasi</th>
-                {canWrite && <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Aksi</th>}
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -427,14 +438,14 @@ export default function BmnAssetsPage() {
                         <StnkBadge tanggal={asset.tanggal_pajak_stnk} />
                       )}
                     </td>
-                    {canWrite && (
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={`/bmn/assets/${asset.id}`} className="p-1.5 rounded-lg hover:bg-blue-50 dark:bg-blue-500/10 text-blue-600"><Eye className="w-4 h-4" /></Link>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Link href={`/bmn/assets/${asset.id}`} className="p-1.5 rounded-lg hover:bg-blue-50 dark:bg-blue-500/10 text-blue-600"><Eye className="w-4 h-4" /></Link>
+                        {canDispose && (
                           <button onClick={() => handleDispose(asset.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:bg-red-500/10 text-red-500"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </td>
-                    )}
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}

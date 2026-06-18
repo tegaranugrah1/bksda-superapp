@@ -2,9 +2,11 @@ export interface StoredUser {
   id: string;
   name?: string;
   nama_lengkap?: string;
-  role: string;
   username: string;
+  email: string;
+  role: string;
   access_modules: string[];
+  permissions?: string[] | null;
 }
 
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;

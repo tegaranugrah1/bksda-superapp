@@ -118,7 +118,11 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const { batchId } = React.use(params);
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { canWrite } = useRole();
+  const { hasPermission } = useRole();
+  const canReview = hasPermission("bmn.import.review");
+  const canApprove = hasPermission("bmn.import.approve");
+  const canWrite = canReview; // canWrite represents general review/toggle ability here
+
   const [filter, setFilter] = useState<"all" | "new" | "updated" | "unchanged">("all");
   const [page, setPage] = useState(1);
   const [identityFilters, setIdentityFilters] = useState({
@@ -167,7 +171,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const handleToggleRow = async (rowId: string, selected: boolean) => {
-    if (!canWrite) return;
+    if (!canReview) return;
     try {
       await api.post("/bmn/import-review/toggle-selection", {
         ids: [rowId],
@@ -180,7 +184,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const handleToggleField = async (rowId: string, field: string, selected: boolean) => {
-    if (!canWrite) return;
+    if (!canReview) return;
     const actionKey = `${rowId}:${field}`;
     setFieldAction(actionKey);
     try {
@@ -205,7 +209,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     );
 
   const handleBulkSelection = async (action: "select_changed" | "clear_changed" | "select_new_only") => {
-    if (!canWrite) return;
+    if (!canReview) return;
     setBulkAction(action);
     try {
       const res = await api.post("/bmn/import-review/bulk-selection", {
@@ -223,7 +227,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const handleApprove = async () => {
-    if (!canWrite) {
+    if (!canApprove) {
       toast.error("Approve import hanya tersedia untuk admin.");
       return;
     }
@@ -244,7 +248,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const handleReject = async () => {
-    if (!canWrite) {
+    if (!canApprove) {
       toast.error("Tolak import hanya tersedia untuk admin.");
       return;
     }
@@ -260,7 +264,6 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       setIsRejecting(false);
     }
   };
-
 
   const totalActionable = selectionSummary.selected_total;
   const isPending = batch?.status === "pending";
@@ -297,7 +300,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           </div>
         </div>
 
-        {canWrite && isPending && (
+        {canApprove && isPending && (
           <div className="flex items-center gap-2">
             <Button
               onClick={handleReject}
@@ -323,7 +326,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
         )}
       </div>
 
-      {!canWrite && isPending && (
+      {!canApprove && isPending && (
         <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
           <div className="flex items-start gap-2">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />

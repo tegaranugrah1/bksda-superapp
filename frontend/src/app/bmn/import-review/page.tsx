@@ -35,7 +35,8 @@ interface ImportBatch {
 
 export default function ImportReviewPage() {
   const queryClient = useQueryClient();
-  const { canWrite } = useRole();
+  const { hasPermission } = useRole();
+  const canUpload = hasPermission("bmn.import.review");
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -50,7 +51,7 @@ export default function ImportReviewPage() {
   const batches: ImportBatch[] = data?.data || [];
 
   const handleUpload = async () => {
-    if (!canWrite) {
+    if (!canUpload) {
       toast.error("Upload import hanya tersedia untuk admin.");
       return;
     }
@@ -98,7 +99,7 @@ export default function ImportReviewPage() {
         </p>
       </div>
 
-      {canWrite ? (
+      {canUpload ? (
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
         <h2 className="text-base font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
           <Upload className="w-4 h-4 text-emerald-600" />
@@ -200,7 +201,7 @@ export default function ImportReviewPage() {
                   {batch.status === "pending" && (
                     <Link href={`/bmn/import-review/${batch.id}`}>
                       <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                        <Eye className="w-3.5 h-3.5 mr-1" /> {canWrite ? "Review" : "Lihat"}
+                        <Eye className="w-3.5 h-3.5 mr-1" /> {canUpload ? "Review" : "Lihat"}
                       </Button>
                     </Link>
                   )}

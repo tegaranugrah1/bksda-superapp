@@ -36,6 +36,7 @@ class EmployeeAccessController extends Controller
                 'username' => $user->username,
                 'role' => $user->role,
                 'access_modules' => $user->access_modules,
+                'permissions' => $user->permissions,
             ],
         ]);
     }
@@ -64,6 +65,7 @@ class EmployeeAccessController extends Controller
                 'password' => $password,
                 'role' => $validated['role'],
                 'access_modules' => $validated['access_modules'] ?? [],
+                'permissions' => $validated['permissions'] ?? [],
             ]);
 
             $message = 'Akun akses berhasil diterbitkan (password default: 12345678).';
@@ -74,6 +76,7 @@ class EmployeeAccessController extends Controller
             $updateData = [
                 'role' => $validated['role'],
                 'access_modules' => $validated['access_modules'] ?? [],
+                'permissions' => $validated['permissions'] ?? [],
             ];
 
             // Jika dikirimi password (berarti admin ingin mereset password stafnya)
@@ -91,6 +94,7 @@ class EmployeeAccessController extends Controller
                 'username' => $user->username,
                 'role' => $user->role,
                 'access_modules' => $user->access_modules,
+                'permissions' => $user->permissions,
             ],
         ]);
         } catch (\Throwable $e) {
