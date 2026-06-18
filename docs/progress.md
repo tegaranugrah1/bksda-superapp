@@ -1,13 +1,13 @@
 # Progress - Phase 85: Audit Log Payload Sanitizer
 
 > Document updated: 2026-06-18
-> Status: Selesai lokal, siap PR.
+> Status: PR #417 squash merged ke `main` (commit `bb3b212`). Branch remote `codex/security-audit-payload-sanitizer` sudah dihapus.
 
 ---
 
 ## Security Observability Hardening
 
-### Status: SELESAI DI LOKAL
+### Status: SELESAI
 - Scope: middleware audit log global API.
 - Tujuan: audit log tetap mencatat aksi write API, tetapi tidak menyimpan secret, token nested, raw upload file, atau payload besar secara mentah.
 
