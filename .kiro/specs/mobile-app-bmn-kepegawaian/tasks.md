@@ -643,7 +643,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: scripts exist and run without missing-command errors.
   - _Requirements: 20_
 
-- [ ] 6. Create mobile source directory structure
+- [x] 6. Create mobile source directory structure
   - Target area: `mobile/src`.
   - Create folders: `app`, `components`, `features`, `hooks`, `lib`, `navigation`, `theme`, `types`.
   - Acceptance check: no feature code is placed at project root.

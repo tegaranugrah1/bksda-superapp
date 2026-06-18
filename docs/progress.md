@@ -4466,6 +4466,17 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 5 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 6: Create mobile source directory structure (`mobile/src/app`, `mobile/src/components`, etc.).
+- [ ] Task 6: Create mobile source directory structure (`mobile/src/app`, `mobile/src/components`, etc.) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 6 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 6: Created the mobile source directory structure (`app`, `components`, `features`, `hooks`, `lib`, `navigation`, `theme`, `types` including feature subdirectories `auth`, `bmn`, `dashboard`, `employees`, `profile`, `surat-tugas`, and library directories `api`, `auth`, `files`).
+- [x] Kept all folders tracked using placeholder `.gitkeep` files.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 6 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 7: Add design tokens (`mobile/src/theme/tokens.ts`).
 
 
