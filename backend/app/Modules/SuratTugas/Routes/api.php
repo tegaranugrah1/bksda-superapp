@@ -13,6 +13,7 @@ Route::post('/submit', [AssignmentLetterController::class, 'store'])
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/my', [AssignmentLetterController::class, 'myLetters']);
     Route::get('/my/{id}', [AssignmentLetterController::class, 'myShow']);
+    Route::get('/my/{id}/download', [AssignmentLetterController::class, 'myDownload']);
 });
 
 Route::middleware(['auth:sanctum', 'module.access:surat_tugas,kepegawaian'])->group(function () {

@@ -64,6 +64,36 @@ class AssignmentLetterController extends Controller
         return response()->json(['data' => $surat]);
     }
 
+    public function myDownload(Request $request, string $id)
+    {
+        $user = $request->user();
+        $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+
+        if (!$employee) {
+            return response()->json(['message' => 'Data pegawai tidak ditemukan'], 404);
+        }
+
+        $surat = AssignmentLetter::with(['employees'])
+            ->whereHas('employees', function ($q) use ($employee) {
+                $q->where('kpg_employees.id', $employee->id);
+            })
+            ->where('status', 'approved')
+            ->findOrFail($id);
+
+        if (! $surat->file_surat_path || ! Storage::exists($surat->file_surat_path)) {
+            return response()->json(['message' => 'Berkas tidak ditemukan di server.'], 404);
+        }
+
+        $ext = pathinfo($surat->file_surat_path, PATHINFO_EXTENSION) ?: 'pdf';
+        $dasarSurat = $surat->maksud_tujuan ? substr(preg_replace('/[^a-zA-Z0-9\s]/', '', $surat->maksud_tujuan), 0, 50) : 'Surat Tugas';
+        $namaPersonel = $surat->employees->first()?->nama_lengkap ?? 'Pegawai';
+        $tanggalUpload = $surat->created_at?->format('d-m-Y') ?? date('d-m-Y');
+        $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}") . '.' . $ext;
+        $filename = preg_replace('/[\/\\\\:*?"<>|]/', '_', $filename);
+
+        return Storage::download($surat->file_surat_path, $filename);
+    }
+
     public function index(Request $request)
     {
         $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
