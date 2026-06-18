@@ -28,7 +28,7 @@ Route::get('/health', function () {
 use App\Http\Controllers\Api\AuthController;
 
 // Public Auth Route
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
 // Protected Auth Routes (wajib bawa Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {

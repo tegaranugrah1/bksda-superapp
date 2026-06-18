@@ -155,6 +155,9 @@ class AuthController extends Controller
             'password' => Hash::make($request->new_password),
         ]);
 
+        // Password change is a credential reset event; revoke every issued token.
+        $user->tokens()->delete();
+
         return response()->json([
             'message' => 'Password berhasil diubah',
         ]);
