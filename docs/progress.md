@@ -1,3 +1,29 @@
+# Progress - Phase 93: Secure Private Storage Folders
+
+> Document updated: 2026-06-18
+> Status: PR #433 merged ke `main` (commit `9ebe98f`). Branch remote `issue/432-private-storage-security` sudah dihapus.
+
+---
+
+## Secure Private Storage Folders
+
+### Status: SELESAI
+- Scope: Nginx Routing Configuration
+- Tujuan: Melindungi file sensitif dari akses publik langsung via Nginx dengan memblokir request ke `/storage/private/dereporting/` dan `/storage/surat-tugas/`. Pengguna hanya dapat mengakses dokumen-dokumen tersebut melalui download controller Laravel yang terautentikasi.
+
+### Implementasi
+- **Deployment**:
+  - Memperbarui [nginx.conf](file:///e:/bksda-superapp/deploy/nginx.conf) untuk mendefinisikan lokasi regex yang memblokir (`return 403`) request HTTP eksternal ke subdirektori `/storage/private/dereporting/` dan `/storage/surat-tugas/` sebelum request diteruskan ke RustFS.
+  - folder publik lainnya seperti `employees/`, `bmn/`, dan `private/cms/` (logo & favicon website) tetap dapat diakses publik agar UI render dengan normal.
+
+### Validasi
+- `docker compose config`: pass.
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+
+---
+
 # Progress - Phase 92: Content Security Policy (CSP) Enforcement
 
 > Document updated: 2026-06-18

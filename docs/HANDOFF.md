@@ -102,6 +102,7 @@ git push origin main
 
 ## Status Saat Ini
 
+- [x] Issue #432: Secure Private Storage Folders. PR #433 merged ke `main` (commit `9ebe98f`). Mengkonfigurasi filter Nginx di `nginx.conf` untuk memblokir (`403 Forbidden`) akses langsung eksternal ke folder `/storage/private/dereporting/` dan `/storage/surat-tugas/`, sehingga dokumen rahasia hanya dapat diakses secara streaming melalui Laravel controller yang terautentikasi. Validasi docker compose config, lint, tsc, dan build pass.
 - [x] Issue #430: Enforce Content Security Policy (CSP). PR #431 merged ke `main` (commit `1cdd77d`). Mengaktifkan enforce mode pada CSP di `next.config.ts` (mengubah header key dari `Content-Security-Policy-Report-Only` menjadi `Content-Security-Policy`) untuk memblokir script/sumber daya tidak sah secara aktif di production. Validasi tsc, lint, dan build pass.
 - [x] Issue #427 (Follow-up): Local Dev CSRF Proxy & Production Cookie Fix. PR #429 merged ke `main` (commit `a74c0ef`). Menyelesaikan error CSRF di development via Next.js proxy rewrites, serta mengatasi session expired langsung di production dengan mengkonfigurasi Sanctum stateful domains, CORS allowed origins, secure cookies, dan session domain secara tepat.
 - [x] Issue #427: SPA CSRF Token Fix. PR #428 squash merged ke `main` (commit `a2d221a`). Menyelesaikan error `419 CSRF token mismatch` pada login SPA lintas asal dengan secara manual melampirkan header `X-XSRF-TOKEN` ke request interceptor Axios di `api.ts`. Validasi tsc, lint, dan build pass.
