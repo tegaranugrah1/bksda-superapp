@@ -613,19 +613,19 @@ Use this matrix together with the numbered task. A lower-capability model should
 
 ### Milestone 1: Foundation Alpha
 
-- [ ] 1. Create mobile workspace folder
+- [x] 1. Create mobile workspace folder
   - Target area: `mobile/`.
   - Create an Expo React Native + TypeScript app scaffold.
   - Acceptance check: `mobile/package.json` exists and the app can run with the documented command.
   - _Requirements: 1, 20_
 
-- [ ] 2. Add mobile environment template
+- [x] 2. Add mobile environment template
   - Target area: `mobile/.env.example`.
   - Define API base URL and app environment keys only.
   - Acceptance check: no secret value is committed.
   - _Requirements: 19_
 
-- [ ] 3. Add mobile README run guide
+- [x] 3. Add mobile README run guide
   - Target area: `mobile/README.md`.
   - Document install, Android run, lint, test, and env setup.
   - Acceptance check: a new developer can find the Android run command in the README.

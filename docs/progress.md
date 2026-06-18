@@ -4444,3 +4444,15 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 ### Next Steps
 - [ ] When delegating a task to a smaller model, include both the numbered task and its row from the `Local Instruction Matrix`.
 
+## [2026-06-18] Mobile App Implementation - Task 1 s.d 3 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 1: Scaffolded the Expo React Native + TypeScript workspace inside the [mobile/](file:///e:/bksda-superapp/mobile/) directory.
+- [x] Task 2: Created [mobile/.env.example](file:///e:/bksda-superapp/mobile/.env.example) and updated `.gitignore` to ignore local env files (`.env`).
+- [x] Task 3: Added [mobile/README.md](file:///e:/bksda-superapp/mobile/README.md) with detailed installation and Android running instructions.
+- [x] Checked off completed tasks 1, 2, and 3 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 4: Configure TypeScript path aliases in `mobile/tsconfig.json`.
+
+
