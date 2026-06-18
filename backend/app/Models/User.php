@@ -89,6 +89,25 @@ class User extends Authenticatable
                 }
                 return $this->role === 'admin' && in_array('bmn', $this->access_modules ?? []);
             }
+
+            if (str_starts_with($permission, 'kepegawaian.')) {
+                $isReadPermission = in_array($permission, ['kepegawaian.view']);
+                if ($isReadPermission) {
+                    return in_array('kepegawaian', $this->access_modules ?? []);
+                }
+                return $this->role === 'admin' && in_array('kepegawaian', $this->access_modules ?? []);
+            }
+
+            if (str_starts_with($permission, 'surat_tugas.')) {
+                $isReadPermission = in_array($permission, ['surat_tugas.view']);
+                $hasModuleAccess = in_array('surat_tugas', $this->access_modules ?? [])
+                    || in_array('kepegawaian', $this->access_modules ?? []);
+                if ($isReadPermission) {
+                    return $hasModuleAccess;
+                }
+                return $this->role === 'admin' && $hasModuleAccess;
+            }
+
             return false;
         }
 

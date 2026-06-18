@@ -132,7 +132,11 @@ class AuthController extends Controller
             }),
         ];
 
-        return response()->json($dashboardData);
+        return response()->json([
+            ...$dashboardData,
+            'data' => $dashboardData,
+            'message' => 'Dashboard berhasil dimuat.',
+        ]);
     }
 
     /**
@@ -142,8 +146,10 @@ class AuthController extends Controller
     {
         // Logout dari guard session dan invalidate session cookie
         \Illuminate\Support\Facades\Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         // Hapus token yang sedang digunakan jika terautentikasi lewat token
         if ($request->user() && $request->user()->currentAccessToken()) {

@@ -10,10 +10,11 @@ class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_the_api_health_endpoint_returns_a_successful_response(): void
     {
-        $response = $this->get('/');
+        $response = $this->getJson('/api/health');
 
         $response->assertStatus(200);
+        $response->assertJsonPath('status', 'ok');
     }
 }
