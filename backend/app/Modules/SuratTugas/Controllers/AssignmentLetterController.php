@@ -31,7 +31,9 @@ class AssignmentLetterController extends Controller
             })
             ->where('status', 'approved');
 
-        $perPage = min((int) $request->query('per_page', 20), 50);
+        $requestedPerPage = max(1, (int) $request->query('per_page', 20));
+        $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
+        $perPage = min($requestedPerPage, $isMobile ? 50 : 200);
         $letters = $query->latest()->paginate($perPage);
 
         return response()->json([
@@ -117,7 +119,9 @@ class AssignmentLetterController extends Controller
             $query->onlyTrashed();
         }
 
-        $perPage = min((int) $request->query('per_page', 10), 50);
+        $requestedPerPage = max(1, (int) $request->query('per_page', 10));
+        $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
+        $perPage = min($requestedPerPage, $isMobile ? 50 : 200);
         $letters = $query->latest()->paginate($perPage);
 
         return response()->json([

@@ -30,6 +30,9 @@ class AssetPhotoController extends Controller
         $request->validate([
             'photo' => UploadValidationRules::image(),
             'type' => 'required|in:' . implode(',', self::VALID_TYPES),
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'location_note' => ['nullable', 'string', 'max:500'],
         ]);
 
         $asset = Asset::findOrFail($assetId);
@@ -49,7 +52,18 @@ class AssetPhotoController extends Controller
         $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}." . $request->file('photo')->extension();
         $path = $request->file('photo')->storeAs($folder, $filename);
 
-        $asset->update([$column => $path]);
+        $assetUpdate = [$column => $path];
+        if ($request->filled('latitude')) {
+            $assetUpdate['foto_geotag_latitude'] = $request->input('latitude');
+        }
+        if ($request->filled('longitude')) {
+            $assetUpdate['foto_geotag_longitude'] = $request->input('longitude');
+        }
+        if ($request->filled('location_note')) {
+            $assetUpdate['foto_geotag_location_note'] = $request->input('location_note');
+        }
+
+        $asset->update($assetUpdate);
 
         // Log to history
         AssetUpdate::create([
@@ -65,7 +79,17 @@ class AssetPhotoController extends Controller
             ? "/api/bmn/assets/{$asset->id}/photo/{$type}/view" 
             : $this->disk()->url($path);
 
+        $payload = [
+            'path' => $path,
+            'url' => $url,
+            'type' => $type,
+            'latitude' => $assetUpdate['foto_geotag_latitude'] ?? $asset->foto_geotag_latitude,
+            'longitude' => $assetUpdate['foto_geotag_longitude'] ?? $asset->foto_geotag_longitude,
+            'location_note' => $assetUpdate['foto_geotag_location_note'] ?? $asset->foto_geotag_location_note,
+        ];
+
         return response()->json([
+            'data' => $payload,
             'message' => 'Foto berhasil diupload.',
             'path' => $path,
             'url' => $url,
@@ -80,6 +104,9 @@ class AssetPhotoController extends Controller
         $request->validate([
             'photo' => UploadValidationRules::image(required: false),
             'url' => 'nullable|url',
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'location_note' => ['nullable', 'string', 'max:500'],
         ]);
 
         if (!$request->hasFile('photo') && !$request->filled('url')) {
@@ -105,6 +132,9 @@ class AssetPhotoController extends Controller
             $asset->update([
                 'foto_geotag_path' => $path,
                 'foto_geotag_url' => null,
+                'foto_geotag_latitude' => $request->input('latitude'),
+                'foto_geotag_longitude' => $request->input('longitude'),
+                'foto_geotag_location_note' => $request->input('location_note'),
             ]);
 
             AssetUpdate::create([
@@ -116,11 +146,21 @@ class AssetPhotoController extends Controller
                 'alasan_perubahan' => 'Upload foto geotag langsung',
             ]);
 
-            return response()->json([
-                'message' => 'Foto geotag berhasil diupload.',
+            $payload = [
                 'source' => 'upload',
                 'path' => $path,
                 'url' => $this->disk()->url($path),
+                'latitude' => $asset->fresh()->foto_geotag_latitude !== null ? (float) $asset->fresh()->foto_geotag_latitude : null,
+                'longitude' => $asset->fresh()->foto_geotag_longitude !== null ? (float) $asset->fresh()->foto_geotag_longitude : null,
+                'location_note' => $asset->fresh()->foto_geotag_location_note,
+            ];
+
+            return response()->json([
+                'data' => $payload,
+                'message' => 'Foto geotag berhasil diupload.',
+                'source' => 'upload',
+                'path' => $path,
+                'url' => $payload['url'],
             ]);
         }
 
@@ -132,6 +172,9 @@ class AssetPhotoController extends Controller
         $asset->update([
             'foto_geotag_url' => $request->input('url'),
             'foto_geotag_path' => null,
+            'foto_geotag_latitude' => $request->input('latitude'),
+            'foto_geotag_longitude' => $request->input('longitude'),
+            'foto_geotag_location_note' => $request->input('location_note'),
         ]);
 
         AssetUpdate::create([
@@ -143,7 +186,17 @@ class AssetPhotoController extends Controller
             'alasan_perubahan' => 'Update link foto geotag',
         ]);
 
+        $freshAsset = $asset->fresh();
+        $payload = [
+            'source' => 'url',
+            'url' => $request->input('url'),
+            'latitude' => $freshAsset->foto_geotag_latitude !== null ? (float) $freshAsset->foto_geotag_latitude : null,
+            'longitude' => $freshAsset->foto_geotag_longitude !== null ? (float) $freshAsset->foto_geotag_longitude : null,
+            'location_note' => $freshAsset->foto_geotag_location_note,
+        ];
+
         return response()->json([
+            'data' => $payload,
             'message' => 'Link foto geotag berhasil disimpan.',
             'source' => 'url',
             'url' => $request->input('url'),
@@ -164,7 +217,13 @@ class AssetPhotoController extends Controller
                 $this->disk()->delete($oldPath);
             }
 
-            $asset->update(['foto_geotag_path' => null, 'foto_geotag_url' => null]);
+            $asset->update([
+                'foto_geotag_path' => null,
+                'foto_geotag_url' => null,
+                'foto_geotag_latitude' => null,
+                'foto_geotag_longitude' => null,
+                'foto_geotag_location_note' => null,
+            ]);
 
             AssetUpdate::create([
                 'asset_id' => $asset->id,

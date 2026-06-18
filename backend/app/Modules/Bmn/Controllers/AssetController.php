@@ -95,8 +95,16 @@ class AssetController extends Controller
             $query->where('lokasi_ruang', 'ilike', '%' . $request->lokasi_ruang . '%');
         }
 
-        $perPage = min($request->integer('per_page', 10), 100);
+        $perPage = $this->resolvePerPage($request, default: 10, mobileMax: 100, webMax: 2000);
         return AssetResource::collection($query->paginate($perPage));
+    }
+
+    private function resolvePerPage(Request $request, int $default = 10, int $mobileMax = 100, int $webMax = 500): int
+    {
+        $requested = max(1, $request->integer('per_page', $default));
+        $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
+
+        return min($requested, $isMobile ? $mobileMax : $webMax);
     }
 
     public function store(StoreAssetRequest $request): JsonResponse

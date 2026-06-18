@@ -30,6 +30,7 @@ class Asset extends Model
         'uraian_kanwil_djkn', 'nama_kl', 'nama_e1', 'nama_korwil', 'kode_register', 'lokasi_ruang',
         'jenis_identitas', 'no_identitas', 'no_stnk', 'no_mesin', 'no_rangka', 'nama_pengguna', 'status_pmk',
         'status_foto_geotag', 'foto_geotag_url', 'foto_geotag_path', 'foto_depan_path', 'foto_belakang_path',
+        'foto_geotag_latitude', 'foto_geotag_longitude', 'foto_geotag_location_note',
         'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path',
         'foto_bpkb_1_path', 'foto_bpkb_2_path', 'foto_bpkb_3_path', 'foto_bpkb_4_path',
         'foto_stnk_1_path', 'foto_stnk_2_path',
@@ -55,6 +56,8 @@ class Asset extends Model
         'tanggal_pajak_stnk' => 'date',
         'tanggal_ganti_plat' => 'date',
         'verified_at' => 'datetime',
+        'foto_geotag_latitude' => 'decimal:7',
+        'foto_geotag_longitude' => 'decimal:7',
     ];
 
     public function penanggungJawab()

@@ -28,6 +28,8 @@ class MobileDashboardController extends Controller
             'name' => $user->name,
             'username' => $user->username,
             'role' => $user->role,
+            'access_modules' => $user->access_modules ?? [],
+            'permissions' => $user->permissions ?? [],
             'employee' => $employee ? [
                 'id' => $employee->id,
                 'nip' => $employee->nip,
@@ -93,9 +95,8 @@ class MobileDashboardController extends Controller
         }
 
         // Check if user has permission or module access for Surat Tugas approval
-        $hasSuratTugasAccess = $user->role === 'super_admin' 
-            || in_array('surat_tugas', $user->access_modules ?? []) 
-            || in_array('kepegawaian', $user->access_modules ?? []);
+        $hasSuratTugasAccess = $user->hasPermission('surat_tugas.approve')
+            || $user->hasPermission('kepegawaian.view');
 
         if ($hasSuratTugasAccess) {
             $pendingApprovalsCount = AssignmentLetter::where('status', 'pending')->count();
@@ -113,6 +114,10 @@ class MobileDashboardController extends Controller
                 ],
                 'urgent_tax_vehicles' => $urgentTaxVehicles,
                 'notifications' => [], // Fallback placeholder
+            ],
+            'meta' => [
+                'generated_at' => now()->toIso8601String(),
+                'client' => 'mobile',
             ],
             'message' => 'Dashboard data retrieved successfully',
         ]);

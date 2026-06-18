@@ -39,7 +39,9 @@ class EmployeeController extends Controller
         }
 
         // Ambil data dengan Pagination (default 10 baris per halaman)
-        $perPage = min((int) $request->input('per_page', 10), 100);
+        $requestedPerPage = max(1, (int) $request->input('per_page', 10));
+        $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
+        $perPage = min($requestedPerPage, $isMobile ? 100 : 500);
         $employees = $query->orderBy('nama_lengkap', 'asc')->paginate($perPage);
 
         // Rule 5.1 & 5.3: Format Response Seragam

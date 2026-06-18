@@ -4323,3 +4323,22 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Registered the `/api/me` route mapping under Sanctum middleware in `backend/routes/api.php`.
 - [x] Squash merged `issue/auth-and-me-endpoint` into `main` and pushed to origin.
 
+## [2026-06-18] Mobile API Readiness Cleanup
+
+### Completed (Selesai)
+- [x] Fixed web regression risk from strict `per_page=100` caps by keeping mobile caps strict while allowing existing web report/export flows to request larger pages.
+- [x] Hardened legacy permission fallback for `kepegawaian.*` and `surat_tugas.*`, so older users without granular permissions still behave correctly.
+- [x] Updated mobile dashboard permission summary to use backend permission checks instead of module-name heuristics.
+- [x] Added `data` wrapper to `/api/me/dashboard` while preserving legacy top-level fields used by the web portal.
+- [x] Made logout safer for mobile Bearer-token sessions by invalidating browser sessions only when a session exists.
+- [x] Added nullable BMN photo geotag metadata columns: latitude, longitude, and location note.
+- [x] Updated BMN photo/geotag upload responses to include a mobile-friendly `data` payload while preserving existing top-level `url/path` fields for web compatibility.
+- [x] Added unit coverage for legacy permission fallback behavior.
+- [x] Fixed the default feature health test to target `/api/health` instead of the non-existent backend root route.
+
+### Verification
+- [x] PHP syntax checks passed for changed backend files.
+- [x] `php artisan migrate --pretend` passed for the new BMN geotag metadata migration.
+- [x] `php artisan test` passed: 6 tests, 11 assertions.
+- [x] `npm run lint` passed for frontend.
+
