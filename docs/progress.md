@@ -1,3 +1,33 @@
+# Progress - Phase 95: Secure Private Storage for Vehicle Documents
+
+> Document updated: 2026-06-18
+> Status: PR #436 merged ke `main` (commit `aa18730`). Branch remote `issue/436-private-storage-signed-urls` sudah dihapus.
+
+---
+
+## Secure Private Storage for Vehicle Documents
+
+### Status: SELESAI
+- Scope: Nginx and BMN Backend Module
+- Tujuan: Mengamankan dokumen kendaraan sensitif (BPKB & STNK) dengan memindahkannya ke private storage path, memblokir akses HTTP langsung via Nginx, dan membatasi akses inline preview/view ke pengguna terautentikasi melalui rute Laravel yang aman.
+
+### Implementasi
+- **Deployment**:
+  - Memperbarui [nginx.conf](file:///e:/bksda-superapp/deploy/nginx.conf) untuk memblokir (`return 403`) request HTTP eksternal langsung ke subdirektori `/storage/private/bmn-documents/`.
+- **Backend**:
+  - Memperbarui [AssetPhotoController.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetPhotoController.php) untuk mengarahkan upload BPKB/STNK (`bpkb_1` s.d `bpkb_4` dan `stnk_1` s.d `stnk_2`) ke folder `private/bmn-documents/`.
+  - Menambahkan metode `view(string $assetId, string $type)` di `AssetPhotoController` untuk mengambil file dari storage (baik di local private path maupun bucket S3/RustFS) dan menampilkannya inline dengan header `Content-Type` yang tepat.
+  - Memperbarui [api.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Routes/api.php) untuk mendaftarkan endpoint `/assets/{asset}/photo/{type}/view` terproteksi dengan middleware `permission:bmn.view`.
+  - Memperbarui [AssetResource.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Resources/AssetResource.php) agar field BPKB/STNK URL menggunakan relative path `/api/bmn/assets/{id}/photo/{type}/view` sehingga cookies session terkirim otomatis pada pemuatan gambar `<img>` lintas domain/rewrite local dev.
+
+### Validasi
+- `php -l`: pass.
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+
+---
+
 # Progress - Phase 94: Descriptive Audit Logging for Observability
 
 > Document updated: 2026-06-18
