@@ -1,13 +1,13 @@
 # Progress - Phase 83: File Upload Validation Hardening
 
 > Document updated: 2026-06-18
-> Status: Selesai lokal, siap PR.
+> Status: PR #413 squash merged ke `main` (commit `5e8ac5d`). Branch remote `codex/security-file-upload-hardening` sudah dihapus.
 
 ---
 
 ## Hardening Upload File dan Import
 
-### Status: SELESAI DI LOKAL
+### Status: SELESAI
 - Scope: backend upload/import validation untuk BMN, Inventory, Kepegawaian, Surat Tugas, DE Reporting, CMS, dan profile photo.
 - Tujuan: mengurangi risiko file spoofing, upload tipe berbahaya, dan error detail dari parser import yang bocor ke user.
 
