@@ -1,3 +1,39 @@
+# Progress - Phase 84: CSP Report-Only dan Sanitizer Hardening
+
+> Document updated: 2026-06-18
+> Status: Selesai lokal, siap PR.
+
+---
+
+## XSS Blast Radius Reduction
+
+### Status: SELESAI DI LOKAL
+- Scope: frontend security header dan sanitizer HTML publik.
+- Tujuan: mengurangi dampak XSS tanpa langsung mematahkan halaman print, preview dokumen, dan konten CMS yang masih memakai inline style.
+
+### Implementasi
+- Menambahkan `Content-Security-Policy-Report-Only` di `next.config.ts`.
+  - mode report-only dipilih sebagai langkah aman sebelum enforce karena aplikasi masih punya print preview dan style inline.
+  - directive penting: `default-src 'self'`, `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'self'`, dan pembatasan `frame-src` YouTube.
+- Memperketat `sanitizeHtml`:
+  - SSR fallback tidak lagi mengembalikan HTML mentah.
+  - URL dibatasi ke protokol aman.
+  - iframe hasil CMS hanya diizinkan untuk embed YouTube/YouTube-nocookie.
+  - link `target="_blank"` otomatis diberi `rel="noopener noreferrer"`.
+
+### Validasi
+- `npm run lint`: pass.
+- `npm run build`: pass.
+- Browser bawaan Codex:
+  - halaman publik `/` load normal.
+  - tidak ada console error setelah perubahan sanitizer.
+
+### Catatan
+- CSP masih report-only. Setelah observasi produksi aman, PR lanjutan bisa memindahkan policy ke enforce dan memperketat `script-src`/`style-src`.
+- File untracked lokal `frontend/public/header.png` tidak disentuh.
+
+---
+
 # Progress - Phase 83: File Upload Validation Hardening
 
 > Document updated: 2026-06-18

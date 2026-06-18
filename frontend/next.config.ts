@@ -1,5 +1,21 @@
 import type { NextConfig } from "next";
 
+const contentSecurityPolicyReportOnly = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'self'",
+    "form-action 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: http: https:",
+    "font-src 'self' data: https:",
+    "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 https://bksdakaltim.net https://www.bksdakaltim.net https://api.bksdakaltim.net https://storage.bksdakaltim.net https://*.supabase.co",
+    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+    "media-src 'self' blob: https:",
+    "worker-src 'self' blob:",
+].join("; ");
+
 const nextConfig: NextConfig = {
 
     output: "standalone",
@@ -54,6 +70,10 @@ const nextConfig: NextConfig = {
                     {
                         key: "Permissions-Policy",
                         value: "camera=(), microphone=(), geolocation=()",
+                    },
+                    {
+                        key: "Content-Security-Policy-Report-Only",
+                        value: contentSecurityPolicyReportOnly,
                     },
                 ],
             },
