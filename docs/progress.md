@@ -4342,3 +4342,105 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] `php artisan test` passed: 6 tests, 11 assertions.
 - [x] `npm run lint` passed for frontend.
 
+## [2026-06-18] Mobile App Planning - Requirements Draft
+
+### Completed (Selesai)
+- [x] Rewrote `.kiro/specs/mobile-app-bmn-kepegawaian/requirements.md` from the older field-staff-only draft into a role-aware mobile app requirement document.
+- [x] Captured product decisions: Android first, iOS later, online-only MVP, existing backend auth, all current roles, backend permission enforcement, and no BMN document generators in MVP.
+- [x] Defined MVP scope for auth, mobile dashboard, role-based navigation, BMN assets, asset photos/geotag, verification, loans/returns, Surat Tugas, profile, pagination, and mobile error handling.
+- [x] Added explicit out-of-scope items: BMN document generators, Excel import/export, CMS, offline mode, production push notifications, and server/deployment administration.
+- [x] Added acceptance criteria for 20 mobile requirement areas plus future requirements and open questions for the upcoming `design.md`.
+
+### Next Steps
+- [ ] Review and refine the requirements with product feedback if needed.
+- [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/design.md`.
+- [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md`.
+
+## [2026-06-18] Mobile App Planning - Design Draft
+
+### Completed (Selesai)
+- [x] Created `.kiro/specs/mobile-app-bmn-kepegawaian/design.md` as the technical and UX design bridge after requirements.
+- [x] Recommended Expo React Native + TypeScript for Android-first MVP with iOS readiness.
+- [x] Defined app architecture: app shell, auth layer, API layer, feature modules, and shared UI.
+- [x] Defined root navigation, tab structure, screen map, and role-based module visibility.
+- [x] Designed BMN flows for asset list/detail, photo/geotag upload, verification, loans, and returns.
+- [x] Designed Surat Tugas flows for list/detail, create/edit/submit, approval/status actions, and authenticated download/share.
+- [x] Added API client conventions, error handling, permission gating, security, accessibility, performance, testing, and rollout strategy.
+
+### Next Steps
+- [ ] Review `design.md` for product/UX fit.
+- [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md`.
+
+## [2026-06-18] Mobile App Planning - Tasks Draft
+
+### Completed (Selesai)
+- [x] Created `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md` as the implementation checklist for the mobile app MVP.
+- [x] Broke the mobile app plan into 30 issue-sized tasks from workspace setup through Android internal release.
+- [x] Sequenced the plan from shared foundations first: Expo workspace, design system, API client, secure auth, profile bootstrap, permission context, and navigation.
+- [x] Added feature tasks for mobile dashboard, BMN list/detail/create/edit, photo/geotag upload, verification, loans/returns, Surat Tugas list/detail/forms/approval, and authenticated file download/share.
+- [x] Added quality tasks for online-only behavior, security hardening, accessibility, automated tests, Android device validation, rollout documentation, and progress updates.
+
+### Next Steps
+- [ ] Review `requirements.md`, `design.md`, and `tasks.md` as one mobile MVP specification set.
+- [ ] Decide first implementation issue, recommended: mobile workspace setup and shared design foundation.
+
+## [2026-06-18] Mobile App Planning - Spec Quality Upgrade
+
+### Completed (Selesai)
+- [x] Audited `requirements.md`, `design.md`, and `tasks.md` as one mobile MVP specification set.
+- [x] Raised the target quality score to 9.5/10 by closing product decisions that were still open.
+- [x] Updated requirements with Expo managed workflow, authenticated PDF/share behavior, geotag scope, MVP milestones, and measurable performance/security/UX criteria.
+- [x] Updated design with 9.5/10 scoring, permission matrix, non-functional targets, and milestone-based rollout plan.
+- [x] Updated tasks with 9.5/10 scoring, milestone groups, and exit criteria for Foundation Alpha, BMN Alpha, Surat Tugas Alpha, Android Internal Beta, and Android Internal Release.
+
+### Next Steps
+- [ ] Start implementation from Milestone 1: Foundation Alpha.
+- [ ] Verify backend permission names during the first implementation spike.
+
+## [2026-06-18] Mobile App Planning - Low-Model Task Breakdown
+
+### Completed (Selesai)
+- [x] Reworked `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md` from 30 epic-level tasks into 90 smaller execution tasks.
+- [x] Added low-model execution rules to prevent scope drift, oversized PRs, and unsafe auth/file handling.
+- [x] Kept the same five milestones while making each milestone more granular and easier to validate.
+- [x] Added target area, expected result, and acceptance check for every task so weaker AI models can execute with less interpretation.
+- [x] Raised the task plan score to 10/10 specifically for step-by-step execution by lower-capability AI models.
+
+### Verification
+- [x] Confirmed `tasks.md` contains 90 numbered checklist items.
+- [x] Confirmed task coverage still maps to Foundation Alpha, BMN Alpha, Surat Tugas Alpha, Android Internal Beta, and Android Internal Release.
+
+### Next Steps
+- [ ] Start with task 1: create the mobile workspace folder.
+- [ ] Keep each implementation PR small and update `docs/progress.md` after each completed issue.
+
+## [2026-06-18] Mobile App Planning - Low-Model Task Contracts
+
+### Completed (Selesai)
+- [x] Strengthened `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md` so low-capability AI models have implementation contracts, not only short task descriptions.
+- [x] Added subscore targets marked 10/10 for structure, task size, acceptance clarity, implementation detail, and likelihood of low-model success.
+- [x] Added mandatory workspace, folder, library, shared component, API client, query hook, permission, screen state, BMN, Surat Tugas, employee selector, and security contracts.
+- [x] Added explicit component props for core UI components such as `AppButton`, `IconButton`, `AppTextInput`, `SearchInput`, state components, and API response/error shapes.
+- [x] Added low-model do/don't rules to prevent unsafe storage, unauthenticated file URLs, desktop table patterns, and backend permission bypasses.
+
+### Verification
+- [x] Confirmed `tasks.md` still contains 90 numbered tasks.
+- [x] Confirmed implementation contracts are available before the task list.
+
+### Next Steps
+- [ ] Start implementation from task 1 using the contracts as mandatory guardrails.
+
+## [2026-06-18] Mobile App Planning - Local Task Instructions
+
+### Completed (Selesai)
+- [x] Corrected the low-model score framing: 10/10 depends on reading each task together with its local instruction row.
+- [x] Added a `Local Instruction Matrix` to `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md`.
+- [x] Added one local instruction row for every task 1-90, including focus, required contract, explicit "do not" guardrail, and local check.
+- [x] Made task execution safer for smaller models that may not reliably infer details from the global contracts alone.
+
+### Verification
+- [x] Confirmed all 90 task IDs have a matching local instruction row.
+
+### Next Steps
+- [ ] When delegating a task to a smaller model, include both the numbered task and its row from the `Local Instruction Matrix`.
+
