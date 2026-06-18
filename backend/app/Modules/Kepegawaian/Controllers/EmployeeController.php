@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Requests\EmployeeRequest;
+use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -156,7 +157,7 @@ class EmployeeController extends Controller
     public function updatePhoto(Request $request, $id): JsonResponse
     {
         $request->validate([
-            'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'foto' => UploadValidationRules::image(maxKilobytes: 10240),
         ]);
 
         $employee = Employee::findOrFail($id);

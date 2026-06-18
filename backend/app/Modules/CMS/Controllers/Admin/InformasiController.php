@@ -5,6 +5,7 @@ namespace App\Modules\CMS\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Modules\CMS\Models\Informasi;
 use App\Modules\CMS\Traits\AdminCrudTrait;
+use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -39,7 +40,7 @@ class InformasiController extends Controller
         $request->validate([
             'judul' => 'required|string|max:500',
             'konten' => 'required|string',
-            'thumbnail' => 'nullable|file|max:5120|mimes:jpg,jpeg,png,webp',
+            'thumbnail' => UploadValidationRules::image(required: false),
         ]);
 
         $data = $request->only((new Informasi)->getFillable());

@@ -23,7 +23,7 @@ class StoreEksternalRequest extends FormRequest
             'deskripsi' => ['nullable', 'string'],
 
             // Masyarakat boleh mengirimkan bukti Foto (jpg, png, jpeg)
-            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar,jpg,png,jpeg'],
+            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar,jpg,png,jpeg', 'extensions:pdf,doc,docx,xls,xlsx,zip,rar,jpg,png,jpeg'],
         ];
     }
 

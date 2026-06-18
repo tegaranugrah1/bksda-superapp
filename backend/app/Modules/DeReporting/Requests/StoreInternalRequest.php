@@ -36,7 +36,7 @@ class StoreInternalRequest extends FormRequest
 
             // Proteksi Inti Berkas (Project Rule 4.1 & 4.2)
             // Maksimal 10240 KB = 10 MB
-            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar'],
+            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'extensions:pdf,doc,docx,xls,xlsx,zip,rar'],
         ];
     }
 

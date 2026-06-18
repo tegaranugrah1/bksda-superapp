@@ -114,6 +114,8 @@ trait AdminCrudTrait
      */
     protected function handleFileUpload(Request $request, array $data): array
     {
+        $this->validateCmsUploads($request);
+
         $fileFields = [
             'thumbnail' => 'thumbnail_path',
             'file' => 'file_path',
@@ -133,5 +135,28 @@ trait AdminCrudTrait
         }
 
         return $data;
+    }
+
+    protected function validateCmsUploads(Request $request): void
+    {
+        $rules = [
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|extensions:jpg,jpeg,png,webp|max:5120',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|extensions:jpg,jpeg,png,webp|max:5120',
+            'cover' => 'nullable|image|mimes:jpg,jpeg,png,webp|extensions:jpg,jpeg,png,webp|max:5120',
+            'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp,svg|extensions:jpg,jpeg,png,webp,svg|max:5120',
+            'favicon' => 'nullable|file|mimes:jpg,jpeg,png,webp,svg,ico|extensions:jpg,jpeg,png,webp,svg,ico|max:1024',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp|extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp|max:10240',
+        ];
+
+        $activeRules = [];
+        foreach (array_keys($rules) as $field) {
+            if ($request->hasFile($field)) {
+                $activeRules[$field] = $rules[$field];
+            }
+        }
+
+        if ($activeRules !== []) {
+            $request->validate($activeRules);
+        }
     }
 }
