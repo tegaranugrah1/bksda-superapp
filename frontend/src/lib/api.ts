@@ -2,7 +2,9 @@ import axios from "axios";
 import { authStore } from "@/lib/auth-store";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api",
+  baseURL: typeof window === "undefined"
+    ? (process.env.NEXT_PUBLIC_API_URL?.startsWith("http") ? process.env.NEXT_PUBLIC_API_URL : "http://127.0.0.1:8000/api")
+    : (process.env.NEXT_PUBLIC_API_URL || "/api"),
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
