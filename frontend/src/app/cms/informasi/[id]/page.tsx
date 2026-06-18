@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
+import { sanitizeHtml } from "@/lib/utils";
 import { Newspaper, Save, ArrowLeft, Loader2, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
@@ -134,7 +135,7 @@ export default function EditInformasiPage() {
       const payload = new FormData();
       payload.append("_method", "PUT");
       payload.append("judul", judul);
-      payload.append("konten", konten);
+      payload.append("konten", sanitizeHtml(konten));
       if (categoryId) payload.append("category_id", categoryId);
       if (sumber) payload.append("sumber", sumber);
       payload.append("is_published", isPublished ? "1" : "0");
