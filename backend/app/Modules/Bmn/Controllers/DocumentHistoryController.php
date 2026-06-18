@@ -4,8 +4,10 @@ namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Models\HandoverAgreement;
+use App\Modules\Bmn\Models\PowerOfAttorney;
 use App\Modules\Bmn\Models\UsageAgreement;
 use App\Modules\Bmn\Resources\HandoverAgreementResource;
+use App\Modules\Bmn\Resources\PowerOfAttorneyResource;
 use App\Modules\Bmn\Resources\UsageAgreementResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +18,7 @@ class DocumentHistoryController extends Controller
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'type' => ['nullable', Rule::in(['all', 'usage_agreement', 'handover_agreement'])],
+            'type' => ['nullable', Rule::in(['all', 'usage_agreement', 'handover_agreement', 'power_of_attorney'])],
             'employee_id' => ['nullable', 'integer', 'exists:kpg_employees,id'],
             'search' => ['nullable', 'string', 'max:120'],
             'per_page' => ['nullable', 'integer', 'min:5', 'max:50'],
@@ -37,6 +39,10 @@ class DocumentHistoryController extends Controller
             $queries[] = $this->handoverHistoryQuery($employeeId, $search);
         }
 
+        if ($type === 'all' || $type === 'power_of_attorney') {
+            $queries[] = $this->powerOfAttorneyHistoryQuery($employeeId, $search);
+        }
+
         $combined = array_shift($queries);
         foreach ($queries as $query) {
             $combined->unionAll($query);
@@ -51,6 +57,7 @@ class DocumentHistoryController extends Controller
         $rows = collect($paginator->items());
         $usageIds = $rows->where('document_type', 'usage_agreement')->pluck('id')->all();
         $handoverIds = $rows->where('document_type', 'handover_agreement')->pluck('id')->all();
+        $powerOfAttorneyIds = $rows->where('document_type', 'power_of_attorney')->pluck('id')->all();
 
         $usageModels = UsageAgreement::with(['employee', 'generator'])
             ->whereIn('id', $usageIds)
@@ -62,15 +69,27 @@ class DocumentHistoryController extends Controller
             ->get()
             ->keyBy('id');
 
-        $data = $rows->map(function ($row) use ($request, $usageModels, $handoverModels) {
+        $powerOfAttorneyModels = PowerOfAttorney::with(['employee', 'generator'])
+            ->whereIn('id', $powerOfAttorneyIds)
+            ->get()
+            ->keyBy('id');
+
+        $data = $rows->map(function ($row) use ($request, $usageModels, $handoverModels, $powerOfAttorneyModels) {
             if ($row->document_type === 'usage_agreement') {
                 $payload = (new UsageAgreementResource($usageModels[$row->id]))->resolve($request);
                 $payload['document_type'] = 'usage_agreement';
-
                 return $payload;
             }
 
-            return (new HandoverAgreementResource($handoverModels[$row->id]))->resolve($request);
+            if ($row->document_type === 'power_of_attorney') {
+                $payload = (new PowerOfAttorneyResource($powerOfAttorneyModels[$row->id]))->resolve($request);
+                $payload['document_type'] = 'power_of_attorney';
+                return $payload;
+            }
+
+            $payload = (new HandoverAgreementResource($handoverModels[$row->id]))->resolve($request);
+            $payload['document_type'] = 'handover_agreement';
+            return $payload;
         })->values();
 
         return response()->json([
@@ -144,6 +163,38 @@ class DocumentHistoryController extends Controller
                     ->orWhereRaw('first_party_snapshot::text ilike ?', [$needle])
                     ->orWhereRaw('second_party_snapshot::text ilike ?', [$needle])
                     ->orWhereRaw('items_snapshot::text ilike ?', [$needle])
+                    ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'ilike', $needle));
+            });
+        }
+
+        return $query;
+    }
+
+    private function powerOfAttorneyHistoryQuery(?int $employeeId, string $search)
+    {
+        $query = PowerOfAttorney::query()
+            ->select([
+                'id',
+                'document_date',
+                'created_at',
+                DB::raw("'power_of_attorney' as document_type"),
+            ]);
+
+        if ($employeeId) {
+            $query->where('employee_id', $employeeId);
+        }
+
+        if ($search !== '') {
+            $needle = '%' . $search . '%';
+            $query->where(function ($q) use ($needle) {
+                $q->where('number', 'ilike', $needle)
+                    ->orWhereRaw('first_party_snapshot::text ilike ?', [$needle])
+                    ->orWhereRaw('second_party_snapshot::text ilike ?', [$needle])
+                    ->orWhereRaw('assets_snapshot::text ilike ?', [$needle])
+                    ->orWhereHas('employee', function ($employeeQuery) use ($needle) {
+                        $employeeQuery->where('nama_lengkap', 'ilike', $needle)
+                            ->orWhere('nip', 'ilike', $needle);
+                    })
                     ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'ilike', $needle));
             });
         }
