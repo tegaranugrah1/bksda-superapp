@@ -2,7 +2,7 @@
 
 ## Score
 
-Rencana implementasi ini saya nilai **9.2/10**.
+Rencana implementasi ini saya nilai **9.5/10** setelah audit dan penyelarasan dengan requirement/design.
 
 Alasan:
 
@@ -11,12 +11,66 @@ Alasan:
 - MVP tetap online-only dan tidak membawa generator dokumen BMN yang berat.
 - Permission backend tetap jadi sumber kebenaran.
 - Pagination, response ringan, loading/error state, dan aksesibilitas masuk sejak awal.
+- Milestone dan exit criteria sudah ditambahkan supaya tiap fase bisa dinilai selesai atau belum.
 
-Yang membuatnya belum 10/10:
+Sisa risiko yang diterima:
 
-- Daftar final permission per tombol masih perlu diverifikasi langsung dari kode backend saat implementasi.
+- Daftar final permission per tombol tetap perlu diverifikasi langsung dari kode backend saat implementation spike.
 - Detail endpoint Surat Tugas mobile mungkin masih membutuhkan penyesuaian setelah spike pertama.
 - Validasi iOS belum masuk target eksekusi awal.
+
+## Milestones and Exit Criteria
+
+### Milestone 1: Foundation Alpha
+
+Exit criteria:
+
+- Expo React Native workspace bisa dijalankan di Android.
+- API client, secure auth, `/api/me`, permission context, and role-based navigation berjalan.
+- Base UI components memenuhi touch target dan accessibility label minimum.
+- 401 logout, 403 forbidden, 422 validation, network error, and retry state sudah teruji.
+
+Covered tasks: 1-8.
+
+### Milestone 2: BMN Alpha
+
+Exit criteria:
+
+- Asset list/detail memakai pagination mobile dan card layout.
+- Search/filter tidak mengambil dataset penuh.
+- Photo/geotag upload, verification, create/edit, loan, and return flows berjalan sesuai permission.
+- Backend tetap menolak aksi tanpa permission walau UI disembunyikan.
+
+Covered tasks: 9-15.
+
+### Milestone 3: Surat Tugas Alpha
+
+Exit criteria:
+
+- Personal and management assignment lists bekerja sesuai role.
+- Detail, create/edit, approval/status action, and authenticated download/share flows berjalan.
+- Employee selector paginated dipakai di form terkait.
+
+Covered tasks: 16-22.
+
+### Milestone 4: Android Internal Beta
+
+Exit criteria:
+
+- Security hardening, profile/logout, online-only behavior, accessibility pass, and automated tests selesai.
+- Validasi perangkat Android minimal mencakup superadmin, admin/operator BMN, dan pegawai biasa.
+
+Covered tasks: 23-28.
+
+### Milestone 5: Android Internal Release
+
+Exit criteria:
+
+- APK/AAB internal build tersedia.
+- Release notes, install guide, rollback guide, environment notes, and known limitations terdokumentasi.
+- iOS readiness notes dibuat tanpa memblokir Android MVP.
+
+Covered tasks: 29-30.
 
 ## Tasks
 
@@ -246,4 +300,3 @@ Yang membuatnya belum 10/10:
   - Document role/permission mapping used by mobile.
   - Update `docs/progress.md` after each completed implementation issue.
   - _Requirements: all MVP requirements_
-

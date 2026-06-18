@@ -8,7 +8,7 @@ Target pertama adalah Android. Struktur teknis dan UI tetap disiapkan agar iOS d
 
 ## Design Score
 
-Nilai desain target: **9.1/10**.
+Nilai desain target setelah audit: **9.5/10**.
 
 Alasan:
 
@@ -17,10 +17,11 @@ Alasan:
 - Online-only MVP mengurangi kompleksitas sync/offline.
 - API readiness sudah disiapkan sebelum mobile coding.
 - Navigasi, list, form, dan upload foto dirancang mengikuti standar mobile.
+- Permission matrix, non-functional targets, release milestones, dan measurable quality gates sudah ditambahkan agar desain bisa dieksekusi dan diuji.
 
-Yang membuatnya belum 10/10:
+Sisa risiko yang diterima:
 
-- Detail final daftar permission per tombol masih perlu mapping di `tasks.md`.
+- Nama permission final tetap harus diverifikasi langsung dari backend saat implementation spike.
 - Beberapa endpoint existing masih perlu diuji dari mobile runtime.
 - iOS masih fase berikutnya, sehingga validasi awal akan fokus Android.
 
@@ -509,7 +510,32 @@ Common permission gates:
 - `surat_tugas.view`
 - `surat_tugas.approve`
 
-Daftar final permission perlu diverifikasi saat membuat `tasks.md`.
+### Permission Matrix
+
+Matrix ini adalah baseline desain. Nama permission aktual tetap diverifikasi dari backend saat implementation spike.
+
+| Mobile Area | Action | Gate |
+| --- | --- | --- |
+| App Shell | Show BMN tab | `hasModule("bmn")` or `can("bmn.view")` or personal asset access |
+| App Shell | Show Surat Tugas tab | `hasModule("kepegawaian")` or `can("surat_tugas.view")` or personal assignment access |
+| Dashboard | Show admin summary | Related module access + backend dashboard payload |
+| BMN Asset List | View asset list | `can("bmn.view")` or personal asset access |
+| BMN Asset Detail | View asset detail | `can("bmn.view")` or owns/uses asset |
+| BMN Asset Form | Create asset | `can("bmn.asset.create")` |
+| BMN Asset Form | Edit asset | `can("bmn.asset.update")` |
+| BMN Photo | Upload photo/geotag | `can("bmn.asset.update")` or specific photo permission if backend exposes one |
+| BMN Photo | Delete photo | `can("bmn.asset.update")` or specific photo delete permission if backend exposes one |
+| BMN Verification | Verify asset | `can("bmn.asset.update")` or specific verification permission if backend exposes one |
+| BMN Loans | Create loan | Loan permission if available, otherwise `can("bmn.asset.update")` during MVP |
+| BMN Loans | Return asset | Return permission if available, otherwise `can("bmn.asset.update")` during MVP |
+| Employee Selector | Search employees | Backend-limited employee access |
+| Surat Tugas List | View personal list | Authenticated user with employee relation |
+| Surat Tugas List | View management list | `can("surat_tugas.view")` or module access permitted by backend |
+| Surat Tugas Form | Create/edit assignment | Create/update permission if available, otherwise backend allowed action payload |
+| Surat Tugas Approval | Approve/reject/status update | `can("surat_tugas.approve")` or backend allowed action payload |
+| Surat Tugas File | Download/share | Backend file authorization or ownership check |
+
+Mobile app should prefer backend-provided `allowed_actions` when an endpoint returns it, because it reduces permission-name drift between web and mobile.
 
 ## Data Fetching Strategy
 
@@ -534,6 +560,21 @@ Pagination:
 - List besar memakai infinite query atau page query.
 - Search input debounce 300-500ms.
 - `per_page` default mobile 20.
+
+## Non-Functional Targets
+
+| Area | Target |
+| --- | --- |
+| First screen after valid session | Dashboard visible within 2 seconds on stable internal connection |
+| First page list load | Asset/Surat Tugas list visible within 1.5 seconds after API response starts |
+| Search debounce | 300-500ms |
+| Default mobile page size | 20 items |
+| Touch feedback | Visual response within 100ms |
+| Upload photo | Progress visible for uploads over 1 second |
+| Upload size | Backend-enforced max file size, documented before release |
+| Offline state | Visible banner/state within 1 failed network request |
+| Error display | No raw stack trace or technical exception shown to user |
+| Auth cleanup | Token removed immediately on logout or 401 |
 
 ## Error Handling Design
 
@@ -629,11 +670,18 @@ iOS later:
 
 ## Rollout Plan
 
-1. Build internal Android debug.
-2. Test with superadmin and pegawai biasa.
-3. Fix API/runtime issues.
-4. Build Android release internal.
-5. Prepare iOS compatibility pass.
+1. Foundation Alpha:
+   - Workspace, design system, auth, `/api/me`, permission context, and navigation.
+2. BMN Alpha:
+   - Asset list/detail, photo/geotag, verification, create/edit, loans, and returns.
+3. Surat Tugas Alpha:
+   - Assignment list/detail, form, approval/status action, and download/share.
+4. Android Internal Beta:
+   - Security hardening, automated tests, accessibility pass, and device validation.
+5. Android Internal Release:
+   - APK/AAB build, installation guide, rollback guide, and release notes.
+6. iOS Readiness:
+   - Platform compatibility pass after Android MVP is stable.
 
 ## Risks and Mitigations
 

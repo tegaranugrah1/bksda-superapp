@@ -13,12 +13,31 @@ Mobile app akan memakai backend Laravel API yang sama dengan aplikasi web. Endpo
 - Target awal: Android.
 - Target lanjutan: iOS.
 - Mode kerja MVP: online-only.
+- Framework mobile MVP: Expo React Native managed workflow + TypeScript.
 - Auth: mengikuti auth backend saat ini melalui API/Sanctum token, disimpan aman di secure storage mobile.
 - Role: semua role yang ada sekarang.
 - Permission: mengikuti backend permission, bukan hanya hidden button di UI.
 - Bahasa: Bahasa Indonesia.
 - Dokumen BMN berat seperti BA Pemakaian, BA Serah Terima, Surat Kuasa, dan dokumen Lelang tidak masuk MVP mobile.
 - Mobile app harus memakai API paginated dan response ringan untuk list besar.
+- Upload foto lokasi hanya wajib mengirim latitude/longitude untuk slot foto geotag atau aksi yang memang meminta geotag.
+- PDF/dokumen pada MVP dibuka melalui viewer/share sheet perangkat setelah diunduh lewat endpoint authenticated.
+
+## Requirement Score
+
+Nilai target requirement setelah audit: **9.5/10**.
+
+Alasan:
+
+- Semua keputusan produk utama sudah eksplisit, termasuk Android first, iOS later, online-only, Expo managed workflow, auth existing, semua role, dan no BMN document generator pada MVP.
+- Scope MVP jelas dan dipisah dari out-of-scope agar pengembangan tidak melebar.
+- Acceptance criteria sudah mencakup auth, permission, dashboard, BMN, Surat Tugas, pagination, error handling, security, dan UI/UX mobile.
+- Target non-functional dan milestone release ditulis agar requirement bisa diuji, bukan hanya dibaca.
+
+Sisa risiko yang diterima:
+
+- Mapping permission final tetap harus diverifikasi dari backend saat implementasi karena nama permission aktual dapat berubah.
+- iOS masuk fase berikutnya, sehingga validasi produksi awal fokus Android.
 
 ## Glossary
 
@@ -47,6 +66,23 @@ MVP mobile app mencakup:
 - Surat Tugas list, detail, download, pengajuan, edit, approve/reject/status update sesuai role.
 - Profil user dan pegawai.
 - Error handling, loading state, pagination, dan empty state yang layak untuk mobile.
+
+## MVP Milestones
+
+1. **Foundation Alpha**
+   - Mobile workspace, design system, API client, auth, `/api/me`, permission context, and navigation.
+
+2. **BMN Alpha**
+   - BMN list/detail, search/filter, photo/geotag upload, verification, asset create/edit, loans, and returns.
+
+3. **Surat Tugas Alpha**
+   - Surat Tugas list/detail, create/edit, approval/status action, and authenticated download/share.
+
+4. **Android Internal Beta**
+   - Security hardening, accessibility pass, automated tests, Android device validation, and internal build.
+
+5. **iOS Readiness**
+   - Platform compatibility notes and follow-up validation after Android MVP is stable.
 
 ## Out of Scope MVP
 
@@ -293,6 +329,9 @@ Fitur berikut tidak masuk MVP mobile:
 3. THE Mobile_App SHALL memakai skeleton/loading state untuk request lebih dari 1 detik.
 4. THE Mobile_App SHALL memakai virtualized list untuk data panjang.
 5. THE Mobile_App SHALL tidak mengambil export massal atau seluruh dataset untuk tampilan mobile.
+6. THE Mobile_App SHALL memakai `per_page=20` sebagai default mobile list, kecuali screen tertentu punya alasan eksplisit.
+7. THE Mobile_App SHOULD menampilkan halaman pertama list utama dalam target respons UI kurang dari 1.5 detik pada koneksi stabil internal.
+8. THE Mobile_App SHOULD menjaga interaksi tap utama terasa responsif dalam kurang dari 100ms secara visual.
 
 ### Requirement 19: Security and Privacy
 
@@ -307,6 +346,8 @@ Fitur berikut tidak masuk MVP mobile:
 5. THE Backend_API SHALL tetap menjadi enforcement layer untuk semua permission.
 6. THE Mobile_App SHALL tidak menulis token, password, atau dokumen sensitif ke log.
 7. THE Mobile_App SHALL membersihkan sesi lokal saat logout atau 401.
+8. THE Backend_API SHALL membatasi ukuran dan tipe upload foto untuk endpoint mobile.
+9. THE Mobile_App SHALL menghapus file unduhan sementara saat logout atau saat cache dibersihkan jika file tersebut sensitif.
 
 ### Requirement 20: Mobile UI/UX Standards
 
@@ -320,6 +361,8 @@ Fitur berikut tidak masuk MVP mobile:
 4. THE Mobile_App SHALL memakai empty state, loading state, error state, dan success feedback yang konsisten.
 5. THE Mobile_App SHALL mendukung Bahasa Indonesia untuk seluruh label utama.
 6. THE Mobile_App SHALL mempertahankan kontras teks minimal sesuai WCAG AA.
+7. THE Mobile_App SHALL memakai confirmation dialog untuk aksi destruktif atau status penting.
+8. THE Mobile_App SHALL menyediakan pull-to-refresh pada screen list utama.
 
 ## Future Requirements
 
@@ -333,16 +376,22 @@ Fitur berikut dapat masuk fase setelah MVP:
 - Dokumen BMN generator mobile jika UX-nya sudah matang.
 - Offline mode terbatas untuk wilayah minim sinyal jika nanti benar-benar dibutuhkan.
 
-## Open Questions
+## Resolved Decisions and Remaining Validation
 
-Hal yang perlu diputuskan saat masuk `design.md`:
+Keputusan yang sudah dikunci:
 
-1. Apakah mobile app akan memakai Expo managed workflow atau React Native bare workflow.
-2. Apakah auth mobile tetap memakai token Sanctum dari `POST /api/login` atau perlu endpoint/device token khusus.
-3. Apa daftar permission final yang akan dipakai untuk setiap tombol mobile.
-4. Modul selain BMN dan Surat Tugas apa yang masuk setelah MVP.
-5. Apakah upload foto wajib mengirim latitude/longitude untuk semua slot atau hanya foto geotag.
-6. Apakah mobile perlu preview PDF internal atau cukup buka viewer perangkat.
+1. Mobile app memakai Expo React Native managed workflow + TypeScript.
+2. Auth mobile mengikuti auth backend saat ini melalui `POST /api/login`, token/session disimpan di secure storage.
+3. MVP fokus Beranda, BMN, Surat Tugas, dan Profil.
+4. Modul selain BMN dan Surat Tugas masuk fase setelah MVP.
+5. Latitude/longitude wajib untuk foto geotag atau aksi yang memang meminta geotag, bukan semua slot foto.
+6. PDF/dokumen MVP cukup memakai viewer/share sheet perangkat setelah unduhan authenticated.
+
+Validasi yang tetap wajib saat implementasi:
+
+1. Daftar permission aktual per tombol harus diverifikasi dari backend.
+2. Endpoint Surat Tugas existing harus diuji dari mobile runtime dan disesuaikan jika masih terlalu web/table-oriented.
+3. iOS behavior perlu diuji setelah Android MVP stabil.
 
 ## Definition of Done for Requirements
 

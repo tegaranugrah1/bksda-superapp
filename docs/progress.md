@@ -4384,3 +4384,16 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [ ] Review `requirements.md`, `design.md`, and `tasks.md` as one mobile MVP specification set.
 - [ ] Decide first implementation issue, recommended: mobile workspace setup and shared design foundation.
 
+## [2026-06-18] Mobile App Planning - Spec Quality Upgrade
+
+### Completed (Selesai)
+- [x] Audited `requirements.md`, `design.md`, and `tasks.md` as one mobile MVP specification set.
+- [x] Raised the target quality score to 9.5/10 by closing product decisions that were still open.
+- [x] Updated requirements with Expo managed workflow, authenticated PDF/share behavior, geotag scope, MVP milestones, and measurable performance/security/UX criteria.
+- [x] Updated design with 9.5/10 scoring, permission matrix, non-functional targets, and milestone-based rollout plan.
+- [x] Updated tasks with 9.5/10 scoring, milestone groups, and exit criteria for Foundation Alpha, BMN Alpha, Surat Tugas Alpha, Android Internal Beta, and Android Internal Release.
+
+### Next Steps
+- [ ] Start implementation from Milestone 1: Foundation Alpha.
+- [ ] Verify backend permission names during the first implementation spike.
+
