@@ -1,13 +1,13 @@
 # Progress - Phase 87: Auth Cookie Lifetime Hardening
 
 > Document updated: 2026-06-18
-> Status: Selesai lokal, siap PR.
+> Status: PR #421 squash merged ke `main` (commit `8043e34`). Branch remote `codex/security-auth-cookie-hardening` sudah dihapus.
 
 ---
 
 ## Browser Auth Storage Hardening Ringan
 
-### Status: SELESAI DI LOKAL
+### Status: SELESAI
 - Scope: frontend auth store cookie helper.
 - Tujuan: mengurangi masa berlaku token di browser dan menambah atribut cookie yang lebih aman tanpa migrasi besar ke Sanctum SPA HttpOnly cookie.
 
