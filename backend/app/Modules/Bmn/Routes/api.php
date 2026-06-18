@@ -41,34 +41,42 @@ Route::get('document-histories', [DocumentHistoryController::class, 'index']);
 Route::get('usage-agreements', [UsageAgreementController::class, 'index']);
 Route::post('usage-agreements', [UsageAgreementController::class, 'store']);
 Route::get('usage-agreements/{agreement}', [UsageAgreementController::class, 'show']);
-Route::delete('usage-agreements/{agreement}', [UsageAgreementController::class, 'destroy']);
 
 // 4c. BERITA ACARA SERAH TERIMA BMN
 Route::get('handover-agreements', [HandoverAgreementController::class, 'index']);
 Route::post('handover-agreements', [HandoverAgreementController::class, 'store']);
 Route::get('handover-agreements/{agreement}', [HandoverAgreementController::class, 'show']);
-Route::delete('handover-agreements/{agreement}', [HandoverAgreementController::class, 'destroy']);
 
 // 1. JALUR MASTER ASET
 Route::apiResource('assets', AssetController::class)->except(['destroy']);
-Route::post('assets/import', [AssetController::class, 'import']);
-Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose']);
-Route::post('assets/bulk-dispose', [AssetController::class, 'bulkDispose']);
-Route::post('assets/bulk-restore', [AssetController::class, 'bulkRestore']);
-Route::post('assets/bulk-force-delete', [AssetController::class, 'bulkForceDelete']);
-Route::post('assets/bulk-update-kondisi', [AssetController::class, 'bulkUpdateKondisi']);
 Route::post('assets/{asset}/verify', [AssetController::class, 'verify']);
 
 // 6. IMPORT REVIEW/DIFF/APPROVE
 Route::prefix('import-review')->group(function () {
     Route::get('/', [ImportReviewController::class, 'index']);
-    Route::post('/upload', [ImportReviewController::class, 'upload']);
     Route::get('/{batchId}', [ImportReviewController::class, 'show']);
-    Route::post('/{batchId}/approve', [ImportReviewController::class, 'approve']);
-    Route::post('/{batchId}/reject', [ImportReviewController::class, 'reject']);
     Route::post('/toggle-selection', [ImportReviewController::class, 'toggleSelection']);
     Route::post('/toggle-field-selection', [ImportReviewController::class, 'toggleFieldSelection']);
     Route::post('/bulk-selection', [ImportReviewController::class, 'bulkSelection']);
+});
+
+// Aksi mutasi besar/destruktif BMN wajib role admin. Super admin tetap bypass via middleware role.
+Route::middleware('role:admin')->group(function () {
+    Route::delete('usage-agreements/{agreement}', [UsageAgreementController::class, 'destroy']);
+    Route::delete('handover-agreements/{agreement}', [HandoverAgreementController::class, 'destroy']);
+
+    Route::post('assets/import', [AssetController::class, 'import']);
+    Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose']);
+    Route::post('assets/bulk-dispose', [AssetController::class, 'bulkDispose']);
+    Route::post('assets/bulk-restore', [AssetController::class, 'bulkRestore']);
+    Route::post('assets/bulk-force-delete', [AssetController::class, 'bulkForceDelete']);
+    Route::post('assets/bulk-update-kondisi', [AssetController::class, 'bulkUpdateKondisi']);
+
+    Route::prefix('import-review')->group(function () {
+        Route::post('/upload', [ImportReviewController::class, 'upload']);
+        Route::post('/{batchId}/approve', [ImportReviewController::class, 'approve']);
+        Route::post('/{batchId}/reject', [ImportReviewController::class, 'reject']);
+    });
 });
 
 // 5. FOTO ASET

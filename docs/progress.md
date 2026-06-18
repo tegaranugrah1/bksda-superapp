@@ -1,13 +1,167 @@
+# Progress - Phase 81: BMN Authorization Hardening
+
+> Document updated: 2026-06-18
+> Status: Implemented locally on branch `codex/bmn-authorization-hardening`; siap PR.
+
+---
+
+## Hardening Aksi Sensitif BMN
+
+### Status: SELESAI - siap PR
+- Scope: backend route protection untuk modul BMN.
+- Tujuan: mencegah user yang hanya punya akses modul BMN menjalankan aksi destruktif/mutasi besar langsung lewat API.
+
+### Implementasi
+- Route BMN tetap dilindungi lapis dasar:
+  - `auth:sanctum`
+  - `module.access:bmn`
+- Menambahkan lapis role untuk aksi sensitif menggunakan middleware:
+  - `role:admin`
+  - `super_admin` tetap bypass sesuai `CheckRole`.
+- Aksi yang sekarang wajib `admin` atau `super_admin`:
+  - delete `usage-agreements`
+  - delete `handover-agreements`
+  - `assets/import`
+  - single dispose aset
+  - `bulk-dispose`
+  - `bulk-restore`
+  - `bulk-force-delete`
+  - `bulk-update-kondisi`
+  - upload import review
+  - approve import review
+  - reject import review
+
+### Validasi
+- `php -l backend/app/Modules/Bmn/Routes/api.php`: pass.
+- `php artisan route:list --json --path=bmn`: route sensitif sudah memuat middleware `CheckRole:admin`.
+
+### Catatan
+- Ini hardening backend dulu. UI button/visibility bisa dipoles di PR lanjutan agar user non-admin tidak melihat aksi yang pasti ditolak.
+- Permission granular per aksi (`bmn.asset.force_delete`, `bmn.import.approve`, dll.) masih menjadi target lanjutan jika role `admin` dirasa terlalu kasar.
+
+---
+
+# Progress - Phase 80: Security Remediation Hotfix
+
+> Document updated: 2026-06-18
+> Status: PR #410 squash merged ke `main` (commit `fcbb8fa`). Branch remote `codex/security-remediation-hotfix` sudah dihapus.
+
+---
+
+## Security Audit Follow-up
+
+### Status: SELESAI
+- Scope: hotfix security awal yang aman untuk aplikasi production.
+- Tujuan: menutup risiko high/critical yang tidak membutuhkan migrasi auth besar dan menyiapkan rencana remediation bertahap.
+
+### Implementasi
+- Menambahkan dokumen rencana perbaikan di `docs/security-remediation-plan.md`.
+- Menambahkan rate limit login:
+  - limiter bernama `login`
+  - batas `5 request/menit`
+  - key limiter memakai kombinasi `username + IP`
+- Mengaktifkan expiry token Sanctum default `1440` menit via `SANCTUM_EXPIRATION`.
+- Saat user mengganti password, seluruh token Sanctum user tersebut direvoke.
+- Membersihkan `.gitignore` agar file sensitif dan helper lokal tidak mudah masuk Git:
+  - `*.pem`
+  - `*.key`
+  - `service-account.json`
+  - `.env*`
+  - helper import/test/deploy lokal
+  - dump data lokal
+- Mengupdate lockfile dependency backend dan frontend.
+
+### Hasil Security
+- `composer audit --no-dev`: clean.
+- `npm audit --omit=dev --audit-level=high`: tidak ada high vulnerability tersisa.
+- `npm audit --omit=dev --audit-level=moderate`: masih ada moderate/low pada `next/postcss` dan `react-quill-new/quill`; npm hanya menawarkan `--force` yang berpotensi breaking, jadi sengaja dipisahkan ke PR lanjutan.
+
+### Validasi
+- `php -l` file backend terkait: pass.
+- `php artisan route:list --path=api/login`: pass.
+- `cd frontend; npm run lint`: clean.
+- `cd frontend; npm run build`: sukses.
+
+### Catatan Production
+- Perubahan belum otomatis aktif di `bksdakaltim.net` sampai Dokploy/redeploy menarik `main` terbaru.
+- Perubahan `SANCTUM_EXPIRATION` dapat membuat token lama yang melewati window expiry dianggap expired setelah deploy.
+- Migrasi token dari `localStorage` ke cookie HttpOnly belum dikerjakan karena blast radius login/CORS/session lebih besar dan harus jadi PR terpisah.
+
+---
+
+# Progress - Phase 79: Data Kendaraan dan SK Kebenaran Dokumen
+
+> Document updated: 2026-06-18
+> Status: Data lokal dan production sudah diupdate. PR #409 squash merged ke `main` (commit `64a96f3`).
+
+---
+
+## Data Kendaraan BMN
+
+### Status: SELESAI
+- Scope: aset `ALAT ANGKUTAN BERMOTOR` di database lokal dan database production `bksdakaltim.net`.
+- Tujuan: melengkapi data kendaraan agar dokumen lelang dan dokumen kebenaran kepemilikan menampilkan identitas kendaraan yang benar.
+
+### Implementasi Data
+- Mengupdate data kendaraan berdasarkan `no_polisi` dengan normalisasi plat nomor.
+- Kolom yang diisi dari data kendaraan:
+  - `no_mesin`
+  - `no_rangka`
+  - `tanggal_pajak_stnk`
+  - `tanggal_ganti_plat`
+- Hasil update:
+  - Lokal: 50 aset berhasil diupdate.
+  - Production: 50 aset berhasil diupdate.
+- Ada 4 plat yang tidak ditemukan di database dan tidak dipaksakan update agar aman:
+  - `KT5422M`
+  - `KT5416M`
+  - `KT5418M`
+  - `KT6384F`
+- Menyamakan nomor dokumen kepemilikan khusus kendaraan bermotor:
+  - `no_dokumen`
+  - `no_bpkp`
+  - `no_sertifikat`
+- Hasil penyamaan nomor dokumen:
+  - Lokal: 76 kendaraan berhasil diupdate.
+  - Production: 76 kendaraan berhasil diupdate.
+  - 19 kendaraan tidak diubah karena belum memiliki nomor dokumen kepemilikan.
+
+### Implementasi Kode
+- Memperbaiki dokumen `SK Kebenaran Fotokopi Dokumen Kepemilikan`.
+- Kolom `Nomor Dokumen Kepemilikan` sebelumnya membaca `no_identitas`, sehingga nomor dokumen/BPKB tidak tampil.
+- Sekarang kolom tersebut memakai fallback:
+  - `no_bpkp`
+  - `no_dokumen`
+  - `no_sertifikat`
+  - `no_identitas`
+- Menambahkan field dokumen kepemilikan ke tipe `AuctionAsset` frontend.
+
+### Validasi
+- Sample lokal dan production diverifikasi untuk beberapa plat:
+  - `KT 8615 M`
+  - `KT 8819 B`
+  - `KT 1204 BZ`
+  - `KT 8425 BZ`
+  - `KT 8619 M`
+- Sample nomor dokumen kepemilikan diverifikasi:
+  - `KT 8572 M`
+  - `KT 8615 M`
+  - `KT 6620 BZ`
+- `cd frontend; npm run lint` clean.
+- `cd frontend; npx tsc --noEmit` clean.
+
+---
+
 # Progress - Phase 78: UX Polish Aset Akan Dilelang
 
 > Document updated: 2026-06-17
-> Status: WIP lokal (`codex/auction-candidates-ux-polish`). Belum PR, belum deploy production.
+> Status: PR #408 squash merged ke `main` (commit `f8fa707`).
 
 ---
 
 ## Halaman `/bmn/auction-candidates`
 
-### Status: WIP - siap dicek lokal
+### Status: MERGED
 - Scope: UI/UX halaman `Aset Akan Di Lelang`.
 - Tujuan: menaikkan kualitas pengalaman kerja menuju 9/10 dengan alur yang lebih jelas, warna lebih tenang, dan aksi dokumen lebih mudah dipahami.
 
