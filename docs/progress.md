@@ -1,13 +1,13 @@
 # Progress - Phase 86: Frontend Dependency Mitigation
 
 > Document updated: 2026-06-18
-> Status: Selesai lokal, siap PR.
+> Status: PR #419 squash merged ke `main` (commit `0ac4cf0`). Branch remote `codex/security-frontend-dependency-mitigations` sudah dihapus.
 
 ---
 
 ## PostCSS Override dan Quill Content Sanitization
 
-### Status: SELESAI DI LOKAL
+### Status: SELESAI
 - Scope: frontend dependency audit dan CMS rich text editor.
 - Tujuan: menutup vulnerability moderate yang masih tersisa dan menurunkan risiko XSS dari output HTML editor.
 
