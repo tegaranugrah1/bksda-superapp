@@ -4342,3 +4342,17 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] `php artisan test` passed: 6 tests, 11 assertions.
 - [x] `npm run lint` passed for frontend.
 
+## [2026-06-18] Mobile App Planning - Requirements Draft
+
+### Completed (Selesai)
+- [x] Rewrote `.kiro/specs/mobile-app-bmn-kepegawaian/requirements.md` from the older field-staff-only draft into a role-aware mobile app requirement document.
+- [x] Captured product decisions: Android first, iOS later, online-only MVP, existing backend auth, all current roles, backend permission enforcement, and no BMN document generators in MVP.
+- [x] Defined MVP scope for auth, mobile dashboard, role-based navigation, BMN assets, asset photos/geotag, verification, loans/returns, Surat Tugas, profile, pagination, and mobile error handling.
+- [x] Added explicit out-of-scope items: BMN document generators, Excel import/export, CMS, offline mode, production push notifications, and server/deployment administration.
+- [x] Added acceptance criteria for 20 mobile requirement areas plus future requirements and open questions for the upcoming `design.md`.
+
+### Next Steps
+- [ ] Review and refine the requirements with product feedback if needed.
+- [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/design.md`.
+- [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md`.
+

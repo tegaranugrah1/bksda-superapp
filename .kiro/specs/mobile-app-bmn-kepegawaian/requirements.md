@@ -2,150 +2,355 @@
 
 ## Introduction
 
-Mobile application for BKSDA Kalimantan Timur SuperApp that provides field staff access to BMN (Barang Milik Negara / State Asset Management) and Kepegawaian (Surat Tugas / Assignment Letters) modules. The app connects to the existing Laravel backend API (`/api/`) using Sanctum token-based authentication, enabling staff to manage assets and assignment letters from mobile devices in the field.
+Mobile App BKSDA Kalimantan Timur SuperApp adalah aplikasi mobile resmi untuk mengakses fitur operasional internal BKSDA dari perangkat Android terlebih dahulu, dengan kesiapan desain untuk iOS pada fase berikutnya.
+
+Aplikasi mobile ini dipakai oleh semua role yang saat ini sudah ada di aplikasi web. Hak akses fitur, data, dan aksi mengikuti role, module access, dan permission backend yang berlaku. Mobile app tidak menggantikan web dashboard sepenuhnya, tetapi menyediakan akses mobile untuk pekerjaan utama yang wajar dilakukan dari perangkat pegawai, admin, operator, dan pimpinan.
+
+Mobile app akan memakai backend Laravel API yang sama dengan aplikasi web. Endpoint tambahan khusus mobile boleh dibuat jika endpoint web terlalu berat, terlalu table-oriented, atau membutuhkan payload yang lebih ringkas untuk pengalaman mobile.
+
+## Product Decisions
+
+- Target awal: Android.
+- Target lanjutan: iOS.
+- Mode kerja MVP: online-only.
+- Auth: mengikuti auth backend saat ini melalui API/Sanctum token, disimpan aman di secure storage mobile.
+- Role: semua role yang ada sekarang.
+- Permission: mengikuti backend permission, bukan hanya hidden button di UI.
+- Bahasa: Bahasa Indonesia.
+- Dokumen BMN berat seperti BA Pemakaian, BA Serah Terima, Surat Kuasa, dan dokumen Lelang tidak masuk MVP mobile.
+- Mobile app harus memakai API paginated dan response ringan untuk list besar.
 
 ## Glossary
 
-- **Mobile_App**: The cross-platform mobile application (React Native) for BKSDA field staff
-- **Backend_API**: The existing Laravel API server at `/api/` with Sanctum authentication
-- **BMN_Module**: Barang Milik Negara module — state asset management system tracking 1613+ assets with 80 data columns
-- **Kepegawaian_Module**: HR module for Surat Tugas (assignment letters) with submission, approval, and distribution workflows
-- **Surat_Tugas**: Official assignment letter (ST) issued to employees for field duties
-- **Field_Staff**: BKSDA employees who operate in the field and need mobile access to their assets and assignments
-- **Asset_Photo**: Geotagged photograph of a BMN asset taken from one of 5 angles (Depan/Geotag, Belakang, Kiri, Kanan, Lokasi Barang)
-- **Portal_Dashboard**: The home screen showing user's borrowed assets, assigned assets, and approved Surat Tugas
-- **Sanctum_Token**: Laravel Sanctum bearer token used for API authentication
-- **STNK_Countdown**: Vehicle tax expiry countdown for motorized BMN assets
+- **Mobile_App**: Aplikasi mobile BKSDA SuperApp.
+- **Backend_API**: Laravel API di `/api`.
+- **User**: Akun login aplikasi.
+- **Employee/Pegawai**: Data pegawai yang terhubung dengan user melalui NIP/username.
+- **Role**: Role user seperti super_admin, admin, user, operator, dan role lain yang sudah berlaku.
+- **Permission**: Hak akses granular backend, misalnya `bmn.view`, `bmn.asset.update`, atau permission lain yang sudah berlaku.
+- **Module Access**: Akses modul seperti `bmn`, `kepegawaian`, `inventory`, `dereporting`, dan modul lain yang tersedia.
+- **BMN**: Barang Milik Negara.
+- **Asset/Aset**: Data aset BMN.
+- **Asset_Photo**: Foto aset BMN berdasarkan slot, termasuk foto geotag dan tampak aset.
+- **Surat_Tugas**: Dokumen penugasan pegawai.
+- **Portal_Mobile**: Beranda mobile yang menampilkan ringkasan profil, aset, surat tugas, approval, dan informasi penting sesuai role.
+- **Mobile_Dashboard_API**: Endpoint ringkas untuk home mobile, misalnya `GET /api/mobile/dashboard`.
+
+## Scope MVP
+
+MVP mobile app mencakup:
+
+- Login/logout dan sesi aman.
+- Portal mobile sesuai role.
+- Navigasi modul sesuai permission.
+- BMN asset list, search, filter, detail, foto, verifikasi, edit, peminjaman, pengembalian, dan aksi lain sesuai role.
+- Surat Tugas list, detail, download, pengajuan, edit, approve/reject/status update sesuai role.
+- Profil user dan pegawai.
+- Error handling, loading state, pagination, dan empty state yang layak untuk mobile.
+
+## Out of Scope MVP
+
+Fitur berikut tidak masuk MVP mobile:
+
+- Generator dokumen BMN: BA Pemakaian, BA Serah Terima, Surat Kuasa, BA Lelang, SK Lelang, dan dokumen sejenis.
+- Import Review BMN berbasis Excel.
+- Export Excel massal.
+- CMS publik dan manajemen konten publik.
+- Mode offline penuh.
+- Push notification produksi, kecuali disiapkan struktur requirement-nya untuk fase berikutnya.
+- Fitur administrasi server/deployment.
 
 ## Requirements
 
-### Requirement 1: Authentication
+### Requirement 1: Authentication and Session
 
-**User Story:** As a field staff member, I want to log in to the mobile app with my existing credentials, so that I can securely access my work data on mobile.
-
-#### Acceptance Criteria
-
-1. WHEN a user submits valid credentials (NIP and password), THE Mobile_App SHALL authenticate via `POST /api/login` and store the returned Sanctum_Token securely on the device
-2. WHEN a user opens the Mobile_App with a valid stored Sanctum_Token, THE Mobile_App SHALL skip the login screen and navigate directly to the Portal_Dashboard
-3. WHEN the Backend_API returns a 401 Unauthorized response, THE Mobile_App SHALL clear the stored token and redirect the user to the login screen
-4. WHEN a user taps the logout button, THE Mobile_App SHALL call `POST /api/logout`, clear the local Sanctum_Token, and return to the login screen
-5. IF the device has no network connection during login, THEN THE Mobile_App SHALL display an informative error message indicating no connectivity
-
-### Requirement 2: Portal Dashboard (Home Screen)
-
-**User Story:** As a field staff member, I want to see a summary of my assets and assignments on the home screen, so that I can quickly access what I need.
+**User Story:** Sebagai user aplikasi, saya ingin login memakai akun yang sama dengan web, sehingga saya bisa mengakses fitur mobile sesuai hak akses saya.
 
 #### Acceptance Criteria
 
-1. WHEN the Portal_Dashboard loads, THE Mobile_App SHALL fetch and display the user's profile information (nama, NIP, jabatan, unit kerja) from `GET /api/user`
-2. WHEN the Portal_Dashboard loads, THE Mobile_App SHALL display three tabs: "Aset Saya", "Pinjaman Aktif", and "Surat Tugas" with dynamic count badges
-3. WHEN the user selects the "Aset Saya" tab, THE Mobile_App SHALL display a list of assets assigned to the current user via `GET /api/bmn/assets?pengguna={user_name}`
-4. WHEN the user selects the "Pinjaman Aktif" tab, THE Mobile_App SHALL display active loans associated with the current user via `GET /api/bmn/loans?status=active`
-5. WHEN the user selects the "Surat Tugas" tab, THE Mobile_App SHALL display approved assignment letters for the current user via `GET /api/surat-tugas?employee_id={id}&status=approved`
-6. THE Mobile_App SHALL support pull-to-refresh on the Portal_Dashboard to reload all tab data
+1. WHEN user mengirim username/NIP dan password valid, THE Mobile_App SHALL login melalui `POST /api/login`.
+2. WHEN login berhasil, THE Mobile_App SHALL menyimpan token/session auth di secure storage perangkat, bukan storage biasa.
+3. WHEN app dibuka kembali dan token/session masih valid, THE Mobile_App SHALL langsung masuk ke Portal_Mobile.
+4. WHEN Backend_API mengembalikan 401, THE Mobile_App SHALL menghapus sesi lokal dan mengarahkan user ke login.
+5. WHEN user logout, THE Mobile_App SHALL memanggil `POST /api/logout`, menghapus sesi lokal, dan kembali ke login.
+6. WHEN login gagal, THE Mobile_App SHALL menampilkan pesan error yang jelas tanpa membocorkan detail teknis.
+7. WHEN device tidak memiliki koneksi internet, THE Mobile_App SHALL menampilkan pesan bahwa aplikasi membutuhkan koneksi internet.
 
-### Requirement 3: BMN Asset List and Search
+### Requirement 2: User Profile and Permission Bootstrap
 
-**User Story:** As a field staff member, I want to browse and search my organization's assets, so that I can find specific items quickly in the field.
-
-#### Acceptance Criteria
-
-1. WHEN the user navigates to the BMN asset list, THE Mobile_App SHALL fetch paginated assets from `GET /api/bmn/assets` and display them in a scrollable list
-2. WHEN the user types in the search field, THE Mobile_App SHALL filter assets by nama barang, kode barang, merk, or no polisi via the API search parameter
-3. WHEN the user applies a filter (Jenis BMN, Lokasi Ruang, Kondisi), THE Mobile_App SHALL pass the filter parameters to the API and display filtered results
-4. THE Mobile_App SHALL display each asset card with: nama barang, kode barang, merk/tipe, lokasi (shortened), kondisi badge, and verification status badge
-5. WHEN the user scrolls to the bottom of the asset list, THE Mobile_App SHALL load the next page of results (infinite scroll pagination)
-
-### Requirement 4: BMN Asset Detail
-
-**User Story:** As a field staff member, I want to view full details of an asset, so that I can verify and inspect assets during field operations.
+**User Story:** Sebagai user, saya ingin aplikasi mengetahui profil dan hak akses saya, sehingga menu dan aksi yang tampil sesuai role saya.
 
 #### Acceptance Criteria
 
-1. WHEN the user taps an asset in the list, THE Mobile_App SHALL fetch full asset details from `GET /api/bmn/assets/{id}` and display them in a detail screen
-2. THE Mobile_App SHALL organize asset details into collapsible sections: Identitas, Lokasi, Dokumen, Nilai, and Organisasi
-3. WHEN the asset is a vehicle (has no_polisi), THE Mobile_App SHALL display STNK_Countdown information showing days until tax expiry
-4. THE Mobile_App SHALL display the asset's photo gallery with all available photos (up to 5 angles) in a swipeable carousel
-5. WHEN the user taps a photo in the gallery, THE Mobile_App SHALL display the photo in a full-screen lightbox with pinch-to-zoom capability
+1. WHEN sesi valid, THE Mobile_App SHALL mengambil profil melalui `GET /api/me` atau endpoint profil yang setara.
+2. THE Mobile_App SHALL menerima data minimal: user id, nama, username/NIP, role, access_modules, permissions, dan data pegawai jika tersedia.
+3. THE Mobile_App SHALL membangun menu dan tombol aksi berdasarkan permission dari backend.
+4. THE Backend_API SHALL tetap mengecek permission untuk setiap aksi, walaupun tombol disembunyikan di mobile.
+5. IF user tidak terhubung dengan data pegawai, THEN THE Mobile_App SHALL tetap bisa berjalan sesuai role, dengan informasi pegawai ditampilkan kosong/terbatas.
 
-### Requirement 5: Asset Photo Capture
+### Requirement 3: Portal Mobile Dashboard
 
-**User Story:** As a field staff member, I want to take geotagged photos of assets from my mobile device, so that I can update asset documentation while in the field.
-
-#### Acceptance Criteria
-
-1. WHEN the user taps the camera button on an asset detail screen, THE Mobile_App SHALL open the device camera with a photo angle selector (Depan/Geotag, Belakang, Kiri, Kanan, Lokasi Barang)
-2. WHEN a photo is captured, THE Mobile_App SHALL embed the current GPS coordinates (latitude, longitude) in the image EXIF metadata
-3. WHEN a photo is captured and confirmed, THE Mobile_App SHALL upload the photo to `POST /api/bmn/assets/{id}/photos` with the selected angle and geolocation data
-4. IF the device GPS is disabled when the user attempts to capture a photo, THEN THE Mobile_App SHALL prompt the user to enable location services before proceeding
-5. IF the photo upload fails due to network issues, THEN THE Mobile_App SHALL queue the photo for upload and retry when connectivity is restored
-6. WHEN a photo upload is queued for retry, THE Mobile_App SHALL display a pending upload indicator on the asset and in a dedicated upload queue screen
-
-### Requirement 6: BMN Asset Verification
-
-**User Story:** As a field staff member, I want to verify assets directly from my mobile device, so that I can confirm asset condition during field inspections.
+**User Story:** Sebagai user, saya ingin melihat ringkasan pekerjaan saya di halaman utama, sehingga saya cepat tahu aset, surat tugas, dan approval yang perlu ditangani.
 
 #### Acceptance Criteria
 
-1. WHEN the user taps the "Verifikasi" button on an unverified asset, THE Mobile_App SHALL call `POST /api/bmn/assets/{id}/verify` and update the verification badge
-2. WHEN an asset is successfully verified, THE Mobile_App SHALL display the verification timestamp and the verifier's name on the asset detail screen
-3. THE Mobile_App SHALL visually distinguish verified assets from unverified assets in the asset list using a badge or icon
+1. WHEN Portal_Mobile dibuka, THE Mobile_App SHALL mengambil ringkasan melalui `GET /api/mobile/dashboard`.
+2. THE Portal_Mobile SHALL menampilkan profil singkat user dan pegawai.
+3. THE Portal_Mobile SHALL menampilkan summary sesuai role, termasuk jumlah aset terkait, pinjaman aktif, surat tugas aktif/pending, approval pending jika user berwenang, dan kendaraan dengan pajak mendekati jatuh tempo jika relevan.
+4. THE Portal_Mobile SHALL tidak mengambil list besar di endpoint dashboard.
+5. THE Portal_Mobile SHALL menyediakan pull-to-refresh.
+6. WHEN dashboard gagal dimuat, THE Mobile_App SHALL menampilkan retry action.
 
-### Requirement 7: Surat Tugas List and View
+### Requirement 4: Navigation and Role-Based Modules
 
-**User Story:** As a field staff member, I want to view my assignment letters on mobile, so that I can reference them while traveling or in the field.
-
-#### Acceptance Criteria
-
-1. WHEN the user navigates to the Surat Tugas list, THE Mobile_App SHALL fetch assignment letters from `GET /api/surat-tugas` filtered by the current user's employee_id
-2. THE Mobile_App SHALL display each Surat Tugas card with: nomor surat, kegiatan (activity name), tanggal berangkat, tanggal kembali, and status badge (draft/pending/approved)
-3. WHEN the user taps a Surat Tugas, THE Mobile_App SHALL display the full letter content including: dasar surat, menimbang, personil list, tujuan, and tembusan
-4. WHEN the user taps the download button on an approved Surat Tugas, THE Mobile_App SHALL download the PDF file and open it with the device's default PDF viewer
-5. WHEN the user taps the share button, THE Mobile_App SHALL allow sharing the Surat Tugas PDF via the device's native share sheet
-
-### Requirement 8: Surat Tugas Submission
-
-**User Story:** As a field staff member, I want to submit new Surat Tugas requests from my mobile device, so that I can initiate assignment letters without returning to the office.
+**User Story:** Sebagai user, saya ingin navigasi mobile sederhana, sehingga saya bisa menemukan fitur sesuai hak akses saya tanpa merasa seperti memakai tabel desktop.
 
 #### Acceptance Criteria
 
-1. WHEN the user taps "Ajukan ST Baru", THE Mobile_App SHALL display a submission form with fields: kegiatan, dasar surat, tujuan, tanggal berangkat, tanggal kembali, sumber dana, and transportasi
-2. WHEN the user fills in the kegiatan field with text containing "konflik", THE Mobile_App SHALL auto-fill klasifikasi with "KSA.03.01"
-3. WHEN the user submits a valid ST form, THE Mobile_App SHALL send the data to `POST /api/surat-tugas` and display a success confirmation
-4. WHEN a Surat Tugas is successfully submitted, THE Mobile_App SHALL set its status to "draft" and show it in the user's Surat Tugas list
-5. IF required fields are empty when the user attempts to submit, THEN THE Mobile_App SHALL highlight the missing fields with validation error messages
+1. THE Mobile_App SHALL memakai bottom navigation atau pola navigasi mobile yang konsisten.
+2. THE Mobile_App SHALL menyediakan menu utama minimal: Beranda, BMN, Surat Tugas, dan Profil jika user punya akses terkait.
+3. THE Mobile_App SHALL menyembunyikan modul yang tidak dimiliki user berdasarkan `access_modules` dan `permissions`.
+4. THE Mobile_App SHALL menampilkan forbidden state yang jelas jika user membuka deep link tanpa hak akses.
+5. THE Mobile_App SHALL memakai touch target minimal 44pt/48dp untuk tombol dan aksi utama.
 
-### Requirement 9: Offline Capabilities
+### Requirement 5: BMN Asset List
 
-**User Story:** As a field staff member working in remote areas with limited connectivity, I want to access previously loaded data offline, so that I can continue working without internet.
-
-#### Acceptance Criteria
-
-1. THE Mobile_App SHALL cache the most recently loaded asset list, asset details, and Surat Tugas data for offline viewing
-2. WHILE the device has no network connection, THE Mobile_App SHALL display cached data with a visible "Offline Mode" indicator
-3. WHILE the device has no network connection, THE Mobile_App SHALL allow photo capture and queue uploads for later synchronization
-4. WHEN network connectivity is restored, THE Mobile_App SHALL automatically synchronize queued photo uploads and pending submissions
-5. IF a data conflict occurs during synchronization, THEN THE Mobile_App SHALL display the conflict to the user and allow manual resolution
-
-### Requirement 10: Push Notifications
-
-**User Story:** As a field staff member, I want to receive notifications about my assignments and asset updates, so that I stay informed without constantly checking the app.
+**User Story:** Sebagai user dengan akses BMN, saya ingin melihat dan mencari aset BMN dari mobile, sehingga saya bisa bekerja tanpa membuka laptop.
 
 #### Acceptance Criteria
 
-1. WHEN a Surat Tugas assigned to the user changes status (draft → pending → approved), THE Mobile_App SHALL display a push notification with the ST number and new status
-2. WHEN a vehicle asset's STNK_Countdown reaches 30 days before expiry, THE Mobile_App SHALL send a reminder notification to the assigned user
-3. WHEN the user taps a push notification, THE Mobile_App SHALL navigate directly to the relevant Surat Tugas or asset detail screen
-4. THE Mobile_App SHALL allow users to configure notification preferences (enable/disable per notification type) in a settings screen
+1. WHEN user membuka BMN, THE Mobile_App SHALL mengambil aset dari `GET /api/bmn/assets` dengan pagination.
+2. THE Mobile_App SHALL mengirim `mobile=true` atau header client mobile agar backend dapat memakai batas pagination mobile.
+3. THE Mobile_App SHALL mendukung pencarian berdasarkan nama barang, kode barang, NUP, merk/tipe, no polisi, pengguna, dan lokasi jika backend mendukung.
+4. THE Mobile_App SHALL mendukung filter kondisi, jenis BMN, lokasi, status, dan filter relevan lain sesuai API.
+5. THE Mobile_App SHALL menampilkan list dalam bentuk card/list mobile, bukan tabel desktop.
+6. THE Mobile_App SHALL memuat halaman berikutnya melalui pagination/infinite list.
+7. THE Mobile_App SHALL menampilkan empty state saat tidak ada aset.
+8. THE Backend_API SHALL mengirim response list yang ringan dan tidak memaksa mobile menerima seluruh kolom detail.
 
-### Requirement 11: App Navigation and UX
+### Requirement 6: BMN Asset Detail
 
-**User Story:** As a field staff member, I want intuitive navigation between modules, so that I can work efficiently on mobile.
+**User Story:** Sebagai user dengan akses BMN, saya ingin melihat detail aset secara lengkap, sehingga saya dapat memeriksa identitas, lokasi, dokumen, nilai, dan status aset.
 
 #### Acceptance Criteria
 
-1. THE Mobile_App SHALL provide a bottom tab navigation with tabs: Beranda (Portal Dashboard), BMN (asset list), Surat Tugas (ST list), and Profil (settings)
-2. THE Mobile_App SHALL support both light and dark display modes, following the device system preference
-3. THE Mobile_App SHALL display loading indicators during API calls and provide skeleton placeholders for content areas
-4. WHEN an API call fails with a non-401 error, THE Mobile_App SHALL display a user-friendly error message with a retry option
-5. THE Mobile_App SHALL support the Indonesian language (Bahasa Indonesia) for all user interface labels and messages
+1. WHEN user memilih aset, THE Mobile_App SHALL membuka detail dari `GET /api/bmn/assets/{id}`.
+2. THE Mobile_App SHALL mengelompokkan detail ke bagian yang mudah dipindai: Identitas, Lokasi, Dokumen, Finansial, Organisasi, Foto, dan Riwayat jika tersedia.
+3. WHEN aset adalah kendaraan, THE Mobile_App SHALL menampilkan no polisi, no mesin, no rangka, tanggal pajak, dan tanggal ganti plat jika tersedia.
+4. THE Mobile_App SHALL menampilkan badge kondisi, status verifikasi, dan status penggunaan.
+5. THE Mobile_App SHALL menampilkan foto aset dalam galeri mobile.
+6. THE Mobile_App SHALL menampilkan aksi detail sesuai permission user.
+
+### Requirement 7: BMN Asset Create and Edit
+
+**User Story:** Sebagai admin/operator dengan hak akses BMN, saya ingin membuat atau mengubah data aset dari mobile jika diperlukan, sehingga pekerjaan lapangan tetap bisa dicatat.
+
+#### Acceptance Criteria
+
+1. IF user punya permission create asset, THEN THE Mobile_App SHALL menampilkan aksi tambah aset.
+2. IF user punya permission update asset, THEN THE Mobile_App SHALL menampilkan aksi edit aset.
+3. THE Mobile_App SHALL memakai form bertahap atau sectioned form agar tidak terlalu padat di layar kecil.
+4. THE Mobile_App SHALL memvalidasi field wajib sebelum submit.
+5. THE Backend_API SHALL tetap melakukan validasi final.
+6. WHEN submit berhasil, THE Mobile_App SHALL menampilkan konfirmasi dan memperbarui list/detail.
+7. WHEN submit gagal, THE Mobile_App SHALL menampilkan error per field jika tersedia.
+
+### Requirement 8: BMN Asset Photo and Geotag
+
+**User Story:** Sebagai user yang berwenang, saya ingin mengambil dan mengunggah foto aset dari kamera mobile, sehingga dokumentasi aset lebih lengkap dan valid.
+
+#### Acceptance Criteria
+
+1. WHEN user membuka foto aset, THE Mobile_App SHALL menampilkan slot foto yang berlaku, termasuk foto geotag dan tampak aset.
+2. WHEN user mengambil foto, THE Mobile_App SHALL meminta izin kamera.
+3. WHEN user mengambil foto geotag, THE Mobile_App SHALL meminta izin lokasi jika latitude/longitude akan dikirim.
+4. THE Mobile_App SHALL mengunggah foto ke endpoint BMN photo/geotag yang berlaku dengan `photo`, `type`, dan metadata opsional `latitude`, `longitude`, `location_note`.
+5. THE Backend_API SHALL mengembalikan payload berisi URL/path foto terbaru.
+6. THE Mobile_App SHALL menampilkan progress upload dan success/error state.
+7. THE Mobile_App SHALL tidak melakukan offline queue pada MVP; jika koneksi gagal, user diminta mencoba ulang.
+8. IF user tidak punya permission upload/hapus foto, THEN THE Mobile_App SHALL menyembunyikan aksi tersebut.
+
+### Requirement 9: BMN Asset Verification
+
+**User Story:** Sebagai user yang berwenang, saya ingin melakukan verifikasi aset dari mobile, sehingga status pemeriksaan aset bisa dicatat langsung.
+
+#### Acceptance Criteria
+
+1. IF user punya permission verifikasi/update aset, THEN THE Mobile_App SHALL menampilkan tombol Verifikasi pada aset yang relevan.
+2. WHEN user melakukan verifikasi, THE Mobile_App SHALL memanggil endpoint verifikasi aset yang berlaku.
+3. WHEN verifikasi berhasil, THE Mobile_App SHALL memperbarui status verifikasi, waktu verifikasi, dan nama verifikator.
+4. IF backend menolak akses, THEN THE Mobile_App SHALL menampilkan forbidden message.
+
+### Requirement 10: BMN Loans and Returns
+
+**User Story:** Sebagai user yang berwenang, saya ingin mencatat peminjaman dan pengembalian aset dari mobile, sehingga transaksi aset dapat diproses tanpa desktop.
+
+#### Acceptance Criteria
+
+1. IF user punya permission peminjaman, THEN THE Mobile_App SHALL menampilkan fitur pinjam/serahkan aset.
+2. IF user punya permission pengembalian, THEN THE Mobile_App SHALL menampilkan fitur kembalikan aset.
+3. THE Mobile_App SHALL dapat mencari pegawai peminjam melalui endpoint pegawai paginated.
+4. THE Mobile_App SHALL menampilkan riwayat pinjaman aset jika user punya akses.
+5. THE Mobile_App SHALL memvalidasi tanggal, pegawai, dan aset sebelum submit.
+6. THE Backend_API SHALL tetap mengecek status aset dan permission sebelum membuat/mengubah transaksi.
+
+### Requirement 11: Surat Tugas List and Detail
+
+**User Story:** Sebagai user, saya ingin melihat surat tugas saya atau surat tugas yang boleh saya kelola, sehingga saya dapat memantau pekerjaan dan penugasan dari mobile.
+
+#### Acceptance Criteria
+
+1. THE Mobile_App SHALL menampilkan daftar Surat_Tugas sesuai role dan permission user.
+2. Pegawai biasa SHALL dapat melihat surat tugas miliknya melalui endpoint personal jika tersedia.
+3. Admin/operator yang berwenang SHALL dapat melihat daftar surat tugas sesuai permission.
+4. THE Mobile_App SHALL mendukung search, filter status, dan pagination.
+5. THE Mobile_App SHALL menampilkan card surat tugas berisi nomor, kegiatan/tujuan, tanggal mulai, tanggal selesai, status, dan personel ringkas.
+6. WHEN user membuka detail, THE Mobile_App SHALL menampilkan isi utama surat tugas, personel, status, file, dan aksi yang tersedia.
+
+### Requirement 12: Surat Tugas Create, Edit, and Submit
+
+**User Story:** Sebagai user yang berwenang, saya ingin mengajukan atau membuat surat tugas dari mobile, sehingga proses penugasan dapat dimulai tanpa desktop.
+
+#### Acceptance Criteria
+
+1. IF user punya permission membuat/pengajuan surat tugas, THEN THE Mobile_App SHALL menampilkan aksi buat/ajukan Surat_Tugas.
+2. THE Mobile_App SHALL menyediakan form mobile untuk data utama surat tugas, termasuk tujuan/kegiatan, dasar, tanggal, sumber dana, transportasi, personel, dan field lain yang diwajibkan backend.
+3. THE Mobile_App SHALL memungkinkan pencarian dan pemilihan pegawai dengan API paginated.
+4. THE Mobile_App SHALL menampilkan validasi field wajib sebelum submit.
+5. WHEN submit berhasil, THE Mobile_App SHALL menampilkan konfirmasi dan membuka detail/riwayat surat tugas.
+6. WHEN backend mengembalikan validation errors, THE Mobile_App SHALL menampilkan error pada field terkait.
+
+### Requirement 13: Surat Tugas Approval and Status Actions
+
+**User Story:** Sebagai pimpinan/admin/operator yang berwenang, saya ingin memproses approval atau status surat tugas dari mobile, sehingga pekerjaan approval tidak harus menunggu desktop.
+
+#### Acceptance Criteria
+
+1. IF user punya permission approval/status update, THEN THE Mobile_App SHALL menampilkan aksi approve/reject/update status.
+2. THE Mobile_App SHALL meminta konfirmasi sebelum menjalankan aksi status penting.
+3. THE Backend_API SHALL tetap mengecek permission dan status transisi.
+4. WHEN aksi berhasil, THE Mobile_App SHALL memperbarui status di list dan detail.
+5. WHEN aksi gagal, THE Mobile_App SHALL menampilkan alasan error dari backend.
+
+### Requirement 14: Surat Tugas Download and Share
+
+**User Story:** Sebagai user, saya ingin mengunduh atau membagikan file surat tugas dari mobile, sehingga saya bisa memakai dokumen saat bertugas.
+
+#### Acceptance Criteria
+
+1. WHEN Surat_Tugas punya file yang boleh diakses user, THE Mobile_App SHALL menampilkan aksi download.
+2. THE Mobile_App SHALL mengunduh file melalui endpoint authenticated.
+3. THE Mobile_App SHALL membuka file PDF/dokumen dengan viewer perangkat atau share sheet.
+4. IF file tidak ditemukan, THE Mobile_App SHALL menampilkan pesan file tidak tersedia.
+5. THE Backend_API SHALL mengecek permission atau kepemilikan surat sebelum mengirim file.
+
+### Requirement 15: Employee Directory for Selectors
+
+**User Story:** Sebagai user yang membutuhkan pemilihan pegawai, saya ingin mencari pegawai dari mobile, sehingga form BMN dan Surat Tugas dapat diisi cepat.
+
+#### Acceptance Criteria
+
+1. THE Mobile_App SHALL memakai endpoint pegawai paginated untuk selector.
+2. THE Mobile_App SHALL mendukung search nama dan NIP.
+3. THE Mobile_App SHALL tidak memuat seluruh pegawai sekaligus.
+4. THE Mobile_App SHALL menampilkan nama, NIP, jabatan, dan unit kerja ringkas pada hasil pencarian.
+5. THE Backend_API SHALL membatasi akses data pegawai sesuai permission.
+
+### Requirement 16: Online-Only Behavior
+
+**User Story:** Sebagai user, saya ingin aplikasi menjelaskan saat koneksi tidak tersedia, sehingga saya tahu bahwa fitur membutuhkan internet.
+
+#### Acceptance Criteria
+
+1. THE Mobile_App SHALL mendeteksi kondisi tidak ada koneksi.
+2. THE Mobile_App SHALL menampilkan offline banner atau state bahwa aplikasi membutuhkan internet.
+3. THE Mobile_App SHALL tidak menjanjikan penyimpanan offline penuh pada MVP.
+4. THE Mobile_App SHALL tidak melakukan queue upload offline pada MVP.
+5. THE Mobile_App MAY menyimpan cache ringan hanya untuk kenyamanan tampilan sementara, tetapi data tetap dianggap perlu refresh online.
+
+### Requirement 17: API Contract and Error Handling
+
+**User Story:** Sebagai user mobile, saya ingin error mudah dipahami, sehingga saya tahu apa yang harus dilakukan ketika request gagal.
+
+#### Acceptance Criteria
+
+1. THE Mobile_App SHALL membaca response standar `data`, `meta`, dan `message` jika tersedia.
+2. THE Mobile_App SHALL menangani 401 dengan logout otomatis.
+3. THE Mobile_App SHALL menangani 403 dengan forbidden state.
+4. THE Mobile_App SHALL menangani 404 dengan not found state.
+5. THE Mobile_App SHALL menangani 422 dengan field validation messages.
+6. THE Mobile_App SHALL menampilkan retry action untuk error jaringan atau server.
+7. THE Mobile_App SHALL tidak menampilkan stack trace atau error teknis mentah ke user.
+
+### Requirement 18: Performance and Pagination
+
+**User Story:** Sebagai user, saya ingin list dan pencarian terasa cepat, sehingga aplikasi mobile nyaman dipakai walaupun data besar.
+
+#### Acceptance Criteria
+
+1. THE Mobile_App SHALL memakai pagination untuk list aset, pegawai, surat tugas, pinjaman, dan riwayat besar.
+2. THE Mobile_App SHALL memakai debounce pada search input.
+3. THE Mobile_App SHALL memakai skeleton/loading state untuk request lebih dari 1 detik.
+4. THE Mobile_App SHALL memakai virtualized list untuk data panjang.
+5. THE Mobile_App SHALL tidak mengambil export massal atau seluruh dataset untuk tampilan mobile.
+
+### Requirement 19: Security and Privacy
+
+**User Story:** Sebagai organisasi, saya ingin mobile app tetap aman, sehingga data internal BMN dan kepegawaian tidak bocor.
+
+#### Acceptance Criteria
+
+1. THE Mobile_App SHALL menyimpan token/session di secure storage perangkat.
+2. THE Mobile_App SHALL tidak menyimpan password.
+3. THE Mobile_App SHALL mengirim request melalui HTTPS di production.
+4. THE Mobile_App SHALL tidak menampilkan data atau aksi yang tidak sesuai permission.
+5. THE Backend_API SHALL tetap menjadi enforcement layer untuk semua permission.
+6. THE Mobile_App SHALL tidak menulis token, password, atau dokumen sensitif ke log.
+7. THE Mobile_App SHALL membersihkan sesi lokal saat logout atau 401.
+
+### Requirement 20: Mobile UI/UX Standards
+
+**User Story:** Sebagai user mobile, saya ingin aplikasi mudah disentuh, dibaca, dan digunakan, sehingga pekerjaan lapangan tidak terganggu oleh UI yang terlalu padat.
+
+#### Acceptance Criteria
+
+1. THE Mobile_App SHALL memakai pola mobile-native, bukan memindahkan tabel web mentah ke layar kecil.
+2. THE Mobile_App SHALL memakai ukuran teks body minimal 16sp/pt sejauh memungkinkan.
+3. THE Mobile_App SHALL memakai target sentuh minimal 44pt/48dp.
+4. THE Mobile_App SHALL memakai empty state, loading state, error state, dan success feedback yang konsisten.
+5. THE Mobile_App SHALL mendukung Bahasa Indonesia untuk seluruh label utama.
+6. THE Mobile_App SHALL mempertahankan kontras teks minimal sesuai WCAG AA.
+
+## Future Requirements
+
+Fitur berikut dapat masuk fase setelah MVP:
+
+- iOS release.
+- Push notification Surat Tugas, approval, dan STNK reminder.
+- Biometric unlock setelah login.
+- Widget/shortcut mobile untuk tugas penting.
+- QR scanning untuk verifikasi dokumen atau aset.
+- Dokumen BMN generator mobile jika UX-nya sudah matang.
+- Offline mode terbatas untuk wilayah minim sinyal jika nanti benar-benar dibutuhkan.
+
+## Open Questions
+
+Hal yang perlu diputuskan saat masuk `design.md`:
+
+1. Apakah mobile app akan memakai Expo managed workflow atau React Native bare workflow.
+2. Apakah auth mobile tetap memakai token Sanctum dari `POST /api/login` atau perlu endpoint/device token khusus.
+3. Apa daftar permission final yang akan dipakai untuk setiap tombol mobile.
+4. Modul selain BMN dan Surat Tugas apa yang masuk setelah MVP.
+5. Apakah upload foto wajib mengirim latitude/longitude untuk semua slot atau hanya foto geotag.
+6. Apakah mobile perlu preview PDF internal atau cukup buka viewer perangkat.
+
+## Definition of Done for Requirements
+
+Requirement dianggap siap lanjut ke `design.md` jika:
+
+- Scope MVP disetujui.
+- Out of scope MVP disetujui.
+- Role dan permission mengikuti backend disetujui.
+- Online-only disetujui.
+- API readiness plan tetap menjadi prasyarat teknis.
+- Tidak ada requirement yang bertentangan dengan aplikasi web saat ini.
