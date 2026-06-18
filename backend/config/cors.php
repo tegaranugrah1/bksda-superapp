@@ -10,8 +10,8 @@
  */
 
 return [
-    // Hanya izinkan CORS untuk route /api/*
-    'paths' => ['api/*'],
+    // Hanya izinkan CORS untuk route /api/* dan sanctum/csrf-cookie
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     // Izinkan semua HTTP method (GET, POST, PUT, DELETE, dll.)
     'allowed_methods' => ['*'],
