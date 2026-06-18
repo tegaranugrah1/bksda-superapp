@@ -12,7 +12,7 @@ const MODULE_ROUTES: Record<string, string> = {
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get('bksda_token')?.value;
+  const loggedIn = request.cookies.get('bksda_logged_in')?.value;
   const userCookie = request.cookies.get('bksda_user')?.value;
 
   // 1. Abaikan internal & aset
@@ -27,7 +27,7 @@ export default function proxy(request: NextRequest) {
 
   // 2. Proteksi Halaman Login (Redirect jika sudah login)
   if (pathname === "/login") {
-    if (token && userCookie) {
+    if (loggedIn && userCookie) {
       return NextResponse.redirect(new URL("/portal", request.url));
     }
     return NextResponse.next();
@@ -47,13 +47,14 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 4. Check for token
-  if (!token || !userCookie) {
+  // 4. Check for session
+  if (!loggedIn || !userCookie) {
     const url = new URL('/login', request.url);
     const response = NextResponse.redirect(url);
     // Cleanup invalid cookies if any
-    response.cookies.delete("bksda_token");
+    response.cookies.delete("bksda_logged_in");
     response.cookies.delete("bksda_user");
+    response.cookies.delete("bksda_token");
     return response;
   }
 
@@ -82,8 +83,9 @@ export default function proxy(request: NextRequest) {
   } catch (error) {
     console.error('Proxy auth parsing error:', error);
     const response = NextResponse.redirect(new URL('/login', request.url));
-    response.cookies.delete("bksda_token");
+    response.cookies.delete("bksda_logged_in");
     response.cookies.delete("bksda_user");
+    response.cookies.delete("bksda_token");
     return response;
   }
 

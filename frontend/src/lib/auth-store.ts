@@ -55,16 +55,16 @@ function getUserString() {
 export function getAuthSnapshot() {
   if (typeof window === "undefined") return "";
 
-  const token = localStorage.getItem("bksda_token") || getCookie("bksda_token") || "";
+  const loggedIn = localStorage.getItem("bksda_logged_in") || getCookie("bksda_logged_in") || "";
   const user = getUserString() || "";
 
-  return `${token}\n${user}`;
+  return `${loggedIn}\n${user}`;
 }
 
 export function parseAuthSnapshot(snapshot: string) {
-  const [token, userString] = snapshot.split("\n");
+  const [loggedIn, userString] = snapshot.split("\n");
 
-  if (!token || !userString) {
+  if (!loggedIn || !userString) {
     return { token: null, user: null };
   }
 
@@ -72,7 +72,8 @@ export function parseAuthSnapshot(snapshot: string) {
     const user = JSON.parse(userString) as StoredUser;
     if (user.nama_lengkap && !user.name) user.name = user.nama_lengkap;
 
-    return { token, user };
+    // "session" bertindak sebagai placeholder token untuk kompatibilitas pengecekan isAuthenticated
+    return { token: "session", user };
   } catch {
     return { token: null, user: null };
   }
@@ -103,10 +104,11 @@ export const authStore = {
   login(token: string, userData: unknown) {
     if (typeof window === "undefined") return;
     
-    localStorage.setItem("bksda_token", token);
+    // Simpan indikator logged_in alih-alih token mentah
+    localStorage.setItem("bksda_logged_in", "true");
     localStorage.setItem("bksda_user", JSON.stringify(userData));
     
-    setAuthCookie("bksda_token", token);
+    setAuthCookie("bksda_logged_in", "true");
     setAuthCookie("bksda_user", JSON.stringify(userData));
 
     window.dispatchEvent(new Event("auth-change"));
@@ -126,11 +128,13 @@ export const authStore = {
   logout() {
     if (typeof window === "undefined") return;
 
-    localStorage.removeItem("bksda_token");
+    localStorage.removeItem("bksda_logged_in");
     localStorage.removeItem("bksda_user");
+    localStorage.removeItem("bksda_token"); // Bersihkan sisa token lama
     
-    deleteAuthCookie("bksda_token");
+    deleteAuthCookie("bksda_logged_in");
     deleteAuthCookie("bksda_user");
+    deleteAuthCookie("bksda_token");
 
     window.dispatchEvent(new Event("auth-change"));
   }

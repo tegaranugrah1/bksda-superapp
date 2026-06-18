@@ -44,6 +44,9 @@ class AuthController extends Controller
         // Buat token baru Sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Login user secara session-based (HttpOnly Cookie)
+        \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);
+
         // Return sesuai format Rule 5.1
         return response()->json([
             'data' => new UserResource($user),
@@ -137,8 +140,15 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        // Hapus token yang sedang digunakan
-        $request->user()->currentAccessToken()->delete();
+        // Logout dari guard session dan invalidate session cookie
+        \Illuminate\Support\Facades\Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // Hapus token yang sedang digunakan jika terautentikasi lewat token
+        if ($request->user() && $request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
 
         return response()->json([
             'message' => 'Logout berhasil',

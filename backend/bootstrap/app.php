@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Mengaktifkan stateful API middleware agar cookie session/CSRF Sanctum aktif untuk SPA
+        $middleware->statefulApi();
 
         // 1. Mendaftarkan Alias (Agar bisa dipanggil di route misal: middleware('role:admin'))
         $middleware->alias([
