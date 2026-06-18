@@ -1,3 +1,38 @@
+# Progress - Phase 88: BMN Granular Permissions
+
+> Document updated: 2026-06-18
+> Status: PR #424 squash merged ke `main` (commit `4774492`). Branch remote `issue/423-bmn-granular-permissions` sudah dihapus.
+
+---
+
+## BMN Granular Permissions
+
+### Status: SELESAI
+- Scope: Backend dan Frontend Modul BMN
+- Tujuan: Membatasi aksi-aksi sensitif di modul BMN secara granular menggunakan hak akses (permission) alih-alih role admin/super admin kasar.
+
+### Implementasi
+- **Database**:
+  - Menambahkan kolom `permissions` (tipe JSON nullable) di tabel `users` untuk menyimpan array permission per user.
+- **Backend**:
+  - Menambahkan method `hasPermission` pada model `User` dengan backward compatibility (jika kolom `permissions` bernilai `null`, `bmn.view` dan `bmn.document.history.view` diizinkan jika user memiliki akses modul BMN, sedangkan aksi write/mutasi memerlukan role `admin`).
+  - Membuat dan mendaftarkan middleware `CheckPermission` (alias: `permission`).
+  - Melindungi rute-rute API di BMN (`Routes/api.php`) secara granular menggunakan middleware `permission:...`.
+  - Memperbarui `EmployeeAccessRequest` dan `EmployeeAccessController` untuk mendukung penyimpanan permissions array saat menyimpan/mengedit akses pegawai.
+- **Frontend**:
+  - Memperbarui `StoredUser` di `auth-store.ts` dan menambahkan helper `hasPermission` di hook `useRole.ts`.
+  - Menambahkan checkbox checklist BMN Granular Permissions di form/sheet Edit Akses Pegawai (`EmployeeAccessSheet.tsx`).
+  - Memperbarui filter menu navigasi di `bmn/layout.tsx` menggunakan checks `hasPermission`.
+  - Melindungi visual tombol/aksi sensitif pada halaman-halaman BMN (Disposal, Import Review, Reports, Asset Detail, Photo Gallery, dll.) menggunakan `hasPermission` check.
+
+### Validasi
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+- `php artisan route:list`: pass.
+
+---
+
 # Progress - Phase 87: Auth Cookie Lifetime Hardening
 
 > Document updated: 2026-06-18
