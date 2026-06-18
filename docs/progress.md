@@ -4356,3 +4356,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/design.md`.
 - [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md`.
 
+## [2026-06-18] Mobile App Planning - Design Draft
+
+### Completed (Selesai)
+- [x] Created `.kiro/specs/mobile-app-bmn-kepegawaian/design.md` as the technical and UX design bridge after requirements.
+- [x] Recommended Expo React Native + TypeScript for Android-first MVP with iOS readiness.
+- [x] Defined app architecture: app shell, auth layer, API layer, feature modules, and shared UI.
+- [x] Defined root navigation, tab structure, screen map, and role-based module visibility.
+- [x] Designed BMN flows for asset list/detail, photo/geotag upload, verification, loans, and returns.
+- [x] Designed Surat Tugas flows for list/detail, create/edit/submit, approval/status actions, and authenticated download/share.
+- [x] Added API client conventions, error handling, permission gating, security, accessibility, performance, testing, and rollout strategy.
+
+### Next Steps
+- [ ] Review `design.md` for product/UX fit.
+- [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md`.
+
