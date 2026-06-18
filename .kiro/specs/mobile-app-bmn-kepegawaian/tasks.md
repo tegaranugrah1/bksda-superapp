@@ -631,7 +631,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: a new developer can find the Android run command in the README.
   - _Requirements: 20_
 
-- [ ] 4. Configure TypeScript path aliases
+- [x] 4. Configure TypeScript path aliases
   - Target area: `mobile/tsconfig.json`.
   - Add aliases for `src`, components, features, lib, and hooks.
   - Acceptance check: one import uses the alias without TypeScript error.
