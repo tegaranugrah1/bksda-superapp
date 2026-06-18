@@ -11,11 +11,27 @@ const api = axios.create({
   timeout: 10000,
 });
 
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop()?.split(";").shift() ?? "");
+  }
+  return null;
+}
+
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("bksda_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Secara manual melampirkan X-XSRF-TOKEN untuk request cross-origin (Next.js -> Laravel)
+    const xsrfToken = getCookie("XSRF-TOKEN");
+    if (xsrfToken) {
+      config.headers["X-XSRF-TOKEN"] = xsrfToken;
     }
   }
 
