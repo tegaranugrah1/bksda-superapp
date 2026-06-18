@@ -1,3 +1,35 @@
+# Progress - Phase 89: Sanctum SPA HttpOnly Cookie Authentication
+
+> Document updated: 2026-06-18
+> Status: PR #426 squash merged ke `main` (commit `80072f0`). Branch remote `issue/425-sanctum-cookie-auth` sudah dihapus.
+
+---
+
+## Sanctum SPA HttpOnly Cookie Authentication
+
+### Status: SELESAI
+- Scope: Backend dan Frontend Authentication
+- Tujuan: Mengubah penyimpanan token otentikasi dari browser localStorage/cookie non-HttpOnly menjadi cookie HttpOnly session (Sanctum SPA) untuk menutup celah XSS token stealing.
+
+### Implementasi
+- **Backend**:
+  - Mendaftarkan stateful API middleware (`$middleware->statefulApi()`) di `bootstrap/app.php` agar Laravel mengenali session dan CSRF cookie untuk SPA.
+  - Memperbarui konfigurasi CORS di `config/cors.php` untuk mengizinkan rute `/sanctum/csrf-cookie`.
+  - Memperbarui `AuthController@login` untuk mengautentikasi pengguna secara session-based menggunakan `Auth::guard('web')->login($user, true)` untuk memicu cookie HttpOnly session, sementara tetap mengembalikan fallback token untuk kecocokan API terproteksi.
+  - Memperbarui `AuthController@logout` untuk membatalkan (invalidate) session, meregenerasi CSRF token, dan menghapus session cookie di samping token API.
+- **Frontend**:
+  - Memperbarui halaman login ([page.tsx](file:///e:/bksda-superapp/frontend/src/app/(auth)/login/page.tsx)) agar melakukan fetch CSRF cookie dari `/sanctum/csrf-cookie` terlebih dahulu sebelum melakukan submit request login.
+  - Memperbarui `auth-store.ts` untuk tidak lagi menyimpan plain text token ke `localStorage` atau cookie non-HttpOnly. Sebagai gantinya, store menggunakan cookie/local state `bksda_logged_in=true` sebagai indikator login visual dan internal.
+  - Memperbarui Next.js middleware ([proxy.ts](file:///e:/bksda-superapp/frontend/src/proxy.ts)) untuk menggunakan cookie `bksda_logged_in` dalam memeriksa status login sebelum memproses routing.
+
+### Validasi
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+- `php artisan route:list`: pass.
+
+---
+
 # Progress - Phase 88: BMN Granular Permissions
 
 > Document updated: 2026-06-18
