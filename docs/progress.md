@@ -1,3 +1,46 @@
+# Progress - Phase 85: Audit Log Payload Sanitizer
+
+> Document updated: 2026-06-18
+> Status: Selesai lokal, siap PR.
+
+---
+
+## Security Observability Hardening
+
+### Status: SELESAI DI LOKAL
+- Scope: middleware audit log global API.
+- Tujuan: audit log tetap mencatat aksi write API, tetapi tidak menyimpan secret, token nested, raw upload file, atau payload besar secara mentah.
+
+### Implementasi
+- Menambahkan sanitizer payload di `AuditLogMiddleware`.
+- Secret key sensitif sekarang dimasking rekursif, termasuk:
+  - password/current password/new password.
+  - token/access token/refresh token.
+  - authorization/api key/secret.
+- File upload tidak disimpan sebagai object/raw payload, tetapi diringkas menjadi metadata:
+  - nama file.
+  - MIME.
+  - extension.
+  - ukuran file.
+- String panjang dipotong agar audit log tidak membengkak.
+- Array besar dibatasi jumlah itemnya dan diberi flag `_truncated`.
+
+### Validasi
+- `php -l backend/app/Http/Middleware/AuditLogMiddleware.php`: pass.
+- `php artisan route:list --path=api/login --json`: pass.
+- Script PHP ad hoc untuk sanitizer payload: pass (password/token nested ter-redact, file menjadi metadata, string panjang terpotong).
+- Browser bawaan Codex:
+  - `/bmn/import-review` load normal sebagai superadmin.
+  - upload import tampil.
+  - tidak ada console error.
+- `php artisan test`: masih gagal di test bawaan `Tests\Feature\ExampleTest::test_the_application_returns_a_successful_response` karena route `/` backend mengembalikan 404, tidak terkait perubahan audit middleware.
+
+### Catatan
+- Audit middleware sudah global untuk API write method, jadi perubahan ini langsung melindungi log dari banyak endpoint sekaligus.
+- File untracked lokal `frontend/public/header.png` tidak disentuh.
+
+---
+
 # Progress - Phase 84: CSP Report-Only dan Sanitizer Hardening
 
 > Document updated: 2026-06-18
