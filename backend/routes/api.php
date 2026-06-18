@@ -26,6 +26,7 @@ Route::get('/health', function () {
 });
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\MobileDashboardController;
 
 // Public Auth Route
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
@@ -35,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/me/dashboard', [AuthController::class, 'dashboard']);
+    Route::get('/mobile/dashboard', [MobileDashboardController::class, 'index']);
     Route::post('/me/update-photo', [AuthController::class, 'updatePhoto']);
     Route::post('/me/update-profile', [AuthController::class, 'updateProfile']);
     Route::post('/me/change-password', [AuthController::class, 'changePassword']);
