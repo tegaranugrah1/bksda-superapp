@@ -17,9 +17,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Hanya izinkan request dari frontend URL
-    'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:3000'),
-    ],
+    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL', 'http://localhost:3000') . ',https://bksdakaltim.net,https://www.bksdakaltim.net')),
 
     'allowed_origins_patterns' => [],
 

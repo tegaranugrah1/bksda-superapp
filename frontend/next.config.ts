@@ -38,6 +38,23 @@ const nextConfig: NextConfig = {
     turbopack: {},
 
     async rewrites() {
+        if (process.env.NODE_ENV === "development") {
+            const backendUrl = "http://localhost:8000";
+            return [
+                {
+                    source: "/api/:path*",
+                    destination: `${backendUrl}/api/:path*`,
+                },
+                {
+                    source: "/sanctum/:path*",
+                    destination: `${backendUrl}/sanctum/:path*`,
+                },
+                {
+                    source: "/storage/:path*",
+                    destination: `${backendUrl}/storage/:path*`,
+                },
+            ];
+        }
         return [
             {
                 source: "/storage/:path*",
