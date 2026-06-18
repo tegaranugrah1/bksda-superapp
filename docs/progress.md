@@ -4477,6 +4477,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 6 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 7: Add design tokens (`mobile/src/theme/tokens.ts`).
+- [ ] Task 7: Add design tokens (`mobile/src/theme/tokens.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 7 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 7: Defined and exported design tokens for colors, spacing, typography, radius, and shadows in [mobile/src/theme/tokens.ts](file:///e:/bksda-superapp/mobile/src/theme/tokens.ts).
+- [x] Confirmed color tokens support both light mode and dark mode, and include primary, danger, warning, info, neutral, and surface colors, matching the Emerald/Green Forestry Theme of the web dashboard.
+- [x] Exported `type` as alias for `typography` to support specific local focuses.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 7 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 8: Add AppButton component (`mobile/src/components/AppButton.tsx`).
 
 

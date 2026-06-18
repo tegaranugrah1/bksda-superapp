@@ -649,7 +649,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: no feature code is placed at project root.
   - _Requirements: 20_
 
-- [ ] 7. Add design tokens
+- [x] 7. Add design tokens
   - Target area: `mobile/src/theme/tokens.ts`.
   - Define colors, spacing, typography, radius, and shadow tokens.
   - Acceptance check: tokens include primary, danger, warning, info, neutral, and surface colors.
