@@ -1,3 +1,37 @@
+# Progress - Phase 91: Local Dev CSRF Proxy & Production Cookie Fix
+
+> Document updated: 2026-06-18
+> Status: PR #429 squash merged ke `main` (commit `a74c0ef`). Branch remote `issue/427-local-csrf-fix` sudah dihapus.
+
+---
+
+## Local Dev CSRF Proxy & Production Cookie Fix
+
+### Status: SELESAI
+- Scope: Backend Config, Frontend API Client, Deployment Config
+- Tujuan: 
+  1. Menyelesaikan issue CSRF token mismatch 419 lokal di development dengan mengarahkan request `/api`, `/sanctum`, dan `/storage` melalui Next.js rewrites.
+  2. Menyelesaikan issue "Sesi Anda telah berakhir" secara langsung setelah login sukses di environment production (`https://bksdakaltim.net`) dengan mengkonfigurasi domain stateful Sanctum, CORS allowed origins, secure session cookies, dan session domain yang tepat.
+
+### Implementasi
+- **Backend**:
+  - Memperbarui [sanctum.php](file:///e:/bksda-superapp/backend/config/sanctum.php) untuk menyertakan domain production (`bksdakaltim.net`, `www.bksdakaltim.net`, `api.bksdakaltim.net`) sebagai fallback stateful domains default.
+  - Memperbarui [cors.php](file:///e:/bksda-superapp/backend/config/cors.php) agar `allowed_origins` dapat membaca comma-separated list dari `CORS_ALLOWED_ORIGINS` dengan fallback ke domain development dan production.
+  - Memperbarui [session.php](file:///e:/bksda-superapp/backend/config/session.php) agar cookie session di-flag `secure` di production, dan domain session di-set ke `.bksdakaltim.net` secara default di production untuk cross-subdomain sharing.
+- **Frontend**:
+  - Memperbarui [next.config.ts](file:///e:/bksda-superapp/frontend/next.config.ts) untuk menambahkan rewrite rule ke `http://localhost:8000` di local development.
+  - Memperbarui [api.ts](file:///e:/bksda-superapp/frontend/src/lib/api.ts) agar Axios `baseURL` diselesaikan secara dinamis (menggunakan relative URL `/api` di client local dev, absolute URL di SSR, dan fallback server-side URL).
+  - Memperbarui [.env.local](file:///e:/bksda-superapp/frontend/.env.local) lokal agar menggunakan `NEXT_PUBLIC_API_URL=/api`.
+- **Deployment**:
+  - Menambahkan environment variables (`SANCTUM_STATEFUL_DOMAINS`, `CORS_ALLOWED_ORIGINS`, `SESSION_SECURE_COOKIE`, `SESSION_DOMAIN`) ke [docker-compose.prod.yml](file:///e:/bksda-superapp/docker-compose.prod.yml) and [docker-compose.dokploy.yml](file:///e:/bksda-superapp/docker-compose.dokploy.yml).
+
+### Validasi
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+
+---
+
 # Progress - Phase 90: SPA CSRF Token Fix
 
 > Document updated: 2026-06-18
