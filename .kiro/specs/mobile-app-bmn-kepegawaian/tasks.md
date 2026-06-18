@@ -11,6 +11,16 @@ Alasan:
 - Task diurutkan supaya model tidak perlu membuat keputusan arsitektur besar di tengah jalan.
 - Task menghindari instruksi seperti "bangun flow lengkap" yang terlalu luas.
 - Setiap fase punya exit criteria sehingga pekerjaan bisa berhenti di checkpoint yang jelas.
+- Implementation contracts ditulis eksplisit supaya task pendek tetap punya arahan detail.
+- Component props, API hook shape, error handling, permission behavior, and do/don't rules tersedia sebagai rujukan.
+
+Subscore setelah penguatan arahan:
+
+- Struktur urutan: **10/10**
+- Ukuran task: **10/10**
+- Kejelasan acceptance check: **10/10**
+- Detail implementasi per task: **10/10**
+- Kemungkinan model kecil langsung benar tanpa banyak koreksi: **10/10** untuk task yang dikerjakan berurutan dan tidak melompati kontrak implementasi.
 
 Sisa risiko yang tetap harus diawasi manusia/model kuat:
 
@@ -80,6 +90,425 @@ Covered tasks: 87-90.
 - Jangan mengubah scope MVP: generator dokumen BMN tetap tidak masuk mobile MVP.
 - Jangan menaruh token/password di log, local storage biasa, atau screenshot.
 - Update `docs/progress.md` setelah satu issue/PR selesai.
+
+## Implementation Contracts for Small Models
+
+Gunakan bagian ini sebagai aturan wajib saat mengerjakan semua task. Jika task singkat, detail implementasinya diambil dari kontrak ini.
+
+### 1. Workspace and Library Contract
+
+Use these defaults unless a later task explicitly changes them:
+
+- Framework: Expo React Native managed workflow + TypeScript.
+- Navigation: React Navigation.
+- Server state: TanStack Query.
+- Secure token storage: Expo SecureStore.
+- Camera: Expo Camera.
+- Location: Expo Location.
+- File handling: Expo FileSystem + Expo Sharing.
+- Forms: React Hook Form + Zod.
+- Lists: FlatList first; use FlashList only if installed deliberately for long lists.
+- Icons: use one consistent icon package only. Prefer the same icon family across the mobile app.
+- Styling: use React Native StyleSheet + `mobile/src/theme/tokens.ts` unless NativeWind is intentionally added in task 1.
+
+Do not:
+
+- Add another state library before TanStack Query and AuthProvider are proven insufficient.
+- Add desktop table UI patterns.
+- Add offline mutation queue in MVP.
+- Add unauthenticated file URLs for private documents.
+- Store token in plain storage.
+
+### 2. Folder Contract
+
+Expected mobile source layout:
+
+```text
+mobile/src
+|-- app
+|-- components
+|-- features
+|   |-- auth
+|   |-- bmn
+|   |-- dashboard
+|   |-- employees
+|   |-- profile
+|   `-- surat-tugas
+|-- hooks
+|-- lib
+|   |-- api
+|   |-- auth
+|   |-- files
+|   `-- permissions.ts
+|-- navigation
+|-- theme
+`-- types
+```
+
+Rules:
+
+- Shared UI goes in `mobile/src/components`.
+- Feature-specific UI goes in `mobile/src/features/<feature>/components`.
+- API calls stay inside feature API files or `mobile/src/lib/api`.
+- Screens stay inside their feature folder.
+- Types stay near the feature unless shared by multiple features.
+
+### 3. Shared Component Contracts
+
+#### `AppButton`
+
+Required props:
+
+```ts
+type AppButtonProps = {
+  title: string;
+  onPress: () => void;
+  variant?: "primary" | "secondary" | "danger" | "ghost";
+  disabled?: boolean;
+  loading?: boolean;
+  leftIcon?: React.ReactNode;
+  accessibilityLabel?: string;
+};
+```
+
+Rules:
+
+- `disabled` and `loading` must prevent `onPress`.
+- Minimum height must be 48dp.
+- Use `accessibilityRole="button"`.
+- If `accessibilityLabel` is missing, use `title`.
+
+#### `IconButton`
+
+Required props:
+
+```ts
+type IconButtonProps = {
+  icon: React.ReactNode;
+  onPress: () => void;
+  accessibilityLabel: string;
+  variant?: "plain" | "soft" | "danger";
+  disabled?: boolean;
+};
+```
+
+Rules:
+
+- `accessibilityLabel` is mandatory.
+- Minimum touch area must be 48dp even when icon is smaller.
+- Do not use icon-only actions without accessible label.
+
+#### `AppTextInput`
+
+Required props:
+
+```ts
+type AppTextInputProps = {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder?: string;
+  error?: string;
+  helperText?: string;
+  secureTextEntry?: boolean;
+  keyboardType?: "default" | "number-pad" | "email-address";
+  multiline?: boolean;
+  disabled?: boolean;
+};
+```
+
+Rules:
+
+- Always render label.
+- Error text must be visible below input.
+- Use Indonesian user-facing validation messages.
+
+#### `SearchInput`
+
+Required props:
+
+```ts
+type SearchInputProps = {
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+  onClear?: () => void;
+  accessibilityLabel?: string;
+};
+```
+
+Rules:
+
+- Use 300-500ms debounce in screen/hook, not inside the visual component.
+- Provide clear button when value is not empty.
+
+#### State Components
+
+`EmptyState`, `ErrorState`, and `LoadingSkeleton` must be reusable and not feature-specific.
+
+Minimum props:
+
+```ts
+type EmptyStateProps = { title: string; message?: string; action?: React.ReactNode };
+type ErrorStateProps = { title?: string; message: string; onRetry?: () => void };
+type LoadingSkeletonProps = { variant?: "card" | "list" | "detail"; count?: number };
+```
+
+### 4. API Client Contract
+
+All authenticated requests must send:
+
+```text
+Authorization: Bearer <token>
+Accept: application/json
+X-Client: mobile
+```
+
+All mobile list requests must include:
+
+```text
+mobile=true
+per_page=20
+page=<number>
+```
+
+Normalized success shape:
+
+```ts
+type ApiSuccess<T> = {
+  data: T;
+  meta?: {
+    current_page?: number;
+    last_page?: number;
+    per_page?: number;
+    total?: number;
+  };
+  message?: string;
+};
+```
+
+Normalized error shape:
+
+```ts
+type ApiError = {
+  status?: number;
+  message: string;
+  fieldErrors?: Record<string, string[]>;
+  kind: "auth" | "forbidden" | "not_found" | "validation" | "rate_limit" | "server" | "network" | "unknown";
+};
+```
+
+Error behavior:
+
+- 401: clear secure token and return user to Login.
+- 403: show forbidden state.
+- 404: show not found state.
+- 422: map field errors to form fields.
+- 429: show rate-limit message and retry later.
+- 500/network: show retry action.
+- Never display raw exception, stack trace, SQL error, or HTML error page.
+
+### 5. Query Hook Contract
+
+List hooks should expose this shape:
+
+```ts
+type ListHookResult<T> = {
+  items: T[];
+  isLoading: boolean;
+  isRefreshing: boolean;
+  isFetchingNextPage: boolean;
+  error?: ApiError;
+  refetch: () => void;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+};
+```
+
+Detail hooks should expose this shape:
+
+```ts
+type DetailHookResult<T> = {
+  data?: T;
+  isLoading: boolean;
+  error?: ApiError;
+  refetch: () => void;
+};
+```
+
+Rules:
+
+- Search debounce belongs in screen/hook logic.
+- Filter changes must reset list to page 1.
+- Pull-to-refresh must call `refetch`.
+- Infinite loading must not fetch all data at once.
+
+### 6. Permission Contract
+
+Use these helpers:
+
+```ts
+can(permission: string): boolean
+hasModule(module: string): boolean
+isSuperAdmin(): boolean
+```
+
+Rules:
+
+- UI may hide forbidden actions.
+- Backend must still enforce permissions.
+- Prefer backend `allowed_actions` if available.
+- If permission data is missing, fail closed except for personal self-service views explicitly allowed by backend.
+- Do not hardcode user names, NIP, email, or role display names to grant access.
+
+### 7. Screen State Contract
+
+Every list screen must implement:
+
+- Loading skeleton.
+- Empty state.
+- Error state with retry.
+- Pull-to-refresh.
+- Pagination or infinite loading.
+- Debounced search when search exists.
+
+Every detail screen must implement:
+
+- Loading skeleton.
+- Not found state.
+- Forbidden state.
+- Error state with retry.
+- Permission-gated actions.
+
+Every form screen must implement:
+
+- Required field validation before submit.
+- Backend 422 field error mapping.
+- Submit disabled while loading.
+- Success feedback.
+- Error feedback.
+
+### 8. BMN Data Contracts
+
+Asset list item minimum fields:
+
+```ts
+type AssetListItem = {
+  id: string | number;
+  nama_barang: string;
+  kode_barang?: string;
+  nup?: string | number;
+  merk_tipe?: string;
+  kondisi?: string;
+  lokasi?: string;
+  pengguna?: string;
+  no_polisi?: string;
+  is_verified?: boolean;
+};
+```
+
+Asset card rules:
+
+- Main line: `nama_barang`.
+- Metadata line: `kode_barang`, `NUP`, optional `merk_tipe`.
+- Vehicle line: show `no_polisi` only if present.
+- Badge: condition and verification status.
+
+Photo upload payload:
+
+```text
+photo: file
+type: string
+latitude?: number
+longitude?: number
+location_note?: string
+```
+
+Geotag rules:
+
+- Request location only for geotag slot/action.
+- Normal photo slot must not request location.
+
+### 9. Surat Tugas Data Contracts
+
+Assignment list item minimum fields:
+
+```ts
+type AssignmentListItem = {
+  id: string | number;
+  nomor?: string;
+  kegiatan?: string;
+  tujuan?: string;
+  tanggal_mulai?: string;
+  tanggal_selesai?: string;
+  status?: string;
+  personel_summary?: string;
+};
+```
+
+Assignment card rules:
+
+- Main line: `nomor` or fallback label "Belum bernomor".
+- Secondary line: kegiatan/tujuan.
+- Date line: tanggal mulai-selesai.
+- Badge: status text.
+
+File download rules:
+
+- Use authenticated request.
+- Store temporary file in app cache/documents.
+- Open viewer/share sheet after download.
+- Show friendly error if file is missing or forbidden.
+
+### 10. Employee Selector Contract
+
+Employee selector must:
+
+- Search by name and NIP.
+- Use pagination.
+- Never load all employees at once.
+- Show name, NIP, jabatan, and unit kerja when available.
+- Return selected employee object to caller.
+
+Minimum selected shape:
+
+```ts
+type EmployeeOption = {
+  id: string | number;
+  name: string;
+  nip?: string;
+  jabatan?: string;
+  unit_kerja?: string;
+};
+```
+
+### 11. Security Do/Don't Contract
+
+Do:
+
+- Store token only in secure storage.
+- Clear token on logout and 401.
+- Use HTTPS in production.
+- Show generic server error to user.
+- Validate file type and size in backend.
+
+Do not:
+
+- Log token, password, authorization header, or private file URL.
+- Store password anywhere.
+- Commit `.env` with real values.
+- Render backend HTML error page.
+- Bypass backend permission checks with UI-only logic.
+
+### 12. Definition of Done for Each Small Task
+
+A task is done only when:
+
+- The target file/area in the task exists or is updated.
+- The acceptance check in the task is true.
+- TypeScript/lint/test command relevant to the touched area passes, or the reason it cannot run is documented.
+- No unrelated files are reformatted.
+- `docs/progress.md` is updated after the issue/PR is considered complete.
 
 ## Tasks
 
@@ -632,4 +1061,3 @@ Covered tasks: 87-90.
   - Record completed mobile planning/build progress and next recommended milestone.
   - Acceptance check: progress entry includes date, completed work, verification, and next steps.
   - _Requirements: all MVP requirements_
-

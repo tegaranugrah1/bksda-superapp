@@ -4414,3 +4414,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [ ] Start with task 1: create the mobile workspace folder.
 - [ ] Keep each implementation PR small and update `docs/progress.md` after each completed issue.
 
+## [2026-06-18] Mobile App Planning - Low-Model Task Contracts
+
+### Completed (Selesai)
+- [x] Strengthened `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md` so low-capability AI models have implementation contracts, not only short task descriptions.
+- [x] Added subscore targets marked 10/10 for structure, task size, acceptance clarity, implementation detail, and likelihood of low-model success.
+- [x] Added mandatory workspace, folder, library, shared component, API client, query hook, permission, screen state, BMN, Surat Tugas, employee selector, and security contracts.
+- [x] Added explicit component props for core UI components such as `AppButton`, `IconButton`, `AppTextInput`, `SearchInput`, state components, and API response/error shapes.
+- [x] Added low-model do/don't rules to prevent unsafe storage, unauthenticated file URLs, desktop table patterns, and backend permission bypasses.
+
+### Verification
+- [x] Confirmed `tasks.md` still contains 90 numbered tasks.
+- [x] Confirmed implementation contracts are available before the task list.
+
+### Next Steps
+- [ ] Start implementation from task 1 using the contracts as mandatory guardrails.
+
