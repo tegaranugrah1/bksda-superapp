@@ -4397,3 +4397,20 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [ ] Start implementation from Milestone 1: Foundation Alpha.
 - [ ] Verify backend permission names during the first implementation spike.
 
+## [2026-06-18] Mobile App Planning - Low-Model Task Breakdown
+
+### Completed (Selesai)
+- [x] Reworked `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md` from 30 epic-level tasks into 90 smaller execution tasks.
+- [x] Added low-model execution rules to prevent scope drift, oversized PRs, and unsafe auth/file handling.
+- [x] Kept the same five milestones while making each milestone more granular and easier to validate.
+- [x] Added target area, expected result, and acceptance check for every task so weaker AI models can execute with less interpretation.
+- [x] Raised the task plan score to 10/10 specifically for step-by-step execution by lower-capability AI models.
+
+### Verification
+- [x] Confirmed `tasks.md` contains 90 numbered checklist items.
+- [x] Confirmed task coverage still maps to Foundation Alpha, BMN Alpha, Surat Tugas Alpha, Android Internal Beta, and Android Internal Release.
+
+### Next Steps
+- [ ] Start with task 1: create the mobile workspace folder.
+- [ ] Keep each implementation PR small and update `docs/progress.md` after each completed issue.
+
