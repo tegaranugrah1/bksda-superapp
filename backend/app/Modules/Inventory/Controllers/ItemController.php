@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Imports\ItemImport;
 use App\Modules\Inventory\Models\Item;
 use App\Modules\Inventory\Requests\StoreItemRequest;
+use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -33,7 +34,7 @@ class ItemController extends Controller
     public function import(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv',
+            'file' => UploadValidationRules::spreadsheet(),
         ]);
 
         Excel::import(new ItemImport, $request->file('file'));

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Kepegawaian\Requests;
 
+use App\Support\Security\UploadValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EmployeeRequest extends FormRequest
@@ -32,8 +33,8 @@ class EmployeeRequest extends FormRequest
             'satuan_kerja' => 'nullable|string|max:255',
             'is_active' => 'boolean',
 
-            // Aturan File (MIME types strict) - Hanya gambar
-            'foto' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:10240',
+            // Aturan File (MIME + ekstensi strict) - Hanya gambar
+            'foto' => UploadValidationRules::image(required: false, maxKilobytes: 10240),
         ];
     }
 

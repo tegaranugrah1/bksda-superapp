@@ -5,6 +5,7 @@ namespace App\Modules\Bmn\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetUpdate;
+use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +28,7 @@ class AssetPhotoController extends Controller
     public function upload(Request $request, string $assetId): JsonResponse
     {
         $request->validate([
-            'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'photo' => UploadValidationRules::image(),
             'type' => 'required|in:' . implode(',', self::VALID_TYPES),
         ]);
 
@@ -71,7 +72,7 @@ class AssetPhotoController extends Controller
     public function updateGeotag(Request $request, string $assetId): JsonResponse
     {
         $request->validate([
-            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'photo' => UploadValidationRules::image(required: false),
             'url' => 'nullable|url',
         ]);
 

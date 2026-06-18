@@ -8,10 +8,12 @@ use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetUpdate;
 use App\Modules\Bmn\Models\ImportBatch;
 use App\Modules\Bmn\Models\ImportStaging;
+use App\Support\Security\UploadValidationRules;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -23,7 +25,7 @@ class ImportReviewController extends Controller
     public function upload(Request $request): JsonResponse
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:20480',
+            'file' => UploadValidationRules::spreadsheet(),
         ]);
 
         try {
@@ -60,7 +62,13 @@ class ImportReviewController extends Controller
                 ],
             ]);
         } catch (Exception $e) {
-            return response()->json(['error' => 'Gagal memproses file: ' . $e->getMessage()], 422);
+            Log::warning('BMN import review upload failed.', [
+                'user_id' => $request->user()?->id,
+                'filename' => $request->file('file')?->getClientOriginalName(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['error' => 'Gagal memproses file. Pastikan format dan isi template sudah sesuai.'], 422);
         }
     }
 
@@ -92,7 +100,7 @@ class ImportReviewController extends Controller
         ];
 
         // Paginate
-        $perPage = $request->integer('per_page', 50);
+        $perPage = max(1, min($request->integer('per_page', 50), 200));
         $rows = $query->orderByRaw("CASE diff_status WHEN 'new' THEN 1 WHEN 'updated' THEN 2 WHEN 'unchanged' THEN 3 END")
             ->paginate($perPage);
 

@@ -21,7 +21,7 @@ class PublicSuratTugasRequest extends FormRequest
             'employee_ids' => 'required|array|min:1',
             'employee_ids.*' => 'required|uuid|exists:kpg_employees,id',
             'sumber_dana' => 'required|string|max:100',
-            'dasar_surat' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'dasar_surat' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
         ];
     }
 

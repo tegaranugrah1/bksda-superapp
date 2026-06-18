@@ -1,13 +1,60 @@
+# Progress - Phase 83: File Upload Validation Hardening
+
+> Document updated: 2026-06-18
+> Status: Selesai lokal, siap PR.
+
+---
+
+## Hardening Upload File dan Import
+
+### Status: SELESAI DI LOKAL
+- Scope: backend upload/import validation untuk BMN, Inventory, Kepegawaian, Surat Tugas, DE Reporting, CMS, dan profile photo.
+- Tujuan: mengurangi risiko file spoofing, upload tipe berbahaya, dan error detail dari parser import yang bocor ke user.
+
+### Implementasi
+- Menambahkan helper `UploadValidationRules` untuk rule upload yang konsisten:
+  - spreadsheet import: `xlsx`, `xls`, `csv`, MIME check, extension check, dan batas ukuran.
+  - image upload: `jpg`, `jpeg`, `png`, `webp`, MIME check, extension check, dan batas ukuran.
+- Memperketat upload/import:
+  - BMN import review.
+  - BMN direct asset import.
+  - foto aset BMN dan update geotag.
+  - Inventory item import.
+  - foto profile portal.
+  - foto pegawai.
+  - Surat Tugas attachment.
+  - DE Reporting attachment internal/eksternal.
+  - CMS thumbnail/file upload.
+- Error import spreadsheet sekarang dibuat generic untuk user, sementara detail teknis dicatat ke log backend.
+- Pagination import review dibatasi maksimal 200 item per request agar endpoint tidak mudah dipakai untuk query besar.
+
+### Validasi
+- `php -l` seluruh file backend yang diubah: pass.
+- `composer audit --no-dev`: clean.
+- `php artisan route:list --path=bmn --json`: pass.
+- `php artisan route:list --path=cms --json`: pass.
+- Browser bawaan Codex:
+  - login superadmin lokal masih aktif.
+  - `/bmn/import-review` load normal.
+  - upload import tampil untuk superadmin.
+  - tidak ada console error.
+
+### Catatan
+- Hardening ini belum mengganti storage publik ke private/signed URL. Itu tetap menjadi PR lanjutan karena butuh review dampak akses file lama.
+- File untracked lokal `frontend/public/header.png` tidak disentuh.
+
+---
+
 # Progress - Phase 82: BMN Admin-only UI Visibility
 
 > Document updated: 2026-06-18
-> Status: Implemented locally on branch `codex/bmn-admin-ui-visibility`; siap PR.
+> Status: PR #412 squash merged ke `main` (commit `e1c00e4`). Branch remote `codex/bmn-admin-ui-visibility` sudah dihapus.
 
 ---
 
 ## Sinkronisasi UI dengan Authorization Backend BMN
 
-### Status: SELESAI DI LOKAL
+### Status: SELESAI
 - Scope: frontend visibility guard untuk aksi sensitif BMN yang sudah diproteksi backend di Phase 81.
 - Tujuan: user non-admin tidak melihat tombol/aksi yang pasti ditolak backend, sementara admin/super admin tetap bisa bekerja normal.
 

@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Modules\Bmn\Models\AssetLoan;
 use App\Modules\Kepegawaian\Models\Employee;
+use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -169,7 +170,7 @@ class AuthController extends Controller
     public function updatePhoto(Request $request): JsonResponse
     {
         $request->validate([
-            'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'foto' => UploadValidationRules::image(maxKilobytes: 10240),
         ]);
 
         $user = $request->user();

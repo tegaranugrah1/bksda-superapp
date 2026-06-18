@@ -12,9 +12,11 @@ use App\Modules\Bmn\Requests\StoreAssetRequest;
 use App\Modules\Bmn\Requests\UpdateAssetRequest;
 use App\Modules\Bmn\Resources\AssetResource;
 use App\Modules\Bmn\Services\AssetService;
+use App\Support\Security\UploadValidationRules;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -232,7 +234,7 @@ class AssetController extends Controller
     public function import(Request $request): JsonResponse
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:20480',
+            'file' => UploadValidationRules::spreadsheet(),
         ]);
 
         try {
@@ -244,7 +246,13 @@ class AssetController extends Controller
                 'count' => $import->getImportedCount(),
             ]);
         } catch (Exception $e) {
-            return response()->json(['error' => 'Gagal mengimpor data: '.$e->getMessage()], 422);
+            Log::warning('BMN direct asset import failed.', [
+                'user_id' => $request->user()?->id,
+                'filename' => $request->file('file')?->getClientOriginalName(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['error' => 'Gagal mengimpor data. Pastikan format dan isi template sudah sesuai.'], 422);
         }
     }
 }

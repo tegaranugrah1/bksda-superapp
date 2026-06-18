@@ -43,7 +43,7 @@ class AssignmentLetterRequest extends FormRequest
         ];
 
         if ($this->isMethod('post') || $this->hasFile('file_surat')) {
-            $rules['file_surat'] = 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240';
+            $rules['file_surat'] = 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|extensions:pdf,jpg,jpeg,png,webp|max:10240';
         }
 
         return $rules;
