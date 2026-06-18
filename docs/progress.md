@@ -1,13 +1,13 @@
 # Progress - Phase 84: CSP Report-Only dan Sanitizer Hardening
 
 > Document updated: 2026-06-18
-> Status: Selesai lokal, siap PR.
+> Status: PR #415 squash merged ke `main` (commit `a3e9808`). Branch remote `codex/security-csp-xss-hardening` sudah dihapus.
 
 ---
 
 ## XSS Blast Radius Reduction
 
-### Status: SELESAI DI LOKAL
+### Status: SELESAI
 - Scope: frontend security header dan sanitizer HTML publik.
 - Tujuan: mengurangi dampak XSS tanpa langsung mematahkan halaman print, preview dokumen, dan konten CMS yang masih memakai inline style.
 
