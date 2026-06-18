@@ -45,7 +45,16 @@ class AuditLogMiddleware
         // Kita tidak mau password, token, atau isi file terekam secara mentah di tabel logs.
         $payload = $this->sanitizePayload($request->all());
 
-        // 4. Catat aktivitas ke database menggunakan Eloquent
+        // 4. Tentukan Aksi Deskriptif (Observability Hardening)
+        $action = $this->determineAction($request, $response);
+        if ($action) {
+            if (! is_array($payload)) {
+                $payload = ['_raw_payload' => $payload];
+            }
+            $payload['_action'] = $action;
+        }
+
+        // 5. Catat aktivitas ke database menggunakan Eloquent
         AuditLog::create([
             'user_id' => $request->user()?->id,
             'method' => $request->method(),
@@ -55,7 +64,7 @@ class AuditLogMiddleware
             'payload' => empty($payload) ? null : $payload,
         ]);
 
-        // 5. Kembalikan response ke pengguna
+        // 6. Kembalikan response ke pengguna
         return $response;
     }
 
@@ -117,5 +126,79 @@ class AuditLogMiddleware
         }
 
         return false;
+    }
+
+    /**
+     * Menentukan nama aksi secara deskriptif untuk audit log (Fase 7 Security Hardening)
+     */
+    private function determineAction(Request $request, Response $response): ?string
+    {
+        if ($request->attributes->has('audit_action')) {
+            return $request->attributes->get('audit_action');
+        }
+
+        $path = $request->path();
+        $method = $request->method();
+        $status = $response->getStatusCode();
+
+        // 1. Deteksi Login
+        if (str_contains($path, 'login') && $method === 'POST') {
+            return $status >= 200 && $status < 300 
+                ? 'User Login Success' 
+                : 'User Login Failure (Status: ' . $status . ')';
+        }
+
+        // 2. Deteksi Logout
+        if (str_contains($path, 'logout') && $method === 'POST') {
+            return 'User Logout';
+        }
+
+        // 3. Deteksi Perubahan Akses Pegawai
+        if (str_contains($path, 'employee-access') || str_contains($path, 'employees/select')) {
+            return 'Update Employee Access Permissions';
+        }
+
+        // 4. BMN Aksi Massal / Destruktif
+        if (str_contains($path, 'assets/bulk-dispose')) {
+            return 'BMN Asset Bulk Dispose';
+        }
+        if (str_contains($path, 'assets/bulk-restore')) {
+            return 'BMN Asset Bulk Restore';
+        }
+        if (str_contains($path, 'assets/bulk-force-delete')) {
+            return 'BMN Asset Bulk Force Delete';
+        }
+        if (str_contains($path, 'assets/bulk-update-kondisi')) {
+            return 'BMN Asset Bulk Update Condition';
+        }
+
+        // 5. BMN Import Review
+        if (str_contains($path, 'import-review') && str_contains($path, 'approve')) {
+            return 'BMN Import Approve';
+        }
+        if (str_contains($path, 'import-review') && str_contains($path, 'reject')) {
+            return 'BMN Import Reject';
+        }
+
+        // 6. Penghapusan Dokumen / Riwayat
+        if (str_contains($path, 'document-histories') && $method === 'DELETE') {
+            return 'Delete BMN Document History';
+        }
+        if (str_contains($path, 'usage-agreements') && $method === 'DELETE') {
+            return 'Delete BA Pemakaian BMN';
+        }
+        if (str_contains($path, 'handover-agreements') && $method === 'DELETE') {
+            return 'Delete BA Serah Terima BMN';
+        }
+
+        // 7. DeReporting Soft Deletes
+        if (str_contains($path, 'dereporting/internals') && $method === 'DELETE') {
+            return 'Delete DeReporting Internal Report';
+        }
+        if (str_contains($path, 'dereporting/eksternals') && $method === 'DELETE') {
+            return 'Delete DeReporting Eksternal Report';
+        }
+
+        return null;
     }
 }
