@@ -1,3 +1,36 @@
+# Progress - Phase 87: Auth Cookie Lifetime Hardening
+
+> Document updated: 2026-06-18
+> Status: Selesai lokal, siap PR.
+
+---
+
+## Browser Auth Storage Hardening Ringan
+
+### Status: SELESAI DI LOKAL
+- Scope: frontend auth store cookie helper.
+- Tujuan: mengurangi masa berlaku token di browser dan menambah atribut cookie yang lebih aman tanpa migrasi besar ke Sanctum SPA HttpOnly cookie.
+
+### Implementasi
+- Cookie auth (`bksda_token`, `bksda_user`) sekarang memakai helper terpusat.
+- `max-age` cookie diturunkan dari 7 hari menjadi 24 jam agar selaras dengan `SANCTUM_EXPIRATION=1440`.
+- Cookie otomatis diberi atribut `Secure` saat aplikasi berjalan di HTTPS.
+- Value cookie di-encode/decode lewat `encodeURIComponent` / `decodeURIComponent`.
+- Logout memakai helper delete cookie yang konsisten.
+
+### Validasi
+- `npm run lint`: pass.
+- `npm run build`: pass.
+- Browser bawaan Codex:
+  - `/login` dengan sesi aktif tetap redirect ke `/portal`.
+  - portal superadmin tetap load normal setelah perubahan auth store.
+
+### Catatan
+- Ini belum menyelesaikan target besar migrasi ke cookie HttpOnly. Itu tetap butuh PR terpisah karena menyentuh login backend, CSRF, CORS, RouteGuard, dan deployment env.
+- File untracked lokal `frontend/public/header.png` tidak disentuh.
+
+---
+
 # Progress - Phase 86: Frontend Dependency Mitigation
 
 > Document updated: 2026-06-18
