@@ -637,7 +637,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: one import uses the alias without TypeScript error.
   - _Requirements: 20_
 
-- [ ] 5. Configure lint and format scripts
+- [x] 5. Configure lint and format scripts
   - Target area: `mobile/package.json`.
   - Add scripts for lint, typecheck, and test.
   - Acceptance check: scripts exist and run without missing-command errors.

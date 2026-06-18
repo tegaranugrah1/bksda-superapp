@@ -4454,6 +4454,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed tasks 1, 2, 3, and 4 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 5: Configure lint and format scripts in `mobile/package.json`.
+- [ ] Task 5: Configure lint and format scripts in `mobile/package.json` (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 5 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 5: Configured lint, typecheck, and test scripts in `mobile/package.json`.
+- [x] Created FlatCompat eslint configuration in `mobile/eslint.config.js` and resolved Node type definitions/globals (`__dirname`).
+- [x] Configured Jest preset in `mobile/jest.config.js` and added jest to tsconfig types to support typescript.
+- [x] Created placeholder math unit test, verifying both lint (`npm run lint`), typecheck (`tsc --noEmit`), and jest tests pass.
+- [x] Checked off completed task 5 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 6: Create mobile source directory structure (`mobile/src/app`, `mobile/src/components`, etc.).
 
 
