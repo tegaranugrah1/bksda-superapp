@@ -1,3 +1,40 @@
+# Progress - Phase 86: Frontend Dependency Mitigation
+
+> Document updated: 2026-06-18
+> Status: Selesai lokal, siap PR.
+
+---
+
+## PostCSS Override dan Quill Content Sanitization
+
+### Status: SELESAI DI LOKAL
+- Scope: frontend dependency audit dan CMS rich text editor.
+- Tujuan: menutup vulnerability moderate yang masih tersisa dan menurunkan risiko XSS dari output HTML editor.
+
+### Implementasi
+- Menambahkan `overrides.postcss` ke `package.json` agar PostCSS nested yang dipakai Next ikut naik ke versi aman.
+- Lockfile frontend diperbarui lewat `npm install`.
+- Konten Quill pada CMS berita sekarang disanitasi sebelum dikirim ke backend:
+  - create berita.
+  - edit berita.
+
+### Validasi
+- `npm audit --omit=dev --audit-level=moderate`: pass, tidak ada moderate/high/critical tersisa.
+- `npm audit --omit=dev --audit-level=low`: masih ada 2 low pada `quill/react-quill-new`; npm menawarkan `--force` yang men-downgrade `react-quill-new` ke `3.7.0` dan berisiko breaking, jadi mitigasi dilakukan dengan sanitasi konten sebelum submit.
+- `npm ls postcss`: semua PostCSS resolve ke `8.5.15`.
+- `npm run lint`: pass.
+- `npm run build`: pass.
+- Browser bawaan Codex:
+  - `/cms/informasi/create` load normal.
+  - editor Quill tampil.
+  - tidak ada console error.
+
+### Catatan
+- Dev server lokal sempat perlu distart ulang setelah proses validasi build membersihkan lock `.next`.
+- File untracked lokal `frontend/public/header.png` tidak disentuh.
+
+---
+
 # Progress - Phase 85: Audit Log Payload Sanitizer
 
 > Document updated: 2026-06-18
