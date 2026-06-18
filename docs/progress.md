@@ -1,3 +1,28 @@
+# Progress - Phase 92: Content Security Policy (CSP) Enforcement
+
+> Document updated: 2026-06-18
+> Status: PR #431 merged ke `main` (commit `1cdd77d`). Branch remote `issue/430-enforce-csp` sudah dihapus.
+
+---
+
+## Content Security Policy (CSP) Enforcement
+
+### Status: SELESAI
+- Scope: Frontend Configuration
+- Tujuan: Mengubah header Content Security Policy (CSP) dari Report-Only mode menjadi Enforce mode untuk memitigasi risiko serangan XSS dan injeksi sumber daya tidak sah secara aktif di production.
+
+### Implementasi
+- **Frontend**:
+  - Memperbarui [next.config.ts](file:///e:/bksda-superapp/frontend/next.config.ts) untuk mengubah header key `Content-Security-Policy-Report-Only` menjadi `Content-Security-Policy`.
+  - Menyesuaikan nama variabel internal dari `contentSecurityPolicyReportOnly` menjadi `contentSecurityPolicy` agar selaras.
+
+### Validasi
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+
+---
+
 # Progress - Phase 91: Local Dev CSRF Proxy & Production Cookie Fix
 
 > Document updated: 2026-06-18
