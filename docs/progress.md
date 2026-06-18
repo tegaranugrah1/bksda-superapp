@@ -4263,3 +4263,13 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
     - [ ] Fitur Print langsung dari browser.
 - [ ] **Integrasi Inbox -> Builder**: Klik "Setujui" di Inbox langsung lempar data ke Builder.
 - [ ] **Cleanup**: Hapus folder `src/app/(dashboard)/admin/surat-tugas` (Didepresiasi).
+
+## [2026-06-18] Portal Employee Assets Visibility & Switcher
+
+### Completed (Selesai)
+- [x] Fix: Bypass `CheckModuleAccess` and `CheckPermission` middlewares for `bmn.view` when a regular employee requests their own assets list or detail views.
+- [x] UI: Remove "Eye" (detail view) button from personal assets list in the portal.
+- [x] UI: Add Segment control view switcher (List/Grid view switcher) to the "Aset Saya" tab in the portal.
+- [x] UI: Display BMN geotag photos (handling local paths and Google Drive share link thumbnails) when Grid View is active.
+- [x] Git: Squash merged `issue/portal-my-assets-visibility` branch into `main` and pushed to origin.
+
