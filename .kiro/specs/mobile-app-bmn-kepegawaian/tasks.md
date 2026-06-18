@@ -655,7 +655,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: tokens include primary, danger, warning, info, neutral, and surface colors.
   - _Requirements: 20_
 
-- [ ] 8. Add AppButton component
+- [x] 8. Add AppButton component
   - Target area: `mobile/src/components/AppButton.tsx`.
   - Support primary, secondary, danger, disabled, loading, and icon variants.
   - Acceptance check: minimum touch target is 48dp on Android.

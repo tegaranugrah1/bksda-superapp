@@ -4489,6 +4489,20 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 7 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 8: Add AppButton component (`mobile/src/components/AppButton.tsx`).
+- [ ] Task 8: Add AppButton component (`mobile/src/components/AppButton.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 8 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 8: Created `AppButton` component in [mobile/src/components/AppButton.tsx](file:///e:/bksda-superapp/mobile/src/components/AppButton.tsx) and built a dynamic theme resolution hook `useAppTheme` in [mobile/src/hooks/useAppTheme.ts](file:///e:/bksda-superapp/mobile/src/hooks/useAppTheme.ts).
+- [x] Implemented button variants (`primary`, `secondary`, `danger`, `ghost`) supporting disabled, loading (using ActivityIndicator), and optional left icon properties.
+- [x] Enforced standard accessibility properties like `accessibilityRole="button"`, automated `accessibilityLabel` fallback, and disabled the interaction while loading or disabled.
+- [x] Configured Jest module path mapping `moduleNameMapper` in [mobile/jest.config.js](file:///e:/bksda-superapp/mobile/jest.config.js) to resolve `@/*` path aliases correctly.
+- [x] Installed `react-test-renderer` types and created comprehensive unit tests in [mobile/src/components/__tests__/AppButton.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/AppButton.test.tsx) using fake timers to verify all states and handlers.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 8 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 9: Add IconButton component (`mobile/src/components/IconButton.tsx`).
 
 
