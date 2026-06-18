@@ -4273,3 +4273,17 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] UI: Display BMN geotag photos (handling local paths and Google Drive share link thumbnails) when Grid View is active.
 - [x] Git: Squash merged `issue/portal-my-assets-visibility` branch into `main` and pushed to origin.
 
+## [2026-06-18] Mobile API Readiness - Issue 1: API Contract Baseline
+
+### Completed (Selesai)
+- [x] Created `ApiResponse` trait inside `backend/app/Support/Traits/ApiResponse.php` for standardized success/error JSON response formatting.
+- [x] Configured global exception rendering in `backend/bootstrap/app.php` to format all common exceptions (401, 403, 404, 405, 500) into unified JSON structures.
+- [x] Squash merged `issue/api-contract-baseline` into `main` and pushed to origin.
+
+## [2026-06-18] Mobile API Readiness - Issue 2: Auth & Me Endpoint
+
+### Completed (Selesai)
+- [x] Expanded `UserResource` in `backend/app/Http/Resources/UserResource.php` to embed associated employee profile details and permission lists.
+- [x] Registered the `/api/me` route mapping under Sanctum middleware in `backend/routes/api.php`.
+- [x] Squash merged `issue/auth-and-me-endpoint` into `main` and pushed to origin.
+
