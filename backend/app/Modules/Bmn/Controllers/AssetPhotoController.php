@@ -43,7 +43,9 @@ class AssetPhotoController extends Controller
         }
 
         // Store new photo — organized per asset folder
-        $folder = 'bmn-photos/' . Str::slug($asset->nama_barang) . '-' . $asset->nup;
+        $isPrivate = in_array($type, ['bpkb_1', 'bpkb_2', 'bpkb_3', 'bpkb_4', 'stnk_1', 'stnk_2']);
+        $prefix = $isPrivate ? 'private/bmn-documents/' : 'bmn-photos/';
+        $folder = $prefix . Str::slug($asset->nama_barang) . '-' . $asset->nup;
         $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}." . $request->file('photo')->extension();
         $path = $request->file('photo')->storeAs($folder, $filename);
 
@@ -59,10 +61,14 @@ class AssetPhotoController extends Controller
             'alasan_perubahan' => 'Upload foto ' . $type,
         ]);
 
+        $url = $isPrivate 
+            ? "/api/bmn/assets/{$asset->id}/photo/{$type}/view" 
+            : $this->disk()->url($path);
+
         return response()->json([
             'message' => 'Foto berhasil diupload.',
             'path' => $path,
-            'url' => $this->disk()->url($path),
+            'url' => $url,
         ]);
     }
 
@@ -296,5 +302,43 @@ class AssetPhotoController extends Controller
 
         // Clean up temp files after sending
         return response()->download($zipPath, $zipName)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * View a photo inline with correct content-type.
+     */
+    public function view(string $assetId, string $type)
+    {
+        if ($type === 'geotag') {
+            $asset = Asset::findOrFail($assetId);
+
+            if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
+                $file = $this->disk()->get($asset->foto_geotag_path);
+                $mime = $this->disk()->mimeType($asset->foto_geotag_path) ?: 'image/jpeg';
+                return response($file, 200)->header('Content-Type', $mime);
+            }
+
+            if ($asset->foto_geotag_url) {
+                return redirect($asset->foto_geotag_url);
+            }
+
+            return response()->json(['message' => 'Foto geotag tidak tersedia.'], 404);
+        }
+
+        if (!in_array($type, self::VALID_TYPES)) {
+            return response()->json(['message' => 'Tipe foto tidak valid.'], 422);
+        }
+
+        $asset = Asset::findOrFail($assetId);
+        $column = "foto_{$type}_path";
+
+        if (!$asset->$column || !$this->disk()->exists($asset->$column)) {
+            return response()->json(['message' => 'Foto tidak ditemukan.'], 404);
+        }
+
+        $file = $this->disk()->get($asset->$column);
+        $mime = $this->disk()->mimeType($asset->$column) ?: 'image/jpeg';
+
+        return response($file, 200)->header('Content-Type', $mime);
     }
 }

@@ -85,6 +85,7 @@ Route::post('assets/{asset}/photo', [AssetPhotoController::class, 'upload'])->mi
 Route::post('assets/{asset}/geotag', [AssetPhotoController::class, 'updateGeotag'])->middleware('permission:bmn.asset.update');
 Route::delete('assets/{asset}/photo/{type}', [AssetPhotoController::class, 'delete'])->middleware('permission:bmn.asset.update');
 Route::get('assets/{asset}/photo/{type}/download', [AssetPhotoController::class, 'download'])->middleware('permission:bmn.view');
+Route::get('assets/{asset}/photo/{type}/view', [AssetPhotoController::class, 'view'])->name('bmn.photos.view')->middleware('permission:bmn.view');
 Route::get('assets/{asset}/photos/download-all', [AssetPhotoController::class, 'downloadAll'])->middleware('permission:bmn.view');
 
 // 2. LALU LINTAS PEMINJAMAN (LOAN)
