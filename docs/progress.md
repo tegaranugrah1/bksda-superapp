@@ -1,3 +1,28 @@
+# Progress - Phase 90: SPA CSRF Token Fix
+
+> Document updated: 2026-06-18
+> Status: PR #428 squash merged ke `main` (commit `a2d221a`). Branch remote `issue/427-fix-csrf-mismatch` sudah dihapus.
+
+---
+
+## SPA CSRF Token Fix
+
+### Status: SELESAI
+- Scope: Frontend API Client
+- Tujuan: Menyelesaikan error `419 CSRF token mismatch` pada login SPA lintas asal (cross-origin, e.g. localhost:3000 -> localhost:8000) dengan melampirkan header `X-XSRF-TOKEN` secara manual ke Axios.
+
+### Implementasi
+- **Frontend**:
+  - Menambahkan helper `getCookie(name: string)` pada [api.ts](file:///e:/bksda-superapp/frontend/src/lib/api.ts).
+  - Pada request interceptor Axios, membaca cookie `XSRF-TOKEN` dan melampirkannya sebagai header `X-XSRF-TOKEN` secara manual untuk setiap request API. Hal ini menjamin ketersediaan header CSRF token untuk request lintas asal (cross-origin) di mana Axios tidak melampirkannya secara otomatis.
+
+### Validasi
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+
+---
+
 # Progress - Phase 89: Sanctum SPA HttpOnly Cookie Authentication
 
 > Document updated: 2026-06-18
