@@ -20,7 +20,7 @@ class LoanController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = (int) $request->get('per_page', 10);
+        $perPage = min((int) $request->get('per_page', 10), 100);
         $filters = [
             'status' => $request->get('status'),
         ];

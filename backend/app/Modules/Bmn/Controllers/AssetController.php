@@ -95,7 +95,8 @@ class AssetController extends Controller
             $query->where('lokasi_ruang', 'ilike', '%' . $request->lokasi_ruang . '%');
         }
 
-        return AssetResource::collection($query->paginate($request->integer('per_page', 10)));
+        $perPage = min($request->integer('per_page', 10), 100);
+        return AssetResource::collection($query->paginate($perPage));
     }
 
     public function store(StoreAssetRequest $request): JsonResponse
