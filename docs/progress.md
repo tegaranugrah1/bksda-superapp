@@ -4371,3 +4371,16 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [ ] Review `design.md` for product/UX fit.
 - [ ] Create `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md`.
 
+## [2026-06-18] Mobile App Planning - Tasks Draft
+
+### Completed (Selesai)
+- [x] Created `.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md` as the implementation checklist for the mobile app MVP.
+- [x] Broke the mobile app plan into 30 issue-sized tasks from workspace setup through Android internal release.
+- [x] Sequenced the plan from shared foundations first: Expo workspace, design system, API client, secure auth, profile bootstrap, permission context, and navigation.
+- [x] Added feature tasks for mobile dashboard, BMN list/detail/create/edit, photo/geotag upload, verification, loans/returns, Surat Tugas list/detail/forms/approval, and authenticated file download/share.
+- [x] Added quality tasks for online-only behavior, security hardening, accessibility, automated tests, Android device validation, rollout documentation, and progress updates.
+
+### Next Steps
+- [ ] Review `requirements.md`, `design.md`, and `tasks.md` as one mobile MVP specification set.
+- [ ] Decide first implementation issue, recommended: mobile workspace setup and shared design foundation.
+
