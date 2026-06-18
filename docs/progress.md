@@ -1,3 +1,30 @@
+# Progress - Phase 94: Descriptive Audit Logging for Observability
+
+> Document updated: 2026-06-18
+> Status: PR #435 merged ke `main` (commit `8c0d29c`). Branch remote `issue/434-descriptive-audit-logs` sudah dihapus.
+
+---
+
+## Descriptive Audit Logging for Observability
+
+### Status: SELESAI
+- Scope: Backend Audit Logs Middleware
+- Tujuan: Memperkuat jejak forensik keamanan (security observability) dengan mencatat label aksi deskriptif (`_action`) pada payload audit log untuk operasi sensitif (deletions, BMN bulk operations, login failures, dan modifications of access permissions).
+
+### Implementasi
+- **Backend**:
+  - Memperbarui [AuditLogMiddleware.php](file:///e:/bksda-superapp/backend/app/Http/Middleware/AuditLogMiddleware.php) untuk menambahkan metode penentu aksi `determineAction(Request $request, Response $response)`.
+  - Metode ini memindai rute request, metode HTTP, dan kode response status untuk melabeli aktivitas penting secara otomatis (User Login Success/Failure, BMN Bulk actions, Access updates, Soft deletes, dll.).
+  - Menyimpan label aksi ini sebagai properti `_action` di dalam kolom database `payload` (JSON) yang terintegrasi, menjaga integritas skema database tanpa memerlukan migrasi tabel baru.
+
+### Validasi
+- `php -l`: pass.
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+
+---
+
 # Progress - Phase 93: Secure Private Storage Folders
 
 > Document updated: 2026-06-18
