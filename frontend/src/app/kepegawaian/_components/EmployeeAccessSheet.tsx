@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 const accessSchema = z.object({
   role: z.enum(["super_admin", "admin", "user"]),
   access_modules: z.array(z.string()),
+  permissions: z.array(z.string()).optional(),
   password: z.string().min(8, "Password minimal 8 karakter").optional().or(z.literal("")),
 });
 
@@ -43,6 +44,19 @@ const AVAILABLE_MODULES = [
   { id: "cms", label: "CMS Panel", description: "Manajemen Konten Website & Portal Publik" },
 ];
 
+const BMN_PERMISSIONS = [
+  { id: "bmn.view", label: "Lihat Data Aset" },
+  { id: "bmn.asset.create", label: "Tambah Aset" },
+  { id: "bmn.asset.update", label: "Edit/Update Aset" },
+  { id: "bmn.asset.dispose", label: "Usulan Penghapusan/Lelang" },
+  { id: "bmn.asset.force_delete", label: "Hapus Permanen Aset" },
+  { id: "bmn.import.review", label: "Upload & Review Excel" },
+  { id: "bmn.import.approve", label: "Approve/Reject Excel" },
+  { id: "bmn.document.generate", label: "Generate Dokumen Lelang" },
+  { id: "bmn.document.delete", label: "Hapus Arsip BA" },
+  { id: "bmn.document.history.view", label: "Lihat Riwayat Dokumen" },
+];
+
 interface EmployeeAccessSheetProps {
   employee: { id: string; nip: string; nama_lengkap: string } | null;
   open: boolean;
@@ -54,10 +68,11 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
 
   const form = useForm<AccessFormValues>({
     resolver: zodResolver(accessSchema),
-    defaultValues: { role: "user", access_modules: [], password: "" },
+    defaultValues: { role: "user", access_modules: [], permissions: [], password: "" },
   });
 
   const accessModules = useWatch({ control: form.control, name: "access_modules", defaultValue: [] });
+  const selectedRole = useWatch({ control: form.control, name: "role", defaultValue: "user" });
 
   const { data: currentAccess, isLoading, isError, refetch } = useQuery({
     queryKey: ["employee-access", employee?.id],
@@ -81,12 +96,13 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
       form.reset({
         role: (currentAccess.role as "super_admin" | "admin" | "user") || "user",
         access_modules: currentAccess.access_modules || [],
+        permissions: currentAccess.permissions || [],
         password: "",
       });
       lastSyncedId.current = employee.id;
     } else if (!isLoading) {
       // No access data (new account)
-      form.reset({ role: "user", access_modules: [], password: "" });
+      form.reset({ role: "user", access_modules: [], permissions: [], password: "" });
       lastSyncedId.current = employee.id;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,6 +114,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
       const payload: Record<string, unknown> = {
         role: values.role,
         access_modules: values.access_modules,
+        permissions: values.permissions || [],
       };
       if (values.password && values.password.length > 0) {
         payload.password = values.password;
@@ -218,6 +235,49 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                   <p className="text-[11px] text-red-500">{form.formState.errors.access_modules.message}</p>
                 )}
               </div>
+
+              {/* BMN Granular Permissions (Hanya tampil jika modul BMN dicentang & role = admin) */}
+              {accessModules.includes("bmn") && selectedRole === "admin" && (
+                <div className="space-y-2 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-bold text-slate-800 dark:text-zinc-200">Hak Akses Granular BMN</label>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 dark:bg-zinc-900/50 p-3 rounded-xl border border-slate-100 dark:border-zinc-800">
+                    {BMN_PERMISSIONS.map((perm) => {
+                      const currentPerms = form.getValues("permissions") || [];
+                      const isPermSelected = currentPerms.includes(perm.id);
+                      return (
+                        <div
+                          key={perm.id}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer select-none transition-all",
+                            isPermSelected 
+                              ? "bg-emerald-50/50 border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400" 
+                              : "bg-white border-slate-200 dark:bg-zinc-900 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-50/50"
+                          )}
+                          onClick={() => {
+                            const current = form.getValues("permissions") || [];
+                            const updated = isPermSelected
+                              ? current.filter((v) => v !== perm.id)
+                              : [...current, perm.id];
+                            form.setValue("permissions", updated, { shouldValidate: true });
+                          }}
+                        >
+                          <div className={cn(
+                            "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                            isPermSelected ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300 dark:border-zinc-700"
+                          )}>
+                            {isPermSelected && <Check className="w-2.5 h-2.5" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold truncate">{perm.label}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">

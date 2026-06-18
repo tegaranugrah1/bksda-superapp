@@ -14,26 +14,24 @@ import { RouteGuard } from "@/components/RouteGuard";
 import { cn } from "@/lib/utils";
 
 const bmnMenus = [
-  { title: "Dashboard", path: "/bmn", icon: LayoutDashboard, minRole: "user" as const },
-  { title: "Data Aset", path: "/bmn/assets", icon: Package, minRole: "user" as const },
-  { title: "Peminjaman", path: "/bmn/loans", icon: Handshake, minRole: "user" as const },
-  { title: "Pemeliharaan", path: "/bmn/maintenances", icon: Wrench, minRole: "user" as const },
-  { title: "Import Review", path: "/bmn/import-review", icon: FileUp, minRole: "admin" as const },
-  { title: "Aset Akan Di Lelang", path: "/bmn/auction-candidates", icon: Gavel, minRole: "admin" as const },
-  { title: "Aset Dihapus", path: "/bmn/disposal", icon: Trash2, minRole: "admin" as const },
-  { title: "Laporan", path: "/bmn/reports", icon: FileText, minRole: "user" as const },
+  { title: "Dashboard", path: "/bmn", icon: LayoutDashboard, permission: "bmn.view" },
+  { title: "Data Aset", path: "/bmn/assets", icon: Package, permission: "bmn.view" },
+  { title: "Peminjaman", path: "/bmn/loans", icon: Handshake, permission: "bmn.view" },
+  { title: "Pemeliharaan", path: "/bmn/maintenances", icon: Wrench, permission: "bmn.view" },
+  { title: "Import Review", path: "/bmn/import-review", icon: FileUp, permission: "bmn.import.review" },
+  { title: "Aset Akan Di Lelang", path: "/bmn/auction-candidates", icon: Gavel, permission: "bmn.document.generate" },
+  { title: "Aset Dihapus", path: "/bmn/disposal", icon: Trash2, permission: "bmn.asset.dispose" },
+  { title: "Laporan", path: "/bmn/reports", icon: FileText, permission: "bmn.document.history.view" },
 ];
 
 export default function BmnLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
-  const { canWrite } = useRole();
+  const { hasPermission } = useRole();
 
   const visibleMenus = bmnMenus.filter(item => {
-    if (item.minRole === "user") return true;
-    if (item.minRole === "admin") return canWrite;
-    return false;
+    return hasPermission(item.permission);
   });
 
   return (

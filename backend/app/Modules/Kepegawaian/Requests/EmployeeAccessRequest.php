@@ -21,6 +21,10 @@ class EmployeeAccessRequest extends FormRequest
             'access_modules' => 'nullable|array',
             'access_modules.*' => 'string',
 
+            // Granular permissions (bisa kosong)
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'string',
+
             // Password bersifat opsional (hanya diisi jika membuat akun baru / mereset)
             // Panjang minimal 8 karakter demi keamanan dasar
             'password' => 'sometimes|nullable|string|min:8',

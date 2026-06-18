@@ -140,7 +140,10 @@ const DEFAULT_HANDOVER_FIRST_PARTY: HandoverParty = {
 
 export default function BmnReportsPage() {
   const confirm = useConfirm();
-  const { canWrite } = useRole();
+  const { hasPermission } = useRole();
+  const canDelete = hasPermission("bmn.document.delete");
+  const canGenerate = hasPermission("bmn.document.generate");
+  const canWrite = canDelete; // fallback for document delete button checks
   const [loadingAsset, setLoadingAsset] = useState(false);
   const [loadingLoan, setLoadingLoan] = useState(false);
   const [loadingMaintenance, setLoadingMaintenance] = useState(false);
@@ -791,7 +794,7 @@ export default function BmnReportsPage() {
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">{selectedEmployee ? fullBaNumber : "Pilih pegawai untuk mulai membuat dokumen."}</p>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <Button variant="outline" className="rounded-xl gap-2" onClick={saveUsageAgreement} disabled={savingUsageAgreement || !selectedEmployee}>
+                <Button variant="outline" className="rounded-xl gap-2" onClick={saveUsageAgreement} disabled={savingUsageAgreement || !selectedEmployee || !canGenerate}>
                   {savingUsageAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Simpan Riwayat
                 </Button>
@@ -1063,7 +1066,7 @@ export default function BmnReportsPage() {
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullHandoverNumber}</p>
                   </div>
                   <div className="flex flex-wrap items-center justify-end gap-2">
-                    <Button variant="outline" className="rounded-xl gap-2" onClick={saveHandoverAgreement} disabled={savingHandoverAgreement}>
+                    <Button variant="outline" className="rounded-xl gap-2" onClick={saveHandoverAgreement} disabled={savingHandoverAgreement || !canGenerate}>
                       {savingHandoverAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Simpan Riwayat
                     </Button>

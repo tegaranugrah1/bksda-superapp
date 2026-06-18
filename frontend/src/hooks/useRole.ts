@@ -15,5 +15,23 @@ export function useRole() {
     canWrite: role === "admin" || role === "super_admin",
     /** Can manage user access (only super_admin) */
     canManageAccess: role === "super_admin",
+    /** Check granular permission */
+    hasPermission: (permission: string) => {
+      if (role === "super_admin") return true;
+
+      // Fallback untuk backward compatibility jika data permissions tidak ada
+      if (user?.permissions === undefined || user?.permissions === null) {
+        if (permission.startsWith("bmn.")) {
+          const isReadPermission = ["bmn.view", "bmn.document.history.view"].includes(permission);
+          if (isReadPermission) {
+            return user?.access_modules?.includes("bmn") || false;
+          }
+          return role === "admin" && (user?.access_modules?.includes("bmn") || false);
+        }
+        return false;
+      }
+
+      return user.permissions.includes(permission);
+    },
   };
 }
