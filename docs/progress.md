@@ -1,3 +1,39 @@
+# Progress - Phase 97: Mobile API Readiness
+
+> Document updated: 2026-06-18
+> Status: Squash merged ke `main` (commit `11de711`). Branch remote `issue/pagination-limits`, `issue/mobile-dashboard`, `issue/mobile-upload-download`, dan `issue/permission-audit` sudah selesai dan dihapus.
+
+---
+
+## Mobile API Readiness
+
+### Status: SELESAI
+- Scope: Backend Mobile API (Auth, Pagination, Dashboard, Upload/Download, Permissions)
+- Tujuan: Mengoptimalkan dan menyiapkan Laravel backend API untuk kebutuhan mobile app, termasuk pembatasan pagination, pembuatan endpoint dashboard konsolidasian, pelonggaran upload foto untuk pemilik aset, download surat tugas personal, dan audit permission.
+
+### Implementasi
+- **Issue 1: API Contract Baseline** (Selesai sebelumnya):
+  - Mengimplementasikan trait `ApiResponse` untuk standardisasi format sukses/error API.
+  - Mengonfigurasi exception handler global di `bootstrap/app.php` untuk merender JSON bagi rute API pada error 401, 403, 404, 405, dan 500.
+- **Issue 2: Auth & /api/me** (Selesai sebelumnya):
+  - Memperluas `UserResource.php` untuk mengembalikan relasi data pegawai lengkap (NIP, jabatan, pangkat, foto profil) serta hak akses permissions granular.
+  - Mendaftarkan rute `/api/me` pemetaan dari data profil user terautentikasi.
+- **Issue 3: Pagination Capping**:
+  - Membatasi parameter `per_page` maksimal 100 di level controller pada endpoint list aset (`AssetController`), peminjaman (`LoanController`), dan kepegawaian (`EmployeeController`) untuk mencegah kehabisan sumber daya server oleh client mobile.
+- **Issue 4: Mobile Dashboard Endpoint**:
+  - Membuat [MobileDashboardController.php](file:///e:/bksda-superapp/backend/app/Http/Controllers/Api/MobileDashboardController.php) dan rute `GET /api/mobile/dashboard` untuk mengembalikan data gabungan (profil singkat, summary counts aset/surat tugas/peminjaman, detail kendaraan pajak STNK mendekati jatuh tempo) dalam satu request tunggal untuk home screen mobile.
+- **Issue 5: Mobile Upload and Download**:
+  - Memperbarui [CheckPermission.php](file:///e:/bksda-superapp/backend/app/Http/Middleware/CheckPermission.php) untuk memperbolehkan pemilik aset mengunggah foto geotag/fisik dan menghapus foto aset miliknya sendiri tanpa memerlukan permission administratif umum `bmn.asset.update`.
+  - Menambahkan method `myDownload` di [AssignmentLetterController.php](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php) dan rute `/api/surat-tugas/my/{id}/download` agar personel surat tugas dapat mengunduh berkas PDF miliknya sendiri secara mandiri.
+- **Issue 6: Permission Audit**:
+  - Memverifikasi respon routing error dan route lockdown agar seluruh endpoint mobile dilindungi dengan benar oleh Sanctum & Module/Permission middleware dan mengembalikan kode status 401, 403, atau 404 JSON standar.
+
+### Validasi
+- `php -l`: pass.
+- Menguji secara lokal dengan unit scripts untuk verifikasi capping pagination, struktur respons dashboard, bypass upload/download owner, dan standar JSON error code. All tests passed.
+
+---
+
 # Progress - Phase 96: Surat Kuasa Kendaraan Document Generator
 
 > Document updated: 2026-06-18
