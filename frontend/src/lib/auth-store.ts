@@ -7,12 +7,35 @@ export interface StoredUser {
   access_modules: string[];
 }
 
+const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;
+
+function cookieSecurityAttributes() {
+  if (typeof window === "undefined") return "";
+
+  return window.location.protocol === "https:" ? "; Secure" : "";
+}
+
+function setAuthCookie(name: string, value: string) {
+  if (typeof document === "undefined") return;
+
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${AUTH_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax${cookieSecurityAttributes()}`;
+}
+
+function deleteAuthCookie(name: string) {
+  if (typeof document === "undefined") return;
+
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${cookieSecurityAttributes()}`;
+}
+
 function getCookie(name: string) {
   if (typeof document === "undefined") return null;
 
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(";").shift() ?? null;
+  if (parts.length === 2) {
+    const rawValue = parts.pop()?.split(";").shift() ?? null;
+    return rawValue ? decodeURIComponent(rawValue) : null;
+  }
 
   return null;
 }
@@ -24,7 +47,7 @@ function getUserString() {
   if (localUser) return localUser;
 
   const cookieUser = getCookie("bksda_user");
-  return cookieUser ? decodeURIComponent(cookieUser) : null;
+  return cookieUser;
 }
 
 export function getAuthSnapshot() {
@@ -81,8 +104,8 @@ export const authStore = {
     localStorage.setItem("bksda_token", token);
     localStorage.setItem("bksda_user", JSON.stringify(userData));
     
-    document.cookie = `bksda_token=${token}; path=/; max-age=604800; SameSite=Lax`;
-    document.cookie = `bksda_user=${encodeURIComponent(JSON.stringify(userData))}; path=/; max-age=604800; SameSite=Lax`;
+    setAuthCookie("bksda_token", token);
+    setAuthCookie("bksda_user", JSON.stringify(userData));
 
     window.dispatchEvent(new Event("auth-change"));
   },
@@ -92,7 +115,7 @@ export const authStore = {
     if (typeof window === "undefined") return;
 
     localStorage.setItem("bksda_user", JSON.stringify(userData));
-    document.cookie = `bksda_user=${encodeURIComponent(JSON.stringify(userData))}; path=/; max-age=604800; SameSite=Lax`;
+    setAuthCookie("bksda_user", JSON.stringify(userData));
 
     window.dispatchEvent(new Event("auth-change"));
   },
@@ -104,8 +127,8 @@ export const authStore = {
     localStorage.removeItem("bksda_token");
     localStorage.removeItem("bksda_user");
     
-    document.cookie = "bksda_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    document.cookie = "bksda_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    deleteAuthCookie("bksda_token");
+    deleteAuthCookie("bksda_user");
 
     window.dispatchEvent(new Event("auth-change"));
   }
