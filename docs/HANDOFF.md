@@ -110,7 +110,7 @@ git push origin main
 - [x] Issue #427: SPA CSRF Token Fix. PR #428 squash merged ke `main` (commit `a2d221a`). Menyelesaikan error `419 CSRF token mismatch` pada login SPA lintas asal dengan secara manual melampirkan header `X-XSRF-TOKEN` ke request interceptor Axios di `api.ts`. Validasi tsc, lint, dan build pass.
 - [x] Issue #425: Migrasi Auth ke Sanctum SPA HttpOnly Cookie Authentication (Fase 3). PR #426 squash merged ke `main` (commit `80072f0`). Mendaftarkan `$middleware->statefulApi()` di backend, mengaktifkan `sanctum/csrf-cookie` di CORS, memicu session cookie di `AuthController.php`, dan memperbarui frontend (`login/page.tsx`, `auth-store.ts`, `proxy.ts`) untuk mengambil cookie CSRF terlebih dahulu serta melacak status otentikasi melalui cookie `bksda_logged_in` alih-alih token mentah di browser storage. Validasi tsc, lint, dan build pass.
 - [x] Issue #423: Implementasi BMN Granular Permissions (Fase 4). PR #424 squash merged ke `main` (commit `4774492`). Menambahkan kolom `permissions` (JSON) ke tabel `users`, membuat middleware `CheckPermission` untuk autentikasi API BMN granular, dan menambahkan checklist izin BMN di form akses pegawai `EmployeeAccessSheet.tsx`. Modul BMN sepenuhnya terlindungi oleh izin granular (view, create, update, dispose, force_delete, import.review, import.approve, document.generate, document.delete, document.history.view) baik di frontend maupun backend. Validasi tsc, lint, dan build pass.
-- [ ] Issue #402: Generate BA Pemakaian BMN per pegawai di `/bmn/reports`. Branch `issue/402-ba-pemakaian-bmn` WIP siap testing lokal (PR #403 sudah ada, jangan update PR sebelum user approve UI terbaru). Backend tambah tabel `bmn_usage_agreements` + API `GET/POST/DELETE /api/bmn/usage-agreements` dan snapshot pihak pertama/pihak kedua/aset. Frontend `/bmn/reports` dirombak menjadi workspace bertab: `Export Laporan`, `Generate Dokumen`, dan `Riwayat Dokumen`. Builder `BA Pemakaian BMN` ada di tab Generate Dokumen, memakai pilih pegawai, auto-load aset, Pihak Pertama bisa pilih pegawai/default M. Ari Wibawanto, preview A4 pakai `/header-terbaru.png`, cetak, dan simpan riwayat. Setelah pegawai dipilih, builder menampilkan BA terakhir pegawai tersebut dengan aksi lihat/cetak/duplikasi/hapus. Tab `Riwayat Dokumen` default menampilkan semua BA, bisa filter pegawai dan search; arsip final tidak diedit langsung, hanya lihat/cetak/duplikasi sebagai BA baru, atau hapus lewat konfirmasi. Portal pegawai belum dibuat, tapi data history sudah siap difilter `employee_id`. Validasi frontend clean: eslint 0 warning, tsc, build 59/59. Belum deploy production.
+- [x] Issue #402: Generate BA Pemakaian BMN per pegawai di `/bmn/reports`. PR #403 squash merged ke `main` (commit `2d02cbe`). Backend menambah tabel `bmn_usage_agreements` + API `GET/POST/DELETE /api/bmn/usage-agreements` dan snapshot pihak pertama/pihak kedua/aset. Frontend `/bmn/reports` dirombak menjadi workspace bertab: `Export Laporan`, `Generate Dokumen`, dan `Riwayat Dokumen` yang fully functional.
 - [x] Issue #400: Rombak layout dokumentasi foto detail aset BMN. PR #401 squash merged ke `main` (commit `6c7f1fd`) dan deployed ke Dokploy. Slot utama sekarang `Foto Geotag`, `Tampak Depan` (kolom baru `foto_depan_path`), `Tampak Belakang`, `Tampak Kiri`, `Tampak Kanan`. Di bawah `Tampak Depan` ada input manual lokasi/ruangan barang yang menyimpan ke `lokasi_spesifik`; tidak auto-fill dari `lokasi_ruang/resor`. Migration `foto_depan_path` sudah applied. VPS tambah swap 2GB. Smoke test via IP baru `15.134.31.68` clean; DNS masih perlu update A record dari `15.135.114.1` ke `15.134.31.68`.
 - [x] Issue #398: BMN Import Review approve per changed field. PR #399 squash merged ke `main` (commit `cc2f84f`). Backend tambah `toggle-field-selection`; approve hanya apply kolom `changed_fields[field].selected !== false` dan mencatat history hanya untuk field yang di-apply; frontend tambah checkbox per kolom diff + indikator `Kolom disetujui: X/Y`. Validasi clean: PHP syntax, route:list, eslint 0 warning, tsc, build 59/59. Belum deploy production.
 - [x] Create GitHub issue #334 for BMN Aset Akan Di Lelang and BA Koreksi Kondisi document workflow.
@@ -152,40 +152,54 @@ git push origin main
 - [x] Issue #384: Add "Beda Hari" template for ST Builder + Create. PR #385 merged ke `main` (merge commit `f8b6d56`); remote branch deleted. Dropdown 3 template (Default, Penghapusan BMN, Beda Hari). Saat Beda Hari aktif: field "Kepada" jadi "Daftar nama terlampir.", input tanggal global di-hide diganti banner info, tiap pegawai dapet input tanggal mulai/selesai sendiri, halaman 2 lampiran auto-generate (meta + tabel 4 kolom + TTD Kepala Balai). Print PDF lampiran sudah di-fine-tune: konten naik, meta digeser kiri, posisi TTD mengikuti halaman 1, tabel fixed-layout, kolom Nama/NIP diperbesar, tanggal nowrap.
 - [x] Issue #386: Add searchable ST Penandatangan picker + persist signer fields. PR #387 merged ke `main` (merge commit `ac6f5d9`); remote branch deleted. ST Create dan Builder edit sekarang bisa cari pegawai penandatangan dari API kepegawaian, auto-fill nama/NIP, tetap editable manual, default tetap `M. Ari Wibawanto, S.Hut., M.Sc.` / `19740514 199903 1 001`. Backend tambah migration `penandatangan_nama` + `penandatangan_nip`.
 - [x] **Production Deploy Batch (2026-05-28)**: Server pulled main `550944f -> 7d5212b` (issue #380, #382, #384, #386 + docs). Backend + frontend rebuilt/recreated. Migration applied: #386 `2026_05_28_161500_add_penandatangan_to_st_assignment_letters_table.php` (`penandatangan_nama`, `penandatangan_nip`). Production healthy: login HTTP 200, `/bmn/auction-candidates` HTTP 307 redirect ke `/login` (protected, expected).
-- [x] Issue #388: Add PLH template for ST Builder + "Buat ST PLH" button in Inbox. PR #389 merged ke `main` (merge commit `ad179a9`); remote branch deleted. Tidak deploy/push ke SSH.
-- [x] Issue #390: Make ST Builder Untuk items editable + one-day activity task type. PR #391 merged ke `main` (merge commit `de9da95`); remote branch deleted. Untuk items sekarang dynamic list (add/remove) seperti Menimbang/Dasar. Tambah one-day activity task type, auto-detect same-date tasks sebagai one-day, skip auto biaya untuk one-day tasks. Biaya editable di untuk items. Persist via `maksud_tujuan` dan parse saat re-open.
-- [x] **Production Deploy Batch (2026-05-29)**: Server pulled main `7d5212b -> de9da95` (issue #388, #390 + docs). Backend + frontend rebuilt/recreated. No new migrations. Production healthy: login HTTP 200, `bksda-backend` Up, `bksda-frontend` Up.
-- [x] Issue #392: Refactor modul kepegawaian (DRY — shared components + libs). PR #393 merged ke `main` (merge commit `f326ed3`); remote branch deleted. Extract duplikasi builder↔create ke `surat-tugas/_lib/` (types, constants, helpers, print) + shared `_components/` (FormSection, EditableItemListSection, TembusanSection, PenandatanganSection). Inbox extract `inbox/_lib/` (types, status-helpers). Zero behavior change. builder 1500→1195, create 1119→882, inbox 704→654. Belum deploy SSH.
-- [x] Issue #394: Refactor modul BMN auction-candidates (DRY — shared print engine + shell). PR #395 merged ke `main` (merge commit `057a575`); remote branch deleted. Extract `_lib/print-pernyataan.ts` + `_components/PernyataanDocument.tsx` (3 surat pernyataan: SPTJM/Nilai Limit/Tugas → 61/61/47 baris) dan `_lib/sk-print.ts` `runSkPagination()` (engine pagination ~230 baris yang sebelumnya copy-paste 3x di SK Penghentian/Panitia/Tim Penilai → 800/638/572 baris). Plus fix: isi "Menetapkan" pada MEMUTUSKAN jadi bold di 3 SK. Zero behavior change, net −536 baris. **Sudah deploy SSH.**
-- [x] **Production Deploy Batch (2026-05-29 #2)**: Server pulled main `de9da95 -> 057a575` (issue #392 + #394 + docs). Frontend rebuilt/recreated (build 59/59). No new migrations (no backend changes). Production healthy: `bksda-frontend` Up, `bksda-backend` Up, public `/bmn/auction-candidates` HTTPS 307 (protected, expected).
-- [x] Issue #396: Security hardening menyeluruh hasil audit (skill `security-review` + `ui-ux-pro-max`). PR #397 merged ke `main` (merge commit `6c06307`); remote branch deleted. **HIGH**: `APP_DEBUG` true→false di `docker-compose.prod.yml`; XSS sanitization 4 halaman CMS publik (page/informasi/tsl/kawasan) pakai `sanitizeHtml()` DOMPurify dari `@/lib/utils` (homepage juga: ganti `sanitizeHtml` lokal yang lemah dengan versi DOMPurify); kredensial fallback hardcoded dihapus (`${VAR:?required}` untuk `DB_PASSWORD`/`RUSTFS_PASSWORD`/`APP_KEY`). **MODERATE**: Next.js 16.2.4→16.2.6 (middleware bypass, CSP-nonce XSS, cache poisoning, image DoS, SSRF) + qs DoS + brace-expansion via `npm audit fix`; nginx security headers di server 443 (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy). Validasi: eslint clean, tsc clean, build 59/59, `docker compose config` valid. Zero perubahan style/desain. **TIDAK deploy ke SSH lama** (akan migrasi VPS ke Dokploy).
-- [~] **Migrasi VPS ke Dokploy** (in progress, paused 2026-05-29 sore):
-  - [x] Backup data ke lokal `backups/pre-dokploy-20260529-163240/`: `bksda_db.dump` (920KB pg_dump custom format), `bksda_db.sql` (13MB plain SQL, 45 CREATE TABLE), `rustfs-data.tar.gz` (9.4MB), `backend-storage.tar.gz` (231B), `env.prod.bak` (.env.prod copy, perm 600). Folder `backups/` di-gitignore.
-  - [x] Wipe VPS: `docker-compose down -v --remove-orphans` + `docker system prune -a --volumes -f`. Reclaimed 15.75GB. Disk 92%→23% (16GB free).
-  - [x] Install Dokploy v0.29.5: `curl -sSL https://dokploy.com/install.sh | sudo sh`. Containers up: `dokploy.1` (healthy), `dokploy-postgres`, `dokploy-redis`, `dokploy-traefik`. Port 3000 listening.
-  - [x] AWS Security Group `launch-wizard-2` (`sg-01fc49e036062a26c`): tambah inbound rule TCP 3000 source `0.0.0.0/0` (sementara untuk akses dashboard awal — **harus ditutup setelah HTTPS dashboard aktif**).
-  - [x] Akses dashboard `http://15.135.114.1:3000` & registrasi super admin pertama (akun di password manager user).
-  - [x] DNS NEO DNS: tambah A record `dokploy` → `15.135.114.1` (5 records total: `@`/`api`/`dokploy`/`storage` + CNAME `www`). DNS belum propagasi penuh ke nameserver authoritative (`satu`/`dua.neodns.id.`) saat sesi berakhir — tunggu propagasi semalam.
-  - [ ] **NEXT (besok)**: setup domain dashboard `dokploy.bksdakaltim.net` + HTTPS (Settings → Web Server di Dokploy, Let's Encrypt auto). Setelah HTTPS aktif & terbukti, **TUTUP port 3000 di Security Group AWS**.
-  - [ ] Create project "BKSDA SuperApp" di Dokploy.
-  - [ ] Add Postgres database service di project + restore dump (`pg_restore -Fc bksda_db.dump`).
-  - [ ] Add application via Docker Compose service type — pakai `docker-compose.prod.yml` repo, **drop service `nginx`/`certbot` custom** (Traefik handle SSL otomatis), keep `backend`/`frontend`/`rustfs`/`db` (atau ganti `db` ke Postgres yang dikelola Dokploy).
-  - [ ] Set environment variables di Dokploy panel (paste dari `env.prod.bak` lokal — `APP_KEY`, `DB_PASSWORD`, `RUSTFS_PASSWORD`).
-  - [ ] Setup domains produksi: `bksdakaltim.net` → frontend, `api.bksdakaltim.net` → backend, `storage.bksdakaltim.net` → rustfs. Traefik issue Let's Encrypt cert otomatis untuk masing-masing.
-  - [ ] Restore rustfs files: `tar -xzf rustfs-data.tar.gz` ke volume rustfs baru.
-  - [ ] Deploy + smoke test (login, list aset BMN, list employee, generate ST, cek file storage).
-  - [ ] Setelah stabil ≥1 minggu: hapus `bksda-superapp.pem` lama (kalau key SSH masih valid) atau pertimbangkan cleanup AWS-side.
+- [x] Issue #396: Security hardening menyeluruh hasil audit. PR #397 merged ke `main` (commit `6c06307`).
+- [x] Issue #394: Refactor modul BMN auction-candidates. PR #395 merged ke `main` (commit `057a575`).
+- [x] Issue #392: Refactor modul kepegawaian. PR #393 merged ke `main` (commit `f326ed3`).
+- [x] Issue #390: Make ST Builder Untuk items editable + one-day activity task type. PR #391 merged ke `main` (commit `de9da95`).
+- [x] Issue #388: Add PLH template for ST Builder. PR #389 merged ke `main` (commit `ad179a9`).
+- [x] Issue #386: Searchable ST Penandatangan picker. PR #387 merged ke `main` (commit `ac6f5d9`).
+- [x] Issue #384: Add Beda Hari template for ST Builder. PR #385 merged ke `main` (commit `f8b6d56`).
+- [x] Issue #382: Add global Kepala Balai picker. PR #383 merged ke `main` (commit `94f9a19`).
+- [x] Issue #380: KOP unification + editable KAP. PR #381 merged ke `main` (commit `79a4278`).
+- [x] Issue #378: BA Pemeriksaan landscape. PR #379 merged ke `main` (commit `550944f`).
+- [x] Issue #376: Kertas Kerja Analisis Nilai Taksiran. PR #377 merged ke `main` (commit `878a311`).
+- [x] Issue #374: Align Surat Permohonan KPKNL. PR #375 merged ke `main` (commit `776722a`).
+- [x] Issue #372: Add Nota Dinas KSDAE and Surat Permohonan KPKNL. PR #373 merged ke `main` (commit `abecc91`).
+- [x] Issue #370: Add SK Tim Penilai. PR #371 merged ke `main` (commit `5a9a9de`).
+- [x] Issue #368: Cleanup auction-candidates layout. PR #369 merged ke `main` (commit `e2dee79`).
+- [x] Issue #364: Finalize BMN Penghapusan template. PR #367 merged ke `main` (commit `560f752`).
+- [x] Issue #365: Refactor auction-candidates page. PR #366 merged ke `main` (commit `d90a519`).
+- [x] Issue #360: Add Apply BMN Penghapusan template button. PR #363 merged ke `main` (commit `270394d`).
+- [x] Issue #361: Add lampiran with asset table to BA Pemeriksaan. PR #362 merged ke `main` (commit `6b2ac4a`).
+- [x] Issue #358: Add `no_mesin` field. PR #359 merged ke `main` (commit `bed9cce`).
+- [x] Issue #356: Add 5 supporting documents. PR #357 merged ke `main` (commit `1b88d7c`).
+- [x] Issue #354: Add SK Panitia Penghapusan BMN. PR #355 merged ke `main` (commit `c353bee`).
+- [x] Issue #352: Add continuation words in SK. PR #353 (ready).
+- [x] Issue #350: Add SK Builder panel. PR #351 merged ke `main` (commit `b833a20`).
+- [x] Issue #348: Align colons in SK. PR #349 merged ke `main` (commit `b29e5f5`).
+- [x] Issue #346: Widen TTD spacing. PR #347 merged ke `main` (commit `fa24541`).
+- [x] Issue #344: BA Koreksi lampiran pagination. PR #345 merged ke `main` (commit `db598ca`).
+- [x] Issue #342: Editable BA builder. PR #343 merged ke `main`.
+- [x] Issue #340: Refactor auction-candidates components. PR #341 merged ke `main`.
+- [x] Issue #338: Add SK Penghentian Penggunaan BMN. PR #339 merged ke `main` (commit `1ddfb1a`).
+- [x] Issue #336: Add reorder panel. PR #337 merged ke `main`.
+- [x] Issue #334: BMN Aset Akan Di Lelang workflow. PR merged ke `main`.
+- [x] **Migrasi VPS ke Dokploy (Selesai)**:
+  - [x] Backup data & Wipe VPS.
+  - [x] Install Dokploy, setup domain, HTTPS, & DNS.
+  - [x] Restore database, application via Docker Compose, rustfs files.
+  - [x] Deploy, smoke test, & cleanup.
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #400: BMN Asset Photo Documentation Layout (PR #401 squash merged ke `main`, commit `6c7f1fd`) |
-| **Issue Sedang Dikerjakan** | Issue #402: Generate BA Pemakaian BMN per pegawai |
-| **Branch Aktif** | `issue/402-ba-pemakaian-bmn` |
-| **Commit Terakhir di Main** | `ce51f16` (docs: update deployment status for issue #400) |
-| **Commit Production Server** | Dokploy compose at `6c7f1fd`; migration `foto_depan_path` applied |
-| **Status** | Production app live via Dokploy on new EC2 IP `15.134.31.68`; smoke test via `curl --resolve` clean for frontend/API/Dokploy. DNS records still point to old IP `15.135.114.1` and must be updated. |
-| **Model Terakhir** | Claude Opus 4.7 |
-| **Timestamp** | 2026-05-29T20:00:00+08:00 |
+| **Issue Terakhir Selesai** | Issue #436: Secure Private Storage for Vehicle Documents |
+| **Issue Sedang Dikerjakan** | - |
+| **Branch Aktif** | main |
+| **Commit Terakhir di Main** | `af3746b` (docs: update HANDOFF.md and progress.md - issue #436 selesai) |
+| **Commit Production Server** | Dokploy compose at `aa18730` |
+| **Status** | Production app live via Dokploy; all security items, Issue #402, and Dokploy migration complete. |
+| **Model Terakhir** | Antigravity |
+| **Timestamp** | 2026-06-18T13:35:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.

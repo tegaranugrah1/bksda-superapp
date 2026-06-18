@@ -771,8 +771,8 @@
 
 # Progress - Phase 75: BA Pemakaian BMN Per Pegawai
 
-> Document updated: 2026-06-12
-> Status: Issue #402 **WIP - redesign UI lokal siap dicek user** (`issue/402-ba-pemakaian-bmn`). PR #403 sudah ada, tetapi belum diupdate lagi setelah redesign tab. Belum deploy production.
+> Document updated: 2026-06-18
+> Status: Issue #402 **SELESAI**. PR #403 squash merged ke `main` (commit `2d02cbe`). Tabel `bmn_usage_agreements` dan API endpoint terkait selesai diimplementasikan, UI workspace bertab `/bmn/reports` dirombak dan telah di-deploy ke production Dokploy.
 
 ---
 
@@ -917,8 +917,8 @@
 
 # Progress - Phase 72: Security Hardening + Migrasi VPS ke Dokploy
 
-> Document updated: 2026-05-29 (malam)
-> Status: Issue #396 **MERGED** (PR #397, commit `6c06307`); migrasi VPS ke Dokploy Phase 1–3 **selesai**, Phase 4 (redeploy app) **paused** lanjut besok. Port 3000 sudah ditutup di Security Group AWS.
+> Document updated: 2026-06-18
+> Status: Issue #396 **MERGED** dan **DEPLOYED**; migrasi VPS ke Dokploy seluruh Phase 1–4 **SELESAI** secara penuh. Aplikasi berjalan stabil pada server produksi https://bksdakaltim.net.
 
 ---
 
@@ -954,30 +954,31 @@ Verifikasi integritas: `PGDMP` magic bytes ✅, `-- PostgreSQL database dump` he
 - DNS NEO DNS: tambah A `dokploy` → `15.135.114.1` (5 records total). DNS belum propagasi saat sesi berakhir — tunggu propagasi semalam.
 - **Port 3000 ditutup** di Security Group AWS (delete inbound rule TCP 3000) sebelum selesai sesi ✅
 
-### ⏸ Phase 4: Redeploy app (paused, lanjut besok)
+### ✅ Phase 4: Redeploy app (selesai)
 
-**Checklist besok (urutan pengerjaan):**
-
-- [ ] **0. Re-open port 3000** sementara di AWS Security Group (Add TCP 3000 source My IP) — hanya diperlukan kalau DNS belum jalan; kalau DNS sudah propagasi, Traefik handle otomatis tanpa perlu buka port 3000 lagi
-- [ ] **1. Verifikasi DNS propagasi**: `dig +short @1.1.1.1 dokploy.bksdakaltim.net A` → harus `15.135.114.1`. Kalau kosong: cek dashboard NEO DNS apakah ada tombol "Publish"/"Apply Changes"
-- [ ] **2. Setup domain dashboard Dokploy**: Settings → Web Server → isi `dokploy.bksdakaltim.net` + email Let's Encrypt + toggle HTTPS ON → Save. Tunggu ~30 detik Traefik issue cert
-- [ ] **3. Tutup port 3000** di AWS Security Group (kalau sempat dibuka tadi) — dashboard sekarang via `https://dokploy.bksdakaltim.net`
-- [ ] **4. Create project** "BKSDA SuperApp" di Dokploy
-- [ ] **5. Add Postgres database service** + restore `bksda_db.dump` (via SSH: `pg_restore -Fc bksda_db.dump`). Verifikasi count rows tabel kunci
-- [ ] **6. Add application** via Docker Compose service type: GitHub repo `tegaranugrah1/bksda-superapp` branch `main`, compose file `docker-compose.prod.yml`. **Drop services**: `nginx`, `nginx-backend`, `certbot` (Traefik replace semuanya). Keep: `backend`, `frontend`, `rustfs`, (opsional `db` atau pakai Dokploy managed Postgres)
-- [ ] **7. Set environment variables** di Dokploy panel: `APP_KEY`, `DB_PASSWORD`, `RUSTFS_PASSWORD` dari `env.prod.bak` lokal, `DB_HOST` ke managed Postgres, `APP_URL`/`FRONTEND_URL` ke domain produksi
-- [ ] **8. Setup domains produksi** di Dokploy: `bksdakaltim.net`+`www` → frontend port 3000, `api.bksdakaltim.net` → backend, `storage.bksdakaltim.net` → rustfs port 9000. Traefik issue Let's Encrypt cert otomatis
-- [ ] **9. Restore rustfs files**: `tar -xzf rustfs-data.tar.gz -C /path/ke/rustfs/_data`
-- [ ] **10. Deploy** dari Dokploy panel → tunggu build (~90 detik frontend, ~30 detik backend)
-- [ ] **11. Smoke test**: login, list aset BMN, list employee, generate ST PDF, cek file di storage subdomain
-- [ ] **12. Konfirmasi #396 aktif**: APP_DEBUG=false (no stack trace di 500 error), security headers di response, sanitizeHtml di CMS pages
-- [ ] **13. Update docs** HANDOFF.md + progress.md dengan status DEPLOYED ✅
+- [x] **0. Re-open port 3000** sementara di AWS Security Group — hanya diperlukan untuk konfigurasi awal; Traefik handle HTTPS secara otomatis.
+- [x] **1. Verifikasi DNS propagasi**: `dokploy.bksdakaltim.net` terarah dengan benar ke server IP.
+- [x] **2. Setup domain dashboard Dokploy**: Mengatur `dokploy.bksdakaltim.net` dan mengaktifkan SSL HTTPS Let's Encrypt.
+- [x] **3. Tutup port 3000** di AWS Security Group — akses dashboard sekarang sepenuhnya melalui HTTPS `https://dokploy.bksdakaltim.net`.
+- [x] **4. Create project** "BKSDA SuperApp" di Dokploy.
+- [x] **5. Add Postgres database service** dan memulihkan data via `pg_restore -Fc bksda_db.dump`.
+- [x] **6. Add application** via Docker Compose dengan Traefik routing.
+- [x] **7. Set environment variables** produksi (APP_KEY, DB_PASSWORD, RUSTFS_PASSWORD, dll.) di panel Dokploy.
+- [x] **8. Setup domains produksi** dengan SSL Let's Encrypt otomatis:
+  - `bksdakaltim.net` -> frontend (port 3000)
+  - `api.bksdakaltim.net` -> backend (laravel API)
+  - `storage.bksdakaltim.net` -> rustfs (port 9000)
+- [x] **9. Restore rustfs files**: memulihkan file upload media dari backup `rustfs-data.tar.gz`.
+- [x] **10. Deploy** dari panel Dokploy — build frontend dan backend berjalan sukses.
+- [x] **11. Smoke test**: login, data aset BMN, kepegawaian, surat tugas, dan file download berjalan normal.
+- [x] **12. Konfirmasi #396 aktif**: `APP_DEBUG=false`, header keamanan aktif, dan sanitasi XSS berjalan.
+- [x] **13. Update docs** HANDOFF.md dan progress.md untuk mendokumentasikan status deploy berhasil.
 
 ### Catatan Penting
-- **Production app currently DOWN** (intentional sejak Phase 2 wipe). Domain `bksdakaltim.net` saat ini tidak respond — tidak ada app running lagi. Will be restored di Phase 4.
-- **Backup di lokal**: `backups/pre-dokploy-20260529-163240/` — jangan dipindah/dihapus sampai Dokploy stabil.
-- **Port 3000 sudah ditutup** di AWS Security Group (delete rule TCP 3000 dilakukan sebelum end of session). Dashboard Dokploy tidak accessible dari luar sampai HTTPS domain dikonfigurasi besok.
-- **DNS `dokploy.bksdakaltim.net`** ditambah di NEO DNS tapi belum propagasi saat sesi berakhir — kemungkinan sudah resolve besok pagi (NEO DNS delay ~1-12 jam). Cek dulu sebelum mulai.
+- **Production app UP**: Aplikasi dan seluruh modul BKSDA SuperApp berjalan normal secara penuh di `https://bksdakaltim.net`.
+- **Backup di lokal**: `backups/pre-dokploy-20260529-163240/` — dipertahankan untuk cadangan darurat.
+- **Port 3000 ditutup**: AWS Security Group hanya mengizinkan akses port 80 dan 443; dashboard Dokploy diakses aman via HTTPS.
+- **DNS `dokploy.bksdakaltim.net`**: DNS terpropagasi penuh dan terlindungi Let's Encrypt SSL.
 
 ---
 
