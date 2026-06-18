@@ -19,11 +19,13 @@ import {
   FileSpreadsheet,
   Search,
   X,
+  ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { useRole } from "@/hooks/useRole";
 
 interface ChangedField {
   old: string | number | null;
@@ -116,6 +118,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const { batchId } = React.use(params);
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { canWrite } = useRole();
   const [filter, setFilter] = useState<"all" | "new" | "updated" | "unchanged">("all");
   const [page, setPage] = useState(1);
   const [identityFilters, setIdentityFilters] = useState({
@@ -164,6 +167,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const handleToggleRow = async (rowId: string, selected: boolean) => {
+    if (!canWrite) return;
     try {
       await api.post("/bmn/import-review/toggle-selection", {
         ids: [rowId],
@@ -176,6 +180,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const handleToggleField = async (rowId: string, field: string, selected: boolean) => {
+    if (!canWrite) return;
     const actionKey = `${rowId}:${field}`;
     setFieldAction(actionKey);
     try {
@@ -200,6 +205,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     );
 
   const handleBulkSelection = async (action: "select_changed" | "clear_changed" | "select_new_only") => {
+    if (!canWrite) return;
     setBulkAction(action);
     try {
       const res = await api.post("/bmn/import-review/bulk-selection", {
@@ -217,6 +223,10 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const handleApprove = async () => {
+    if (!canWrite) {
+      toast.error("Approve import hanya tersedia untuk admin.");
+      return;
+    }
     setIsApproving(true);
     try {
       const res = await api.post(`/bmn/import-review/${batchId}/approve`, {}, { timeout: 120000 });
@@ -234,6 +244,10 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   };
 
   const handleReject = async () => {
+    if (!canWrite) {
+      toast.error("Tolak import hanya tersedia untuk admin.");
+      return;
+    }
     setIsRejecting(true);
     try {
       await api.post(`/bmn/import-review/${batchId}/reject`);
@@ -283,7 +297,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           </div>
         </div>
 
-        {isPending && (
+        {canWrite && isPending && (
           <div className="flex items-center gap-2">
             <Button
               onClick={handleReject}
@@ -308,6 +322,17 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           </div>
         )}
       </div>
+
+      {!canWrite && isPending && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
+          <div className="flex items-start gap-2">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Batch ini masih menunggu review. Kamu bisa melihat detail perubahan, tetapi approval dan pengaturan seleksi hanya tersedia untuk admin.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
@@ -406,7 +431,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       </div>
 
       {/* Selection Toolbar */}
-      {isPending && (filteredNewTotal > 0 || selectionSummary.filtered_updated > 0) && (
+      {canWrite && isPending && (filteredNewTotal > 0 || selectionSummary.filtered_updated > 0) && (
         <div className="flex flex-col gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
           <span className="text-sm text-slate-600">
             Dipilih: <strong>{selectionSummary.selected_new}</strong> baru, <strong>{selectionSummary.selected_updated}</strong> update
@@ -442,7 +467,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                {isPending && (
+                {canWrite && isPending && (
                   <th className="px-4 py-3 w-10">
                     <Checkbox
                       checked={(() => {
@@ -470,7 +495,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
             <tbody className="divide-y divide-slate-100">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={isPending ? 6 : 5} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={canWrite && isPending ? 6 : 5} className="px-4 py-12 text-center text-slate-400">
                     Tidak ada data untuk filter ini.
                   </td>
                 </tr>
@@ -489,7 +514,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                         isSelectableRow && !isSelected && "opacity-60"
                       )}
                     >
-                    {isPending && (
+                    {canWrite && isPending && (
                       <td className="px-4 py-3">
                         {isSelectableRow && (
                           <Checkbox
@@ -522,7 +547,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                         <DiffFields
                           fields={row.changed_fields}
                           rowId={row.id}
-                          isPending={isPending}
+                          isPending={canWrite && isPending}
                           fieldAction={fieldAction}
                           onToggleField={handleToggleField}
                         />

@@ -15,9 +15,11 @@ import {
   XCircle,
   Clock,
   Eye,
+  ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useRole } from "@/hooks/useRole";
 
 interface ImportBatch {
   id: string;
@@ -33,6 +35,7 @@ interface ImportBatch {
 
 export default function ImportReviewPage() {
   const queryClient = useQueryClient();
+  const { canWrite } = useRole();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -47,6 +50,10 @@ export default function ImportReviewPage() {
   const batches: ImportBatch[] = data?.data || [];
 
   const handleUpload = async () => {
+    if (!canWrite) {
+      toast.error("Upload import hanya tersedia untuk admin.");
+      return;
+    }
     if (!file) return;
     setIsUploading(true);
     const formData = new FormData();
@@ -91,7 +98,7 @@ export default function ImportReviewPage() {
         </p>
       </div>
 
-      {/* Upload Section */}
+      {canWrite ? (
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
         <h2 className="text-base font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
           <Upload className="w-4 h-4 text-emerald-600" />
@@ -122,6 +129,19 @@ export default function ImportReviewPage() {
           </Button>
         </div>
       </div>
+      ) : (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <h2 className="text-sm font-bold">Upload import hanya untuk admin</h2>
+              <p className="mt-1 text-xs leading-relaxed">
+                Kamu tetap bisa melihat riwayat import dan hasil review, tetapi perubahan data BMN hanya bisa diunggah dan disetujui oleh admin.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Batch History */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
@@ -180,7 +200,7 @@ export default function ImportReviewPage() {
                   {batch.status === "pending" && (
                     <Link href={`/bmn/import-review/${batch.id}`}>
                       <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                        <Eye className="w-3.5 h-3.5 mr-1" /> Review
+                        <Eye className="w-3.5 h-3.5 mr-1" /> {canWrite ? "Review" : "Lihat"}
                       </Button>
                     </Link>
                   )}

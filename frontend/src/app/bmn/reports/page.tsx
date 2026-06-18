@@ -24,6 +24,7 @@ import {
   type HandoverVariant,
   type HandoverWitness,
 } from "./_components/HandoverAgreementDocument";
+import { useRole } from "@/hooks/useRole";
 
 interface EmployeeOption {
   id: number;
@@ -139,6 +140,7 @@ const DEFAULT_HANDOVER_FIRST_PARTY: HandoverParty = {
 
 export default function BmnReportsPage() {
   const confirm = useConfirm();
+  const { canWrite } = useRole();
   const [loadingAsset, setLoadingAsset] = useState(false);
   const [loadingLoan, setLoadingLoan] = useState(false);
   const [loadingMaintenance, setLoadingMaintenance] = useState(false);
@@ -900,16 +902,18 @@ export default function BmnReportsPage() {
                                     <FileText className="mr-1 h-3.5 w-3.5" />
                                     Duplikasi
                                   </Button>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
-                                    onClick={() => deleteHistoryAgreement(item)}
-                                  >
-                                    <Trash2 className="mr-1 h-3.5 w-3.5" />
-                                    Hapus
-                                  </Button>
+                                  {canWrite && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
+                                      onClick={() => deleteHistoryAgreement(item)}
+                                    >
+                                      <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                      Hapus
+                                    </Button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -1547,16 +1551,18 @@ export default function BmnReportsPage() {
                             <FileText className="mr-1 h-3.5 w-3.5" />
                             Duplikasi
                           </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
-                            onClick={() => isUsageHistoryItem(item) ? deleteHistoryAgreement(item) : deleteHandoverHistoryAgreement(item)}
-                          >
-                            <Trash2 className="mr-1 h-3.5 w-3.5" />
-                            Hapus
-                          </Button>
+                          {canWrite && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
+                              onClick={() => isUsageHistoryItem(item) ? deleteHistoryAgreement(item) : deleteHandoverHistoryAgreement(item)}
+                            >
+                              <Trash2 className="mr-1 h-3.5 w-3.5" />
+                              Hapus
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>

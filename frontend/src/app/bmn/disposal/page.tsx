@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/hooks/useRole";
 
 const formatRupiah = (angka: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
@@ -28,6 +29,7 @@ interface IResponse { data: IDisposedAsset[]; last_page: number; total?: number 
 
 export default function BmnDisposalPage() {
   const queryClient = useQueryClient();
+  const { canWrite } = useRole();
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -49,6 +51,7 @@ export default function BmnDisposalPage() {
   const assets = response?.data || [];
 
   const toggleSelect = (id: string) => {
+    if (!canWrite) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -58,6 +61,7 @@ export default function BmnDisposalPage() {
   };
 
   const toggleAll = () => {
+    if (!canWrite) return;
     if (selectedIds.size === assets.length) {
       setSelectedIds(new Set());
     } else {
@@ -66,7 +70,7 @@ export default function BmnDisposalPage() {
   };
 
   const handleRestore = async () => {
-    if (selectedIds.size === 0) return;
+    if (!canWrite || selectedIds.size === 0) return;
     setIsRestoring(true);
     try {
       await api.post("/bmn/assets/bulk-restore", { ids: Array.from(selectedIds) });
@@ -82,7 +86,7 @@ export default function BmnDisposalPage() {
   };
 
   const handleForceDelete = async () => {
-    if (selectedIds.size === 0) return;
+    if (!canWrite || selectedIds.size === 0) return;
     setIsDeleting(true);
     try {
       await api.post("/bmn/assets/bulk-force-delete", { ids: Array.from(selectedIds) });
@@ -104,7 +108,9 @@ export default function BmnDisposalPage() {
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             <Trash2 className="w-6 h-6 text-red-500" /> Aset Dihapus
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Daftar aset yang telah di-dispose. Bisa di-restore atau dihapus permanen.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Daftar aset yang telah di-dispose{canWrite ? ". Bisa di-restore atau dihapus permanen." : "."}
+          </p>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -118,7 +124,7 @@ export default function BmnDisposalPage() {
       </div>
 
       {/* Bulk Actions */}
-      {selectedIds.size > 0 && (
+      {canWrite && selectedIds.size > 0 && (
         <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3">
           <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{selectedIds.size} aset dipilih</span>
           <Button
@@ -171,12 +177,14 @@ export default function BmnDisposalPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
-                <th className="px-4 py-3 w-10">
-                  <Checkbox
-                    checked={assets.length > 0 && selectedIds.size === assets.length}
-                    onCheckedChange={toggleAll}
-                  />
-                </th>
+                {canWrite && (
+                  <th className="px-4 py-3 w-10">
+                    <Checkbox
+                      checked={assets.length > 0 && selectedIds.size === assets.length}
+                      onCheckedChange={toggleAll}
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">Tgl Penghapusan</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">Identitas BMN</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Nilai</th>
@@ -184,9 +192,9 @@ export default function BmnDisposalPage() {
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
               {isLoading ? (
-                <tr><td colSpan={4} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-red-500 mx-auto mb-2" /><p className="text-sm text-zinc-400">Memuat...</p></td></tr>
+                <tr><td colSpan={canWrite ? 4 : 3} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-red-500 mx-auto mb-2" /><p className="text-sm text-zinc-400">Memuat...</p></td></tr>
               ) : assets.length === 0 ? (
-                <tr><td colSpan={4} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-zinc-300 dark:text-zinc-700" /><p className="text-sm text-zinc-400">Tidak ada aset yang dihapus.</p></td></tr>
+                <tr><td colSpan={canWrite ? 4 : 3} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-zinc-300 dark:text-zinc-700" /><p className="text-sm text-zinc-400">Tidak ada aset yang dihapus.</p></td></tr>
               ) : (
                 assets.map((asset) => (
                   <tr
@@ -196,12 +204,14 @@ export default function BmnDisposalPage() {
                       selectedIds.has(asset.id) && "bg-red-50/30 dark:bg-red-500/5"
                     )}
                   >
-                    <td className="px-4 py-3">
-                      <Checkbox
-                        checked={selectedIds.has(asset.id)}
-                        onCheckedChange={() => toggleSelect(asset.id)}
-                      />
-                    </td>
+                    {canWrite && (
+                      <td className="px-4 py-3">
+                        <Checkbox
+                          checked={selectedIds.has(asset.id)}
+                          onCheckedChange={() => toggleSelect(asset.id)}
+                        />
+                      </td>
+                    )}
                     <td className="px-4 py-3">
                       <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{asset.deleted_at ? new Date(asset.deleted_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—"}</p>
                     </td>
