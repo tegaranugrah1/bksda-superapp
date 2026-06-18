@@ -33,6 +33,7 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:lo
 // Protected Auth Routes (wajib bawa Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
+    Route::get('/me', [AuthController::class, 'me']);
     Route::get('/me/dashboard', [AuthController::class, 'dashboard']);
     Route::post('/me/update-photo', [AuthController::class, 'updatePhoto']);
     Route::post('/me/update-profile', [AuthController::class, 'updateProfile']);
