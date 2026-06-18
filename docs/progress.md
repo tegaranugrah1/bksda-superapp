@@ -1,3 +1,38 @@
+# Progress - Phase 96: Surat Kuasa Kendaraan Document Generator
+
+> Document updated: 2026-06-18
+> Status: Squashed merged ke `main` (commit `8a97ced`). Branch remote `issue/438-bmn-power-of-attorney` sudah dihapus.
+
+---
+
+## Surat Kuasa Kendaraan Document Generator
+
+### Status: SELESAI
+- Scope: Modul BMN (Backend & Frontend)
+- Tujuan: Mengimplementasikan generator dokumen Surat Kuasa Kendaraan untuk pemeriksaan fisik BMN. Dilengkapi dengan lampiran scan KTP dinamis, upload file KTP ke RustFS object storage, auto-cleanup file saat data dihapus, fitur duplikasi riwayat, dan formatting layout A4 print / screen preview yang presisi.
+
+### Implementasi
+- **Database**:
+  - Membuat tabel `bmn_power_of_attorneys` lengkap dengan kolom `ktp_path` untuk mencatat path file KTP di RustFS.
+- **Backend (Laravel)**:
+  - Membuat model `PowerOfAttorney`, resource `PowerOfAttorneyResource`, dan controller `PowerOfAttorneyController` untuk mengelola CRUD riwayat Surat Kuasa Kendaraan.
+  - Endpoint `POST /api/bmn/power-of-attorneys` menerima `multipart/form-data`, memvalidasi file `ktp_image` dengan rules `UploadValidationRules::image(false, 10240)`, dan menyimpannya di RustFS dengan format nama dinamis `KTP-{NAMA_PEMBERI_KUASA}.jpeg`.
+  - Endpoint `DELETE /api/bmn/power-of-attorneys/{id}` secara otomatis menghapus file KTP fisik terkait dari RustFS sebelum menghapus record database guna mencegah file sampah (*orphan files*).
+  - Mengintegrasikan Surat Kuasa Kendaraan ke query arsip terpusat di `DocumentHistoryController`.
+- **Frontend (Next.js)**:
+  - Menyediakan form builder Surat Kuasa Kendaraan (Step 1 s.d 6) di `/bmn/reports`.
+  - Menambahkan widget unggah file KTP (Step 5) dengan *Base64 live preview* dan tombol hapus/reset lampiran.
+  - Memperbarui komponen `PowerOfAttorneyDocument` untuk merender KTP pada halaman lampiran baru secara dinamis menggunakan pemisah halaman `page-break-before: always; break-before: page;` (hanya jika pemberi kuasa adalah Pak Hardi atau mengunggah KTP kustom).
+  - Merapikan alignment tanggal tanda tangan (sejajar horizontal), menghilangkan format bold/underline pada ttd, serta mencegah pelipatan (*wrapping*) teks kolom tabel BMN (No., Plat, Mesin, Rangka) dan nama ttd yang panjang melalui CSS `white-space: nowrap` dan Grid columns `1fr 1fr` dengan alignment `flex-end` yang dinamis.
+
+### Validasi
+- `php -l`: pass.
+- `npm run lint`: pass.
+- `npx tsc --noEmit`: pass.
+- `npm run build`: pass.
+
+---
+
 # Progress - Phase 95: Secure Private Storage for Vehicle Documents
 
 > Document updated: 2026-06-18
