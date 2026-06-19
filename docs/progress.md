@@ -1,3 +1,37 @@
+# Progress - Phase 104: Mobile Surat Tugas AssignmentCard Component
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-61`.
+> GitHub Issue: #446.
+
+---
+
+## Mobile Surat Tugas AssignmentCard Component
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan kartu presentational untuk daftar Surat Tugas mobile yang menampilkan nomor/fallback, kegiatan, tujuan, rentang tanggal, status, dan ringkasan personel dengan tap target aksesibel.
+
+### Implementasi
+- **Component**:
+  - Membuat [AssignmentCard.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/components/AssignmentCard.tsx) sebagai komponen presentational tanpa data fetching.
+  - Menampilkan `nomor` atau fallback "Belum bernomor", kegiatan/tujuan, tanggal mulai-selesai, `StatusBadge` tekstual, dan `personel_summary`.
+  - Menyediakan satu touch target utama dengan `accessibilityRole="button"` dan `accessibilityLabel` deskriptif.
+- **Tests**:
+  - Menambahkan [AssignmentCard.test.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/components/__tests__/AssignmentCard.test.tsx) untuk rendering summary, fallback label, status badge text, handler press, dan accessibility label.
+- **Checklist**:
+  - Mencentang Task 61 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/components/__tests__/AssignmentCard.test.tsx`: 3 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 62: Build Surat Tugas list screen shell.
+
+---
+
 # Progress - Phase 103: Mobile Surat Tugas List API Hook
 
 > Document updated: 2026-06-19

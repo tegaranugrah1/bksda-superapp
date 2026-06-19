@@ -977,7 +977,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: hook uses mobile params and pagination meta.
   - _Requirements: 11, 18_
 
-- [ ] 61. Add AssignmentCard component
+- [x] 61. Add AssignmentCard component
   - Target area: `mobile/src/features/surat-tugas/components/AssignmentCard.tsx`.
   - Show number, activity/destination, date range, status, and personel summary.
   - Acceptance check: status badge includes text.
