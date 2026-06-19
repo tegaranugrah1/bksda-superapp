@@ -1,3 +1,35 @@
+# Progress - Phase 130: Mobile Android App Metadata Configuration
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-configure-metadata-task-87`.
+> GitHub Issue: #498.
+
+---
+
+## Mobile Android App Metadata Configuration
+
+### Status: SELESAI
+- Scope: Mobile App (Expo Config)
+- Tujuan: Mengatur nama aplikasi (`name`), slug, dan identifikasi sistem operasi (`package` untuk Android dan `bundleIdentifier` untuk iOS) yang tepat di berkas `app.json` sebagai persiapan untuk build internal.
+
+### Implementasi
+- **Konfigurasi `mobile/app.json`**:
+  - Mengubah `"name"` dari `"mobile"` menjadi `"BKSDA SuperApp"`.
+  - Mengubah `"slug"` dari `"mobile"` menjadi `"bksda-superapp"`.
+  - Menambahkan `"package": "com.bksda.superapp"` dan `"versionCode": 1` di dalam konfigurasi `"android"`.
+  - Menambahkan `"bundleIdentifier": "com.bksda.superapp"` di dalam konfigurasi `"ios"`.
+- **Checklist**:
+  - Mencentang Task 87 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm run typecheck` & `npm run lint`: Bersih tanpa error.
+- File `mobile/app.json` divalidasi dan valid secara JSON.
+
+### Next Steps
+- [ ] Task 88: Build internal Android artifact.
+
+---
+
 # Progress - Phase 129: Mobile Regular Employee Path Validation
 
 > Document updated: 2026-06-19

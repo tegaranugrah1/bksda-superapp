@@ -1137,7 +1137,7 @@ Use this matrix together with the numbered task. A lower-capability model should
 
 ### Milestone 5: Android Internal Release
 
-- [ ] 87. Configure Android app metadata
+- [x] 87. Configure Android app metadata
   - Target area: Expo app config.
   - Set app name, package id, icon, splash, and build profile.
   - Acceptance check: metadata does not use placeholder app name.
