@@ -59,6 +59,14 @@ export interface AssetDetail extends AssetListItem {
   foto_bpkb_4_url?: string | null;
   foto_stnk_1_url?: string | null;
   foto_stnk_2_url?: string | null;
+  active_loan?: {
+    id: number | string;
+    borrower_name: string;
+    borrower_nip?: string | null;
+    loan_date?: string | null;
+    due_date?: string | null;
+    status: string;
+  } | null;
 }
 
 export interface AssetPhotoSlot {

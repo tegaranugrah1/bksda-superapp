@@ -1,13 +1,17 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import BmnDetailScreen from '../BmnDetailScreen';
 import { useAssetDetail } from '../../useAssetDetail';
+import { apiClient } from '@/lib/api/client';
 
 // Mock navigation hooks
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
   useRoute: () => ({
     params: { id: '123' },
@@ -69,6 +73,7 @@ jest.mock('@/hooks/useAppTheme', () => ({
 jest.mock('@/lib/api/client', () => ({
   apiClient: {
     delete: jest.fn(),
+    post: jest.fn(),
   },
 }));
 
@@ -315,6 +320,132 @@ describe('BmnDetailScreen', () => {
       backBtn.props.onPress();
     });
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('handles verify action successfully', async () => {
+    const mockPost = apiClient.post as jest.Mock;
+    mockPost.mockResolvedValueOnce({ data: {} });
+    jest.spyOn(Alert, 'alert').mockImplementation((title, message, buttons) => {
+      const confirmButton = buttons?.find((b) => b.text === 'Ya, Verifikasi');
+      if (confirmButton && confirmButton.onPress) {
+        confirmButton.onPress();
+      }
+      return {} as any;
+    });
+
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: {
+        ...mockAsset,
+        allowed_actions: { can_verify: true },
+      },
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnDetailScreen />);
+    });
+
+    const root = tree.root;
+    const verifyBtn = root.findByProps({ accessibilityLabel: 'Verifikasi Aset BMN' });
+    expect(verifyBtn).toBeTruthy();
+
+    await act(async () => {
+      verifyBtn.props.onPress();
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Verifikasi BMN',
+      expect.any(String),
+      expect.any(Array)
+    );
+    expect(mockPost).toHaveBeenCalledWith('/bmn/assets/123/verify');
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('handles return action successfully', async () => {
+    const mockPost = apiClient.post as jest.Mock;
+    mockPost.mockResolvedValueOnce({ data: {} });
+    jest.spyOn(Alert, 'alert').mockImplementation((title, message, buttons) => {
+      const confirmButton = buttons?.find((b) => b.text === 'Ya, Kembalikan');
+      if (confirmButton && confirmButton.onPress) {
+        confirmButton.onPress();
+      }
+      return {} as any;
+    });
+
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: {
+        ...mockAsset,
+        allowed_actions: { can_return: true },
+        active_loan: { id: '456' },
+      },
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnDetailScreen />);
+    });
+
+    const root = tree.root;
+    const returnBtn = root.findByProps({ accessibilityLabel: 'Kembalikan Aset BMN' });
+    expect(returnBtn).toBeTruthy();
+
+    await act(async () => {
+      returnBtn.props.onPress();
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Kembalikan Aset',
+      expect.any(String),
+      expect.any(Array)
+    );
+    expect(mockPost).toHaveBeenCalledWith('/bmn/loans/456/return');
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('navigates to BmnLoan screen when clicking loan button', () => {
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: {
+        ...mockAsset,
+        allowed_actions: { can_loan: true },
+      },
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnDetailScreen />);
+    });
+
+    const root = tree.root;
+    const loanBtn = root.findByProps({ accessibilityLabel: 'Ajukan Peminjaman Aset BMN' });
+    expect(loanBtn).toBeTruthy();
+
+    act(() => {
+      loanBtn.props.onPress();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('BmnLoan', { assetId: '123' });
 
     act(() => {
       tree.unmount();

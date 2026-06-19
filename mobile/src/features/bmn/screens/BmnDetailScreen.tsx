@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, SafeAreaView, Alert } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAssetDetail } from '../useAssetDetail';
@@ -27,6 +28,8 @@ export default function BmnDetailScreen() {
 
   const { data, isLoading, error, refetch } = useAssetDetail(id);
   const [isDeletingPhoto, setIsDeletingPhoto] = React.useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = React.useState(false);
+  const [isReturning, setIsReturning] = React.useState(false);
 
   const handleEdit = () => {
     Alert.alert('Ubah Data', 'Fitur ubah data aset akan segera hadir.');
@@ -78,15 +81,65 @@ export default function BmnDetailScreen() {
   };
 
   const handleVerify = () => {
-    Alert.alert('Verifikasi Aset', 'Fitur verifikasi aset akan segera hadir.');
+    Alert.alert(
+      'Verifikasi BMN',
+      'Lakukan verifikasi BMN untuk aset ini? Tindakan ini akan mencatat tanggal dan nama verifikator.',
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Ya, Verifikasi',
+          onPress: async () => {
+            setIsVerifying(true);
+            try {
+              await apiClient.post(`/bmn/assets/${id}/verify`);
+              Alert.alert('Sukses', 'Aset berhasil diverifikasi.');
+              refetch();
+            } catch (err: any) {
+              const apiErr = normalizeError(err);
+              Alert.alert('Error', apiErr.message || 'Gagal memverifikasi aset.');
+            } finally {
+              setIsVerifying(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleLoan = () => {
-    Alert.alert('Pinjam Aset', 'Fitur peminjaman aset akan segera hadir.');
+    navigation.navigate('BmnLoan', { assetId: id });
   };
 
   const handleReturn = () => {
-    Alert.alert('Kembalikan Aset', 'Fitur pengembalian aset akan segera hadir.');
+    const loanId = data?.active_loan?.id;
+    if (!loanId) {
+      Alert.alert('Error', 'Tidak ada peminjaman aktif untuk aset ini.');
+      return;
+    }
+
+    Alert.alert(
+      'Kembalikan Aset',
+      'Apakah Anda yakin ingin menandai aset ini sebagai sudah dikembalikan?',
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Ya, Kembalikan',
+          onPress: async () => {
+            setIsReturning(true);
+            try {
+              await apiClient.post(`/bmn/loans/${loanId}/return`);
+              Alert.alert('Sukses', 'Aset berhasil dikembalikan.');
+              refetch();
+            } catch (err: any) {
+              const apiErr = normalizeError(err);
+              Alert.alert('Error', apiErr.message || 'Gagal mengembalikan aset.');
+            } finally {
+              setIsReturning(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (isLoading && !data) {
@@ -255,6 +308,8 @@ export default function BmnDetailScreen() {
           onVerifyPress={handleVerify}
           onLoanPress={handleLoan}
           onReturnPress={handleReturn}
+          isVerifying={isVerifying}
+          isReturning={isReturning}
         />
       </ScrollView>
     </SafeAreaView>
