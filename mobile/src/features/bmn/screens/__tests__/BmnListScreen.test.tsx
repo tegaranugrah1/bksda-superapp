@@ -1,4 +1,5 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import BmnListScreen from '../BmnListScreen';
 import { useAssets } from '../../useAssets';
@@ -146,6 +147,32 @@ describe('BmnListScreen', () => {
 
     expect(texts).toContain('Laptop Asus');
     expect(texts).toContain('Mobil Toyota');
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('renders ActivityIndicator footer when fetching next page', () => {
+    (useAssets as jest.Mock).mockReturnValue({
+      items: mockAssets,
+      isLoading: false,
+      isRefreshing: false,
+      isFetchingNextPage: true,
+      error: undefined,
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: true,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnListScreen />);
+    });
+
+    const root = tree.root;
+    const spinner = root.findByType(ActivityIndicator);
+    expect(spinner).toBeTruthy();
 
     act(() => {
       tree.unmount();

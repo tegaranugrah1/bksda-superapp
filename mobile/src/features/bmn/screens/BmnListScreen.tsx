@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, FlatList, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, FlatList, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAssets } from '../useAssets';
 import AssetCard from '../components/AssetCard';
@@ -18,6 +18,7 @@ export default function BmnListScreen() {
     isRefreshing,
     refetch,
     fetchNextPage,
+    isFetchingNextPage,
   } = useAssets({
     search,
     kondisi: selectedKondisi,
@@ -41,6 +42,15 @@ export default function BmnListScreen() {
       onPress={() => handleAssetPress(item)}
     />
   );
+
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={[styles.footer, { paddingVertical: spacing.md }]}>
+        <ActivityIndicator size="small" color={colors.primary} />
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
@@ -109,6 +119,7 @@ export default function BmnListScreen() {
           refreshing={isRefreshing}
           onEndReached={fetchNextPage}
           onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
         />
       </View>
     </SafeAreaView>
@@ -140,6 +151,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filterWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
