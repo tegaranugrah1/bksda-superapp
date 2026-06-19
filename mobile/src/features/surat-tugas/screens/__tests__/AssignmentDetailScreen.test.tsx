@@ -4,6 +4,8 @@ import renderer, { act } from 'react-test-renderer';
 import AssignmentDetailScreen from '../AssignmentDetailScreen';
 import { useAssignmentDetail } from '../../useAssignmentDetail';
 import { updateAssignmentStatus } from '../../assignmentActionsApi';
+import { downloadAssignmentFile } from '@/lib/files/download';
+import { openFile } from '@/lib/files/share';
 
 const mockGoBack = jest.fn();
 let mockRouteParams: { id: string | number; mode?: 'personal' | 'management' } = {
@@ -77,6 +79,14 @@ jest.mock('../../assignmentActionsApi', () => ({
   updateAssignmentStatus: jest.fn(),
 }));
 
+jest.mock('@/lib/files/download', () => ({
+  downloadAssignmentFile: jest.fn(),
+}));
+
+jest.mock('@/lib/files/share', () => ({
+  openFile: jest.fn(),
+}));
+
 describe('AssignmentDetailScreen', () => {
   const refetch = jest.fn();
   const assignment = {
@@ -96,6 +106,8 @@ describe('AssignmentDetailScreen', () => {
     file: {
       available: true,
       download_url: '/api/surat-tugas/my/st-1/download',
+      filename: 'ST.001/BKSDA/2026.pdf',
+      mime_type: 'application/pdf',
     },
     allowed_actions: {
       can_view: true,
@@ -115,6 +127,13 @@ describe('AssignmentDetailScreen', () => {
       isNotFound: false,
     });
     (updateAssignmentStatus as jest.Mock).mockResolvedValue({ id: 'st-1', status: 'completed' });
+    (downloadAssignmentFile as jest.Mock).mockResolvedValue({
+      localUri: 'file:///cache/surat-tugas/ST.001-BKSDA-2026.pdf',
+      filename: 'ST.001-BKSDA-2026.pdf',
+      mimeType: 'application/pdf',
+      status: 200,
+    });
+    (openFile as jest.Mock).mockResolvedValue(undefined);
   });
 
   it('renders detail sections and gated file action when file is allowed', () => {
@@ -211,23 +230,49 @@ describe('AssignmentDetailScreen', () => {
     });
   });
 
-  it('shows download placeholder alert when file action is pressed', () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-
+  it('downloads and opens file when file action is pressed', async () => {
     let tree: renderer.ReactTestRenderer;
-    act(() => {
+    await act(async () => {
       tree = renderer.create(<AssignmentDetailScreen />);
     });
 
     const downloadButton = tree!.root.findByProps({ accessibilityLabel: 'Unduh berkas Surat Tugas' });
-    act(() => {
+    await act(async () => {
       downloadButton.props.onPress();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Unduh Surat Tugas',
-      'Fitur unduh berkas akan disiapkan pada task file download berikutnya.'
-    );
+    expect(downloadAssignmentFile).toHaveBeenCalledWith({
+      assignmentId: 'st-1',
+      mode: 'personal',
+      filename: assignment.file.filename,
+      storage: 'cache',
+    });
+    expect(openFile).toHaveBeenCalledWith({
+      localUri: 'file:///cache/surat-tugas/ST.001-BKSDA-2026.pdf',
+      mimeType: 'application/pdf',
+      dialogTitle: 'Buka Surat Tugas',
+    });
+
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('shows a user-friendly message when file download fails', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    (downloadAssignmentFile as jest.Mock).mockRejectedValueOnce(new Error('File Surat Tugas tidak ditemukan.'));
+
+    let tree: renderer.ReactTestRenderer;
+    await act(async () => {
+      tree = renderer.create(<AssignmentDetailScreen />);
+    });
+
+    const downloadButton = tree!.root.findByProps({ accessibilityLabel: 'Unduh berkas Surat Tugas' });
+    await act(async () => {
+      downloadButton.props.onPress();
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith('Gagal Mengunduh', 'File Surat Tugas tidak ditemukan.');
 
     alertSpy.mockRestore();
     act(() => {

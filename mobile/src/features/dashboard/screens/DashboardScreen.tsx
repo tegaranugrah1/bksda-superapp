@@ -5,7 +5,6 @@ import {
   View,
   ScrollView,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
@@ -40,16 +39,15 @@ export default function DashboardScreen({ navigation }: any) {
     navigation.navigate('SuratTugas');
   };
 
-  const handleScanBarcode = () => {
-    Alert.alert('Scan Barcode', 'Fitur scan barcode BMN akan segera hadir.');
-  };
-
   const handleLoanAsset = () => {
-    Alert.alert('Pinjam Aset', 'Fitur pengajuan peminjaman aset akan segera hadir.');
+    navigation.navigate('Bmn', { screen: 'BmnList' });
   };
 
   const handleApproveST = () => {
-    Alert.alert('Persetujuan Surat Tugas', 'Fitur persetujuan surat tugas akan segera hadir.');
+    navigation.navigate('SuratTugas', {
+      screen: 'SuratTugasList',
+      params: { initialMode: 'management', initialStatus: 'pending' },
+    });
   };
 
   if (isLoading && !data) {
@@ -173,7 +171,6 @@ export default function DashboardScreen({ navigation }: any) {
           canLoanBmn={showBmn}
           canViewSuratTugas={showSuratTugas}
           canApproveSuratTugas={showApproval}
-          onScanPress={handleScanBarcode}
           onLoanPress={handleLoanAsset}
           onViewBmnPress={handleViewBmn}
           onViewSuratTugasPress={handleViewSuratTugas}

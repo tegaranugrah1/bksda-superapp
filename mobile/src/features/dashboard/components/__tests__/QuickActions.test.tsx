@@ -62,7 +62,6 @@ describe('QuickActions', () => {
     canLoanBmn: false,
     canViewSuratTugas: false,
     canApproveSuratTugas: false,
-    onScanPress: jest.fn(),
     onLoanPress: jest.fn(),
     onViewBmnPress: jest.fn(),
     onViewSuratTugasPress: jest.fn(),
@@ -77,7 +76,7 @@ describe('QuickActions', () => {
     expect(tree.toJSON()).toBeNull();
   });
 
-  it('renders only BMN lists and barcode scanning when only BMN view is permitted', () => {
+  it('renders only BMN list when only BMN view is permitted', () => {
     const props = {
       ...defaultProps,
       canViewBmn: true,
@@ -94,12 +93,11 @@ describe('QuickActions', () => {
 
     const root = tree.root;
     const buttons = root.findAllByType('AppButtonMock');
-    expect(buttons.length).toBe(2);
+    expect(buttons.length).toBe(1);
 
     const titles = buttons.map((b: any) => b.props.title);
     expect(titles).toContain('Daftar BMN');
-    expect(titles).toContain('Scan Barcode');
-    expect(titles).not.toContain('Pinjam Aset');
+    expect(titles).not.toContain('Pilih Aset');
     expect(titles).not.toContain('Surat Tugas Saya');
     expect(titles).not.toContain('Persetujuan ST');
 
@@ -128,17 +126,10 @@ describe('QuickActions', () => {
 
     const root = tree.root;
     const buttons = root.findAllByType('AppButtonMock');
-    expect(buttons.length).toBe(5);
+    expect(buttons.length).toBe(4);
 
-    // Click 'Scan Barcode'
-    const scanBtn = buttons.find((b: any) => b.props.title === 'Scan Barcode');
-    act(() => {
-      scanBtn.props.onPress();
-    });
-    expect(props.onScanPress).toHaveBeenCalledTimes(1);
-
-    // Click 'Pinjam Aset'
-    const loanBtn = buttons.find((b: any) => b.props.title === 'Pinjam Aset');
+    // Click asset selection
+    const loanBtn = buttons.find((b: any) => b.props.title === 'Pilih Aset');
     act(() => {
       loanBtn.props.onPress();
     });

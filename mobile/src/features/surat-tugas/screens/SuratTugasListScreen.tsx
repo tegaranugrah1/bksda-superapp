@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/EmptyState';
@@ -29,14 +29,15 @@ const statusFilters: { label: string; value: StatusFilter }[] = [
 export default function SuratTugasListScreen() {
   const { colors, spacing, radius, typography } = useAppTheme();
   const navigation = useNavigation<NativeStackNavigationProp<SuratTugasStackParamList>>();
+  const route = useRoute<RouteProp<SuratTugasStackParamList, 'SuratTugasList'>>();
   const { hasModule, can } = usePermissions();
   const canUseManagementMode = hasModule('surat_tugas') || hasModule('kepegawaian');
   const canCreateAssignment =
     can('create-assignments') || can('surat_tugas.create') || can('surat_tugas.manage');
-  const [mode, setMode] = React.useState<AssignmentListMode>('personal');
+  const [mode, setMode] = React.useState<AssignmentListMode>(route.params?.initialMode ?? 'personal');
   const [search, setSearch] = React.useState('');
   const [debouncedSearch, setDebouncedSearch] = React.useState('');
-  const [status, setStatus] = React.useState<StatusFilter>('all');
+  const [status, setStatus] = React.useState<StatusFilter>(route.params?.initialStatus ?? 'all');
   const activeMode: AssignmentListMode = canUseManagementMode ? mode : 'personal';
 
   React.useEffect(() => {

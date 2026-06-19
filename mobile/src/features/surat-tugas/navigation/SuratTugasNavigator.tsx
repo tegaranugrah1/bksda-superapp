@@ -6,7 +6,7 @@ import AssignmentFormScreen from '../screens/AssignmentFormScreen';
 import { AssignmentListMode } from '../types';
 
 export type SuratTugasStackParamList = {
-  SuratTugasList: undefined;
+  SuratTugasList?: { initialMode?: AssignmentListMode; initialStatus?: 'pending' };
   AssignmentDetail: { id: string | number; mode?: AssignmentListMode };
   AssignmentForm?: { id?: string | number };
 };

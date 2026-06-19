@@ -8,7 +8,6 @@ interface QuickActionsProps {
   canLoanBmn: boolean;
   canViewSuratTugas: boolean;
   canApproveSuratTugas: boolean;
-  onScanPress: () => void;
   onLoanPress: () => void;
   onViewBmnPress: () => void;
   onViewSuratTugasPress: () => void;
@@ -20,7 +19,6 @@ export default function QuickActions({
   canLoanBmn,
   canViewSuratTugas,
   canApproveSuratTugas,
-  onScanPress,
   onLoanPress,
   onViewBmnPress,
   onViewSuratTugasPress,
@@ -75,24 +73,13 @@ export default function QuickActions({
           </View>
         )}
 
-        {canViewBmn && (
-          <View style={styles.buttonWrapper}>
-            <AppButton
-              title="Scan Barcode"
-              variant="secondary"
-              onPress={onScanPress}
-              accessibilityLabel="Scan barcode barang milik negara"
-            />
-          </View>
-        )}
-
         {canLoanBmn && (
           <View style={styles.buttonWrapper}>
             <AppButton
-              title="Pinjam Aset"
+              title="Pilih Aset"
               variant="secondary"
               onPress={onLoanPress}
-              accessibilityLabel="Ajukan peminjaman aset BMN"
+              accessibilityLabel="Pilih aset BMN untuk diajukan peminjaman"
             />
           </View>
         )}
