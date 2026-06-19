@@ -783,7 +783,7 @@ Use this matrix together with the numbered task. A lower-capability model should
 
 ### Milestone 2: BMN Alpha
 
-- [ ] 29. Verify mobile dashboard API contract
+- [x] 29. Verify mobile dashboard API contract
   - Target area: backend API documentation or route notes.
   - Confirm `GET /api/mobile/dashboard` returns lightweight summary data.
   - Acceptance check: endpoint does not return full asset or Surat Tugas lists.

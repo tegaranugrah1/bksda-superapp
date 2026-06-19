@@ -4765,6 +4765,17 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 28 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 29: Verify mobile dashboard API contract.
+- [x] Task 29: Verify mobile dashboard API contract (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 29 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Verified the `GET /api/mobile/dashboard` endpoint in the backend at [MobileDashboardController.php](file:///e:/bksda-superapp/backend/app/Http/Controllers/Api/MobileDashboardController.php) routes definition.
+- [x] Confirmed the controller returns brief profile data, consolidated counts (assigned assets, active loans, pending/active personal assignment letters, pending approvals), and urgent vehicle tax info (within 30 days) in one single request.
+- [x] Confirmed the endpoint does not return heavy, full lists of assets or Surat Tugas, matching the lightweight mobile contract.
+- [x] Checked off completed task 29 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 30: Add dashboard API hook.
 
 
