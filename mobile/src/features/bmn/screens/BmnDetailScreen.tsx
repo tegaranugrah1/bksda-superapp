@@ -21,7 +21,7 @@ import { normalizeError } from '@/lib/api/errors';
 
 export default function BmnDetailScreen() {
   const { colors, spacing, typography } = useAppTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<BmnStackParamList, 'BmnDetail'>>();
   const { id } = route.params;
 
@@ -33,11 +33,21 @@ export default function BmnDetailScreen() {
   };
 
   const handleUploadPhoto = () => {
-    Alert.alert('Ambil Foto', 'Fitur ambil foto aset akan segera hadir.');
+    Alert.alert(
+      'Pilih Bagian Foto',
+      'Silakan pilih bagian foto yang ingin diambil:',
+      [
+        { text: 'Tampak Depan', onPress: () => handleCapturePhoto('depan') },
+        { text: 'Tampak Belakang', onPress: () => handleCapturePhoto('belakang') },
+        { text: 'Tampak Kiri', onPress: () => handleCapturePhoto('kiri') },
+        { text: 'Tampak Kanan', onPress: () => handleCapturePhoto('kanan') },
+        { text: 'Batal', style: 'cancel' },
+      ]
+    );
   };
 
   const handleCapturePhoto = (type: 'depan' | 'belakang' | 'kiri' | 'kanan') => {
-    Alert.alert('Ambil Foto', `Fitur ambil foto ${type} akan segera hadir.`);
+    navigation.navigate('BmnPhotoCapture' as any, { assetId: id, type });
   };
 
   const handleDeletePhoto = (type: 'depan' | 'belakang' | 'kiri' | 'kanan') => {

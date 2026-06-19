@@ -1,3 +1,34 @@
+# Progress - Phase 99: Mobile BMN Photo Capture & Geotag Upload
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `issue/050-053-mobile-bmn-photo-capture`.
+
+---
+
+## Mobile BMN Photo Capture & Geotag Upload
+
+### Status: SELESAI
+- Scope: Mobile App (BMN Module)
+- Tujuan: Mengimplementasikan kamera internal untuk pengambilan foto fisik BMN, pendeteksian otomatis koordinat GPS (geotagging) saat pengambilan foto, serta pengiriman berkas multipart/form-data langsung ke backend API.
+
+### Implementasi
+- **Device Permission Helpers**:
+  - Membuat [devicePermissions.ts](file:///e:/bksda-superapp/mobile/src/lib/devicePermissions.ts) untuk mendeteksi dan meminta hak akses kamera (menggunakan `expo-camera`) dan lokasi GPS (menggunakan `expo-location`). Expose fungsi `getCurrentLocation()` untuk mengambil koordinat Latitude dan Longitude secara real-time.
+- **Photo Capture & Preview Screen**:
+  - Membuat [BmnPhotoCaptureScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnPhotoCaptureScreen.tsx) yang memuat `CameraView` internal dengan shutter button `TouchableOpacity` custom.
+  - Saat foto diambil, screen masuk ke mode preview, menampilkan foto visual, menyematkan koordinat GPS yang berhasil dideteksi, serta menyediakan input `location_note` tambahan sebelum diunggah.
+  - Mendaftarkan screen baru ke [BmnNavigator.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/navigation/BmnNavigator.tsx).
+- **Multipart API Upload Wiring**:
+  - Memprogram handler `handleUpload` di `BmnPhotoCaptureScreen.tsx` untuk mengemas berkas foto, tipe slot, data koordinat geotag (`latitude`, `longitude`), dan catatan lokasi ke dalam `FormData` dan mengirimkannya via `apiClient.post('/bmn/assets/{id}/photo')`.
+  - Menghubungkan tombol "Ambil Foto" di detail screen ([BmnDetailScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnDetailScreen.tsx)) ke layar kamera capture dengan type-safe parameter.
+
+### Validasi
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+- `npm test`: 192 unit tests passed (termasuk unit tests untuk `devicePermissions.test.ts` dan `BmnPhotoCaptureScreen.test.tsx`).
+
+---
+
 # Progress - Phase 98: Mobile BMN Photo Slots Component
 
 > Document updated: 2026-06-19
