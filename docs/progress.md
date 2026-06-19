@@ -1,3 +1,40 @@
+# Progress - Phase 110: Mobile Surat Tugas Form Schema
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-67`.
+> GitHub Issue: #458.
+
+---
+
+## Mobile Surat Tugas Form Schema
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan schema validasi form Surat Tugas mobile sebelum task form shell dan submit API.
+
+### Implementasi
+- **Schema**:
+  - Membuat [assignmentFormSchema.ts](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/assignmentFormSchema.ts) berbasis Zod.
+  - Memvalidasi field inti: maksud/tujuan, tanggal mulai/selesai, tempat tujuan, sumber dana, dan daftar pegawai.
+  - Menormalisasi input form seperti string kosong opsional menjadi `null` dan ID pegawai string menjadi number.
+  - Menambahkan validasi urutan tanggal agar tanggal selesai tidak lebih awal dari tanggal mulai.
+  - Menambahkan validasi conditional untuk `sumber_dana_other` saat sumber dana lainnya/other dan `transportasi` saat `transport_required` aktif.
+  - Semua pesan validasi dibuat dalam Bahasa Indonesia.
+- **Tests**:
+  - Menambahkan [assignmentFormSchema.test.ts](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/__tests__/assignmentFormSchema.test.ts) untuk payload valid, field wajib, panjang maksud/tujuan, urutan tanggal, sumber dana lainnya, transport conditional, dan pegawai tanpa ID.
+- **Checklist**:
+  - Mencentang Task 67 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/__tests__/assignmentFormSchema.test.ts`: 7 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 68: Build Surat Tugas form shell.
+
+---
+
 # Progress - Phase 109: Mobile Surat Tugas Detail Screen
 
 > Document updated: 2026-06-19

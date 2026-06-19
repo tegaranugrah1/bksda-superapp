@@ -1013,7 +1013,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: file action appears only if backend says file is available/allowed.
   - _Requirements: 11, 14, 19_
 
-- [ ] 67. Add Surat Tugas form schema
+- [x] 67. Add Surat Tugas form schema
   - Target area: `mobile/src/features/surat-tugas/assignmentFormSchema.ts`.
   - Validate core fields, dates, location, personel, and transport where required.
   - Acceptance check: validation messages are in Indonesian.
