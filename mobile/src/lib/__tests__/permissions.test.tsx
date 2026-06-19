@@ -60,6 +60,11 @@ describe('Permission Helpers', () => {
       expect(isSuperAdmin(normalUser)).toBe(false);
     });
 
+    it('does not grant admin access for similar but non-exact roles', () => {
+      expect(isSuperAdmin({ ...normalUser, role: 'super_admin' })).toBe(false);
+      expect(isSuperAdmin({ ...normalUser, role: 'admin' })).toBe(false);
+    });
+
     it('fails closed (returns false) if user is null or undefined', () => {
       expect(isSuperAdmin(null)).toBe(false);
       expect(isSuperAdmin(undefined as any)).toBe(false);
@@ -73,6 +78,10 @@ describe('Permission Helpers', () => {
 
     it('returns false if module is not in access_modules', () => {
       expect(hasModule(normalUser, 'bmn')).toBe(false);
+    });
+
+    it('fails closed when access_modules is an empty list for non-superadmin users', () => {
+      expect(hasModule({ ...normalUser, access_modules: [] }, 'kepegawaian')).toBe(false);
     });
 
     it('returns true for superadmin even if access_modules is empty', () => {
@@ -93,6 +102,10 @@ describe('Permission Helpers', () => {
 
     it('returns false if permission is not granted', () => {
       expect(can(normalUser, 'delete-assignments')).toBe(false);
+    });
+
+    it('fails closed when permissions is an empty list for non-superadmin users', () => {
+      expect(can({ ...normalUser, permissions: [] }, 'view-assignments')).toBe(false);
     });
 
     it('returns true for superadmin even if permissions list is empty', () => {
