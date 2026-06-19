@@ -1,3 +1,40 @@
+# Progress - Phase 118: Mobile Employee Selector Sheet
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-employee-selector-task-75`.
+> GitHub Issue: #474.
+
+---
+
+## Mobile Employee Selector Sheet
+
+### Status: SELESAI
+- Scope: Mobile App (Employees Feature)
+- Tujuan: Menyediakan bottom sheet selector pegawai reusable untuk form BMN dan Surat Tugas.
+
+### Implementasi
+- **Component**:
+  - Membuat [EmployeeSelectorSheet.tsx](file:///e:/bksda-superapp/mobile/src/features/employees/EmployeeSelectorSheet.tsx).
+  - Menampilkan nama pegawai, NIP, jabatan, dan unit kerja ringkas.
+  - Mendukung search nama/NIP dengan debounce 350ms lewat `useEmployeeSearch`.
+  - Menggunakan `FlatList` untuk data panjang, pull-to-refresh, dan fetch next page.
+  - Menampilkan loading, empty, dan error state.
+  - Mendukung selected state dan callback `onSelect(employee)` agar reusable untuk BMN dan Surat Tugas.
+- **Tests**:
+  - Menambahkan [EmployeeSelectorSheet.test.tsx](file:///e:/bksda-superapp/mobile/src/features/employees/__tests__/EmployeeSelectorSheet.test.tsx) untuk render summary pegawai, select/close callback, debounced search, pagination/refresh wiring, dan state loading/empty/error.
+- **Checklist**:
+  - Mencentang Task 75 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/employees/__tests__/EmployeeSelectorSheet.test.tsx`: 5 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 76: Build profile screen.
+
+---
+
 # Progress - Phase 117: Mobile Employee Selector Search Hook
 
 > Document updated: 2026-06-19

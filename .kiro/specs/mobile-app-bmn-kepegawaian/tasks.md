@@ -1061,7 +1061,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: hook does not fetch all employees at once.
   - _Requirements: 15, 18, 19_
 
-- [ ] 75. Build employee selector sheet
+- [x] 75. Build employee selector sheet
   - Target area: `mobile/src/features/employees/EmployeeSelectorSheet.tsx`.
   - Display name, NIP, jabatan, and unit kerja summary.
   - Acceptance check: selector can be reused by BMN loan and Surat Tugas forms.
