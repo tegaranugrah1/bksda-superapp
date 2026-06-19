@@ -4621,6 +4621,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 17 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 18: Add API configuration (`mobile/src/lib/api/config.ts`).
+- [ ] Task 18: Add API configuration (`mobile/src/lib/api/config.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 18 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 18: Created API configuration in [mobile/src/lib/api/config.ts](file:///e:/bksda-superapp/mobile/src/lib/api/config.ts) to load backend base URL and app environment settings from `process.env`.
+- [x] Implemented a developer-friendly error fallback that throws a descriptive layout error explaining how to configure `.env` if `EXPO_PUBLIC_API_URL` is missing.
+- [x] Created unit tests in [mobile/src/lib/api/__tests__/config.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/config.test.ts) to test env loading and throw behaviors (mocking the typescript linter's require rule on dynamic imports).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 18 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 19: Add secure token storage helper (`mobile/src/lib/auth/tokenStorage.ts`).
 
 

@@ -715,7 +715,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: destructive action cannot run without explicit confirm handler.
   - _Requirements: 13, 20_
 
-- [ ] 18. Add API config helper
+- [x] 18. Add API config helper
   - Target area: `mobile/src/lib/api/config.ts`.
   - Read API base URL from env.
   - Acceptance check: missing base URL produces developer-friendly error.
