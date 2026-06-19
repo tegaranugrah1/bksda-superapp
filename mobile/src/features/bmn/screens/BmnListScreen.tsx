@@ -10,7 +10,19 @@ import { AssetListItem } from '../types';
 export default function BmnListScreen() {
   const { colors, spacing, typography } = useAppTheme();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedKondisi] = useState<string | undefined>(undefined);
+
+  // Debounce search value
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
 
   // Hook query BMN list
   const {
@@ -20,7 +32,7 @@ export default function BmnListScreen() {
     fetchNextPage,
     isFetchingNextPage,
   } = useAssets({
-    search,
+    search: debouncedSearch,
     kondisi: selectedKondisi,
   });
 

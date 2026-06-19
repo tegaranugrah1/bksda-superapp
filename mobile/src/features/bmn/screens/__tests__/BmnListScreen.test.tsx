@@ -178,4 +178,52 @@ describe('BmnListScreen', () => {
       tree.unmount();
     });
   });
+
+  it('debounces search inputs before calling useAssets', () => {
+    (useAssets as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isRefreshing: false,
+      isFetchingNextPage: false,
+      error: undefined,
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnListScreen />);
+    });
+
+    const root = tree.root;
+    
+    // Clear calls before typing
+    (useAssets as jest.Mock).mockClear();
+
+    // Type a keyword
+    const searchInput = root.findByProps({ placeholder: 'Cari nama barang atau kode BMN...' });
+    act(() => {
+      searchInput.props.onChangeText('laptop');
+    });
+
+    // Check that useAssets hasn't been called with 'laptop' yet (should still be called with '')
+    const callsBefore = (useAssets as jest.Mock).mock.calls;
+    const lastCallBefore = callsBefore[callsBefore.length - 1];
+    expect(lastCallBefore[0].search).toBe('');
+
+    // Fast-forward time by 400ms
+    act(() => {
+      jest.advanceTimersByTime(400);
+    });
+
+    // Check that useAssets is now called with 'laptop'
+    const callsAfter = (useAssets as jest.Mock).mock.calls;
+    const lastCallAfter = callsAfter[callsAfter.length - 1];
+    expect(lastCallAfter[0].search).toBe('laptop');
+
+    act(() => {
+      tree.unmount();
+    });
+  });
 });
