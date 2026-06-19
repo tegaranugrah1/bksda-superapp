@@ -1,8 +1,9 @@
 import React from 'react';
-import { Alert, Text } from 'react-native';
+import { Alert, Text, TouchableOpacity } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import AssignmentDetailScreen from '../AssignmentDetailScreen';
 import { useAssignmentDetail } from '../../useAssignmentDetail';
+import { updateAssignmentStatus } from '../../assignmentActionsApi';
 
 const mockGoBack = jest.fn();
 let mockRouteParams: { id: string | number; mode?: 'personal' | 'management' } = {
@@ -72,6 +73,10 @@ jest.mock('../../useAssignmentDetail', () => ({
   useAssignmentDetail: jest.fn(),
 }));
 
+jest.mock('../../assignmentActionsApi', () => ({
+  updateAssignmentStatus: jest.fn(),
+}));
+
 describe('AssignmentDetailScreen', () => {
   const refetch = jest.fn();
   const assignment = {
@@ -109,6 +114,7 @@ describe('AssignmentDetailScreen', () => {
       isForbidden: false,
       isNotFound: false,
     });
+    (updateAssignmentStatus as jest.Mock).mockResolvedValue({ id: 'st-1', status: 'completed' });
   });
 
   it('renders detail sections and gated file action when file is allowed', () => {
@@ -222,6 +228,102 @@ describe('AssignmentDetailScreen', () => {
       'Unduh Surat Tugas',
       'Fitur unduh berkas akan disiapkan pada task file download berikutnya.'
     );
+
+    alertSpy.mockRestore();
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('updates status and refreshes detail after confirmed action', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    (useAssignmentDetail as jest.Mock).mockReturnValue({
+      data: {
+        ...assignment,
+        status: 'pending',
+        allowed_actions: {
+          can_view: true,
+          can_download: true,
+          can_approve: true,
+        },
+      },
+      isLoading: false,
+      error: undefined,
+      refetch,
+      isForbidden: false,
+      isNotFound: false,
+    });
+
+    let tree: renderer.ReactTestRenderer;
+    await act(async () => {
+      tree = renderer.create(<AssignmentDetailScreen />);
+    });
+
+    const approveButton = tree!.root.findByProps({ accessibilityLabel: 'Setujui Surat Tugas' });
+    await act(async () => {
+      approveButton.props.onPress();
+    });
+
+    const confirmTouchable = tree!.root.findAllByType(TouchableOpacity).find((node) =>
+      node.findAllByType(Text).some((textNode) => textNode.props.children === 'Ya, Setujui')
+    );
+    await act(async () => {
+      confirmTouchable?.props.onPress();
+    });
+
+    expect(updateAssignmentStatus).toHaveBeenCalledWith('st-1', { status: 'approved' });
+    expect(alertSpy).toHaveBeenCalledWith('Aksi Surat Tugas', 'Status Surat Tugas berhasil diperbarui.');
+    expect(refetch).toHaveBeenCalledTimes(1);
+
+    alertSpy.mockRestore();
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('shows a user-friendly message when status transition fails', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    (updateAssignmentStatus as jest.Mock).mockRejectedValue({
+      kind: 'validation',
+      message: 'Status Surat Tugas tidak valid.',
+      status: 422,
+    });
+    (useAssignmentDetail as jest.Mock).mockReturnValue({
+      data: {
+        ...assignment,
+        status: 'pending',
+        allowed_actions: {
+          can_view: true,
+          can_download: true,
+          can_approve: true,
+        },
+      },
+      isLoading: false,
+      error: undefined,
+      refetch,
+      isForbidden: false,
+      isNotFound: false,
+    });
+
+    let tree: renderer.ReactTestRenderer;
+    await act(async () => {
+      tree = renderer.create(<AssignmentDetailScreen />);
+    });
+
+    const approveButton = tree!.root.findByProps({ accessibilityLabel: 'Setujui Surat Tugas' });
+    await act(async () => {
+      approveButton.props.onPress();
+    });
+
+    const confirmTouchable = tree!.root.findAllByType(TouchableOpacity).find((node) =>
+      node.findAllByType(Text).some((textNode) => textNode.props.children === 'Ya, Setujui')
+    );
+    await act(async () => {
+      confirmTouchable?.props.onPress();
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith('Gagal Memproses Aksi', 'Status Surat Tugas tidak valid.');
+    expect(refetch).not.toHaveBeenCalled();
 
     alertSpy.mockRestore();
     act(() => {

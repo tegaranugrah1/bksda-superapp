@@ -1037,7 +1037,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: each action requires confirmation.
   - _Requirements: 13, 19, 20_
 
-- [ ] 71. Wire approval/status API
+- [x] 71. Wire approval/status API
   - Target area: Surat Tugas action API helper.
   - Call backend status endpoints and handle invalid transition errors.
   - Acceptance check: success refreshes list and detail.

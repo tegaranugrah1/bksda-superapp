@@ -1,3 +1,41 @@
+# Progress - Phase 114: Mobile Surat Tugas Status Action API
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-71`.
+> GitHub Issue: #466.
+
+---
+
+## Mobile Surat Tugas Status Action API
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menghubungkan aksi status Surat Tugas mobile ke endpoint backend dan refresh detail setelah berhasil.
+
+### Implementasi
+- **API Helper**:
+  - Membuat `assignmentActionsApi.ts` untuk `PUT /surat-tugas/{id}/status`.
+  - Mendukung payload `status` dan optional `nomor_surat` sesuai backend.
+- **Detail Wiring**:
+  - Mengubah `AssignmentDetailScreen` agar `AssignmentActions` memanggil API status.
+  - Sukses menampilkan pesan berhasil dan memanggil `refetch()` detail.
+  - Error validasi/transisi status ditampilkan sebagai pesan user-friendly tanpa stack trace.
+- **Tests**:
+  - Menambahkan test helper endpoint status.
+  - Memperbarui test detail untuk success refresh dan error transition.
+- **Checklist**:
+  - Mencentang Task 71 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/__tests__/assignmentActionsApi.test.ts src/features/surat-tugas/screens/__tests__/AssignmentDetailScreen.test.tsx`: 9 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 72: Add authenticated file download helper.
+
+---
+
 # Progress - Phase 113: Mobile Surat Tugas Approval Action Component
 
 > Document updated: 2026-06-19
