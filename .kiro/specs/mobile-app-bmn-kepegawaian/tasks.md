@@ -751,7 +751,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: helper does not override explicit page values.
   - _Requirements: 18_
 
-- [ ] 24. Add auth service
+- [x] 24. Add auth service
   - Target area: `mobile/src/features/auth/authApi.ts`.
   - Implement login, logout, and me API calls.
   - Acceptance check: login calls `POST /api/login`; me calls `GET /api/me`.

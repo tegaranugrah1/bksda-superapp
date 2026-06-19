@@ -4698,6 +4698,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 23 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 24: Add auth service (`mobile/src/features/auth/authApi.ts`).
+- [ ] Task 24: Add auth service (`mobile/src/features/auth/authApi.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 24 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Defined TypeScript interfaces for `Employee`, `User`, `LoginCredentials`, and `LoginResponse` inside [mobile/src/types/auth.ts](file:///e:/bksda-superapp/mobile/src/types/auth.ts) to match the backend Laravel Sanctum and UserResource formats.
+- [x] Adjusted API response normalizer [mobile/src/lib/api/normalize.ts](file:///e:/bksda-superapp/mobile/src/lib/api/normalize.ts) to preserve other custom top-level keys like `token` by spreading unhandled response fields.
+- [x] Created auth API service in [mobile/src/features/auth/authApi.ts](file:///e:/bksda-superapp/mobile/src/features/auth/authApi.ts) with `login` (calling `POST /api/login`), `getMe` (calling `GET /api/me`), and `logout` (calling `POST /api/logout`).
+- [x] Wrote unit tests in [mobile/src/features/auth/__tests__/authApi.test.ts](file:///e:/bksda-superapp/mobile/src/features/auth/__tests__/authApi.test.ts) to verify the correct endpoints and HTTP methods are requested.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 24 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 25: Add auth context (`mobile/src/features/auth/AuthProvider.tsx`).
 
 
