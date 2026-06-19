@@ -959,7 +959,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: endpoint can return page 1 with mobile-friendly fields.
   - _Requirements: 11, 18_
 
-- [ ] 58. Verify Surat Tugas detail API
+- [x] 58. Verify Surat Tugas detail API
   - Target area: backend Surat Tugas detail endpoint.
   - Confirm response includes personel, status, dates, file state, and allowed actions where possible.
   - Acceptance check: forbidden user receives 403, not hidden data.
