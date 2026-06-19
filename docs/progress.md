@@ -1,3 +1,37 @@
+# Progress - Phase 101: Mobile Surat Tugas Detail API Contract
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-58`.
+> GitHub Issue: #440.
+
+---
+
+## Mobile Surat Tugas Detail API Contract
+
+### Status: SELESAI
+- Scope: Backend Mobile API (Surat Tugas Module)
+- Tujuan: Memverifikasi dan memperkuat endpoint detail Surat Tugas agar siap dipakai mobile app untuk mode personal dan manajemen, termasuk personel, status, tanggal, file state, allowed actions, dan perilaku forbidden yang eksplisit.
+
+### Implementasi
+- **Management Detail Endpoint**:
+  - Memperkuat `GET /api/surat-tugas/{id}?mobile=true` di [AssignmentLetterController.php](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php) agar request mobile mengembalikan payload detail terstruktur: identitas surat, kegiatan, dasar hukum, tujuan, tanggal, status, personel, status file, download URL, dan `allowed_actions`.
+- **Personal Detail Endpoint**:
+  - Memperkuat `GET /api/surat-tugas/my/{id}` agar user pegawai hanya dapat membuka surat yang memang melibatkan pegawai tersebut dan sudah berstatus `approved`/`completed`.
+  - Mengubah akses personal terhadap surat yang ada tetapi bukan hak user menjadi HTTP 403 dengan pesan aman, bukan menyembunyikan data sebagai 404.
+- **Verification Tests**:
+  - Memperluas [SuratTugasMobileListApiTest.php](file:///e:/bksda-superapp/backend/tests/Feature/SuratTugasMobileListApiTest.php) untuk membuktikan response detail manajemen, detail personal, dan forbidden personal access.
+- **Checklist**:
+  - Mencentang Task 58 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `php -l backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php`: sukses tanpa syntax error.
+- `php artisan test --filter=SuratTugasMobileListApiTest`: 5 tests passed, 40 assertions.
+
+### Next Steps
+- [ ] Task 59: Add Surat Tugas types.
+
+---
+
 # Progress - Phase 100: Mobile Surat Tugas List API Contract
 
 > Document updated: 2026-06-19

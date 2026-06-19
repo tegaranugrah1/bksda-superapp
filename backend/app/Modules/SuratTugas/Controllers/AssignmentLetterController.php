@@ -56,14 +56,23 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Data pegawai tidak ditemukan'], 404);
         }
 
-        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees'])
-            ->whereHas('employees', function ($q) use ($employee) {
-                $q->where('kpg_employees.id', $employee->id);
-            })
-            ->where('status', 'approved')
+        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
             ->findOrFail($id);
 
-        return response()->json(['data' => $surat]);
+        $isAssignedEmployee = $surat->employees->contains(fn ($item) => (int) $item->id === (int) $employee->id);
+        $isPublished = in_array($surat->status, ['approved', 'completed'], true);
+
+        if (! $isAssignedEmployee || ! $isPublished) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke Surat Tugas ini.',
+            ], 403);
+        }
+
+        return response()->json([
+            'data' => $this->isMobileRequest($request)
+                ? $this->toMobileDetailItem($surat, personal: true)
+                : $surat,
+        ]);
     }
 
     public function myDownload(Request $request, string $id)
@@ -163,6 +172,52 @@ class AssignmentLetterController extends Controller
                 'can_download' => $personal && (bool) $letter->file_surat_path,
             ],
         ];
+    }
+
+    private function toMobileDetailItem(AssignmentLetter $letter, bool $personal = false): array
+    {
+        $downloadUrl = $personal
+            ? "/api/surat-tugas/my/{$letter->id}/download"
+            : "/api/surat-tugas/{$letter->id}/download";
+
+        return [
+            'id' => $letter->id,
+            'nomor' => $letter->nomor_surat,
+            'kode_surat' => $letter->kode_surat,
+            'kegiatan' => $letter->maksud_tujuan,
+            'dasar_hukum' => $letter->dasar_hukum,
+            'tujuan' => $letter->tempat_tujuan,
+            'tanggal_mulai' => $letter->tanggal_mulai?->toDateString(),
+            'tanggal_selesai' => $letter->tanggal_selesai?->toDateString(),
+            'tanggal_surat' => $letter->tanggal_surat?->toDateString(),
+            'status' => $letter->status,
+            'sumber_dana' => $letter->sumber_dana,
+            'template_type' => $letter->template_type,
+            'personel' => $letter->employees->map(fn ($employee) => [
+                'id' => $employee->id,
+                'name' => $employee->nama_lengkap,
+                'nip' => $employee->nip,
+                'jabatan' => $employee->jabatan,
+                'unit_kerja' => $employee->satuan_kerja,
+                'peran' => $employee->pivot?->peran,
+            ])->values(),
+            'file' => [
+                'available' => (bool) $letter->file_surat_path,
+                'download_url' => $letter->file_surat_path ? $downloadUrl : null,
+            ],
+            'allowed_actions' => [
+                'can_view' => true,
+                'can_download' => (bool) $letter->file_surat_path,
+                'can_update' => ! $personal,
+                'can_approve' => ! $personal && $letter->status === 'pending',
+                'can_delete' => ! $personal,
+            ],
+        ];
+    }
+
+    private function isMobileRequest(Request $request): bool
+    {
+        return $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
     }
 
     private function paginationMeta($paginator): array
@@ -268,11 +323,15 @@ class AssignmentLetterController extends Controller
         }
     }
 
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees'])->findOrFail($id);
+        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])->findOrFail($id);
 
-        return response()->json(['data' => $surat]);
+        return response()->json([
+            'data' => $this->isMobileRequest($request)
+                ? $this->toMobileDetailItem($surat)
+                : $surat,
+        ]);
     }
 
     public function update(AssignmentLetterRequest $request, string $id)
