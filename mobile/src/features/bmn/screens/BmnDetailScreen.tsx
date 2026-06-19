@@ -32,7 +32,7 @@ export default function BmnDetailScreen() {
   const [isReturning, setIsReturning] = React.useState(false);
 
   const handleEdit = () => {
-    Alert.alert('Ubah Data', 'Fitur ubah data aset akan segera hadir.');
+    navigation.navigate('BmnForm', { id });
   };
 
   const handleUploadPhoto = () => {

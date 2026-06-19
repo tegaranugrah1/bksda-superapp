@@ -451,4 +451,35 @@ describe('BmnDetailScreen', () => {
       tree.unmount();
     });
   });
+
+  it('navigates to edit form when clicking edit button', () => {
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: {
+        ...mockAsset,
+        allowed_actions: { can_edit: true },
+      },
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnDetailScreen />);
+    });
+
+    const root = tree.root;
+    const editBtn = root.findByProps({ accessibilityLabel: 'Ubah Data Aset BMN' });
+    expect(editBtn).toBeTruthy();
+
+    act(() => {
+      editBtn.props.onPress();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('BmnForm', { id: '123' });
+
+    act(() => {
+      tree.unmount();
+    });
+  });
 });

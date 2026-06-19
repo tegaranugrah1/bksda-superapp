@@ -6,6 +6,8 @@ import { AppButton } from '@/components/AppButton';
 import { ErrorState } from '@/components/ErrorState';
 import { IconButton } from '@/components/IconButton';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { downloadAssignmentFile } from '@/lib/files/download';
+import { openFile } from '@/lib/files/share';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { ApiError } from '@/types/api';
 import { updateAssignmentStatus } from '../assignmentActionsApi';
@@ -27,9 +29,35 @@ export default function AssignmentDetailScreen() {
   const route = useRoute<RouteProp<SuratTugasStackParamList, 'AssignmentDetail'>>();
   const { id, mode = 'personal' } = route.params;
   const { data, isLoading, error, refetch, isForbidden, isNotFound } = useAssignmentDetail(id, mode);
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
-  const handleDownload = () => {
-    Alert.alert('Unduh Surat Tugas', 'Fitur unduh berkas akan disiapkan pada task file download berikutnya.');
+  const handleDownload = async () => {
+    if (!data) {
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const downloadedFile = await downloadAssignmentFile({
+        assignmentId: id,
+        mode,
+        filename: data.file.filename,
+        storage: 'cache',
+      });
+
+      await openFile({
+        localUri: downloadedFile.localUri,
+        mimeType: downloadedFile.mimeType || data.file.mime_type,
+        dialogTitle: 'Buka Surat Tugas',
+      });
+    } catch (downloadError: any) {
+      Alert.alert(
+        'Gagal Mengunduh',
+        downloadError?.message || 'Gagal mengunduh berkas Surat Tugas.'
+      );
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleStatusAction = async (status: AssignmentActionType) => {
@@ -150,8 +178,9 @@ export default function AssignmentDetailScreen() {
         {canDownload ? (
           <View style={{ marginTop: spacing.sm }}>
             <AppButton
-              title="Unduh Berkas"
+              title={isDownloading ? 'Mengunduh...' : 'Unduh Berkas'}
               onPress={handleDownload}
+              loading={isDownloading}
               accessibilityLabel="Unduh berkas Surat Tugas"
             />
           </View>

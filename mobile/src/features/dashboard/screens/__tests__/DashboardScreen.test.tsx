@@ -2,7 +2,6 @@
 /* eslint-disable react/display-name */
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
-import { Alert } from 'react-native';
 import DashboardScreen from '../DashboardScreen';
 import { useMobileDashboard } from '../../useMobileDashboard';
 import { usePermissions } from '@/lib/permissions';
@@ -298,9 +297,7 @@ describe('DashboardScreen', () => {
     });
   });
 
-  it('triggers Alert calls when non-implemented quick actions are pressed', () => {
-    jest.spyOn(Alert, 'alert');
-
+  it('navigates to concrete screens when workflow quick actions are pressed', () => {
     (useMobileDashboard as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -316,32 +313,18 @@ describe('DashboardScreen', () => {
     const root = tree.root;
     const quickActions = root.findByType('QuickActionsMock');
 
-    // Press 'Scan Barcode'
-    act(() => {
-      quickActions.props.onScanPress();
-    });
-    expect(Alert.alert).toHaveBeenCalledWith(
-      'Scan Barcode',
-      'Fitur scan barcode BMN akan segera hadir.'
-    );
-
-    // Press 'Pinjam Aset'
     act(() => {
       quickActions.props.onLoanPress();
     });
-    expect(Alert.alert).toHaveBeenCalledWith(
-      'Pinjam Aset',
-      'Fitur pengajuan peminjaman aset akan segera hadir.'
-    );
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Bmn', { screen: 'BmnList' });
 
-    // Press 'Persetujuan ST'
     act(() => {
       quickActions.props.onApproveSuratTugasPress();
     });
-    expect(Alert.alert).toHaveBeenCalledWith(
-      'Persetujuan Surat Tugas',
-      'Fitur persetujuan surat tugas akan segera hadir.'
-    );
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('SuratTugas', {
+      screen: 'SuratTugasList',
+      params: { initialMode: 'management', initialStatus: 'pending' },
+    });
 
     act(() => {
       tree.unmount();
