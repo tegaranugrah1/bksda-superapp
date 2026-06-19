@@ -4503,6 +4503,20 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 8 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 9: Add IconButton component (`mobile/src/components/IconButton.tsx`).
+- [ ] Task 9: Add IconButton component (`mobile/src/components/IconButton.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 9 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 9: Created `IconButton` component in [mobile/src/components/IconButton.tsx](file:///e:/bksda-superapp/mobile/src/components/IconButton.tsx).
+- [x] Enforced mandatory `accessibilityLabel` property in TypeScript (ensuring type safety as requested by the acceptance check).
+- [x] Configured support for variants (`plain`, `soft`, `danger`) and disabled state, ensuring a minimum touch target area of 48x48dp.
+- [x] Destructured and used `isDark` directly from `useAppTheme` in style definitions.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/IconButton.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/IconButton.test.tsx).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 9 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 10: Add AppTextInput component (`mobile/src/components/AppTextInput.tsx`).
 
 

@@ -661,7 +661,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: minimum touch target is 48dp on Android.
   - _Requirements: 20_
 
-- [ ] 9. Add IconButton component
+- [x] 9. Add IconButton component
   - Target area: `mobile/src/components/IconButton.tsx`.
   - Require `accessibilityLabel`.
   - Acceptance check: component cannot be used without a label in TypeScript.
