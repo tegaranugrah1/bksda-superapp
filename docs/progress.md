@@ -4973,7 +4973,17 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Handled loading, general error, and custom forbidden / not found error states with retry callback.
 - [x] Developed comprehensive unit tests in `BmnDetailScreen.test.tsx` achieving 100% test coverage for all rendering paths and handlers.
 
+- [x] Task 45: Add asset action bar (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 45 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Created BMN asset action bar `AssetActionBar.tsx` displaying action buttons (Verifikasi Aset, Pinjam Aset, Kembalikan Aset, Ambil Foto, Ubah Data) dynamically based on `allowed_actions` permissions.
+- [x] Integrated `AssetActionBar` at the bottom of the ScrollView in `BmnDetailScreen.tsx`.
+- [x] Wired event handlers with descriptive alerts as placeholders for future screens/endpoints.
+- [x] Developed comprehensive unit tests in `AssetActionBar.test.tsx` verifying conditional rendering, button triggers, and loading/disabled states.
+
 ### Next Steps
-- [ ] Task 45: Add asset action bar.
+- [ ] Task 46: Add BMN asset form schema.
 
 
