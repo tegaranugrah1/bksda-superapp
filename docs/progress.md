@@ -4898,6 +4898,17 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 38 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 39: Add BMN debounced search.
+- [x] Task 39: Add BMN debounced search (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 39 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Implemented a 400ms search debounce logic using `React.useEffect` timer inside `BmnListScreen` in [mobile/src/features/bmn/screens/BmnListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnListScreen.tsx).
+- [x] Prevented redundant/immediate API requests from being fired on every character typed by passing the `debouncedSearch` state to the `useAssets` hook.
+- [x] Wrote unit tests in [mobile/src/features/bmn/screens/__tests__/BmnListScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/__tests__/BmnListScreen.test.tsx) with Jest fake timers, asserting that `useAssets` receives the updated search term only after the 400ms debounce window expires.
+- [x] Checked off completed task 39 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 40: Add BMN filter sheet.
 
 

@@ -843,7 +843,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: next page loads without refetching all previous data.
   - _Requirements: 5, 18_
 
-- [ ] 39. Add BMN debounced search
+- [x] 39. Add BMN debounced search
   - Target area: asset list screen.
   - Debounce search 300-500ms.
   - Acceptance check: typing three letters does not send three immediate API calls.
