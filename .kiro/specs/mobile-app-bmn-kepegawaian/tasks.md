@@ -691,7 +691,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: no nested decorative card style is introduced.
   - _Requirements: 20_
 
-- [ ] 14. Add EmptyState component
+- [x] 14. Add EmptyState component
   - Target area: `mobile/src/components/EmptyState.tsx`.
   - Include title, message, optional action.
   - Acceptance check: can be reused for empty BMN and Surat Tugas lists.

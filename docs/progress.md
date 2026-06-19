@@ -4570,6 +4570,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 13 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 14: Add EmptyState component (`mobile/src/components/EmptyState.tsx`).
+- [ ] Task 14: Add EmptyState component (`mobile/src/components/EmptyState.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 14 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 14: Created `EmptyState` component in [mobile/src/components/EmptyState.tsx](file:///e:/bksda-superapp/mobile/src/components/EmptyState.tsx) for lists placeholder layout.
+- [x] Mapped layout properties including `title`, optional `message`, and optional `action` slot.
+- [x] Confirmed the component is general and reusable, not feature-specific.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/EmptyState.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/EmptyState.test.tsx).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 14 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 15: Add ErrorState component (`mobile/src/components/ErrorState.tsx`).
 
 
