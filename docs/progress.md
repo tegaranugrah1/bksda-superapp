@@ -1,3 +1,33 @@
+# Progress - Phase 102: Mobile Surat Tugas TypeScript Types
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-59`.
+> GitHub Issue: #442.
+
+---
+
+## Mobile Surat Tugas TypeScript Types
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan kontrak TypeScript untuk list item, detail, personel, status, file state, allowed actions, filter, dan mode list Surat Tugas agar hook dan komponen berikutnya tidak memakai `any`.
+
+### Implementasi
+- **Types**:
+  - Membuat [types.ts](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/types.ts) berisi `AssignmentListItem`, `AssignmentDetail`, `AssignmentPersonel`, `AssignmentFileState`, `AssignmentAllowedActions`, `AssignmentQueryFilters`, `AssignmentListMode`, dan payload aksi status.
+  - Menyesuaikan tipe dengan kontrak backend mobile yang sudah diperkuat pada Task 57-58 (`nomor`, `kegiatan`, `tujuan`, tanggal, status, personel, file state, dan `allowed_actions`).
+- **Checklist**:
+  - Mencentang Task 59 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 60: Add Surat Tugas list API hook.
+
+---
+
 # Progress - Phase 101: Mobile Surat Tugas Detail API Contract
 
 > Document updated: 2026-06-19
