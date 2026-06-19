@@ -4832,6 +4832,16 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 33 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 34: Add BMN asset types.
+- [x] Task 34: Add BMN asset types (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 34 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Defined TypeScript structures for BMN asset items, asset details, photo upload slots, and query parameters filters (`AssetListItem`, `AssetDetail`, `AssetPhotoSlot`, `BmnQueryFilters`) in [mobile/src/features/bmn/types.ts](file:///e:/bksda-superapp/mobile/src/features/bmn/types.ts).
+- [x] Ensured compile safety for subsequent BMN lists and cards by excluding any `any` representations from the core models.
+- [x] Checked off completed task 34 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 35: Add BMN asset list API hook.
 
 

@@ -813,7 +813,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: response includes lightweight card fields and pagination meta.
   - _Requirements: 5, 18_
 
-- [ ] 34. Add BMN asset types
+- [x] 34. Add BMN asset types
   - Target area: `mobile/src/features/bmn/types.ts`.
   - Define asset list item, asset detail, photo slot, and pagination meta types.
   - Acceptance check: no `any` is needed for asset card props.
