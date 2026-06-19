@@ -1,7 +1,7 @@
 # Progress - Phase 129: Mobile Regular Employee Path Validation
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-validate-employee-task-86`.
+> Status: Selesai di main (PR #497).
 > GitHub Issue: #496.
 
 ---
