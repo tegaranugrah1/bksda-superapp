@@ -1,3 +1,37 @@
+# Progress - Phase 133: Mobile App MVP Milestone Completion
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-final-progress-task-90`.
+> GitHub Issue: #504.
+
+---
+
+## Mobile App MVP Milestone Completion
+
+### Status: SELESAI
+- Scope: Mobile App (Overall Progress Completion)
+- Tujuan: Mencatat penyelesaian seluruh rangkaian Milestone (1 s.d. 5) untuk aplikasi mobile BKSDA SuperApp MVP (Android & iOS setup) serta merekomendasikan fase pengembangan selanjutnya.
+
+### Rangkuman Pekerjaan yang Diselesaikan
+1. **Milestone 1 (Foundation Alpha)**: Setup Expo, design tokens, API client, SecureStore Auth, dan sistem navigasi berbasis izin.
+2. **Milestone 2 (BMN Alpha)**: Pencarian & filter aset, detail aset (termasuk data kendaraan), form input/edit aset, fitur foto fisik & geotagging koordinat GPS, serta form peminjaman/pengembalian.
+3. **Milestone 3 (Surat Tugas Alpha)**: Manajemen daftar ST (personal & manajemen), approval flow, pengunduhan berkas PDF aman ke perangkat lokal, dan picker pegawai.
+4. **Milestone 4 (Android Internal Beta)**: Penambahan profil, konfirmasi logout, banner status jaringan offline, foreground refresh, serta unit test lengkap untuk API client dan permission helpers.
+5. **Milestone 5 (Android Internal Release)**: Konfigurasi metadata aplikasi (`app.json`), pembuatan konfigurasi kompilasi EAS (`eas.json` untuk APK), serta dokumentasi catatan rilis lengkap (`release-notes.md`).
+
+### Hasil Validasi Akhir
+- **Unit Test**: Lulus **100%** (305 passed).
+- **TypeScript**: Sukses tanpa error (`npm run typecheck`).
+- **Linter**: Sukses bersih tanpa warning (`npm run lint`).
+
+### Langkah Selanjutnya yang Direkomendasikan
+1. **Pengujian Internal**: Melakukan build APK preview (`eas build --platform android --profile preview`) dan membagikannya ke tim BKSDA Kaltim untuk pengujian kegunaan (usability testing).
+2. **Fase Web Berikutnya**: Melanjutkan ke modul web **Phase 7: DeReporting Module (Issue #077 s.d. #090)** yang saat ini masih berstatus spesifikasi/draf.
+- **Checklist**:
+  - Mencentang Task 90 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+---
+
 # Progress - Phase 132: Mobile App MVP Release Notes Documentation
 
 > Document updated: 2026-06-19

@@ -1155,7 +1155,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: notes mention online-only MVP and no BMN document generator.
   - _Requirements: all MVP requirements_
 
-- [ ] 90. Update progress after release preparation
+- [x] 90. Update progress after release preparation
   - Target area: `docs/progress.md`.
   - Record completed mobile planning/build progress and next recommended milestone.
   - Acceptance check: progress entry includes date, completed work, verification, and next steps.
