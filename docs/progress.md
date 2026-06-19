@@ -1,7 +1,7 @@
 # Progress - Phase 130: Mobile Android App Metadata Configuration
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-configure-metadata-task-87`.
+> Status: Selesai di main (PR #499).
 > GitHub Issue: #498.
 
 ---
