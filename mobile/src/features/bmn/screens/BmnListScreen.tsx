@@ -7,11 +7,14 @@ import { SearchInput } from '@/components/SearchInput';
 import { IconButton } from '@/components/IconButton';
 import { AssetListItem } from '../types';
 
+import AssetFilterSheet, { FilterState } from '../components/AssetFilterSheet';
+
 export default function BmnListScreen() {
   const { colors, spacing, typography } = useAppTheme();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedKondisi] = useState<string | undefined>(undefined);
+  const [filters, setFilters] = useState<FilterState>({});
+  const [filterVisible, setFilterVisible] = useState(false);
 
   // Debounce search value
   React.useEffect(() => {
@@ -33,7 +36,9 @@ export default function BmnListScreen() {
     isFetchingNextPage,
   } = useAssets({
     search: debouncedSearch,
-    kondisi: selectedKondisi,
+    kondisi: filters.kondisi,
+    jenis_bmn: filters.jenis_bmn,
+    lokasi_ruang: filters.lokasi_ruang,
   });
 
   const handleSearchChange = (text: string) => {
@@ -41,7 +46,11 @@ export default function BmnListScreen() {
   };
 
   const handleFilterPress = () => {
-    // Placeholder callback for filter sheet (Task 40)
+    setFilterVisible(true);
+  };
+
+  const handleApplyFilters = (newFilters: FilterState) => {
+    setFilters(newFilters);
   };
 
   const handleAssetPress = (asset: AssetListItem) => {
@@ -134,6 +143,14 @@ export default function BmnListScreen() {
           ListFooterComponent={renderFooter}
         />
       </View>
+
+      <AssetFilterSheet
+        key={filterVisible ? 'visible' : 'hidden'}
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        filters={filters}
+        onApply={handleApplyFilters}
+      />
     </SafeAreaView>
   );
 }
