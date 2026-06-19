@@ -789,7 +789,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: endpoint does not return full asset or Surat Tugas lists.
   - _Requirements: 3, 18_
 
-- [ ] 30. Add dashboard API hook
+- [x] 30. Add dashboard API hook
   - Target area: `mobile/src/features/dashboard/useMobileDashboard.ts`.
   - Fetch `GET /api/mobile/dashboard`.
   - Acceptance check: hook exposes loading, data, error, and refetch.

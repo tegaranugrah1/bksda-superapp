@@ -4776,6 +4776,20 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 29 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 30: Add dashboard API hook.
+- [x] Task 30: Add dashboard API hook (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 30 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Defined TypeScript structures for mobile dashboard consolidated data (`BriefProfile`, `DashboardSummary`, `UrgentTaxVehicle`, `DashboardData`) in [mobile/src/features/dashboard/types.ts](file:///e:/bksda-superapp/mobile/src/features/dashboard/types.ts).
+- [x] Implemented `useMobileDashboard` custom React hook in [mobile/src/features/dashboard/useMobileDashboard.ts](file:///e:/bksda-superapp/mobile/src/features/dashboard/useMobileDashboard.ts) querying the backend `GET /api/mobile/dashboard` using `apiClient`.
+- [x] Handled initial loading state correctly, returning loading status, dashboard data, API error, and manual `refetch` function.
+- [x] Handled potential ESLint static analysis warnings by conditionally applying `setIsLoading(true)` on manual refetches only, and suppressed warning in initial hook-mount effect.
+- [x] Wrote comprehensive unit tests in [mobile/src/features/dashboard/__tests__/useMobileDashboard.test.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/__tests__/useMobileDashboard.test.tsx) asserting the loading state lifecycle (deferring resolution to verify loading === true), data updates on success, error maps on failure, and manual refetch operations.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 30 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 31: Add dashboard summary components.
 
 
