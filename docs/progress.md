@@ -1,3 +1,40 @@
+# Progress - Phase 116: Mobile File Viewer and Share Helper
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-73`.
+> GitHub Issue: #470.
+
+---
+
+## Mobile File Viewer and Share Helper
+
+### Status: SELESAI
+- Scope: Mobile App (File Helpers / Surat Tugas Module)
+- Tujuan: Menyediakan helper untuk membuka file lokal dengan viewer perangkat atau membagikannya melalui share sheet.
+
+### Implementasi
+- **Dependency**:
+  - Menambahkan `expo-sharing` agar aplikasi dapat membuka native share sheet.
+- **Share/View Helper**:
+  - Membuat [share.ts](file:///e:/bksda-superapp/mobile/src/lib/files/share.ts).
+  - `shareFile` memvalidasi file lokal sebelum membuka share sheet.
+  - `openFile` mencoba membuka file dengan viewer perangkat melalui `Linking.openURL`, lalu fallback ke share sheet.
+  - Missing file, share unavailable, dan open unavailable dikembalikan sebagai error user-friendly.
+- **Tests**:
+  - Menambahkan [share.test.ts](file:///e:/bksda-superapp/mobile/src/lib/files/__tests__/share.test.ts) untuk share success, missing file, unavailable share sheet, viewer open, fallback share, dan unavailable viewer/share.
+- **Checklist**:
+  - Mencentang Task 73 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/lib/files/__tests__/share.test.ts`: 6 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 74: Build employee selector API hook.
+
+---
+
 # Progress - Phase 115: Mobile Authenticated File Download Helper
 
 > Document updated: 2026-06-19

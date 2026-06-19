@@ -1049,7 +1049,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: helper does not expose unauthenticated file URLs.
   - _Requirements: 14, 19_
 
-- [ ] 73. Add file viewer/share helper
+- [x] 73. Add file viewer/share helper
   - Target area: `mobile/src/lib/files/share.ts`.
   - Open file with viewer or share sheet.
   - Acceptance check: missing file shows user-friendly error.
