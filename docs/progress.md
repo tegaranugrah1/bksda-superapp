@@ -4657,6 +4657,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 20 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 21: Add API error normalizer (`mobile/src/lib/api/errors.ts`).
+- [ ] Task 21: Add API error normalizer (`mobile/src/lib/api/errors.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 21 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Created API error normalizer in [mobile/src/lib/api/errors.ts](file:///e:/bksda-superapp/mobile/src/lib/api/errors.ts) that handles and categorizes HTTP response codes (401, 403, 404, 422, 429), server internal issues (500+), and generic or connection-level network errors.
+- [x] Implemented error message sanitization to safeguard the application from exposing raw SQL, HTML, or PHP stack traces to end-users.
+- [x] Configured the 422 Unprocessable Entity parser to extract field-level verification errors and map them to `fieldErrors` for integration with input forms.
+- [x] Wrote comprehensive unit tests in [mobile/src/lib/api/__tests__/errors.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/errors.test.ts) covering each HTTP code, request timeouts/network issues, generic Errors, and trace shielding.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 21 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 22: Add central API client (`mobile/src/lib/api/client.ts`).
 
 

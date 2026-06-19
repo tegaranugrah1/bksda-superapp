@@ -733,7 +733,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: legacy top-level payload can still be handled.
   - _Requirements: 17_
 
-- [ ] 21. Add API error normalizer
+- [x] 21. Add API error normalizer
   - Target area: `mobile/src/lib/api/errors.ts`.
   - Normalize 401, 403, 404, 422, 429, 500, and network errors.
   - Acceptance check: 422 returns field-level error map.
