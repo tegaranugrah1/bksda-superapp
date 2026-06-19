@@ -679,7 +679,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: search text can be cleared with one tap.
   - _Requirements: 18, 20_
 
-- [ ] 12. Add StatusBadge component
+- [x] 12. Add StatusBadge component
   - Target area: `mobile/src/components/StatusBadge.tsx`.
   - Support success, warning, danger, info, neutral.
   - Acceptance check: badge always shows text, not color only.

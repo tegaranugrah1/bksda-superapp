@@ -4544,6 +4544,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 11 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 12: Add StatusBadge component (`mobile/src/components/StatusBadge.tsx`).
+- [ ] Task 12: Add StatusBadge component (`mobile/src/components/StatusBadge.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 12: Created `StatusBadge` component in [mobile/src/components/StatusBadge.tsx](file:///e:/bksda-superapp/mobile/src/components/StatusBadge.tsx) supporting `success`, `warning`, `danger`, `info`, and `neutral` status states.
+- [x] Implemented dynamic light/dark mode background and text colors using status configurations and `useAppTheme` hooks.
+- [x] Confirmed the badge always renders the text value (not color only) as required by the acceptance criteria.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/StatusBadge.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/StatusBadge.test.tsx) using `StyleSheet.flatten` to test active background/text colors.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 12 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 13: Add SectionCard component (`mobile/src/components/SectionCard.tsx`).
 
 
