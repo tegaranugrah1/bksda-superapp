@@ -989,7 +989,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: personal/management mode label is visible.
   - _Requirements: 11, 20_
 
-- [ ] 63. Add Surat Tugas list pagination and states
+- [x] 63. Add Surat Tugas list pagination and states
   - Target area: assignment list screen.
   - Add pagination, loading skeleton, empty, error, retry, and pull-to-refresh.
   - Acceptance check: empty state is different from error state.

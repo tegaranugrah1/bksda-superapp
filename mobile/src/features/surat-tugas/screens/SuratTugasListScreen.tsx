@@ -1,6 +1,9 @@
 import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { EmptyState } from '@/components/EmptyState';
+import { ErrorState } from '@/components/ErrorState';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { SearchInput } from '@/components/SearchInput';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { usePermissions } from '@/lib/permissions';
@@ -36,7 +39,15 @@ export default function SuratTugasListScreen() {
     return () => clearTimeout(timeoutId);
   }, [search]);
 
-  const { items } = useAssignments({
+  const {
+    items,
+    isLoading,
+    isRefreshing,
+    isFetchingNextPage,
+    error,
+    refetch,
+    fetchNextPage,
+  } = useAssignments({
     mode: activeMode,
     search: debouncedSearch,
     status: status === 'all' ? undefined : status,
@@ -45,6 +56,66 @@ export default function SuratTugasListScreen() {
   const renderAssignment = ({ item }: { item: AssignmentListItem }) => (
     <AssignmentCard assignment={item} onPress={() => undefined} />
   );
+
+  const renderFooter = () => {
+    if (!isFetchingNextPage) {
+      return null;
+    }
+
+    return (
+      <View style={[styles.footer, { paddingVertical: spacing.md }]}>
+        <ActivityIndicator color={colors.primary} size="small" />
+      </View>
+    );
+  };
+
+  const renderContent = () => {
+    if (isLoading && items.length === 0) {
+      return (
+        <View style={[styles.stateContainer, { paddingTop: spacing.md }]}>
+          <LoadingSkeleton variant="card" count={3} />
+        </View>
+      );
+    }
+
+    if (error && items.length === 0) {
+      return (
+        <View style={styles.stateContainer}>
+          <ErrorState
+            title="Gagal Memuat Surat Tugas"
+            message={error.message || 'Terjadi kesalahan saat mengambil daftar surat tugas.'}
+            onRetry={refetch}
+          />
+        </View>
+      );
+    }
+
+    if (items.length === 0) {
+      return (
+        <View style={styles.stateContainer}>
+          <EmptyState
+            title="Tidak Ada Surat Tugas"
+            message="Surat tugas tidak ditemukan. Coba ubah mode, status, atau kata kunci pencarian."
+          />
+        </View>
+      );
+    }
+
+    return (
+      <FlatList
+        data={items}
+        renderItem={renderAssignment}
+        keyExtractor={(item) => String(item.id)}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: spacing.xl * 2 }}
+        refreshing={isRefreshing}
+        onRefresh={refetch}
+        onEndReached={fetchNextPage}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+      />
+    );
+  };
 
   const modeLabel = activeMode === 'personal' ? 'Mode Personal' : 'Mode Manajemen';
 
@@ -185,13 +256,7 @@ export default function SuratTugasListScreen() {
           })}
         </View>
 
-        <FlatList
-          data={items}
-          renderItem={renderAssignment}
-          keyExtractor={(item) => String(item.id)}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: spacing.xl * 2 }}
-        />
+        {renderContent()}
       </View>
     </SafeAreaView>
   );
@@ -238,5 +303,13 @@ const styles = StyleSheet.create({
   },
   statusText: {
     lineHeight: 20,
+  },
+  stateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  footer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

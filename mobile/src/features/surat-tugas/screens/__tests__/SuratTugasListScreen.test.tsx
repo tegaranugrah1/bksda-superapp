@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, FlatList, Text, TouchableOpacity } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import SuratTugasListScreen from '../SuratTugasListScreen';
 import { useAssignments } from '../../useAssignments';
@@ -69,6 +69,8 @@ describe('SuratTugasListScreen', () => {
       personel_summary: 'Pegawai Satu',
     },
   ];
+  const mockRefetch = jest.fn();
+  const mockFetchNextPage = jest.fn();
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -79,8 +81,8 @@ describe('SuratTugasListScreen', () => {
       isRefreshing: false,
       isFetchingNextPage: false,
       error: undefined,
-      refetch: jest.fn(),
-      fetchNextPage: jest.fn(),
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
     });
   });
@@ -168,6 +170,121 @@ describe('SuratTugasListScreen', () => {
         search: 'patroli',
       })
     );
+
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('renders loading skeleton when initial list is loading', () => {
+    (useAssignments as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: true,
+      isRefreshing: false,
+      isFetchingNextPage: false,
+      error: undefined,
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+    });
+
+    let tree: renderer.ReactTestRenderer;
+    act(() => {
+      tree = renderer.create(<SuratTugasListScreen />);
+    });
+
+    const skeleton = tree!.root.findByProps({ variant: 'card' });
+    expect(skeleton.props.count).toBe(3);
+
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('renders error state separately from empty state and retries', () => {
+    (useAssignments as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isRefreshing: false,
+      isFetchingNextPage: false,
+      error: { message: 'Gagal dari server' },
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+    });
+
+    let tree: renderer.ReactTestRenderer;
+    act(() => {
+      tree = renderer.create(<SuratTugasListScreen />);
+    });
+
+    const errorState = tree!.root.findByProps({ title: 'Gagal Memuat Surat Tugas' });
+    expect(errorState.props.message).toBe('Gagal dari server');
+
+    act(() => {
+      errorState.props.onRetry();
+    });
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('renders empty state when there are no assignments', () => {
+    (useAssignments as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isRefreshing: false,
+      isFetchingNextPage: false,
+      error: undefined,
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+    });
+
+    let tree: renderer.ReactTestRenderer;
+    act(() => {
+      tree = renderer.create(<SuratTugasListScreen />);
+    });
+
+    const emptyState = tree!.root.findByProps({ title: 'Tidak Ada Surat Tugas' });
+    expect(emptyState.props.message).toContain('Surat tugas tidak ditemukan');
+
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('wires pull-to-refresh and next-page loading to FlatList', () => {
+    (useAssignments as jest.Mock).mockReturnValue({
+      items: mockAssignments,
+      isLoading: false,
+      isRefreshing: true,
+      isFetchingNextPage: true,
+      error: undefined,
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: true,
+    });
+
+    let tree: renderer.ReactTestRenderer;
+    act(() => {
+      tree = renderer.create(<SuratTugasListScreen />);
+    });
+
+    const list = tree!.root.findByType(FlatList);
+    expect(list.props.refreshing).toBe(true);
+
+    act(() => {
+      list.props.onRefresh();
+      list.props.onEndReached();
+    });
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
+    expect(tree!.root.findByType(ActivityIndicator)).toBeTruthy();
 
     act(() => {
       tree!.unmount();
