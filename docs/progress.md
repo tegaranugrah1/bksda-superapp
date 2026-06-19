@@ -4983,7 +4983,16 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Wired event handlers with descriptive alerts as placeholders for future screens/endpoints.
 - [x] Developed comprehensive unit tests in `AssetActionBar.test.tsx` verifying conditional rendering, button triggers, and loading/disabled states.
 
+- [x] Task 46: Add BMN asset form schema (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 46 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Installed `zod`, `react-hook-form`, and `@hookform/resolvers` in the mobile app.
+- [x] Created BMN asset form validation schema `assetFormSchema.ts` with custom preprocessing and localized Indonesian validation messages.
+- [x] Wrote comprehensive schema unit tests in `assetFormSchema.test.ts` checking missing/empty inputs, types conversions, negative values, and optional/null states.
+
 ### Next Steps
-- [ ] Task 46: Add BMN asset form schema.
+- [ ] Task 47: Build asset form screen shell.
 
 
