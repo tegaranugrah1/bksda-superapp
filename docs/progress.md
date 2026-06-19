@@ -1,7 +1,7 @@
 # Progress - Phase 133: Mobile App MVP Milestone Completion
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-final-progress-task-90`.
+> Status: Selesai di main (PR #505).
 > GitHub Issue: #504.
 
 ---
