@@ -5078,7 +5078,26 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Handled special field mapping conversions (e.g. mapping backend error parameter `no_bpkp` back to form input `no_bpkb`).
 - [x] Updated unit tests in `BmnFormScreen.test.tsx` verifying successful creation post, update put, 422 error mapper, and fail-closed permission gates.
 
+- [x] Task 49: Add photo slot.
+- [x] Task 50: Add camera permission helper.
+- [x] Task 51: Add geotag location helper.
+- [x] Task 52: Build photo capture screen.
+- [x] Task 53: Wire photo upload.
+- [x] Task 54: Build verification action.
+- [x] Task 55: Build loan form shell.
+- [x] Task 56: Wire loan/return submit.
+
+## [2026-06-19] Mobile App Implementation - Tasks 49-56 (Milestone 2 Completion)
+
+### Completed (Selesai)
+- [x] **Task 49 (Photo Grid Slots)**: Developed `AssetPhotoSlotsSection.tsx` component, displaying physical asset photos for front, back, left, and right slots with placeholders, upload, and deletion capabilities.
+- [x] **Task 50 & 51 (Permissions & Geotagging)**: Created `devicePermissions.ts` permission manager checking and requesting location/camera access and reading active real-time GPS coordinates.
+- [x] **Task 52 & 53 (Camera Screen & Multi-part Upload)**: Built `BmnPhotoCaptureScreen.tsx` mimicking internal native camera view, embedding geolocation tagging data and local path state, and submitting multi-part form payloads to `POST /api/bmn/assets/{id}/photo`.
+- [x] **Task 54 (Verification & Return Actions)**: Wired verification action to `POST /api/bmn/assets/{id}/verify` and loan return action to `POST /api/bmn/loans/{loan}/return`. Added confirmation alerts, loading states, and automatic data refetching upon success.
+- [x] **Task 55 & 56 (Loan Form Screen & Borrow Submission)**: Developed `BmnLoanScreen.tsx` containing an autocomplete NIP search-dropdown for Kepegawaian BKSDA employees, borrow date validation, and multiline purpose notes. Handled Laravel 422 validation mapping to form fields and wired submission to `POST /api/bmn/assets/{id}/loans`.
+- [x] **Unit Testing**: Developed and updated comprehensive unit tests for detail screen verification actions, return action, loan form input renders, NIP search selections, Zod validations, and API post submissions, passing 201 Jest unit tests with 100% type safety and 0 warnings.
+
 ### Next Steps
-- [ ] Task 49: Add photo slot.
+- Milestone 2 BMN Alpha has been fully completed on the mobile application! Let's check for future milestones or database migration tasks.
 
 
