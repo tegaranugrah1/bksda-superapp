@@ -17,6 +17,8 @@ jest.mock('@/hooks/useAppTheme', () => ({
       muted: '#f1f5f9',
       border: '#e2e8f0',
       card: '#ffffff',
+      warning: '#f59e0b',
+      warningForeground: '#ffffff',
     },
     spacing: {
       xs: 4,
@@ -186,6 +188,34 @@ describe('DashboardScreen', () => {
       errorState.props.onRetry();
     });
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('renders offline banner when dashboard request fails due to connection', () => {
+    const apiError = {
+      kind: 'network',
+      message: 'Koneksi internet terganggu. Silakan periksa koneksi Anda dan coba lagi.',
+    };
+
+    (useMobileDashboard as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: apiError,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<DashboardScreen navigation={mockNavigation} />);
+    });
+
+    const root = tree.root;
+
+    expect(root.findByProps({ accessibilityLabel: 'Banner offline' })).toBeTruthy();
+    expect(root.findByProps({ message: apiError.message })).toBeTruthy();
 
     act(() => {
       tree.unmount();

@@ -1,3 +1,42 @@
+# Progress - Phase 121: Mobile Online-Only Network State
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-online-status-task-78`.
+> GitHub Issue: #480.
+
+---
+
+## Mobile Online-Only Network State
+
+### Status: SELESAI
+- Scope: Mobile App (Hooks/App Shell)
+- Tujuan: Mengekspos status online/offline ke screen dan memberi banner saat request gagal karena koneksi.
+
+### Implementasi
+- **Hook**:
+  - Menambahkan [useOnlineStatus.ts](file:///e:/bksda-superapp/mobile/src/hooks/useOnlineStatus.ts).
+  - Mendeteksi `ApiError.kind === 'network'` dan pesan error koneksi/fetch/timeout.
+  - Mengekspos `isOnline`, `isOffline`, `lastNetworkErrorAt`, `markOnline`, dan `markOffline`.
+- **UI**:
+  - Menambahkan [OfflineBanner.tsx](file:///e:/bksda-superapp/mobile/src/components/OfflineBanner.tsx).
+  - Mengintegrasikan banner offline ke [DashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/screens/DashboardScreen.tsx) saat request dashboard gagal karena koneksi.
+- **Tests**:
+  - Menambahkan [useOnlineStatus.test.tsx](file:///e:/bksda-superapp/mobile/src/hooks/__tests__/useOnlineStatus.test.tsx) untuk deteksi network error dan transisi kembali online.
+  - Memperluas [DashboardScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/screens/__tests__/DashboardScreen.test.tsx) agar banner offline muncul pada network error.
+- **Checklist**:
+  - Mencentang Task 78 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/hooks/__tests__/useOnlineStatus.test.tsx`: 3 tests passed.
+- `npm test -- --runTestsByPath src/features/dashboard/screens/__tests__/DashboardScreen.test.tsx`: 6 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 79: Add foreground refresh behavior.
+
+---
+
 # Progress - Phase 120: Mobile Logout Confirmation Flow
 
 > Document updated: 2026-06-19
