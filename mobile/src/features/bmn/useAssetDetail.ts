@@ -4,12 +4,16 @@ import { ApiError, ApiSuccess } from '@/types/api';
 import { normalizeError } from '@/lib/api/errors';
 import { AssetDetail } from './types';
 
-export function useAssetDetail(id: string | number) {
+export function useAssetDetail(id?: string | number) {
   const [data, setData] = useState<AssetDetail | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(!!id);
   const [error, setError] = useState<ApiError | undefined>(undefined);
 
   const loadData = useCallback(async () => {
+    if (!id) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(undefined);
     try {
