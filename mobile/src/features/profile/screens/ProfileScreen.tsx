@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppButton } from '@/components/AppButton';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -21,6 +21,19 @@ export default function ProfileScreen() {
     ['Email pegawai', employee?.email],
     ['Telepon', employee?.phone],
   ];
+  const confirmLogout = () => {
+    Alert.alert('Logout', 'Keluar dari aplikasi di perangkat ini?', [
+      {
+        text: 'Batal',
+        style: 'cancel',
+      },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: logout,
+      },
+    ]);
+  };
 
   return (
     <ScrollView
@@ -137,7 +150,13 @@ export default function ProfileScreen() {
         <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
           Keluar dari perangkat ini untuk mengakhiri akses aplikasi mobile.
         </Text>
-        <AppButton title="Logout" onPress={logout} variant="danger" loading={isLoading} accessibilityLabel="Logout" />
+        <AppButton
+          title="Logout"
+          onPress={confirmLogout}
+          variant="danger"
+          loading={isLoading}
+          accessibilityLabel="Logout"
+        />
       </View>
     </ScrollView>
   );

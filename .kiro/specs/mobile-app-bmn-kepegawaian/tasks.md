@@ -1075,7 +1075,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: token/session values are never displayed.
   - _Requirements: 2, 19, 20_
 
-- [ ] 77. Add logout confirmation flow
+- [x] 77. Add logout confirmation flow
   - Target area: profile/auth flow.
   - Confirm logout, call API, clear secure storage, reset navigation.
   - Acceptance check: logout works even if API request fails.

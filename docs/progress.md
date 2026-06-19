@@ -1,3 +1,39 @@
+# Progress - Phase 120: Mobile Logout Confirmation Flow
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-logout-confirmation-task-77`.
+> GitHub Issue: #478.
+
+---
+
+## Mobile Logout Confirmation Flow
+
+### Status: SELESAI
+- Scope: Mobile App (Profile/Auth Flow)
+- Tujuan: Menambahkan konfirmasi sebelum logout dan memastikan flow logout tetap aman saat API logout gagal.
+
+### Implementasi
+- **Profile Flow**:
+  - Memperbarui [ProfileScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/screens/ProfileScreen.tsx) agar tombol `Logout` membuka dialog konfirmasi native.
+  - Aksi logout hanya berjalan setelah pengguna memilih action destruktif `Logout`.
+  - Flow tetap menggunakan `AuthProvider.logout`, sehingga API logout, clear secure storage, dan reset state auth tetap berada pada satu jalur.
+- **Tests**:
+  - Memperluas [ProfileScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/screens/__tests__/ProfileScreen.test.tsx) untuk memastikan tombol logout meminta konfirmasi dan baru memanggil logout setelah confirm.
+  - Memvalidasi [AuthProvider.test.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/__tests__/AuthProvider.test.tsx) yang sudah memastikan local cleanup tetap berjalan walaupun API logout gagal.
+- **Checklist**:
+  - Mencentang Task 77 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/profile/screens/__tests__/ProfileScreen.test.tsx`: 5 tests passed.
+- `npm test -- --runTestsByPath src/features/auth/__tests__/AuthProvider.test.tsx`: 4 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 78: Add online-only network state.
+
+---
+
 # Progress - Phase 119: Mobile Profile Screen
 
 > Document updated: 2026-06-19
