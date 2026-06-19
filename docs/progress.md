@@ -1,3 +1,43 @@
+# Progress - Phase 113: Mobile Surat Tugas Approval Action Component
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-70`.
+> GitHub Issue: #464.
+
+---
+
+## Mobile Surat Tugas Approval Action Component
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan komponen aksi status Surat Tugas yang menampilkan aksi sesuai permission backend dan selalu meminta konfirmasi.
+
+### Implementasi
+- **Component**:
+  - Membuat `AssignmentActions` untuk render aksi `Ajukan`, `Setujui`, `Tolak`, dan `Selesai`.
+  - Aksi hanya muncul berdasarkan `allowed_actions` dari backend dan tidak menampilkan aksi untuk status saat ini.
+  - Setiap aksi membuka `ConfirmDialog` sebelum callback `onAction(status)` dipanggil.
+  - Aksi destruktif seperti `Tolak` memakai variant danger dan dialog destruktif.
+- **Detail Wiring**:
+  - Menambahkan `AssignmentActions` ke `AssignmentDetailScreen`.
+  - Callback detail masih placeholder alert karena pemanggilan API status masuk Task 71.
+- **Tests**:
+  - Menambahkan test gating action berdasarkan `allowed_actions`.
+  - Menambahkan test bahwa callback tidak terpanggil sebelum user confirm.
+  - Memastikan detail screen tetap render dengan action component baru.
+- **Checklist**:
+  - Mencentang Task 70 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/components/__tests__/AssignmentActions.test.tsx src/features/surat-tugas/screens/__tests__/AssignmentDetailScreen.test.tsx`: 8 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 71: Wire approval/status API.
+
+---
+
 # Progress - Phase 112: Mobile Surat Tugas Create/Edit Submit
 
 > Document updated: 2026-06-19

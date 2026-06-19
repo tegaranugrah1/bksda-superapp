@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { IconButton } from '@/components/IconButton';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import AssignmentActions, { AssignmentActionType } from '../components/AssignmentActions';
 import {
   AssignmentContentSection,
   AssignmentDatesSection,
@@ -27,6 +28,10 @@ export default function AssignmentDetailScreen() {
 
   const handleDownload = () => {
     Alert.alert('Unduh Surat Tugas', 'Fitur unduh berkas akan disiapkan pada task file download berikutnya.');
+  };
+
+  const handleStatusAction = (status: AssignmentActionType) => {
+    Alert.alert('Aksi Surat Tugas', `Aksi status ${status} akan disambungkan pada task berikutnya.`);
   };
 
   const renderHeader = (title = 'Detail Surat Tugas') => (
@@ -122,6 +127,11 @@ export default function AssignmentDetailScreen() {
         <AssignmentContentSection assignment={data} />
         <AssignmentFileSection assignment={data} />
         <AssignmentStatusSection assignment={data} />
+        <AssignmentActions
+          allowedActions={data.allowed_actions}
+          currentStatus={data.status}
+          onAction={handleStatusAction}
+        />
 
         {canDownload ? (
           <View style={{ marginTop: spacing.sm }}>

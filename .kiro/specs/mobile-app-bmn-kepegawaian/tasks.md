@@ -1031,7 +1031,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: success opens detail or refreshes relevant list.
   - _Requirements: 12, 17, 19_
 
-- [ ] 70. Add approval/status action component
+- [x] 70. Add approval/status action component
   - Target area: `mobile/src/features/surat-tugas/components/AssignmentActions.tsx`.
   - Render approve, reject, and status update actions based on allowed actions.
   - Acceptance check: each action requires confirmation.
