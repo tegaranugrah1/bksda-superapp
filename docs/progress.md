@@ -1,7 +1,7 @@
 # Progress - Phase 124: Mobile Permission Helper Unit Tests
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-permission-tests-task-81`.
+> Status: Selesai di main (PR #487).
 > GitHub Issue: #486.
 
 ---
