@@ -4886,6 +4886,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 37 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 38: Add BMN list pagination.
+- [x] Task 38: Add BMN list pagination (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 38 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Integrated infinite scroll pagination into `BmnListScreen` in [mobile/src/features/bmn/screens/BmnListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnListScreen.tsx).
+- [x] Leveraged `useAssets` hook pagination properties (`fetchNextPage`, `isFetchingNextPage`) to load subsequent pages dynamically.
+- [x] Created `renderFooter` displaying a loading spinner (`ActivityIndicator`) during list page fetches.
+- [x] Wrote unit tests in [mobile/src/features/bmn/screens/__tests__/BmnListScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/__tests__/BmnListScreen.test.tsx) asserting `ActivityIndicator` displays when `isFetchingNextPage` is true.
+- [x] Checked off completed task 38 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 39: Add BMN debounced search.
 
 

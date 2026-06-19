@@ -837,7 +837,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: no desktop table layout is used.
   - _Requirements: 5, 20_
 
-- [ ] 38. Add BMN list pagination
+- [x] 38. Add BMN list pagination
   - Target area: asset list screen/hook.
   - Implement infinite load or page load.
   - Acceptance check: next page loads without refetching all previous data.
