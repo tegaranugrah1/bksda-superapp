@@ -1143,7 +1143,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: metadata does not use placeholder app name.
   - _Requirements: 20_
 
-- [ ] 88. Build internal Android artifact
+- [x] 88. Build internal Android artifact
   - Target area: mobile build pipeline.
   - Build APK/AAB for internal testing.
   - Acceptance check: artifact is generated and installable on a test device.
