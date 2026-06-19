@@ -727,7 +727,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: helper exposes get, set, and clear token functions.
   - _Requirements: 1, 19_
 
-- [ ] 20. Add API response normalizer
+- [x] 20. Add API response normalizer
   - Target area: `mobile/src/lib/api/normalize.ts`.
   - Normalize `data`, `meta`, and `message` response shapes.
   - Acceptance check: legacy top-level payload can still be handled.

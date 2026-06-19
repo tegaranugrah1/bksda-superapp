@@ -4645,6 +4645,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 19 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 20: Add API response normalizer (`mobile/src/lib/api/normalize.ts`).
+- [ ] Task 20: Add API response normalizer (`mobile/src/lib/api/normalize.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 20 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Created API shared types in [mobile/src/types/api.ts](file:///e:/bksda-superapp/mobile/src/types/api.ts) for `ApiSuccess` and `ApiError` standardized shapes.
+- [x] Created API response normalizer in [mobile/src/lib/api/normalize.ts](file:///e:/bksda-superapp/mobile/src/lib/api/normalize.ts) supporting wrappers with `data`, `meta`, and `message`, flat top-level pagination parameters, and fallback wrapping for legacy flat payload objects.
+- [x] Wrote unit tests in [mobile/src/lib/api/__tests__/normalize.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/normalize.test.ts) covering primitives, arrays, wrapped structures, camelCase mapping, top-level parameters, and legacy flat fallbacks.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 20 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 21: Add API error normalizer (`mobile/src/lib/api/errors.ts`).
 
 
