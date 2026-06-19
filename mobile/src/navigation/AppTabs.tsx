@@ -6,10 +6,12 @@ import SuratTugasListScreen from '@/features/surat-tugas/screens/SuratTugasListS
 import ProfileScreen from '@/features/profile/screens/ProfileScreen';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
+import { usePermissions } from '@/lib/permissions';
+
 export type AppTabParamList = {
   Dashboard: undefined;
-  Bmn: undefined;
-  SuratTugas: undefined;
+  Bmn?: undefined;
+  SuratTugas?: undefined;
   Profile: undefined;
 };
 
@@ -17,6 +19,10 @@ const Tab = createBottomTabNavigator<AppTabParamList>();
 
 export default function AppTabs() {
   const { colors } = useAppTheme();
+  const { hasModule } = usePermissions();
+
+  const showBmn = hasModule('bmn');
+  const showSuratTugas = hasModule('surat_tugas') || hasModule('kepegawaian');
 
   return (
     <Tab.Navigator
@@ -43,20 +49,24 @@ export default function AppTabs() {
           title: 'Dashboard',
         }}
       />
-      <Tab.Screen
-        name="Bmn"
-        component={BmnListScreen}
-        options={{
-          title: 'BMN',
-        }}
-      />
-      <Tab.Screen
-        name="SuratTugas"
-        component={SuratTugasListScreen}
-        options={{
-          title: 'Surat Tugas',
-        }}
-      />
+      {showBmn && (
+        <Tab.Screen
+          name="Bmn"
+          component={BmnListScreen}
+          options={{
+            title: 'BMN',
+          }}
+        />
+      )}
+      {showSuratTugas && (
+        <Tab.Screen
+          name="SuratTugas"
+          component={SuratTugasListScreen}
+          options={{
+            title: 'Surat Tugas',
+          }}
+        />
+      )}
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
