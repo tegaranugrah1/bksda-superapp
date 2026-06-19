@@ -1001,7 +1001,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: hook exposes loading, detail, forbidden, not found, and refetch.
   - _Requirements: 11, 17_
 
-- [ ] 65. Build Surat Tugas detail sections
+- [x] 65. Build Surat Tugas detail sections
   - Target area: `mobile/src/features/surat-tugas/components/detail`.
   - Create summary, dates, personel, content, file, and status sections.
   - Acceptance check: long content is readable without horizontal scroll.
