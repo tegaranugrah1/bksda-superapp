@@ -1,3 +1,37 @@
+# Progress - Phase 103: Mobile Surat Tugas List API Hook
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-60`.
+> GitHub Issue: #444.
+
+---
+
+## Mobile Surat Tugas List API Hook
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan hook list Surat Tugas yang mendukung mode personal/manajemen, pagination, search, status filter, pull-to-refresh, next-page loading, dan normalized error state.
+
+### Implementasi
+- **Hook**:
+  - Membuat [useAssignments.ts](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/useAssignments.ts) dengan bentuk return konsisten seperti hook list BMN: `items`, `isLoading`, `isRefreshing`, `isFetchingNextPage`, `error`, `refetch`, `fetchNextPage`, dan `hasNextPage`.
+  - Mode `personal` memakai endpoint `/surat-tugas/my`; mode `management` memakai endpoint `/surat-tugas`.
+  - Semua request memakai `withMobileParams` agar `mobile=true`, `page`, dan `per_page` selalu konsisten.
+- **Tests**:
+  - Menambahkan [useAssignments.test.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/__tests__/useAssignments.test.tsx) untuk menguji initial load personal, mode management dengan search/status, infinite pagination append, dan refresh state.
+- **Checklist**:
+  - Mencentang Task 60 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/__tests__/useAssignments.test.tsx`: 4 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 61: Add AssignmentCard component.
+
+---
+
 # Progress - Phase 102: Mobile Surat Tugas TypeScript Types
 
 > Document updated: 2026-06-19
