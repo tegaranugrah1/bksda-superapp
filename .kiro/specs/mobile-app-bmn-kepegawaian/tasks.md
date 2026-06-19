@@ -745,7 +745,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: authenticated request includes the expected headers.
   - _Requirements: 1, 17, 19_
 
-- [ ] 23. Add mobile query helper
+- [x] 23. Add mobile query helper
   - Target area: `mobile/src/lib/api/mobileParams.ts`.
   - Add `mobile=true` and default `per_page=20` to list requests.
   - Acceptance check: helper does not override explicit page values.

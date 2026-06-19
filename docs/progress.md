@@ -4685,6 +4685,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 22 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 23: Add mobile query helper (`mobile/src/lib/api/mobileParams.ts`).
+- [ ] Task 23: Add mobile query helper (`mobile/src/lib/api/mobileParams.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 23 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Created mobile query parameter builder helper in [mobile/src/lib/api/mobileParams.ts](file:///e:/bksda-superapp/mobile/src/lib/api/mobileParams.ts).
+- [x] Configured helper to inject `mobile: true` into query parameters and supply default fallback properties of `per_page: 20` and `page: 1` if they are not explicitly specified.
+- [x] Guaranteed that explicit parameters provided by the query caller (including numeric or string offsets/limits) are preserved and never overridden.
+- [x] Wrote unit tests in [mobile/src/lib/api/__tests__/mobileParams.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/mobileParams.test.ts) to verify defaults behavior, preserve parameter integrity, ensure explicit value retention, and safeguard `mobile=true` injection.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 23 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 24: Add auth service (`mobile/src/features/auth/authApi.ts`).
 
 
