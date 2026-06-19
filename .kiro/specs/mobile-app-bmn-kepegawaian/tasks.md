@@ -965,7 +965,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: forbidden user receives 403, not hidden data.
   - _Requirements: 11, 14, 19_
 
-- [ ] 59. Add Surat Tugas types
+- [x] 59. Add Surat Tugas types
   - Target area: `mobile/src/features/surat-tugas/types.ts`.
   - Define list item, detail, personel, status, file, and action types.
   - Acceptance check: assignment card does not use `any`.
