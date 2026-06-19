@@ -1123,7 +1123,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: `rg` finds no token/password debug logging in mobile source.
   - _Requirements: 19_
 
-- [ ] 85. Validate Android superadmin path
+- [x] 85. Validate Android superadmin path
   - Target area: Android device/emulator.
   - Login as superadmin and test dashboard, BMN list/detail, and Surat Tugas list/detail.
   - Acceptance check: no crash in the tested path.
