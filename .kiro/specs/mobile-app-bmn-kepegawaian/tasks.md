@@ -873,79 +873,79 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: each section accepts typed asset detail props.
   - _Requirements: 6, 20_
 
-- [ ] 44. Build asset detail screen
+- [x] 44. Build asset detail screen
   - Target area: `mobile/src/features/bmn/AssetDetailScreen.tsx`.
   - Render sections, loading, not found, forbidden, and retry states.
   - Acceptance check: vehicle fields appear only when present.
   - _Requirements: 6, 17, 20_
 
-- [ ] 45. Add asset action bar
+- [x] 45. Add asset action bar
   - Target area: asset detail components.
   - Show edit, upload photo, verify, loan, and return actions based on permissions.
   - Acceptance check: action bar receives permission booleans from helper/backend state.
   - _Requirements: 6, 9, 10, 19_
 
-- [ ] 46. Add BMN asset form schema
+- [x] 46. Add BMN asset form schema
   - Target area: `mobile/src/features/bmn/assetFormSchema.ts`.
   - Define validation for required asset fields used on mobile.
   - Acceptance check: invalid required fields return readable Indonesian messages.
   - _Requirements: 7, 17_
 
-- [ ] 47. Build asset form screen shell
+- [x] 47. Build asset form screen shell
   - Target area: `mobile/src/features/bmn/AssetFormScreen.tsx`.
   - Build sectioned form layout with placeholders for fields.
   - Acceptance check: layout works on small Android screen without horizontal scroll.
   - _Requirements: 7, 20_
 
-- [ ] 48. Wire asset create/update submit
+- [x] 48. Wire asset create/update submit
   - Target area: BMN asset form API.
   - Submit create/update only when permission allows.
   - Acceptance check: backend 422 errors are mapped to fields.
   - _Requirements: 7, 17, 19_
 
-- [ ] 49. Add photo slot component
+- [x] 49. Add photo slot component
   - Target area: `mobile/src/features/bmn/components/PhotoSlot.tsx`.
   - Render image/placeholder, slot label, upload action, delete action if allowed.
   - Acceptance check: geotag slot is visually distinct from normal slots.
   - _Requirements: 8, 20_
 
-- [ ] 50. Add camera permission helper
+- [x] 50. Add camera permission helper
   - Target area: `mobile/src/features/bmn/photoPermissions.ts`.
   - Request camera permission before capture.
   - Acceptance check: denied permission shows user-friendly message.
   - _Requirements: 8, 17_
 
-- [ ] 51. Add location permission helper for geotag
+- [x] 51. Add location permission helper for geotag
   - Target area: photo/geotag helpers.
   - Request location only for geotag capture.
   - Acceptance check: normal photo slot does not request location.
   - _Requirements: 8, 16_
 
-- [ ] 52. Build photo capture screen
+- [x] 52. Build photo capture screen
   - Target area: `mobile/src/features/bmn/PhotoCaptureScreen.tsx`.
   - Capture photo, show preview, allow retake/cancel/submit.
   - Acceptance check: submit is disabled until a photo exists.
   - _Requirements: 8, 20_
 
-- [ ] 53. Wire photo upload API
+- [x] 53. Wire photo upload API
   - Target area: BMN photo API helper.
   - Upload `photo`, `type`, optional `latitude`, `longitude`, and `location_note`.
   - Acceptance check: upload progress is shown for uploads over 1 second.
   - _Requirements: 8, 17, 19_
 
-- [ ] 54. Build asset verification action
+- [x] 54. Build asset verification action
   - Target area: asset detail action components.
   - Add confirm dialog and call verification endpoint.
   - Acceptance check: success refreshes detail status.
   - _Requirements: 9, 17, 19_
 
-- [ ] 55. Build BMN loan form shell
+- [x] 55. Build BMN loan form shell
   - Target area: `mobile/src/features/bmn/LoanFormScreen.tsx`.
   - Include asset summary, employee selector placeholder, date, and notes.
   - Acceptance check: submit disabled until required fields exist.
   - _Requirements: 10, 15, 20_
 
-- [ ] 56. Wire BMN loan and return submit
+- [x] 56. Wire BMN loan and return submit
   - Target area: BMN loan API helper.
   - Submit loan and return actions with confirmation.
   - Acceptance check: success refreshes asset detail and loan history.
@@ -953,7 +953,7 @@ Use this matrix together with the numbered task. A lower-capability model should
 
 ### Milestone 3: Surat Tugas Alpha
 
-- [ ] 57. Verify Surat Tugas list API
+- [x] 57. Verify Surat Tugas list API
   - Target area: backend Surat Tugas endpoint.
   - Confirm personal and management list endpoints support pagination.
   - Acceptance check: endpoint can return page 1 with mobile-friendly fields.
