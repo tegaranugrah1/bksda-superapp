@@ -861,7 +861,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: each state can be triggered in mock/dev mode.
   - _Requirements: 5, 17, 20_
 
-- [ ] 42. Add BMN asset detail API hook
+- [x] 42. Add BMN asset detail API hook
   - Target area: `mobile/src/features/bmn/useAssetDetail.ts`.
   - Fetch `GET /api/bmn/assets/{id}`.
   - Acceptance check: hook exposes not-found and forbidden states.

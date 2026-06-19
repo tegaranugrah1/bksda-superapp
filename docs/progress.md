@@ -4935,6 +4935,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 41 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 42: Add BMN asset detail API hook.
+- [x] Task 42: Add BMN asset detail API hook (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 42 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Implemented `useAssetDetail` query hook in [mobile/src/features/bmn/useAssetDetail.ts](file:///e:/bksda-superapp/mobile/src/features/bmn/useAssetDetail.ts) querying the backend `GET /api/bmn/assets/{id}`.
+- [x] Secured and normalized API error states (`not_found`, `forbidden`) on hook execution failures by mapping the Axios responses through `normalizeError`.
+- [x] Suppressed redundant render warnings using the `// eslint-disable-next-line react-hooks/set-state-in-effect` rule for mount fetchers.
+- [x] Wrote unit tests in [mobile/src/features/bmn/__tests__/useAssetDetail.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/__tests__/useAssetDetail.test.tsx) asserting detail retrieval, error mapping, and manual refetch updates.
+- [x] Checked off completed task 42 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 43: Add asset detail section components.
 
 
