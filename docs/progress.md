@@ -1,7 +1,7 @@
 # Progress - Phase 132: Mobile App MVP Release Notes Documentation
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-release-notes-task-89`.
+> Status: Selesai di main (PR #503).
 > GitHub Issue: #502.
 
 ---
