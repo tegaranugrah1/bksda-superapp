@@ -4739,6 +4739,20 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 26 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 27: Add root navigation shell (`mobile/src/navigation/index.tsx`).
+- [ ] Task 27: Add root navigation shell (`mobile/src/navigation/index.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 27 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Installed React Navigation dependencies (`@react-navigation/native`, `@react-navigation/native-stack`, `@react-navigation/bottom-tabs`, `react-native-screens`, `react-native-safe-area-context`) in [mobile/package.json](file:///e:/bksda-superapp/mobile/package.json) using `--legacy-peer-deps`.
+- [x] Created placeholder screens for `LoginScreen`, `DashboardScreen`, `BmnListScreen`, `SuratTugasListScreen`, and `ProfileScreen`.
+- [x] Created main bottom tab navigator `AppTabs` in [mobile/src/navigation/AppTabs.tsx](file:///e:/bksda-superapp/mobile/src/navigation/AppTabs.tsx) with custom active/inactive tint colors matching the theme tokens.
+- [x] Created root native stack navigator in [mobile/src/navigation/index.tsx](file:///e:/bksda-superapp/mobile/src/navigation/index.tsx) that renders an ActivityIndicator when auth resolves (`isLoading === true`), routes to `LoginScreen` for unauthenticated sessions, and routes to `AppTabs` for authenticated sessions.
+- [x] Wrote unit tests in [mobile/src/navigation/__tests__/index.test.tsx](file:///e:/bksda-superapp/mobile/src/navigation/__tests__/index.test.tsx) verifying all three navigation paths (loading indicator, login routing, tab layout routing).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 27 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 28: Add role-based tab visibility (`mobile/src/navigation/AppTabs.tsx`).
 
 

@@ -769,7 +769,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: helpers handle missing permissions safely.
   - _Requirements: 2, 4, 19_
 
-- [ ] 27. Add root navigation shell
+- [x] 27. Add root navigation shell
   - Target area: `mobile/src/navigation`.
   - Create auth stack and app tabs with placeholder screens.
   - Acceptance check: unauthenticated user sees Login; authenticated user sees tabs.
