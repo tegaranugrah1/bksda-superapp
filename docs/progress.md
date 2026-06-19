@@ -1,7 +1,7 @@
 # Progress - Phase 131: Mobile Android EAS Build Configuration
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-eas-config-task-88`.
+> Status: Selesai di main (PR #501).
 > GitHub Issue: #500.
 
 ---
