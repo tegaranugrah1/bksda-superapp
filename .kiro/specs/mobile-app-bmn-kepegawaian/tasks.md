@@ -1081,7 +1081,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: logout works even if API request fails.
   - _Requirements: 1, 19_
 
-- [ ] 78. Add online-only network state
+- [x] 78. Add online-only network state
   - Target area: `mobile/src/hooks/useOnlineStatus.ts`.
   - Detect no connection and expose status to screens.
   - Acceptance check: offline banner appears when network request fails due to connection.

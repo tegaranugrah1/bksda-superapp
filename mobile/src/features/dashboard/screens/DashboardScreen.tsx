@@ -8,10 +8,12 @@ import {
   Alert,
 } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useMobileDashboard } from '../useMobileDashboard';
 import { usePermissions } from '@/lib/permissions';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { ErrorState } from '@/components/ErrorState';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import ProfileSummary from '../components/ProfileSummary';
 import MetricCard from '../components/MetricCard';
 import AlertCard from '../components/AlertCard';
@@ -20,6 +22,7 @@ import QuickActions from '../components/QuickActions';
 export default function DashboardScreen({ navigation }: any) {
   const { colors, spacing, typography } = useAppTheme();
   const { data, isLoading, error, refetch } = useMobileDashboard();
+  const onlineStatus = useOnlineStatus(error);
   const { hasModule, can } = usePermissions();
 
   const showBmn = hasModule('bmn');
@@ -57,7 +60,8 @@ export default function DashboardScreen({ navigation }: any) {
 
   if (error) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background, padding: spacing.lg }]}>
+      <View style={[styles.errorContainer, { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.lg }]}>
+        <OfflineBanner visible={onlineStatus.isOffline} />
         <ErrorState
           message={error.message || 'Gagal memuat data dashboard. Silakan coba kembali.'}
           onRetry={refetch}
@@ -186,6 +190,11 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
