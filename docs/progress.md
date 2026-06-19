@@ -1,7 +1,7 @@
 # Progress - Phase 127: Mobile Security Hardening Pass
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-security-hardening-task-84`.
+> Status: Selesai di main (PR #493).
 > GitHub Issue: #492.
 
 ---
