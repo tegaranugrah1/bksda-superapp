@@ -825,7 +825,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: hook supports page, search, and filters.
   - _Requirements: 5, 18_
 
-- [ ] 36. Add AssetCard component
+- [x] 36. Add AssetCard component
   - Target area: `mobile/src/features/bmn/components/AssetCard.tsx`.
   - Show name, code, NUP, condition, location, verification state, and vehicle plate if available.
   - Acceptance check: card has one clear tap target to open detail.

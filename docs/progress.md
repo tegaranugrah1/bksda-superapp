@@ -4857,6 +4857,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 35 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 36: Add AssetCard component.
+- [x] Task 36: Add AssetCard component (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 36 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Implemented `AssetCard` presentational component in [mobile/src/features/bmn/components/AssetCard.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/components/AssetCard.tsx).
+- [x] Designed card to show name (`nama_barang`), code and NUP (`kode_barang` and `nup`), condition badge (`kondisi`), verification badge (`is_verified`), and location details (`lokasi`).
+- [x] Implemented conditional vehicle plate details (`no_polisi`) displayed only when present on the asset item.
+- [x] Covered JSX string interpolation array splits in Jest tests by ensuring single pre-interpolated template literal statements inside JSX.
+- [x] Wrote unit tests in [mobile/src/features/bmn/components/__tests__/AssetCard.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/components/__tests__/AssetCard.test.tsx) asserting component styling, conditional plate displaying, badge mappings, and callback triggering.
+- [x] Checked off completed task 36 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 37: Build BMN asset list screen shell.
 
 
