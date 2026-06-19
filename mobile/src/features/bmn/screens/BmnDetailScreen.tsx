@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAssetDetail } from '../useAssetDetail';
@@ -14,6 +14,7 @@ import { AssetLocationSection } from '../components/detail/AssetLocationSection'
 import { AssetDocumentSection } from '../components/detail/AssetDocumentSection';
 import { AssetFinanceSection } from '../components/detail/AssetFinanceSection';
 import { AssetOrganizationSection } from '../components/detail/AssetOrganizationSection';
+import { AssetActionBar } from '../components/detail/AssetActionBar';
 
 export default function BmnDetailScreen() {
   const { colors, spacing, typography } = useAppTheme();
@@ -22,6 +23,26 @@ export default function BmnDetailScreen() {
   const { id } = route.params;
 
   const { data, isLoading, error, refetch } = useAssetDetail(id);
+
+  const handleEdit = () => {
+    Alert.alert('Ubah Data', 'Fitur ubah data aset akan segera hadir.');
+  };
+
+  const handleUploadPhoto = () => {
+    Alert.alert('Ambil Foto', 'Fitur ambil foto aset akan segera hadir.');
+  };
+
+  const handleVerify = () => {
+    Alert.alert('Verifikasi Aset', 'Fitur verifikasi aset akan segera hadir.');
+  };
+
+  const handleLoan = () => {
+    Alert.alert('Pinjam Aset', 'Fitur peminjaman aset akan segera hadir.');
+  };
+
+  const handleReturn = () => {
+    Alert.alert('Kembalikan Aset', 'Fitur pengembalian aset akan segera hadir.');
+  };
 
   if (isLoading && !data) {
     return (
@@ -176,6 +197,14 @@ export default function BmnDetailScreen() {
         <AssetDocumentSection asset={data} />
         <AssetFinanceSection asset={data} />
         <AssetOrganizationSection asset={data} />
+        <AssetActionBar
+          allowedActions={data.allowed_actions}
+          onEditPress={handleEdit}
+          onUploadPhotoPress={handleUploadPhoto}
+          onVerifyPress={handleVerify}
+          onLoanPress={handleLoan}
+          onReturnPress={handleReturn}
+        />
       </ScrollView>
     </SafeAreaView>
   );
