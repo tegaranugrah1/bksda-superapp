@@ -34,7 +34,7 @@ export default function BmnFormScreen() {
     setError,
     formState: { errors, isSubmitting },
   } = useForm<AssetFormData>({
-    resolver: zodResolver(assetFormSchema),
+    resolver: zodResolver(assetFormSchema) as any,
     defaultValues: {
       nama_barang: '',
       kode_barang: '',
@@ -69,7 +69,7 @@ export default function BmnFormScreen() {
         tipe: asset.tipe ?? '',
         no_polisi: asset.no_polisi ?? '',
         no_stnk: asset.no_stnk ?? '',
-        no_bpkb: asset.bpkb_1 ?? '',
+        no_bpkb: asset.no_bpkp ?? asset.no_bpkb ?? '',
         no_mesin: asset.no_mesin ?? '',
         no_rangka: asset.no_rangka ?? '',
         tanggal_perolehan: asset.tanggal_pembelian ?? '',

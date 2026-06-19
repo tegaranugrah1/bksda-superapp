@@ -1,3 +1,35 @@
+# Progress - Phase 98: Mobile BMN Photo Slots Component
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `issue/049-mobile-bmn-photo-slot`.
+
+---
+
+## Mobile BMN Photo Slots Component
+
+### Status: SELESAI
+- Scope: Mobile App (BMN Module)
+- Tujuan: Mengimplementasikan slot foto fisik aset (Tampak Depan, Belakang, Kiri, Kanan) pada layar detail aset BMN mobile, lengkap dengan image preview, status placeholder "Foto Belum Tersedia", serta integrasi permission dan aksi hapus foto aktual via API.
+
+### Implementasi
+- **Types**:
+  - Menambahkan kolom photo URLs (`foto_depan_url`, `foto_belakang_url`, `foto_kiri_url`, `foto_kanan_url`, `foto_lokasi_url`, `foto_geotag_url`, dll.) serta kolom string identitas kendaraan (`no_stnk`, `no_bpkb`, `no_bpkp`) pada interface `AssetDetail` di [types.ts](file:///e:/bksda-superapp/mobile/src/features/bmn/types.ts).
+- **Zod Validation Hardening**:
+  - Menyempurnakan skema validasi Zod [assetFormSchema.ts](file:///e:/bksda-superapp/mobile/src/features/bmn/assetFormSchema.ts) dengan menambahkan `.trim()` untuk mencegah data kosong berisi spasi lolos validasi, serta mematikan nested `ZodEffects` untuk inferensi tipe TypeScript yang optimal.
+  - Melakukan casting type resolver di `BmnFormScreen.tsx` untuk menghilangkan ketidakcocokan tipe resolver React Hook Form dengan Zod preprocessed schema.
+- **Components & Layout**:
+  - Membuat komponen grid [AssetPhotoSlotsSection.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/components/detail/AssetPhotoSlotsSection.tsx) untuk merender 4 slot foto utama.
+  - Menampilkan image preview bila foto tersedia, atau icon kamera `📷` dengan keterangan placeholder jika belum ada foto.
+  - Mengintegrasikan aksi "Ambil Foto" (jika kosong) dan "Hapus Foto" (jika tersedia dan permission `can_upload_photo` bernilai true).
+  - Me-mount komponen di [BmnDetailScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnDetailScreen.tsx) dan memprogram handler untuk memanggil endpoint `DELETE /api/bmn/assets/{asset}/photo/{type}` secara langsung dengan reload data otomatis.
+
+### Validasi
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+- `npm test`: 171 unit tests passed (termasuk unit tests baru untuk `AssetPhotoSlotsSection.test.tsx` dan `BmnDetailScreen.test.tsx`).
+
+---
+
 # Progress - Phase 97: Mobile API Readiness
 
 > Document updated: 2026-06-18

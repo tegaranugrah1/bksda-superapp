@@ -31,6 +31,9 @@ export interface AssetDetail extends AssetListItem {
   bpkb_4?: string | null;
   stnk_1?: string | null;
   stnk_2?: string | null;
+  no_stnk?: string | null;
+  no_bpkb?: string | null;
+  no_bpkp?: string | null;
   tanggal_pajak_stnk?: string | null;
   allowed_actions?: {
     can_edit: boolean;
@@ -39,6 +42,23 @@ export interface AssetDetail extends AssetListItem {
     can_loan: boolean;
     can_return: boolean;
   };
+  foto_depan_url?: string | null;
+  foto_belakang_url?: string | null;
+  foto_kiri_url?: string | null;
+  foto_kanan_url?: string | null;
+  foto_lokasi_url?: string | null;
+  foto_geotag_url?: string | null;
+  foto_geotag_path?: string | null;
+  foto_geotag_latitude?: number | null;
+  foto_geotag_longitude?: number | null;
+  foto_geotag_location_note?: string | null;
+  status_foto_geotag?: string | null;
+  foto_bpkb_1_url?: string | null;
+  foto_bpkb_2_url?: string | null;
+  foto_bpkb_3_url?: string | null;
+  foto_bpkb_4_url?: string | null;
+  foto_stnk_1_url?: string | null;
+  foto_stnk_2_url?: string | null;
 }
 
 export interface AssetPhotoSlot {

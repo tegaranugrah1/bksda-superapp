@@ -65,6 +65,13 @@ jest.mock('@/hooks/useAppTheme', () => ({
   }),
 }));
 
+// Mock central API client
+jest.mock('@/lib/api/client', () => ({
+  apiClient: {
+    delete: jest.fn(),
+  },
+}));
+
 // Mock useAssetDetail hook
 jest.mock('../../useAssetDetail', () => ({
   useAssetDetail: jest.fn(),
@@ -255,6 +262,30 @@ describe('BmnDetailScreen', () => {
     // Organization Section
     expect(allText).toContain('Organisasi & Pengguna');
     expect(allText).toContain('Budi Santoso');
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('renders photo slots section upon success', () => {
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: mockAsset,
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnDetailScreen />);
+    });
+
+    const root = tree.root;
+
+    // Verify presence of Foto Fisik BMN card title
+    const allText = root.findAllByType('Text').flat().map((n: any) => n.props.children).join(' ');
+    expect(allText).toContain('Foto Fisik BMN');
 
     act(() => {
       tree.unmount();

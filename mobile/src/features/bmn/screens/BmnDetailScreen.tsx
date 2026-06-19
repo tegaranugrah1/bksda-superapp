@@ -15,6 +15,9 @@ import { AssetDocumentSection } from '../components/detail/AssetDocumentSection'
 import { AssetFinanceSection } from '../components/detail/AssetFinanceSection';
 import { AssetOrganizationSection } from '../components/detail/AssetOrganizationSection';
 import { AssetActionBar } from '../components/detail/AssetActionBar';
+import { AssetPhotoSlotsSection } from '../components/detail/AssetPhotoSlotsSection';
+import { apiClient } from '@/lib/api/client';
+import { normalizeError } from '@/lib/api/errors';
 
 export default function BmnDetailScreen() {
   const { colors, spacing, typography } = useAppTheme();
@@ -23,6 +26,7 @@ export default function BmnDetailScreen() {
   const { id } = route.params;
 
   const { data, isLoading, error, refetch } = useAssetDetail(id);
+  const [isDeletingPhoto, setIsDeletingPhoto] = React.useState<string | null>(null);
 
   const handleEdit = () => {
     Alert.alert('Ubah Data', 'Fitur ubah data aset akan segera hadir.');
@@ -30,6 +34,37 @@ export default function BmnDetailScreen() {
 
   const handleUploadPhoto = () => {
     Alert.alert('Ambil Foto', 'Fitur ambil foto aset akan segera hadir.');
+  };
+
+  const handleCapturePhoto = (type: 'depan' | 'belakang' | 'kiri' | 'kanan') => {
+    Alert.alert('Ambil Foto', `Fitur ambil foto ${type} akan segera hadir.`);
+  };
+
+  const handleDeletePhoto = (type: 'depan' | 'belakang' | 'kiri' | 'kanan') => {
+    Alert.alert(
+      'Hapus Foto',
+      `Apakah Anda yakin ingin menghapus foto ${type} ini?`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Hapus',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeletingPhoto(type);
+            try {
+              await apiClient.delete(`/bmn/assets/${id}/photo/${type}`);
+              Alert.alert('Sukses', `Foto ${type} berhasil dihapus.`);
+              refetch();
+            } catch (err: any) {
+              const apiErr = normalizeError(err);
+              Alert.alert('Error', apiErr.message || 'Gagal menghapus foto.');
+            } finally {
+              setIsDeletingPhoto(null);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleVerify = () => {
@@ -194,6 +229,12 @@ export default function BmnDetailScreen() {
         </View>
         <AssetIdentitySection asset={data} />
         <AssetLocationSection asset={data} />
+        <AssetPhotoSlotsSection
+          asset={data}
+          onCapturePhoto={handleCapturePhoto}
+          onDeletePhoto={handleDeletePhoto}
+          isDeleting={isDeletingPhoto}
+        />
         <AssetDocumentSection asset={data} />
         <AssetFinanceSection asset={data} />
         <AssetOrganizationSection asset={data} />
