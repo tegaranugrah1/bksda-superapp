@@ -1025,7 +1025,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: keyboard does not hide active input on Android.
   - _Requirements: 12, 20_
 
-- [ ] 69. Wire Surat Tugas create/edit submit
+- [x] 69. Wire Surat Tugas create/edit submit
   - Target area: Surat Tugas form API helper.
   - Submit create/edit and map 422 errors to fields.
   - Acceptance check: success opens detail or refreshes relevant list.

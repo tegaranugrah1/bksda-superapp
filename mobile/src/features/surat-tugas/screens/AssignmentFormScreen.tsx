@@ -13,14 +13,20 @@ import {
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppButton } from '@/components/AppButton';
 import { AppTextInput } from '@/components/AppTextInput';
+import { ErrorState } from '@/components/ErrorState';
 import { IconButton } from '@/components/IconButton';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { SectionCard } from '@/components/SectionCard';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { ApiError } from '@/types/api';
+import { createAssignment, updateAssignment } from '../assignmentFormApi';
 import { assignmentFormSchema, AssignmentFormData } from '../assignmentFormSchema';
 import { SuratTugasStackParamList } from '../navigation/SuratTugasNavigator';
+import { useAssignmentDetail } from '../useAssignmentDetail';
 
 const defaultValues: AssignmentFormData = {
   nomor_surat: null,
@@ -44,15 +50,61 @@ const defaultValues: AssignmentFormData = {
   employees: [{ id: '' as any, peran: null }],
 };
 
+function mapDetailToFormValues(detail: any): AssignmentFormData {
+  return {
+    nomor_surat: detail.nomor ?? null,
+    kode_surat: detail.kode_surat ?? null,
+    tanggal_surat: detail.tanggal_surat ?? null,
+    maksud_tujuan: detail.kegiatan ?? '',
+    dasar_hukum: detail.dasar_hukum ?? null,
+    tanggal_mulai: detail.tanggal_mulai ?? '',
+    tanggal_selesai: detail.tanggal_selesai ?? '',
+    tempat_tujuan: detail.tujuan ?? '',
+    sumber_dana: detail.sumber_dana ?? 'dipa',
+    sumber_dana_other: null,
+    template_type: detail.template_type ?? null,
+    menimbang: null,
+    dasar: null,
+    tembusan: null,
+    penandatangan_nama: null,
+    penandatangan_nip: null,
+    transport_required: false,
+    transportasi: null,
+    employees:
+      detail.personel?.length > 0
+        ? detail.personel.map((personel: any) => ({
+            id: Number(personel.id),
+            peran: personel.peran ?? null,
+          }))
+        : [{ id: '' as any, peran: null }],
+  };
+}
+
+function fieldErrorKeyToFormPath(field: string): string {
+  return field
+    .replace(/^employee_ids\.(\d+)$/, 'employees.$1.id')
+    .replace(/^employees\.(\d+)\.id$/, 'employees.$1.id')
+    .replace(/^employees\.(\d+)\.peran$/, 'employees.$1.peran');
+}
+
 export default function AssignmentFormScreen() {
   const { colors, spacing, typography, radius } = useAppTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<SuratTugasStackParamList>>();
   const route = useRoute<RouteProp<SuratTugasStackParamList, 'AssignmentForm'>>();
-  const isEdit = route.params?.id !== undefined;
+  const assignmentId = route.params?.id;
+  const isEdit = assignmentId !== undefined;
+  const {
+    data: assignmentDetail,
+    isLoading,
+    error,
+    refetch,
+  } = useAssignmentDetail(assignmentId, 'management');
 
   const {
     control,
     handleSubmit,
+    reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<AssignmentFormData>({
     resolver: zodResolver(assignmentFormSchema) as any,
@@ -67,11 +119,59 @@ export default function AssignmentFormScreen() {
   const watchedValues = useWatch({ control });
   const transportRequired = watchedValues.transport_required;
 
-  const onSubmit = () => {
-    Alert.alert(
-      isEdit ? 'Ubah Surat Tugas' : 'Buat Surat Tugas',
-      'Form sudah valid. Submit API akan disambungkan pada task berikutnya.'
-    );
+  React.useEffect(() => {
+    if (isEdit && assignmentDetail) {
+      reset(mapDetailToFormValues(assignmentDetail));
+    }
+  }, [assignmentDetail, isEdit, reset]);
+
+  const mapServerFieldErrors = (apiError: ApiError) => {
+    if (apiError.kind !== 'validation' || !apiError.fieldErrors) {
+      return false;
+    }
+
+    Object.entries(apiError.fieldErrors).forEach(([field, messages]) => {
+      const message = messages[0];
+      if (message) {
+        setError(fieldErrorKeyToFormPath(field) as any, {
+          type: 'server',
+          message,
+        });
+      }
+    });
+
+    return true;
+  };
+
+  const onSubmit = async (data: AssignmentFormData) => {
+    try {
+      const savedAssignment =
+        isEdit && assignmentId !== undefined
+          ? await updateAssignment(assignmentId, data)
+          : await createAssignment(data);
+      const savedId = savedAssignment?.id ?? assignmentId;
+
+      Alert.alert(
+        isEdit ? 'Ubah Surat Tugas' : 'Buat Surat Tugas',
+        isEdit ? 'Surat Tugas berhasil diubah.' : 'Surat Tugas berhasil dibuat.'
+      );
+
+      if (savedId !== undefined) {
+        navigation.navigate('AssignmentDetail', { id: savedId, mode: 'management' });
+      } else {
+        navigation.navigate('SuratTugasList');
+      }
+    } catch (submitError) {
+      const apiError = submitError as ApiError;
+      if (mapServerFieldErrors(apiError)) {
+        return;
+      }
+
+      Alert.alert(
+        isEdit ? 'Gagal Mengubah Surat Tugas' : 'Gagal Membuat Surat Tugas',
+        apiError.message || 'Terjadi kesalahan saat menyimpan Surat Tugas.'
+      );
+    }
   };
 
   const renderHeader = () => (
@@ -97,6 +197,32 @@ export default function AssignmentFormScreen() {
       </Text>
     </View>
   );
+
+  if (isEdit && isLoading && !assignmentDetail) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        {renderHeader()}
+        <View style={{ flex: 1, paddingHorizontal: spacing.lg }}>
+          <LoadingSkeleton variant="detail" count={1} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isEdit && error) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        {renderHeader()}
+        <View style={{ flex: 1, justifyContent: 'center', padding: spacing.lg }}>
+          <ErrorState
+            title="Gagal Memuat Surat Tugas"
+            message={error.message || 'Terjadi kesalahan saat memuat data Surat Tugas.'}
+            onRetry={refetch}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
@@ -405,10 +531,10 @@ export default function AssignmentFormScreen() {
           </SectionCard>
 
           <AppButton
-            title="Validasi Form"
+            title={isEdit ? 'Simpan Perubahan' : 'Buat Surat Tugas'}
             onPress={handleSubmit(onSubmit)}
             loading={isSubmitting}
-            accessibilityLabel="Validasi form Surat Tugas"
+            accessibilityLabel={isEdit ? 'Simpan perubahan Surat Tugas' : 'Buat Surat Tugas'}
           />
         </ScrollView>
       </KeyboardAvoidingView>
