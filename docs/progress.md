@@ -4583,6 +4583,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 14 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 15: Add ErrorState component (`mobile/src/components/ErrorState.tsx`).
+- [ ] Task 15: Add ErrorState component (`mobile/src/components/ErrorState.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 15 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 15: Created `ErrorState` component in [mobile/src/components/ErrorState.tsx](file:///e:/bksda-superapp/mobile/src/components/ErrorState.tsx) for displaying general user-facing error states without exposing raw technical errors.
+- [x] Implemented optional `title`, `message` details, and optional `onRetry` callback, rendering an `AppButton` when the retry callback is provided.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/ErrorState.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/ErrorState.test.tsx).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 15 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 16: Add LoadingSkeleton component (`mobile/src/components/LoadingSkeleton.tsx`).
 
 

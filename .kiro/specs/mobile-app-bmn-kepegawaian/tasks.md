@@ -697,7 +697,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: can be reused for empty BMN and Surat Tugas lists.
   - _Requirements: 17, 20_
 
-- [ ] 15. Add ErrorState component
+- [x] 15. Add ErrorState component
   - Target area: `mobile/src/components/ErrorState.tsx`.
   - Include user-friendly message and retry button.
   - Acceptance check: no raw stack trace is displayed.
