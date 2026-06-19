@@ -1,3 +1,44 @@
+# Progress - Phase 108: Mobile Surat Tugas Detail Sections
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-65`.
+> GitHub Issue: #454.
+
+---
+
+## Mobile Surat Tugas Detail Sections
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan komponen presentational untuk detail Surat Tugas: summary, dates, personel, content, file, dan status sections.
+
+### Implementasi
+- **Components**:
+  - Membuat komponen detail di [mobile/src/features/surat-tugas/components/detail](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/components/detail):
+    - `AssignmentSummarySection`
+    - `AssignmentDatesSection`
+    - `AssignmentPersonelSection`
+    - `AssignmentContentSection`
+    - `AssignmentFileSection`
+    - `AssignmentStatusSection`
+    - `DetailRow` helper dan `index.ts` barrel export.
+  - Komponen bersifat presentational, menerima `AssignmentDetail`, dan tidak melakukan data fetching.
+  - Konten panjang seperti `dasar_hukum` dirender sebagai multiline text agar readable di layar kecil tanpa horizontal scroll.
+- **Tests**:
+  - Menambahkan [detailSections.test.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/components/detail/__tests__/detailSections.test.tsx) untuk seluruh section, fallback personel kosong, file state, allowed action badges, dan long content.
+- **Checklist**:
+  - Mencentang Task 65 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/components/detail/__tests__/detailSections.test.tsx`: 7 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 66: Build Surat Tugas detail screen.
+
+---
+
 # Progress - Phase 107: Mobile Surat Tugas Detail API Hook
 
 > Document updated: 2026-06-19
