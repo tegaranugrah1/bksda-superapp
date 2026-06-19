@@ -1,3 +1,35 @@
+# Progress - Phase 132: Mobile App MVP Release Notes Documentation
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-release-notes-task-89`.
+> GitHub Issue: #502.
+
+---
+
+## Mobile App MVP Release Notes Documentation
+
+### Status: SELESAI
+- Scope: Mobile App (Release Notes)
+- Tujuan: Mendokumentasikan catatan rilis internal (`release-notes.md`) untuk aplikasi mobile versi 1.0.0 (MVP) yang memuat daftar fitur, keterbatasan sistem, panduan instalasi, panduan pemulihan (rollback), dan kesiapan iOS.
+
+### Implementasi
+- **Dokumentasi `mobile/docs/release-notes.md`**:
+  - Membuat berkas [release-notes.md](file:///e:/bksda-superapp/mobile/docs/release-notes.md) dengan konten terstruktur.
+  - Mencantumkan daftar fitur utama yang telah diselesaikan (Milestones 1 s.d. 3).
+  - Menyebutkan secara eksplisit keterbatasan sistem (aplikasi selalu online/online-only, dan tidak adanya generator dokumen cetak BMN).
+  - Menyediakan panduan instalasi menggunakan Expo Go maupun standalone APK via EAS Build.
+  - Menyediakan panduan rollback git commit dan kesiapan iOS.
+- **Checklist**:
+  - Mencentang Task 89 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- Berkas `release-notes.md` tersimpan dengan benar dan dapat diakses.
+
+### Next Steps
+- [ ] Task 90: Update progress after release preparation.
+
+---
+
 # Progress - Phase 131: Mobile Android EAS Build Configuration
 
 > Document updated: 2026-06-19

@@ -1149,7 +1149,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: artifact is generated and installable on a test device.
   - _Requirements: 19, 20_
 
-- [ ] 89. Write internal release notes
+- [x] 89. Write internal release notes
   - Target area: `mobile/docs/release-notes.md` or root docs.
   - Include included features, known limitations, install notes, and rollback notes.
   - Acceptance check: notes mention online-only MVP and no BMN document generator.
