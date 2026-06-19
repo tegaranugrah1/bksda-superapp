@@ -4711,6 +4711,20 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 24 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 25: Add auth context (`mobile/src/features/auth/AuthProvider.tsx`).
+- [ ] Task 25: Add auth context (`mobile/src/features/auth/AuthProvider.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 25 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Installed `test-renderer` dependency in [mobile/package.json](file:///e:/bksda-superapp/mobile/package.json) using `--legacy-peer-deps` to bypass upstream React 19 testing library conflicts.
+- [x] Created `AuthProvider` context provider and custom `useAuth` hook in [mobile/src/features/auth/AuthProvider.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/AuthProvider.tsx) storing `user`, `employee`, `token`, and `isLoading` states.
+- [x] Configured automatic token loading and user profile retrieval on app mount, along with fallback cleanup for token and user state on profile retrieval failures.
+- [x] Implemented robust local cleanup in the logout flow to delete secure credentials, even in case of backend API failure.
+- [x] Written warning-free unit tests in [mobile/src/features/auth/__tests__/AuthProvider.test.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/__tests__/AuthProvider.test.tsx) using `react-test-renderer` and `act` to assert startup loading states, successful login, local storage synchronization, and local logout fallback cleanup.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 25 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 26: Add permission helpers (`mobile/src/lib/permissions.ts`).
 
 

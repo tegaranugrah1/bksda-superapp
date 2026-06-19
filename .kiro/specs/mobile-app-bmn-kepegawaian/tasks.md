@@ -757,7 +757,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: login calls `POST /api/login`; me calls `GET /api/me`.
   - _Requirements: 1, 2_
 
-- [ ] 25. Add auth context
+- [x] 25. Add auth context
   - Target area: `mobile/src/features/auth/AuthProvider.tsx`.
   - Store user, employee, token state, and loading state.
   - Acceptance check: app can distinguish unauthenticated, loading, and authenticated states.
