@@ -5004,7 +5004,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Implemented a touch-friendly conditions custom chip selector to bypass raw inputs.
 - [x] Developed comprehensive screen tests in `BmnFormScreen.test.tsx` achieving 100% test coverage for create/edit layouts, form submissions, loaders, and navigation.
 
+- [x] Task 48: Wire asset create/update submit (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 48 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Wired API creation (`POST /bmn/assets`) and update (`PUT /bmn/assets/{id}`) submit requests using `apiClient`.
+- [x] Checked permissions fail-closed on mounting: users require `bmn.asset.create` for new entries and `bmn.asset.update` (or `can_edit` allowed action) for updates.
+- [x] Implemented mappings from backend Laravel 422 validation field errors directly to React Hook Form fields.
+- [x] Handled special field mapping conversions (e.g. mapping backend error parameter `no_bpkp` back to form input `no_bpkb`).
+- [x] Updated unit tests in `BmnFormScreen.test.tsx` verifying successful creation post, update put, 422 error mapper, and fail-closed permission gates.
+
 ### Next Steps
-- [ ] Task 48: Wire asset create/update submit.
+- [ ] Task 49: Add photo slot.
 
 
