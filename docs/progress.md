@@ -4790,6 +4790,21 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 30 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 31: Add dashboard summary components.
+- [x] Task 31: Add dashboard summary components (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 31 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Created `ProfileSummary` component at [mobile/src/features/dashboard/components/ProfileSummary.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/components/ProfileSummary.tsx) rendering user details, avatar image, and letter-avatar placeholder when employee link is absent.
+- [x] Created `MetricCard` component at [mobile/src/features/dashboard/components/MetricCard.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/components/MetricCard.tsx) displaying counts with customizable semantic color variants (success, warning, info, danger, primary, neutral).
+- [x] Created `AlertCard` component at [mobile/src/features/dashboard/components/AlertCard.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/components/AlertCard.tsx) displaying vehicle tax notifications pre-interpolated to avoid text nodes rendering arrays in test environments.
+- [x] Created `QuickActions` component at [mobile/src/features/dashboard/components/QuickActions.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/components/QuickActions.tsx) that delegates all display logic to permission state parameters (such as `canViewBmn`, `canLoanBmn`, etc.) passed down as props, strictly satisfying the contract to avoid hardcoding permission checks.
+- [x] Wrote unit tests for all four components in `mobile/src/features/dashboard/components/__tests__/` asserting rendering states, text outputs, styling variants, and button actions.
+- [x] Wrapped all test renders in `act()` blocks and mocked timers to prevent scheduler leaks and React environment teardown warnings.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 31 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 32: Build dashboard screen.
 
 

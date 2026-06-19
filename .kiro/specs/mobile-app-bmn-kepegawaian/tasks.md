@@ -795,7 +795,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: hook exposes loading, data, error, and refetch.
   - _Requirements: 3, 17_
 
-- [ ] 31. Add dashboard summary components
+- [x] 31. Add dashboard summary components
   - Target area: `mobile/src/features/dashboard/components`.
   - Build profile summary, metric card, alert card, and quick action components.
   - Acceptance check: quick action receives permission state as props.
