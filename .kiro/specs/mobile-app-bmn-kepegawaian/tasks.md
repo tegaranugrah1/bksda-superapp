@@ -721,7 +721,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: missing base URL produces developer-friendly error.
   - _Requirements: 17, 19_
 
-- [ ] 19. Add secure token storage helper
+- [x] 19. Add secure token storage helper
   - Target area: `mobile/src/lib/auth/tokenStorage.ts`.
   - Use secure storage, not plain async storage.
   - Acceptance check: helper exposes get, set, and clear token functions.

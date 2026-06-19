@@ -4633,6 +4633,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 18 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 19: Add secure token storage helper (`mobile/src/lib/auth/tokenStorage.ts`).
+- [ ] Task 19: Add secure token storage helper (`mobile/src/lib/auth/tokenStorage.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 19 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 19: Created secure token storage helper in [mobile/src/lib/auth/tokenStorage.ts](file:///e:/bksda-superapp/mobile/src/lib/auth/tokenStorage.ts) using `expo-secure-store`.
+- [x] Implemented `setToken`, `getToken`, and `clearToken` functions to securely persist, retrieve, and delete the user's authentication token.
+- [x] Wrote comprehensive unit tests in [mobile/src/lib/auth/__tests__/tokenStorage.test.ts](file:///e:/bksda-superapp/mobile/src/lib/auth/__tests__/tokenStorage.test.ts) mocking `expo-secure-store` and verifying correct handling of key-value storage.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 19 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 20: Add API response normalizer (`mobile/src/lib/api/normalize.ts`).
 
 
