@@ -4670,6 +4670,21 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 21 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 22: Add central API client (`mobile/src/lib/api/client.ts`).
+- [ ] Task 22: Add central API client (`mobile/src/lib/api/client.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 22 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Installed `axios` in [mobile/package.json](file:///e:/bksda-superapp/mobile/package.json) using `--legacy-peer-deps` to bypass React 19 dependency resolution warnings.
+- [x] Created central Axios API client in [mobile/src/lib/api/client.ts](file:///e:/bksda-superapp/mobile/src/lib/api/client.ts) pointing to the configured `baseURL` from Task 18.
+- [x] Integrated request interceptor that injects standard `Accept: application/json` and `X-Client: mobile` headers, and automatically fetches and attaches the authentication token as `Authorization: Bearer <token>` when present.
+- [x] Configured request/response interceptors to automatically filter/prevent logs of authorization headers, passwords, and tokens.
+- [x] Added response interceptor that automatically standardizes success responses using `normalizeResponse` and rejects errors with `normalizeError`, including clearing the secure token storage on 401 Unauthorized errors.
+- [x] Wrote unit tests in [mobile/src/lib/api/__tests__/client.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/client.test.ts) utilizing a custom Axios default adapter to simulate network request roundtrips and assert header presence, payload normalization, and 401 token cleanup.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 22 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 23: Add mobile query helper (`mobile/src/lib/api/mobileParams.ts`).
 
 

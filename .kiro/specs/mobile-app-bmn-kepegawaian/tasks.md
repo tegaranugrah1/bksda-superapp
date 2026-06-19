@@ -739,7 +739,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: 422 returns field-level error map.
   - _Requirements: 17_
 
-- [ ] 22. Add central API client
+- [x] 22. Add central API client
   - Target area: `mobile/src/lib/api/client.ts`.
   - Attach token, `Accept: application/json`, and `X-Client: mobile`.
   - Acceptance check: authenticated request includes the expected headers.
