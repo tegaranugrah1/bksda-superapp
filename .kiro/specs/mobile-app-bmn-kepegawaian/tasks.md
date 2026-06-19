@@ -849,7 +849,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: typing three letters does not send three immediate API calls.
   - _Requirements: 5, 18_
 
-- [ ] 40. Add BMN filter sheet
+- [x] 40. Add BMN filter sheet
   - Target area: `mobile/src/features/bmn/components/AssetFilterSheet.tsx`.
   - Include condition, type, location, status, and verification filters where supported.
   - Acceptance check: applying filter resets list to page 1.

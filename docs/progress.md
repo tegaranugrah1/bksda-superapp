@@ -4909,6 +4909,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 39 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 40: Add BMN filter sheet.
+- [x] Task 40: Add BMN filter sheet (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 40 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Created `AssetFilterSheet` component in [mobile/src/features/bmn/components/AssetFilterSheet.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/components/AssetFilterSheet.tsx) featuring a slide-up modal for BMN filtering.
+- [x] Implemented UI filters for condition (`kondisi`), type (`jenis_bmn`), and location (`lokasi_ruang`) using styled selectable chip components.
+- [x] Leveraged React key-reset patterns on `AssetFilterSheet` to sync/reset local modal selection states, avoiding redundant synchronous render updates in `useEffect`.
+- [x] Integrated filter state updates and visibility triggers inside `BmnListScreen` in [mobile/src/features/bmn/screens/BmnListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnListScreen.tsx).
+- [x] Wrote comprehensive unit tests in [mobile/src/features/bmn/components/__tests__/AssetFilterSheet.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/components/__tests__/AssetFilterSheet.test.tsx) asserting layout visibility, option selections, clearing, and the filter application callback.
+- [x] Checked off completed task 40 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 41: Add BMN list states.
 
 
