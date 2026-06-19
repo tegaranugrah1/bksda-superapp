@@ -5,6 +5,7 @@ import SuratTugasListScreen from '../SuratTugasListScreen';
 import { useAssignments } from '../../useAssignments';
 
 const mockNavigate = jest.fn();
+const mockCan = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -57,6 +58,7 @@ jest.mock('@/hooks/useAppTheme', () => ({
 jest.mock('@/lib/permissions', () => ({
   usePermissions: jest.fn(() => ({
     hasModule: (moduleName: string) => moduleName === 'surat_tugas',
+    can: mockCan,
   })),
 }));
 
@@ -83,6 +85,7 @@ describe('SuratTugasListScreen', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockCan.mockImplementation((permission: string) => permission === 'create-assignments');
     (useAssignments as jest.Mock).mockReturnValue({
       items: mockAssignments,
       isLoading: false,
@@ -317,6 +320,24 @@ describe('SuratTugasListScreen', () => {
       id: 'st-1',
       mode: 'personal',
     });
+
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('opens assignment form when create action is pressed', () => {
+    let tree: renderer.ReactTestRenderer;
+    act(() => {
+      tree = renderer.create(<SuratTugasListScreen />);
+    });
+
+    const createButton = tree!.root.findByProps({ accessibilityLabel: 'Buat Surat Tugas' });
+    act(() => {
+      createButton.props.onPress();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('AssignmentForm');
 
     act(() => {
       tree!.unmount();

@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { AppButton } from '@/components/AppButton';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { SearchInput } from '@/components/SearchInput';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -27,8 +28,10 @@ const statusFilters: { label: string; value: StatusFilter }[] = [
 export default function SuratTugasListScreen() {
   const { colors, spacing, radius, typography } = useAppTheme();
   const navigation = useNavigation<NativeStackNavigationProp<SuratTugasStackParamList>>();
-  const { hasModule } = usePermissions();
+  const { hasModule, can } = usePermissions();
   const canUseManagementMode = hasModule('surat_tugas') || hasModule('kepegawaian');
+  const canCreateAssignment =
+    can('create-assignments') || can('surat_tugas.create') || can('surat_tugas.manage');
   const [mode, setMode] = React.useState<AssignmentListMode>('personal');
   const [search, setSearch] = React.useState('');
   const [debouncedSearch, setDebouncedSearch] = React.useState('');
@@ -130,32 +133,41 @@ export default function SuratTugasListScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.container, { paddingHorizontal: spacing.lg, paddingTop: spacing.md }]}>
         <View style={[styles.header, { marginBottom: spacing.lg }]}>
-          <Text
-            style={[
-              styles.title,
-              {
-                color: colors.foreground,
-                fontFamily: typography.fontFamilies.sans,
-                fontSize: typography.fontSizes.xl,
-                fontWeight: typography.fontWeights.bold,
-              },
-            ]}
-          >
-            Surat Tugas
-          </Text>
-          <Text
-            style={[
-              styles.subtitle,
-              {
-                color: colors.mutedForeground,
-                fontFamily: typography.fontFamilies.sans,
-                fontSize: typography.fontSizes.sm,
-                marginTop: spacing.xs,
-              },
-            ]}
-          >
-            {modeLabel}
-          </Text>
+          <View style={styles.headerText}>
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: colors.foreground,
+                  fontFamily: typography.fontFamilies.sans,
+                  fontSize: typography.fontSizes.xl,
+                  fontWeight: typography.fontWeights.bold,
+                },
+              ]}
+            >
+              Surat Tugas
+            </Text>
+            <Text
+              style={[
+                styles.subtitle,
+                {
+                  color: colors.mutedForeground,
+                  fontFamily: typography.fontFamilies.sans,
+                  fontSize: typography.fontSizes.sm,
+                  marginTop: spacing.xs,
+                },
+              ]}
+            >
+              {modeLabel}
+            </Text>
+          </View>
+          {canCreateAssignment ? (
+            <AppButton
+              title="Buat"
+              onPress={() => navigation.navigate('AssignmentForm')}
+              accessibilityLabel="Buat Surat Tugas"
+            />
+          ) : null}
         </View>
 
         <View style={[styles.modeRow, { marginBottom: spacing.md }]}>
@@ -276,7 +288,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {},
+  header: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  headerText: {
+    flex: 1,
+    paddingRight: 12,
+  },
   title: {
     lineHeight: 28,
   },

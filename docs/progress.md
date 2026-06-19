@@ -1,3 +1,42 @@
+# Progress - Phase 111: Mobile Surat Tugas Form Shell
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-68`.
+> GitHub Issue: #460.
+
+---
+
+## Mobile Surat Tugas Form Shell
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan layar form Surat Tugas mobile dengan layout berseksi dan siap dihubungkan ke submit API pada task berikutnya.
+
+### Implementasi
+- **Screen**:
+  - Membuat `AssignmentFormScreen` dengan section Informasi Surat, Tanggal & Tujuan, Personel, Dana & Transport, dan Review.
+  - Menggunakan `assignmentFormSchema` melalui React Hook Form untuk validasi lokal.
+  - Menambahkan dynamic personel row, conditional transport input, dan review ringkas dari nilai form.
+  - Membungkus form dengan `KeyboardAvoidingView` dan `ScrollView` dengan `keyboardShouldPersistTaps="handled"` agar input aktif tetap dapat diakses saat keyboard muncul di Android.
+- **Navigation**:
+  - Menambahkan route `AssignmentForm` ke `SuratTugasNavigator`.
+  - Menambahkan CTA `Buat` di list Surat Tugas untuk user yang memiliki permission create.
+- **Tests**:
+  - Menambahkan test render section form, edit title, add personel, conditional transport, validasi lokal, dan placeholder submit.
+  - Memperbarui test list screen untuk memastikan CTA create membuka `AssignmentForm`.
+- **Checklist**:
+  - Mencentang Task 68 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/screens/__tests__/AssignmentFormScreen.test.tsx src/features/surat-tugas/screens/__tests__/SuratTugasListScreen.test.tsx`: 15 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 69: Wire Surat Tugas create/edit submit.
+
+---
+
 # Progress - Phase 110: Mobile Surat Tugas Form Schema
 
 > Document updated: 2026-06-19
