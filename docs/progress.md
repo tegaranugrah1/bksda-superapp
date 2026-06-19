@@ -4608,6 +4608,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 16 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 17: Add ConfirmDialog component (`mobile/src/components/ConfirmDialog.tsx`).
+- [ ] Task 17: Add ConfirmDialog component (`mobile/src/components/ConfirmDialog.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 17 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 17: Created `ConfirmDialog` component in [mobile/src/components/ConfirmDialog.tsx](file:///e:/bksda-superapp/mobile/src/components/ConfirmDialog.tsx) using React Native's `Modal` component.
+- [x] Configured support for overlay overlay backdrop press, dialog `title`, `message`, `visible` flag, and confirm/cancel callbacks, with support for destructive red theme option.
+- [x] Resolved a TypeScript typecheck error by using explicit style properties for backdrop overlay absolute positioning instead of `StyleSheet.absoluteFillObject` which wasn't fully typed.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/ConfirmDialog.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/ConfirmDialog.test.tsx).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 17 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 18: Add API configuration (`mobile/src/lib/api/config.ts`).
 
 

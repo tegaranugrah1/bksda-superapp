@@ -709,7 +709,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: list screens can show skeleton while loading.
   - _Requirements: 18, 20_
 
-- [ ] 17. Add ConfirmDialog component
+- [x] 17. Add ConfirmDialog component
   - Target area: `mobile/src/components/ConfirmDialog.tsx`.
   - Support title, message, confirm, cancel, danger mode.
   - Acceptance check: destructive action cannot run without explicit confirm handler.
