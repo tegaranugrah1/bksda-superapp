@@ -1055,7 +1055,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: missing file shows user-friendly error.
   - _Requirements: 14, 17_
 
-- [ ] 74. Build employee selector API hook
+- [x] 74. Build employee selector API hook
   - Target area: `mobile/src/features/employees/useEmployeeSearch.ts`.
   - Search employees by name and NIP with pagination.
   - Acceptance check: hook does not fetch all employees at once.

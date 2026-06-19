@@ -1,3 +1,42 @@
+# Progress - Phase 117: Mobile Employee Selector Search Hook
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-employee-search-task-74`.
+> GitHub Issue: #472.
+
+---
+
+## Mobile Employee Selector Search Hook
+
+### Status: SELESAI
+- Scope: Mobile App (Employees Feature)
+- Tujuan: Menyediakan hook pencarian pegawai paginated untuk selector mobile yang dapat dipakai BMN dan Surat Tugas.
+
+### Implementasi
+- **Types**:
+  - Menambahkan `EmployeeSelectorItem` dan `EmployeeSearchFilters` di [types.ts](file:///e:/bksda-superapp/mobile/src/features/employees/types.ts).
+- **Hook**:
+  - Membuat [useEmployeeSearch.ts](file:///e:/bksda-superapp/mobile/src/features/employees/useEmployeeSearch.ts).
+  - Menggunakan endpoint paginated `/kepegawaian/employees`, bukan endpoint select yang masih `limit(200)`.
+  - Mengirim `mobile=true`, `page`, `per_page`, dan `search` melalui `withMobileParams`.
+  - Default `per_page=20` agar hook tidak mengambil seluruh pegawai sekaligus.
+  - Menormalisasi field pegawai menjadi `id`, `name`, `nip`, `jabatan`, dan `unit_kerja`.
+  - Mendukung refresh, fetch next page, loading state, pagination state, dan error state.
+- **Tests**:
+  - Menambahkan [useEmployeeSearch.test.tsx](file:///e:/bksda-superapp/mobile/src/features/employees/__tests__/useEmployeeSearch.test.tsx) untuk params mobile, default per_page, append next page, dan API error.
+- **Checklist**:
+  - Mencentang Task 74 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/employees/__tests__/useEmployeeSearch.test.tsx`: 4 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 75: Build employee selector sheet.
+
+---
+
 # Progress - Phase 116: Mobile File Viewer and Share Helper
 
 > Document updated: 2026-06-19
