@@ -4725,6 +4725,20 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 25 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 26: Add permission helpers (`mobile/src/lib/permissions.ts`).
+- [ ] Task 26: Add permission helpers (`mobile/src/lib/permissions.ts`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 26 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Created permission utility module in [mobile/src/lib/permissions.ts](file:///e:/bksda-superapp/mobile/src/lib/permissions.ts) containing pure helper functions: `isSuperAdmin`, `hasModule`, and `can`.
+- [x] Configured all helpers to follow a strict fail-closed pattern (returning false) if the user object or the permission/module array data is null, undefined, or missing.
+- [x] Configured superadmin privileges check to bypass module and action lists automatically based on role, avoiding hardcoded NIPs, usernames, or emails.
+- [x] Exposed `usePermissions` custom React hook to automatically fetch user data from the active context and expose bound check functions.
+- [x] Wrote comprehensive unit tests in [mobile/src/lib/__tests__/permissions.test.tsx](file:///e:/bksda-superapp/mobile/src/lib/__tests__/permissions.test.tsx) asserting normal user permission checks, superadmin auto-grants, null-data boundaries, and hook integrations.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 26 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 27: Add root navigation shell (`mobile/src/navigation/index.tsx`).
 
 

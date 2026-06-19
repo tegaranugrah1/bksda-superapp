@@ -763,7 +763,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: app can distinguish unauthenticated, loading, and authenticated states.
   - _Requirements: 1, 2_
 
-- [ ] 26. Add permission helpers
+- [x] 26. Add permission helpers
   - Target area: `mobile/src/lib/permissions.ts`.
   - Implement `can`, `hasModule`, and `isSuperAdmin`.
   - Acceptance check: helpers handle missing permissions safely.
