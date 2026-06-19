@@ -1069,7 +1069,7 @@ Use this matrix together with the numbered task. A lower-capability model should
 
 ### Milestone 4: Android Internal Beta
 
-- [ ] 76. Build profile screen
+- [x] 76. Build profile screen
   - Target area: `mobile/src/features/profile/ProfileScreen.tsx`.
   - Show user identity, employee data, role, access modules, and logout action.
   - Acceptance check: token/session values are never displayed.

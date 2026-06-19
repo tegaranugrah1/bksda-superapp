@@ -1,3 +1,38 @@
+# Progress - Phase 119: Mobile Profile Screen
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-profile-screen-task-76`.
+> GitHub Issue: #476.
+
+---
+
+## Mobile Profile Screen
+
+### Status: SELESAI
+- Scope: Mobile App (Profile Feature)
+- Tujuan: Mengganti placeholder profil dengan layar profil yang menampilkan identitas pengguna tanpa membocorkan token/session.
+
+### Implementasi
+- **Screen**:
+  - Memperbarui [ProfileScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/screens/ProfileScreen.tsx), lokasi yang dipakai oleh `AppTabs`.
+  - Menampilkan identitas pengguna, username/NIP, role, data pegawai, modul akses, dan tombol logout.
+  - Menyediakan fallback saat akun belum terhubung ke data pegawai.
+  - Tidak merender nilai token/session walaupun token tersedia di `useAuth`.
+- **Tests**:
+  - Menambahkan [ProfileScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/screens/__tests__/ProfileScreen.test.tsx) untuk render data profil, fallback tanpa pegawai, aksi logout, dan guard token/session tidak tampil.
+- **Checklist**:
+  - Mencentang Task 76 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/profile/screens/__tests__/ProfileScreen.test.tsx`: 4 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 77: Add logout confirmation flow.
+
+---
+
 # Progress - Phase 118: Mobile Employee Selector Sheet
 
 > Document updated: 2026-06-19
