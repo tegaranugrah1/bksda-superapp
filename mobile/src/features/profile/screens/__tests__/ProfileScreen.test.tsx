@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Alert, Text } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import ProfileScreen from '../ProfileScreen';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -91,13 +91,17 @@ function getTextValues(root: renderer.ReactTestInstance) {
 }
 
 describe('ProfileScreen', () => {
+  let alertSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.useFakeTimers();
     mockLogout.mockClear();
+    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     mockAuth();
   });
 
   afterEach(() => {
+    alertSpy.mockRestore();
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
   });
@@ -160,7 +164,7 @@ describe('ProfileScreen', () => {
     expect(texts).toContain('Tidak ada modul akses');
   });
 
-  it('calls logout from auth context when logout action is pressed', () => {
+  it('asks for confirmation before calling logout from auth context', () => {
     let tree: renderer.ReactTestRenderer;
 
     act(() => {
@@ -169,6 +173,34 @@ describe('ProfileScreen', () => {
 
     act(() => {
       tree!.root.findByProps({ accessibilityLabel: 'Logout' }).props.onPress();
+    });
+
+    expect(mockLogout).not.toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Logout',
+      'Keluar dari aplikasi di perangkat ini?',
+      expect.arrayContaining([
+        expect.objectContaining({ text: 'Batal', style: 'cancel' }),
+        expect.objectContaining({ text: 'Logout', style: 'destructive', onPress: mockLogout }),
+      ])
+    );
+  });
+
+  it('calls logout when destructive confirmation is selected', () => {
+    let tree: renderer.ReactTestRenderer;
+
+    act(() => {
+      tree = renderer.create(<ProfileScreen />);
+    });
+
+    act(() => {
+      tree!.root.findByProps({ accessibilityLabel: 'Logout' }).props.onPress();
+    });
+
+    const confirmAction = alertSpy.mock.calls[0][2].find((action: { text: string }) => action.text === 'Logout');
+
+    act(() => {
+      confirmAction.onPress();
     });
 
     expect(mockLogout).toHaveBeenCalledTimes(1);
