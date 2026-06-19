@@ -1,3 +1,39 @@
+# Progress - Phase 106: Mobile Surat Tugas List Pagination and States
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-63`.
+> GitHub Issue: #450.
+
+---
+
+## Mobile Surat Tugas List Pagination and States
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Melengkapi screen daftar Surat Tugas dengan loading skeleton, empty state, error state + retry, pull-to-refresh, dan infinite pagination footer.
+
+### Implementasi
+- **Screen States**:
+  - Memperbarui [SuratTugasListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/screens/SuratTugasListScreen.tsx) agar memakai state lengkap dari `useAssignments`.
+  - Menambahkan `LoadingSkeleton` saat initial load, `ErrorState` khusus saat gagal memuat, dan `EmptyState` berbeda saat data kosong.
+- **Pagination & Refresh**:
+  - Menghubungkan `FlatList` ke `refreshing`, `onRefresh`, `onEndReached`, dan `ListFooterComponent`.
+  - Menampilkan `ActivityIndicator` footer saat `isFetchingNextPage` aktif.
+- **Tests**:
+  - Memperluas [SuratTugasListScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/screens/__tests__/SuratTugasListScreen.test.tsx) untuk loading skeleton, empty state, error retry, pull-to-refresh, pagination trigger, dan footer spinner.
+- **Checklist**:
+  - Mencentang Task 63 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/screens/__tests__/SuratTugasListScreen.test.tsx`: 7 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 64: Add Surat Tugas detail API hook.
+
+---
+
 # Progress - Phase 105: Mobile Surat Tugas List Screen Shell
 
 > Document updated: 2026-06-19
