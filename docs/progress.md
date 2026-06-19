@@ -4962,7 +4962,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Wrote comprehensive tests in [mobile/src/features/bmn/components/detail/__tests__/detailSections.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/components/detail/__tests__/detailSections.test.tsx) asserting layout rendering and data matching for all 6 section components.
 - [x] Checked off completed task 43 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
+- [x] Task 44: Build asset detail screen (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 44 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Created BMN detail screen `BmnDetailScreen.tsx` presenting the six asset detail sections in a scrollable view.
+- [x] Created `BmnNavigator.tsx` stack navigator defining the `BmnList` and `BmnDetail` screens, nested inside the main BMN tab screen.
+- [x] Integrated custom back navigation header and wired card taps on BmnListScreen to detail screen navigation.
+- [x] Handled loading, general error, and custom forbidden / not found error states with retry callback.
+- [x] Developed comprehensive unit tests in `BmnDetailScreen.test.tsx` achieving 100% test coverage for all rendering paths and handlers.
+
 ### Next Steps
-- [ ] Task 44: Build asset detail screen.
+- [ ] Task 45: Add asset action bar.
 
 
