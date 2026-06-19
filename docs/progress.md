@@ -1,3 +1,38 @@
+# Progress - Phase 105: Mobile Surat Tugas List Screen Shell
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-62`.
+> GitHub Issue: #448.
+
+---
+
+## Mobile Surat Tugas List Screen Shell
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Mengganti placeholder daftar Surat Tugas dengan screen shell yang menampilkan header, mode personal/manajemen, search, status filter, dan list card mobile.
+
+### Implementasi
+- **Screen Shell**:
+  - Memperbarui [SuratTugasListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/screens/SuratTugasListScreen.tsx) untuk memakai `useAssignments`, `AssignmentCard`, `SearchInput`, mode segmented controls, status chips, dan `FlatList`.
+  - Menampilkan label mode aktif ("Mode Personal" atau "Mode Manajemen") secara eksplisit.
+  - Mode manajemen hanya muncul bila user memiliki akses modul `surat_tugas` atau `kepegawaian`.
+  - Memakai `SafeAreaView` dari `react-native-safe-area-context` agar tidak menambah warning deprecation baru.
+- **Tests**:
+  - Menambahkan [SuratTugasListScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/screens/__tests__/SuratTugasListScreen.test.tsx) untuk header, mode label, search, status filters, card rendering, mode switch, dan debounce search.
+- **Checklist**:
+  - Mencentang Task 62 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/screens/__tests__/SuratTugasListScreen.test.tsx`: 3 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 63: Add Surat Tugas list pagination and states.
+
+---
+
 # Progress - Phase 104: Mobile Surat Tugas AssignmentCard Component
 
 > Document updated: 2026-06-19

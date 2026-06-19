@@ -983,7 +983,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: status badge includes text.
   - _Requirements: 11, 20_
 
-- [ ] 62. Build Surat Tugas list screen shell
+- [x] 62. Build Surat Tugas list screen shell
   - Target area: `mobile/src/features/surat-tugas/AssignmentListScreen.tsx`.
   - Render header, search, status filter, and list.
   - Acceptance check: personal/management mode label is visible.
