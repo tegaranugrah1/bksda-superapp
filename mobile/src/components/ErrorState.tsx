@@ -17,9 +17,17 @@ export function ErrorState({
   const { colors, spacing, typography } = useAppTheme();
 
   return (
-    <View style={[styles.container, { padding: spacing.xxl }]}>
+    <View
+      accessibilityRole="summary"
+      accessibilityLabel={`${title}. ${message}`}
+      style={[styles.container, { padding: spacing.xxl }]}
+    >
       {/* Error Icon (using cross-platform warning emoji) */}
-      <Text style={[styles.icon, { fontSize: typography.fontSizes.xxxl, marginBottom: spacing.md }]}>
+      <Text
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no"
+        style={[styles.icon, { fontSize: typography.fontSizes.xxxl, marginBottom: spacing.md }]}
+      >
         ⚠️
       </Text>
 

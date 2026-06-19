@@ -93,4 +93,21 @@ describe('StatusBadge', () => {
     const flatTextStyle = StyleSheet.flatten(textInstance.props.style);
     expect(flatTextStyle.color).toBe('#991b1b');
   });
+
+  it('has correct accessibility properties', () => {
+    let tree: any;
+    act(() => {
+      tree = renderer.create(
+        <StatusBadge text="Aktif" status="success" />
+      );
+    });
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    const viewInstance = tree.root.children[0];
+    expect(viewInstance.props.accessibilityRole).toBe('text');
+    expect(viewInstance.props.accessibilityLabel).toBe('Status: Aktif');
+  });
 });

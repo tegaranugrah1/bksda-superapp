@@ -133,6 +133,7 @@ describe('SearchInput', () => {
 
     const clearButton = tree.root.findByType(TouchableOpacity);
     expect(clearButton).toBeTruthy();
+    expect(clearButton.props.accessibilityLabel).toBe('Bersihkan pencarian');
 
     act(() => {
       clearButton.props.onPress();

@@ -1,3 +1,38 @@
+# Progress - Phase 126: Mobile Components Accessibility Pass
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-accessibility-pass-task-83`.
+> GitHub Issue: #490.
+
+---
+
+## Mobile Components Accessibility Pass
+
+### Status: SELESAI
+- Scope: Mobile App (Shared Components)
+- Tujuan: Meningkatkan aksesibilitas (a11y) pada komponen UI dasar dengan peran, label, dan penyembunyian elemen dekoratif yang sesuai untuk pembaca layar (screen reader).
+
+### Implementasi
+- **Komponen**:
+  - `SearchInput`: Menerjemahkan `accessibilityLabel` tombol pembersih menjadi bahasa Indonesia (`"Bersihkan pencarian"`).
+  - `ConfirmDialog`: Menambahkan properti `accessibilityViewIsModal={true}` dan `importantForAccessibility="yes"` pada kontainer dialog agar fokus pembaca layar terkunci hanya di dalam modal dialog.
+  - `EmptyState` & `ErrorState`: Menyembunyikan emoji dekoratif (`📭` dan `⚠️`) menggunakan `accessibilityElementsHidden={true}` dan `importantForAccessibility="no"`. Mengelompokkan kontainer utama dengan `accessibilityRole="summary"` dan `accessibilityLabel` gabungan.
+  - `OfflineBanner`: Menambahkan properti `accessibilityLiveRegion="polite"` pada banner penunjuk status koneksi offline.
+  - `SectionCard`: Menambahkan `accessibilityRole="header"` pada kontainer judul seksi.
+  - `StatusBadge`: Menambahkan `accessibilityRole="text"` dan `accessibilityLabel` terformat (`"Status: [Teks Badge]"`).
+- **Checklist**:
+  - Mencentang Task 83 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test`: Seluruh 305 unit test berhasil dijalankan dan lulus.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 84: Add security hardening pass.
+
+---
+
 # Progress - Phase 125: Mobile Form Validation Unit Tests
 
 > Document updated: 2026-06-19

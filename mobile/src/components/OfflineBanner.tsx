@@ -28,6 +28,7 @@ export function OfflineBanner({
       ]}
       accessibilityRole="alert"
       accessibilityLabel="Banner offline"
+      accessibilityLiveRegion="polite"
     >
       <Text
         style={[
