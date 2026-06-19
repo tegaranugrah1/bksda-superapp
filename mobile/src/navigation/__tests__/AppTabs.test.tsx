@@ -36,7 +36,7 @@ jest.mock('@react-navigation/bottom-tabs', () => {
 // Mock child screens
 jest.mock('@/features/dashboard/screens/DashboardScreen', () => () => null);
 jest.mock('@/features/bmn/navigation/BmnNavigator', () => () => null);
-jest.mock('@/features/surat-tugas/screens/SuratTugasListScreen', () => () => null);
+jest.mock('@/features/surat-tugas/navigation/SuratTugasNavigator', () => () => null);
 jest.mock('@/features/profile/screens/ProfileScreen', () => () => null);
 
 describe('AppTabs', () => {

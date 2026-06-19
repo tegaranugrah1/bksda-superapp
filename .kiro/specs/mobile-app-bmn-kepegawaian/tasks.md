@@ -1007,7 +1007,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: long content is readable without horizontal scroll.
   - _Requirements: 11, 14, 20_
 
-- [ ] 66. Build Surat Tugas detail screen
+- [x] 66. Build Surat Tugas detail screen
   - Target area: `mobile/src/features/surat-tugas/AssignmentDetailScreen.tsx`.
   - Render detail sections and permission-gated actions.
   - Acceptance check: file action appears only if backend says file is available/allowed.

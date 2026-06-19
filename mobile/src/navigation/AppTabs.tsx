@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import DashboardScreen from '@/features/dashboard/screens/DashboardScreen';
 import BmnNavigator from '@/features/bmn/navigation/BmnNavigator';
-import SuratTugasListScreen from '@/features/surat-tugas/screens/SuratTugasListScreen';
+import SuratTugasNavigator from '@/features/surat-tugas/navigation/SuratTugasNavigator';
 import ProfileScreen from '@/features/profile/screens/ProfileScreen';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
@@ -62,9 +62,10 @@ export default function AppTabs() {
       {showSuratTugas && (
         <Tab.Screen
           name="SuratTugas"
-          component={SuratTugasListScreen}
+          component={SuratTugasNavigator}
           options={{
             title: 'Surat Tugas',
+            headerShown: false,
           }}
         />
       )}

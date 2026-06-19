@@ -1,5 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
@@ -8,6 +10,7 @@ import { SearchInput } from '@/components/SearchInput';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { usePermissions } from '@/lib/permissions';
 import AssignmentCard from '../components/AssignmentCard';
+import { SuratTugasStackParamList } from '../navigation/SuratTugasNavigator';
 import { useAssignments } from '../useAssignments';
 import { AssignmentListItem, AssignmentListMode, AssignmentStatus } from '../types';
 
@@ -23,6 +26,7 @@ const statusFilters: { label: string; value: StatusFilter }[] = [
 
 export default function SuratTugasListScreen() {
   const { colors, spacing, radius, typography } = useAppTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<SuratTugasStackParamList>>();
   const { hasModule } = usePermissions();
   const canUseManagementMode = hasModule('surat_tugas') || hasModule('kepegawaian');
   const [mode, setMode] = React.useState<AssignmentListMode>('personal');
@@ -54,7 +58,10 @@ export default function SuratTugasListScreen() {
   });
 
   const renderAssignment = ({ item }: { item: AssignmentListItem }) => (
-    <AssignmentCard assignment={item} onPress={() => undefined} />
+    <AssignmentCard
+      assignment={item}
+      onPress={() => navigation.navigate('AssignmentDetail', { id: item.id, mode: activeMode })}
+    />
   );
 
   const renderFooter = () => {

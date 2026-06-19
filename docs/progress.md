@@ -1,3 +1,43 @@
+# Progress - Phase 109: Mobile Surat Tugas Detail Screen
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-66`.
+> GitHub Issue: #456.
+
+---
+
+## Mobile Surat Tugas Detail Screen
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menghubungkan daftar Surat Tugas ke layar detail yang merender section detail dan menampilkan action file hanya saat backend mengizinkan.
+
+### Implementasi
+- **Navigation**:
+  - Menambahkan `SuratTugasNavigator` sebagai stack khusus tab Surat Tugas.
+  - Mengubah tab Surat Tugas agar membuka navigator, bukan langsung list screen.
+  - Menambahkan navigasi dari `AssignmentCard` ke detail dengan parameter `id` dan mode aktif.
+- **Screen**:
+  - Membuat `AssignmentDetailScreen` dengan loading, forbidden/not-found/error state, empty fallback, dan content scroll.
+  - Merender section summary, tanggal/tujuan, personel, isi surat, berkas, serta status/aksi dari data detail.
+  - Menampilkan action `Unduh Berkas` hanya jika `file.available` dan `allowed_actions.can_download` dari backend bernilai true.
+- **Tests**:
+  - Menambahkan test detail screen untuk render section, gating action file, loading, forbidden state, dan placeholder download.
+  - Memperbarui test list screen untuk memastikan card membuka detail.
+  - Memperbarui test tab navigation untuk navigator Surat Tugas.
+- **Checklist**:
+  - Mencentang Task 66 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/screens/__tests__/AssignmentDetailScreen.test.tsx src/features/surat-tugas/screens/__tests__/SuratTugasListScreen.test.tsx src/navigation/__tests__/AppTabs.test.tsx`: 18 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 67: Add Surat Tugas form schema.
+
+---
+
 # Progress - Phase 108: Mobile Surat Tugas Detail Sections
 
 > Document updated: 2026-06-19
