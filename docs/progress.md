@@ -1,3 +1,42 @@
+# Progress - Phase 115: Mobile Authenticated File Download Helper
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-72`.
+> GitHub Issue: #468.
+
+---
+
+## Mobile Authenticated File Download Helper
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan helper download file Surat Tugas melalui endpoint authenticated dan menyimpan hasilnya ke storage aplikasi.
+
+### Implementasi
+- **Dependency**:
+  - Menambahkan `expo-file-system` versi SDK 56 agar aplikasi dapat menyimpan file ke cache/documents.
+- **Download Helper**:
+  - Membuat [download.ts](file:///e:/bksda-superapp/mobile/src/lib/files/download.ts).
+  - Helper membangun endpoint authenticated berdasarkan `assignmentId` dan mode: personal memakai `/surat-tugas/my/{id}/download`, management memakai `/surat-tugas/{id}/download`.
+  - Menambahkan header `Authorization: Bearer <token>`, `Accept`, dan `X-Client: mobile` pada request download.
+  - Menyimpan file ke folder `surat-tugas/` di cache atau document storage.
+  - Membersihkan file hasil download gagal dan mengembalikan error user-friendly untuk 401, 403, 404, server, dan network.
+  - Tidak mengandalkan atau mengekspos unauthenticated file URL dari payload detail.
+- **Tests**:
+  - Menambahkan [download.test.ts](file:///e:/bksda-superapp/mobile/src/lib/files/__tests__/download.test.ts) untuk personal/management endpoint, auth header, missing token, 404 cleanup, dan filesystem/network failure.
+- **Checklist**:
+  - Mencentang Task 72 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/lib/files/__tests__/download.test.ts`: 5 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 73: Add file viewer/share helper.
+
+---
+
 # Progress - Phase 114: Mobile Surat Tugas Status Action API
 
 > Document updated: 2026-06-19
