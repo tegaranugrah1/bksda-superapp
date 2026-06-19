@@ -831,7 +831,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: card has one clear tap target to open detail.
   - _Requirements: 5, 20_
 
-- [ ] 37. Build BMN asset list screen shell
+- [x] 37. Build BMN asset list screen shell
   - Target area: `mobile/src/features/bmn/AssetListScreen.tsx`.
   - Render header, search, filter button, and list container.
   - Acceptance check: no desktop table layout is used.

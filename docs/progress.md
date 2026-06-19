@@ -4870,6 +4870,22 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 36 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 37: Build BMN asset list screen shell.
+- [x] Task 37: Build BMN asset list screen shell (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 37 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Refactored `BmnListScreen` in [mobile/src/features/bmn/screens/BmnListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnListScreen.tsx) to build the core asset list screen shell.
+- [x] Integrated `useAssets` query hook to load assets dynamically, passing active search query and condition filters.
+- [x] Designed a clean header layout displaying the list title and description using theme typography.
+- [x] Added `SearchInput` component with callback handlers for input and clearing of search keywords.
+- [x] Integrated `IconButton` filtering button layout next to the search input field.
+- [x] Handled listing through a standard `FlatList` component rendering `AssetCard` items with pull-to-refresh (`onRefresh`) and pagination load-on-scroll (`onEndReached`).
+- [x] Resolved and cleaned up unused ESLint variable bindings to maintain code quality.
+- [x] Wrote unit tests in [mobile/src/features/bmn/screens/__tests__/BmnListScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/__tests__/BmnListScreen.test.tsx) asserting header rendering and mapping of assets.
+- [x] Checked off completed task 37 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 38: Add BMN list pagination.
 
 
