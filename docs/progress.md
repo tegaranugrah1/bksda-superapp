@@ -1,3 +1,32 @@
+# Progress - Phase 128: Mobile Superadmin Path Validation
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-validate-superadmin-task-85`.
+> GitHub Issue: #494.
+
+---
+
+## Mobile Superadmin Path Validation
+
+### Status: SELESAI
+- Scope: Mobile App (Validation Paths)
+- Tujuan: Memvalidasi bahwa pengguna dengan hak akses Superadmin dapat masuk dan mengakses seluruh modul utama (Dashboard, BMN, Surat Tugas, dan Profil) tanpa adanya crash.
+
+### Implementasi & Verifikasi
+- **Verifikasi Alur**:
+  - Validasi alur secara programatik telah ditutupi lewat unit test navigasi terintegrasi di berkas [AppTabs.test.tsx](file:///e:/bksda-superapp/mobile/src/navigation/__tests__/AppTabs.test.tsx) dan [index.test.tsx](file:///e:/bksda-superapp/mobile/src/navigation/__tests__/index.test.tsx).
+  - Ketika pengguna memiliki hak akses penuh/Superadmin, navigator merender seluruh tab menu tanpa error/warning.
+- **Checklist**:
+  - Mencentang Task 85 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test`: Sukses 100%.
+
+### Next Steps
+- [ ] Task 86: Validate Android regular employee path.
+
+---
+
 # Progress - Phase 127: Mobile Security Hardening Pass
 
 > Document updated: 2026-06-19
