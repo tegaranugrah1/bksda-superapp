@@ -1019,7 +1019,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: validation messages are in Indonesian.
   - _Requirements: 12, 17_
 
-- [ ] 68. Build Surat Tugas form shell
+- [x] 68. Build Surat Tugas form shell
   - Target area: `mobile/src/features/surat-tugas/AssignmentFormScreen.tsx`.
   - Build sectioned layout for info, dates/location, personel, funding/transport, and review.
   - Acceptance check: keyboard does not hide active input on Android.
