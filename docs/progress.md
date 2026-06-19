@@ -4753,6 +4753,18 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 27 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 28: Add role-based tab visibility (`mobile/src/navigation/AppTabs.tsx`).
+- [x] Task 28: Add role-based tab visibility (`mobile/src/navigation/AppTabs.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 28 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Integrated `usePermissions` custom React hook in [mobile/src/navigation/AppTabs.tsx](file:///e:/bksda-superapp/mobile/src/navigation/AppTabs.tsx) to dynamically query modules access.
+- [x] Gated the BMN tab with `'bmn'` module check (`hasModule('bmn')`).
+- [x] Gated the Surat Tugas tab with `'surat_tugas'` or `'kepegawaian'` module check (`hasModule('surat_tugas') || hasModule('kepegawaian')`).
+- [x] Wrote unit tests in [mobile/src/navigation/__tests__/AppTabs.test.tsx](file:///e:/bksda-superapp/mobile/src/navigation/__tests__/AppTabs.test.tsx) verifying tab visibility behaves correctly according to permission states (both tabs hidden, only BMN shown, only Surat Tugas shown, both tabs shown).
+- [x] Checked off completed task 28 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 29: Verify mobile dashboard API contract.
 
 

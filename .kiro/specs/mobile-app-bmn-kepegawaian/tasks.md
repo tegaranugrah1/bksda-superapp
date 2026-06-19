@@ -775,7 +775,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: unauthenticated user sees Login; authenticated user sees tabs.
   - _Requirements: 4_
 
-- [ ] 28. Add role-based tab visibility
+- [x] 28. Add role-based tab visibility
   - Target area: `mobile/src/navigation/AppTabs.tsx`.
   - Hide BMN and Surat Tugas tabs when access is missing.
   - Acceptance check: tab visibility is driven by permission helpers, not hardcoded user names.
