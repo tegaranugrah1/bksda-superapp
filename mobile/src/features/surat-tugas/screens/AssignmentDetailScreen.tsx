@@ -7,6 +7,8 @@ import { ErrorState } from '@/components/ErrorState';
 import { IconButton } from '@/components/IconButton';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { ApiError } from '@/types/api';
+import { updateAssignmentStatus } from '../assignmentActionsApi';
 import AssignmentActions, { AssignmentActionType } from '../components/AssignmentActions';
 import {
   AssignmentContentSection,
@@ -30,8 +32,20 @@ export default function AssignmentDetailScreen() {
     Alert.alert('Unduh Surat Tugas', 'Fitur unduh berkas akan disiapkan pada task file download berikutnya.');
   };
 
-  const handleStatusAction = (status: AssignmentActionType) => {
-    Alert.alert('Aksi Surat Tugas', `Aksi status ${status} akan disambungkan pada task berikutnya.`);
+  const handleStatusAction = async (status: AssignmentActionType) => {
+    try {
+      await updateAssignmentStatus(id, { status });
+      Alert.alert('Aksi Surat Tugas', 'Status Surat Tugas berhasil diperbarui.');
+      refetch();
+    } catch (actionError) {
+      const apiError = actionError as ApiError;
+      const message =
+        apiError.kind === 'validation'
+          ? apiError.message || 'Status Surat Tugas tidak valid untuk kondisi saat ini.'
+          : apiError.message || 'Gagal memperbarui status Surat Tugas.';
+
+      Alert.alert('Gagal Memproses Aksi', message);
+    }
   };
 
   const renderHeader = (title = 'Detail Surat Tugas') => (
