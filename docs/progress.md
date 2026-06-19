@@ -1,3 +1,36 @@
+# Progress - Phase 136: Mobile Login Screen Form
+
+> Document updated: 2026-06-19
+> Status: Selesai lokal, belum dibuat PR sesuai arahan pengguna.
+
+---
+
+## Mobile Login Screen Form
+
+### Status: SELESAI
+- Scope: Mobile App (Auth UI)
+- Tujuan: Mengganti placeholder LoginScreen dengan form login mobile yang benar-benar memanggil auth context.
+
+### Implementasi
+- **Screen**:
+  - Memperbarui [LoginScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/screens/LoginScreen.tsx).
+  - Menambahkan field username dan password, validasi wajib isi, loading state, dan error login generik.
+  - Menghubungkan tombol `Masuk` ke `useAuth().login(username, password)`.
+  - Menjaga password tersembunyi dan tidak menampilkan detail error mentah dari backend.
+- **Tests**:
+  - Menambahkan [LoginScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/screens/__tests__/LoginScreen.test.tsx).
+  - Menguji render field, validasi kosong, submit sukses, error generik, dan disabled/loading state.
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/auth/screens/__tests__/LoginScreen.test.tsx`: 5 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Jalankan ulang Expo Go, isi username/password backend yang valid, lalu verifikasi masuk ke dashboard/tab app.
+
+---
+
 # Progress - Phase 135: Mobile Root App Shell Wiring
 
 > Document updated: 2026-06-19
