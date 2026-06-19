@@ -971,7 +971,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: assignment card does not use `any`.
   - _Requirements: 11_
 
-- [ ] 60. Add Surat Tugas list API hook
+- [x] 60. Add Surat Tugas list API hook
   - Target area: `mobile/src/features/surat-tugas/useAssignments.ts`.
   - Support personal mode, management mode, page, search, and status filter.
   - Acceptance check: hook uses mobile params and pagination meta.
