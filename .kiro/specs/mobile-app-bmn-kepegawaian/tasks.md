@@ -819,7 +819,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: no `any` is needed for asset card props.
   - _Requirements: 5, 6_
 
-- [ ] 35. Add BMN asset list API hook
+- [x] 35. Add BMN asset list API hook
   - Target area: `mobile/src/features/bmn/useAssets.ts`.
   - Fetch paginated asset list with mobile params.
   - Acceptance check: hook supports page, search, and filters.

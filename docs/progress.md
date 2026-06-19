@@ -4842,6 +4842,21 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 34 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 35: Add BMN asset list API hook.
+- [x] Task 35: Add BMN asset list API hook (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 35 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Implemented `useAssets` custom React hook in [mobile/src/features/bmn/useAssets.ts](file:///e:/bksda-superapp/mobile/src/features/bmn/useAssets.ts) querying the backend `GET /api/bmn/assets` using `apiClient`.
+- [x] Conformed the hook to the `ListHookResult` contract by exposing `items`, `isLoading`, `isRefreshing`, `isFetchingNextPage`, `error`, `refetch`, `fetchNextPage`, and `hasNextPage`.
+- [x] Configured hook dependencies to satisfy both React Compiler memoization rules and ESLint hooks dependencies analysis by referencing the parent `filters` object correctly.
+- [x] Implemented reset mechanism that triggers page 1 queries whenever filters are modified.
+- [x] Implemented subsequent page fetching with correct pagination state updates and item list appending.
+- [x] Wrote comprehensive unit tests in [mobile/src/features/bmn/__tests__/useAssets.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/__tests__/useAssets.test.tsx) asserting mount queries, next page loads, pull-to-refresh (`isRefreshing`), and filter change resets.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 35 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 36: Add AssetCard component.
 
 
