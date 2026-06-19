@@ -22,7 +22,10 @@ class AssignmentLetterController extends Controller
         $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
 
         if (!$employee) {
-            return response()->json(['data' => [], 'meta' => ['total' => 0]]);
+            return response()->json([
+                'data' => [],
+                'meta' => $this->emptyPaginationMeta($request),
+            ]);
         }
 
         $query = AssignmentLetter::with(['employees:id,nama_lengkap,nip'])
@@ -37,13 +40,10 @@ class AssignmentLetterController extends Controller
         $letters = $query->latest()->paginate($perPage);
 
         return response()->json([
-            'data' => $letters->items(),
-            'meta' => [
-                'current_page' => $letters->currentPage(),
-                'last_page' => $letters->lastPage(),
-                'per_page' => $letters->perPage(),
-                'total' => $letters->total(),
-            ],
+            'data' => $isMobile
+                ? collect($letters->items())->map(fn (AssignmentLetter $letter) => $this->toMobileListItem($letter, personal: true))->values()
+                : $letters->items(),
+            'meta' => $this->paginationMeta($letters),
         ]);
     }
 
@@ -101,8 +101,11 @@ class AssignmentLetterController extends Controller
         $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
 
         if ($search = $request->query('search')) {
-            $query->where('tempat_tujuan', 'ilike', "%{$search}%")
-                ->orWhere('maksud_tujuan', 'ilike', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('tempat_tujuan', 'ilike', "%{$search}%")
+                    ->orWhere('maksud_tujuan', 'ilike', "%{$search}%")
+                    ->orWhere('nomor_surat', 'ilike', "%{$search}%");
+            });
         }
 
         if ($status = $request->query('status')) {
@@ -125,14 +128,61 @@ class AssignmentLetterController extends Controller
         $letters = $query->latest()->paginate($perPage);
 
         return response()->json([
-            'data' => $letters->items(),
-            'meta' => [
-                'current_page' => $letters->currentPage(),
-                'last_page' => $letters->lastPage(),
-                'per_page' => $letters->perPage(),
-                'total' => $letters->total(),
-            ],
+            'data' => $isMobile
+                ? collect($letters->items())->map(fn (AssignmentLetter $letter) => $this->toMobileListItem($letter))->values()
+                : $letters->items(),
+            'meta' => $this->paginationMeta($letters),
         ]);
+    }
+
+    private function toMobileListItem(AssignmentLetter $letter, bool $personal = false): array
+    {
+        $employees = $letter->employees;
+        $firstNames = $employees->pluck('nama_lengkap')->filter()->take(2)->values();
+        $remainingCount = max(0, $employees->count() - $firstNames->count());
+
+        $personelSummary = $firstNames->implode(', ');
+        if ($remainingCount > 0) {
+            $personelSummary .= " +{$remainingCount} lainnya";
+        }
+
+        return [
+            'id' => $letter->id,
+            'nomor' => $letter->nomor_surat,
+            'kegiatan' => $letter->maksud_tujuan,
+            'tujuan' => $letter->tempat_tujuan,
+            'tanggal_mulai' => $letter->tanggal_mulai?->toDateString(),
+            'tanggal_selesai' => $letter->tanggal_selesai?->toDateString(),
+            'tanggal_surat' => $letter->tanggal_surat?->toDateString(),
+            'status' => $letter->status,
+            'personel_summary' => $personelSummary ?: null,
+            'personel_count' => $employees->count(),
+            'has_file' => (bool) $letter->file_surat_path,
+            'allowed_actions' => [
+                'can_view' => true,
+                'can_download' => $personal && (bool) $letter->file_surat_path,
+            ],
+        ];
+    }
+
+    private function paginationMeta($paginator): array
+    {
+        return [
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+        ];
+    }
+
+    private function emptyPaginationMeta(Request $request): array
+    {
+        return [
+            'current_page' => max(1, (int) $request->query('page', 1)),
+            'last_page' => 1,
+            'per_page' => max(1, (int) $request->query('per_page', 20)),
+            'total' => 0,
+        ];
     }
 
     public function store(AssignmentLetterRequest $request)

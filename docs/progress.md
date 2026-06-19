@@ -1,3 +1,39 @@
+# Progress - Phase 100: Mobile Surat Tugas List API Contract
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-57`.
+> GitHub Issue: #438.
+
+---
+
+## Mobile Surat Tugas List API Contract
+
+### Status: SELESAI
+- Scope: Backend Mobile API (Surat Tugas Module)
+- Tujuan: Memverifikasi dan memperkuat kontrak endpoint list Surat Tugas agar siap dipakai mobile app untuk mode personal dan manajemen, dengan pagination aman dan payload list yang ringan.
+
+### Implementasi
+- **Management List Endpoint**:
+  - Memperkuat `GET /api/surat-tugas?mobile=true&page=1&per_page=20` di [AssignmentLetterController.php](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php) agar request mobile mengembalikan item list ringkas (`nomor`, `kegiatan`, `tujuan`, tanggal, status, ringkasan personel, status file, dan `allowed_actions`) alih-alih model mentah.
+  - Memperbaiki grouping query search agar filter status/pegawai tidak tertembus oleh kondisi `orWhere` pencarian.
+- **Personal List Endpoint**:
+  - Memperkuat `GET /api/surat-tugas/my` agar tetap memakai pagination meta standar walaupun user belum punya data pegawai.
+  - Menyediakan payload mobile-friendly untuk surat tugas milik pegawai terautentikasi, termasuk `can_download` ketika berkas tersedia.
+- **Verification Tests**:
+  - Menambahkan [SuratTugasMobileListApiTest.php](file:///e:/bksda-superapp/backend/tests/Feature/SuratTugasMobileListApiTest.php) untuk membuktikan endpoint manajemen dan personal mengembalikan metadata pagination serta field card mobile yang dibutuhkan.
+- **Checklist**:
+  - Mencentang Task 57 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `php -l backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php`: sukses tanpa syntax error.
+- `php artisan route:list --path=api/surat-tugas`: sukses, 17 route Surat Tugas terdaftar.
+- `php artisan test --filter=SuratTugasMobileListApiTest`: 2 tests passed, 19 assertions.
+
+### Next Steps
+- [ ] Task 58: Verify Surat Tugas detail API.
+
+---
+
 # Progress - Phase 99: Mobile BMN Photo Capture & Geotag Upload
 
 > Document updated: 2026-06-19
