@@ -121,4 +121,22 @@ describe('SectionCard', () => {
     const actionInstance = tree.root.findByType(DummyAction);
     expect(actionInstance).toBeTruthy();
   });
+
+  it('has accessibilityRole="header" on the title container View', () => {
+    let tree: any;
+    act(() => {
+      tree = renderer.create(
+        <SectionCard title="Informasi Aset">
+          <Text>Content</Text>
+        </SectionCard>
+      );
+    });
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    const headerContainer = tree.root.findByProps({ accessibilityRole: 'header' });
+    expect(headerContainer).toBeTruthy();
+  });
 });

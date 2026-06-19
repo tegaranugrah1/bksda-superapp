@@ -141,4 +141,28 @@ describe('ConfirmDialog', () => {
 
     expect(handleConfirm).toHaveBeenCalledTimes(1);
   });
+
+  it('has correct accessibility properties on the dialog container', () => {
+    let tree: any;
+    act(() => {
+      tree = renderer.create(
+        <ConfirmDialog
+          visible={true}
+          title="Hapus Aset"
+          message="Apakah Anda yakin ingin menghapus aset ini?"
+          onConfirm={jest.fn()}
+          onCancel={jest.fn()}
+        />
+      );
+    });
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    const modalInstance = tree.root.findByType(Modal);
+    const container = modalInstance.findByProps({ accessibilityViewIsModal: true });
+    expect(container).toBeTruthy();
+    expect(container.props.importantForAccessibility).toBe('yes');
+  });
 });

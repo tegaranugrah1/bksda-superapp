@@ -1111,7 +1111,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: validation messages are readable and stable.
   - _Requirements: 7, 12, 17_
 
-- [ ] 83. Add accessibility pass for base components
+- [x] 83. Add accessibility pass for base components
   - Target area: shared components.
   - Check labels for buttons, icon buttons, inputs, cards, and tabs.
   - Acceptance check: icon-only action has accessible label.

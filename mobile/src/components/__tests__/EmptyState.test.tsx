@@ -93,4 +93,30 @@ describe('EmptyState', () => {
     const actionInstance = tree.root.findByType(DummyAction);
     expect(actionInstance).toBeTruthy();
   });
+
+  it('has correct accessibility properties on layout and elements', () => {
+    let tree: any;
+    act(() => {
+      tree = renderer.create(
+        <EmptyState
+          title="Tidak ada aset"
+          message="Silakan buat aset baru"
+        />
+      );
+    });
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    const parentView = tree.root.children[0];
+    expect(parentView.props.accessibilityRole).toBe('summary');
+    expect(parentView.props.accessibilityLabel).toBe('Tidak ada aset. Silakan buat aset baru');
+
+    const textInstances = tree.root.findAllByType(Text);
+    const emojiInstance = textInstances.find((inst: any) => inst.props.children === '📭');
+    expect(emojiInstance).toBeTruthy();
+    expect(emojiInstance.props.accessibilityElementsHidden).toBe(true);
+    expect(emojiInstance.props.importantForAccessibility).toBe('no');
+  });
 });

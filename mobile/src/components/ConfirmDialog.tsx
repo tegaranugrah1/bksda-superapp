@@ -44,6 +44,8 @@ export function ConfirmDialog({
         <Pressable style={styles.backdrop} onPress={onCancel} />
 
         <View
+          accessibilityViewIsModal={true}
+          importantForAccessibility="yes"
           style={[
             styles.dialogContainer,
             {

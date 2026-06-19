@@ -68,7 +68,7 @@ export function SearchInput({
       {value.length > 0 && (
         <TouchableOpacity
           onPress={handleClear}
-          accessibilityLabel="Clear search"
+          accessibilityLabel="Bersihkan pencarian"
           accessibilityRole="button"
           style={styles.clearButton}
         >

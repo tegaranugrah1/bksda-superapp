@@ -33,7 +33,7 @@ export function SectionCard({
     >
       {/* Header Container */}
       <View style={[styles.header, { marginBottom: spacing.md }]}>
-        <View style={styles.titleContainer}>
+        <View accessibilityRole="header" style={styles.titleContainer}>
           <Text
             style={[
               styles.title,
