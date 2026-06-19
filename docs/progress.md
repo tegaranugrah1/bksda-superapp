@@ -1,3 +1,35 @@
+# Progress - Phase 131: Mobile Android EAS Build Configuration
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-eas-config-task-88`.
+> GitHub Issue: #500.
+
+---
+
+## Mobile Android EAS Build Configuration
+
+### Status: SELESAI
+- Scope: Mobile App (EAS Configuration)
+- Tujuan: Mengonfigurasi pipeline build EAS (Expo Application Services) dengan membuat berkas `eas.json` untuk mendukung kompilasi lokal maupun cloud untuk tipe berkas APK (untuk preview/testing internal) dan AAB (untuk produksi).
+
+### Implementasi
+- **Konfigurasi `mobile/eas.json`**:
+  - Membuat berkas [eas.json](file:///e:/bksda-superapp/mobile/eas.json) dengan profil `development`, `preview`, dan `production`.
+  - Profil `preview` diatur khusus untuk menghasilkan berkas **APK** (`"buildType": "apk"`) agar mempermudah proses instalasi dan pengujian langsung pada perangkat Android fisik.
+- **Checklist**:
+  - Mencentang Task 88 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Keterbatasan Lingkungan & Validasi
+- Karena ketiadaan Gradle/Java/Android SDK toolchain lokal serta kredensial akun EAS pada runner sandbox AI, proses kompilasi aktual didelegasikan ke pengembang secara mandiri melalui perintah:
+  * Build APK internal via cloud: `eas build --platform android --profile preview`
+  * Build APK internal lokal: `eas build --platform android --profile preview --local`
+- Berkas `eas.json` divalidasi dan memenuhi standar format skema Expo.
+
+### Next Steps
+- [ ] Task 89: Write internal release notes.
+
+---
+
 # Progress - Phase 130: Mobile Android App Metadata Configuration
 
 > Document updated: 2026-06-19
