@@ -4,6 +4,14 @@ import renderer, { act } from 'react-test-renderer';
 import SuratTugasListScreen from '../SuratTugasListScreen';
 import { useAssignments } from '../../useAssignments';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
 jest.mock('@/hooks/useAppTheme', () => ({
   useAppTheme: () => ({
     isDark: false,
@@ -285,6 +293,30 @@ describe('SuratTugasListScreen', () => {
     expect(mockRefetch).toHaveBeenCalledTimes(1);
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
     expect(tree!.root.findByType(ActivityIndicator)).toBeTruthy();
+
+    act(() => {
+      tree!.unmount();
+    });
+  });
+
+  it('opens assignment detail when a card is pressed', () => {
+    let tree: renderer.ReactTestRenderer;
+    act(() => {
+      tree = renderer.create(<SuratTugasListScreen />);
+    });
+
+    const card = tree!.root.findByProps({
+      accessibilityLabel: 'Surat Tugas: ST.001/BKSDA/2026. Patroli kawasan',
+    });
+
+    act(() => {
+      card.props.onPress();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('AssignmentDetail', {
+      id: 'st-1',
+      mode: 'personal',
+    });
 
     act(() => {
       tree!.unmount();
