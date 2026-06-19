@@ -1,3 +1,34 @@
+# Progress - Phase 135: Mobile Root App Shell Wiring
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-wire-root-app-shell`.
+> GitHub Issue: #508.
+
+---
+
+## Mobile Root App Shell Wiring
+
+### Status: SELESAI
+- Scope: Mobile App (Root Entry)
+- Tujuan: Mengganti template Expo default di `App.tsx` dengan app shell BKSDA SuperApp yang sebenarnya.
+
+### Implementasi
+- **Root App**:
+  - Memperbarui [App.tsx](file:///e:/bksda-superapp/mobile/App.tsx) agar merender `AuthProvider`, `NavigationContainer`, `RootNavigation`, dan `StatusBar`.
+  - Menghapus tampilan template default `Open up App.tsx to start working on your app`.
+- **Tests**:
+  - Menambahkan [App.test.tsx](file:///e:/bksda-superapp/mobile/src/__tests__/App.test.tsx) untuk memastikan root app memuat auth/navigation shell dan tidak kembali ke template Expo.
+
+### Validasi
+- `npm test -- --runTestsByPath src/__tests__/App.test.tsx`: 1 test passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Jalankan ulang `npx expo start --clear` dan scan QR Expo Go.
+
+---
+
 # Progress - Phase 134: Mobile Expo SDK Dependency Alignment
 
 > Document updated: 2026-06-19
