@@ -1043,7 +1043,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: success refreshes list and detail.
   - _Requirements: 13, 17, 19_
 
-- [ ] 72. Add authenticated file download helper
+- [x] 72. Add authenticated file download helper
   - Target area: `mobile/src/lib/files/download.ts`.
   - Download files with auth header and save to app cache/documents.
   - Acceptance check: helper does not expose unauthenticated file URLs.
