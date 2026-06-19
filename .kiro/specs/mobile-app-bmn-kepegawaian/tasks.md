@@ -807,7 +807,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: retry button calls refetch.
   - _Requirements: 3, 17, 20_
 
-- [ ] 33. Verify BMN asset list mobile API
+- [x] 33. Verify BMN asset list mobile API
   - Target area: backend BMN assets endpoint.
   - Confirm `GET /api/bmn/assets?mobile=true&page=1&per_page=20`.
   - Acceptance check: response includes lightweight card fields and pagination meta.

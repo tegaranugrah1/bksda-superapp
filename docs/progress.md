@@ -4821,6 +4821,17 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 32 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 33: Verify BMN asset list mobile API.
+- [x] Task 33: Verify BMN asset list mobile API (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 33 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Verified the `GET /api/bmn/assets` endpoint in [AssetController.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetController.php) index action.
+- [x] Confirmed the action supports query filters for `search`, `employee_id`, `borrower_id`, `kondisi`, `jenis_bmn`, and `lokasi_ruang`.
+- [x] Confirmed pagination is enforced using `AssetResource::collection($query->paginate($perPage))`, resolving `per_page` parameter limits up to `mobileMax = 100` when the `mobile=true` flag is sent or when the `X-Client: mobile` header is present.
+- [x] Checked off completed task 33 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 34: Add BMN asset types.
 
 
