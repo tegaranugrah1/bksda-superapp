@@ -1117,7 +1117,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: icon-only action has accessible label.
   - _Requirements: 20_
 
-- [ ] 84. Add security hardening pass
+- [x] 84. Add security hardening pass
   - Target area: auth/API/files/photo helpers.
   - Ensure no password, token, or sensitive document path is logged.
   - Acceptance check: `rg` finds no token/password debug logging in mobile source.
