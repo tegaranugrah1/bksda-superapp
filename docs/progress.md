@@ -1,3 +1,43 @@
+# Progress - Phase 112: Mobile Surat Tugas Create/Edit Submit
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-69`.
+> GitHub Issue: #462.
+
+---
+
+## Mobile Surat Tugas Create/Edit Submit
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menghubungkan form Surat Tugas mobile ke API create/edit dan menampilkan error validasi backend pada field terkait.
+
+### Implementasi
+- **API Helper**:
+  - Membuat `assignmentFormApi.ts` untuk transform payload form ke kontrak backend.
+  - Menambahkan `createAssignment` untuk `POST /surat-tugas`.
+  - Menambahkan `updateAssignment` untuk `PUT /surat-tugas/{id}`.
+- **Screen Wiring**:
+  - Mengubah `AssignmentFormScreen` agar submit create/edit memanggil API helper.
+  - Mode edit mengambil detail Surat Tugas, prefill form, dan menampilkan loading/error state.
+  - Mapping 422 `fieldErrors` backend ke field React Hook Form, termasuk nested `employees.{index}.id`.
+  - Submit sukses menampilkan konfirmasi dan membuka detail Surat Tugas mode manajemen.
+- **Tests**:
+  - Menambahkan test payload helper, create endpoint, dan update endpoint.
+  - Memperbarui test form untuk create success, edit prefill/update success, dan mapping error 422 backend.
+- **Checklist**:
+  - Mencentang Task 69 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/__tests__/assignmentFormApi.test.ts src/features/surat-tugas/screens/__tests__/AssignmentFormScreen.test.tsx`: 12 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 70: Add approval/status action component.
+
+---
+
 # Progress - Phase 111: Mobile Surat Tugas Form Shell
 
 > Document updated: 2026-06-19
