@@ -1099,7 +1099,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: tests pass through mobile test script.
   - _Requirements: 17, 18, 19_
 
-- [ ] 81. Add unit tests for permissions
+- [x] 81. Add unit tests for permissions
   - Target area: permission helper tests.
   - Test can, hasModule, isSuperAdmin, empty permission state, and missing module state.
   - Acceptance check: helpers fail closed, not open.

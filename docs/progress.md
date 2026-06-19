@@ -1,3 +1,36 @@
+# Progress - Phase 124: Mobile Permission Helper Unit Tests
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-permission-tests-task-81`.
+> GitHub Issue: #486.
+
+---
+
+## Mobile Permission Helper Unit Tests
+
+### Status: SELESAI
+- Scope: Mobile App (Permission Helper Tests)
+- Tujuan: Memastikan helper permission fail closed untuk role, module, dan permission state yang kosong/hilang.
+
+### Implementasi
+- **Tests**:
+  - Memperluas [permissions.test.tsx](file:///e:/bksda-superapp/mobile/src/lib/__tests__/permissions.test.tsx).
+  - Menguji `isSuperAdmin`, `hasModule`, `can`, dan `usePermissions`.
+  - Menambahkan coverage untuk role mirip superadmin yang tidak exact, empty `access_modules`, dan empty `permissions`.
+  - Memastikan missing/null user, missing module data, dan missing permission data tidak membuka akses.
+- **Checklist**:
+  - Mencentang Task 81 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/lib/__tests__/permissions.test.tsx`: 16 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 82: Add form validation tests.
+
+---
+
 # Progress - Phase 123: Mobile API Client Unit Tests
 
 > Document updated: 2026-06-19
