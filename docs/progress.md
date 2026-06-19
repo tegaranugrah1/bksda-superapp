@@ -1,7 +1,7 @@
 # Progress - Phase 126: Mobile Components Accessibility Pass
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-accessibility-pass-task-83`.
+> Status: Selesai di main (PR #491).
 > GitHub Issue: #490.
 
 ---
