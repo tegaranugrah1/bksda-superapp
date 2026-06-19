@@ -1093,7 +1093,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: stale dashboard/list refetches after app resume.
   - _Requirements: 16, 18_
 
-- [ ] 80. Add unit tests for API client
+- [x] 80. Add unit tests for API client
   - Target area: mobile test files.
   - Test response normalizer, error normalizer, mobile params, and auth headers.
   - Acceptance check: tests pass through mobile test script.

@@ -58,6 +58,28 @@ describe('apiClient', () => {
     expect(requestConfig.headers.get('Authorization')).toBe('Bearer super-secret-token');
   });
 
+  it('continues requests without Authorization when secure token lookup fails', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(jest.fn());
+    mockAdapter.mockResolvedValue({
+      data: { id: 20 },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {},
+    });
+
+    (tokenStorage.getToken as jest.Mock).mockRejectedValue(new Error('SecureStore unavailable'));
+
+    await apiClient.get('/token-storage-failure');
+
+    expect(mockAdapter).toHaveBeenCalled();
+    const requestConfig = mockAdapter.mock.calls[0][0];
+    expect(requestConfig.headers.get('X-Client')).toBe('mobile');
+    expect(requestConfig.headers.get('Authorization')).toBeUndefined();
+
+    errorSpy.mockRestore();
+  });
+
   it('normalizes response payloads on success', async () => {
     mockAdapter.mockResolvedValue({
       data: {
