@@ -1,3 +1,34 @@
+# Progress - Phase 127: Mobile Security Hardening Pass
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-security-hardening-task-84`.
+> GitHub Issue: #492.
+
+---
+
+## Mobile Security Hardening Pass
+
+### Status: SELESAI
+- Scope: Mobile App (Security Hardening Audit)
+- Tujuan: Memastikan tidak ada data sensitif seperti password, auth token, atau file path dokumen rahasia yang tercatat dalam log (logging leaks), serta memastikan sistem logging sepenuhnya mati di lingkungan production.
+
+### Implementasi & Temuan Audit
+- **Audit Logging**:
+  - Meninjau berkas `mobile/src/lib/api/client.ts`. Logging request dan response API telah terbukti aman dari pencatatan header autentikasi (`Authorization: Bearer [token]`) maupun payload data sensitif. Semua console logging dilindungi dengan kondisi `if (config.isDev)` sehingga hanya aktif pada mode development.
+  - Meninjau berkas `mobile/src/lib/auth/tokenStorage.ts`. Error handling yang dilakukan hanya mencatat deskripsi kesalahan sistem keychain (SecureStore) tanpa mencetak isi token mentah.
+  - Meninjau berkas pembantu kamera/geotag dan file download (`devicePermissions.ts`, `download.ts`, `share.ts`). Tidak ditemukan adanya pencatatan log `console` yang membocorkan path penyimpanan lokal dokumen rahasia.
+- **Checklist**:
+  - Mencentang Task 84 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- Melakukan pencarian ripgrep (`rg`/`grep`) pada seluruh folder `mobile/src` untuk memastikan tidak ada pencatatan token atau password secara manual: bersih.
+- Menjalankan linting dan unit test: semua bersih dan lulus.
+
+### Next Steps
+- [ ] Task 85: Validate Android superadmin path.
+
+---
+
 # Progress - Phase 126: Mobile Components Accessibility Pass
 
 > Document updated: 2026-06-19
