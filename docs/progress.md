@@ -4595,6 +4595,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 15 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 16: Add LoadingSkeleton component (`mobile/src/components/LoadingSkeleton.tsx`).
+- [ ] Task 16: Add LoadingSkeleton component (`mobile/src/components/LoadingSkeleton.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 16 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 16: Created `LoadingSkeleton` component in [mobile/src/components/LoadingSkeleton.tsx](file:///e:/bksda-superapp/mobile/src/components/LoadingSkeleton.tsx) supporting `card`, `list`, and `detail` layouts.
+- [x] Implemented pulsing opacity animations utilizing `Animated.loop` and React Native's `Animated` library.
+- [x] Avoided accessing ref `current` property directly during render to prevent ESLint warnings, using stable `useState` initializers instead.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/LoadingSkeleton.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/LoadingSkeleton.test.tsx) using fake timers to simulate animation ticks.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 16 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 17: Add ConfirmDialog component (`mobile/src/components/ConfirmDialog.tsx`).
 
 

@@ -703,7 +703,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: no raw stack trace is displayed.
   - _Requirements: 17, 20_
 
-- [ ] 16. Add LoadingSkeleton component
+- [x] 16. Add LoadingSkeleton component
   - Target area: `mobile/src/components/LoadingSkeleton.tsx`.
   - Provide card/list placeholder variants.
   - Acceptance check: list screens can show skeleton while loading.
