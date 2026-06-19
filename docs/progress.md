@@ -4992,7 +4992,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Created BMN asset form validation schema `assetFormSchema.ts` with custom preprocessing and localized Indonesian validation messages.
 - [x] Wrote comprehensive schema unit tests in `assetFormSchema.test.ts` checking missing/empty inputs, types conversions, negative values, and optional/null states.
 
+- [x] Task 47: Build asset form screen shell (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 47 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Created BMN asset form screen `BmnFormScreen.tsx` with group/sectioned card styling for inputs to fit smaller mobile viewports without horizontal scrolling.
+- [x] Configured the screen to support both create and edit modes, dynamically prefilling form inputs using `reset()` once hook data is loaded.
+- [x] Registered `BmnForm` inside the parameter list and registered the screen in `BmnNavigator.tsx`.
+- [x] Modified `useAssetDetail.ts` details hook to gracefully bypass API fetch requests if the asset ID is undefined (creation mode).
+- [x] Implemented a touch-friendly conditions custom chip selector to bypass raw inputs.
+- [x] Developed comprehensive screen tests in `BmnFormScreen.test.tsx` achieving 100% test coverage for create/edit layouts, form submissions, loaders, and navigation.
+
 ### Next Steps
-- [ ] Task 47: Build asset form screen shell.
+- [ ] Task 48: Wire asset create/update submit.
 
 
