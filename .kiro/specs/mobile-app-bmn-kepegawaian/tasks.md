@@ -801,7 +801,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: quick action receives permission state as props.
   - _Requirements: 3, 4, 20_
 
-- [ ] 32. Build dashboard screen
+- [x] 32. Build dashboard screen
   - Target area: `mobile/src/features/dashboard/DashboardScreen.tsx`.
   - Render profile, metrics, alerts, quick actions, loading, empty, error, and pull-to-refresh.
   - Acceptance check: retry button calls refetch.

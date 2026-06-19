@@ -4805,6 +4805,22 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 31 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 32: Build dashboard screen.
+- [x] Task 32: Build dashboard screen (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 32 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Built the central `DashboardScreen` component at [mobile/src/features/dashboard/screens/DashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/screens/DashboardScreen.tsx) integrating `useMobileDashboard` hook and permission-based routing.
+- [x] Wired loading states to conditionally render `LoadingSkeleton` and error states to render `ErrorState` with a fully functional `onRetry` handler.
+- [x] Rendered employee profile details, BMN and Surat Tugas metrics conditional on active user permissions, vehicle tax alerts, and quick actions list.
+- [x] Wired pull-to-refresh mechanism with the ScrollView to trigger manual dashboard updates.
+- [x] Configured quick actions to switch tabs/routes (navigating to Bmn or Surat Tugas) or show informational alert popups for features scheduled in future milestones.
+- [x] Wrote unit tests in [mobile/src/features/dashboard/screens/__tests__/DashboardScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/screens/__tests__/DashboardScreen.test.tsx) asserting all render states (loading, error, success), refetch button trigger, routing navigation actions, and alert callouts.
+- [x] Cleaned up Jest test runner timers by removing loop-animation-blocking `runAllTimers` calls and adding comprehensive mocks to prevent environment leakage.
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 32 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 33: Verify BMN asset list mobile API.
 
 
