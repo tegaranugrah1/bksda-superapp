@@ -1,3 +1,32 @@
+# Progress - Phase 129: Mobile Regular Employee Path Validation
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-validate-employee-task-86`.
+> GitHub Issue: #496.
+
+---
+
+## Mobile Regular Employee Path Validation
+
+### Status: SELESAI
+- Scope: Mobile App (Validation Paths)
+- Tujuan: Memvalidasi bahwa pengguna dengan hak akses Pegawai Biasa (Regular Employee) hanya dapat mengakses modul personal mereka, dan seluruh aksi administratif BMN (seperti disposisi, verifikasi) atau pembuatan ST diblokir/disembunyikan sesuai dengan allowed_actions dari backend.
+
+### Implementasi & Verifikasi
+- **Verifikasi Alur**:
+  - Secara programatik diuji dalam unit test pada [AppTabs.test.tsx](file:///e:/bksda-superapp/mobile/src/navigation/__tests__/AppTabs.test.tsx), di mana BMN atau Surat Tugas disembunyikan apabila izin modul kosong.
+  - Halaman detail BMN ([BmnDetailScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnDetailScreen.tsx)) dan aksinya ([AssetActionBar.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/components/detail/AssetActionBar.tsx)) membatasi tombol aksi (Verifikasi, Edit, Pinjam) berdasarkan properti `allowed_actions` dari data aset yang didapatkan dari backend.
+- **Checklist**:
+  - Mencentang Task 86 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test`: Sukses 100%.
+
+### Next Steps
+- [ ] Task 87: Configure Android app metadata.
+
+---
+
 # Progress - Phase 128: Mobile Superadmin Path Validation
 
 > Document updated: 2026-06-19
