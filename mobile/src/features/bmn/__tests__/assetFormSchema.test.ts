@@ -99,6 +99,53 @@ describe('assetFormSchema', () => {
     }
   });
 
+  it('fails validation when string fields exceed maximum length limits', () => {
+    const longNamePayload = {
+      nama_barang: 'A'.repeat(256),
+      kode_barang: 'BMN-XYZ',
+      nup: '1',
+      kondisi: 'Baik',
+    };
+
+    const longCodePayload = {
+      nama_barang: 'Kursi Lipat',
+      kode_barang: 'B'.repeat(51),
+      nup: '1',
+      kondisi: 'Baik',
+    };
+
+    const longNupPayload = {
+      nama_barang: 'Kursi Lipat',
+      kode_barang: 'BMN-XYZ',
+      nup: '9'.repeat(51),
+      kondisi: 'Baik',
+    };
+
+    const resName = assetFormSchema.safeParse(longNamePayload);
+    expect(resName.success).toBe(false);
+    if (!resName.success) {
+      expect(resName.error.flatten().fieldErrors.nama_barang).toContain(
+        'Nama barang maksimal 255 karakter'
+      );
+    }
+
+    const resCode = assetFormSchema.safeParse(longCodePayload);
+    expect(resCode.success).toBe(false);
+    if (!resCode.success) {
+      expect(resCode.error.flatten().fieldErrors.kode_barang).toContain(
+        'Kode barang maksimal 50 karakter'
+      );
+    }
+
+    const resNup = assetFormSchema.safeParse(longNupPayload);
+    expect(resNup.success).toBe(false);
+    if (!resNup.success) {
+      expect(resNup.error.flatten().fieldErrors.nup).toContain(
+        'NUP maksimal 50 karakter'
+      );
+    }
+  });
+
   it('handles optional fields with null/undefined values', () => {
     const sparseData = {
       nama_barang: 'Gedung Kantor',

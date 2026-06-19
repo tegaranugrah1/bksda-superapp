@@ -1,3 +1,34 @@
+# Progress - Phase 125: Mobile Form Validation Unit Tests
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-form-validation-tests-task-82`.
+> GitHub Issue: #488.
+
+---
+
+## Mobile Form Validation Unit Tests
+
+### Status: SELESAI
+- Scope: Mobile App (Form Validation Tests)
+- Tujuan: Memastikan validasi form BMN dan Surat Tugas dapat menangani data wajib diisi, konversi tipe data, batas nilai, dan format penanggalan yang tidak valid.
+
+### Implementasi
+- **Tests**:
+  - Menambahkan kasus uji format tanggal tidak valid (`20-06-2026`, `2026/06/20`, string kosong, `2026-06-32`, dll) pada [assignmentFormSchema.test.ts](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/__tests__/assignmentFormSchema.test.ts), memastikan validasi gagal dengan pesan `"Tanggal harus berformat YYYY-MM-DD"`.
+  - Menambahkan kasus uji panjang maksimal string (`nama_barang` > 255 karakter, `kode_barang` > 50 karakter, `nup` > 50 karakter) pada [assetFormSchema.test.ts](file:///e:/bksda-superapp/mobile/src/features/bmn/__tests__/assetFormSchema.test.ts).
+- **Checklist**:
+  - Mencentang Task 82 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/bmn/__tests__/assetFormSchema.test.ts src/features/surat-tugas/__tests__/assignmentFormSchema.test.ts`: 15 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 83: Add accessibility pass for base components.
+
+---
+
 # Progress - Phase 124: Mobile Permission Helper Unit Tests
 
 > Document updated: 2026-06-19

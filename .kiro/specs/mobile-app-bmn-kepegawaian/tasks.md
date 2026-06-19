@@ -1105,7 +1105,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: helpers fail closed, not open.
   - _Requirements: 2, 19_
 
-- [ ] 82. Add form validation tests
+- [x] 82. Add form validation tests
   - Target area: BMN and Surat Tugas schema tests.
   - Test required fields and invalid dates.
   - Acceptance check: validation messages are readable and stable.

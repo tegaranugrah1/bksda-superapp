@@ -87,6 +87,30 @@ describe('assignmentFormSchema', () => {
     }
   });
 
+  it('fails validation when date string format is invalid', () => {
+    const invalidFormats = [
+      '20-06-2026', // DD-MM-YYYY
+      '2026/06/20', // YYYY/MM/DD
+      '2026-6-20',   // missing leading zeros
+      'invalid-date',
+      '2026-06-32',  // invalid day (Date.parse is NaN)
+      '2026-13-01',  // invalid month (Date.parse is NaN)
+    ];
+
+    for (const invalidDate of invalidFormats) {
+      const result = assignmentFormSchema.safeParse({
+        ...validPayload,
+        tanggal_mulai: invalidDate,
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.flatten().fieldErrors.tanggal_mulai).toContain(
+          'Tanggal harus berformat YYYY-MM-DD'
+        );
+      }
+    }
+  });
+
   it('requires funding detail when sumber_dana is lainnya', () => {
     const result = assignmentFormSchema.safeParse({
       ...validPayload,
