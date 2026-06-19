@@ -1087,7 +1087,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: offline banner appears when network request fails due to connection.
   - _Requirements: 16_
 
-- [ ] 79. Add foreground refresh behavior
+- [x] 79. Add foreground refresh behavior
   - Target area: app shell/query setup.
   - Refresh key screens when app returns to foreground.
   - Acceptance check: stale dashboard/list refetches after app resume.
