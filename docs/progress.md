@@ -1,3 +1,38 @@
+# Progress - Phase 134: Mobile Expo SDK Dependency Alignment
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-expo-go-dependency-alignment`.
+> GitHub Issue: #506.
+
+---
+
+## Mobile Expo SDK Dependency Alignment
+
+### Status: SELESAI
+- Scope: Mobile App (Expo SDK 56 Dependency Validation)
+- Tujuan: Merapikan dependency yang tidak sesuai dengan matrix Expo SDK 56 saat troubleshooting error Expo Go incompatible.
+
+### Implementasi
+- **Dependency Alignment**:
+  - Menyesuaikan `react-native-safe-area-context` ke `~5.7.0`, sesuai hasil `npx expo install --check`.
+  - Menyesuaikan `@react-native/jest-preset` ke `0.85.3`, sesuai React Native `0.85.3`.
+  - Menyesuaikan `@types/jest` ke `29.5.14`, sesuai Jest 29.
+  - Menyesuaikan `react-test-renderer` ke `19.2.3`, sesuai React `19.2.3`.
+- **Catatan Expo Go**:
+  - Tidak melakukan downgrade ke SDK 51 karena project sudah berada di Expo SDK 56 dan SDK 56 adalah target MVP saat ini.
+  - Jika Expo Go Play Store masih menampilkan incompatible, jalur uji yang lebih stabil adalah preview/development build karena ada laporan kompatibilitas Expo Go Android SDK 56.
+
+### Validasi
+- `npx expo install --check`: dependencies are up to date.
+- `npm test -- --runInBand`: 60 test suites passed, 305 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Gunakan preview/development build jika Expo Go Play Store tetap menolak project SDK 56.
+
+---
+
 # Progress - Phase 133: Mobile App MVP Milestone Completion
 
 > Document updated: 2026-06-19
