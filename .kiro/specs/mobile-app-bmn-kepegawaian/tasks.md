@@ -685,7 +685,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: badge always shows text, not color only.
   - _Requirements: 20_
 
-- [ ] 13. Add SectionCard component
+- [x] 13. Add SectionCard component
   - Target area: `mobile/src/components/SectionCard.tsx`.
   - Provide title, optional subtitle, optional action, and content slot.
   - Acceptance check: no nested decorative card style is introduced.

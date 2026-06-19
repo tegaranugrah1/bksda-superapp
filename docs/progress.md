@@ -4557,6 +4557,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 12 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 13: Add SectionCard component (`mobile/src/components/SectionCard.tsx`).
+- [ ] Task 13: Add SectionCard component (`mobile/src/components/SectionCard.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 13: Created `SectionCard` component in [mobile/src/components/SectionCard.tsx](file:///e:/bksda-superapp/mobile/src/components/SectionCard.tsx) serving as the standard structured card layout for details and forms.
+- [x] Mapped layout properties including `title`, optional `subtitle`, optional header `action` component, and child `content` slot.
+- [x] Used the standard card background color and a subtle shadow token to avoid nested decorative card patterns.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/SectionCard.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/SectionCard.test.tsx).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 13 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 14: Add EmptyState component (`mobile/src/components/EmptyState.tsx`).
 
 
