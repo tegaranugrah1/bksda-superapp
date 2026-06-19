@@ -4517,6 +4517,20 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 9 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 10: Add AppTextInput component (`mobile/src/components/AppTextInput.tsx`).
+- [ ] Task 10: Add AppTextInput component (`mobile/src/components/AppTextInput.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 10 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 10: Created `AppTextInput` component in [mobile/src/components/AppTextInput.tsx](file:///e:/bksda-superapp/mobile/src/components/AppTextInput.tsx) with custom focused border colors, error border colors, and disabled states.
+- [x] Enforced label-always-rendered rule and mapped error text dynamically below the input, using Indonesian user-facing validation messages.
+- [x] Integrated screen-reader accessibility features (`accessibilityLabel`, `accessibilityHint`, `accessibilityState`, and `aria-invalid`).
+- [x] Removed unused `useColorScheme` import to avoid ESLint warnings.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/AppTextInput.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/AppTextInput.test.tsx).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 10 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 11: Add SearchInput component (`mobile/src/components/SearchInput.tsx`).
 
 

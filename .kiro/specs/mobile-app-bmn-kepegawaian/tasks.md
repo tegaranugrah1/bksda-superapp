@@ -667,7 +667,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: component cannot be used without a label in TypeScript.
   - _Requirements: 20_
 
-- [ ] 10. Add AppTextInput component
+- [x] 10. Add AppTextInput component
   - Target area: `mobile/src/components/AppTextInput.tsx`.
   - Support label, helper text, error text, secure text, and disabled state.
   - Acceptance check: validation error text is visible and screen-reader friendly.
