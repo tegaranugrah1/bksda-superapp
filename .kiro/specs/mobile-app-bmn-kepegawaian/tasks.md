@@ -673,7 +673,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: validation error text is visible and screen-reader friendly.
   - _Requirements: 17, 20_
 
-- [ ] 11. Add SearchInput component
+- [x] 11. Add SearchInput component
   - Target area: `mobile/src/components/SearchInput.tsx`.
   - Include clear button and accessible label.
   - Acceptance check: search text can be cleared with one tap.

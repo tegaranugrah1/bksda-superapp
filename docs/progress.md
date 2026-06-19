@@ -4531,6 +4531,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 10 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 11: Add SearchInput component (`mobile/src/components/SearchInput.tsx`).
+- [ ] Task 11: Add SearchInput component (`mobile/src/components/SearchInput.tsx`) (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)
+
+### Completed (Selesai)
+- [x] Task 11: Created `SearchInput` component in [mobile/src/components/SearchInput.tsx](file:///e:/bksda-superapp/mobile/src/components/SearchInput.tsx).
+- [x] Built layout with left search icon ("🔍") and clear button ("✕") that displays only when value is not empty.
+- [x] Confirmed the clear button functions properly to empty search state with one tap, while keeping debounce outside the visual component as requested.
+- [x] Added unit tests for the component in [mobile/src/components/__tests__/SearchInput.test.tsx](file:///e:/bksda-superapp/mobile/src/components/__tests__/SearchInput.test.tsx).
+- [x] Verified typechecking (`tsc --noEmit`), linting (`eslint .`), and Jest unit tests still pass successfully.
+- [x] Checked off completed task 11 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 12: Add StatusBadge component (`mobile/src/components/StatusBadge.tsx`).
 
 
