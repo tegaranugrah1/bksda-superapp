@@ -8,11 +8,15 @@ import { ErrorState } from '@/components/ErrorState';
 import { EmptyState } from '@/components/EmptyState';
 import { SearchInput } from '@/components/SearchInput';
 import { IconButton } from '@/components/IconButton';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BmnStackParamList } from '../navigation/BmnNavigator';
 import { AssetListItem } from '../types';
 import AssetFilterSheet, { FilterState } from '../components/AssetFilterSheet';
 
 export default function BmnListScreen() {
   const { colors, spacing, typography } = useAppTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<BmnStackParamList>>();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState<FilterState>({});
@@ -58,7 +62,7 @@ export default function BmnListScreen() {
   };
 
   const handleAssetPress = (asset: AssetListItem) => {
-    // Placeholder callback for opening detail screen (Task 44)
+    navigation.navigate('BmnDetail', { id: asset.id });
   };
 
   const renderItem = ({ item }: { item: AssetListItem }) => (

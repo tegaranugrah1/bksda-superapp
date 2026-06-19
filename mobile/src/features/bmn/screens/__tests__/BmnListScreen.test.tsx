@@ -4,6 +4,13 @@ import renderer, { act } from 'react-test-renderer';
 import BmnListScreen from '../BmnListScreen';
 import { useAssets } from '../../useAssets';
 
+// Mock navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 // Mock theme hook
 jest.mock('@/hooks/useAppTheme', () => ({
   useAppTheme: () => ({

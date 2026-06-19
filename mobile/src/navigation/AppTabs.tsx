@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import DashboardScreen from '@/features/dashboard/screens/DashboardScreen';
-import BmnListScreen from '@/features/bmn/screens/BmnListScreen';
+import BmnNavigator from '@/features/bmn/navigation/BmnNavigator';
 import SuratTugasListScreen from '@/features/surat-tugas/screens/SuratTugasListScreen';
 import ProfileScreen from '@/features/profile/screens/ProfileScreen';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -52,9 +52,10 @@ export default function AppTabs() {
       {showBmn && (
         <Tab.Screen
           name="Bmn"
-          component={BmnListScreen}
+          component={BmnNavigator}
           options={{
             title: 'BMN',
+            headerShown: false,
           }}
         />
       )}
