@@ -4922,6 +4922,19 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 40 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 41: Add BMN list states.
+- [x] Task 41: Add BMN list states (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 41 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Integrated visual list states in `BmnListScreen` in [mobile/src/features/bmn/screens/BmnListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnListScreen.tsx).
+- [x] Added `LoadingSkeleton` overlay to present loading cards while the asset query loads.
+- [x] Integrated `ErrorState` handler showing clear Indonesian error messages and a retry callback trigger connected to hook's `refetch` mechanism.
+- [x] Integrated `EmptyState` component indicating that no asset items match search query/filters.
+- [x] Wrote unit tests in [mobile/src/features/bmn/screens/__tests__/BmnListScreen.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/__tests__/BmnListScreen.test.tsx) asserting rendering of loading skeletons, empty screens, and error retry states.
+- [x] Checked off completed task 41 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 42: Add BMN asset detail API hook.
 
 

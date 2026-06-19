@@ -855,7 +855,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: applying filter resets list to page 1.
   - _Requirements: 5, 18, 20_
 
-- [ ] 41. Add BMN list states
+- [x] 41. Add BMN list states
   - Target area: asset list screen.
   - Add loading skeleton, empty state, error state, retry, and pull-to-refresh.
   - Acceptance check: each state can be triggered in mock/dev mode.
