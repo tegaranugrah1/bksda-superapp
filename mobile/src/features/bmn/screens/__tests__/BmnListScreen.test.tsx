@@ -226,4 +226,88 @@ describe('BmnListScreen', () => {
       tree.unmount();
     });
   });
+
+  it('renders LoadingSkeleton when loading and items are empty', () => {
+    (useAssets as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: true,
+      isRefreshing: false,
+      isFetchingNextPage: false,
+      error: undefined,
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnListScreen />);
+    });
+
+    const root = tree.root;
+    const skeleton = root.findByProps({ variant: 'card' });
+    expect(skeleton).toBeTruthy();
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('renders ErrorState when error occurs and items are empty', () => {
+    const mockApiError = { message: 'Gagal memuat BMN dari server' };
+    (useAssets as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isRefreshing: false,
+      isFetchingNextPage: false,
+      error: mockApiError,
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnListScreen />);
+    });
+
+    const root = tree.root;
+    const errorState = root.findByProps({ message: 'Gagal memuat BMN dari server' });
+    expect(errorState).toBeTruthy();
+
+    act(() => {
+      errorState.props.onRetry();
+    });
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('renders EmptyState when list is empty', () => {
+    (useAssets as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isRefreshing: false,
+      isFetchingNextPage: false,
+      error: undefined,
+      refetch: mockRefetch,
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnListScreen />);
+    });
+
+    const root = tree.root;
+    const emptyState = root.findByProps({ title: 'Tidak Ada Aset' });
+    expect(emptyState).toBeTruthy();
+
+    act(() => {
+      tree.unmount();
+    });
+  });
 });

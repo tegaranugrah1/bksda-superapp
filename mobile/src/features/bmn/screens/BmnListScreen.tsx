@@ -3,10 +3,12 @@ import { StyleSheet, View, Text, FlatList, SafeAreaView, ActivityIndicator } fro
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAssets } from '../useAssets';
 import AssetCard from '../components/AssetCard';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { ErrorState } from '@/components/ErrorState';
+import { EmptyState } from '@/components/EmptyState';
 import { SearchInput } from '@/components/SearchInput';
 import { IconButton } from '@/components/IconButton';
 import { AssetListItem } from '../types';
-
 import AssetFilterSheet, { FilterState } from '../components/AssetFilterSheet';
 
 export default function BmnListScreen() {
@@ -30,6 +32,8 @@ export default function BmnListScreen() {
   // Hook query BMN list
   const {
     items,
+    isLoading,
+    error,
     isRefreshing,
     refetch,
     fetchNextPage,
@@ -70,6 +74,56 @@ export default function BmnListScreen() {
       <View style={[styles.footer, { paddingVertical: spacing.md }]}>
         <ActivityIndicator size="small" color={colors.primary} />
       </View>
+    );
+  };
+
+  const renderContent = () => {
+    if (isLoading && items.length === 0) {
+      return (
+        <View style={{ flex: 1, paddingVertical: spacing.md }}>
+          <LoadingSkeleton variant="card" count={3} />
+        </View>
+      );
+    }
+
+    if (error && items.length === 0) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <ErrorState
+            title="Gagal Memuat Data"
+            message={error.message || 'Terjadi kesalahan saat mengambil daftar aset. Silakan coba lagi.'}
+            onRetry={refetch}
+          />
+        </View>
+      );
+    }
+
+    if (items.length === 0) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <EmptyState
+            title="Tidak Ada Aset"
+            message="Aset BMN tidak ditemukan. Coba hapus filter atau cari dengan kata kunci lain."
+          />
+        </View>
+      );
+    }
+
+    return (
+      <FlatList
+        data={items}
+        renderItem={renderItem}
+        keyExtractor={(item) => String(item.id)}
+        contentContainerStyle={{
+          paddingBottom: spacing.xl * 2,
+        }}
+        showsVerticalScrollIndicator={false}
+        onRefresh={refetch}
+        refreshing={isRefreshing}
+        onEndReached={fetchNextPage}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+      />
     );
   };
 
@@ -128,20 +182,7 @@ export default function BmnListScreen() {
         </View>
 
         {/* List Container */}
-        <FlatList
-          data={items}
-          renderItem={renderItem}
-          keyExtractor={(item) => String(item.id)}
-          contentContainerStyle={{
-            paddingBottom: spacing.xl * 2,
-          }}
-          showsVerticalScrollIndicator={false}
-          onRefresh={refetch}
-          refreshing={isRefreshing}
-          onEndReached={fetchNextPage}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-        />
+        {renderContent()}
       </View>
 
       <AssetFilterSheet
