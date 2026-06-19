@@ -1,7 +1,7 @@
 # Progress - Phase 125: Mobile Form Validation Unit Tests
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-form-validation-tests-task-82`.
+> Status: Selesai di main (PR #489).
 > GitHub Issue: #488.
 
 ---
