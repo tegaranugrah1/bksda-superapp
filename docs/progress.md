@@ -1,3 +1,38 @@
+# Progress - Phase 107: Mobile Surat Tugas Detail API Hook
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-surat-tugas-task-64`.
+> GitHub Issue: #452.
+
+---
+
+## Mobile Surat Tugas Detail API Hook
+
+### Status: SELESAI
+- Scope: Mobile App (Surat Tugas Module)
+- Tujuan: Menyediakan hook detail Surat Tugas yang mengambil data berdasarkan ID, mendukung endpoint personal/manajemen, normalized forbidden/not-found states, dan refetch.
+
+### Implementasi
+- **Hook**:
+  - Membuat [useAssignmentDetail.ts](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/useAssignmentDetail.ts).
+  - Mode `personal` memakai endpoint `/surat-tugas/my/{id}`; mode `management` memakai `/surat-tugas/{id}`.
+  - Menambahkan `isForbidden` dan `isNotFound` berbasis normalized API error untuk memudahkan screen detail berikutnya.
+  - Menghindari request saat `id` belum tersedia.
+- **Tests**:
+  - Menambahkan [useAssignmentDetail.test.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/__tests__/useAssignmentDetail.test.tsx) untuk success personal, success management, 403 forbidden, 404 not found, refetch, dan missing ID.
+- **Checklist**:
+  - Mencentang Task 64 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/features/surat-tugas/__tests__/useAssignmentDetail.test.tsx`: 6 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 65: Build Surat Tugas detail sections.
+
+---
+
 # Progress - Phase 106: Mobile Surat Tugas List Pagination and States
 
 > Document updated: 2026-06-19

@@ -995,7 +995,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: empty state is different from error state.
   - _Requirements: 11, 17, 18, 20_
 
-- [ ] 64. Add Surat Tugas detail API hook
+- [x] 64. Add Surat Tugas detail API hook
   - Target area: `mobile/src/features/surat-tugas/useAssignmentDetail.ts`.
   - Fetch detail by id.
   - Acceptance check: hook exposes loading, detail, forbidden, not found, and refetch.
