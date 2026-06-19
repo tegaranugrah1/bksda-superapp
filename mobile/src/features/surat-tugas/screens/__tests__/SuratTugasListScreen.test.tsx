@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, Text, TouchableOpacity } from 'react-nativ
 import renderer, { act } from 'react-test-renderer';
 import SuratTugasListScreen from '../SuratTugasListScreen';
 import { useAssignments } from '../../useAssignments';
+import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
 
 const mockNavigate = jest.fn();
 const mockCan = jest.fn();
@@ -53,6 +54,10 @@ jest.mock('@/hooks/useAppTheme', () => ({
       },
     },
   }),
+}));
+
+jest.mock('@/hooks/useForegroundRefresh', () => ({
+  useForegroundRefresh: jest.fn(),
 }));
 
 jest.mock('@/lib/permissions', () => ({
@@ -119,6 +124,7 @@ describe('SuratTugasListScreen', () => {
     expect(texts).toContain('Menunggu');
     expect(texts).toContain('ST.001/BKSDA/2026');
     expect(texts).toContain('Patroli kawasan');
+    expect(useForegroundRefresh).toHaveBeenCalledWith(mockRefetch, { enabled: true, staleMs: 60000 });
 
     const searchInput = tree!.root.findByProps({ placeholder: 'Cari nomor, kegiatan, atau tujuan...' });
     expect(searchInput).toBeTruthy();

@@ -1,3 +1,45 @@
+# Progress - Phase 122: Mobile Foreground Refresh Behavior
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-foreground-refresh-task-79`.
+> GitHub Issue: #482.
+
+---
+
+## Mobile Foreground Refresh Behavior
+
+### Status: SELESAI
+- Scope: Mobile App (App Shell / Query Setup)
+- Tujuan: Merefetch screen dashboard/list utama saat aplikasi kembali ke foreground setelah data stale.
+
+### Implementasi
+- **Hook**:
+  - Menambahkan [useForegroundRefresh.ts](file:///e:/bksda-superapp/mobile/src/hooks/useForegroundRefresh.ts).
+  - Menggunakan `AppState` untuk mendeteksi transisi `background/inactive -> active`.
+  - Merefetch hanya jika durasi background melewati `staleMs` agar resume singkat tidak memicu request berlebih.
+- **Integrasi Screen**:
+  - Menghubungkan [DashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/screens/DashboardScreen.tsx) ke foreground refresh saat dashboard sudah punya data.
+  - Menghubungkan [BmnListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/screens/BmnListScreen.tsx) ke foreground refresh saat list aset sudah terisi.
+  - Menghubungkan [SuratTugasListScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/surat-tugas/screens/SuratTugasListScreen.tsx) ke foreground refresh saat list surat tugas sudah terisi.
+- **Tests**:
+  - Menambahkan [useForegroundRefresh.test.tsx](file:///e:/bksda-superapp/mobile/src/hooks/__tests__/useForegroundRefresh.test.tsx) untuk stale resume, non-stale resume, dan cleanup listener.
+  - Memperluas test Dashboard, BMN List, dan Surat Tugas List agar refetch callback terbukti didaftarkan ke hook foreground refresh.
+- **Checklist**:
+  - Mencentang Task 79 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/hooks/__tests__/useForegroundRefresh.test.tsx`: 3 tests passed.
+- `npm test -- --runTestsByPath src/features/dashboard/screens/__tests__/DashboardScreen.test.tsx`: 6 tests passed.
+- `npm test -- --runTestsByPath src/features/bmn/screens/__tests__/BmnListScreen.test.tsx`: 7 tests passed.
+- `npm test -- --runTestsByPath src/features/surat-tugas/screens/__tests__/SuratTugasListScreen.test.tsx`: 9 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 80: Add unit tests for API client.
+
+---
+
 # Progress - Phase 121: Mobile Online-Only Network State
 
 > Document updated: 2026-06-19

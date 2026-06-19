@@ -3,6 +3,7 @@ import { ActivityIndicator } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import BmnListScreen from '../BmnListScreen';
 import { useAssets } from '../../useAssets';
+import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
@@ -55,6 +56,10 @@ jest.mock('@/hooks/useAppTheme', () => ({
       },
     },
   }),
+}));
+
+jest.mock('@/hooks/useForegroundRefresh', () => ({
+  useForegroundRefresh: jest.fn(),
 }));
 
 // Mock useAssets hook
@@ -154,6 +159,7 @@ describe('BmnListScreen', () => {
 
     expect(texts).toContain('Laptop Asus');
     expect(texts).toContain('Mobil Toyota');
+    expect(useForegroundRefresh).toHaveBeenCalledWith(mockRefetch, { enabled: true, staleMs: 60000 });
 
     act(() => {
       tree.unmount();

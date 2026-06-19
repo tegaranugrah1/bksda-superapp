@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useMobileDashboard } from '../useMobileDashboard';
 import { usePermissions } from '@/lib/permissions';
@@ -24,6 +25,7 @@ export default function DashboardScreen({ navigation }: any) {
   const { data, isLoading, error, refetch } = useMobileDashboard();
   const onlineStatus = useOnlineStatus(error);
   const { hasModule, can } = usePermissions();
+  useForegroundRefresh(refetch, { enabled: Boolean(data), staleMs: 60_000 });
 
   const showBmn = hasModule('bmn');
   const showSuratTugas = hasModule('surat_tugas') || hasModule('kepegawaian');

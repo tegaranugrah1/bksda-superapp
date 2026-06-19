@@ -6,6 +6,7 @@ import { Alert } from 'react-native';
 import DashboardScreen from '../DashboardScreen';
 import { useMobileDashboard } from '../../useMobileDashboard';
 import { usePermissions } from '@/lib/permissions';
+import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
 
 // Mock theme hook
 jest.mock('@/hooks/useAppTheme', () => ({
@@ -55,6 +56,10 @@ jest.mock('@/hooks/useAppTheme', () => ({
       },
     },
   }),
+}));
+
+jest.mock('@/hooks/useForegroundRefresh', () => ({
+  useForegroundRefresh: jest.fn(),
 }));
 
 // Mock dashboard API hook
@@ -253,6 +258,7 @@ describe('DashboardScreen', () => {
     // Alert Card and Quick Actions check
     expect(root.findByType('AlertCardMock')).toBeTruthy();
     expect(root.findByType('QuickActionsMock')).toBeTruthy();
+    expect(useForegroundRefresh).toHaveBeenCalledWith(mockRefetch, { enabled: true, staleMs: 60000 });
 
     act(() => {
       tree.unmount();

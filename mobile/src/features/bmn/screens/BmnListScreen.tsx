@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, FlatList, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
 import { useAssets } from '../useAssets';
 import AssetCard from '../components/AssetCard';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
@@ -48,6 +49,7 @@ export default function BmnListScreen() {
     jenis_bmn: filters.jenis_bmn,
     lokasi_ruang: filters.lokasi_ruang,
   });
+  useForegroundRefresh(refetch, { enabled: items.length > 0, staleMs: 60_000 });
 
   const handleSearchChange = (text: string) => {
     setSearch(text);

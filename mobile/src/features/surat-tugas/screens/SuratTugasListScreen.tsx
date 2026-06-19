@@ -9,6 +9,7 @@ import { AppButton } from '@/components/AppButton';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { SearchInput } from '@/components/SearchInput';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
 import { usePermissions } from '@/lib/permissions';
 import AssignmentCard from '../components/AssignmentCard';
 import { SuratTugasStackParamList } from '../navigation/SuratTugasNavigator';
@@ -59,6 +60,7 @@ export default function SuratTugasListScreen() {
     search: debouncedSearch,
     status: status === 'all' ? undefined : status,
   });
+  useForegroundRefresh(refetch, { enabled: items.length > 0, staleMs: 60_000 });
 
   const renderAssignment = ({ item }: { item: AssignmentListItem }) => (
     <AssignmentCard
