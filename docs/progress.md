@@ -1,7 +1,7 @@
 # Progress - Phase 128: Mobile Superadmin Path Validation
 
 > Document updated: 2026-06-19
-> Status: Selesai di branch `codex/mobile-validate-superadmin-task-85`.
+> Status: Selesai di main (PR #495).
 > GitHub Issue: #494.
 
 ---
