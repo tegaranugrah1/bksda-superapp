@@ -13,6 +13,9 @@ import { AppButton } from '@/components/AppButton';
 import { SectionCard } from '@/components/SectionCard';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { ErrorState } from '@/components/ErrorState';
+import { apiClient } from '@/lib/api/client';
+import { normalizeError } from '@/lib/api/errors';
+import { usePermissions } from '@/lib/permissions';
 
 export default function BmnFormScreen() {
   const { colors, spacing, typography, radius } = useAppTheme();
@@ -21,12 +24,14 @@ export default function BmnFormScreen() {
   const id = route.params?.id;
   const isEdit = id !== undefined;
 
+  const { can } = usePermissions();
   const { data: asset, isLoading, error, refetch } = useAssetDetail(id);
 
   const {
     control,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<AssetFormData>({
     resolver: zodResolver(assetFormSchema),
@@ -75,12 +80,35 @@ export default function BmnFormScreen() {
   }, [isEdit, asset, reset]);
 
   const onSubmit = async (data: AssetFormData) => {
+    const payload = {
+      nama_barang: data.nama_barang,
+      kode_barang: data.kode_barang,
+      nup: data.nup,
+      kondisi: data.kondisi,
+      nilai_perolehan: data.nilai_perolehan,
+      jenis_bmn: data.jenis_bmn || null,
+      merk: data.merk || null,
+      tipe: data.tipe || null,
+      no_polisi: data.no_polisi || null,
+      no_stnk: data.no_stnk || null,
+      no_bpkp: data.no_bpkb || null, // Map no_bpkb to backend no_bpkp field
+      no_mesin: data.no_mesin || null,
+      no_rangka: data.no_rangka || null,
+      tanggal_perolehan: data.tanggal_perolehan || null,
+      lokasi_ruang: data.lokasi_ruang || null,
+      penanggung_jawab_id: data.penanggung_jawab_id || null,
+    };
+
     try {
-      // Form submit wiring will happen in Task 48.
-      // For now, show success message and navigate back as placeholder.
+      if (isEdit) {
+        await apiClient.put(`/bmn/assets/${id}`, payload);
+      } else {
+        await apiClient.post('/bmn/assets', payload);
+      }
+
       Alert.alert(
         isEdit ? 'Ubah Aset' : 'Tambah Aset',
-        'Data aset BMN berhasil divalidasi.',
+        isEdit ? 'Data aset BMN berhasil diubah.' : 'Data aset BMN berhasil ditambahkan.',
         [
           {
             text: 'OK',
@@ -88,10 +116,72 @@ export default function BmnFormScreen() {
           },
         ]
       );
-    } catch {
-      Alert.alert('Gagal', 'Terjadi kesalahan saat menyimpan data.');
+    } catch (err: any) {
+      const apiError = normalizeError(err);
+      if (apiError.kind === 'validation' && apiError.fieldErrors) {
+        Object.keys(apiError.fieldErrors).forEach((field) => {
+          const messages = apiError.fieldErrors?.[field];
+          if (messages && messages.length > 0) {
+            // Map backend no_bpkp error back to form field no_bpkb
+            const formField = field === 'no_bpkp' ? 'no_bpkb' : field;
+            setError(formField as any, {
+              type: 'server',
+              message: messages[0],
+            });
+          }
+        });
+      } else {
+        Alert.alert('Gagal Menyimpan', apiError.message || 'Terjadi kesalahan pada server.');
+      }
     }
   };
+
+  // Fail-closed permission checking
+  if (!isEdit && !can('bmn.asset.create')) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <View style={[styles.headerRow, { paddingHorizontal: spacing.lg, paddingVertical: spacing.md }]}>
+          <IconButton
+            icon={<Text style={{ fontSize: 20, color: colors.foreground }}>←</Text>}
+            onPress={() => navigation.goBack()}
+            accessibilityLabel="Batal"
+          />
+          <Text style={[styles.headerTitle, { color: colors.foreground, fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.lg, fontWeight: typography.fontWeights.bold, marginLeft: spacing.sm }]}>
+            Tambah Aset BMN
+          </Text>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', padding: spacing.lg }}>
+          <ErrorState
+            title="Akses Ditolak"
+            message="Anda tidak memiliki akses untuk menambah aset BMN."
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isEdit && asset && !asset.allowed_actions?.can_edit && !can('bmn.asset.update')) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <View style={[styles.headerRow, { paddingHorizontal: spacing.lg, paddingVertical: spacing.md }]}>
+          <IconButton
+            icon={<Text style={{ fontSize: 20, color: colors.foreground }}>←</Text>}
+            onPress={() => navigation.goBack()}
+            accessibilityLabel="Batal"
+          />
+          <Text style={[styles.headerTitle, { color: colors.foreground, fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.lg, fontWeight: typography.fontWeights.bold, marginLeft: spacing.sm }]}>
+            Ubah Aset BMN
+          </Text>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', padding: spacing.lg }}>
+          <ErrorState
+            title="Akses Ditolak"
+            message="Anda tidak memiliki akses untuk mengubah aset BMN ini."
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (isEdit && isLoading && !asset) {
     return (
@@ -103,7 +193,7 @@ export default function BmnFormScreen() {
             accessibilityLabel="Batal"
           />
           <Text style={[styles.headerTitle, { color: colors.foreground, fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.lg, fontWeight: typography.fontWeights.bold, marginLeft: spacing.sm }]}>
-            Ubah Aset
+            Ubah Aset BMN
           </Text>
         </View>
         <View style={{ flex: 1, paddingHorizontal: spacing.lg }}>
@@ -123,7 +213,7 @@ export default function BmnFormScreen() {
             accessibilityLabel="Batal"
           />
           <Text style={[styles.headerTitle, { color: colors.foreground, fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.lg, fontWeight: typography.fontWeights.bold, marginLeft: spacing.sm }]}>
-            Ubah Aset
+            Ubah Aset BMN
           </Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', padding: spacing.lg }}>

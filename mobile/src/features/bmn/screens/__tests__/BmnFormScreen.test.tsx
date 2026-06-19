@@ -2,6 +2,7 @@ import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import BmnFormScreen from '../BmnFormScreen';
 import { useAssetDetail } from '../../useAssetDetail';
+import { apiClient } from '@/lib/api/client';
 import { Alert } from 'react-native';
 
 // Mock navigation hooks
@@ -16,6 +17,24 @@ jest.mock('@react-navigation/native', () => ({
       return mockRouteParams();
     },
   }),
+}));
+
+// Mock permissions hook
+const mockCan = jest.fn();
+jest.mock('@/lib/permissions', () => ({
+  usePermissions: () => ({
+    can: mockCan,
+    hasModule: () => true,
+    isSuperAdmin: () => false,
+  }),
+}));
+
+// Mock central API client
+jest.mock('@/lib/api/client', () => ({
+  apiClient: {
+    post: jest.fn(),
+    put: jest.fn(),
+  },
 }));
 
 // Mock theme hook
@@ -93,6 +112,7 @@ describe('BmnFormScreen', () => {
     no_rangka: 'RNGK12345678',
     no_mesin: 'MSN98765432',
     no_polisi: 'B 7777 ABC',
+    bpkb_1: 'BPKB_LINK',
     lokasi: 'Kantor Balai',
     lokasi_ruang: 'Ruang IT',
     penanggung_jawab: {
@@ -103,11 +123,15 @@ describe('BmnFormScreen', () => {
     tanggal_pembelian: '2023-05-15',
     nilai_perolehan: 15000000,
     jenis_bmn: 'Peralatan dan Mesin',
+    allowed_actions: {
+      can_edit: true,
+    },
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams.mockReturnValue(undefined); // default: Create mode
+    mockCan.mockReturnValue(true); // default: Allowed
   });
 
   it('renders creation form correctly', () => {
@@ -196,8 +220,60 @@ describe('BmnFormScreen', () => {
     });
   });
 
-  it('submits form and triggers navigation back', async () => {
-    mockRouteParams.mockReturnValue(undefined); // Create mode
+  it('renders Forbidden error state if creation permission is denied', () => {
+    mockCan.mockReturnValue(false); // Permission denied
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnFormScreen />);
+    });
+
+    const root = tree.root;
+    const forbiddenCard = root.findByProps({ title: 'Akses Ditolak' });
+    expect(forbiddenCard).toBeTruthy();
+    expect(forbiddenCard.props.message).toBe('Anda tidak memiliki akses untuk menambah aset BMN.');
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('renders Forbidden error state if edit permission is denied', () => {
+    mockRouteParams.mockReturnValue({ id: '123' });
+    mockCan.mockReturnValue(false); // Permission denied
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: {
+        ...mockAsset,
+        allowed_actions: { can_edit: false },
+      },
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnFormScreen />);
+    });
+
+    const root = tree.root;
+    const forbiddenCard = root.findByProps({ title: 'Akses Ditolak' });
+    expect(forbiddenCard).toBeTruthy();
+    expect(forbiddenCard.props.message).toBe('Anda tidak memiliki akses untuk mengubah aset BMN ini.');
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('submits form and calls apiClient.post on success in Create mode', async () => {
+    (apiClient.post as jest.Mock).mockResolvedValue({ status: 200, data: {} });
     (useAssetDetail as jest.Mock).mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -229,13 +305,19 @@ describe('BmnFormScreen', () => {
       submitBtn.props.onPress();
     });
 
+    expect(apiClient.post).toHaveBeenCalledWith('/bmn/assets', expect.objectContaining({
+      nama_barang: 'Aset Baru',
+      kode_barang: 'KODE-NEW',
+      nup: '45',
+    }));
+
     expect(alertSpy).toHaveBeenCalledWith(
       'Tambah Aset',
-      'Data aset BMN berhasil divalidasi.',
+      'Data aset BMN berhasil ditambahkan.',
       expect.any(Array)
     );
 
-    // Call the alert callback to trigger navigation
+    // Call alert callback
     const alertCallback = alertSpy.mock.calls[0][2]?.[0]?.onPress;
     if (alertCallback) {
       act(() => {
@@ -243,6 +325,104 @@ describe('BmnFormScreen', () => {
       });
       expect(mockGoBack).toHaveBeenCalled();
     }
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('submits form and calls apiClient.put on success in Edit mode', async () => {
+    mockRouteParams.mockReturnValue({ id: '123' });
+    (apiClient.put as jest.Mock).mockResolvedValue({ status: 200, data: {} });
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: mockAsset,
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnFormScreen />);
+    });
+
+    const root = tree.root;
+
+    const submitBtn = root.findByProps({ title: 'Simpan Perubahan' });
+    
+    await act(async () => {
+      submitBtn.props.onPress();
+    });
+
+    expect(apiClient.put).toHaveBeenCalledWith('/bmn/assets/123', expect.objectContaining({
+      nama_barang: 'Laptop Asus Edit',
+      kode_barang: 'BMN-10023-ROG',
+      nup: '15',
+    }));
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Ubah Aset',
+      'Data aset BMN berhasil diubah.',
+      expect.any(Array)
+    );
+
+    act(() => {
+      tree.unmount();
+    });
+  });
+
+  it('maps backend 422 errors to form fields correctly', async () => {
+    const mock422Error = {
+      response: {
+        status: 422,
+        data: {
+          message: 'The given data was invalid.',
+          errors: {
+            nama_barang: ['Nama barang sudah terdaftar.'],
+            no_bpkp: ['Format BPKB tidak valid.'], // Laravel backend field
+          },
+        },
+      },
+    };
+
+    (apiClient.post as jest.Mock).mockRejectedValue(mock422Error);
+    (useAssetDetail as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: undefined,
+      refetch: mockRefetch,
+    });
+
+    let tree: any;
+    act(() => {
+      tree = renderer.create(<BmnFormScreen />);
+    });
+
+    const root = tree.root;
+
+    // Populate required fields
+    const namaInput = root.findByProps({ label: 'Nama Barang *' });
+    const codeInput = root.findByProps({ label: 'Kode Barang *' });
+    const nupInput = root.findByProps({ label: 'NUP (Nomor Urut Pendaftaran) *' });
+
+    act(() => {
+      namaInput.props.onChangeText('Aset Gagal');
+      codeInput.props.onChangeText('KODE-NEW');
+      nupInput.props.onChangeText('45');
+    });
+
+    const submitBtn = root.findByProps({ title: 'Tambah Aset' });
+    
+    await act(async () => {
+      submitBtn.props.onPress();
+    });
+
+    // Check error validation message was mapped back to inputs
+    const namaInputUpdated = root.findByProps({ label: 'Nama Barang *' });
+    expect(namaInputUpdated.props.error).toBe('Nama barang sudah terdaftar.');
+
+    const bpkbInput = root.findByProps({ label: 'Nomor BPKB' });
+    expect(bpkbInput.props.error).toBe('Format BPKB tidak valid.');
 
     act(() => {
       tree.unmount();
