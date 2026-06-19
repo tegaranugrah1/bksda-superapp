@@ -1129,7 +1129,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: no crash in the tested path.
   - _Requirements: all MVP requirements_
 
-- [ ] 86. Validate Android regular employee path
+- [x] 86. Validate Android regular employee path
   - Target area: Android device/emulator.
   - Login as regular employee and test personal dashboard, personal BMN visibility, and personal Surat Tugas visibility.
   - Acceptance check: forbidden/admin-only actions are hidden or blocked.
