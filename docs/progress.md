@@ -4947,6 +4947,22 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Checked off completed task 42 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
-- [ ] Task 43: Add asset detail section components.
+- [x] Task 43: Add asset detail section components (Selesai).
+
+## [2026-06-19] Mobile App Implementation - Task 43 (Milestone 2)
+
+### Completed (Selesai)
+- [x] Implemented BMN details layout section components inside `mobile/src/features/bmn/components/detail/` directory:
+  - `AssetSummarySection` rendering asset name, condition badge, and verification status.
+  - `AssetIdentitySection` displaying registration code, type, engine, and chassis numbers.
+  - `AssetLocationSection` displaying physical location, office/room placement, and PIC info.
+  - `AssetDocumentSection` conditionally displaying vehicle BPKB, STNK records, and tax dates.
+  - `AssetFinanceSection` displaying purchasing dates and Rupiah-formatted valuation figures.
+  - `AssetOrganizationSection` displaying assigned operator unit and worker organizations.
+- [x] Wrote comprehensive tests in [mobile/src/features/bmn/components/detail/__tests__/detailSections.test.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/components/detail/__tests__/detailSections.test.tsx) asserting layout rendering and data matching for all 6 section components.
+- [x] Checked off completed task 43 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Next Steps
+- [ ] Task 44: Build asset detail screen.
 
 

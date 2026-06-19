@@ -867,7 +867,7 @@ Use this matrix together with the numbered task. A lower-capability model should
   - Acceptance check: hook exposes not-found and forbidden states.
   - _Requirements: 6, 17_
 
-- [ ] 43. Add asset detail section components
+- [x] 43. Add asset detail section components
   - Target area: `mobile/src/features/bmn/components/detail`.
   - Create `AssetSummarySection`, `AssetIdentitySection`, `AssetLocationSection`, `AssetDocumentSection`, `AssetFinanceSection`, `AssetOrganizationSection`.
   - Acceptance check: each section accepts typed asset detail props.
