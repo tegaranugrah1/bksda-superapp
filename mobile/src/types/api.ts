@@ -7,6 +7,7 @@ export interface ApiSuccess<T> {
     total?: number;
   };
   message?: string;
+  [key: string]: any;
 }
 
 export interface ApiError {

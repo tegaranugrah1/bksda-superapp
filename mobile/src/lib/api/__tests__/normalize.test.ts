@@ -96,4 +96,18 @@ describe('normalizeResponse', () => {
       },
     });
   });
+
+  it('preserves other custom top-level keys like token', () => {
+    const payload = {
+      data: { id: 1, name: 'User' },
+      token: 'jwt-auth-token-123',
+      message: 'Login success',
+    };
+
+    expect(normalizeResponse(payload)).toEqual({
+      data: { id: 1, name: 'User' },
+      token: 'jwt-auth-token-123',
+      message: 'Login success',
+    });
+  });
 });

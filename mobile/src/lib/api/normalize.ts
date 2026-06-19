@@ -40,10 +40,14 @@ export function normalizeResponse<T>(payload: any): ApiSuccess<T> {
       };
     }
 
+    // Destructure payload to preserve other top-level keys (e.g. token)
+    const { data: _d, meta: _m, message: _msg, current_page: _cp, last_page: _lp, per_page: _pp, total: _t, ...rest } = payload;
+
     return {
       data: payload.data,
       ...(meta ? { meta } : {}),
       ...(payload.message ? { message: payload.message } : {}),
+      ...rest,
     };
   }
 
