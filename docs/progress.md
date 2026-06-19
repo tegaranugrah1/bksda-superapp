@@ -1,3 +1,39 @@
+# Progress - Phase 123: Mobile API Client Unit Tests
+
+> Document updated: 2026-06-19
+> Status: Selesai di branch `codex/mobile-api-client-tests-task-80`.
+> GitHub Issue: #484.
+
+---
+
+## Mobile API Client Unit Tests
+
+### Status: SELESAI
+- Scope: Mobile App (API Client Tests)
+- Tujuan: Memastikan API client, normalizer, error mapper, mobile params, dan auth headers punya coverage unit test yang stabil.
+
+### Implementasi
+- **Tests**:
+  - Memvalidasi response normalizer lewat [normalize.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/normalize.test.ts).
+  - Memvalidasi error normalizer lewat [errors.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/errors.test.ts).
+  - Memvalidasi mobile params lewat [mobileParams.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/mobileParams.test.ts), termasuk explicit zero-like pagination values.
+  - Memvalidasi auth/mobile headers dan response/error interceptors lewat [client.test.ts](file:///e:/bksda-superapp/mobile/src/lib/api/__tests__/client.test.ts), termasuk fallback saat secure token lookup gagal.
+- **Checklist**:
+  - Mencentang Task 80 di [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
+
+### Validasi
+- `npm test -- --runTestsByPath src/lib/api/__tests__/client.test.ts`: 6 tests passed.
+- `npm test -- --runTestsByPath src/lib/api/__tests__/normalize.test.ts`: 7 tests passed.
+- `npm test -- --runTestsByPath src/lib/api/__tests__/errors.test.ts`: 10 tests passed.
+- `npm test -- --runTestsByPath src/lib/api/__tests__/mobileParams.test.ts`: 7 tests passed.
+- `npm run typecheck`: sukses tanpa error.
+- `npm run lint`: sukses tanpa warning.
+
+### Next Steps
+- [ ] Task 81: Add unit tests for permissions.
+
+---
+
 # Progress - Phase 122: Mobile Foreground Refresh Behavior
 
 > Document updated: 2026-06-19
