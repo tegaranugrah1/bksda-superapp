@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Inventory\Controllers\DashboardController;
+use App\Modules\Inventory\Controllers\CategoryController;
 use App\Modules\Inventory\Controllers\ExportController;
 use App\Modules\Inventory\Controllers\ItemController;
 use App\Modules\Inventory\Controllers\OfficeController;
@@ -30,6 +31,7 @@ Route::get('/ping', function () {
 // Siapapun Pegawai Biasa asalkan punya akses Modul Logistik, boleh melihat ini.
 // ==========================================
 Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/offices', [OfficeController::class, 'index']);
 Route::get('/items', [ItemController::class, 'index']);
 Route::get('/transactions', [StockController::class, 'history']);

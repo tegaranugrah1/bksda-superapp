@@ -5,6 +5,10 @@ import axios from "axios";
 import { Send, MapPin, Phone, Mail, Loader2, CheckCircle } from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
+const MAP_EMBED_URL =
+  "https://www.openstreetmap.org/export/embed.html?bbox=106.7908%2C-6.2443%2C106.8108%2C-6.2243&layer=mapnik&marker=-6.2343%2C106.8008";
+const MAP_LINK_URL =
+  "https://www.openstreetmap.org/search?query=Jl.%20Raden%20Patah%20No.%201%20Jakarta%20Selatan%20Indonesia";
 
 interface FormData {
   nama: string;
@@ -105,12 +109,22 @@ export default function HubungiKamiPage() {
             </div>
           </div>
 
-          {/* Peta Placeholder */}
-          <div className="mt-10 h-64 bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 flex items-center justify-center">
-            <div className="text-center text-gray-400">
-              <MapPin className="w-10 h-10 mx-auto mb-2" />
-              <p className="text-sm">Peta Lokasi</p>
-            </div>
+          <div className="mt-10 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
+            <iframe
+              title="Peta lokasi kantor BKSDA"
+              src={MAP_EMBED_URL}
+              className="h-64 w-full"
+              loading="lazy"
+            />
+            <a
+              href={MAP_LINK_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 border-t border-gray-200 bg-white px-4 py-3 text-sm font-bold text-green-700 hover:text-green-600"
+            >
+              <MapPin className="h-4 w-4" />
+              Buka peta lokasi
+            </a>
           </div>
         </div>
 
