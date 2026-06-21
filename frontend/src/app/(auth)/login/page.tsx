@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,16 +26,19 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
-  const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const redirectToPortal = () => {
+    window.location.replace("/portal");
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/portal");
+      redirectToPortal();
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,7 +68,7 @@ export default function LoginPage() {
       authStore.login(token, data);
       
       toast.success("Login berhasil!");
-      router.push("/portal");
+      redirectToPortal();
       
     } catch (error: unknown) {
       const errorData = axios.isAxiosError(error) ? error.response?.data : undefined;
