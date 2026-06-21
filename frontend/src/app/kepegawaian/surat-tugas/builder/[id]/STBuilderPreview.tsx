@@ -70,6 +70,17 @@ export default function STBuilderPreview({
   const isPlhTemplate = templateType === "plh";
   const visibleTembusanItems = tembusanItems.filter(t => t && t.trim());
   const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
+  const signaturePlaceholderStyle: React.CSSProperties = {
+    margin: "14px 0 0",
+    height: "105px",
+    display: "flex",
+    alignItems: "flex-start",
+    paddingTop: "34px",
+    paddingLeft: "1.35cm",
+    boxSizing: "border-box",
+    color: "#94a3b8",
+    fontSize: "9pt",
+  };
   const fallbackUntukItems = [
     isPlhTemplate
       ? "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai."
@@ -188,7 +199,7 @@ export default function STBuilderPreview({
               </table>
 
               {/* === MEMBERI TUGAS === */}
-              <p style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>MEMBERI TUGAS,</p>
+              <p style={{ textAlign: "center", fontWeight: "bold", margin: "10px 0 2px" }}>MEMBERI TUGAS,</p>
 
               {/* === KEPADA === */}
               <div
@@ -197,12 +208,12 @@ export default function STBuilderPreview({
                   display: "grid",
                   gridTemplateColumns: "110px 12px 1fr",
                   columnGap: 0,
-                  marginBottom: "12px",
+                  marginBottom: "6px",
                 }}
               >
-                <div style={{ padding: "2px 0" }}>Kepada</div>
-                <div style={{ padding: "2px 0" }}>:</div>
-                <div className="kepada-list" style={{ padding: "2px 0" }}>
+                <div style={{ padding: "1px 0" }}>Kepada</div>
+                <div style={{ padding: "1px 0" }}>:</div>
+                <div className="kepada-list" style={{ padding: "1px 0" }}>
                   {isBedaHariTemplate ? (
                     <div style={{ padding: "2px 0" }}>Daftar nama terlampir.</div>
                   ) : selectedEmployees.length === 0 ? (
@@ -217,26 +228,26 @@ export default function STBuilderPreview({
                         style={{
                           display: "grid",
                           gridTemplateColumns: "24px 1fr",
-                          padding: idx === 0 ? "0 0 4px" : "4px 0",
+                          padding: idx === 0 ? "0 0 2px" : "2px 0",
                           breakInside: "avoid",
                         }}
                       >
-                        <div style={{ padding: "2px 0" }}>{idx + 1}.</div>
+                        <div style={{ padding: "0" }}>{idx + 1}.</div>
                         <div>
-                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr" }}>
-                            <div style={{ padding: "1px 0" }}>Nama</div>
-                            <div style={{ padding: "1px 0" }}>:</div>
-                            <div style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr", lineHeight: 1.15 }}>
+                            <div style={{ padding: "0" }}>Nama</div>
+                            <div style={{ padding: "0" }}>:</div>
+                            <div style={{ padding: "0", fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</div>
                           </div>
-                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr" }}>
-                            <div style={{ padding: "1px 0" }}>NIP</div>
-                            <div style={{ padding: "1px 0" }}>:</div>
-                            <div style={{ padding: "1px 0" }}>{formatNIP(emp.nip)}</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr", lineHeight: 1.15 }}>
+                            <div style={{ padding: "0" }}>NIP</div>
+                            <div style={{ padding: "0" }}>:</div>
+                            <div style={{ padding: "0" }}>{formatNIP(emp.nip)}</div>
                           </div>
-                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr" }}>
-                            <div style={{ padding: "1px 0" }}>Jabatan</div>
-                            <div style={{ padding: "1px 0" }}>:</div>
-                            <div style={{ padding: "1px 0" }}>{emp.jabatan}</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "70px 20px 1fr", lineHeight: 1.15 }}>
+                            <div style={{ padding: "0" }}>Jabatan</div>
+                            <div style={{ padding: "0" }}>:</div>
+                            <div style={{ padding: "0" }}>{emp.jabatan}</div>
                           </div>
                         </div>
                       </div>
@@ -252,7 +263,7 @@ export default function STBuilderPreview({
                   display: "grid",
                   gridTemplateColumns: "110px 12px 1fr",
                   columnGap: 0,
-                  marginBottom: "8px",
+                  marginBottom: "4px",
                 }}
               >
                 <div style={{ padding: "2px 0" }}>Untuk</div>
@@ -284,11 +295,11 @@ export default function STBuilderPreview({
               {/* === PENUTUP + TTD + TEMBUSAN — keep together so TTD never breaks alone === */}
               <div className="penutup-ttd-group" style={{ pageBreakInside: "avoid", breakInside: "avoid" }}>
                 {isFolu ? (
-                  <p className="penutup-surat" style={{ margin: "28px 0 0", textAlign: "justify" }}>
+                  <p className="penutup-surat" style={{ margin: "16px 0 0", textAlign: "justify" }}>
                     Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.
                   </p>
                 ) : (
-                  <p className="penutup-surat" style={{ margin: "28px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
+                  <p className="penutup-surat" style={{ margin: "16px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
                 )}
 
                 {/* === TANDA TANGAN + TEMBUSAN === */}
@@ -296,7 +307,7 @@ export default function STBuilderPreview({
                 {isFolu ? (
                   <>
                     {/* === FOLU TTD Layout — Dikeluarkan sejajar a.n., rata kanan === */}
-                    <div style={{ marginTop: "14px", paddingLeft: "50%" }}>
+                    <div style={{ marginTop: "8px", paddingLeft: "50%" }}>
                       <table style={{ borderCollapse: "collapse" }}>
                         <tbody>
                           <tr>
@@ -315,7 +326,7 @@ export default function STBuilderPreview({
                       <p style={{ margin: 0 }}>selaku Koordinator Kegiatan <span style={{ fontStyle: "italic" }}>Implementing</span></p>
                       <p style={{ margin: 0 }}><span style={{ fontStyle: "italic" }}>Partner</span> FOLU NC 2&amp;3</p>
                       <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
-                      <p className="ttd-placeholder" style={{ margin: "14px 0 0", height: "105px", display: "flex", alignItems: "flex-start", paddingTop: "34px", paddingLeft: "1.35cm", boxSizing: "border-box", color: "#94a3b8", fontSize: "9pt" }}>
+                      <p className="ttd-placeholder" style={signaturePlaceholderStyle}>
                         ${"{ttd_pengirim}"}
                       </p>
                       <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
@@ -342,12 +353,12 @@ export default function STBuilderPreview({
                 ) : (
                   <>
                     {/* === Default TTD (kanan) — all in one block === */}
-                    <div style={{ marginTop: "14px", marginLeft: "9.2cm", textAlign: "left" }}>
+                    <div style={{ marginTop: "8px", marginLeft: "9.2cm", textAlign: "left" }}>
                       <p style={{ margin: 0 }}>
                         {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
                       </p>
                       <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
-                      <p className="ttd-placeholder" style={{ margin: "14px 0 0", height: "105px", display: "flex", alignItems: "flex-start", paddingTop: "34px", paddingLeft: "1.35cm", boxSizing: "border-box", color: "#94a3b8", fontSize: "9pt" }}>
+                      <p className="ttd-placeholder" style={signaturePlaceholderStyle}>
                         ${"{ttd_pengirim}"}
                       </p>
                       <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
@@ -356,7 +367,7 @@ export default function STBuilderPreview({
 
                     {/* === Tembusan (kiri) sejajar NIP === */}
                     {visibleTembusanItems.length > 0 && (
-                      <div className="tembusan-block" style={{ marginTop: "-22px", maxWidth: "8cm" }}>
+                      <div className="tembusan-block" style={{ marginTop: "-22px", maxWidth: "9.4cm" }}>
                         <p style={{ margin: "0 0 4px" }}>Tembusan:</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
@@ -365,7 +376,7 @@ export default function STBuilderPreview({
                                 {shouldNumberDefaultTembusan && (
                                   <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0" }}>{idx + 1}.</td>
                                 )}
-                                <td style={{ verticalAlign: "top", padding: "1px 0" }}>{item}</td>
+                                <td style={{ verticalAlign: "top", padding: "1px 0", whiteSpace: "nowrap" }}>{item}</td>
                               </tr>
                             ))}
                           </tbody>
