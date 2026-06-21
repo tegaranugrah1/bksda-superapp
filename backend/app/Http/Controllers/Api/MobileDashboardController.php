@@ -113,7 +113,7 @@ class MobileDashboardController extends Controller
                     'pending_approvals_count' => $pendingApprovalsCount,
                 ],
                 'urgent_tax_vehicles' => $urgentTaxVehicles,
-                'notifications' => [], // Fallback placeholder
+                'notifications' => [],
             ],
             'meta' => [
                 'generated_at' => now()->toIso8601String(),

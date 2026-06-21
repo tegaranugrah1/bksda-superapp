@@ -7,6 +7,7 @@ import { PackageSearch, Plus, Loader2, Save, Trash2, Edit, Download } from "luci
 import { InventoryImportDialog } from "../_components/InventoryImportDialog";
 import { InventoryTrashDialog } from "../_components/InventoryTrashDialog";
 import { Button } from "@/components/ui/button";
+import { ICategory } from "@/types/inventory";
 
 interface IItem {
     id: string;
@@ -26,12 +27,19 @@ export default function ItemsManagementPage() {
     const queryClient = useQueryClient();
 
     const [form, setForm] = useState({
-        // Catatan: UUID dummy sementara — sesuaikan dengan UUID Kategori dari Database
-        category_id: "00000000-0000-0000-0000-000000000000",
+        category_id: "",
         kode_barang: "",
         nama_barang: "",
         satuan: "Pcs",
         min_stock: "5",
+    });
+
+    const { data: categories = [], isLoading: isLoadingCategories } = useQuery<ICategory[]>({
+        queryKey: ["inventory-categories"],
+        queryFn: async () => {
+            const res = await api.get<{ data: ICategory[] }>("/inventory/categories");
+            return res.data.data;
+        },
     });
 
     // 1. Tarik Data Tabel (Data Grid)
@@ -52,7 +60,7 @@ export default function ItemsManagementPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
-            setForm({ ...form, kode_barang: "", nama_barang: "" });
+            setForm((current) => ({ ...current, kode_barang: "", nama_barang: "" }));
             alert("Barang baru berhasil masuk katalog!");
         },
         onError: (err: { response?: { data?: { message?: string } } }) => {
@@ -76,6 +84,8 @@ export default function ItemsManagementPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!form.category_id)
+            return alert("Pilih kategori barang terlebih dahulu.");
         if (!form.kode_barang || !form.nama_barang)
             return alert("Kode dan Nama wajib diisi!");
         mutation.mutate(form);
@@ -119,19 +129,31 @@ export default function ItemsManagementPage() {
                         <div className="space-y-4">
                             <div>
                                 <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                                    Kategori ID
+                                    Kategori
                                 </label>
-                                <input
-                                    type="text"
+                                <select
                                     value={form.category_id}
                                     onChange={(e) =>
                                         setForm({ ...form, category_id: e.target.value })
                                     }
-                                    className="w-full mt-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500 rounded-xl px-4 py-2.5 focus:outline-none font-mono text-sm"
-                                    placeholder="UUID Kategori"
-                                />
+                                    disabled={isLoadingCategories || categories.length === 0}
+                                    className="w-full mt-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 disabled:opacity-60"
+                                >
+                                    <option value="">
+                                        {isLoadingCategories
+                                            ? "Memuat kategori..."
+                                            : categories.length === 0
+                                                ? "Belum ada kategori"
+                                                : "Pilih kategori barang"}
+                                    </option>
+                                    {categories.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.nama_kategori}
+                                        </option>
+                                    ))}
+                                </select>
                                 <p className="text-[10px] text-zinc-500 mt-1">
-                                    Isi dengan UUID Kategori dari Database Supabase Anda.
+                                    Kategori diambil langsung dari master logistik.
                                 </p>
                             </div>
 
