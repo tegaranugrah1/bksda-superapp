@@ -19,7 +19,7 @@ class TransitionAuctionBatchRequest extends FormRequest
     {
         return [
             'status' => ['required', 'string', 'in:DIAJUKAN,JADWAL_DITETAPKAN,LELANG_ULANG,REALISASI,BATAL'],
-            'kepala_balai_id' => ['required_if:status,DIAJUKAN', 'nullable', 'string', 'uuid'],
+            'kepala_balai_id' => ['required_if:status,DIAJUKAN', 'nullable'],
             'signatories' => ['required_if:status,DIAJUKAN', 'nullable', 'array'],
             'signatories.panitia' => ['required_if:status,DIAJUKAN', 'nullable', 'array'],
             'signatories.tim_penilai' => ['required_if:status,DIAJUKAN', 'nullable', 'array'],

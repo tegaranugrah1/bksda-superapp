@@ -19,8 +19,10 @@ return new class extends Migration
 
         // 2. Convert status from enum to varchar for flexibility (PostgreSQL)
         // First check if it's an enum type and convert
-        DB::statement("ALTER TABLE bmn_asset_loans ALTER COLUMN status TYPE VARCHAR(20)");
-        DB::statement("ALTER TABLE bmn_asset_loans ALTER COLUMN status SET DEFAULT 'dipinjam'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE bmn_asset_loans ALTER COLUMN status TYPE VARCHAR(20)");
+            DB::statement("ALTER TABLE bmn_asset_loans ALTER COLUMN status SET DEFAULT 'dipinjam'");
+        }
     }
 
     public function down(): void
