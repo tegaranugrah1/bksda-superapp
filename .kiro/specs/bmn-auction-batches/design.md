@@ -15,6 +15,8 @@ Alasan:
 - **Signatory Durability (Frozen Data)**: Penggunaan tipe data JSON pada kolom `metadata` batch memastikan integritas cetak berkas legal di masa depan bersifat *immutable* terhadap rotasi jabatan pegawai.
 - **Robust State Machine**: Logika transisi status dikawal ketat oleh API backend, menolak modifikasi data pada status terkunci (`DIAJUKAN`, `REALISASI`, `BATAL`).
 - **Atomic Auto-Disposal**: Proses *write-off* aset terjual berjalan di dalam satu database transaction Laravel untuk menjamin konsistensi data (*all-or-nothing*).
+- **BMN Deletion Date Sync**: Kolom `tanggal_pengapusan` pada model `Asset` diisi dengan `tanggal_lelang` sebelum soft-delete dijalankan, memenuhi kebutuhan audit kepatuhan hukum DJKN.
+- **Operational Freeze Sync**: Menyetel kolom `henti_guna` menjadi `true` dan `status_penggunaan` menjadi dihentikan ketika berkas diajukan, melindungi aset lelang agar tidak dimutasi oleh modul lain.
 
 ---
 
@@ -69,7 +71,9 @@ Menyimpan informasi utama batch lelang.
 | `batch_number` | `VARCHAR(50)` | No | - | Unique, kode identifikasi batch (misal: `LE-20260622-9472`) |
 | `name` | `VARCHAR(255)` | No | - | Nama deskriptif batch (misal: `"Lelang BMN Kendaraan Dinas 2026"`) |
 | `status` | `VARCHAR(30)` | No | `'DRAFT'` | Enum: `DRAFT`, `DIAJUKAN`, `JADWAL_DITETAPKAN`, `REALISASI`, `BATAL` |
-| `no_surat_penetapan`| `VARCHAR(100)`| Yes | `NULL` | Nomor surat jadwal lelang dari KPKNL |
+| `no_surat_persetujuan`| `VARCHAR(100)`| Yes | `NULL` | Nomor surat persetujuan penjualan dari KPKNL/KSDAE |
+| `tanggal_surat_persetujuan`| `DATE` | Yes | `NULL` | Tanggal persetujuan lelang |
+| `no_surat_penetapan`| `VARCHAR(100)`| Yes | `NULL` | Nomor surat penetapan jadwal lelang dari KPKNL |
 | `tanggal_lelang` | `DATE` | Yes | `NULL` | Tanggal pelaksanaan lelang |
 | `kepala_balai_id` | `UUID` | Yes | `NULL` | FK ke tabel `employees.id` (pilihan Kepala Balai saat draf) |
 | `metadata` | `JSONB` | Yes | `NULL` | Frozen signatories data (nama, NIP) & nomor-nomor dokumen |
@@ -111,12 +115,12 @@ Logika transisi status dikelola secara tersentralisasi di backend. Transisi yang
 ```mermaid
 stateDiagram-v2
     [*] --> DRAFT : Create Batch
-    DRAFT --> DIAJUKAN : Submit (Lock Assets, Freeze Signatories & Doc Numbers)
+    DRAFT --> DIAJUKAN : Submit (Lock Assets, Freeze Signatories & Doc Numbers, Update henti_guna = true)
     DRAFT --> BATAL : Cancel Batch (Release Assets)
-    DIAJUKAN --> JADWAL_DITETAPKAN : Set Schedule (Input KPKNL Doc & Date)
-    DIAJUKAN --> BATAL : Cancel Batch (Release Assets)
-    JADWAL_DITETAPKAN --> REALISASI : Finalize (Input Hasil Lelang & Trigger Auto-Disposal)
-    JADWAL_DITETAPKAN --> BATAL : Cancel Batch (Release Assets)
+    DIAJUKAN --> JADWAL_DITETAPKAN : Set Schedule (Input KPKNL Approval, Scheduling Docs, Date)
+    DIAJUKAN --> BATAL : Cancel Batch (Release Assets, henti_guna = false)
+    JADWAL_DITETAPKAN --> REALISASI : Finalize (Input Hasil Lelang, Update tanggal_pengapusan, Trigger Auto-Disposal)
+    JADWAL_DITETAPKAN --> BATAL : Cancel Batch (Release Assets, henti_guna = false)
     REALISASI --> [*] : Locked Permanently (Disposed Assets deleted from inventory)
     BATAL --> [*] : History Logged
 ```
@@ -127,16 +131,21 @@ stateDiagram-v2
    - Semua aset wajib memiliki `nilai_taksiran` > 0.
    - Semua aset wajib memiliki `lot_number` (tidak boleh kosong).
    - Pengguna harus sudah memilih Kepala Balai dan memasukkan nomor-nomor dokumen awal.
-   - Backend melakukan query detail pegawai aktif (Kepala Balai, Panitia, Tim Penilai, Pemeriksa) dan membekukan informasi tersebut ke kolom `metadata`.
+   - Backend mengambil detail pegawai aktif dan membekukannya ke kolom `metadata`.
+   - **Operational Freeze**: Semua aset terkait dalam batch di-update statusnya menjadi `status_penggunaan = 'Dihentikan dari Penggunaan Dinas'` dan `henti_guna = true` di database.
 2. **DIAJUKAN → JADWAL_DITETAPKAN**:
-   - Memerlukan input `no_surat_penetapan` (KPKNL) dan `tanggal_lelang`.
+   - Memerlukan input `no_surat_persetujuan`, `tanggal_surat_persetujuan`, `no_surat_penetapan` (KPKNL), dan `tanggal_lelang`.
    - Tanggal lelang tidak boleh di masa lampau (harus `>= hari_ini`).
 3. **JADWAL_DITETAPKAN → REALISASI**:
    - Memerlukan input `is_sold` (true/false) untuk seluruh aset di dalam batch.
    - Jika `is_sold = true`, maka `harga_terbentuk` wajib diisi dan harus `>= 0`.
-   - Memicu mekanisme **Auto-Disposal** secara atomik (DB Transaction).
+   - **Auto-Disposal & Date Deletion Sync**:
+     - Untuk aset dengan `is_sold = true`, update kolom `tanggal_pengapusan` (pada `bmn_assets`) dengan nilai `tanggal_lelang` dari batch lelang tersebut.
+     - Panggil `AssetService::disposeAsset()` untuk memproses soft-delete dan log audit.
+     - Untuk aset dengan `is_sold = false`, kembalikan `henti_guna = false` dan `status_penggunaan` kembali ke semula.
 4. **BATAL (dari DRAFT, DIAJUKAN, atau JADWAL_DITETAPKAN)**:
-   - Status keterikatan aset dilepas (relasi di junction table tetap dipertahankan untuk histori, tetapi aset tersebut tidak lagi berstatus terikat lelang aktif sehingga dapat diajukan di batch lain).
+   - Status keterikatan aset dilepas, relasi junction tetap dipertahankan untuk histori.
+   - Kolom `henti_guna` dikembalikan ke `false` dan `status_penggunaan` di-rollback ke semula pada tabel `bmn_assets`.
 
 ---
 
@@ -205,6 +214,16 @@ Semua endpoints terproteksi middleware authentication (Sanctum) dan permission c
           }
         }
         ```
+        *atau*
+        ```json
+        {
+          "status": "JADWAL_DITETAPKAN",
+          "no_surat_persetujuan": "S-54/KSDAE/2026",
+          "tanggal_surat_persetujuan": "2026-06-20",
+          "no_surat_penetapan": "S-55/KPKNL/2026",
+          "tanggal_lelang": "2026-07-10"
+        }
+        ```
     *   **Permission**: `bmn.auction.update` (untuk DIAJUKAN), `bmn.auction.finalize` (untuk JADWAL_DITETAPKAN & REALISASI)
 *   `POST /api/bmn/auction-batches/{id}/realize`
     *   **Deskripsi**: Menyelesaikan lelang (status `REALISASI`), menginput data terjual, dan memicu penghapusan otomatis.
@@ -229,13 +248,8 @@ Struktur antarmuka baru dikelompokkan di bawah rute `/bmn/auction-batches` mengg
 Menampilkan tabel/list batch lelang yang ada di database.
 - **Search Bar**: Mencari nama batch atau nomor batch.
 - **Filter Status**: Dropdown pilihan status (`DRAFT`, `DIAJUKAN`, `JADWAL_DITETAPKAN`, `REALISASI`, `BATAL`).
-- **Button "Buat Batch Baru"**: Membuka modal input nama batch.
-- **Batch Cards**: Menampilkan Nama Batch, Nomor Batch, Jumlah Aset, Tanggal Lelang (jika ada), dan Status Badge berwarna:
-  - `DRAFT`: Abu-abu (`bg-zinc-100 text-zinc-800`)
-  - `DIAJUKAN`: Biru (`bg-blue-100 text-blue-800`)
-  - `JADWAL_DITETAPKAN`: Amber (`bg-amber-100 text-amber-800`)
-  - `REALISASI`: Hijau (`bg-emerald-100 text-emerald-800`)
-  - `BATAL`: Merah (`bg-rose-100 text-rose-800`)
+- **Button "Buat Batch Baru"**: Membuka modal input nama batch. Setelah submit berhasil, arahkan router ke halaman detail batch yang baru dibuat.
+- **Batch Cards**: Menampilkan Nama Batch, Nomor Batch, Jumlah Aset, Tanggal Lelang (jika ada), dan Status Badge berwarna.
 
 ### 2. Batch Detail Screen (`/bmn/auction-batches/[id]/page.tsx`)
 Antarmuka sentral yang dibagi menjadi sub-tab untuk menjaga kerapian tata letak:
@@ -245,11 +259,11 @@ Antarmuka sentral yang dibagi menjadi sub-tab untuk menjaga kerapian tata letak:
   - Sisi Kanan: Panel Aset Terpilih di dalam batch dengan fitur drag-and-drop reordering, kolom input cepat `Lot Number`, kolom `Nilai Taksiran` (bisa diubah manual), dan button untuk membuka modal Kertas Kerja.
 - **Tab 2: Kertas Kerja (Worksheet)**
   - Tampilan tabular untuk seluruh aset terpilih. Pengguna bisa mengedit kalkulator kertas kerja satu per satu di panel detail.
-- **Tab 3: Penandatangan & Dokumen**
+- **Tab 3: Penandatangan & Nomor Surat**
   - Dropdown Kepala Balai, editor Panitia, Pemeriksa, Tim Penilai.
   - Input teks untuk nomor dokumen lelang (BA Koreksi, SK Penghentian, dll.).
   - Tombol **"Kunci & Ajukan Batch"** (mengubah status ke `DIAJUKAN`).
-- **Tab 4: integrated Printing Center**
+- **Tab 4: Integrated Printing Center**
   - Menampilkan grid ke-13 dokumen legal. Pengguna tinggal menekan tombol "Cetak" untuk membuka dialog print A4 browser. Layout CSS menggunakan `@media print` terisolasi agar hasil cetak tidak melenceng.
 - **Tab 5: Pencatatan Hasil Lelang**
   - Terbuka ketika status berada pada `JADWAL_DITETAPKAN`.
@@ -292,8 +306,19 @@ Keamanan data dipastikan di sisi client (sembunyikan elemen) dan dipaksa (*enfor
            ]);
            
            if ($item['is_sold']) {
+               // Update tanggal_pengapusan sebelum soft delete
+               $asset = Asset::findOrFail($item['id']);
+               $asset->update(['tanggal_pengapusan' => $batch->tanggal_lelang]);
+               
                // Memanggil disposeAsset dari AssetService
                $this->assetService->disposeAsset($item['id'], auth()->id(), "Lelang Terjual Batch: " . $batch->batch_number);
+           } else {
+               // Kembalikan status operasional untuk aset tidak terjual
+               $asset = Asset::findOrFail($item['id']);
+               $asset->update([
+                   'henti_guna' => false,
+                   'status_penggunaan' => 'Aktif/Kembali' // Sesuai default awal
+               ]);
            }
        }
    });

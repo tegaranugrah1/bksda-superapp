@@ -23,28 +23,28 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 ## Milestones and Exit Criteria
 
 ### Milestone 1: Database Migrations & Models (Tasks 1-5)
-- **Exit Criteria**: Tabel `bmn_auction_batches` dan `bmn_asset_auction_batch` terbuat di database PostgreSQL. Model Eloquent `AuctionBatch` dan relasi Many-to-Many di `Asset` berjalan dengan test SQL manual sukses.
+- **Exit Criteria**: Tabel `bmn_auction_batches` (lengkap dengan kolom no persetujuan) dan `bmn_asset_auction_batch` terbuat di database PostgreSQL. Model Eloquent `AuctionBatch` dan relasi Many-to-Many di `Asset` berjalan dengan test SQL manual sukses.
 
 ### Milestone 2: Backend Core Logic & Services (Tasks 6-15)
-- **Exit Criteria**: `AuctionBatchService` selesai dengan method lengkap untuk CRUD, reordering, update kertas kerja, pembekuan signatories, transisi status, dan auto-disposal transaksional.
+- **Exit Criteria**: `AuctionBatchService` selesai dengan method lengkap untuk CRUD, reordering, update kertas kerja, pembekuan signatories, transisi status, pembekuan operasional aset, pengisian tanggal penghapusan, dan auto-disposal transaksional.
 
 ### Milestone 3: Backend Controllers & API Routes (Tasks 16-18)
 - **Exit Criteria**: `AuctionBatchController` dan validasi Form Request selesai. Route API didaftarkan di `api.php`. HTTP requests untuk seluruh lifecycle lelang mengembalikan response valid.
 
 ### Milestone 4: Frontend API Layer & Dashboard UI (Tasks 19-21)
-- **Exit Criteria**: API client Next.js terintegrasi. Halaman `/bmn/auction-batches` selesai menampilkan tabel batch dengan filter status dan tombol "Buat Batch Baru".
+- **Exit Criteria**: API client Next.js terintegrasi. Halaman `/bmn/auction-batches` selesai menampilkan tabel batch dengan filter status, tombol "Buat Batch Baru", dan router redirect sukses.
 
 ### Milestone 5: Frontend Candidate & Asset Editor (Tasks 22-23)
 - **Exit Criteria**: Panel seleksi kandidat rusak berat, drag-and-drop urutan aset, input lot, serta kalkulator Kertas Kerja tersinkronisasi database.
 
 ### Milestone 6: Signatories Freeze & Doc Numbers (Task 24)
-- **Exit Criteria**: Formulir penandatangan terintegrasi dropdown dinamis, input nomor surat selesai, dan status batch berhasil dikunci ke `DIAJUKAN`.
+- **Exit Criteria**: Formulir penandatangan terintegrasi dropdown dinamis, input nomor surat selesai, dan status batch berhasil dikunci ke `DIAJUKAN` disertai freeze operasional aset.
 
 ### Milestone 7: Integrated Printing Center (Task 25)
 - **Exit Criteria**: Layout cetak A4 A4 portrait/landscape untuk 13 dokumen legal terwujud dengan data database riil dan aturan watermark DRAFT dinamis.
 
 ### Milestone 8: Realization Entry & Auto-Disposal Test (Tasks 26-30)
-- **Exit Criteria**: Halaman pencatatan realisasi selesai. Finalisasi batch berhasil memicu soft-delete aset terjual di database dan menyisipkan baris log audit `bmn_asset_updates`.
+- **Exit Criteria**: Halaman pencatatan realisasi selesai. Finalisasi batch berhasil memicu update `tanggal_pengapusan` dan soft-delete aset terjual di database, serta mencatat log audit `bmn_asset_updates`. Aset tidak terjual dikembalikan ke status operasional aktif.
 
 ---
 
@@ -59,7 +59,7 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
   - Requests: `App\Modules\Bmn\Requests`
 - **UUID Strategy**: Gunakan `use Illuminate\Database\Eloquent\Concerns\HasUuids;` di setiap model baru. Primary key bertipe UUID.
 - **Strict Data Types**: Gunakan format `decimal:2` untuk nominal Rupiah (`nilai_taksiran`, `harga_terbentuk`).
-- **Database Transactions**: Gunakan `DB::transaction()` untuk operasi penulisan berganda di DB, terutama saat transisi ke `REALISASI`.
+- **Database Transactions**: Gunakan `DB::transaction()` untuk operasi penulisan berganda di DB, terutama saat transisi ke `REALISASI` dan `DIAJUKAN`.
 
 ### 2. Frontend Contract (Next.js / React)
 - **Root Directory**: `frontend/src/app/bmn/auction-batches/`
@@ -82,6 +82,8 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
       $table->string('batch_number', 50)->unique();
       $table->string('name', 255);
       $table->string('status', 30)->default('DRAFT');
+      $table->string('no_surat_persetujuan', 100)->nullable();
+      $table->date('tanggal_surat_persetujuan')->nullable();
       $table->string('no_surat_penetapan', 100)->nullable();
       $table->date('tanggal_lelang')->nullable();
       $table->uuid('kepala_balai_id')->nullable();
@@ -92,7 +94,7 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
       $table->index('status');
   });
   ```
-- **Acceptance Criteria**: Migrasi berhasil dieksekusi via `php artisan migrate` dan tabel terbuat di PostgreSQL dengan kolom sesuai.
+- **Acceptance Criteria**: Migrasi berhasil dieksekusi via `php artisan migrate` dan tabel terbuat di database dengan kolom persetujuan KPKNL/KSDAE.
 
 ---
 
@@ -149,11 +151,13 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
       protected $table = 'bmn_auction_batches';
 
       protected $fillable = [
-          'id', 'batch_number', 'name', 'status', 'no_surat_penetapan', 
+          'id', 'batch_number', 'name', 'status', 'no_surat_persetujuan',
+          'tanggal_surat_persetujuan', 'no_surat_penetapan', 
           'tanggal_lelang', 'kepala_balai_id', 'metadata'
       ];
 
       protected $casts = [
+          'tanggal_surat_persetujuan' => 'date',
           'tanggal_lelang' => 'date',
           'metadata' => 'array'
       ];
@@ -300,7 +304,7 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 
 ### Task 8: Request Validation `TransitionStatusRequest`
 - **Target Area**: `backend/app/Modules/Bmn/Requests/TransitionStatusRequest.php`
-- **Objective**: Memvalidasi perubahan status batch lelang.
+- **Objective**: Memvalidasi perubahan status batch lelang beserta surat persetujuan lelang.
 - **Implementation Details**:
   ```php
   namespace App\Modules\Bmn\Requests;
@@ -320,13 +324,15 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
               'status' => 'required|string|in:DIAJUKAN,JADWAL_DITETAPKAN,BATAL',
               'kepala_balai_id' => 'required_if:status,DIAJUKAN|nullable|uuid',
               'document_numbers' => 'required_if:status,DIAJUKAN|nullable|array',
+              'no_surat_persetujuan' => 'required_if:status,JADWAL_DITETAPKAN|nullable|string|max:100',
+              'tanggal_surat_persetujuan' => 'required_if:status,JADWAL_DITETAPKAN|nullable|date',
               'no_surat_penetapan' => 'required_if:status,JADWAL_DITETAPKAN|nullable|string|max:100',
               'tanggal_lelang' => 'required_if:status,JADWAL_DITETAPKAN|nullable|date',
           ];
       }
   }
   ```
-- **Acceptance Criteria**: Memberikan error validasi yang jelas jika parameter wajib untuk target status tertentu kosong.
+- **Acceptance Criteria**: Memberikan error validasi yang jelas jika parameter wajib untuk target status tertentu kosong (termasuk nomor & tanggal surat persetujuan).
 
 ---
 
@@ -352,12 +358,12 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
               'assets' => 'required|array|min:1',
               'assets.*.bmn_asset_id' => 'required|uuid|exists:bmn_assets,id',
               'assets.*.is_sold' => 'required|boolean',
-              'assets.*.harga_terformed' => 'required_if:assets.*.is_sold,true|nullable|numeric|min:0',
+              'assets.*.harga_terbentuk' => 'required_if:assets.*.is_sold,true|nullable|numeric|min:0',
           ];
       }
   }
   ```
-- **Acceptance Criteria**: Menolak data jika `is_sold` bernilai true namun `harga_terformed` kosong.
+- **Acceptance Criteria**: Menolak data jika `is_sold` bernilai true namun `harga_terbentuk` kosong. Parameter secara konsisten menggunakan nama `harga_terbentuk`.
 
 ---
 
@@ -371,6 +377,8 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 
   use App\Modules\Bmn\Models\AuctionBatch;
   use App\Modules\Bmn\Models\AssetAuctionBatch;
+  use App\Modules\Bmn\Models\Asset;
+  use App\Modules\Bmn\Models\AssetUpdate;
   use Illuminate\Support\Str;
   use Carbon\Carbon;
   use DB;
@@ -454,7 +462,7 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 
 ### Task 12: `AuctionBatchService` Update Order & Valuation
 - **Target Area**: `backend/app/Modules/Bmn/Services/AuctionBatchService.php`
-- **Objective**: Menambahkan fungsi penyusunan urutan drag-and-drop dan update data finansial per aset.
+- **Objective**: Menambahkan fungsi penyusunan urutan drag-and-drop dan update data kertas kerja.
 - **Implementation Details**:
   Tambahkan method berikut:
   ```php
@@ -500,9 +508,9 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 
 ---
 
-### Task 13: `AuctionBatchService` Transition DRAFT to DIAJUKAN (Signatory Snapshot)
+### Task 13: `AuctionBatchService` Transition DRAFT to DIAJUKAN (Signatory Freeze & Asset freeze)
 - **Target Area**: `backend/app/Modules/Bmn/Services/AuctionBatchService.php`
-- **Objective**: Mengunci draf, mengambil nomor dokumen dan detail penandatangan, lalu membekukannya di JSON metadata.
+- **Objective**: Mengunci draf, membekukan signatories/no dokumen, dan membekukan status penggunaan operasional aset di database.
 - **Implementation Details**:
   ```php
   // Butuh import model Employee di bagian atas file:
@@ -554,20 +562,29 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
               'metadata' => $metadata
           ]);
 
+          // Membekukan operasional aset terkait lelang
+          foreach ($junctions as $j) {
+              $asset = Asset::findOrFail($j->bmn_asset_id);
+              $asset->update([
+                  'henti_guna' => true,
+                  'status_penggunaan' => 'Dihentikan dari Penggunaan Dinas'
+              ]);
+          }
+
           return $batch;
       });
   }
   ```
-- **Acceptance Criteria**: Transisi status berhasil mengunci data, metadata JSON terisi snapshot detail pegawai Kepala Balai, dan nomor dokumen tersimpan aman.
+- **Acceptance Criteria**: Transisi status berhasil, detail Kepala Balai tersimpan di metadata JSON, dan seluruh aset terkait di database berubah status operasionalnya menjadi dihentikan (`henti_guna = true`).
 
 ---
 
-### Task 14: `AuctionBatchService` Scheduling & Cancellation Methods
+### Task 14: `AuctionBatchService` Scheduling & Cancellation Methods (Asset Unfreeze Rollback)
 - **Target Area**: `backend/app/Modules/Bmn/Services/AuctionBatchService.php`
-- **Objective**: Mengubah status batch menjadi JADWAL_DITETAPKAN (input KPKNL schedule) atau membatalkan batch lelang (BATAL).
+- **Objective**: Mengubah status batch menjadi JADWAL_DITETAPKAN atau membatalkan batch lelang (mengembalikan status operasional aset).
 - **Implementation Details**:
   ```php
-  public function transitionToScheduled(string $batchId, string $noSurat, string $tanggalLelang)
+  public function transitionToScheduled(string $batchId, string $noPersetujuan, string $tglPersetujuan, string $noPenetapan, string $tglLelang)
   {
       $batch = AuctionBatch::findOrFail($batchId);
       if ($batch->status !== 'DIAJUKAN') {
@@ -576,8 +593,10 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 
       $batch->update([
           'status' => 'JADWAL_DITETAPKAN',
-          'no_surat_penetapan' => $noSurat,
-          'tanggal_lelang' => $tanggalLelang
+          'no_surat_persetujuan' => $noPersetujuan,
+          'tanggal_surat_persetujuan' => $tglPersetujuan,
+          'no_surat_penetapan' => $noPenetapan,
+          'tanggal_lelang' => $tglLelang
       ]);
 
       return $batch;
@@ -585,24 +604,35 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 
   public function cancelBatch(string $batchId)
   {
-      $batch = AuctionBatch::findOrFail($batchId);
-      if (in_array($batch->status, ['REALISASI', 'BATAL'])) {
-          throw new \Exception("Batch lelang dengan status {$batch->status} tidak dapat dibatalkan.");
-      }
+      return DB::transaction(function () use ($batchId) {
+          $batch = AuctionBatch::findOrFail($batchId);
+          if (in_array($batch->status, ['REALISASI', 'BATAL'])) {
+              throw new \Exception("Batch lelang dengan status {$batch->status} tidak dapat dibatalkan.");
+          }
 
-      $batch->update(['status' => 'BATAL']);
+          $batch->update(['status' => 'BATAL']);
 
-      // Catatan: Aset terbebas karena batch tidak berstatus aktif lagi.
-      return $batch;
+          // Rollback pembekuan operasional aset di tabel assets
+          $junctions = AssetAuctionBatch::where('bmn_auction_batch_id', $batchId)->get();
+          foreach ($junctions as $j) {
+              $asset = Asset::findOrFail($j->bmn_asset_id);
+              $asset->update([
+                  'henti_guna' => false,
+                  'status_penggunaan' => 'Aktif' // default semula
+              ]);
+          }
+
+          return $batch;
+      });
   }
   ```
-- **Acceptance Criteria**: Transisi JADWAL_DITETAPKAN memerlukan tanggal & no surat. Transisi BATAL membebaskan aset tanpa menghapus baris junction untuk data histori.
+- **Acceptance Criteria**: Transisi JADWAL_DITETAPKAN menyimpan nomor persetujuan & jadwal. Pembatalan batch mengembalikan status `henti_guna` menjadi false di database.
 
 ---
 
-### Task 15: `AuctionBatchService` Realization (Atomic Auto-Disposal)
+### Task 15: `AuctionBatchService` Realization (Atomic Auto-Disposal & Deletion Date Sync)
 - **Target Area**: `backend/app/Modules/Bmn/Services/AuctionBatchService.php`
-- **Objective**: Menyimpan data realisasi hasil lelang dan memicu penghapusan otomatis (auto write-off) aset terjual.
+- **Objective**: Menyimpan data realisasi, mengisi tanggal penghapusan resmi aset terjual, dan memicu auto-disposal secara aman.
 - **Implementation Details**:
   ```php
   // Butuh import di bagian atas file:
@@ -626,7 +656,7 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
           foreach ($results as $item) {
               $assetId = $item['bmn_asset_id'];
               $isSold = $item['is_sold'];
-              $hargaTerbentuk = $isSold ? $item['harga_terformed'] : 0;
+              $hargaTerbentuk = $isSold ? $item['harga_terbentuk'] : 0;
 
               $junction = AssetAuctionBatch::where('bmn_auction_batch_id', $batchId)
                   ->where('bmn_asset_id', $assetId)
@@ -637,10 +667,23 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
                   'harga_terbentuk' => $hargaTerbentuk
               ]);
 
+              $asset = Asset::findOrFail($assetId);
+
               if ($isSold) {
+                  // Kepatuhan DJKN: Update tanggal penghapusan sebelum di-soft delete
+                  $asset->update([
+                      'tanggal_pengapusan' => $batch->tanggal_lelang
+                  ]);
+
                   // Pemicu Auto-Disposal via AssetService
-                  $alasan = "Lelang Terjual - Batch {$batch->batch_number} (Surat KPKNL: {$batch->no_surat_penetapan} tgl {$batch->tanggal_lelang->format('d-m-Y')})";
+                  $alasan = "Lelang Terjual - Batch {$batch->batch_number} (Surat Persetujuan: {$batch->no_surat_persetujuan}, Surat Penetapan KPKNL: {$batch->no_surat_penetapan} tgl {$batch->tanggal_lelang->format('d-m-Y')})";
                   $this->assetService->disposeAsset($assetId, $userId, $alasan);
+              } else {
+                  // Aset tidak terjual dikembalikan ke status operasional aktif
+                  $asset->update([
+                      'henti_guna' => false,
+                      'status_penggunaan' => 'Aktif'
+                  ]);
               }
           }
 
@@ -650,7 +693,7 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
       });
   }
   ```
-- **Acceptance Criteria**: Ketika batch diselesaikan, aset terjual berhasil ter-soft delete dari database (`deleted_at` terisi di `bmn_assets`) dan baris log update `bmn_asset_updates` disisipkan.
+- **Acceptance Criteria**: Ketika batch direalisasikan, aset terjual memiliki kolom `tanggal_pengapusan` bernilai `tanggal_lelang`, lalu sukses ter-soft delete. Aset tidak terjual kembali aktif (tidak lagi `henti_guna`).
 
 ---
 
@@ -788,7 +831,13 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
           if ($status === 'DIAJUKAN') {
               $batch = $this->batchService->transitionToDiajukan($id, $request->kepala_balai_id, $request->document_numbers);
           } elseif ($status === 'JADWAL_DITETAPKAN') {
-              $batch = $this->batchService->transitionToScheduled($id, $request->no_surat_penetapan, $request->tanggal_lelang);
+              $batch = $this->batchService->transitionToScheduled(
+                  $id, 
+                  $request->no_surat_persetujuan, 
+                  $request->tanggal_surat_persetujuan, 
+                  $request->no_surat_penetapan, 
+                  $request->tanggal_lelang
+              );
           } elseif ($status === 'BATAL') {
               $batch = $this->batchService->cancelBatch($id);
           } else {
@@ -854,6 +903,8 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
     batch_number: string;
     name: string;
     status: 'DRAFT' | 'DIAJUKAN' | 'JADWAL_DITETAPKAN' | 'REALISASI' | 'BATAL';
+    no_surat_persetujuan: string | null;
+    tanggal_surat_persetujuan: string | null;
     no_surat_penetapan: string | null;
     tanggal_lelang: string | null;
     kepala_balai_id: string | null;
@@ -888,10 +939,10 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
     updateValuation: (id: string, assetId: string, payload: any) =>
       api.put(`/bmn/auction-batches/${id}/assets/${assetId}/valuation`, payload).then((res) => res.data),
 
-    transitionStatus: (id: string, payload: { status: string; kepala_balai_id?: string; document_numbers?: any; no_surat_penetapan?: string; tanggal_lelang?: string }) =>
+    transitionStatus: (id: string, payload: { status: string; kepala_balai_id?: string; document_numbers?: any; no_surat_persetujuan?: string; tanggal_surat_persetujuan?: string; no_surat_penetapan?: string; tanggal_lelang?: string }) =>
       api.post(`/bmn/auction-batches/${id}/transition`, payload).then((res) => res.data),
 
-    realizeBatch: (id: string, assets: { bmn_asset_id: string; is_sold: boolean; harga_terformed: number }[]) =>
+    realizeBatch: (id: string, assets: { bmn_asset_id: string; is_sold: boolean; harga_terbentuk: number }[]) =>
       api.post(`/bmn/auction-batches/${id}/realize`, { assets }).then((res) => res.data),
   };
   ```
@@ -915,10 +966,10 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
   Gunakan layout modern, lengkapi dengan:
   - Header dengan judul "Daftar Batch Lelang BMN" dan sub-judul.
   - Tombol "+ Buat Batch Baru" yang memicu modal input teks.
+  - Setelah batch baru sukses dibuat melalui API `POST /api/bmn/auction-batches`, gunakan router Next.js (`useRouter`) untuk mengarahkan pengguna secara otomatis ke halaman `/bmn/auction-batches/[id]` menggunakan ID baru dari response.
   - Search input dan dropdown filter status.
   - Table/Grid daftar batch dengan kolom: Nomor Batch, Nama, Status (dalam badge warna), Jumlah Aset, Tgl Lelang, Aksi (Lihat Detail / Hapus).
-  - Integrasikan query `@tanstack/react-query` untuk me-load list dinamis.
-- **Acceptance Criteria**: Tampilan UI presisi, data termuat dengan loading skeleton, filter status berjalan, dan modal buat batch baru berhasil memanggil API `POST /api/bmn/auction-batches`.
+- **Acceptance Criteria**: Tampilan UI presisi, data termuat dengan loading skeleton, filter status berjalan, dan redirect halaman detail berjalan mulus setelah pembuatan batch baru.
 
 ---
 
@@ -961,8 +1012,8 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
   - Tampilkan list aset yang sudah dipilih.
   - Sediakan tombol "Edit Kertas Kerja" untuk tiap aset. Tombol ini membuka modal form kertas kerja (kalkulator) yang memuat input field: Nilai Perolehan Awal, Persentase Penyusutan Fisik, Nilai Sisa/Taksiran Akhir.
   - Ketika formulir disimpan, kirim data kertas kerja ke API `PUT /api/bmn/auction-batches/{id}/assets/{assetId}/valuation`.
-  - Nominal hasil kalkulasi harus otomatis terupdate pada data Nilai Taksiran utama aset tersebut di database junction.
-- **Acceptance Criteria**: Modal kalkulator Kertas Kerja berfungsi secara matematis, menyinkronkan hasil hitungan ke Nilai Taksiran aset utama, dan berhasil menyimpan JSONB di DB.
+  - Nominal hasil kalkulasi harus otomatis terupdate pada data Nilai Taksiran aset tersebut di database junction.
+- **Acceptance Criteria**: Modal kalkulator Kertas Kerja berfungsi secara mengubah Nilai Taksiran aset utama, dan berhasil menyimpan JSONB di DB.
 
 ---
 
@@ -992,12 +1043,12 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 
 ### Task 27: KPKNL Scheduling Input Panel
 - **Target Area**: `frontend/src/app/bmn/auction-batches/[id]/_components/SchedulingPanel.tsx` (atau bagian dari Ringkasan Tab)
-- **Objective**: Mengisi penetapan jadwal lelang dari KPKNL.
+- **Objective**: Mengisi persetujuan lelang dan penetapan jadwal lelang dari KPKNL.
 - **Implementation Details**:
   - Panel ini hanya tampil jika status batch adalah `DIAJUKAN` untuk user dengan role Admin BMN.
-  - Menyediakan input teks "Nomor Surat Penetapan KPKNL" dan date picker "Tanggal Pelaksanaan Lelang".
+  - Menyediakan input teks "Nomor Surat Persetujuan KPKNL/KSDAE", "Tanggal Surat Persetujuan", "Nomor Surat Penetapan KPKNL", dan "Tanggal Pelaksanaan Lelang".
   - Tombol **"Simpan & Terapkan Jadwal Lelang"** memicu transisi status batch ke `JADWAL_DITETAPKAN`.
-- **Acceptance Criteria**: Form tervalidasi dengan baik (tanggal lelang harus masa depan/hari ini), status batch berhasil berubah menjadi `JADWAL_DITETAPKAN` di database.
+- **Acceptance Criteria**: Form tervalidasi dengan baik, status batch berhasil berubah menjadi `JADWAL_DITETAPKAN` di database.
 
 ---
 
@@ -1012,7 +1063,7 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
     - Checkbox / Toggle Saklar: "Terjual" (Is Sold).
     - Input Angka Rupiah: "Harga Terbentuk" (Hanya tampil/aktif jika status "Terjual" dicentang).
   - Tampilkan tombol **"Selesaikan Realisasi & Hapus Aset Terjual"** di bagian bawah.
-  - Pemicu API `POST /api/bmn/auction-batches/{id}/realize` dengan array hasil lelang.
+  - Pemicu API `POST /api/bmn/auction-batches/{id}/realize` dengan array hasil lelang (menggunakan parameter `harga_terbentuk` secara konsisten).
 - **Acceptance Criteria**: Validasi memastikan seluruh baris aset memiliki keputusan terjual/tidak terjual sebelum submit diizinkan.
 
 ---
@@ -1024,8 +1075,8 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
   Tulis automated tests menggunakan Pest/PHPUnit:
   - Uji pembuatan batch baru (`POST /api/bmn/auction-batches`).
   - Uji validasi penolakan penambahan aset yang sudah terikat pada batch aktif lain.
-  - Uji transisi status DRAFT ke DIAJUKAN (pastikan Kepala Balai ter-snapshot di metadata).
-  - Uji transisi status JADWAL_DITETAPKAN ke REALISASI dengan parameter terjual (`is_sold = true`). Pastikan aset yang terjual ter-soft delete dari database dan log `AssetUpdate` terbuat, sedangkan aset tidak terjual tetap aktif.
+  - Uji transisi status DRAFT ke DIAJUKAN (pastikan Kepala Balai ter-snapshot di metadata, dan henti_guna = true diaset).
+  - Uji transisi status JADWAL_DITETAPKAN ke REALISASI dengan parameter terjual (`is_sold = true`). Pastikan aset yang terjual terisi `tanggal_pengapusan` dan ter-soft delete, serta log `AssetUpdate` terbuat, sedangkan aset tidak terjual dikembalikan ke status `henti_guna = false`.
 - **Acceptance Criteria**: Jalankan `php artisan test --filter=AuctionBatchTest` dan semua pengujian menghasilkan warna hijau (pass).
 
 ---
@@ -1035,7 +1086,7 @@ Rencana implementasi ini dirancang agar **10/10 dipahami secara mandiri oleh AI 
 - **Objective**: Melakukan pengetesan alur menyeluruh dan menyusun laporan walkthrough.
 - **Implementation Details**:
   - Jalankan flow lengkap sebagai Operator BMN: buat batch baru $\rightarrow$ pilih aset rusak berat $\rightarrow$ reorder $\rightarrow$ isi lot & taksiran $\rightarrow$ isi kertas kerja $\rightarrow$ pilih Kepala Balai $\rightarrow$ masukkan nomor surat $\rightarrow$ kunci batch (`DIAJUKAN`).
-  - Sebagai Admin BMN: masukkan surat KPKNL & tanggal lelang $\rightarrow$ ubah status ke `JADWAL_DITETAPKAN` $\rightarrow$ isi realisasi (tandai minimal 1 aset terjual dan 1 tidak terjual) $\rightarrow$ finalisasi lelang (`REALISASI`).
-  - Periksa database: pastikan aset terjual hilang dari daftar inventaris aktif (ter-soft delete) namun memiliki log penghapusan lelang di `bmn_asset_updates`, sedangkan aset tidak terjual tetap aktif.
+  - Sebagai Admin BMN: masukkan surat persetujuan, surat KPKNL & tanggal lelang $\rightarrow$ ubah status ke `JADWAL_DITETAPKAN` $\rightarrow$ isi realisasi (tandai minimal 1 aset terjual dan 1 tidak terjual) $\rightarrow$ finalisasi lelang (`REALISASI`).
+  - Periksa database: pastikan aset terjual hilang dari daftar inventaris aktif (ter-soft delete) namun memiliki log penghapusan lelang di `bmn_asset_updates` dan terisi `tanggal_pengapusan` dengan tanggal lelang, sedangkan aset tidak terjual tetap aktif operasional (`henti_guna = false`).
   - Dokumentasikan hasil pengujian beserta tangkapan layar dalam berkas walkthrough.
 - **Acceptance Criteria**: Alur lelang selesai tanpa hambatan teknis, log disposal tercatat presisi di database, dan walkthrough terdokumentasi lengkap.
