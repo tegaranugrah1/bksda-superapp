@@ -102,6 +102,8 @@ export interface AuctionCandidateAsset {
   kondisi: string;
   nilai_perolehan: number;
   nilai_buku: number;
+  lokasi_ruang?: string | null;
+  lokasi_spesifik?: string | null;
   active_auction_batch_id: string | null;
   active_auction_batch_number: string | null;
   is_auction_eligible: boolean;
