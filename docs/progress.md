@@ -1,7 +1,7 @@
 # Progress - Phase 137: BMN Vehicle Document Uploads
 
 > Document updated: 2026-06-22
-> Status: Selesai, siap merge ke main dan deploy ke production.
+> Status: Selesai di-merge ke main (via Squash Merge, commit `3391bd6`) dan di-deploy ke production.
 
 ---
 
@@ -28,7 +28,7 @@
 - `npx tsc --noEmit` & `npm run lint`: Sukses tanpa error/warning.
 
 ### Next Steps
-- [ ] Lakukan merge PR branch `codex/bmn-vehicle-documents` ke `main` untuk trigger auto-build & deploy Dokploy.
+- [x] Lakukan merge PR branch `codex/bmn-vehicle-documents` ke `main` untuk trigger auto-build & deploy Dokploy.
 - [ ] Verifikasi unggah berkas PDF BPKB/STNK dengan halaman > 1 di server staging/produksi, pastikan tombol pratinjau memuat seluruh halaman dokumen secara bergantian dengan lancar.
 
 ---
