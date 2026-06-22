@@ -19,7 +19,8 @@ const bmnMenus = [
   { title: "Peminjaman", path: "/bmn/loans", icon: Handshake, permission: "bmn.view" },
   { title: "Pemeliharaan", path: "/bmn/maintenances", icon: Wrench, permission: "bmn.view" },
   { title: "Import Review", path: "/bmn/import-review", icon: FileUp, permission: "bmn.import.review" },
-  { title: "Aset Akan Di Lelang", path: "/bmn/auction-candidates", icon: Gavel, permission: "bmn.document.generate" },
+  { title: "Kandidat Rusak Berat", path: "/bmn/auction-candidates", icon: Gavel, permission: "bmn.auction.view" },
+  { title: "Paket Lelang BMN", path: "/bmn/auction-batches", icon: FileText, permission: "bmn.auction.view" },
   { title: "Aset Dihapus", path: "/bmn/disposal", icon: Trash2, permission: "bmn.asset.dispose" },
   { title: "Laporan", path: "/bmn/reports", icon: FileText, permission: "bmn.document.history.view" },
 ];
