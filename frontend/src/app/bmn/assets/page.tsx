@@ -72,6 +72,7 @@ export default function BmnAssetsPage() {
   const initialPerPage = Number(searchParams.get("per_page")) || 10;
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+  const [nupTerm, setNupTerm] = useState(searchParams.get("nup") || "");
   const [page, setPageState] = useState(initialPage);
   const [perPage, setPerPageState] = useState(initialPerPage);
   const [kondisiFilter, setKondisiFilter] = useState(searchParams.get("kondisi") || "Semua");
@@ -79,6 +80,7 @@ export default function BmnAssetsPage() {
   const [lokasiFilter, setLokasiFilter] = useState(searchParams.get("lokasi_ruang") || "Semua");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const debouncedSearch = useDebounce(searchTerm, 400);
+  const debouncedNup = useDebounce(nupTerm, 400);
   const { hasPermission } = useRole();
   const canCreate = hasPermission("bmn.asset.create");
   const canUpdate = hasPermission("bmn.asset.update");
@@ -89,13 +91,14 @@ export default function BmnAssetsPage() {
 
   const updateUrl = (overrides: Record<string, string | number>) => {
     const params = new URLSearchParams();
-    const state = { page, per_page: perPage, kondisi: kondisiFilter, jenis_bmn: jenisFilter, lokasi_ruang: lokasiFilter, search: searchTerm, ...overrides };
+    const state = { page, per_page: perPage, kondisi: kondisiFilter, jenis_bmn: jenisFilter, lokasi_ruang: lokasiFilter, search: searchTerm, nup: nupTerm, ...overrides };
     if (state.page && state.page !== 1) params.set("page", String(state.page));
     if (state.per_page && state.per_page !== 10) params.set("per_page", String(state.per_page));
     if (state.kondisi && state.kondisi !== "Semua") params.set("kondisi", String(state.kondisi));
     if (state.jenis_bmn && state.jenis_bmn !== "Semua") params.set("jenis_bmn", String(state.jenis_bmn));
     if (state.lokasi_ruang && state.lokasi_ruang !== "Semua") params.set("lokasi_ruang", String(state.lokasi_ruang));
     if (state.search) params.set("search", String(state.search));
+    if (state.nup) params.set("nup", String(state.nup));
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   };
@@ -113,10 +116,11 @@ export default function BmnAssetsPage() {
   };
 
   const { data: response, isLoading, isFetching } = useQuery<IResponse>({
-    queryKey: ["bmn-assets", debouncedSearch, page, perPage, kondisiFilter, jenisFilter, lokasiFilter],
+    queryKey: ["bmn-assets", debouncedSearch, debouncedNup, page, perPage, kondisiFilter, jenisFilter, lokasiFilter],
     queryFn: async () => {
       const params: Record<string, string | number | undefined> = { page, per_page: perPage === 0 ? 9999 : perPage };
       if (debouncedSearch) params.search = debouncedSearch;
+      if (debouncedNup) params.nup = debouncedNup;
       if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
       if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
       if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
@@ -130,6 +134,7 @@ export default function BmnAssetsPage() {
     try {
       const params: Record<string, string | number> = { include_nup_lama: includeNupLama ? 1 : 0 };
       if (debouncedSearch) params.search = debouncedSearch;
+      if (debouncedNup) params.nup = debouncedNup;
       if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
       if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
       if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
@@ -256,9 +261,19 @@ export default function BmnAssetsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari nama, kode, NUP..."
+            placeholder="Cari nama, kode, merk..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setPageState(1); updateUrl({ search: e.target.value, page: 1 }); }}
+            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+          />
+        </div>
+        <div className="relative w-full sm:w-48">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Cari NUP (baru/lama)..."
+            value={nupTerm}
+            onChange={(e) => { setNupTerm(e.target.value); setPageState(1); updateUrl({ nup: e.target.value, page: 1 }); }}
             className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           />
         </div>
@@ -307,9 +322,9 @@ export default function BmnAssetsPage() {
           <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
           <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
         </select>
-        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua" || searchTerm) && (
+        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua" || searchTerm || nupTerm) && (
           <button
-            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setKondisiFilter("Semua"); setSearchTerm(""); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", search: "", page: 1 }); }}
+            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setKondisiFilter("Semua"); setSearchTerm(""); setNupTerm(""); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", search: "", nup: "", page: 1 }); }}
             className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg hover:bg-red-100"
           >
             Reset Filter

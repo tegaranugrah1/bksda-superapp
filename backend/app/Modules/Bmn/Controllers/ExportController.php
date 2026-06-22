@@ -17,6 +17,7 @@ class ExportController extends Controller
         $includeNupLama = $request->boolean('include_nup_lama', true);
         $filters = [
             'search' => $request->input('search'),
+            'nup' => $request->input('nup'),
             'kondisi' => $request->input('kondisi'),
             'jenis_bmn' => $request->input('jenis_bmn'),
             'lokasi_ruang' => $request->input('lokasi_ruang'),

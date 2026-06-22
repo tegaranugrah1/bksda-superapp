@@ -28,8 +28,14 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
             $query->where(function ($q) use ($search) {
                 $q->where('nama_barang', 'ilike', "%{$search}%")
                     ->orWhere('kode_barang', 'ilike', "%{$search}%")
-                    ->orWhere('nup', 'ilike', "%{$search}%")
                     ->orWhere('merk', 'ilike', "%{$search}%");
+            });
+        }
+        if (!empty($this->filters['nup'])) {
+            $nup = $this->filters['nup'];
+            $query->where(function ($q) use ($nup) {
+                $q->where('nup', $nup)
+                    ->orWhere('nup_lama', $nup);
             });
         }
         if (!empty($this->filters['kondisi'])) {

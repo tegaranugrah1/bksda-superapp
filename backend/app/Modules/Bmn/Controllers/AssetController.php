@@ -39,9 +39,16 @@ class AssetController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('nama_barang', 'ilike', "%{$search}%")
                     ->orWhere('kode_barang', 'ilike', "%{$search}%")
-                    ->orWhere('nup', 'ilike', "%{$search}%")
                     ->orWhere('merk', 'ilike', "%{$search}%")
                     ->orWhere('no_polisi', 'ilike', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('nup')) {
+            $nup = $request->nup;
+            $query->where(function ($q) use ($nup) {
+                $q->where('nup', $nup)
+                    ->orWhere('nup_lama', $nup);
             });
         }
 
