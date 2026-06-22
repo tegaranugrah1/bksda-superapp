@@ -12,6 +12,7 @@ use App\Modules\Bmn\Controllers\LoanController;
 use App\Modules\Bmn\Controllers\MaintenanceController;
 use App\Modules\Bmn\Controllers\PowerOfAttorneyController;
 use App\Modules\Bmn\Controllers\UsageAgreementController;
+use App\Modules\Bmn\Controllers\AuctionBatchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -113,3 +114,27 @@ Route::post('loans/{loan}/return', [LoanController::class, 'return'])->middlewar
 // 3. REKAM MEDIS PEMELIHARAAN (MAINTENANCE)
 Route::get('maintenances', [MaintenanceController::class, 'index'])->middleware('permission:bmn.view');
 Route::post('assets/{asset}/maintenances', [MaintenanceController::class, 'record'])->middleware('permission:bmn.asset.update');
+
+// 7. PAKET DOKUMEN LELANG BMN
+Route::get('/auction-candidates', [AuctionBatchController::class, 'candidates'])
+    ->middleware('permission:bmn.auction.view');
+
+Route::prefix('auction-batches')->group(function () {
+    Route::get('/', [AuctionBatchController::class, 'index'])->middleware('permission:bmn.auction.view');
+    Route::post('/', [AuctionBatchController::class, 'store'])->middleware('permission:bmn.auction.create');
+    Route::get('/{id}', [AuctionBatchController::class, 'show'])->middleware('permission:bmn.auction.view');
+    Route::delete('/{id}', [AuctionBatchController::class, 'destroy'])->middleware('permission:bmn.auction.delete');
+
+    Route::get('/{id}/checklist', [AuctionBatchController::class, 'checklist'])->middleware('permission:bmn.auction.view');
+    Route::post('/{id}/assets', [AuctionBatchController::class, 'addAssets'])->middleware('permission:bmn.auction.update');
+    Route::delete('/{id}/assets/{assetId}', [AuctionBatchController::class, 'removeAsset'])->middleware('permission:bmn.auction.update');
+    Route::put('/{id}/assets/order', [AuctionBatchController::class, 'updateOrder'])->middleware('permission:bmn.auction.update');
+    Route::put('/{id}/assets/{assetId}/valuation', [AuctionBatchController::class, 'updateValuation'])->middleware('permission:bmn.auction.update');
+    Route::post('/{id}/transition', [AuctionBatchController::class, 'transition']);
+    Route::post('/{id}/first-auction-results', [AuctionBatchController::class, 'recordFirstAuctionResults'])->middleware('permission:bmn.auction.finalize');
+    Route::post('/{id}/reauction-results', [AuctionBatchController::class, 'recordReauctionResults'])->middleware('permission:bmn.auction.finalize');
+    Route::post('/{id}/realize', [AuctionBatchController::class, 'realize'])->middleware('permission:bmn.auction.finalize');
+    Route::get('/{id}/documents/context', [AuctionBatchController::class, 'documentContext'])->middleware('permission:bmn.auction.print');
+    Route::post('/{id}/documents/{documentKey}/print-event', [AuctionBatchController::class, 'recordPrintEvent'])->middleware('permission:bmn.auction.print');
+    Route::get('/{id}/events', [AuctionBatchController::class, 'events'])->middleware('permission:bmn.auction.view');
+});
