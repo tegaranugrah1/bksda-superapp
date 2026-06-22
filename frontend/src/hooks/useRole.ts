@@ -22,6 +22,10 @@ export function useRole() {
       // Fallback untuk backward compatibility jika data permissions tidak ada
       if (user?.permissions === undefined || user?.permissions === null) {
         if (permission.startsWith("bmn.")) {
+          if (permission.startsWith("bmn.auction.")) {
+            return permission === "bmn.auction.view" && (user?.access_modules?.includes("bmn") || false);
+          }
+
           const isReadPermission = ["bmn.view", "bmn.document.history.view"].includes(permission);
           if (isReadPermission) {
             return user?.access_modules?.includes("bmn") || false;
