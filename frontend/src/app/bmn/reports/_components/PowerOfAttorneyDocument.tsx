@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { resolveApiUrl } from "@/lib/api";
 
 export interface PowerOfAttorneyAsset {
   id: string;
@@ -201,7 +202,7 @@ export function PowerOfAttorneyDocument({
   const isHardi =
     firstParty?.nip?.replace(/\s+/g, "") === "197202011997031008" ||
     firstParty?.name?.toLowerCase().includes("hardi");
-  const finalKtpUrl = ktpUrl || (isHardi ? "/ktp-hardi.jpeg" : null);
+  const finalKtpUrl = ktpUrl ? (resolveApiUrl(ktpUrl) || ktpUrl) : (isHardi ? "/ktp-hardi.jpeg" : null);
 
   return (
     <div id={documentId}>
@@ -447,14 +448,17 @@ export function PowerOfAttorneyDocument({
 
           if (stnkUrls.length === 0) return null;
 
-          return stnkUrls.map((url, idx) => (
-            <div className="poa-stnk-page shadow-xl ring-1 ring-zinc-200" key={`${asset.id}-stnk-${idx}`}>
-              <div className="poa-stnk-container">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt={`STNK ${asset.nama_barang} Page ${idx + 1}`} />
+          return stnkUrls.map((url, idx) => {
+            const resolvedUrl = resolveApiUrl(url) || "";
+            return (
+              <div className="poa-stnk-page shadow-xl ring-1 ring-zinc-200" key={`${asset.id}-stnk-${idx}`}>
+                <div className="poa-stnk-container">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={resolvedUrl} alt={`STNK ${asset.nama_barang} Page ${idx + 1}`} />
+                </div>
               </div>
-            </div>
-          ));
+            );
+          });
         })}
       </div>
     </div>

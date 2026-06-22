@@ -66,5 +66,23 @@ api.interceptors.response.use(
 
 const apiExport = api;
 
+export function resolveApiUrl(url?: string | null): string | null {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (!url.startsWith("/")) return url;
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiBase || apiBase === "/api" || !apiBase.startsWith("http")) {
+    return url;
+  }
+
+  try {
+    const origin = new URL(apiBase).origin;
+    return `${origin}${url}`;
+  } catch {
+    return url;
+  }
+}
+
 export { apiExport as api };
 export default apiExport;
