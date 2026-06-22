@@ -44,6 +44,7 @@ export interface AuctionBatch {
   no_surat_jadwal_ulang: string | null;
   tanggal_lelang_ulang: string | null;
   reauction_notes: string | null;
+  kepala_balai_id: string | null;
   metadata: any | null;
   assets_count: number;
   nilai_taksiran_total: number;
@@ -62,6 +63,7 @@ export interface AuctionBatchAsset {
   nup: string;
   nup_lama: string | null;
   nama_barang: string;
+  merk_tipe?: string | null;
   kondisi: string;
   nilai_perolehan: number;
   nilai_buku: number;
