@@ -17,6 +17,7 @@
 - **Frontend (Next.js)**:
   - Memperbarui [PowerOfAttorneyDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx) untuk menambahkan tipe data `stnk_document` pada interface `PowerOfAttorneyAsset`.
   - Menambahkan styling `.poa-stnk-page`, `.poa-stnk-title`, `.poa-stnk-container`, dan properti cetak pendukung di dalam fungsi cetak window (`handlePrintPowerOfAttorney`) dan blok `<style jsx global>`.
+  - Mengekspos dan menggunakan `resolveApiUrl()` dari [api.ts](file:///e:/bksda-superapp/frontend/src/lib/api.ts) untuk mengubah URL API relatif menjadi absolut (ke API origin backend `https://api.bksdakaltim.net`) sebelum merender berkas STNK/KTP, menyelesaikan error `404 Not Found` pada server produksi.
   - Merender halaman-halaman STNK yang bersangkutan menggunakan resolusi URL pratinjau (`preview_urls`, `preview_url`, atau `url`) sebagai lampiran halaman baru dengan `page-break-before: always`.
   - Memperbarui [page.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/page.tsx) untuk memetakan interface `BmnAssetOption` dengan `stnk_document` dan melakukan dynamic merging/enrichment data STNK kendaraan dari `vehicleAssetOptions` ke data arsip Surat Kuasa (`selectedPowerOfAttorney.assets_snapshot`) sehingga riwayat lama juga menampilkan lampiran STNK jika asetnya masih ada di database.
 
@@ -25,7 +26,8 @@
 - `npx tsc --noEmit` & `npm run lint`: Sukses tanpa error/warning.
 
 ### Next Steps
-- [ ] Minta verifikasi manual dari pengguna untuk memuat cetak Surat Kuasa di localhost:3000/bmn/reports dan memeriksa layout halaman cetak STNK baru.
+- [x] Lakukan merge PR dan push perbaikan URL relatif ke `main` untuk trigger auto-deploy Dokploy.
+- [ ] Verifikasi cetak Surat Kuasa di https://bksdakaltim.net/bmn/reports.
 
 ---
 
