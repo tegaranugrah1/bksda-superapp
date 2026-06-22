@@ -228,7 +228,7 @@ export default function STBuilderPreview({
                         style={{
                           display: "grid",
                           gridTemplateColumns: "24px 1fr",
-                          padding: idx === 0 ? "0 0 2px" : "2px 0",
+                          padding: idx === 0 ? "0 0 1px" : "1px 0",
                           breakInside: "avoid",
                         }}
                       >
