@@ -72,11 +72,6 @@ class AuctionAssetDocumentReadinessService
             $items['bpkb'] = 'warning';
         }
 
-        if (empty($asset->no_stnk)) {
-            $warnings[] = 'Nomor STNK belum tersedia di master aset.';
-            $items['stnk'] = 'warning';
-        }
-
         if (empty($asset->no_polisi)) {
             $warnings[] = 'Nomor Polisi belum tersedia di master aset.';
             $items['no_polisi'] = 'warning';
