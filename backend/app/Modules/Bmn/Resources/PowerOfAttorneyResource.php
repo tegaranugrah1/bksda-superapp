@@ -4,6 +4,8 @@ namespace App\Modules\Bmn\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class PowerOfAttorneyResource extends JsonResource
 {
@@ -21,7 +23,7 @@ class PowerOfAttorneyResource extends JsonResource
             'asset_ids' => $this->asset_ids,
             'notes' => $this->notes,
             'ktp_path' => $this->ktp_path,
-            'ktp_url' => $this->ktp_path ? \Illuminate\Support\Facades\Storage::url($this->ktp_path) : null,
+            'ktp_url' => $this->resolveKtpUrl(),
             'employee' => $this->whenLoaded('employee', fn () => [
                 'id' => $this->employee->id,
                 'nama_lengkap' => $this->employee->nama_lengkap,
@@ -37,5 +39,18 @@ class PowerOfAttorneyResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function resolveKtpUrl(): ?string
+    {
+        if (! $this->ktp_path) {
+            return null;
+        }
+
+        try {
+            return Storage::url($this->ktp_path);
+        } catch (Throwable) {
+            return null;
+        }
     }
 }
