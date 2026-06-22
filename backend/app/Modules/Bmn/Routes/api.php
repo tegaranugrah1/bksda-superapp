@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Bmn\Controllers\AssetController;
+use App\Modules\Bmn\Controllers\AssetDocumentController;
 use App\Modules\Bmn\Controllers\AssetPhotoController;
 use App\Modules\Bmn\Controllers\DashboardController;
 use App\Modules\Bmn\Controllers\DocumentHistoryController;
@@ -90,6 +91,12 @@ Route::prefix('import-review')->group(function () {
 // 5. FOTO ASET
 Route::post('assets/{asset}/photo', [AssetPhotoController::class, 'upload'])->middleware('permission:bmn.asset.update');
 Route::post('assets/{asset}/geotag', [AssetPhotoController::class, 'updateGeotag'])->middleware('permission:bmn.asset.update');
+Route::post('assets/{asset}/document', [AssetDocumentController::class, 'upload'])->middleware('permission:bmn.asset.update');
+Route::delete('assets/{asset}/document/{type}', [AssetDocumentController::class, 'delete'])->middleware('permission:bmn.asset.update');
+Route::get('assets/{asset}/document/{type}/view', [AssetDocumentController::class, 'view'])->middleware('permission:bmn.view');
+Route::get('assets/{asset}/document/{type}/preview', [AssetDocumentController::class, 'preview'])->middleware('permission:bmn.view');
+Route::get('assets/{asset}/document/{type}/preview/{page}', [AssetDocumentController::class, 'previewPage'])->whereNumber('page')->middleware('permission:bmn.view');
+Route::get('assets/{asset}/document/{type}/download', [AssetDocumentController::class, 'download'])->middleware('permission:bmn.view');
 Route::delete('assets/{asset}/photo/{type}', [AssetPhotoController::class, 'delete'])->middleware('permission:bmn.asset.update');
 Route::get('assets/{asset}/photo/{type}/download', [AssetPhotoController::class, 'download'])->middleware('permission:bmn.view');
 Route::get('assets/{asset}/photo/{type}/view', [AssetPhotoController::class, 'view'])->name('bmn.photos.view')->middleware('permission:bmn.view');

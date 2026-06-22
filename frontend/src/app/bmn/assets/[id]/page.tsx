@@ -219,6 +219,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
         fotoBpkb4Url={asset.foto_bpkb_4_url}
         fotoStnk1Url={asset.foto_stnk_1_url}
         fotoStnk2Url={asset.foto_stnk_2_url}
+        bpkbDocument={asset.bpkb_document}
+        stnkDocument={asset.stnk_document}
         isVehicle={asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-"}
         verifiedAt={asset.verified_at}
         verifiedByName={asset.verified_by_name}

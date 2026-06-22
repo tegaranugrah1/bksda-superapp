@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Camera, Download, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck, FileText } from "lucide-react";
+import { Camera, Download, Eye, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck, FileText } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -27,10 +27,23 @@ interface PhotoGalleryProps {
   fotoBpkb4Url?: string | null;
   fotoStnk1Url?: string | null;
   fotoStnk2Url?: string | null;
+  bpkbDocument?: VehicleDocument | null;
+  stnkDocument?: VehicleDocument | null;
   isVehicle?: boolean;
   verifiedAt: string | null;
   verifiedByName: string | null;
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<unknown>;
+}
+
+interface VehicleDocument {
+  path: string;
+  mime?: string | null;
+  original_name?: string | null;
+  preview_path?: string | null;
+  url: string;
+  download_url: string;
+  preview_url?: string | null;
+  preview_urls?: string[];
 }
 
 const PHOTO_SLOTS = [
@@ -42,13 +55,12 @@ const PHOTO_SLOTS = [
 ] as const;
 
 const DOC_SLOTS = [
-  { key: "bpkb_1", label: "Foto BPKB 1", type: "upload" },
-  { key: "bpkb_2", label: "Foto BPKB 2", type: "upload" },
-  { key: "bpkb_3", label: "Foto BPKB 3", type: "upload" },
-  { key: "bpkb_4", label: "Foto BPKB 4", type: "upload" },
-  { key: "stnk_1", label: "Foto STNK Depan", type: "upload" },
-  { key: "stnk_2", label: "Foto STNK Belakang", type: "upload" },
+  { key: "bpkb", label: "BPKB", description: "Scan BPKB kendaraan" },
+  { key: "stnk", label: "STNK", description: "Scan STNK kendaraan" },
 ] as const;
+
+const PHOTO_ACCEPT = "image/*";
+const DOCUMENT_ACCEPT = ".pdf,application/pdf,image/jpeg,image/png,image/webp";
 
 /** Convert Google Drive share link to embeddable thumbnail URL */
 function driveToThumbnail(url: string): string | null {
@@ -57,17 +69,48 @@ function driveToThumbnail(url: string): string | null {
   return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
 }
 
-export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, frontLocationNote, onSaveFrontLocation, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  const response = (error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response;
+  const firstError = response?.data?.errors ? Object.values(response.data.errors)[0]?.[0] : null;
+
+  return firstError || response?.data?.message || fallback;
+}
+
+function resolveApiUrl(url?: string | null): string | null {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (!url.startsWith("/")) return url;
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiBase || apiBase === "/api" || !apiBase.startsWith("http")) {
+    return url;
+  }
+
+  const origin = new URL(apiBase).origin;
+  return `${origin}${url}`;
+}
+
+function getDocumentPreviewPages(document?: VehicleDocument | null): string[] {
+  const urls = document?.preview_urls?.length ? document.preview_urls : (document?.preview_url ? [document.preview_url] : []);
+
+  return urls.map((url) => resolveApiUrl(url)).filter(Boolean) as string[];
+}
+
+export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, frontLocationNote, onSaveFrontLocation, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, bpkbDocument, stnkDocument, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
   const { hasPermission } = useRole();
   const canUpdate = hasPermission("bmn.asset.update");
   const [uploading, setUploading] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string; index: number } | null>(null);
+  const [documentLightbox, setDocumentLightbox] = useState<{ pages: string[]; label: string; index: number } | null>(null);
   const [geotagInput, setGeotagInput] = useState("");
   const [showGeotagInput, setShowGeotagInput] = useState(false);
   const [frontLocationDraft, setFrontLocationDraft] = useState(frontLocationNote || "");
   const [savingFrontLocation, setSavingFrontLocation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadTargetRef = useRef<string | null>(null);
+  const uploadKindRef = useRef<"photo" | "document">("photo");
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
+  const [uploadKind, setUploadKind] = useState<"photo" | "document">("photo");
 
   // Geotag resolves to: local path (preferred) > external URL
   const resolvedGeotagUrl = fotoGeotagPath || fotoGeotagUrl;
@@ -87,6 +130,11 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
   };
 
   const hasAnyPhoto = Object.values(photos).some(Boolean);
+  const documents: Record<string, VehicleDocument | null | undefined> = {
+    bpkb: bpkbDocument,
+    stnk: stnkDocument,
+  };
+  const hasAnyDocument = Object.values(documents).some(Boolean);
   const confirm = useConfirm();
 
   const handleVerify = async () => {
@@ -107,7 +155,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
   };
 
   // Get all available photos for navigation
-  const allSlots = isVehicle ? [...PHOTO_SLOTS, ...DOC_SLOTS] : PHOTO_SLOTS;
+  const allSlots = PHOTO_SLOTS;
   const availablePhotos = allSlots.map((slot) => {
     const url = photos[slot.key];
     if (!url) return null;
@@ -121,33 +169,82 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
     if (idx >= 0) setLightbox({ url: availablePhotos[idx].url, label: availablePhotos[idx].label, index: idx });
   };
 
+  const openDocumentLightbox = (document: VehicleDocument | null | undefined, label: string) => {
+    const pages = getDocumentPreviewPages(document);
+    if (pages.length > 0) {
+      setDocumentLightbox({ pages, label, index: 0 });
+      return;
+    }
+
+    const viewUrl = resolveApiUrl(document?.url);
+    if (viewUrl) window.open(viewUrl, "_blank");
+  };
+
   const navigateLightbox = (dir: 1 | -1) => {
     if (!lightbox || availablePhotos.length <= 1) return;
     const next = (lightbox.index + dir + availablePhotos.length) % availablePhotos.length;
     setLightbox({ url: availablePhotos[next].url, label: availablePhotos[next].label, index: next });
   };
 
+  const navigateDocumentLightbox = (dir: 1 | -1) => {
+    if (!documentLightbox || documentLightbox.pages.length <= 1) return;
+    const next = (documentLightbox.index + dir + documentLightbox.pages.length) % documentLightbox.pages.length;
+    setDocumentLightbox({ ...documentLightbox, index: next });
+  };
+
+  const openUploadPicker = (target: string, kind: "photo" | "document" = "photo") => {
+    uploadTargetRef.current = target;
+    uploadKindRef.current = kind;
+    setUploadTarget(target);
+    setUploadKind(kind);
+
+    const input = fileInputRef.current;
+    if (!input) return;
+    input.value = "";
+    input.accept = kind === "document" ? DOCUMENT_ACCEPT : PHOTO_ACCEPT;
+    input.click();
+  };
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !uploadTarget) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("Maksimal 5MB"); return; }
+    const target = uploadTargetRef.current || uploadTarget;
+    const kind = uploadKindRef.current || uploadKind;
+    if (!file || !target) return;
+    const maxSize = kind === "document" ? 20 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) { toast.error(kind === "document" ? "Maksimal 20MB" : "Maksimal 5MB"); return; }
 
-    setUploading(uploadTarget);
+    setUploading(target);
     const formData = new FormData();
-    formData.append("photo", file);
 
     try {
-      if (uploadTarget === "geotag") {
+      if (kind === "document") {
+        formData.append("document", file);
+        formData.append("type", target);
+        await api.post(`/bmn/assets/${assetId}/document`, formData);
+        toast.success(`Dokumen ${target.toUpperCase()} berhasil diupload.`);
+      } else if (target === "geotag") {
+        formData.append("photo", file);
         // Hybrid geotag endpoint
-        await api.post(`/bmn/assets/${assetId}/geotag`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+        await api.post(`/bmn/assets/${assetId}/geotag`, formData);
+        toast.success("Foto berhasil diupload.");
       } else {
-        formData.append("type", uploadTarget);
-        await api.post(`/bmn/assets/${assetId}/photo`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+        formData.append("photo", file);
+        formData.append("type", target);
+        await api.post(`/bmn/assets/${assetId}/photo`, formData);
+        toast.success("Foto berhasil diupload.");
       }
-      toast.success("Foto berhasil diupload.");
-      onRefresh();
-    } catch { toast.error("Gagal upload foto."); }
-    finally { setUploading(null); setUploadTarget(null); if (fileInputRef.current) fileInputRef.current.value = ""; }
+      await onRefresh();
+      setDocumentLightbox(null);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, kind === "document" ? "Gagal upload dokumen." : "Gagal upload foto."));
+    } finally {
+      setUploading(null);
+      setUploadTarget(null);
+      setUploadKind("photo");
+      uploadTargetRef.current = null;
+      uploadKindRef.current = "photo";
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleSaveGeotag = async () => {
@@ -162,21 +259,35 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
   };
 
   const handleDelete = async (type: string) => {
+    const isDocument = type === "bpkb" || type === "stnk";
     const ok = await confirm({
-      title: "Hapus Foto",
-      description: "Yakin ingin menghapus foto ini? Tindakan tidak bisa dibatalkan.",
+      title: isDocument ? "Hapus Dokumen" : "Hapus Foto",
+      description: isDocument ? "Yakin ingin menghapus dokumen kendaraan ini? Tindakan tidak bisa dibatalkan." : "Yakin ingin menghapus foto ini? Tindakan tidak bisa dibatalkan.",
       confirmText: "Ya, Hapus",
       variant: "danger",
     });
     if (!ok) return;
     try {
-      await api.delete(`/bmn/assets/${assetId}/photo/${type}`);
-      toast.success("Foto dihapus.");
+      if (isDocument) {
+        await api.delete(`/bmn/assets/${assetId}/document/${type}`);
+        toast.success("Dokumen dihapus.");
+      } else {
+        await api.delete(`/bmn/assets/${assetId}/photo/${type}`);
+        toast.success("Foto dihapus.");
+      }
       onRefresh();
     } catch { toast.error("Gagal menghapus."); }
   };
 
   const handleDownload = async (type: string) => {
+    if (type === "bpkb" || type === "stnk") {
+      const document = documents[type];
+      const downloadUrl = resolveApiUrl(document?.download_url);
+      if (downloadUrl) {
+        window.open(downloadUrl, "_blank");
+      }
+      return;
+    }
     if (type === "geotag") {
       // If local file, download via API; if external URL, open in new tab
       if (fotoGeotagPath) {
@@ -253,6 +364,11 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
               <ZipIcon className="w-3 h-3" /> Download Semua
             </Button>
           )}
+          {hasAnyDocument && (
+            <span className="rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+              Dokumen kendaraan aktif
+            </span>
+          )}
         </div>
       </div>
 
@@ -281,8 +397,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
             handleDownload={handleDownload}
             copyLink={copyLink}
             handleDelete={handleDelete}
-            setUploadTarget={setUploadTarget}
-            fileInputRef={fileInputRef}
+            openUploadPicker={openUploadPicker}
             setShowGeotagInput={setShowGeotagInput}
             canWrite={canUpdate}
             fotoGeotagPath={fotoGeotagPath}
@@ -297,9 +412,18 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
             <span className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600"><FileText className="w-4 h-4" /></span>
             <h3 className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Dokumen Kendaraan</h3>
           </div>
-          <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div className="p-5 grid grid-cols-1 gap-4 md:grid-cols-2">
             {DOC_SLOTS.map((slot) => (
-              <PhotoSlot key={slot.key} slot={slot} url={photos[slot.key]} openLightbox={openLightbox} handleDownload={handleDownload} copyLink={copyLink} handleDelete={handleDelete} setUploadTarget={setUploadTarget} fileInputRef={fileInputRef} setShowGeotagInput={setShowGeotagInput} canWrite={canUpdate} fotoGeotagPath={null} fotoGeotagUrl={null} />
+              <VehicleDocumentCard
+                key={slot.key}
+                slot={slot}
+                document={documents[slot.key] || null}
+                canWrite={canUpdate}
+                onPreview={() => openDocumentLightbox(documents[slot.key], slot.label)}
+                onDownload={() => handleDownload(slot.key)}
+                onDelete={() => handleDelete(slot.key)}
+                onUpload={() => openUploadPicker(slot.key, "document")}
+              />
             ))}
           </div>
         </>
@@ -322,10 +446,16 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
       )}
 
       {/* Hidden file input */}
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={uploadKind === "document" ? DOCUMENT_ACCEPT : PHOTO_ACCEPT}
+        className="hidden"
+        onChange={handleUpload}
+      />
 
       {uploading && (
-        <div className="px-5 pb-4 text-xs text-emerald-600 font-medium animate-pulse">Mengupload foto {uploading}...</div>
+        <div className="px-5 pb-4 text-xs text-emerald-600 font-medium animate-pulse">Mengupload {uploadKind === "document" ? "dokumen" : "foto"} {uploading}...</div>
       )}
 
       {/* Lightbox Modal */}
@@ -338,6 +468,18 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
           onClose={() => setLightbox(null)}
           onPrev={() => navigateLightbox(-1)}
           onNext={() => navigateLightbox(1)}
+        />
+      )}
+
+      {documentLightbox && (
+        <Lightbox
+          url={documentLightbox.pages[documentLightbox.index]}
+          label={documentLightbox.label}
+          index={documentLightbox.index}
+          total={documentLightbox.pages.length}
+          onClose={() => setDocumentLightbox(null)}
+          onPrev={() => navigateDocumentLightbox(-1)}
+          onNext={() => navigateDocumentLightbox(1)}
         />
       )}
     </div>
@@ -395,7 +537,7 @@ function Lightbox({ url, label, index, total, onClose, onPrev, onNext }: {
         src={url}
         alt={label}
         className="max-w-[85vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
-        referrerPolicy="no-referrer"
+        referrerPolicy={url?.includes("drive.google.com") ? "no-referrer" : undefined}
         onClick={(e) => e.stopPropagation()}
       />
     </div>
@@ -413,15 +555,14 @@ interface PhotoSlotProps {
   handleDownload: (key: string) => void;
   copyLink: (url: string) => void;
   handleDelete: (key: string) => void;
-  setUploadTarget: (target: string) => void;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  openUploadPicker: (target: string, kind?: "photo" | "document") => void;
   setShowGeotagInput: (show: boolean) => void;
   canWrite: boolean;
   fotoGeotagPath: string | null;
   fotoGeotagUrl: string | null;
 }
 
-function PhotoSlot({ slot, url, frontLocationDraft, onFrontLocationChange, onSaveFrontLocation, savingFrontLocation, openLightbox, handleDownload, copyLink, handleDelete, setUploadTarget, fileInputRef, setShowGeotagInput, canWrite, fotoGeotagPath, fotoGeotagUrl }: PhotoSlotProps) {
+function PhotoSlot({ slot, url, frontLocationDraft, onFrontLocationChange, onSaveFrontLocation, savingFrontLocation, openLightbox, handleDownload, copyLink, handleDelete, openUploadPicker, setShowGeotagInput, canWrite, fotoGeotagPath, fotoGeotagUrl }: PhotoSlotProps) {
   const isHybrid = slot.type === "hybrid";
   const isExternalOnly = isHybrid && !fotoGeotagPath && !!fotoGeotagUrl;
   const isFrontView = slot.key === "depan";
@@ -501,7 +642,7 @@ function PhotoSlot({ slot, url, frontLocationDraft, onFrontLocationChange, onSav
         {canWrite && !url && (
           isHybrid ? (
             <>
-              <button onClick={() => { setUploadTarget("geotag"); fileInputRef.current?.click(); }} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload File">
+              <button onClick={() => openUploadPicker("geotag")} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload File">
                 <Upload className="w-3 h-3" />
               </button>
               <button onClick={() => setShowGeotagInput(true)} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Tambah Link">
@@ -509,11 +650,100 @@ function PhotoSlot({ slot, url, frontLocationDraft, onFrontLocationChange, onSav
               </button>
             </>
           ) : (
-            <button onClick={() => { setUploadTarget(slot.key); fileInputRef.current?.click(); }} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload">
+            <button onClick={() => openUploadPicker(slot.key)} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload">
               <Upload className="w-3 h-3" />
             </button>
           )
         )}
+      </div>
+    </div>
+  );
+}
+
+interface VehicleDocumentCardProps {
+  slot: { key: "bpkb" | "stnk"; label: string; description: string };
+  document: VehicleDocument | null;
+  canWrite: boolean;
+  onPreview: () => void;
+  onDownload: () => void;
+  onDelete: () => void;
+  onUpload: () => void;
+}
+
+function VehicleDocumentCard({ slot, document, canWrite, onPreview, onDownload, onDelete, onUpload }: VehicleDocumentCardProps) {
+  const isPdf = document?.mime === "application/pdf";
+  const filename = document?.original_name || document?.path?.split("/").pop() || `${slot.label}.pdf`;
+  const previewUrl = resolveApiUrl(document?.preview_url);
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-blue-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-blue-500/40">
+      <button
+        type="button"
+        onClick={document ? onPreview : undefined}
+        className={cn(
+          "relative flex h-52 w-full items-center justify-center overflow-hidden bg-zinc-50 dark:bg-zinc-900",
+          previewUrl ? "cursor-zoom-in" : "cursor-default"
+        )}
+      >
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewUrl} alt={slot.label} className="h-full w-full object-contain" />
+        ) : document ? (
+          <div className="flex flex-col items-center gap-3 text-center">
+            <FileText className="h-10 w-10 text-blue-500" />
+            <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+              {isPdf ? "PDF" : "DOKUMEN"}
+            </span>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2 text-center">
+            <FileText className="h-10 w-10 text-zinc-300 dark:text-zinc-700" />
+            <p className="text-xs font-semibold text-zinc-400">Belum ada dokumen</p>
+          </div>
+        )}
+      </button>
+
+      <div className="space-y-3 p-4">
+        <div>
+          <div className="flex items-center justify-between gap-3">
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{slot.label}</h4>
+            {document && (
+              <span className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                {isPdf ? "PDF" : "GAMBAR"}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{document ? filename : slot.description}</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {document ? (
+            <>
+              <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 text-xs" onClick={onPreview}>
+                <Eye className="h-3.5 w-3.5" /> Lihat
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 text-xs" onClick={onDownload}>
+                <Download className="h-3.5 w-3.5" /> Unduh
+              </Button>
+              {canWrite && (
+                <>
+                  <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 text-xs" onClick={onUpload}>
+                    <Upload className="h-3.5 w-3.5" /> Ganti
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg border-rose-200 text-xs text-rose-600 hover:bg-rose-50" onClick={onDelete}>
+                    <Trash2 className="h-3.5 w-3.5" /> Hapus
+                  </Button>
+                </>
+              )}
+            </>
+          ) : canWrite ? (
+            <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 text-xs" onClick={onUpload}>
+              <Upload className="h-3.5 w-3.5" /> Upload PDF/Gambar
+            </Button>
+          ) : (
+            <span className="text-xs text-zinc-400">Belum tersedia</span>
+          )}
+        </div>
       </div>
     </div>
   );

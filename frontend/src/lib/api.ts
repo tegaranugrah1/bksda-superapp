@@ -24,6 +24,10 @@ function getCookie(name: string): string | null {
 }
 
 api.interceptors.request.use((config) => {
+  if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  }
+
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("bksda_token");
     if (token) {

@@ -8,6 +8,7 @@ RUN apk add --no-cache \
     unzip \
     curl \
     git \
+    poppler-utils \
     icu-dev \
     oniguruma-dev \
     freetype-dev \

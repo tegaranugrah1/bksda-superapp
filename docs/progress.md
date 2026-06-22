@@ -1,3 +1,38 @@
+# Progress - Phase 137: BMN Vehicle Document Uploads
+
+> Document updated: 2026-06-22
+> Status: Selesai, siap merge ke main dan deploy ke production.
+
+---
+
+## BMN Vehicle Document Uploads
+
+### Status: SELESAI
+- Scope: BMN Module (Vehicle Document Uploads: BPKB & STNK)
+- Tujuan: Menambahkan dukungan upload, pratinjau multi-halaman, download, dan penghapusan dokumen kendaraan (BPKB & STNK) dalam format PDF/Gambar pada aset BMN berjenis Alat Angkutan Bermotor.
+
+### Implementasi
+- **Backend (Laravel)**:
+  - Membuat migrasi `2026_06_22_090000_add_vehicle_document_columns_to_bmn_assets_table.php` untuk kolom dokumen kendaraan di tabel `bmn_assets`.
+  - Menambahkan [AssetDocumentController.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetDocumentController.php) untuk mengelola operasi upload, view, preview, download, dan delete dokumen.
+  - Memperbarui model [Asset.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Models/Asset.php) dan API resource [AssetResource.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Resources/AssetResource.php) untuk mengekspos payload dokumen dan daftar URL halaman pratinjau.
+  - Membuat [PdfPreviewService.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Services/PdfPreviewService.php) untuk ekstraksi halaman PDF menjadi JPEG pratinjau via `pdftoppm`.
+  - Membuat [VehicleDocumentPathService.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Services/VehicleDocumentPathService.php) beserta unit test-nya untuk standardisasi struktur path penyimpanan yang aman.
+  - Memasang `poppler-utils` pada [Dockerfile](file:///e:/bksda-superapp/backend/Dockerfile) backend.
+- **Frontend (Next.js)**:
+  - Memperbarui [PhotoGallery.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx) dan [page.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/assets/[id]/page.tsx) untuk menambahkan BPKB/STNK document card dan aksi Lihat/Unduh/Ganti/Hapus.
+  - Mengonfigurasi `referrerPolicy` pada tag pratinjau Lightbox secara kondisional agar browser mengirimkan header `Referer` ke local backend (mencegah error `401 Unauthenticated` akibat filter stateful Sanctum) namun tetap menyembunyikannya saat memuat Google Drive thumbnail.
+
+### Validasi
+- `php artisan test`: 14 tests passed (100% lulus).
+- `npx tsc --noEmit` & `npm run lint`: Sukses tanpa error/warning.
+
+### Next Steps
+- [ ] Lakukan merge PR branch `codex/bmn-vehicle-documents` ke `main` untuk trigger auto-build & deploy Dokploy.
+- [ ] Verifikasi unggah berkas PDF BPKB/STNK dengan halaman > 1 di server staging/produksi, pastikan tombol pratinjau memuat seluruh halaman dokumen secara bergantian dengan lancar.
+
+---
+
 # Progress - Phase 136: Mobile Login Screen Form
 
 > Document updated: 2026-06-19

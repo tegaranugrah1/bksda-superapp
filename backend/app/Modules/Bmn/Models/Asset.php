@@ -6,6 +6,7 @@ use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Asset extends Model
 {
@@ -34,6 +35,8 @@ class Asset extends Model
         'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path',
         'foto_bpkb_1_path', 'foto_bpkb_2_path', 'foto_bpkb_3_path', 'foto_bpkb_4_path',
         'foto_stnk_1_path', 'foto_stnk_2_path',
+        'bpkb_document_path', 'bpkb_document_mime', 'bpkb_document_original_name', 'bpkb_preview_path',
+        'stnk_document_path', 'stnk_document_mime', 'stnk_document_original_name', 'stnk_preview_path',
         'verified_at', 'verified_by',
         'tahun_perolehan', 'lokasi_spesifik', 'employee_id', 'foto_url', 'keterangan',
         'tanggal_pajak_stnk', 'tanggal_ganti_plat',
@@ -96,11 +99,29 @@ class Asset extends Model
                 $asset->foto_bpkb_4_path,
                 $asset->foto_stnk_1_path,
                 $asset->foto_stnk_2_path,
+                $asset->bpkb_document_path,
+                $asset->bpkb_preview_path,
+                $asset->stnk_document_path,
+                $asset->stnk_preview_path,
             ];
 
             foreach ($paths as $path) {
-                if ($path && \Illuminate\Support\Facades\Storage::exists($path)) {
-                    \Illuminate\Support\Facades\Storage::delete($path);
+                if ($path && Storage::exists($path)) {
+                    Storage::delete($path);
+                }
+            }
+
+            foreach ([$asset->bpkb_preview_path, $asset->stnk_preview_path] as $previewPath) {
+                if (! $previewPath) {
+                    continue;
+                }
+
+                $directory = dirname($previewPath);
+                $filename = pathinfo($previewPath, PATHINFO_FILENAME);
+                foreach (Storage::files($directory) as $path) {
+                    if (preg_match('/^'.preg_quote($filename, '/').'-page-\d+\.jpg$/', basename($path)) === 1) {
+                        Storage::delete($path);
+                    }
                 }
             }
         });

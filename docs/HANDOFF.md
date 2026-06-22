@@ -192,14 +192,14 @@ git push origin main
 
 | Field | Value |
 |-------|-------|
-| **Issue Terakhir Selesai** | Issue #436: Secure Private Storage for Vehicle Documents |
+| **Issue Terakhir Selesai** | BMN Vehicle Document Uploads (BPKB & STNK) |
 | **Issue Sedang Dikerjakan** | - |
 | **Branch Aktif** | main |
-| **Commit Terakhir di Main** | `af3746b` (docs: update HANDOFF.md and progress.md - issue #436 selesai) |
-| **Commit Production Server** | Dokploy compose at `aa18730` |
-| **Status** | Production app live via Dokploy; all security items, Issue #402, and Dokploy migration complete. |
+| **Commit Terakhir di Main** | (PR merge commit) |
+| **Commit Production Server** | Dokploy compose auto-build |
+| **Status** | Local tests & linting verified. BPKB/STNK uploads with multi-page preview and secure streaming functional. |
 | **Model Terakhir** | Antigravity |
-| **Timestamp** | 2026-06-18T13:35:00+08:00 |
+| **Timestamp** | 2026-06-22T09:55:00+08:00 |
 
 ### Issue #358 Summary:
 - [x] Migration `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string `after('no_stnk')`.
@@ -236,6 +236,16 @@ git push origin main
 ### Next Steps:
 - [x] Issue #390 (ST Builder Untuk items editable) merged + deployed ke SSH production.
 - [ ] (Opsional) Manual browser smoke test pada production untuk fitur #388 (PLH) + #390 (Untuk editable + one-day activity).
+
+---
+
+**UPDATE SESI ANTIGRAVITY (2026-06-22 - BMN Vehicle Document Uploads MERGED):**
+- **Status**: SELESAI & MERGED. Fitur upload dokumen kendaraan (BPKB & STNK) berupa file PDF/Gambar untuk aset BMN berjenis Alat Angkutan Bermotor telah diimplementasikan lengkap baik di backend maupun frontend.
+- **Implementasi**:
+  - **Backend**: Membuat migrasi kolom dokumen kendaraan, controller `AssetDocumentController` untuk CRUD dokumen secara aman di private storage, `PdfPreviewService` menggunakan `pdftoppm` (poppler-utils) untuk generate preview dari halaman pertama PDF menjadi JPEG, dan `VehicleDocumentPathService` untuk standardisasi file path. Menambahkan `poppler-utils` di `Dockerfile`.
+  - **Frontend**: Menambahkan BPKB/STNK cards di `PhotoGallery` dan `AssetDetail`, serta overlay pratinjau multi-halaman lewat Lightbox.
+  - **Bug Fix**: Memperbaiki issue pratinjau broken page 2, 3, 4 dengan membuat `referrerPolicy` pada tag Lightbox `<img>` menjadi kondisional (`no-referrer` hanya untuk Google Drive, dan `undefined` untuk local backend agar header `Referer` terkirim untuk autentikasi Sanctum).
+- **Validation**: `npx tsc --noEmit` & `npm run lint` clean. `php artisan test` clean (14 tests passed).
 
 ---
 
