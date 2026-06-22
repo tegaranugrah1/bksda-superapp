@@ -41,4 +41,9 @@ class AuctionBatchEvent extends Model
     {
         return $this->belongsTo(Asset::class, 'bmn_asset_id');
     }
+
+    public function actor(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'actor_id');
+    }
 }
