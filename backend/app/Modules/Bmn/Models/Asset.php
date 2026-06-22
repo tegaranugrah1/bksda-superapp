@@ -83,6 +83,29 @@ class Asset extends Model
         return $this->hasMany(AssetUpdate::class, 'asset_id');
     }
 
+    public function auctionBatches()
+    {
+        return $this->belongsToMany(AuctionBatch::class, 'bmn_asset_auction_batch', 'bmn_asset_id', 'bmn_auction_batch_id')
+            ->withPivot([
+                'id',
+                'lot_number',
+                'nilai_taksiran',
+                'kertas_kerja_data',
+                'sort_order',
+                'asset_snapshot',
+                'freeze_snapshot',
+                'first_auction_is_sold',
+                'first_auction_price',
+                'reauction_is_sold',
+                'reauction_price',
+                'final_result',
+                'final_price',
+                'final_auction_date',
+                'disposed_at',
+            ])
+            ->withTimestamps();
+    }
+
     protected static function booted()
     {
         static::forceDeleted(function ($asset) {
