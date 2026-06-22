@@ -55,6 +55,12 @@ const BMN_PERMISSIONS = [
   { id: "bmn.document.generate", label: "Generate Dokumen Lelang" },
   { id: "bmn.document.delete", label: "Hapus Arsip BA" },
   { id: "bmn.document.history.view", label: "Lihat Riwayat Dokumen" },
+  { id: "bmn.auction.view", label: "Lihat Paket Lelang" },
+  { id: "bmn.auction.create", label: "Buat Paket Lelang" },
+  { id: "bmn.auction.update", label: "Edit Draft Paket Lelang" },
+  { id: "bmn.auction.delete", label: "Hapus Draft Paket Lelang" },
+  { id: "bmn.auction.print", label: "Cetak Dokumen Lelang" },
+  { id: "bmn.auction.finalize", label: "Finalisasi/Jadwal Lelang" },
 ];
 
 interface EmployeeAccessSheetProps {

@@ -83,6 +83,10 @@ class User extends Authenticatable
         // Izinkan aksi BMN jika user memiliki akses modul BMN. Aksi penulisan tetap memerlukan role admin.
         if (is_null($this->permissions)) {
             if (str_starts_with($permission, 'bmn.')) {
+                if (str_starts_with($permission, 'bmn.auction.')) {
+                    return $permission === 'bmn.auction.view' && in_array('bmn', $this->access_modules ?? []);
+                }
+
                 $isReadPermission = in_array($permission, ['bmn.view', 'bmn.document.history.view']);
                 if ($isReadPermission) {
                     return in_array('bmn', $this->access_modules ?? []);

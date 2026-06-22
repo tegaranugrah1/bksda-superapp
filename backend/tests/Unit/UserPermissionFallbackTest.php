@@ -31,6 +31,19 @@ class UserPermissionFallbackTest extends TestCase
         $this->assertTrue($user->hasPermission('bmn.asset.update'));
     }
 
+    public function test_legacy_bmn_admin_can_only_read_auction_without_explicit_permission(): void
+    {
+        $user = new User([
+            'role' => 'admin',
+            'access_modules' => ['bmn'],
+            'permissions' => null,
+        ]);
+
+        $this->assertTrue($user->hasPermission('bmn.auction.view'));
+        $this->assertFalse($user->hasPermission('bmn.auction.update'));
+        $this->assertFalse($user->hasPermission('bmn.auction.finalize'));
+    }
+
     public function test_legacy_kepegawaian_admin_can_approve_surat_tugas(): void
     {
         $user = new User([
