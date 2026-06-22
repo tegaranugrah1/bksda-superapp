@@ -1,6 +1,6 @@
 # Issue #128: Split Asset NUP Search
 
-## Status: 🔄 IN_PROGRESS
+## Status: ✅ CLOSED
 
 ## Deskripsi
 

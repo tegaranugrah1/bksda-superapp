@@ -1,3 +1,32 @@
+# Progress - Phase 139: Split Asset NUP Search
+
+> Document updated: 2026-06-22
+> Status: Selesai di-merge ke main (via Squash Merge, commit `0835eb5`) dan di-deploy ke production.
+
+---
+
+## Split Asset NUP Search
+
+### Status: SELESAI
+- Scope: BMN Module (Katalog Aset)
+- Tujuan: Memisahkan input pencarian aset BMN menjadi pencarian umum (nama barang, kode barang, merk, nomor polisi) dan pencarian NUP (NUP baru/lama dengan pencocokan persis) secara berdampingan.
+
+### Implementasi
+- **Backend (Laravel)**:
+  - Memperbarui [AssetController.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetController.php) dan [AssetExport.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Exports/AssetExport.php) untuk mengecualikan kolom `nup` dari query pencarian umum, serta menambahkan filter parameter `nup` terpisah yang mencocokkan `nup` atau `nup_lama` secara persis (`=`).
+  - Memperbarui [ExportController.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/ExportController.php) untuk melampirkan filter `nup` ke objek ekspor.
+- **Frontend (Next.js)**:
+  - Memperbarui [page.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/assets/page.tsx) untuk menambahkan state `nupTerm` (debounced 400ms) dan menyinkronkannya ke parameter URL query string.
+  - Memecah UI input pencarian tunggal menjadi dua kolom input berdampingan: input pencarian umum ("Cari nama, kode, merk...") dan input NUP ("Cari NUP (baru/lama)...").
+  - Menghubungkan input NUP ke parameter `nup` API backend.
+  - Memperbarui tombol "Reset Filter" untuk membersihkan kedua input pencarian.
+
+### Validasi
+- `php artisan test`: 14 tests passed (100% lulus).
+- `npx tsc --noEmit` & `npm run lint`: Sukses tanpa error/warning.
+
+---
+
 # Progress - Phase 138: STNK Attachments in Power of Attorney Reports
 
 > Document updated: 2026-06-22
