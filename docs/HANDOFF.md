@@ -3200,3 +3200,21 @@ Setelah semua command clean:
   - `npx tsc --noEmit`.
   - `npm run build`.
 - Browser note: local `/bmn/reports` redirected to `/login`, so authenticated visual review is still pending user session/login.
+
+---
+
+**UPDATE SESI BMN AUCTION BATCHES (2026-06-22):**
+- **Task/Issues**: Completed BMN Auction Batches implementation (#044 to #073).
+- **Branch**: `develop/bmn-auction` (merged from task branch `task/bmn-auction-044-batch-detail-shell`).
+- **Status**: Completed & Merged ✅
+- **Objective**: Deliver a robust document-driven auction batch manager for internal internal document generator and archives.
+- **Accomplishments**:
+  - Implemented the complete frontend workspace dashboard shell under `/bmn/auction-batches/[id]` (Task 44).
+  - Implemented editable worksheets, lot ordering, signatories pickers, external manual schedule logging, and reauction/final realization actions (Tasks 45-52).
+  - Ported 13 document templates from old Candidates view to the batch printing center with DRAFT/BATAL watermarks and print logging (Tasks 53-54).
+  - Resolved all typescript type conflicts, linter overrides, and unused variables.
+- **Build Verification**:
+  - Frontend: `npm run lint` ✅ (0 warning, 0 error)
+  - Frontend: `npx tsc --noEmit` ✅ (0 error)
+  - Frontend: `npm run build` ✅ (successful Turbopack next build)
+  - Backend: `php artisan test` ✅ (36/36 tests passed)
