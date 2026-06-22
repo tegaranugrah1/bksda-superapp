@@ -13,6 +13,16 @@ export interface PowerOfAttorneyAsset {
   no_polisi?: string | null;
   no_rangka?: string | null;
   no_mesin?: string | null;
+  stnk_document?: {
+    path: string;
+    mime: string;
+    original_name: string;
+    preview_path: string | null;
+    url: string;
+    download_url: string;
+    preview_url: string | null;
+    preview_urls: string[];
+  } | null;
 }
 
 export interface PowerOfAttorneyParty {
@@ -160,9 +170,13 @@ export function handlePrintPowerOfAttorney(documentId = "power-of-attorney-print
           .signature-name { margin-top: 30mm; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
           .poa-ktp-page { page-break-before: always; break-before: page; margin-top: 10mm; text-align: center; }
-          .poa-ktp-title { font-size: 11pt; font-weight: bold; margin-bottom: 6mm; text-align: center; font-family: "Bookman Old Style", Georgia, serif; }
-          .poa-ktp-container { display: inline-block; border: 1px dashed #ccc; padding: 4mm; margin: 0 auto; background: white; }
-          .poa-ktp-container img { width: 130mm; max-width: 100%; height: auto; display: block; }
+          @page landscape-page { size: A4 landscape; margin: 10mm; }
+          .poa-ktp-container { display: block; width: 138mm; max-width: 100%; border: 1px dashed #ccc; padding: 4mm; margin: 0 auto; background: white; }
+          .poa-ktp-container img { width: 100%; height: auto; display: block; }
+          .poa-stnk-page { page: landscape-page; margin: 0; text-align: center; }
+          .poa-stnk-page + .poa-stnk-page { page-break-before: always; break-before: page; }
+          .poa-stnk-container { display: block; width: 100%; margin: 0 auto; }
+          .poa-stnk-container img { width: 100%; max-width: 270mm; max-height: 170mm; height: auto; object-fit: contain; display: block; margin: 0 auto; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -192,7 +206,8 @@ export function PowerOfAttorneyDocument({
   return (
     <div id={documentId}>
       <style jsx global>{`
-        .poa-preview .poa-page {
+        .poa-preview .poa-page,
+        .poa-preview .poa-ktp-page {
           width: 210mm;
           max-width: 100%;
           margin: 0 auto;
@@ -202,6 +217,22 @@ export function PowerOfAttorneyDocument({
           font-family: "Bookman Old Style", Georgia, Garamond, serif;
           font-size: 11pt;
           line-height: 1.25;
+        }
+        .poa-preview .poa-ktp-page {
+          margin-top: 8mm;
+          text-align: center;
+        }
+        .poa-preview .poa-stnk-page {
+          width: 297mm;
+          max-width: 100%;
+          margin: 8mm auto 0;
+          padding: 7mm 20mm 14mm;
+          background: white;
+          color: black;
+          font-family: "Bookman Old Style", Georgia, Garamond, serif;
+          font-size: 11pt;
+          line-height: 1.25;
+          text-align: center;
         }
         .poa-preview p { margin: 0; }
         .poa-preview .poa-header { margin: 0 -12mm; text-align: center; }
@@ -242,38 +273,59 @@ export function PowerOfAttorneyDocument({
           border-top: 1px dashed #ccc;
           padding-top: 10mm;
         }
-        .poa-preview .poa-ktp-title {
-          font-size: 11pt;
-          font-weight: bold;
-          margin-bottom: 6mm;
-          text-align: center;
-        }
         .poa-preview .poa-ktp-container {
-          display: inline-block;
+          display: block;
+          width: 138mm;
+          max-width: 100%;
           border: 1px dashed #ccc;
           padding: 4mm;
           margin: 0 auto;
           background: white;
         }
         .poa-preview .poa-ktp-container img {
-          width: 130mm;
-          max-width: 100%;
+          width: 100%;
           height: auto;
           display: block;
         }
+        .poa-preview .poa-stnk-container {
+          display: block;
+          width: 100%;
+          margin: 0 auto;
+        }
+        .poa-preview .poa-stnk-container img {
+          width: 100%;
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 0 auto;
+        }
         @media print {
           @page { size: A4 portrait; margin: 10mm 0 18mm 0; }
+          @page landscape-page { size: A4 landscape; margin: 10mm; }
           body * { visibility: hidden; }
           #power-of-attorney-print-root, #power-of-attorney-print-root * { visibility: visible; }
           #power-of-attorney-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
-          .poa-page { box-shadow: none !important; }
+          .poa-page, .poa-ktp-page, .poa-stnk-page { box-shadow: none !important; border: none !important; background: transparent !important; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
           .poa-preview .poa-ktp-page {
             page-break-before: always;
             break-before: page;
             margin-top: 10mm;
-            border-top: none;
-            padding-top: 0;
+          }
+          .poa-preview .poa-stnk-page {
+            page: landscape-page;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .poa-preview .poa-stnk-page + .poa-stnk-page {
+            page-break-before: always;
+            break-before: page;
+          }
+          .poa-preview .poa-stnk-container img {
+            max-width: 270mm;
+            max-height: 170mm;
+            object-fit: contain;
           }
         }
       `}</style>
@@ -366,16 +418,44 @@ export function PowerOfAttorneyDocument({
             </div>
           </div>
 
-          {finalKtpUrl && (
-            <div className="poa-ktp-page">
-              <p className="poa-ktp-title">LAMPIRAN: KARTU TANDA PENDUDUK (KTP) PEMBERI KUASA</p>
-              <div className="poa-ktp-container">
+        </article>
+
+        {finalKtpUrl && (
+          <div className="poa-ktp-page poa-page shadow-xl ring-1 ring-zinc-200">
+            <div className="poa-ktp-container">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={finalKtpUrl} alt="KTP Pemberi Kuasa" />
+            </div>
+          </div>
+        )}
+
+        {assets.map((asset) => {
+          const stnkUrls = (() => {
+            if (!asset.stnk_document) return [];
+            const doc = asset.stnk_document;
+            if (doc.preview_urls && doc.preview_urls.length > 0) {
+              return doc.preview_urls;
+            }
+            if (doc.preview_url) {
+              return [doc.preview_url];
+            }
+            if (doc.url) {
+              return [doc.url];
+            }
+            return [];
+          })();
+
+          if (stnkUrls.length === 0) return null;
+
+          return stnkUrls.map((url, idx) => (
+            <div className="poa-stnk-page shadow-xl ring-1 ring-zinc-200" key={`${asset.id}-stnk-${idx}`}>
+              <div className="poa-stnk-container">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={finalKtpUrl} alt="KTP Pemberi Kuasa" />
+                <img src={url} alt={`STNK ${asset.nama_barang} Page ${idx + 1}`} />
               </div>
             </div>
-          )}
-        </article>
+          ));
+        })}
       </div>
     </div>
   );

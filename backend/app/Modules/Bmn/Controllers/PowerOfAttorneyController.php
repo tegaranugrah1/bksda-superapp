@@ -5,6 +5,7 @@ namespace App\Modules\Bmn\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\PowerOfAttorney;
+use App\Modules\Bmn\Resources\AssetResource;
 use App\Modules\Bmn\Resources\PowerOfAttorneyResource;
 use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Http\JsonResponse;
@@ -123,15 +124,16 @@ class PowerOfAttorneyController extends Controller
                 'position' => $validated['second_party']['position'] ?? null,
                 'address' => $validated['second_party']['address'] ?? null,
             ],
-            'assets_snapshot' => $assets->map(fn (Asset $asset) => [
-                'id' => $asset->id,
-                'nama_barang' => $asset->nama_barang,
-                'kode_barang' => $asset->kode_barang,
-                'nup' => $asset->nup,
-                'merk_tipe' => $asset->merk_tipe ?: trim(implode(' ', array_filter([$asset->merk, $asset->tipe]))),
-                'no_polisi' => $asset->no_polisi,
-                'no_rangka' => $asset->no_rangka,
-                'no_mesin' => $asset->no_mesin,
+            'assets_snapshot' => collect(AssetResource::collection($assets)->resolve($request))->map(fn ($asset) => [
+                'id' => $asset['id'],
+                'nama_barang' => $asset['nama_barang'],
+                'kode_barang' => $asset['kode_barang'],
+                'nup' => $asset['nup'],
+                'merk_tipe' => $asset['merk_tipe'] ?: trim(implode(' ', array_filter([$asset['merk'], $asset['tipe']]))),
+                'no_polisi' => $asset['no_polisi'],
+                'no_rangka' => $asset['no_rangka'],
+                'no_mesin' => $asset['no_mesin'],
+                'stnk_document' => $asset['stnk_document'] ?? null,
             ])->values()->all(),
             'asset_ids' => $assets->pluck('id')->values()->all(),
             'notes' => $validated['notes'] ?? null,

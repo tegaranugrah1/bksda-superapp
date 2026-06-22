@@ -58,6 +58,16 @@ interface UsageAgreementHistory {
 
 interface BmnAssetOption extends UsageAgreementAsset {
   jenis_bmn?: string | null;
+  stnk_document?: {
+    path: string;
+    mime: string;
+    original_name: string;
+    preview_path: string | null;
+    url: string;
+    download_url: string;
+    preview_url: string | null;
+    preview_urls: string[];
+  } | null;
 }
 
 interface HandoverAgreementHistory {
@@ -2404,7 +2414,15 @@ export default function BmnReportsPage() {
                   documentDate={selectedPowerOfAttorney.document_date}
                   firstParty={selectedPowerOfAttorney.first_party_snapshot || DEFAULT_POA_FIRST_PARTY}
                   secondParty={selectedPowerOfAttorney.second_party_snapshot || { name: "", nip: "", position: "", address: "Jln. Teuku Umar Samarinda" }}
-                  assets={selectedPowerOfAttorney.assets_snapshot || []}
+                  assets={
+                    (selectedPowerOfAttorney.assets_snapshot || []).map((snapshotAsset) => {
+                      const matched = vehicleAssetOptions.find((a) => a.id === snapshotAsset.id);
+                      return {
+                        ...snapshotAsset,
+                        stnk_document: matched?.stnk_document || snapshotAsset.stnk_document || null,
+                      };
+                    })
+                  }
                   notes={selectedPowerOfAttorney.notes || ""}
                   ktpUrl={selectedPowerOfAttorney.ktp_url}
                 />

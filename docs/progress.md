@@ -1,3 +1,34 @@
+# Progress - Phase 138: STNK Attachments in Power of Attorney Reports
+
+> Document updated: 2026-06-22
+> Status: Selesai di-merge ke main dan di-deploy ke production.
+
+---
+
+## STNK Attachments in Power of Attorney Reports
+
+### Status: SELESAI
+- Scope: BMN Module (Power of Attorney Reports)
+- Tujuan: Menampilkan lampiran dokumen STNK kendaraan (jika ada) di bawah KTP Pemberi Kuasa pada pratinjau dan hasil cetak Surat Kuasa Kendaraan (baik pembuatan baru maupun arsip riwayat).
+
+### Implementasi
+- **Backend (Laravel)**:
+  - Memperbarui [PowerOfAttorneyController.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/PowerOfAttorneyController.php) untuk menggunakan `AssetResource` saat memetakan `assets_snapshot` pada penyimpanan database. Hal ini memastikan struktur dokumen STNK (`stnk_document` yang berisi metadata berkas dan URL pratinjau halaman) disimpan ke dalam snapshot database saat Surat Kuasa dibuat.
+- **Frontend (Next.js)**:
+  - Memperbarui [PowerOfAttorneyDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx) untuk menambahkan tipe data `stnk_document` pada interface `PowerOfAttorneyAsset`.
+  - Menambahkan styling `.poa-stnk-page`, `.poa-stnk-title`, `.poa-stnk-container`, dan properti cetak pendukung di dalam fungsi cetak window (`handlePrintPowerOfAttorney`) dan blok `<style jsx global>`.
+  - Merender halaman-halaman STNK yang bersangkutan menggunakan resolusi URL pratinjau (`preview_urls`, `preview_url`, atau `url`) sebagai lampiran halaman baru dengan `page-break-before: always`.
+  - Memperbarui [page.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/page.tsx) untuk memetakan interface `BmnAssetOption` dengan `stnk_document` dan melakukan dynamic merging/enrichment data STNK kendaraan dari `vehicleAssetOptions` ke data arsip Surat Kuasa (`selectedPowerOfAttorney.assets_snapshot`) sehingga riwayat lama juga menampilkan lampiran STNK jika asetnya masih ada di database.
+
+### Validasi
+- `php artisan test`: 14 tests passed (100% lulus).
+- `npx tsc --noEmit` & `npm run lint`: Sukses tanpa error/warning.
+
+### Next Steps
+- [ ] Minta verifikasi manual dari pengguna untuk memuat cetak Surat Kuasa di localhost:3000/bmn/reports dan memeriksa layout halaman cetak STNK baru.
+
+---
+
 # Progress - Phase 137: BMN Vehicle Document Uploads
 
 > Document updated: 2026-06-22
