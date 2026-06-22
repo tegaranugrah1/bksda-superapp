@@ -29,6 +29,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: always
+    command: >
+      sh -c "php artisan migrate --force && php-fpm"
     depends_on:
       db:
         condition: service_healthy
