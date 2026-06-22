@@ -179,6 +179,50 @@ File rules lengkap ada di workspace (`rules.md`), ringkasan kunci:
 
 **PENTING**: Jika kamu akan mengerjakan fitur/bug baru di luar flow utama (Phase 1-125) yang belum ada tiket isunya, kamu **WAJIB** membuat issue terlebih dahulu di GitHub!
 
+### PENTING: Git Workflow Pro untuk Fitur BMN Auction Batches
+
+Khusus pekerjaan fitur **Paket Dokumen Lelang BMN / BMN Auction Batches** di `.kiro/specs/bmn-auction-batches/`, AI/developer **DILARANG membuat PR task langsung ke `main`**.
+
+Alasan:
+- `main` dianggap branch production.
+- Jika perubahan masuk `main`, deployment `bksdakaltim.net` dapat ikut ter-update.
+- Backend production menjalankan migration saat deploy, sehingga migration yang belum final berisiko mengubah database production.
+
+Workflow wajib untuk fitur ini:
+
+```bash
+# 1. Buat/checkout branch integrasi fitur
+git checkout main
+git pull origin main
+git checkout -b develop/bmn-auction
+git push -u origin develop/bmn-auction
+
+# 2. Setiap task dibuat dari branch integrasi, bukan dari main
+git checkout develop/bmn-auction
+git pull origin develop/bmn-auction
+git checkout -b task/bmn-auction-001-nama-task
+
+# 3. Setelah selesai, push task branch
+git push -u origin task/bmn-auction-001-nama-task
+```
+
+Aturan PR:
+- Task PR harus memakai `base: develop/bmn-auction`.
+- Task PR **bukan** `base: main`.
+- Merge task PR hanya ke `develop/bmn-auction`.
+- Setelah semua task selesai, test lokal selesai, dan user menyetujui release, baru buat **1 PR final**:
+
+```text
+base: main
+compare: develop/bmn-auction
+```
+
+Kalimat wajib untuk AI saat onboarding fitur ini:
+
+```text
+Gunakan git workflow profesional. Untuk fitur BMN Auction Batches, jangan membuat PR task langsung ke main. Buat branch task dari develop/bmn-auction dan arahkan semua task PR ke develop/bmn-auction. Main hanya menerima 1 PR final setelah semua task selesai dan lolos test lokal.
+```
+
 ```bash
 # 0. Buat Issue di GitHub (jika belum ada)
 gh issue create --title "nama fitur/bug" --body "deskripsi spec"
@@ -202,6 +246,10 @@ git push -u origin issue/XXX-nama-issue
 gh pr create --title "feat(module): deskripsi (#XXX)" --base main
 gh pr merge <PR_NUMBER> --merge --delete-branch
 ```
+
+Catatan:
+- Contoh command `--base main` di atas hanya berlaku untuk issue biasa.
+- Untuk **BMN Auction Batches**, gunakan aturan khusus di atas: `--base develop/bmn-auction`.
 
 ---
 

@@ -15,6 +15,7 @@ Baca file ONBOARDING.md di root project untuk memahami arsitektur dan konteks le
 Project ini adalah monorepo (frontend Next.js + backend Laravel) yang di-fork dari e:\superapp-inventory\.
 Semua task didokumentasikan di docs/issues/ (125 issue specs).
 Rules project ada di file rules.md.
+Jika mengerjakan fitur BMN Auction Batches / Paket Dokumen Lelang BMN, gunakan git workflow profesional: jangan buat PR task langsung ke main. Gunakan branch integrasi develop/bmn-auction, buat branch task dari sana, dan arahkan semua task PR ke develop/bmn-auction. Main hanya menerima 1 PR final setelah semua task selesai dan lolos test lokal.
 ```
 
 ---
@@ -29,6 +30,7 @@ Baca instruksi lengkap di: docs/issues/XXX-nama-file.md
 Referensi kode sumber yang sudah jalan ada di: e:\superapp-inventory\
 Ikuti rules.md, gunakan clean code, dan buat kode yang mudah dipahami.
 Jalankan git workflow sesuai yang tertulis di issue spec.
+Khusus jika issue/task terkait BMN Auction Batches, override base PR menjadi develop/bmn-auction, bukan main.
 ```
 
 ---
@@ -139,4 +141,3 @@ ATURAN:
 | AI mulai lambat/repetitif | Itu tanda token menipis — segera minta update HANDOFF.md |
 | Mau ganti model AI | Minta AI lama update HANDOFF.md dulu, baru buka chat baru |
 | Issue terlalu besar | Pecah jadi sub-task, minta AI commit per langkah |
-
