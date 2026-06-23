@@ -61,8 +61,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
   const [modalSelectedIds, setModalSelectedIds] = useState<Set<string>>(new Set());
 
   // Edit Lot State
-  const [editingLotAssetId, setEditingLotAssetId] = useState<string | null>(null);
-  const [editingLotValue, setEditingLotValue] = useState("");
+  const [lotDrafts, setLotDrafts] = useState<Record<string, string>>({});
 
   // Quick Edit Asset State
   const [isQuickEditOpen, setIsQuickEditOpen] = useState(false);
@@ -106,6 +105,11 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
   useEffect(() => {
     if (batch?.assets) {
       setLocalAssets(batch.assets);
+      setLotDrafts(
+        Object.fromEntries(
+          batch.assets.map((asset) => [asset.id, asset.pivot?.lot_number || ""])
+        )
+      );
     }
   }, [batch]);
 
@@ -160,7 +164,6 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
       updateValuation(batch.id, assetId, { lot_number: lotNumber }),
     onSuccess: () => {
       toast.success("Nomor Lot berhasil diperbarui.");
-      setEditingLotAssetId(null);
       onRefetch();
     },
     onError: (error: any) => {
@@ -218,17 +221,10 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
     addAssetsMutation.mutate(Array.from(modalSelectedIds));
   };
 
-  // Lot Edit Handlers
-  const handleStartEditLot = (asset: AuctionBatchAsset) => {
-    if (readOnly) return;
-    setEditingLotAssetId(asset.id);
-    setEditingLotValue(asset.pivot?.lot_number || "");
-  };
-
   const handleSaveLot = (assetId: string) => {
     updateLotMutation.mutate({
       assetId,
-      lotNumber: editingLotValue.trim() || null,
+      lotNumber: lotDrafts[assetId]?.trim() || null,
     });
   };
 
@@ -266,7 +262,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                     Urutan
                   </th>
                 )}
-                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 w-28">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 w-56">
                   Nomor Lot
                 </th>
                 <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
@@ -321,8 +317,6 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                   const isExpanded = expandedAssetId === asset.id;
                   const hasWarnings = asset.requires_document_review;
                   const warnings = asset.document_readiness_warnings || [];
-                  const isEditingLot = editingLotAssetId === asset.id;
-
                   return (
                     <React.Fragment key={asset.id}>
                       <tr className="transition-colors hover:bg-zinc-50/40 dark:hover:bg-zinc-900/30">
@@ -354,37 +348,39 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
 
                         {/* Lot Number */}
                         <td className="px-4 py-4">
-                          {isEditingLot ? (
-                            <div className="flex items-center gap-1">
+                          {!readOnly ? (
+                            <div className="flex min-w-48 items-center gap-2">
                               <Input
-                                value={editingLotValue}
-                                onChange={(e) => setEditingLotValue(e.target.value)}
-                                className="h-8 rounded-lg text-xs w-20 border-zinc-200 dark:border-zinc-800"
-                                placeholder="LOT-XX"
-                                autoFocus
+                                value={lotDrafts[asset.id] ?? ""}
+                                onChange={(e) =>
+                                  setLotDrafts((prev) => ({
+                                    ...prev,
+                                    [asset.id]: e.target.value,
+                                  }))
+                                }
+                                className="h-8 w-20 rounded-lg border-zinc-200 text-center font-mono text-xs font-semibold dark:border-zinc-800"
+                                placeholder="LOT"
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") handleSaveLot(asset.id);
-                                  if (e.key === "Escape") setEditingLotAssetId(null);
                                 }}
                               />
                               <Button
-                                size="icon-sm"
+                                size="sm"
                                 onClick={() => handleSaveLot(asset.id)}
-                                className="h-7 w-7 bg-emerald-650 hover:bg-emerald-700 text-white rounded-lg"
+                                className="h-8 rounded-lg border border-emerald-700 bg-emerald-600 px-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
                                 disabled={updateLotMutation.isPending}
                               >
                                 <Check className="h-3.5 w-3.5" />
+                                Simpan
                               </Button>
                             </div>
                           ) : (
                             <div
-                              onClick={() => handleStartEditLot(asset)}
                               className={`text-xs font-bold font-mono px-2 py-1 rounded-md border text-center ${
                                 asset.pivot?.lot_number
                                   ? "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200"
-                                  : "bg-red-50 border-red-100 text-red-700 dark:bg-red-950/20 dark:border-red-900/30 cursor-pointer"
-                              } ${!readOnly ? "cursor-pointer hover:border-zinc-355" : ""}`}
-                              title={!readOnly ? "Klik untuk mengedit nomor Lot" : undefined}
+                                  : "bg-red-50 border-red-100 text-red-700 dark:bg-red-950/20 dark:border-red-900/30"
+                              }`}
                             >
                               {asset.pivot?.lot_number || "LOT ?"}
                             </div>
@@ -630,7 +626,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
             </Button>
             <Button
               onClick={handleAddSubmit}
-              className="bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5"
               disabled={addAssetsMutation.isPending || modalSelectedIds.size === 0}
             >
               {addAssetsMutation.isPending ? (
@@ -708,7 +704,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
             </Button>
             <Button
               onClick={handleSaveQuickEdit}
-              className="bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5"
               disabled={isSavingQuickEdit}
             >
               {isSavingQuickEdit ? (
