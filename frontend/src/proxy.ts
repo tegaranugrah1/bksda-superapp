@@ -25,11 +25,10 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Proteksi Halaman Login (Redirect jika sudah login)
+  // 2. Halaman login harus tetap bisa dibuka.
+  // Cookie penanda login bisa tertinggal setelah session backend habis, jadi
+  // validasi session dilakukan di client login page sebelum redirect ke portal.
   if (pathname === "/login") {
-    if (loggedIn && userCookie) {
-      return NextResponse.redirect(new URL("/portal", request.url));
-    }
     return NextResponse.next();
   }
 
