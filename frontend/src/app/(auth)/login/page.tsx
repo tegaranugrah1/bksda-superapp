@@ -28,6 +28,7 @@ const formSchema = z.object({
 export default function LoginPage() {
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
   const redirectToPortal = () => {
@@ -35,9 +36,28 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      redirectToPortal();
+    let cancelled = false;
+
+    async function verifyExistingSession() {
+      if (!isAuthenticated) {
+        setCheckingSession(false);
+        return;
+      }
+
+      try {
+        await api.get("/me");
+        if (!cancelled) redirectToPortal();
+      } catch {
+        authStore.logout();
+        if (!cancelled) setCheckingSession(false);
+      }
     }
+
+    verifyExistingSession();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isAuthenticated]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -90,6 +110,16 @@ export default function LoginPage() {
 
   return (
     <div className="bg-zinc-50 dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 min-h-screen flex items-center justify-center">
+      {checkingSession ? (
+        <div className="flex min-h-screen w-full items-center justify-center bg-white dark:bg-zinc-950">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              Memeriksa sesi...
+            </p>
+          </div>
+        </div>
+      ) : (
       <div className="flex min-h-screen w-full overflow-hidden">
         {/* Left Side: Login Form */}
         <div className="w-full lg:w-[45%] flex flex-col items-center justify-center p-8 md:p-16 bg-white dark:bg-zinc-900 relative z-10 shadow-2xl">
@@ -197,6 +227,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
