@@ -12,6 +12,7 @@ import {
   AuctionBatchAsset,
   AuctionCandidateAsset,
 } from "../../_lib/api";
+import { api } from "@/lib/api";
 import { formatRupiah } from "../../../auction-candidates/_lib/auction-helpers";
 import { toast } from "sonner";
 import {
@@ -28,6 +29,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +63,45 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
   // Edit Lot State
   const [editingLotAssetId, setEditingLotAssetId] = useState<string | null>(null);
   const [editingLotValue, setEditingLotValue] = useState("");
+
+  // Quick Edit Asset State
+  const [isQuickEditOpen, setIsQuickEditOpen] = useState(false);
+  const [quickEditAsset, setQuickEditAsset] = useState<AuctionBatchAsset | null>(null);
+  const [quickEditBpkb, setQuickEditBpkb] = useState("");
+  const [quickEditPolisi, setQuickEditPolisi] = useState("");
+  const [quickEditRangka, setQuickEditRangka] = useState("");
+  const [quickEditMesin, setQuickEditMesin] = useState("");
+  const [isSavingQuickEdit, setIsSavingQuickEdit] = useState(false);
+
+  const handleOpenQuickEdit = (asset: AuctionBatchAsset) => {
+    setQuickEditAsset(asset);
+    setQuickEditBpkb(asset.no_bpkp || "");
+    setQuickEditPolisi(asset.no_polisi || "");
+    setQuickEditRangka(asset.no_rangka || "");
+    setQuickEditMesin(asset.no_mesin || "");
+    setIsQuickEditOpen(true);
+  };
+
+  const handleSaveQuickEdit = async () => {
+    if (!quickEditAsset) return;
+    setIsSavingQuickEdit(true);
+    try {
+      await api.put(`/bmn/assets/${quickEditAsset.id}`, {
+        no_bpkp: quickEditBpkb.trim() || null,
+        no_polisi: quickEditPolisi.trim() || null,
+        no_rangka: quickEditRangka.trim() || null,
+        no_mesin: quickEditMesin.trim() || null,
+      });
+      toast.success("Dokumen aset berhasil diperbarui.");
+      setIsQuickEditOpen(false);
+      onRefetch();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.error || err.message || "Gagal memperbarui dokumen aset.";
+      toast.error(errorMsg);
+    } finally {
+      setIsSavingQuickEdit(false);
+    }
+  };
 
   useEffect(() => {
     if (batch?.assets) {
@@ -445,6 +486,17 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                                   <li key={i}>{warn}</li>
                                 ))}
                               </ul>
+                              {!readOnly && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenQuickEdit(asset)}
+                                  className="rounded-xl text-xs h-7 px-3 flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-850 dark:bg-amber-950/20 dark:text-amber-300 dark:hover:bg-amber-950/40 border-amber-200 mt-2.5"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                  Lengkapi Dokumen Aset
+                                </Button>
+                              )}
                               <p className="text-[10px] text-zinc-500 italic mt-2">
                                 * Peringatan ini bersifat imbauan dan tidak memblokir proses lelang.
                               </p>
@@ -588,6 +640,84 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                 </>
               ) : (
                 <>Tambah Terpilih ({modalSelectedIds.size})</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Edit Asset Modal */}
+      <Dialog open={isQuickEditOpen} onOpenChange={setIsQuickEditOpen}>
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+              Lengkapi Dokumen Aset
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500">
+              Perbarui dokumen administrasi untuk <strong>{quickEditAsset?.nama_barang}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500">Nomor BPKB</label>
+              <Input
+                value={quickEditBpkb}
+                onChange={(e) => setQuickEditBpkb(e.target.value)}
+                placeholder="Masukkan Nomor BPKB"
+                className="rounded-xl text-xs border-zinc-200 dark:border-zinc-800 h-9"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500">Nomor Polisi</label>
+              <Input
+                value={quickEditPolisi}
+                onChange={(e) => setQuickEditPolisi(e.target.value)}
+                placeholder="Masukkan Nomor Polisi (contoh: KT 1234 XX)"
+                className="rounded-xl text-xs border-zinc-200 dark:border-zinc-800 h-9"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500">Nomor Rangka</label>
+              <Input
+                value={quickEditRangka}
+                onChange={(e) => setQuickEditRangka(e.target.value)}
+                placeholder="Masukkan Nomor Rangka"
+                className="rounded-xl text-xs border-zinc-200 dark:border-zinc-800 h-9"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500">Nomor Mesin</label>
+              <Input
+                value={quickEditMesin}
+                onChange={(e) => setQuickEditMesin(e.target.value)}
+                placeholder="Masukkan Nomor Mesin"
+                className="rounded-xl text-xs border-zinc-200 dark:border-zinc-800 h-9"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsQuickEditOpen(false)}
+              className="rounded-xl text-xs"
+              disabled={isSavingQuickEdit}
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleSaveQuickEdit}
+              className="bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              disabled={isSavingQuickEdit}
+            >
+              {isSavingQuickEdit ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                "Simpan Perubahan"
               )}
             </Button>
           </DialogFooter>
