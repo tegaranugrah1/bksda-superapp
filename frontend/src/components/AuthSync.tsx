@@ -35,6 +35,7 @@ export function AuthSync() {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const isLoginRoute = pathname === "/login" || pathname.startsWith("/login/");
   
   // Menggunakan ref untuk melacak state sebelumnya agar kita tahu kapan terjadi TRANSISI
   const prevAuth = useRef<boolean | null>(null);
@@ -64,19 +65,20 @@ export function AuthSync() {
       }
     }
 
-    // 2. Deteksi LOGIN di tab lain (Transition: false -> true)
+    // 2. Deteksi LOGIN di tab lain (Transition: false -> true).
+    // Jangan redirect dari /login berdasarkan snapshot lokal saja; halaman
+    // login memvalidasi session ke backend agar cookie stale tidak membuat loop.
     if (prevAuth.current === false && isAuthenticated === true) {
-      if (pathname === "/login") {
+      if (!isLoginRoute) {
         toast.success(`Selamat datang kembali, ${user?.name || 'User'}!`, {
           id: "auth-sync-login",
         });
-        router.push("/portal");
       }
     }
 
     // Update ref untuk deteksi transisi berikutnya
     prevAuth.current = isAuthenticated;
-  }, [isAuthenticated, pathname, router, user]);
+  }, [isAuthenticated, isLoginRoute, pathname, router, user]);
 
   return null;
 }
