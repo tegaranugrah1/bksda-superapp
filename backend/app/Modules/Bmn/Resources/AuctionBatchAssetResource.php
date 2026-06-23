@@ -65,6 +65,7 @@ class AuctionBatchAssetResource extends JsonResource
             'lokasi_ruang' => $this->lokasi_ruang,
             'lokasi_spesifik' => $this->lokasi_spesifik,
             'auction' => $auctionData,
+            'pivot' => $auctionData,
             'document_readiness' => $readiness,
             'requires_document_review' => $readiness['requires_document_review'] ?? false,
             'document_readiness_warnings' => $readiness['warnings'] ?? [],
