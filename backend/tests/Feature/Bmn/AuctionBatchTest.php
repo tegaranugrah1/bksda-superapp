@@ -278,6 +278,35 @@ class AuctionBatchTest extends TestCase
         $response->assertJsonValidationErrors('workflow');
     }
 
+    public function test_checklist_blocks_and_allows_valuation_gate(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+        ]);
+
+        $asset = $this->createAsset();
+        $batch->assets()->attach($asset->id, [
+            'id' => \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-01',
+        ]);
+
+        $blocked = $this->getJson("/api/bmn/auction-batches/{$batch->id}/checklist");
+        $blocked->assertStatus(200);
+        $this->assertFalse($blocked->json('can_enter_valuation'));
+
+        $batch->forceFill([
+            'kepala_balai_id' => $this->kepalaBalai->id,
+            'metadata' => $this->workflowMetadata(false),
+        ])->save();
+
+        $allowed = $this->getJson("/api/bmn/auction-batches/{$batch->id}/checklist");
+        $allowed->assertStatus(200);
+        $this->assertTrue($allowed->json('can_enter_valuation'));
+        $this->assertFalse($allowed->json('can_complete_post_valuation_documents'));
+    }
+
     public function test_cannot_update_lot_after_diajukan(): void
     {
         $batch = AuctionBatch::create([
@@ -844,6 +873,44 @@ class AuctionBatchTest extends TestCase
         $this->assertTrue($metadata['workflow']['post_valuation_complete']);
         $this->assertEquals('M. Ari Wibawanto', $metadata['signatories']['kepala_balai']['nama']);
         $this->assertEquals('Panitia Satu', $metadata['committees']['panitia_penghapusan'][0]['nama']);
+    }
+
+    public function test_schema_version_1_document_context_remains_readable(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DIAJUKAN,
+            'metadata' => [
+                'schema_version' => 1,
+                'signatories' => [
+                    'kepala_balai' => [
+                        'nama' => 'Kepala Lama',
+                        'nip' => '123',
+                    ],
+                ],
+                'committees' => [],
+                'document_numbers' => [
+                    'surat_tugas' => 'ST/OLD',
+                ],
+                'document_dates' => [
+                    'surat_tugas' => '2026-06-22',
+                ],
+            ],
+        ]);
+
+        $asset = $this->createAsset();
+        $batch->assets()->attach($asset->id, [
+            'id' => \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-01',
+            'nilai_taksiran' => 5000000,
+        ]);
+
+        $response = $this->getJson("/api/bmn/auction-batches/{$batch->id}/documents/context");
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.metadata_schema_version', 1);
+        $response->assertJsonPath('data.metadata.signatories.kepala_balai.nama', 'Kepala Lama');
     }
 
     public function test_document_readiness_service(): void

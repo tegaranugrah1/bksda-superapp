@@ -33,9 +33,10 @@ interface ValuationTabProps {
   readOnly: boolean;
   onRefetch: () => void;
   checklist?: ChecklistResponse | null;
+  onGoToPreDocs?: () => void;
 }
 
-export function ValuationTab({ batch, readOnly, onRefetch, checklist }: ValuationTabProps) {
+export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreDocs }: ValuationTabProps) {
   const [assets, setAssets] = useState<AuctionBatchAsset[]>([]);
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -244,7 +245,14 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist }: Valuatio
         </div>
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Yang masih kurang</h3>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Yang masih kurang</h3>
+            {onGoToPreDocs && (
+              <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold" onClick={onGoToPreDocs}>
+                Buka Dokumen Awal
+              </Button>
+            )}
+          </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {missingGateItems.map((item) => (
               <div key={item.key} className="rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900">

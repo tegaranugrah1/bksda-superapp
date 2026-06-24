@@ -48,7 +48,7 @@ The expected high-level order is:
 10. KPKNL submission/permohonan after valuation is complete
 11. Lock/submit package, scheduling, auction result, and realization
 
-The exact relative order of items 5 and 6 may be refined during implementation if the operator confirms a more specific manual signature sequence. However, valuation must not be available before the Panitia Penaksir Harga stage is complete.
+Manual TTD supporting documents are not part of Srikandi, but they remain required before the Panitia Penaksir Harga/valuation stage. Valuation must not be available before the Panitia Penaksir Harga stage is complete.
 
 ## Document Channel Requirements
 
@@ -83,7 +83,8 @@ Known post-valuation exceptions:
 
 - Nota Dinas KSDAE must be after goods/assets are valued by Tim Penilai.
 - KPKNL request/submission must be after goods/assets are valued by Tim Penilai.
-- Any document whose content includes nilai limit/nilai taksiran must be placed after valuation unless the operator explicitly confirms otherwise.
+- SPTJ Nilai Limit must be after goods/assets are valued because it depends on the resulting nilai limit/nilai taksiran.
+- Any future document whose content includes nilai limit/nilai taksiran must be placed after valuation unless the operator explicitly confirms otherwise.
 
 ## Valuation Requirements
 
@@ -142,11 +143,11 @@ Existing locked packages with `metadata_schema_version = 1` must remain printabl
 - Tests must cover the new gating order.
 - The implementation should minimize migration risk by adding metadata-compatible fields rather than rewriting existing locked metadata.
 
-## Open Questions To Confirm With Operator
+## Resolved Operator Decisions
 
-- Exact manual TTD document order before Panitia Penaksir Harga.
-- Whether SPTJ Nilai Limit is post-valuation in the final office process.
-- Whether `sp_tugas` in the current code is actually Surat Tugas Pemeriksaan dan Penilaian BMN or a different statement document.
-- Whether Nota Dinas KSDAE is the current `nota_dinas` component or a missing separate document template.
-- Whether KPKNL document means current `permohonan_kpknl` only, or includes another nota/surat.
-
+- Existing support documents that are not in the Srikandi sequence remain Manual TTD and must be completed before Panitia Penaksir Harga unless they depend on valuation.
+- `sp_tugas` is treated as Surat Pernyataan Kelancaran Tugas Dinas, not Surat Tugas Pemeriksaan dan Penilaian BMN.
+- Surat Tugas Pemeriksaan dan Penilaian BMN has its own Srikandi workflow entry/template.
+- SPTJ Nilai Limit, Nota Dinas KSDAE, and KPKNL request/submission are post-valuation documents.
+- The current `nota_dinas` component maps to the Nota Dinas KSDAE workflow entry for this iteration.
+- The current `permohonan_kpknl` component maps to the KPKNL request/submission workflow entry for this iteration.

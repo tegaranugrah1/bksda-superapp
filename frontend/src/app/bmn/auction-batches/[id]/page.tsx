@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getBlockedReason, getWorkflowTabs } from "./_lib/workflow-tabs";
 
 // Lazy-loaded or imported tab components (stubbed for compile stability)
 import { AssetsLotTab } from "./_components/AssetsLotTab";
@@ -80,26 +81,14 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
     refetch();
     refetchChecklist();
   };
-  const workflowTabs = [
-    { value: "assets", label: "Aset & Lot" },
-    { value: "pre-docs", label: "Dokumen Awal" },
-    { value: "valuation", label: "Nilai Taksiran" },
-    { value: "post-docs", label: "Setelah Taksiran" },
-    { value: "submit", label: "Kunci & Ajukan" },
-    ...(batch.status !== "DRAFT"
-      ? [{ value: "schedule", label: "Jadwal Lelang" }]
-      : []),
-    ...(batch.status !== "DRAFT" && batch.status !== "DIAJUKAN"
-      ? [{ value: "realization", label: "Realisasi & Hasil" }]
-      : []),
-    { value: "audit", label: "Riwayat Audit" },
-  ];
+  const workflowTabs = getWorkflowTabs(batch);
   const activeTabIndex = Math.max(
     0,
     workflowTabs.findIndex((tab) => tab.value === activeTab)
   );
   const previousTab = workflowTabs[activeTabIndex - 1] ?? null;
   const nextTab = workflowTabs[activeTabIndex + 1] ?? null;
+  const nextBlockedReason = nextTab ? getBlockedReason(nextTab.value, checklist) : null;
 
   // Status timeline definition
   const statusesOrder = ["DRAFT", "DIAJUKAN", "JADWAL_DITETAPKAN", "LELANG_ULANG", "REALISASI"];
@@ -240,6 +229,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
+                title={getBlockedReason(tab.value, checklist) || undefined}
                 className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs"
               >
                 {tab.label}
@@ -270,7 +260,8 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
               <Button
                 size="sm"
                 className="rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
-                disabled={!nextTab}
+                disabled={!nextTab || Boolean(nextBlockedReason)}
+                title={nextBlockedReason || undefined}
                 onClick={() => nextTab && setActiveTab(nextTab.value)}
               >
                 {nextTab ? `Lanjut ke ${nextTab.label}` : "Selesai"}
@@ -294,7 +285,13 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
           </TabsContent>
 
           <TabsContent value="valuation" className="mt-0 focus-visible:outline-none">
-            <ValuationTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} checklist={checklist} />
+            <ValuationTab
+              batch={batch}
+              readOnly={readOnly}
+              onRefetch={refetchAll}
+              checklist={checklist}
+              onGoToPreDocs={() => setActiveTab("pre-docs")}
+            />
           </TabsContent>
 
           <TabsContent value="post-docs" className="mt-0 focus-visible:outline-none">

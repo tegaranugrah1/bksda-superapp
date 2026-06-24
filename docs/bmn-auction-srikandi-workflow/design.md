@@ -56,15 +56,15 @@ Proposed initial registry mapping:
 | `sk_penghentian` | `sk_penghentian` | Srikandi | pre_valuation | Penghentian Penggunaan BMN |
 | `ba_koreksi` | `ba_koreksi` | Srikandi | pre_valuation | Koreksi Perubahan Kondisi BMN |
 | `sk_panitia_penghapusan` | `sk_panitia` | Srikandi | pre_valuation | Panitia Penghapusan BMN kendaraan bermotor |
-| `surat_tugas_pemeriksaan_penilaian` | needs audit, maybe current `sp_tugas` is not this | Srikandi | pre_valuation | Must be verified/implemented |
+| `surat_tugas_pemeriksaan_penilaian` | `SuratTugasPemeriksaanPenilaianDocument` | Srikandi | pre_valuation | Dedicated Surat Tugas Pemeriksaan dan Penilaian BMN template |
 | `sk_panitia_penaksir_harga` | `sk_tim_penilai` | Srikandi | pre_valuation | Pembentukan Panitia Penaksir Harga |
 | `sk_kebenaran` | `sk_kebenaran` | Manual TTD | pre_valuation | Existing manual supporting doc |
-| `sptjm` | `sptjm` | Manual TTD | pre_valuation | Existing manual supporting doc, confirm placement |
+| `sptjm` | `sptjm` | Manual TTD | pre_valuation | Existing manual supporting doc |
 | `sp_kelancaran_tugas` | `sp_tugas` | Manual TTD | pre_valuation | Current title suggests statement, not Srikandi surat tugas |
-| `ba_pemeriksaan` | `ba_pemeriksaan` | Manual TTD or Srikandi support | pre_valuation | Confirm whether part of Surat Tugas process |
+| `ba_pemeriksaan` | `ba_pemeriksaan` | Manual TTD | pre_valuation | Existing manual supporting doc before Panitia Penaksir Harga |
 | `nilai_taksiran` | `ValuationTab` | App workflow | valuation | Enabled only after pre-valuation gate |
-| `sptj_limit` | `sptj_limit` | Manual TTD | post_valuation | Depends on nilai limit, confirm final placement |
-| `nota_dinas_ksdae` | maybe current `nota_dinas`, needs title audit | Srikandi/manual process after valuation | post_valuation | Must appear after Tim Penilai valuation |
+| `sptj_limit` | `sptj_limit` | Manual TTD | post_valuation | Depends on nilai limit |
+| `nota_dinas_ksdae` | `nota_dinas` | Srikandi | post_valuation | Must appear after Tim Penilai valuation |
 | `permohonan_kpknl` | `permohonan_kpknl` | External/KPKNL | post_valuation | Must appear after Tim Penilai valuation |
 
 The registry should be the source of truth for document ordering, grouping, and checklist labels.
@@ -141,7 +141,7 @@ For non-vehicle assets:
 
 Show post-valuation documents only after all asset valuations are valid:
 
-- SPTJ Nilai Limit, if confirmed post-valuation.
+- SPTJ Nilai Limit.
 - Nota Dinas KSDAE.
 - Permohonan/Nota KPKNL.
 

@@ -12,6 +12,13 @@ This task list is intentionally detailed so a future AI coding session can conti
 - Run frontend lint and typecheck before committing.
 - Prefer reusing existing document components.
 
+## Resolved Operator Decisions
+
+- Existing support documents that are not in the Srikandi sequence are Manual TTD and are completed before Panitia Penaksir Harga unless they depend on valuation.
+- `sp_tugas` is Surat Pernyataan Kelancaran Tugas Dinas, not Surat Tugas Pemeriksaan dan Penilaian BMN.
+- Surat Tugas Pemeriksaan dan Penilaian BMN uses a dedicated workflow entry/template.
+- SPTJ Nilai Limit, Nota Dinas KSDAE, and KPKNL submission are post-valuation documents after Tim Penilai completes valuation.
+
 ## Phase 0 - Confirm Current Baseline
 
 1. Run `git status --short --branch` and confirm the branch is based on `develop/bmn-auction`.
@@ -90,9 +97,9 @@ This task list is intentionally detailed so a future AI coding session can conti
 5. Manual TTD documents to map:
    - `sk_kebenaran`
    - `sptjm`
-   - `sp_tugas` if it is a statement document, not the Srikandi Surat Tugas Pemeriksaan dan Penilaian BMN
-   - `ba_pemeriksaan` if office confirms it is a manual signed support document
-   - `sptj_limit`, likely post-valuation because it depends on nilai limit. Confirm before final placement.
+   - `sp_tugas` as Surat Pernyataan Kelancaran Tugas Dinas, not the Srikandi Surat Tugas Pemeriksaan dan Penilaian BMN
+   - `ba_pemeriksaan`
+   - `sptj_limit` as post-valuation because it depends on nilai limit.
 6. Add unit tests for backend registry order if test style supports it.
 
 ## Phase 2 - Add Draft Workflow Metadata Persistence
@@ -295,9 +302,7 @@ Replace autosave:
 2. Required documents after Tim Penilai finishes valuation:
    - Nota Dinas KSDAE.
    - KPKNL submission/permohonan.
-3. Confirm whether `sptj_limit` is also post-valuation.
-   - The name strongly implies it depends on nilai limit.
-   - Do not force it into pre-valuation without operator confirmation.
+3. `sptj_limit` is post-valuation because it depends on nilai limit.
 4. Add gating:
    - If any asset valuation missing, show blocked state.
    - If complete, allow document print/status completion.
@@ -374,4 +379,3 @@ The implementation is done when:
 - Backend rejects invalid out-of-order actions.
 - Existing locked packages remain readable/printable.
 - Tests and validation commands pass.
-
