@@ -124,6 +124,23 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
     return parsed ? parsed.toLocaleString("id-ID") : "";
   };
 
+  const hasAssetDetail = (value?: string | null) => {
+    const normalized = value?.trim();
+    return !!normalized && normalized !== "-";
+  };
+
+  const getAssetSummaryItems = (asset: AuctionBatchAsset) =>
+    [
+      { label: "Nama Objek", value: asset.nama_barang, strong: false },
+      ...(hasAssetDetail(asset.merk_tipe)
+        ? [{ label: "Merk/Tipe", value: asset.merk_tipe, strong: false }]
+        : []),
+      ...(hasAssetDetail(asset.no_polisi)
+        ? [{ label: "No Polisi", value: asset.no_polisi, strong: false }]
+        : []),
+      { label: "Nilai Perolehan Asal", value: formatRupiah(asset.nilai_perolehan), strong: true },
+    ].filter((detail) => hasAssetDetail(detail.value));
+
   const calculateWorksheetValuation = () => {
     if (!worksheetData) return 0;
 
@@ -322,14 +339,21 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
 
             <div className="space-y-6 py-3 text-sm">
               {/* Asset Info Card */}
-              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <p className="text-xs text-zinc-400 font-semibold uppercase">Nama Objek</p>
-                  <p className="font-semibold text-zinc-800 dark:text-zinc-200 mt-1">{activeAsset.nama_barang}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-400 font-semibold uppercase">Nilai Perolehan Asal</p>
-                  <p className="font-bold text-zinc-800 dark:text-zinc-200 mt-1">{formatRupiah(activeAsset.nilai_perolehan)}</p>
+              <div className="overflow-hidden rounded-2xl border border-zinc-150 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="grid grid-cols-1 divide-y divide-zinc-150 dark:divide-zinc-800 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+                  {getAssetSummaryItems(activeAsset).map((item) => (
+                    <div key={item.label} className="min-w-0 px-5 py-4">
+                      <p className="text-xs font-semibold uppercase text-zinc-400">{item.label}</p>
+                      <p
+                        className={`mt-1 truncate text-sm text-zinc-850 dark:text-zinc-100 ${
+                          item.strong ? "font-bold" : "font-semibold"
+                        }`}
+                        title={String(item.value)}
+                      >
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
