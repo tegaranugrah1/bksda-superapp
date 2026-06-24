@@ -130,6 +130,7 @@ Route::prefix('auction-batches')->group(function () {
     Route::delete('/{id}/assets/{assetId}', [AuctionBatchController::class, 'removeAsset'])->middleware('permission:bmn.auction.update');
     Route::put('/{id}/assets/order', [AuctionBatchController::class, 'updateOrder'])->middleware('permission:bmn.auction.update');
     Route::put('/{id}/assets/{assetId}/valuation', [AuctionBatchController::class, 'updateValuation'])->middleware('permission:bmn.auction.update');
+    Route::patch('/{id}/draft-metadata', [AuctionBatchController::class, 'updateDraftMetadata'])->middleware('permission:bmn.auction.update');
     Route::post('/{id}/transition', [AuctionBatchController::class, 'transition']);
     Route::post('/{id}/first-auction-results', [AuctionBatchController::class, 'recordFirstAuctionResults'])->middleware('permission:bmn.auction.finalize');
     Route::post('/{id}/reauction-results', [AuctionBatchController::class, 'recordReauctionResults'])->middleware('permission:bmn.auction.finalize');

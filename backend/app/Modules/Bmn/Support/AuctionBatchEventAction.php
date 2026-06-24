@@ -12,6 +12,7 @@ final class AuctionBatchEventAction
     public const ASSET_REMOVED = 'asset.removed';
     public const ASSET_ORDER_UPDATED = 'asset.order.updated';
     public const ASSET_VALUATION_UPDATED = 'asset.valuation.updated';
+    public const DRAFT_METADATA_UPDATED = 'draft.metadata.updated';
     public const BATCH_LOCKED = 'batch.locked';
     public const ASSET_FREEZE_SNAPSHOT_CREATED = 'asset.freeze_snapshot.created';
     public const SCHEDULE_RECORDED = 'schedule.recorded';
@@ -37,6 +38,7 @@ final class AuctionBatchEventAction
             self::ASSET_REMOVED,
             self::ASSET_ORDER_UPDATED,
             self::ASSET_VALUATION_UPDATED,
+            self::DRAFT_METADATA_UPDATED,
             self::BATCH_LOCKED,
             self::ASSET_FREEZE_SNAPSHOT_CREATED,
             self::SCHEDULE_RECORDED,

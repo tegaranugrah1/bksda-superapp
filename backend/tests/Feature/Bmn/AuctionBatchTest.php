@@ -10,6 +10,7 @@ use App\Modules\Bmn\Enums\AuctionBatchStatus;
 use App\Modules\Bmn\Enums\AuctionAssetFinalResult;
 use App\Modules\Bmn\Support\AuctionBatchEventAction;
 use App\Modules\Bmn\Services\AuctionAssetDocumentReadinessService;
+use App\Modules\Bmn\Services\AuctionBatchDocumentWorkflow;
 use App\Modules\Bmn\Services\AuctionBatchValidityService;
 use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -214,6 +215,123 @@ class AuctionBatchTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    public function test_document_workflow_registry_matches_srikandi_sequence(): void
+    {
+        $workflow = app(AuctionBatchDocumentWorkflow::class);
+        $keys = $workflow->keys();
+
+        $this->assertSame('sk_penghentian', $keys[0]);
+        $this->assertSame('ba_koreksi', $keys[1]);
+        $this->assertSame('sk_panitia_penaksir_harga', $keys[8]);
+        $this->assertSame('nilai_taksiran', $keys[9]);
+        $this->assertSame('nota_dinas_ksdae', $keys[11]);
+        $this->assertTrue($workflow->get('sk_panitia_penaksir_harga')['required_for_valuation']);
+        $this->assertTrue($workflow->get('nota_dinas_ksdae')['requires_valuation']);
+    }
+
+    public function test_can_update_draft_metadata_on_draft_batch(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => [
+                'custom_key' => 'keep-me',
+                'document_numbers' => [
+                    'existing' => 'EX-001',
+                ],
+                'signatories_raw' => [
+                    'panitia' => ['old-member'],
+                ],
+            ],
+        ]);
+
+        $response = $this->patchJson("/api/bmn/auction-batches/{$batch->id}/draft-metadata", [
+            'kepala_balai_id' => $this->kepalaBalai->id,
+            'signatories' => [
+                'panitia' => [$this->panitiaMember->id],
+                'tim_penilai' => [$this->timPenilaiMember->id],
+            ],
+            'document_numbers' => [
+                'nota_dinas' => 'ND-001/BMN',
+            ],
+            'document_dates' => [
+                'nota_dinas' => '2026-06-24',
+            ],
+            'workflow' => [
+                'documents' => [
+                    'sk_penghentian' => [
+                        'status' => 'completed',
+                        'notes' => 'Sudah terbit di Srikandi',
+                    ],
+                    'nota_dinas_ksdae' => [
+                        'status' => 'prepared',
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200);
+
+        $batch->refresh();
+        $metadata = $batch->metadata;
+
+        $this->assertSame($this->kepalaBalai->id, $batch->kepala_balai_id);
+        $this->assertSame('keep-me', $metadata['custom_key']);
+        $this->assertSame('EX-001', $metadata['document_numbers']['existing']);
+        $this->assertSame('ND-001/BMN', $metadata['document_numbers']['nota_dinas']);
+        $this->assertSame([$this->panitiaMember->id], $metadata['signatories_raw']['panitia']);
+        $this->assertSame([$this->timPenilaiMember->id], $metadata['signatories_raw']['tim_penilai']);
+        $this->assertSame('completed', $metadata['workflow']['documents']['sk_penghentian']['status']);
+        $this->assertSame('Penghentian Penggunaan BMN', $metadata['workflow']['documents']['sk_penghentian']['title']);
+        $this->assertSame('prepared', $metadata['workflow']['documents']['nota_dinas_ksdae']['status']);
+
+        $this->assertDatabaseHas('bmn_auction_batch_events', [
+            'bmn_auction_batch_id' => $batch->id,
+            'action' => AuctionBatchEventAction::DRAFT_METADATA_UPDATED,
+        ]);
+    }
+
+    public function test_cannot_update_draft_metadata_after_diajukan(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DIAJUKAN,
+        ]);
+
+        $response = $this->patchJson("/api/bmn/auction-batches/{$batch->id}/draft-metadata", [
+            'document_numbers' => [
+                'nota_dinas' => 'ND-001/BMN',
+            ],
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('status');
+    }
+
+    public function test_draft_metadata_rejects_invalid_workflow_document_key(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+        ]);
+
+        $response = $this->patchJson("/api/bmn/auction-batches/{$batch->id}/draft-metadata", [
+            'workflow' => [
+                'documents' => [
+                    'dokumen_ngawur' => [
+                        'status' => 'completed',
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('workflow.documents');
     }
 
     public function test_cannot_lock_incomplete_batch(): void

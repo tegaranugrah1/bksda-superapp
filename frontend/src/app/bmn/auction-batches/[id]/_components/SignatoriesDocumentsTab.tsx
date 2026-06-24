@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { getChecklist, transition, AuctionBatch } from "../../_lib/api";
+import { getChecklist, transition, updateDraftMetadata, AuctionBatch } from "../../_lib/api";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -143,8 +143,7 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
   const handleFieldChange = async (fieldName: string, value: any) => {
     // Save draft state to API silently so checklist updates
     try {
-      await api.post(`/bmn/auction-batches/${batch.id}/transition`, {
-        status: "DRAFT",
+      await updateDraftMetadata(batch.id, {
         kepala_balai_id: fieldName === "kepala_balai" ? value : kepalaBalaiId || null,
         signatories: {
           panitia: fieldName === "panitia" ? value : panitiaIds,
