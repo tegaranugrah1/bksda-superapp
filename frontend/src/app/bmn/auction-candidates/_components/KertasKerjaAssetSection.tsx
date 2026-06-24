@@ -12,6 +12,9 @@ interface KertasKerjaAssetSectionProps {
   worksheetNumber: number;
   employees: EmployeeOption[];
   onClose: () => void;
+  initialState?: Partial<WorksheetState> | null;
+  isSaving?: boolean;
+  onSave?: (payload: { nilaiTaksiran: number; worksheet: WorksheetState }) => void;
 }
 
 interface LelangRow {
@@ -191,7 +194,7 @@ const createInitialState = (asset: AuctionAsset): WorksheetState => {
 };
 
 const inputCls =
-  "h-9 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:border-red-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white";
+  "h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:border-red-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white";
 
 function parseMoney(value: string) {
   return Number(value.replace(/[^\d-]/g, "")) || 0;
@@ -233,13 +236,15 @@ function WorksheetInput({
   label,
   value,
   onChange,
+  className = "",
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 }) {
   return (
-    <label className="block">
+    <label className={`block ${className}`}>
       <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</span>
       <input value={value} onChange={(event) => onChange(event.target.value)} className={inputCls} />
     </label>
@@ -451,8 +456,20 @@ export function KertasKerjaAssetSection({
   worksheetNumber,
   employees,
   onClose,
+  initialState,
+  isSaving = false,
+  onSave,
 }: KertasKerjaAssetSectionProps) {
-  const [state, setState] = useState(() => createInitialState(asset));
+  const [state, setState] = useState<WorksheetState>(() => {
+    const defaultState = createInitialState(asset);
+    if (!initialState) return defaultState;
+
+    return {
+      ...defaultState,
+      ...initialState,
+      lelangRows: initialState.lelangRows?.length ? initialState.lelangRows : defaultState.lelangRows,
+    };
+  });
 
   const computedRows = useMemo(
     () =>
@@ -530,6 +547,15 @@ export function KertasKerjaAssetSection({
             <X className="h-3.5 w-3.5" />
             Tutup
           </Button>
+          {onSave && (
+            <Button
+              className="rounded-xl gap-2 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+              onClick={() => onSave({ nilaiTaksiran: pembulatan, worksheet: state })}
+              disabled={isSaving}
+            >
+              {isSaving ? "Menyimpan..." : "Simpan Nilai Taksiran"}
+            </Button>
+          )}
           <Button className="rounded-xl gap-2 bg-slate-900 text-xs hover:bg-slate-800" onClick={handlePrintKertasKerjaAsset}>
             <Printer className="h-3.5 w-3.5" />
             Cetak / Save PDF
@@ -537,11 +563,11 @@ export function KertasKerjaAssetSection({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[380px_1fr]">
+      <div className="grid gap-4 xl:grid-cols-[520px_minmax(0,1fr)]">
         <div className="space-y-4 print:hidden">
-          <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Identitas Aset</h3>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+            <div className="grid gap-2 sm:grid-cols-2">
               <WorksheetInput label="Nama Objek" value={state.namaObjek} onChange={(value) => update("namaObjek", value)} />
               <WorksheetInput label="Lokasi Objek" value={state.lokasiObjek} onChange={(value) => update("lokasiObjek", value)} />
               <WorksheetInput label="Kategori Lokasi" value={state.kategoriLokasi} onChange={(value) => update("kategoriLokasi", value)} />
@@ -550,35 +576,40 @@ export function KertasKerjaAssetSection({
               <WorksheetInput label="Nomor Polisi" value={state.noPolisi} onChange={(value) => update("noPolisi", value)} />
               <WorksheetInput label="Pemilik Dokumen" value={state.pemilikDokumen} onChange={(value) => update("pemilikDokumen", value)} />
               <WorksheetInput label="Penggunaan Kendaraan" value={state.penggunaanKendaraan} onChange={(value) => update("penggunaanKendaraan", value)} />
-              <WorksheetInput label="Keterangan Lain" value={state.keteranganLain} onChange={(value) => update("keteranganLain", value)} />
+              <WorksheetInput
+                label="Keterangan Lain"
+                value={state.keteranganLain}
+                onChange={(value) => update("keteranganLain", value)}
+                className="sm:col-span-2"
+              />
             </div>
-            <div className="mt-4 grid gap-3 rounded-xl border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+            <div className="mt-3 grid gap-2 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="grid gap-1.5 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.roda2Atau3} label="Roda 2 atau 3" onChange={(checked) => update("roda2Atau3", checked)} />
                 <WorksheetCheckbox checked={state.roda4AtauLebih} label="Roda 4 atau lebih" onChange={(checked) => update("roda4AtauLebih", checked)} />
               </div>
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="grid gap-1.5 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.bpkb} label="BPKB" onChange={(checked) => update("bpkb", checked)} />
                 <WorksheetCheckbox checked={state.stnk} label="STNK" onChange={(checked) => update("stnk", checked)} />
                 <WorksheetCheckbox checked={state.lainnya} label="Lainnya" onChange={(checked) => update("lainnya", checked)} />
                 <WorksheetCheckbox checked={state.tidakAda} label="Tidak ada" onChange={(checked) => update("tidakAda", checked)} />
               </div>
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="grid gap-1.5 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.masihBerlaku} label="Masih Berlaku" onChange={(checked) => update("masihBerlaku", checked)} />
                 <WorksheetCheckbox checked={state.habisMasa} label="Habis Masa" onChange={(checked) => update("habisMasa", checked)} />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Fisik & Ringkasan</h3>
-            <div className="grid gap-3">
+            <div className="grid gap-2">
               <WorksheetInput label="Warna" value={state.warna} onChange={(value) => update("warna", value)} />
               <WorksheetInput label="Tahun Pembuatan" value={state.tahunPembuatan} onChange={(value) => update("tahunPembuatan", value)} />
               <WorksheetInput label="Bahan Bakar" value={state.bahanBakar} onChange={(value) => update("bahanBakar", value)} />
               <WorksheetInput label="Lokasi / Tanggal" value={state.lokasiTanggal} onChange={(value) => update("lokasiTanggal", value)} />
             </div>
-            <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
               <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Kondisi Kendaraan</p>
               <div className="grid gap-2">
                 {kondisiOptions.map((option) => (
@@ -597,7 +628,7 @@ export function KertasKerjaAssetSection({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Data Lelang</h3>
               <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addLelangRow}>
@@ -628,7 +659,7 @@ export function KertasKerjaAssetSection({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Panitia Penaksir</h3>
             <div className="grid gap-3">
               <EmployeeSelectInput label="Ambil Pegawai 1" employees={employees} onSelect={(name) => update("panitia1", name)} />
@@ -641,8 +672,8 @@ export function KertasKerjaAssetSection({
           </div>
         </div>
 
-        <div id="kertas-kerja-print-root" className="overflow-x-auto">
-          <div className="kk-page mx-auto min-w-[980px] border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
+        <div id="kertas-kerja-print-root" className="min-w-0 overflow-x-auto">
+          <div className="kk-page mx-auto w-full min-w-[840px] max-w-[1160px] border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
             <style jsx global>{`
               .kk-page { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; }
               .kk-page table { border-collapse: collapse; width: 100%; }

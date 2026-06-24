@@ -14,13 +14,13 @@ import {
   CheckCircle,
   HelpCircle,
   Users,
-  ChevronRight,
-  Info,
   ShieldCheck,
+  Search,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface SignatoriesDocumentsTabProps {
   batch: AuctionBatch;
@@ -38,10 +39,12 @@ interface SignatoriesDocumentsTabProps {
 }
 
 interface Employee {
-  id: string;
-  nama_lengkap: string;
+  id: string | number;
+  nama_lengkap?: string | null;
+  name?: string | null;
   nip: string | null;
   jabatan: string | null;
+  position?: string | null;
 }
 
 export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: SignatoriesDocumentsTabProps) {
@@ -59,12 +62,28 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
   const [panitiaIds, setPanitiaIds] = useState<string[]>([]);
   const [timPenilaiIds, setTimPenilaiIds] = useState<string[]>([]);
   const [pemeriksaIds, setPemeriksaIds] = useState<string[]>([]);
+  const [isKepalaBalaiPickerOpen, setIsKepalaBalaiPickerOpen] = useState(false);
+  const [kepalaBalaiSearch, setKepalaBalaiSearch] = useState("");
 
   const [suratTugasNo, setSuratTugasNo] = useState("");
   const [suratTugasDate, setSuratTugasDate] = useState("");
 
   // Lock confirmation modal
   const [isLockConfirmOpen, setIsLockConfirmOpen] = useState(false);
+
+  const getEmployeeName = (employee: Employee) => employee.nama_lengkap || employee.name || "-";
+  const getEmployeePosition = (employee: Employee) => employee.jabatan || employee.position || "";
+  const getEmployeeLabel = (employee: Employee) =>
+    `${getEmployeeName(employee)}${employee.nip ? ` - NIP. ${employee.nip}` : ""}`;
+  const selectedKepalaBalai = employees.find((employee) => String(employee.id) === kepalaBalaiId) || null;
+  const filteredKepalaBalaiEmployees = employees.filter((employee) => {
+    const query = kepalaBalaiSearch.trim().toLowerCase();
+    if (!query) return true;
+
+    return [getEmployeeName(employee), employee.nip, getEmployeePosition(employee)]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
 
   // Load checklist
   const { data: checklist, refetch: refetchChecklist, isLoading: isLoadingChecklist } = useQuery({
@@ -273,21 +292,73 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
             <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               Kepala Balai
             </label>
-            <select
-              value={kepalaBalaiId}
-              onChange={(e) => {
-                setKepalaBalaiId(e.target.value);
-                handleFieldChange("kepala_balai", e.target.value);
-              }}
-              className="h-9 w-full rounded-xl border border-zinc-200 bg-white px-3 text-xs outline-none focus:ring-1 focus:ring-emerald-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-            >
-              <option value="">-- Pilih Kepala Balai --</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.nama_lengkap} (NIP. {emp.nip || "-"})
-                </option>
-              ))}
-            </select>
+            <Popover open={isKepalaBalaiPickerOpen} onOpenChange={setIsKepalaBalaiPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={isKepalaBalaiPickerOpen}
+                  className="h-auto min-h-10 w-full justify-between rounded-xl border-zinc-200 bg-white px-3 py-2 text-left text-xs font-normal dark:border-zinc-800 dark:bg-zinc-900"
+                  disabled={isLoadingEmployees}
+                >
+                  <span className="min-w-0 truncate">
+                    {selectedKepalaBalai ? getEmployeeLabel(selectedKepalaBalai) : "-- Pilih Kepala Balai --"}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-zinc-400" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[min(560px,calc(100vw-2rem))] p-0" align="start">
+                <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+                    <Input
+                      value={kepalaBalaiSearch}
+                      onChange={(event) => setKepalaBalaiSearch(event.target.value)}
+                      placeholder="Cari nama, NIP, atau jabatan..."
+                      className="h-9 border-0 px-0 text-xs focus-visible:ring-0"
+                    />
+                  </div>
+                </div>
+                <div className="max-h-72 overflow-y-auto p-1.5">
+                  {filteredKepalaBalaiEmployees.length === 0 ? (
+                    <div className="px-3 py-6 text-center text-xs text-zinc-500">
+                      Pegawai tidak ditemukan.
+                    </div>
+                  ) : (
+                    filteredKepalaBalaiEmployees.map((emp) => (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                        onClick={() => {
+                          const employeeId = String(emp.id);
+                          setKepalaBalaiId(employeeId);
+                          setKepalaBalaiSearch("");
+                          setIsKepalaBalaiPickerOpen(false);
+                          handleFieldChange("kepala_balai", employeeId);
+                        }}
+                      >
+                        <Check
+                          className={`h-4 w-4 shrink-0 text-emerald-600 ${
+                            kepalaBalaiId === String(emp.id) ? "opacity-100" : "opacity-0"
+                          }`}
+                        />
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-zinc-850 dark:text-zinc-100">
+                            {getEmployeeName(emp)}
+                          </span>
+                          <span className="block truncate font-mono text-[10px] text-zinc-400">
+                            NIP. {emp.nip || "-"}
+                            {getEmployeePosition(emp) ? ` - ${getEmployeePosition(emp)}` : ""}
+                          </span>
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Panitia */}
@@ -300,14 +371,14 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
                 <div
                   key={emp.id}
                   className="flex items-center gap-2 cursor-pointer hover:bg-zinc-50/70 p-1 rounded-lg"
-                  onClick={() => toggleSelectionList(panitiaIds, setPanitiaIds, emp.id, "panitia")}
+                  onClick={() => toggleSelectionList(panitiaIds, setPanitiaIds, String(emp.id), "panitia")}
                 >
                   <Checkbox
-                    checked={panitiaIds.includes(emp.id)}
-                    onCheckedChange={() => toggleSelectionList(panitiaIds, setPanitiaIds, emp.id, "panitia")}
+                    checked={panitiaIds.includes(String(emp.id))}
+                    onCheckedChange={() => toggleSelectionList(panitiaIds, setPanitiaIds, String(emp.id), "panitia")}
                   />
                   <span className="text-xs">
-                    {emp.nama_lengkap} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
+                    {getEmployeeName(emp)} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
                   </span>
                 </div>
               ))}
@@ -324,16 +395,16 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
                 <div
                   key={emp.id}
                   className="flex items-center gap-2 cursor-pointer hover:bg-zinc-50/70 p-1 rounded-lg"
-                  onClick={() => toggleSelectionList(timPenilaiIds, setTimPenilaiIds, emp.id, "tim_penilai")}
+                  onClick={() => toggleSelectionList(timPenilaiIds, setTimPenilaiIds, String(emp.id), "tim_penilai")}
                 >
                   <Checkbox
-                    checked={timPenilaiIds.includes(emp.id)}
+                    checked={timPenilaiIds.includes(String(emp.id))}
                     onCheckedChange={() =>
-                      toggleSelectionList(timPenilaiIds, setTimPenilaiIds, emp.id, "tim_penilai")
+                      toggleSelectionList(timPenilaiIds, setTimPenilaiIds, String(emp.id), "tim_penilai")
                     }
                   />
                   <span className="text-xs">
-                    {emp.nama_lengkap} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
+                    {getEmployeeName(emp)} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
                   </span>
                 </div>
               ))}
@@ -350,16 +421,16 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
                 <div
                   key={emp.id}
                   className="flex items-center gap-2 cursor-pointer hover:bg-zinc-50/70 p-1 rounded-lg"
-                  onClick={() => toggleSelectionList(pemeriksaIds, setPemeriksaIds, emp.id, "pemeriksa")}
+                  onClick={() => toggleSelectionList(pemeriksaIds, setPemeriksaIds, String(emp.id), "pemeriksa")}
                 >
                   <Checkbox
-                    checked={pemeriksaIds.includes(emp.id)}
+                    checked={pemeriksaIds.includes(String(emp.id))}
                     onCheckedChange={() =>
-                      toggleSelectionList(pemeriksaIds, setPemeriksaIds, emp.id, "pemeriksa")
+                      toggleSelectionList(pemeriksaIds, setPemeriksaIds, String(emp.id), "pemeriksa")
                     }
                   />
                   <span className="text-xs">
-                    {emp.nama_lengkap} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
+                    {getEmployeeName(emp)} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
                   </span>
                 </div>
               ))}
