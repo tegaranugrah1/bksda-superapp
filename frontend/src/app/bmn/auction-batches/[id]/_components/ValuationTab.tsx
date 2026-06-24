@@ -303,41 +303,41 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
       {/* Worksheet Modal Dialog */}
       {activeAsset && worksheetData && (
         <Dialog open={!!activeAsset} onOpenChange={() => setActiveAsset(null)}>
-          <DialogContent className="max-w-3xl rounded-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-6xl rounded-2xl max-h-[92vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+              <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                 Kertas Kerja Penaksiran Aset
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-555">
+              <DialogDescription className="text-sm text-zinc-555">
                 Lakukan komparasi harga pasar dengan 3 objek sejenis untuk merumuskan Nilai Taksiran BMN.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-2 text-xs">
+            <div className="space-y-6 py-3 text-sm">
               {/* Asset Info Card */}
-              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 rounded-xl p-3.5 grid grid-cols-2 gap-4">
+              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <p className="text-[10px] text-zinc-400 font-semibold uppercase">Nama Objek</p>
-                  <p className="font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">{activeAsset.nama_barang}</p>
+                  <p className="text-xs text-zinc-400 font-semibold uppercase">Nama Objek</p>
+                  <p className="font-semibold text-zinc-800 dark:text-zinc-200 mt-1">{activeAsset.nama_barang}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-zinc-400 font-semibold uppercase">Nilai Perolehan Asal</p>
-                  <p className="font-bold text-zinc-800 dark:text-zinc-200 mt-0.5">{formatRupiah(activeAsset.nilai_perolehan)}</p>
+                  <p className="text-xs text-zinc-400 font-semibold uppercase">Nilai Perolehan Asal</p>
+                  <p className="font-bold text-zinc-800 dark:text-zinc-200 mt-1">{formatRupiah(activeAsset.nilai_perolehan)}</p>
                 </div>
               </div>
 
               {/* Comparable Listings */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-zinc-850 dark:text-zinc-300 border-b pb-1 dark:border-zinc-800">
+              <div className="space-y-4">
+                <h3 className="font-bold text-base text-zinc-850 dark:text-zinc-300 border-b pb-2 dark:border-zinc-800">
                   Data Pembanding Pasar
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                   {/* Comparable 1 */}
-                  <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 space-y-3 bg-white dark:bg-zinc-950">
-                    <p className="font-bold text-zinc-800 dark:text-zinc-200">Listing Pembanding 1</p>
-                    <div className="space-y-2">
+                  <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 bg-white dark:bg-zinc-950">
+                    <p className="font-bold text-base text-zinc-800 dark:text-zinc-200">Listing Pembanding 1</p>
+                    <div className="space-y-3">
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Uraian / Sumber</label>
+                        <label className="text-xs text-zinc-500 font-medium">Uraian / Sumber</label>
                         <Input
                           value={worksheetData.comparable1.name}
                           onChange={(e) =>
@@ -346,11 +346,11 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable1: { ...worksheetData.comparable1, name: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Harga Pasar (Rp)</label>
+                        <label className="text-xs text-zinc-500 font-medium">Harga Pasar (Rp)</label>
                         <Input
                           type="number"
                           value={worksheetData.comparable1.price}
@@ -360,11 +360,11 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable1: { ...worksheetData.comparable1, price: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Penyesuaian (%)</label>
+                        <label className="text-xs text-zinc-500 font-medium">Penyesuaian (%)</label>
                         <Input
                           type="number"
                           value={worksheetData.comparable1.adjustment}
@@ -374,18 +374,18 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable1: { ...worksheetData.comparable1, adjustment: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Comparable 2 */}
-                  <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 space-y-3 bg-white dark:bg-zinc-950">
-                    <p className="font-bold text-zinc-800 dark:text-zinc-200">Listing Pembanding 2</p>
-                    <div className="space-y-2">
+                  <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 bg-white dark:bg-zinc-950">
+                    <p className="font-bold text-base text-zinc-800 dark:text-zinc-200">Listing Pembanding 2</p>
+                    <div className="space-y-3">
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Uraian / Sumber</label>
+                        <label className="text-xs text-zinc-500 font-medium">Uraian / Sumber</label>
                         <Input
                           value={worksheetData.comparable2.name}
                           onChange={(e) =>
@@ -394,11 +394,11 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable2: { ...worksheetData.comparable2, name: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Harga Pasar (Rp)</label>
+                        <label className="text-xs text-zinc-500 font-medium">Harga Pasar (Rp)</label>
                         <Input
                           type="number"
                           value={worksheetData.comparable2.price}
@@ -408,11 +408,11 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable2: { ...worksheetData.comparable2, price: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Penyesuaian (%)</label>
+                        <label className="text-xs text-zinc-500 font-medium">Penyesuaian (%)</label>
                         <Input
                           type="number"
                           value={worksheetData.comparable2.adjustment}
@@ -422,18 +422,18 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable2: { ...worksheetData.comparable2, adjustment: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Comparable 3 */}
-                  <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 space-y-3 bg-white dark:bg-zinc-950">
-                    <p className="font-bold text-zinc-800 dark:text-zinc-200">Listing Pembanding 3</p>
-                    <div className="space-y-2">
+                  <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 bg-white dark:bg-zinc-950">
+                    <p className="font-bold text-base text-zinc-800 dark:text-zinc-200">Listing Pembanding 3</p>
+                    <div className="space-y-3">
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Uraian / Sumber</label>
+                        <label className="text-xs text-zinc-500 font-medium">Uraian / Sumber</label>
                         <Input
                           value={worksheetData.comparable3.name}
                           onChange={(e) =>
@@ -442,11 +442,11 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable3: { ...worksheetData.comparable3, name: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Harga Pasar (Rp)</label>
+                        <label className="text-xs text-zinc-500 font-medium">Harga Pasar (Rp)</label>
                         <Input
                           type="number"
                           value={worksheetData.comparable3.price}
@@ -456,11 +456,11 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable3: { ...worksheetData.comparable3, price: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-zinc-500 font-medium">Penyesuaian (%)</label>
+                        <label className="text-xs text-zinc-500 font-medium">Penyesuaian (%)</label>
                         <Input
                           type="number"
                           value={worksheetData.comparable3.adjustment}
@@ -470,7 +470,7 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                               comparable3: { ...worksheetData.comparable3, adjustment: e.target.value },
                             })
                           }
-                          className="h-8 text-xs mt-0.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+                          className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
                         />
                       </div>
                     </div>
@@ -479,12 +479,12 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
               </div>
 
               {/* Factors */}
-              <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 bg-zinc-50/50 dark:bg-zinc-900/30 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+              <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 bg-zinc-50/50 dark:bg-zinc-900/30 grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                     Faktor Penaksiran / Kondisi Objektif
                   </label>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">
+                  <p className="text-xs text-zinc-400 mt-1">
                     Rasio limit harga jual lelang dari hasil rata-rata perbandingan pasar (default: 0.7 atau 70%).
                   </p>
                 </div>
@@ -495,22 +495,22 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                   max="1.0"
                   value={worksheetData.faktorLimit}
                   onChange={(e) => setWorksheetData({ ...worksheetData, faktorLimit: e.target.value })}
-                  className="h-9 text-xs rounded-lg border-zinc-200 dark:border-zinc-800 max-w-40 md:justify-self-end text-right font-bold"
+                  className="h-10 text-sm rounded-lg border-zinc-200 dark:border-zinc-800 max-w-48 md:justify-self-end text-right font-bold"
                 />
               </div>
 
               {/* Calculated Result */}
-              <div className="bg-emerald-50/30 dark:bg-emerald-950/10 border border-emerald-200/50 dark:border-emerald-900/30 rounded-xl p-4 flex justify-between items-center">
+              <div className="bg-emerald-50/30 dark:bg-emerald-950/10 border border-emerald-200/50 dark:border-emerald-900/30 rounded-2xl p-5 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
                 <div>
-                  <h4 className="font-bold text-emerald-850 dark:text-emerald-300 text-sm">
+                  <h4 className="font-bold text-emerald-850 dark:text-emerald-300 text-base">
                     Hasil Penaksiran Nilai
                   </h4>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">
+                  <p className="text-xs text-zinc-400 mt-1">
                     (Rata-rata Harga Komparasi Terkoreksi) x Faktor Penaksiran
                   </p>
                 </div>
-                <div className="text-right">
-                  <span className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400">
+                <div className="text-left sm:text-right">
+                  <span className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">
                     {formatRupiah(calculateWorksheetValuation())}
                   </span>
                 </div>
@@ -518,12 +518,12 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setActiveAsset(null)} className="rounded-xl">
+              <Button variant="outline" onClick={() => setActiveAsset(null)} className="h-10 rounded-xl">
                 Batal
               </Button>
               <Button
                 onClick={handleSaveWorksheet}
-                className="bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5"
+                className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5"
                 disabled={updateValuationMutation.isPending}
               >
                 {updateValuationMutation.isPending ? (
