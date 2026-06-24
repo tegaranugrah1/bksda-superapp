@@ -561,11 +561,11 @@ export function KertasKerjaAssetSection({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="grid gap-4 xl:grid-cols-[520px_minmax(0,1fr)]">
         <div className="space-y-4 print:hidden">
           <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Identitas Aset</h3>
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+            <div className="grid gap-2 sm:grid-cols-2">
               <WorksheetInput label="Nama Objek" value={state.namaObjek} onChange={(value) => update("namaObjek", value)} />
               <WorksheetInput label="Lokasi Objek" value={state.lokasiObjek} onChange={(value) => update("lokasiObjek", value)} />
               <WorksheetInput label="Kategori Lokasi" value={state.kategoriLokasi} onChange={(value) => update("kategoriLokasi", value)} />
@@ -577,17 +577,17 @@ export function KertasKerjaAssetSection({
               <WorksheetInput label="Keterangan Lain" value={state.keteranganLain} onChange={(value) => update("keteranganLain", value)} />
             </div>
             <div className="mt-3 grid gap-2 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="grid gap-1.5 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.roda2Atau3} label="Roda 2 atau 3" onChange={(checked) => update("roda2Atau3", checked)} />
                 <WorksheetCheckbox checked={state.roda4AtauLebih} label="Roda 4 atau lebih" onChange={(checked) => update("roda4AtauLebih", checked)} />
               </div>
-              <div className="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="grid gap-1.5 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.bpkb} label="BPKB" onChange={(checked) => update("bpkb", checked)} />
                 <WorksheetCheckbox checked={state.stnk} label="STNK" onChange={(checked) => update("stnk", checked)} />
                 <WorksheetCheckbox checked={state.lainnya} label="Lainnya" onChange={(checked) => update("lainnya", checked)} />
                 <WorksheetCheckbox checked={state.tidakAda} label="Tidak ada" onChange={(checked) => update("tidakAda", checked)} />
               </div>
-              <div className="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="grid gap-1.5 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.masihBerlaku} label="Masih Berlaku" onChange={(checked) => update("masihBerlaku", checked)} />
                 <WorksheetCheckbox checked={state.habisMasa} label="Habis Masa" onChange={(checked) => update("habisMasa", checked)} />
               </div>
@@ -666,7 +666,7 @@ export function KertasKerjaAssetSection({
         </div>
 
         <div id="kertas-kerja-print-root" className="min-w-0 overflow-x-auto">
-          <div className="kk-page mx-auto w-full min-w-[840px] border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
+          <div className="kk-page mx-auto w-full min-w-[840px] max-w-[1160px] border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
             <style jsx global>{`
               .kk-page { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; }
               .kk-page table { border-collapse: collapse; width: 100%; }
