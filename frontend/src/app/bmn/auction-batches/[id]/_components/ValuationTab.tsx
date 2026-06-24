@@ -376,7 +376,7 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
       {/* Worksheet Modal Dialog */}
       {activeAsset && isVehicleAsset(activeAsset) && (
         <Dialog open={!!activeAsset} onOpenChange={() => setActiveAsset(null)}>
-          <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[1280px] rounded-2xl max-h-[94vh] overflow-y-auto">
+          <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] rounded-2xl max-h-[94vh] overflow-y-auto">
             <KertasKerjaAssetSection
               asset={toWorksheetAsset(activeAsset)}
               worksheetNumber={Number(activeAsset.pivot?.lot_number) || 1}
