@@ -117,13 +117,20 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
     }
   };
 
+  const parseCurrencyInput = (value: unknown) => Number(String(value ?? "").replace(/\D/g, "")) || 0;
+
+  const formatThousands = (value: unknown) => {
+    const parsed = parseCurrencyInput(value);
+    return parsed ? parsed.toLocaleString("id-ID") : "";
+  };
+
   const calculateWorksheetValuation = () => {
     if (!worksheetData) return 0;
 
     const { comparable1, comparable2, comparable3, faktorLimit } = worksheetData;
 
     const getAdjusted = (comp: any) => {
-      const p = parseFloat(comp.price) || 0;
+      const p = parseCurrencyInput(comp.price);
       const adj = parseFloat(comp.adjustment) || 0;
       return p * (1 + adj / 100);
     };
@@ -352,12 +359,15 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                       <div>
                         <label className="text-xs text-zinc-500 font-medium">Harga Pasar (Rp)</label>
                         <Input
-                          type="number"
-                          value={worksheetData.comparable1.price}
+                          inputMode="numeric"
+                          value={formatThousands(worksheetData.comparable1.price)}
                           onChange={(e) =>
                             setWorksheetData({
                               ...worksheetData,
-                              comparable1: { ...worksheetData.comparable1, price: e.target.value },
+                              comparable1: {
+                                ...worksheetData.comparable1,
+                                price: e.target.value.replace(/\D/g, ""),
+                              },
                             })
                           }
                           className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
@@ -400,12 +410,15 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                       <div>
                         <label className="text-xs text-zinc-500 font-medium">Harga Pasar (Rp)</label>
                         <Input
-                          type="number"
-                          value={worksheetData.comparable2.price}
+                          inputMode="numeric"
+                          value={formatThousands(worksheetData.comparable2.price)}
                           onChange={(e) =>
                             setWorksheetData({
                               ...worksheetData,
-                              comparable2: { ...worksheetData.comparable2, price: e.target.value },
+                              comparable2: {
+                                ...worksheetData.comparable2,
+                                price: e.target.value.replace(/\D/g, ""),
+                              },
                             })
                           }
                           className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
@@ -448,12 +461,15 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
                       <div>
                         <label className="text-xs text-zinc-500 font-medium">Harga Pasar (Rp)</label>
                         <Input
-                          type="number"
-                          value={worksheetData.comparable3.price}
+                          inputMode="numeric"
+                          value={formatThousands(worksheetData.comparable3.price)}
                           onChange={(e) =>
                             setWorksheetData({
                               ...worksheetData,
-                              comparable3: { ...worksheetData.comparable3, price: e.target.value },
+                              comparable3: {
+                                ...worksheetData.comparable3,
+                                price: e.target.value.replace(/\D/g, ""),
+                              },
                             })
                           }
                           className="h-10 text-sm mt-1 rounded-lg border-zinc-200 dark:border-zinc-800"
