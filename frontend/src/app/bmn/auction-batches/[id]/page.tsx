@@ -1,23 +1,18 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import Link from "next/link";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getBatch, AuctionBatch } from "../_lib/api";
 import { getStatusLabel, getStatusColorClass, isReadOnly } from "../_lib/status";
 import { formatRupiah } from "../../auction-candidates/_lib/auction-helpers";
 import {
   ArrowLeft,
+  ArrowRight,
   Loader2,
-  Calendar,
   Layers,
   CheckCircle2,
-  FileText,
   DollarSign,
-  Gavel,
-  History,
-  Info,
-  ShieldCheck,
   AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +35,7 @@ interface PageProps {
 export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const batchId = resolvedParams.id;
-  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("assets");
 
   // Load batch data
   const { data: response, isLoading, error, refetch } = useQuery({
@@ -77,6 +72,25 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   }
 
   const readOnly = isReadOnly(batch.status);
+  const workflowTabs = [
+    { value: "assets", label: "Aset & Lot" },
+    { value: "valuation", label: "Nilai Taksiran" },
+    { value: "signatories", label: "Dokumen & Tanda Tangan" },
+    { value: "docs-center", label: "Pusat Dokumen" },
+    ...(batch.status !== "DRAFT"
+      ? [{ value: "schedule", label: "Jadwal Lelang" }]
+      : []),
+    ...(batch.status !== "DRAFT" && batch.status !== "DIAJUKAN"
+      ? [{ value: "realization", label: "Realisasi & Hasil" }]
+      : []),
+    { value: "audit", label: "Riwayat Audit" },
+  ];
+  const activeTabIndex = Math.max(
+    0,
+    workflowTabs.findIndex((tab) => tab.value === activeTab)
+  );
+  const previousTab = workflowTabs[activeTabIndex - 1] ?? null;
+  const nextTab = workflowTabs[activeTabIndex + 1] ?? null;
 
   // Status timeline definition
   const statusesOrder = ["DRAFT", "DIAJUKAN", "JADWAL_DITETAPKAN", "LELANG_ULANG", "REALISASI"];
@@ -211,34 +225,50 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
 
       {/* Main Workspace Body with Tabs */}
       <div className="flex-1 p-6 md:p-10 max-w-7xl w-full mx-auto">
-        <Tabs defaultValue="assets" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="flex flex-wrap h-auto bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-1.5 gap-1 w-full justify-start overflow-x-auto">
-            <TabsTrigger value="assets" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Aset & Lot
-            </TabsTrigger>
-            <TabsTrigger value="valuation" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Nilai Taksiran
-            </TabsTrigger>
-            <TabsTrigger value="signatories" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Dokumen & Tanda Tangan
-            </TabsTrigger>
-            <TabsTrigger value="docs-center" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Pusat Dokumen
-            </TabsTrigger>
-            {batch.status !== "DRAFT" && (
-              <TabsTrigger value="schedule" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-                Jadwal Lelang
+            {workflowTabs.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs"
+              >
+                {tab.label}
               </TabsTrigger>
-            )}
-            {batch.status !== "DRAFT" && batch.status !== "DIAJUKAN" && (
-              <TabsTrigger value="realization" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-                Realisasi & Hasil
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="audit" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Riwayat Audit
-            </TabsTrigger>
+            ))}
           </TabsList>
+
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-950 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                Langkah {activeTabIndex + 1} dari {workflowTabs.length}
+              </p>
+              <p className="mt-0.5 text-sm font-bold text-zinc-900 dark:text-zinc-50">
+                {workflowTabs[activeTabIndex]?.label}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl text-xs font-semibold"
+                disabled={!previousTab}
+                onClick={() => previousTab && setActiveTab(previousTab.value)}
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Sebelumnya
+              </Button>
+              <Button
+                size="sm"
+                className="rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
+                disabled={!nextTab}
+                onClick={() => nextTab && setActiveTab(nextTab.value)}
+              >
+                {nextTab ? `Lanjut ke ${nextTab.label}` : "Selesai"}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
 
           {/* Tab Contents */}
           <TabsContent value="assets" className="mt-0 focus-visible:outline-none">
