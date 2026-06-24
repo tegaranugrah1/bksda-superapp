@@ -12,6 +12,9 @@ interface KertasKerjaAssetSectionProps {
   worksheetNumber: number;
   employees: EmployeeOption[];
   onClose: () => void;
+  initialState?: Partial<WorksheetState> | null;
+  isSaving?: boolean;
+  onSave?: (payload: { nilaiTaksiran: number; worksheet: WorksheetState }) => void;
 }
 
 interface LelangRow {
@@ -451,8 +454,20 @@ export function KertasKerjaAssetSection({
   worksheetNumber,
   employees,
   onClose,
+  initialState,
+  isSaving = false,
+  onSave,
 }: KertasKerjaAssetSectionProps) {
-  const [state, setState] = useState(() => createInitialState(asset));
+  const [state, setState] = useState<WorksheetState>(() => {
+    const defaultState = createInitialState(asset);
+    if (!initialState) return defaultState;
+
+    return {
+      ...defaultState,
+      ...initialState,
+      lelangRows: initialState.lelangRows?.length ? initialState.lelangRows : defaultState.lelangRows,
+    };
+  });
 
   const computedRows = useMemo(
     () =>
@@ -530,6 +545,15 @@ export function KertasKerjaAssetSection({
             <X className="h-3.5 w-3.5" />
             Tutup
           </Button>
+          {onSave && (
+            <Button
+              className="rounded-xl gap-2 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+              onClick={() => onSave({ nilaiTaksiran: pembulatan, worksheet: state })}
+              disabled={isSaving}
+            >
+              {isSaving ? "Menyimpan..." : "Simpan Nilai Taksiran"}
+            </Button>
+          )}
           <Button className="rounded-xl gap-2 bg-slate-900 text-xs hover:bg-slate-800" onClick={handlePrintKertasKerjaAsset}>
             <Printer className="h-3.5 w-3.5" />
             Cetak / Save PDF

@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { updateValuation, AuctionBatch, AuctionBatchAsset } from "../../_lib/api";
-import { formatRupiah } from "../../../auction-candidates/_lib/auction-helpers";
+import { formatRupiah, type AuctionAsset } from "../../../auction-candidates/_lib/auction-helpers";
+import { KertasKerjaAssetSection } from "../../../auction-candidates/_components/KertasKerjaAssetSection";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -91,6 +92,33 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
     });
   };
 
+  const isVehicleAsset = (asset: AuctionBatchAsset) =>
+    /alat angkutan bermotor|kendaraan|motor/i.test(`${asset.jenis_bmn} ${asset.nama_barang}`);
+
+  const toWorksheetAsset = (asset: AuctionBatchAsset): AuctionAsset => ({
+    id: asset.id,
+    kode_barang: asset.kode_barang,
+    nup: asset.nup,
+    nup_lama: asset.nup_lama,
+    nama_barang: asset.nama_barang,
+    jenis_bmn: asset.jenis_bmn,
+    merk_tipe: asset.merk_tipe,
+    kondisi: asset.kondisi,
+    nilai_perolehan: asset.nilai_perolehan,
+    nilai_buku: asset.nilai_buku,
+    no_polisi: asset.no_polisi,
+    no_bpkp: asset.no_bpkp,
+    no_mesin: asset.no_mesin,
+    no_rangka: asset.no_rangka,
+  });
+
+  const getVehicleWorksheetInitialState = (data: any) => {
+    if (!data || typeof data !== "object") return null;
+    if (data.type === "vehicle_worksheet_v1") return data.vehicleWorksheet || null;
+    if (Array.isArray(data.lelangRows)) return data;
+    return null;
+  };
+
   const createWorksheetData = (asset: AuctionBatchAsset, savedData?: any) => {
     const isMotor = /motor|sepeda/i.test(`${asset.nama_barang} ${asset.merk_tipe || ""}`);
     const price = asset.nilai_perolehan || 0;
@@ -175,6 +203,20 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
       assetId: activeAsset.id,
       taksiran: finalValuation,
       worksheet: worksheetData,
+    });
+  };
+
+  const handleSaveVehicleWorksheet = (payload: { nilaiTaksiran: number; worksheet: any }) => {
+    if (!activeAsset) return;
+
+    updateValuationMutation.mutate({
+      assetId: activeAsset.id,
+      taksiran: payload.nilaiTaksiran,
+      worksheet: {
+        type: "vehicle_worksheet_v1",
+        vehicleWorksheet: payload.worksheet,
+        finalValuation: payload.nilaiTaksiran,
+      },
     });
   };
 
@@ -332,7 +374,23 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
       </div>
 
       {/* Worksheet Modal Dialog */}
-      {activeAsset && worksheetData && (
+      {activeAsset && isVehicleAsset(activeAsset) && (
+        <Dialog open={!!activeAsset} onOpenChange={() => setActiveAsset(null)}>
+          <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[1280px] rounded-2xl max-h-[94vh] overflow-y-auto">
+            <KertasKerjaAssetSection
+              asset={toWorksheetAsset(activeAsset)}
+              worksheetNumber={Number(activeAsset.pivot?.lot_number) || 1}
+              employees={[]}
+              initialState={getVehicleWorksheetInitialState(activeAsset.pivot?.kertas_kerja_data)}
+              isSaving={updateValuationMutation.isPending}
+              onClose={() => setActiveAsset(null)}
+              onSave={handleSaveVehicleWorksheet}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {activeAsset && !isVehicleAsset(activeAsset) && worksheetData && (
         <Dialog open={!!activeAsset} onOpenChange={() => setActiveAsset(null)}>
           <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-6xl rounded-2xl max-h-[92vh] overflow-y-auto">
             <DialogHeader>
