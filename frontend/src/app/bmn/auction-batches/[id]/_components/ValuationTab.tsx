@@ -91,30 +91,37 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
     });
   };
 
+  const createWorksheetData = (asset: AuctionBatchAsset, savedData?: any) => {
+    const isMotor = /motor|sepeda/i.test(`${asset.nama_barang} ${asset.merk_tipe || ""}`);
+    const price = asset.nilai_perolehan || 0;
+    const defaultData = {
+      namaObjek: asset.nama_barang,
+      tipe: asset.merk_tipe || "-",
+      isRoda2: isMotor,
+      isRoda4: !isMotor,
+      comparable1: { name: "Pembanding A", price: Math.round(price * 0.4), adjustment: -10 },
+      comparable2: { name: "Pembanding B", price: Math.round(price * 0.45), adjustment: -5 },
+      comparable3: { name: "Pembanding C", price: Math.round(price * 0.38), adjustment: -15 },
+      faktorLimit: 0.7,
+    };
+
+    if (!savedData || typeof savedData !== "object") return defaultData;
+
+    return {
+      ...defaultData,
+      ...savedData,
+      comparable1: { ...defaultData.comparable1, ...(savedData.comparable1 || {}) },
+      comparable2: { ...defaultData.comparable2, ...(savedData.comparable2 || {}) },
+      comparable3: { ...defaultData.comparable3, ...(savedData.comparable3 || {}) },
+      faktorLimit: savedData.faktorLimit ?? defaultData.faktorLimit,
+    };
+  };
+
   // Open Worksheet Calculator
   const handleOpenWorksheet = (asset: AuctionBatchAsset) => {
     if (readOnly) return;
     setActiveAsset(asset);
-
-    const savedData = asset.pivot?.kertas_kerja_data;
-    if (savedData) {
-      setWorksheetData(savedData);
-    } else {
-      // Build default worksheet values
-      const isMotor = /motor|sepeda/i.test(`${asset.nama_barang} ${asset.merk_tipe || ""}`);
-      const price = asset.nilai_perolehan || 0;
-
-      setWorksheetData({
-        namaObjek: asset.nama_barang,
-        tipe: asset.merk_tipe || "-",
-        isRoda2: isMotor,
-        isRoda4: !isMotor,
-        comparable1: { name: "Pembanding A", price: Math.round(price * 0.4), adjustment: -10 },
-        comparable2: { name: "Pembanding B", price: Math.round(price * 0.45), adjustment: -5 },
-        comparable3: { name: "Pembanding C", price: Math.round(price * 0.38), adjustment: -15 },
-        faktorLimit: 0.7, // 70% limit
-      });
-    }
+    setWorksheetData(createWorksheetData(asset, asset.pivot?.kertas_kerja_data));
   };
 
   const parseCurrencyInput = (value: unknown) => Number(String(value ?? "").replace(/\D/g, "")) || 0;
@@ -147,8 +154,8 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
     const { comparable1, comparable2, comparable3, faktorLimit } = worksheetData;
 
     const getAdjusted = (comp: any) => {
-      const p = parseCurrencyInput(comp.price);
-      const adj = parseFloat(comp.adjustment) || 0;
+      const p = parseCurrencyInput(comp?.price);
+      const adj = parseFloat(comp?.adjustment) || 0;
       return p * (1 + adj / 100);
     };
 
