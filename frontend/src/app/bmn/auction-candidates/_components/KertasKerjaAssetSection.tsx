@@ -236,13 +236,15 @@ function WorksheetInput({
   label,
   value,
   onChange,
+  className = "",
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 }) {
   return (
-    <label className="block">
+    <label className={`block ${className}`}>
       <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</span>
       <input value={value} onChange={(event) => onChange(event.target.value)} className={inputCls} />
     </label>
@@ -574,7 +576,12 @@ export function KertasKerjaAssetSection({
               <WorksheetInput label="Nomor Polisi" value={state.noPolisi} onChange={(value) => update("noPolisi", value)} />
               <WorksheetInput label="Pemilik Dokumen" value={state.pemilikDokumen} onChange={(value) => update("pemilikDokumen", value)} />
               <WorksheetInput label="Penggunaan Kendaraan" value={state.penggunaanKendaraan} onChange={(value) => update("penggunaanKendaraan", value)} />
-              <WorksheetInput label="Keterangan Lain" value={state.keteranganLain} onChange={(value) => update("keteranganLain", value)} />
+              <WorksheetInput
+                label="Keterangan Lain"
+                value={state.keteranganLain}
+                onChange={(value) => update("keteranganLain", value)}
+                className="sm:col-span-2"
+              />
             </div>
             <div className="mt-3 grid gap-2 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
               <div className="grid gap-1.5 sm:grid-cols-2">
