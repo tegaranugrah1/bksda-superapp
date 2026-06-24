@@ -3,7 +3,7 @@
 import React, { use, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { getBatch, AuctionBatch } from "../_lib/api";
+import { getBatch, getChecklist, AuctionBatch } from "../_lib/api";
 import { getStatusLabel, getStatusColorClass, isReadOnly } from "../_lib/status";
 import { formatRupiah } from "../../auction-candidates/_lib/auction-helpers";
 import {
@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getBlockedReason, getWorkflowTabs } from "./_lib/workflow-tabs";
 
 // Lazy-loaded or imported tab components (stubbed for compile stability)
 import { AssetsLotTab } from "./_components/AssetsLotTab";
@@ -41,6 +42,10 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   const { data: response, isLoading, error, refetch } = useQuery({
     queryKey: ["bmn-auction-batch", batchId],
     queryFn: () => getBatch(batchId),
+  });
+  const { data: checklist, refetch: refetchChecklist } = useQuery({
+    queryKey: ["bmn-auction-batch-checklist", batchId],
+    queryFn: () => getChecklist(batchId),
   });
 
   const batch = response?.data;
@@ -72,25 +77,18 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   }
 
   const readOnly = isReadOnly(batch.status);
-  const workflowTabs = [
-    { value: "assets", label: "Aset & Lot" },
-    { value: "valuation", label: "Nilai Taksiran" },
-    { value: "signatories", label: "Dokumen & Tanda Tangan" },
-    { value: "docs-center", label: "Pusat Dokumen" },
-    ...(batch.status !== "DRAFT"
-      ? [{ value: "schedule", label: "Jadwal Lelang" }]
-      : []),
-    ...(batch.status !== "DRAFT" && batch.status !== "DIAJUKAN"
-      ? [{ value: "realization", label: "Realisasi & Hasil" }]
-      : []),
-    { value: "audit", label: "Riwayat Audit" },
-  ];
+  const refetchAll = () => {
+    refetch();
+    refetchChecklist();
+  };
+  const workflowTabs = getWorkflowTabs(batch);
   const activeTabIndex = Math.max(
     0,
     workflowTabs.findIndex((tab) => tab.value === activeTab)
   );
   const previousTab = workflowTabs[activeTabIndex - 1] ?? null;
   const nextTab = workflowTabs[activeTabIndex + 1] ?? null;
+  const nextBlockedReason = nextTab ? getBlockedReason(nextTab.value, checklist) : null;
 
   // Status timeline definition
   const statusesOrder = ["DRAFT", "DIAJUKAN", "JADWAL_DITETAPKAN", "LELANG_ULANG", "REALISASI"];
@@ -231,6 +229,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
+                title={getBlockedReason(tab.value, checklist) || undefined}
                 className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs"
               >
                 {tab.label}
@@ -261,7 +260,8 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
               <Button
                 size="sm"
                 className="rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
-                disabled={!nextTab}
+                disabled={!nextTab || Boolean(nextBlockedReason)}
+                title={nextBlockedReason || undefined}
                 onClick={() => nextTab && setActiveTab(nextTab.value)}
               >
                 {nextTab ? `Lanjut ke ${nextTab.label}` : "Selesai"}
@@ -272,30 +272,50 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
 
           {/* Tab Contents */}
           <TabsContent value="assets" className="mt-0 focus-visible:outline-none">
-            <AssetsLotTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
+            <AssetsLotTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
+          </TabsContent>
+
+          <TabsContent value="pre-docs" className="mt-0 focus-visible:outline-none">
+            <DocumentsCenterTab
+              batch={batch}
+              phaseFilter="pre_valuation"
+              checklist={checklist}
+              onRefetch={refetchAll}
+            />
           </TabsContent>
 
           <TabsContent value="valuation" className="mt-0 focus-visible:outline-none">
-            <ValuationTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
+            <ValuationTab
+              batch={batch}
+              readOnly={readOnly}
+              onRefetch={refetchAll}
+              checklist={checklist}
+              onGoToPreDocs={() => setActiveTab("pre-docs")}
+            />
           </TabsContent>
 
-          <TabsContent value="signatories" className="mt-0 focus-visible:outline-none">
-            <SignatoriesDocumentsTab batch={batch} readOnly={batch.status !== "DRAFT"} onRefetch={refetch} />
+          <TabsContent value="post-docs" className="mt-0 focus-visible:outline-none">
+            <DocumentsCenterTab
+              batch={batch}
+              phaseFilter="post_valuation"
+              checklist={checklist}
+              onRefetch={refetchAll}
+            />
           </TabsContent>
 
-          <TabsContent value="docs-center" className="mt-0 focus-visible:outline-none">
-            <DocumentsCenterTab batch={batch} />
+          <TabsContent value="submit" className="mt-0 focus-visible:outline-none">
+            <SignatoriesDocumentsTab batch={batch} readOnly={batch.status !== "DRAFT"} onRefetch={refetchAll} />
           </TabsContent>
 
           {batch.status !== "DRAFT" && (
             <TabsContent value="schedule" className="mt-0 focus-visible:outline-none">
-              <ScheduleTab batch={batch} readOnly={batch.status !== "DIAJUKAN"} onRefetch={refetch} />
+              <ScheduleTab batch={batch} readOnly={batch.status !== "DIAJUKAN"} onRefetch={refetchAll} />
             </TabsContent>
           )}
 
           {batch.status !== "DRAFT" && batch.status !== "DIAJUKAN" && (
             <TabsContent value="realization" className="mt-0 focus-visible:outline-none">
-              <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
+              <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
             </TabsContent>
           )}
 

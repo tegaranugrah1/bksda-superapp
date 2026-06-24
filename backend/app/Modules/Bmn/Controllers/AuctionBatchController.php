@@ -12,6 +12,7 @@ use App\Modules\Bmn\Requests\CreateAuctionBatchRequest;
 use App\Modules\Bmn\Requests\AddAuctionAssetsRequest;
 use App\Modules\Bmn\Requests\UpdateAuctionAssetOrderRequest;
 use App\Modules\Bmn\Requests\UpdateAuctionValuationRequest;
+use App\Modules\Bmn\Requests\UpdateAuctionBatchDraftMetadataRequest;
 use App\Modules\Bmn\Requests\TransitionAuctionBatchRequest;
 use App\Modules\Bmn\Requests\FirstAuctionResultsRequest;
 use App\Modules\Bmn\Requests\ReauctionResultsRequest;
@@ -195,6 +196,20 @@ class AuctionBatchController extends Controller
             'message' => 'Nilai taksiran aset berhasil diperbarui.',
             'data' => $pivot,
         ]);
+    }
+
+    /**
+     * Update draft metadata without transitioning status.
+     *
+     * @param string $id
+     * @param UpdateAuctionBatchDraftMetadataRequest $request
+     * @return AuctionBatchResource
+     */
+    public function updateDraftMetadata(string $id, UpdateAuctionBatchDraftMetadataRequest $request): AuctionBatchResource
+    {
+        $batch = $this->service->updateDraftMetadata($id, $request->validated(), Auth::id());
+
+        return new AuctionBatchResource($batch);
     }
 
     /**

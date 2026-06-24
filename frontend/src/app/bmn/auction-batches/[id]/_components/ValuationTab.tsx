@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { updateValuation, AuctionBatch, AuctionBatchAsset } from "../../_lib/api";
+import { updateValuation, AuctionBatch, AuctionBatchAsset, ChecklistResponse } from "../../_lib/api";
 import { formatRupiah, type AuctionAsset } from "../../../auction-candidates/_lib/auction-helpers";
 import { KertasKerjaAssetSection } from "../../../auction-candidates/_components/KertasKerjaAssetSection";
 import { toast } from "sonner";
@@ -32,9 +32,11 @@ interface ValuationTabProps {
   batch: AuctionBatch;
   readOnly: boolean;
   onRefetch: () => void;
+  checklist?: ChecklistResponse | null;
+  onGoToPreDocs?: () => void;
 }
 
-export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) {
+export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreDocs }: ValuationTabProps) {
   const [assets, setAssets] = useState<AuctionBatchAsset[]>([]);
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -219,6 +221,53 @@ export function ValuationTab({ batch, readOnly, onRefetch }: ValuationTabProps) 
       },
     });
   };
+
+  const preValuationSection = checklist?.sections?.find((section) => section.key === "pre_valuation_documents");
+  const assetsLotSection = checklist?.sections?.find((section) => section.key === "assets_lot");
+  const missingGateItems = [...(assetsLotSection?.items ?? []), ...(preValuationSection?.items ?? [])].filter(
+    (item) => (item.required ?? true) && !item.passed
+  );
+  const isValuationBlocked = !readOnly && checklist?.can_enter_valuation === false;
+
+  if (isValuationBlocked) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 shadow-xs dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div>
+              <h2 className="text-sm font-bold">Nilai taksiran belum dapat diisi</h2>
+              <p className="mt-1 text-xs leading-relaxed text-amber-800/80 dark:text-amber-200/80">
+                Selesaikan dokumen awal dan kelengkapan lot sebelum tim penilai mengisi kertas kerja nilai taksiran.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Yang masih kurang</h3>
+            {onGoToPreDocs && (
+              <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold" onClick={onGoToPreDocs}>
+                Buka Dokumen Awal
+              </Button>
+            )}
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {missingGateItems.map((item) => (
+              <div key={item.key} className="rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <p className="font-semibold text-zinc-800 dark:text-zinc-200">{item.label}</p>
+                {item.message && <p className="mt-0.5 text-[11px] text-zinc-500">{item.message}</p>}
+              </div>
+            ))}
+            {missingGateItems.length === 0 && (
+              <p className="text-xs text-zinc-500">Checklist sedang dimuat ulang. Coba buka kembali beberapa detik lagi.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

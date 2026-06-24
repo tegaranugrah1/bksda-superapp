@@ -24,6 +24,7 @@ class AuctionBatchService
         private AuctionAssetSnapshotBuilder $snapshotBuilder,
         private AuctionAssetDocumentReadinessService $readinessService,
         private AuctionBatchValidityService $validityService,
+        private AuctionBatchDocumentWorkflow $documentWorkflow,
         private AssetService $assetService
     ) {}
 
@@ -352,6 +353,24 @@ class AuctionBatchService
                 ]);
             }
 
+            $updatesValuation = array_key_exists('nilai_taksiran', $data) || array_key_exists('kertas_kerja_data', $data);
+            if ($updatesValuation) {
+                $readiness = $this->completenessChecker->check($batch);
+                if (!($readiness['can_enter_valuation'] ?? false)) {
+                    $missingLabels = collect($readiness['sections'] ?? [])
+                        ->whereIn('key', ['assets_lot', 'pre_valuation_documents'])
+                        ->flatMap(fn($section) => $section['items'] ?? [])
+                        ->filter(fn($item) => ($item['required'] ?? true) && !($item['passed'] ?? false))
+                        ->pluck('label')
+                        ->take(5)
+                        ->implode(', ');
+
+                    throw ValidationException::withMessages([
+                        'workflow' => "Nilai taksiran belum dapat diisi. Lengkapi dulu: {$missingLabels}",
+                    ]);
+                }
+            }
+
             $pivot = AssetAuctionBatch::where('bmn_auction_batch_id', $batchId)
                 ->where('bmn_asset_id', $assetId)
                 ->first();
@@ -391,6 +410,130 @@ class AuctionBatchService
 
             return $pivot;
         });
+    }
+
+    /**
+     * Persist draft-only workflow metadata without changing auction status.
+     *
+     * @param string $batchId
+     * @param array $payload
+     * @param string|null $actorId
+     * @return AuctionBatch
+     * @throws ValidationException
+     */
+    public function updateDraftMetadata(string $batchId, array $payload, ?string $actorId = null): AuctionBatch
+    {
+        return DB::transaction(function () use ($batchId, $payload, $actorId) {
+            $actorId = $actorId ?? Auth::id();
+            $batch = AuctionBatch::findOrFail($batchId);
+
+            if (!$batch->isDraft()) {
+                throw ValidationException::withMessages([
+                    'status' => 'Metadata draft hanya dapat diubah pada paket lelang berstatus DRAFT.',
+                ]);
+            }
+
+            $previousMetadata = is_array($batch->metadata) ? $batch->metadata : [];
+            $metadata = $previousMetadata;
+
+            if (array_key_exists('kepala_balai_id', $payload)) {
+                $batch->kepala_balai_id = $payload['kepala_balai_id'] ?: null;
+            }
+
+            if (array_key_exists('signatories', $payload)) {
+                $metadata['signatories_raw'] = array_replace(
+                    $metadata['signatories_raw'] ?? [],
+                    $this->normalizeSignatories($payload['signatories'] ?? [])
+                );
+            }
+
+            if (array_key_exists('document_numbers', $payload)) {
+                $metadata['document_numbers'] = array_replace(
+                    $metadata['document_numbers'] ?? [],
+                    $payload['document_numbers'] ?? []
+                );
+            }
+
+            if (array_key_exists('document_dates', $payload)) {
+                $metadata['document_dates'] = array_replace(
+                    $metadata['document_dates'] ?? [],
+                    $payload['document_dates'] ?? []
+                );
+            }
+
+            if (isset($payload['workflow']['documents']) && is_array($payload['workflow']['documents'])) {
+                $workflow = $metadata['workflow'] ?? [];
+                $workflow['version'] = $workflow['version'] ?? 1;
+                $workflow['updated_at'] = now()->toIso8601String();
+
+                $documents = isset($workflow['documents']) && is_array($workflow['documents'])
+                    ? $workflow['documents']
+                    : [];
+
+                foreach ($payload['workflow']['documents'] as $key => $documentPayload) {
+                    $definition = $this->documentWorkflow->get($key);
+                    if ($definition === null) {
+                        throw ValidationException::withMessages([
+                            'workflow.documents' => "Dokumen workflow tidak dikenal: {$key}",
+                        ]);
+                    }
+
+                    $current = isset($documents[$key]) && is_array($documents[$key]) ? $documents[$key] : [];
+                    $status = $documentPayload['status'] ?? $current['status'] ?? AuctionBatchDocumentWorkflow::STATUS_NOT_STARTED;
+
+                    $documents[$key] = array_replace($current, $documentPayload, [
+                        'key' => $key,
+                        'title' => $definition['title'],
+                        'channel' => $definition['channel'],
+                        'phase' => $definition['phase'],
+                        'order' => $definition['order'],
+                        'status' => $status,
+                        'updated_at' => now()->toIso8601String(),
+                    ]);
+
+                    if ($status === AuctionBatchDocumentWorkflow::STATUS_COMPLETED && empty($documents[$key]['completed_at'])) {
+                        $documents[$key]['completed_at'] = now()->toIso8601String();
+                    }
+                }
+
+                $workflow['documents'] = $this->documentWorkflow->sortDocumentProgress($documents);
+                $metadata['workflow'] = $workflow;
+            }
+
+            $batch->metadata = $metadata;
+            $batch->updated_by = $actorId;
+            $batch->save();
+
+            $this->auditLogger->log(
+                $batchId,
+                AuctionBatchEventAction::DRAFT_METADATA_UPDATED,
+                $actorId,
+                null,
+                ['metadata' => $previousMetadata],
+                ['metadata' => $metadata],
+                'Metadata draft workflow diperbarui.'
+            );
+
+            return $batch->load('assets');
+        });
+    }
+
+    /**
+     * @param array<string, mixed> $signatories
+     * @return array<string, array<int, mixed>>
+     */
+    private function normalizeSignatories(array $signatories): array
+    {
+        $normalized = [];
+
+        foreach (['panitia', 'tim_penilai', 'pemeriksa'] as $key) {
+            if (array_key_exists($key, $signatories)) {
+                $value = $signatories[$key];
+                $normalized[$key] = is_array($value) ? array_values(array_filter($value, fn($id) => $id !== null && $id !== '')) : [];
+            }
+        }
+
+        return $normalized;
     }
 
     /**

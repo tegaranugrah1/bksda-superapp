@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { getDocumentContext, recordPrintEvent, AuctionBatch } from "../../_lib/api";
+import { getDocumentContext, recordPrintEvent, updateDraftMetadata, AuctionBatch, ChecklistResponse } from "../../_lib/api";
+import { AUCTION_DOCUMENT_WORKFLOW, AuctionDocumentPhase } from "../_lib/document-workflow";
 import { formatRupiah } from "../../../auction-candidates/_lib/auction-helpers";
 import { toast } from "sonner";
 import {
@@ -29,6 +30,7 @@ import { SkKebenaranDokumenDocument as SkKebenaranDocument } from "../../../auct
 import { BaPemeriksaanDocument } from "../../../auction-candidates/_components/BaPemeriksaanDocument";
 import { NotaDinasDocument } from "../../../auction-candidates/_components/NotaDinasDocument";
 import { PermohonanKpknlDocument } from "../../../auction-candidates/_components/PermohonanKpknlDocument";
+import { SuratTugasPemeriksaanPenilaianDocument } from "../../../auction-candidates/_components/SuratTugasPemeriksaanPenilaianDocument";
 
 import {
   DEFAULT_MEMUTUSKAN,
@@ -50,6 +52,9 @@ import {
 
 interface DocumentsCenterTabProps {
   batch: AuctionBatch;
+  phaseFilter?: AuctionDocumentPhase;
+  checklist?: ChecklistResponse | null;
+  onRefetch?: () => void;
 }
 
 interface DocumentItem {
@@ -58,13 +63,24 @@ interface DocumentItem {
   category: "internal" | "sk" | "pernyataan" | "eksternal";
   description: string;
   rootId: string;
+  workflowKey?: string;
+  channel?: string;
+  requiresValuation?: boolean;
+  printable?: boolean;
 }
 
-export function DocumentsCenterTab({ batch }: DocumentsCenterTabProps) {
+const channelLabels: Record<string, string> = {
+  srikandi: "Srikandi",
+  manual_ttd: "Manual TTD",
+  external: "Eksternal",
+  app: "Aplikasi",
+};
+
+export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }: DocumentsCenterTabProps) {
   const [printingDocKey, setPrintingDocKey] = useState<string | null>(null);
 
   // Load document context
-  const { data: contextResponse, isLoading, error } = useQuery({
+  const { data: contextResponse, isLoading, error, refetch: refetchContext } = useQuery({
     queryKey: ["bmn-auction-document-context", batch.id],
     queryFn: () => getDocumentContext(batch.id),
   });
@@ -75,86 +91,75 @@ export function DocumentsCenterTab({ batch }: DocumentsCenterTabProps) {
   const logPrintMutation = useMutation({
     mutationFn: (docKey: string) => recordPrintEvent(batch.id, docKey),
   });
+  const updateWorkflowMutation = useMutation({
+    mutationFn: ({ workflowKey, status }: { workflowKey: string; status: string }) =>
+      updateDraftMetadata(batch.id, {
+        workflow: {
+          documents: {
+            [workflowKey]: { status: status as any },
+          },
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Status dokumen diperbarui.");
+      refetchContext();
+      onRefetch?.();
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Gagal memperbarui status dokumen.");
+    },
+  });
 
-  const documents: DocumentItem[] = [
-    {
-      key: "nota_dinas",
-      title: "Nota Dinas Permohonan Persetujuan Internal",
-      category: "internal",
-      description: "Surat usulan internal kepala balai untuk penghapusan aset BMN.",
+  const printDocumentConfig: Record<string, { description: string; rootId: string }> = {
+    nota_dinas: {
+      description: "Nota Dinas KSDAE setelah nilai taksiran tim penilai selesai.",
       rootId: "nota-dinas-print-root",
     },
-    {
-      key: "sk_penghentian",
-      title: "SK Penghentian Penggunaan Dinas (KPA)",
-      category: "sk",
+    sk_penghentian: {
       description: "SK penetapan penghentian penggunaan aset BMN dari operasional dinas.",
       rootId: "sk-penghentian-print-root",
     },
-    {
-      key: "sk_panitia",
-      title: "SK Pembentukan Panitia Penghapusan",
-      category: "sk",
+    sk_panitia: {
       description: "SK pembentukan panitia pelaksana penghapusan BMN.",
       rootId: "sk-panitia-print-root",
     },
-    {
-      key: "sk_tim_penilai",
-      title: "SK Penunjukan Tim Penilai / Penaksir",
-      category: "sk",
-      description: "SK penunjukan tim penilai independen untuk taksiran harga aset.",
+    sk_tim_penilai: {
+      description: "SK pembentukan Panitia Penaksir Harga BMN.",
       rootId: "sk-tim-penilai-print-root",
     },
-    {
-      key: "ba_koreksi",
-      title: "BA Koreksi Kondisi BMN",
-      category: "internal",
-      description: "Berita acara rekonsiliasi data inventaris fisik dengan sistem.",
+    ba_koreksi: {
+      description: "Berita acara koreksi perubahan kondisi BMN.",
       rootId: "ba-koreksi-print-root",
     },
-    {
-      key: "ba_pemeriksaan",
-      title: "BA Pemeriksaan Fisik Panitia",
-      category: "internal",
-      description: "Laporan pemeriksaan kelayakan fisik oleh panitia penghapusan.",
+    ba_pemeriksaan: {
+      description: "Berita acara pemeriksaan fisik oleh panitia.",
       rootId: "ba-pemeriksaan-print-root",
     },
-    {
-      key: "sk_kebenaran",
-      title: "SK KPA Kebenaran Dokumen Kepemilikan",
-      category: "sk",
+    surat_tugas_pemeriksaan_penilaian: {
+      description: "Surat tugas pemeriksaan dan penilaian BMN sebelum nilai taksiran.",
+      rootId: "surat-tugas-pemeriksaan-penilaian-print-root",
+    },
+    sk_kebenaran: {
       description: "Surat pernyataan keabsahan dokumen kepemilikan aset BMN.",
       rootId: "sk-kebenaran-print-root",
     },
-    {
-      key: "sptjm",
-      title: "Surat Pernyataan Tanggung Jawab Mutlak (SPTJM)",
-      category: "pernyataan",
+    sptjm: {
       description: "Pernyataan tanggung jawab mutlak atas penghapusan BMN.",
       rootId: "sptjm-print-root",
     },
-    {
-      key: "sptj_limit",
-      title: "Surat Pernyataan Tanggung Jawab Nilai Limit",
-      category: "pernyataan",
+    sptj_limit: {
       description: "Pernyataan tanggung jawab atas penetapan nilai limit lelang.",
       rootId: "sptj-limit-print-root",
     },
-    {
-      key: "sp_tugas",
-      title: "Surat Pernyataan Kelancaran Tugas Dinas",
-      category: "pernyataan",
+    sp_tugas: {
       description: "Surat pernyataan bahwa pemindahtanganan aset tidak mengganggu dinas.",
       rootId: "sp-tugas-print-root",
     },
-    {
-      key: "permohonan_kpknl",
-      title: "Surat Permohonan Lelang ke KPKNL",
-      category: "eksternal",
+    permohonan_kpknl: {
       description: "Surat pengajuan lelang resmi yang ditujukan kepada KPKNL setempat.",
       rootId: "permohonan-kpknl-print-root",
     },
-  ];
+  };
 
   if (isLoading) {
     return (
@@ -178,13 +183,13 @@ export function DocumentsCenterTab({ batch }: DocumentsCenterTabProps) {
   }
 
   // Check Schema Version
-  if (context.metadata_schema_version && context.metadata_schema_version !== 1) {
+  if (context.metadata_schema_version && ![1, 2].includes(context.metadata_schema_version)) {
     return (
       <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-6 bg-amber-50 dark:bg-amber-950/10 rounded-2xl border border-amber-200">
         <AlertTriangle className="h-8 w-8 text-amber-500" />
         <h3 className="font-bold text-xs text-zinc-900 dark:text-zinc-50">Skema Metadata Tidak Didukung</h3>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md">
-          Dokumen ini dibuat menggunakan skema metadata versi {context.metadata_schema_version} yang tidak didukung oleh sistem cetak saat ini (versi 1).
+          Dokumen ini dibuat menggunakan skema metadata versi {context.metadata_schema_version} yang belum didukung oleh sistem cetak saat ini.
         </p>
       </div>
     );
@@ -192,6 +197,11 @@ export function DocumentsCenterTab({ batch }: DocumentsCenterTabProps) {
 
   // Handle document printing
   const handlePrint = (doc: DocumentItem) => {
+    if (!doc.printable) {
+      toast.error("Template cetak dokumen ini belum tersedia.");
+      return;
+    }
+
     setPrintingDocKey(doc.key);
 
     // Give DOM time to render the print component
@@ -284,7 +294,7 @@ export function DocumentsCenterTab({ batch }: DocumentsCenterTabProps) {
       setTimeout(() => {
         printWindow.print();
         // Log printing event in backend audit logger
-        logPrintMutation.mutate(doc.key);
+        logPrintMutation.mutate(doc.workflowKey || doc.key);
         setPrintingDocKey(null);
       }, 500);
     }, 100);
@@ -308,57 +318,187 @@ export function DocumentsCenterTab({ batch }: DocumentsCenterTabProps) {
 
   const stNumber = meta.document_numbers?.surat_tugas || "____";
   const stTanggal = meta.document_dates?.surat_tugas || "";
+  const workflowPrintKeys: Record<string, string | null> = {
+    sk_penghentian: "sk_penghentian",
+    ba_koreksi: "ba_koreksi",
+    sk_panitia_penghapusan: "sk_panitia",
+    sk_kebenaran: "sk_kebenaran",
+    sptjm: "sptjm",
+    sp_kelancaran_tugas: "sp_tugas",
+    ba_pemeriksaan: "ba_pemeriksaan",
+    surat_tugas_pemeriksaan_penilaian: "surat_tugas_pemeriksaan_penilaian",
+    sk_panitia_penaksir_harga: "sk_tim_penilai",
+    sptj_limit: "sptj_limit",
+    nota_dinas_ksdae: "nota_dinas",
+    permohonan_kpknl: "permohonan_kpknl",
+  };
+  const visibleDocuments: DocumentItem[] = AUCTION_DOCUMENT_WORKFLOW
+    .filter((definition) => definition.phase !== "valuation")
+    .filter((definition) => !phaseFilter || definition.phase === phaseFilter)
+    .map((definition) => {
+      const printKey = Object.prototype.hasOwnProperty.call(workflowPrintKeys, definition.key)
+        ? workflowPrintKeys[definition.key]
+        : definition.legacy_key ?? definition.key;
+      const printDoc = printKey ? printDocumentConfig[printKey] : null;
+
+      return {
+        key: printKey || definition.key,
+        workflowKey: definition.key,
+        title: definition.title,
+        category:
+          definition.channel === "srikandi"
+            ? "sk"
+            : definition.channel === "external"
+            ? "eksternal"
+            : "pernyataan",
+        description: printDoc?.description || "Dokumen workflow BMN yang perlu ditandai sesuai progres administrasi.",
+        rootId: printDoc?.rootId || "",
+        channel: definition.channel,
+        requiresValuation: definition.requires_valuation,
+        printable: Boolean(printDoc),
+      };
+    });
+  const groupedDocuments = ["srikandi", "manual_ttd", "external", "app"]
+    .map((channel) => ({
+      key: channel,
+      label: channelLabels[channel] || channel,
+      documents: visibleDocuments.filter((document) => document.channel === channel),
+    }))
+    .filter((group) => group.documents.length > 0);
+  const valuationComplete = checklist?.can_complete_post_valuation_documents ?? false;
+  const phaseTitle =
+    phaseFilter === "pre_valuation"
+      ? "Dokumen Awal Sebelum Penaksiran"
+      : phaseFilter === "post_valuation"
+      ? "Dokumen Setelah Nilai Taksiran"
+      : "Pusat Dokumen Cetak BMN";
+  const phaseDescription =
+    phaseFilter === "pre_valuation"
+      ? "Urutan mengikuti alur Srikandi dan dokumen manual sebelum Panitia Penaksir Harga serta nilai taksiran."
+      : phaseFilter === "post_valuation"
+      ? "Nota Dinas KSDAE, SPTJ nilai limit, dan permohonan KPKNL baru dikerjakan setelah nilai taksiran selesai."
+      : "Unduh dan cetak seluruh Surat Keputusan (SK) dan Berita Acara (BA) resmi administrasi penghapusan aset.";
+
+  if (phaseFilter === "post_valuation" && checklist && !valuationComplete) {
+    const valuationItems = checklist.sections?.find((section) => section.key === "valuation")?.items ?? [];
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 shadow-xs dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div>
+              <h2 className="text-sm font-bold">Dokumen setelah taksiran belum dibuka</h2>
+              <p className="mt-1 text-xs leading-relaxed text-amber-800/80 dark:text-amber-200/80">
+                Selesaikan nilai taksiran seluruh aset terlebih dahulu. Setelah itu Nota Dinas KSDAE dan permohonan KPKNL dapat diproses.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Checklist nilai taksiran</h3>
+          <div className="mt-4 space-y-2">
+            {valuationItems.map((item) => (
+              <div key={item.key} className="rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <p className="font-semibold text-zinc-800 dark:text-zinc-200">{item.label}</p>
+                {item.message && <p className="mt-0.5 text-[11px] text-zinc-500">{item.message}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl shadow-xs">
         <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-          Pusat Dokumen Cetak BMN
+          {phaseTitle}
         </h2>
         <p className="text-xs text-zinc-500 mt-0.5">
-          Unduh dan cetak seluruh Surat Keputusan (SK) dan Berita Acara (BA) resmi administrasi penghapusan aset.
+          {phaseDescription}
         </p>
       </div>
 
-      {/* Group listing */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {documents.map((doc) => {
-          const isPrintingThis = printingDocKey === doc.key;
-          return (
-            <div
-              key={doc.key}
-              className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl shadow-xs flex flex-col justify-between"
-            >
-              <div>
-                <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500">
-                  {doc.category}
-                </span>
-                <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 mt-1">
-                  {doc.title}
-                </h3>
-                <p className="text-xs text-zinc-500 mt-2 line-clamp-2 leading-relaxed">
-                  {doc.description}
-                </p>
-              </div>
+      {groupedDocuments.map((group) => (
+        <section key={group.key} className="space-y-3">
+          <h3 className="text-[11px] font-bold uppercase text-zinc-400">{group.label}</h3>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {group.documents.map((doc) => {
+              const isPrintingThis = printingDocKey === doc.key;
+              const workflowKey = doc.workflowKey || doc.key;
+              const progress = meta.workflow?.documents?.[workflowKey];
+              const status = progress?.status || "not_started";
+              const waitingForValuation = Boolean(doc.requiresValuation && !valuationComplete);
+              const workflowDisabled = batch.status !== "DRAFT" || updateWorkflowMutation.isPending || waitingForValuation;
 
-              <div className="mt-5 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
-                <Button
-                  onClick={() => handlePrint(doc)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5"
-                  disabled={!!printingDocKey}
+              return (
+                <div
+                  key={workflowKey}
+                  className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950"
                 >
-                  {isPrintingThis ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Printer className="h-4 w-4" />
-                  )}
-                  {isPrintingThis ? "Menyiapkan..." : "Cetak Dokumen"}
-                </Button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500">
+                        {channelLabels[doc.channel || ""] || doc.category}
+                      </span>
+                      {doc.requiresValuation && (
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-200">
+                          Setelah taksiran
+                        </span>
+                      )}
+                      {waitingForValuation && (
+                        <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-200">
+                          Menunggu Nilai Taksiran
+                        </span>
+                      )}
+                      {!doc.printable && (
+                        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-bold text-zinc-500 ring-1 ring-zinc-200">
+                          Status saja
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-50">{doc.title}</h3>
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500">{doc.description}</p>
+                    <div className="mt-4">
+                      <label className="text-[10px] font-bold uppercase text-zinc-400">Status Workflow</label>
+                      <select
+                        value={status}
+                        disabled={workflowDisabled}
+                        onChange={(event) =>
+                          updateWorkflowMutation.mutate({
+                            workflowKey,
+                            status: event.target.value,
+                          })
+                        }
+                        className="mt-1 h-9 w-full rounded-xl border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:bg-zinc-50 disabled:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+                      >
+                        <option value="not_started">Belum mulai</option>
+                        <option value="prepared">Disiapkan</option>
+                        <option value="printed">Dicetak</option>
+                        <option value="signed">Ditandatangani</option>
+                        <option value="completed">Selesai</option>
+                        <option value="skipped">Dilewati</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex justify-end border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                    <Button
+                      onClick={() => handlePrint(doc)}
+                      className="flex items-center gap-1.5 rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
+                      disabled={!!printingDocKey || !doc.printable || waitingForValuation}
+                    >
+                      {isPrintingThis ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+                      {isPrintingThis ? "Menyiapkan..." : "Cetak Dokumen"}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ))}
 
       {/* Hidden print templates area - rendered off-screen only when needed to save DOM weight */}
       {printingDocKey && (
@@ -425,6 +565,18 @@ export function DocumentsCenterTab({ batch }: DocumentsCenterTabProps) {
                 stTanggal={stTanggal}
                 assets={mappedAssets}
                 kepalaBalai={kepalaBalai}
+              />
+            </div>
+          )}
+          {printingDocKey === "surat_tugas_pemeriksaan_penilaian" && (
+            <div id="surat-tugas-pemeriksaan-penilaian-print-root">
+              <SuratTugasPemeriksaanPenilaianDocument
+                number={meta.document_numbers?.surat_tugas_pemeriksaan_penilaian || "____"}
+                kap="Balai"
+                assets={mappedAssets}
+                kepalaBalai={kepalaBalai}
+                timPenilai={timPenilaiList}
+                pemeriksa={pemeriksaList}
               />
             </div>
           )}

@@ -147,11 +147,47 @@ export interface ChecklistItem {
   label: string;
   passed: boolean;
   message: string | null;
+  required?: boolean;
+}
+
+export interface ChecklistSection {
+  key: string;
+  label: string;
+  complete: boolean;
+  items: ChecklistItem[];
 }
 
 export interface ChecklistResponse {
   complete: boolean;
   items: ChecklistItem[];
+  sections?: ChecklistSection[];
+  can_enter_valuation?: boolean;
+  can_complete_post_valuation_documents?: boolean;
+  can_lock_submit?: boolean;
+}
+
+export interface UpdateAuctionDraftMetadataPayload {
+  kepala_balai_id?: string | null;
+  signatories?: {
+    panitia?: string[];
+    tim_penilai?: string[];
+    pemeriksa?: string[];
+  };
+  document_numbers?: Record<string, string | null>;
+  document_dates?: Record<string, string | null>;
+  workflow?: {
+    documents?: Record<
+      string,
+      {
+        status?: "not_started" | "prepared" | "printed" | "signed" | "completed" | "skipped";
+        channel?: "srikandi" | "manual_ttd" | "external" | "app";
+        completed_at?: string | null;
+        number?: string | null;
+        date?: string | null;
+        notes?: string | null;
+      }
+    >;
+  };
 }
 
 // API methods
@@ -201,6 +237,14 @@ export async function updateValuation(
   data: { lot_number?: string | null; nilai_taksiran?: number | null; kertas_kerja_data?: any | null }
 ): Promise<{ message: string; data: any }> {
   const res = await api.put(`/bmn/auction-batches/${id}/assets/${assetId}/valuation`, data);
+  return res.data;
+}
+
+export async function updateDraftMetadata(
+  id: string,
+  data: UpdateAuctionDraftMetadataPayload
+): Promise<{ data: AuctionBatch }> {
+  const res = await api.patch(`/bmn/auction-batches/${id}/draft-metadata`, data);
   return res.data;
 }
 
