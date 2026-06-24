@@ -147,11 +147,23 @@ export interface ChecklistItem {
   label: string;
   passed: boolean;
   message: string | null;
+  required?: boolean;
+}
+
+export interface ChecklistSection {
+  key: string;
+  label: string;
+  complete: boolean;
+  items: ChecklistItem[];
 }
 
 export interface ChecklistResponse {
   complete: boolean;
   items: ChecklistItem[];
+  sections?: ChecklistSection[];
+  can_enter_valuation?: boolean;
+  can_complete_post_valuation_documents?: boolean;
+  can_lock_submit?: boolean;
 }
 
 export interface UpdateAuctionDraftMetadataPayload {

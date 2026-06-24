@@ -3,7 +3,7 @@
 import React, { use, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { getBatch, AuctionBatch } from "../_lib/api";
+import { getBatch, getChecklist, AuctionBatch } from "../_lib/api";
 import { getStatusLabel, getStatusColorClass, isReadOnly } from "../_lib/status";
 import { formatRupiah } from "../../auction-candidates/_lib/auction-helpers";
 import {
@@ -42,6 +42,10 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
     queryKey: ["bmn-auction-batch", batchId],
     queryFn: () => getBatch(batchId),
   });
+  const { data: checklist, refetch: refetchChecklist } = useQuery({
+    queryKey: ["bmn-auction-batch-checklist", batchId],
+    queryFn: () => getChecklist(batchId),
+  });
 
   const batch = response?.data;
 
@@ -72,11 +76,16 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   }
 
   const readOnly = isReadOnly(batch.status);
+  const refetchAll = () => {
+    refetch();
+    refetchChecklist();
+  };
   const workflowTabs = [
     { value: "assets", label: "Aset & Lot" },
+    { value: "pre-docs", label: "Dokumen Awal" },
     { value: "valuation", label: "Nilai Taksiran" },
-    { value: "signatories", label: "Dokumen & Tanda Tangan" },
-    { value: "docs-center", label: "Pusat Dokumen" },
+    { value: "post-docs", label: "Setelah Taksiran" },
+    { value: "submit", label: "Kunci & Ajukan" },
     ...(batch.status !== "DRAFT"
       ? [{ value: "schedule", label: "Jadwal Lelang" }]
       : []),
@@ -272,30 +281,44 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
 
           {/* Tab Contents */}
           <TabsContent value="assets" className="mt-0 focus-visible:outline-none">
-            <AssetsLotTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
+            <AssetsLotTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
+          </TabsContent>
+
+          <TabsContent value="pre-docs" className="mt-0 focus-visible:outline-none">
+            <DocumentsCenterTab
+              batch={batch}
+              phaseFilter="pre_valuation"
+              checklist={checklist}
+              onRefetch={refetchAll}
+            />
           </TabsContent>
 
           <TabsContent value="valuation" className="mt-0 focus-visible:outline-none">
-            <ValuationTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
+            <ValuationTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} checklist={checklist} />
           </TabsContent>
 
-          <TabsContent value="signatories" className="mt-0 focus-visible:outline-none">
-            <SignatoriesDocumentsTab batch={batch} readOnly={batch.status !== "DRAFT"} onRefetch={refetch} />
+          <TabsContent value="post-docs" className="mt-0 focus-visible:outline-none">
+            <DocumentsCenterTab
+              batch={batch}
+              phaseFilter="post_valuation"
+              checklist={checklist}
+              onRefetch={refetchAll}
+            />
           </TabsContent>
 
-          <TabsContent value="docs-center" className="mt-0 focus-visible:outline-none">
-            <DocumentsCenterTab batch={batch} />
+          <TabsContent value="submit" className="mt-0 focus-visible:outline-none">
+            <SignatoriesDocumentsTab batch={batch} readOnly={batch.status !== "DRAFT"} onRefetch={refetchAll} />
           </TabsContent>
 
           {batch.status !== "DRAFT" && (
             <TabsContent value="schedule" className="mt-0 focus-visible:outline-none">
-              <ScheduleTab batch={batch} readOnly={batch.status !== "DIAJUKAN"} onRefetch={refetch} />
+              <ScheduleTab batch={batch} readOnly={batch.status !== "DIAJUKAN"} onRefetch={refetchAll} />
             </TabsContent>
           )}
 
           {batch.status !== "DRAFT" && batch.status !== "DIAJUKAN" && (
             <TabsContent value="realization" className="mt-0 focus-visible:outline-none">
-              <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
+              <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
             </TabsContent>
           )}
 

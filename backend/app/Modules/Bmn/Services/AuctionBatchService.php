@@ -353,6 +353,24 @@ class AuctionBatchService
                 ]);
             }
 
+            $updatesValuation = array_key_exists('nilai_taksiran', $data) || array_key_exists('kertas_kerja_data', $data);
+            if ($updatesValuation) {
+                $readiness = $this->completenessChecker->check($batch);
+                if (!($readiness['can_enter_valuation'] ?? false)) {
+                    $missingLabels = collect($readiness['sections'] ?? [])
+                        ->whereIn('key', ['assets_lot', 'pre_valuation_documents'])
+                        ->flatMap(fn($section) => $section['items'] ?? [])
+                        ->filter(fn($item) => ($item['required'] ?? true) && !($item['passed'] ?? false))
+                        ->pluck('label')
+                        ->take(5)
+                        ->implode(', ');
+
+                    throw ValidationException::withMessages([
+                        'workflow' => "Nilai taksiran belum dapat diisi. Lengkapi dulu: {$missingLabels}",
+                    ]);
+                }
+            }
+
             $pivot = AssetAuctionBatch::where('bmn_auction_batch_id', $batchId)
                 ->where('bmn_asset_id', $assetId)
                 ->first();
