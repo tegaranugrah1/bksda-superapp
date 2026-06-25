@@ -12,6 +12,8 @@ import {
   Printer,
   AlertTriangle,
   Search,
+  GripVertical,
+  X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -166,6 +168,7 @@ function CommitteePicker({
 }: CommitteePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const selectedEmployees = selectedIds
     .map((id) => employees.find((employee) => String(employee.id) === id))
     .filter(Boolean) as Employee[];
@@ -177,6 +180,18 @@ function CommitteePicker({
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
   });
+  const reorderSelected = (dragId: string, targetId: string) => {
+    if (disabled || dragId === targetId) return;
+
+    const fromIndex = selectedIds.indexOf(dragId);
+    const toIndex = selectedIds.indexOf(targetId);
+    if (fromIndex < 0 || toIndex < 0) return;
+
+    const nextIds = [...selectedIds];
+    const [movedId] = nextIds.splice(fromIndex, 1);
+    nextIds.splice(toIndex, 0, movedId);
+    onChange(nextIds);
+  };
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-zinc-50/40 p-3 dark:border-zinc-800 dark:bg-zinc-900/40">
@@ -248,9 +263,45 @@ function CommitteePicker({
         {selectedEmployees.map((employee, index) => (
           <span
             key={employee.id}
-            className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 ring-1 ring-zinc-200 dark:bg-zinc-950 dark:text-zinc-200 dark:ring-zinc-800"
+            draggable={!disabled}
+            onDragStart={(event) => {
+              const employeeId = String(employee.id);
+              setDraggingId(employeeId);
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("text/plain", employeeId);
+            }}
+            onDragEnd={() => setDraggingId(null)}
+            onDragOver={(event) => {
+              if (!disabled) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+              }
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              const dragId = event.dataTransfer.getData("text/plain") || draggingId;
+              if (dragId) {
+                reorderSelected(dragId, String(employee.id));
+              }
+              setDraggingId(null);
+            }}
+            className={`inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-zinc-700 ring-1 ring-zinc-200 transition dark:bg-zinc-950 dark:text-zinc-200 dark:ring-zinc-800 ${
+              draggingId === String(employee.id) ? "opacity-50 ring-emerald-300" : ""
+            } ${disabled ? "" : "cursor-grab active:cursor-grabbing"}`}
           >
-            {index + 1}. {getEmployeeName(employee)}
+            <GripVertical className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+            <span className="max-w-[13rem] truncate">
+              {index + 1}. {getEmployeeName(employee)}
+            </span>
+            <button
+              type="button"
+              disabled={disabled}
+              className="ml-0.5 rounded-full p-0.5 text-zinc-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-red-950/30"
+              aria-label={`Hapus ${getEmployeeName(employee)}`}
+              onClick={() => onChange(selectedIds.filter((id) => id !== String(employee.id)))}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           </span>
         ))}
         {selectedEmployees.length === 0 && (
