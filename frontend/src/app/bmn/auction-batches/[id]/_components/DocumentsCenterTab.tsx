@@ -6,12 +6,17 @@ import { getDocumentContext, recordPrintEvent, updateDraftMetadata, AuctionBatch
 import { AUCTION_DOCUMENT_WORKFLOW, AuctionDocumentPhase } from "../_lib/document-workflow";
 import { toast } from "sonner";
 import {
+  Check,
+  ChevronsUpDown,
   Loader2,
   Printer,
   AlertTriangle,
+  Search,
 } from "lucide-react";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // Import candidate print components directly to avoid code duplication
 import {
@@ -78,6 +83,7 @@ import {
   DEFAULT_TIM_PENILAI_MENGINGAT,
   DEFAULT_TIM_PENILAI_TEMBUSAN,
 } from "../../../auction-candidates/_lib/sk-tim-penilai-defaults";
+import type { Employee } from "./workflow/types";
 
 interface DocumentsCenterTabProps {
   batch: AuctionBatch;
@@ -107,13 +113,55 @@ const channelLabels: Record<string, string> = {
   app: "Aplikasi",
 };
 
+const documentNumberPrefixes: Record<string, string> = {
+  ba_koreksi: "BA.",
+  sk_penghentian: "SK.",
+  sk_panitia: "SK.",
+  sk_tim_penilai: "SK.",
+  sk_kebenaran: "KT.",
+  sptjm: "SPTJM.",
+  sp_tugas: "SM.",
+  ba_pemeriksaan: "BA.",
+  surat_tugas_pemeriksaan_penilaian: "ST.",
+  sptj_limit: "SM.",
+  nota_dinas: "ND.",
+  permohonan_kpknl: "S.",
+};
+
+const defaultDocumentKaps: Record<string, string> = {
+  sptjm: "BALAI",
+  sptj_limit: "BALAI",
+  sp_tugas: "BALAI",
+};
+
+const getEmployeeName = (employee: Employee) => employee.nama_lengkap || employee.name || "-";
+const getEmployeePosition = (employee: Employee) => employee.jabatan || employee.position || "";
+const getEmployeeLabel = (employee: Employee) =>
+  `${getEmployeeName(employee)}${employee.nip ? ` - NIP. ${employee.nip}` : ""}`;
+
+function buildDocumentNumberPreview(documentKey: string, number: string, kap: string) {
+  const monthSuffix = `${String(new Date().getMonth() + 1).padStart(2, "0")}/${new Date().getFullYear()}`;
+  const prefix = documentNumberPrefixes[documentKey] || "";
+
+  return `${prefix}${number || "____"}/K.18/TU/${kap || "____"}/B/${monthSuffix}`;
+}
+
 export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }: DocumentsCenterTabProps) {
   const [printingDocKey, setPrintingDocKey] = useState<string | null>(null);
+  const [isKepalaPickerOpen, setIsKepalaPickerOpen] = useState(false);
+  const [kepalaSearch, setKepalaSearch] = useState("");
 
   // Load document context
   const { data: contextResponse, isLoading, error, refetch: refetchContext } = useQuery({
     queryKey: ["bmn-auction-document-context", batch.id],
     queryFn: () => getDocumentContext(batch.id),
+  });
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
+    queryKey: ["employees-select-auction-documents"],
+    queryFn: async () => {
+      const res = await api.get("/kepegawaian/employees/select");
+      return res.data?.data || res.data || [];
+    },
   });
 
   const context = contextResponse?.data;
@@ -143,19 +191,33 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   const updateDocumentFieldsMutation = useMutation({
     mutationFn: ({
       numberKey,
+      kapKey,
       dateKey,
       number,
+      kap,
       date,
+      kepalaBalaiId,
     }: {
       numberKey?: string | null;
+      kapKey?: string | null;
       dateKey?: string | null;
       number?: string | null;
+      kap?: string | null;
       date?: string | null;
+      kepalaBalaiId?: string | null;
     }) => {
       const payload: Parameters<typeof updateDraftMetadata>[1] = {};
 
+      if (kepalaBalaiId !== undefined) {
+        payload.kepala_balai_id = kepalaBalaiId || null;
+      }
+
       if (numberKey) {
         payload.document_numbers = { [numberKey]: number || null };
+      }
+
+      if (kapKey) {
+        payload.document_kaps = { [kapKey]: kap || null };
       }
 
       if (dateKey) {
@@ -165,12 +227,12 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
       return updateDraftMetadata(batch.id, payload);
     },
     onSuccess: () => {
-      toast.success("Nomor dokumen diperbarui.");
+      toast.success("Data dokumen diperbarui.");
       refetchContext();
       onRefetch?.();
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Gagal memperbarui nomor dokumen.");
+      toast.error(error?.response?.data?.message || "Gagal memperbarui data dokumen.");
     },
   });
 
@@ -341,10 +403,20 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   // Convert context data structures to fit expectations of imported candidate templates
   const mappedAssets = context.assets || [];
   const meta = context.metadata || {};
+  const currentKepalaBalaiId = String(batch.kepala_balai_id || meta.signatories?.kepala_balai?.id || "");
+  const selectedKepalaBalai = employees.find((employee) => String(employee.id) === currentKepalaBalaiId) || null;
+  const filteredKepalaBalaiEmployees = employees.filter((employee) => {
+    const query = kepalaSearch.trim().toLowerCase();
+    if (!query) return true;
+
+    return [getEmployeeName(employee), employee.nip, getEmployeePosition(employee)]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
 
   const kepalaBalai = {
-    nama: meta.signatories?.kepala_balai?.nama || "-",
-    nip: meta.signatories?.kepala_balai?.nip || "",
+    nama: meta.signatories?.kepala_balai?.nama || (selectedKepalaBalai ? getEmployeeName(selectedKepalaBalai) : "-"),
+    nip: meta.signatories?.kepala_balai?.nip || selectedKepalaBalai?.nip || "",
   };
 
   const panitiaList = meta.committees?.panitia_penghapusan || [];
@@ -352,8 +424,8 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   const pemeriksaList = meta.committees?.pemeriksa || [];
 
   const getDocumentNumber = (key: string, fallback = "____") => meta.document_numbers?.[key] || fallback;
+  const getDocumentKap = (key: string, fallback = defaultDocumentKaps[key] || "Balai") => meta.document_kaps?.[key] || fallback;
   const getDocumentDate = (key: string) => meta.document_dates?.[key] || "";
-  const skKap = "Balai"; // or from settings
 
   const stNumber = getDocumentNumber("surat_tugas_pemeriksaan_penilaian");
   const stTanggal = getDocumentDate("surat_tugas_pemeriksaan_penilaian");
@@ -461,6 +533,83 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
         </p>
       </div>
 
+      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-center">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-zinc-400">Penandatangan Cetak</p>
+            <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-50">Kepala Balai</h3>
+            <p className="mt-1 text-xs text-zinc-500">
+              {kepalaBalai.nama !== "-" ? `${kepalaBalai.nama}${kepalaBalai.nip ? ` - NIP. ${kepalaBalai.nip}` : ""}` : "Belum dipilih"}
+            </p>
+          </div>
+
+          <Popover open={isKepalaPickerOpen} onOpenChange={setIsKepalaPickerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                role="combobox"
+                aria-expanded={isKepalaPickerOpen}
+                disabled={batch.status !== "DRAFT" || isLoadingEmployees || updateDocumentFieldsMutation.isPending}
+                className="h-auto min-h-11 w-full justify-between rounded-xl border-zinc-200 bg-white px-3 py-2 text-left text-xs font-normal dark:border-zinc-800 dark:bg-zinc-900"
+              >
+                <span className="min-w-0 truncate">
+                  {selectedKepalaBalai ? getEmployeeLabel(selectedKepalaBalai) : "-- Pilih Kepala Balai --"}
+                </span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-zinc-400" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[min(560px,calc(100vw-2rem))] p-0" align="end">
+              <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
+                <div className="flex items-center gap-2">
+                  <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+                  <Input
+                    value={kepalaSearch}
+                    onChange={(event) => setKepalaSearch(event.target.value)}
+                    placeholder="Cari nama, NIP, atau jabatan..."
+                    className="h-9 border-0 px-0 text-xs focus-visible:ring-0"
+                  />
+                </div>
+              </div>
+              <div className="max-h-72 overflow-y-auto p-1.5">
+                {filteredKepalaBalaiEmployees.length === 0 ? (
+                  <div className="px-3 py-6 text-center text-xs text-zinc-500">Pegawai tidak ditemukan.</div>
+                ) : (
+                  filteredKepalaBalaiEmployees.map((employee) => {
+                    const employeeId = String(employee.id);
+                    const isSelected = employeeId === currentKepalaBalaiId;
+
+                    return (
+                      <button
+                        key={employee.id}
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                        onClick={() => {
+                          updateDocumentFieldsMutation.mutate({ kepalaBalaiId: employeeId });
+                          setKepalaSearch("");
+                          setIsKepalaPickerOpen(false);
+                        }}
+                      >
+                        <Check className={`h-4 w-4 shrink-0 text-emerald-600 ${isSelected ? "opacity-100" : "opacity-0"}`} />
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-zinc-850 dark:text-zinc-100">
+                            {getEmployeeName(employee)}
+                          </span>
+                          <span className="block truncate font-mono text-[10px] text-zinc-400">
+                            NIP. {employee.nip || "-"}
+                            {getEmployeePosition(employee) ? ` - ${getEmployeePosition(employee)}` : ""}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
       {groupedDocuments.map((group) => (
         <section key={group.key} className="space-y-3">
           <h3 className="text-[11px] font-bold uppercase text-zinc-400">{group.label}</h3>
@@ -474,6 +623,9 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               const workflowDisabled = batch.status !== "DRAFT" || updateWorkflowMutation.isPending || waitingForValuation;
               const documentFieldDisabled = batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || waitingForValuation;
               const documentNumber = doc.numberKey ? meta.document_numbers?.[doc.numberKey] ?? "" : "";
+              const documentKap = doc.numberKey
+                ? getDocumentKap(doc.numberKey, defaultDocumentKaps[doc.numberKey] || defaultDocumentKaps[doc.key] || "Balai")
+                : "";
               const documentDate = doc.dateKey ? meta.document_dates?.[doc.dateKey] ?? "" : "";
 
               return (
@@ -505,33 +657,66 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                     <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-50">{doc.title}</h3>
                     <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500">{doc.description}</p>
                     {(doc.numberKey || doc.dateKey) && (
-                      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_9.5rem]">
+                      <div className="mt-4 space-y-3">
                         {doc.numberKey && (
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase text-zinc-400">Nomor Dokumen</label>
-                            <Input
-                              key={`${workflowKey}-number-${documentNumber}`}
-                              defaultValue={documentNumber}
-                              disabled={documentFieldDisabled}
-                              placeholder="Masukkan nomor"
-                              onBlur={(event) => {
-                                const nextNumber = event.currentTarget.value.trim();
-                                if (nextNumber === documentNumber) {
-                                  return;
-                                }
+                          <div className="space-y-2">
+                            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8.5rem]">
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase text-zinc-400">Nomor Dokumen</label>
+                                <Input
+                                  key={`${workflowKey}-number-${documentNumber}`}
+                                  defaultValue={documentNumber}
+                                  disabled={documentFieldDisabled}
+                                  placeholder="Masukkan nomor"
+                                  onBlur={(event) => {
+                                    const nextNumber = event.currentTarget.value.trim();
+                                    if (nextNumber === documentNumber) {
+                                      return;
+                                    }
 
-                                updateDocumentFieldsMutation.mutate({
-                                  numberKey: doc.numberKey,
-                                  number: nextNumber,
-                                });
-                              }}
-                              onKeyDown={(event) => {
-                                if (event.key === "Enter") {
-                                  event.currentTarget.blur();
-                                }
-                              }}
-                              className="h-9 rounded-xl text-xs font-semibold"
-                            />
+                                    updateDocumentFieldsMutation.mutate({
+                                      numberKey: doc.numberKey,
+                                      number: nextNumber,
+                                    });
+                                  }}
+                                  onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                      event.currentTarget.blur();
+                                    }
+                                  }}
+                                  className="h-9 rounded-xl text-xs font-semibold"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase text-zinc-400">KAP</label>
+                                <Input
+                                  key={`${workflowKey}-kap-${documentKap}`}
+                                  defaultValue={documentKap}
+                                  disabled={documentFieldDisabled}
+                                  placeholder="KAP"
+                                  onBlur={(event) => {
+                                    const nextKap = event.currentTarget.value.trim();
+                                    if (nextKap === documentKap) {
+                                      return;
+                                    }
+
+                                    updateDocumentFieldsMutation.mutate({
+                                      kapKey: doc.numberKey,
+                                      kap: nextKap,
+                                    });
+                                  }}
+                                  onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                      event.currentTarget.blur();
+                                    }
+                                  }}
+                                  className="h-9 rounded-xl text-xs font-semibold"
+                                />
+                              </div>
+                            </div>
+                            <p className="truncate rounded-lg bg-zinc-50 px-2 py-1 font-mono text-[10px] font-semibold text-zinc-500 dark:bg-zinc-900">
+                              {buildDocumentNumberPreview(doc.key, documentNumber, documentKap)}
+                            </p>
                           </div>
                         )}
                         {doc.dateKey && (
@@ -606,7 +791,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <BaKoreksiDocument
               assets={mappedAssets}
               baNumber={getDocumentNumber("ba_koreksi")}
-              baKap="Balai"
+              baKap={getDocumentKap("ba_koreksi")}
               kepalaBalai={kepalaBalai}
             />
           )}
@@ -614,7 +799,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <SkPenghentianDocument
               assets={mappedAssets}
               skNumber={getDocumentNumber("sk_penghentian")}
-              skKap={skKap}
+              skKap={getDocumentKap("sk_penghentian")}
               menimbang={meta.sk_details?.penghentian?.menimbang || DEFAULT_MENIMBANG}
               mengingat={meta.sk_details?.penghentian?.mengingat || DEFAULT_MENGINGAT}
               memutuskan={meta.sk_details?.penghentian?.memutuskan || DEFAULT_MEMUTUSKAN}
@@ -625,7 +810,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
           {printingDocKey === "sk_panitia" && (
             <SkPanitiaDocument
               skNumber={getDocumentNumber("sk_panitia")}
-              skKap={skKap}
+              skKap={getDocumentKap("sk_panitia")}
               menimbang={meta.sk_details?.panitia?.menimbang || DEFAULT_PANITIA_MENIMBANG}
               mengingat={meta.sk_details?.panitia?.mengingat || DEFAULT_PANITIA_MENGINGAT}
               memutuskan={meta.sk_details?.panitia?.memutuskan || DEFAULT_PANITIA_MEMUTUSKAN}
@@ -637,7 +822,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
           {printingDocKey === "sk_tim_penilai" && (
             <SkTimPenilaiDocument
               skNumber={getDocumentNumber("sk_tim_penilai")}
-              skKap={skKap}
+              skKap={getDocumentKap("sk_tim_penilai")}
               menimbang={meta.sk_details?.tim_penilai?.menimbang || DEFAULT_TIM_PENILAI_MENIMBANG}
               mengingat={meta.sk_details?.tim_penilai?.mengingat || DEFAULT_TIM_PENILAI_MENGINGAT}
               memutuskan={meta.sk_details?.tim_penilai?.memutuskan || DEFAULT_TIM_PENILAI_MEMUTUSKAN}
@@ -649,7 +834,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
           {printingDocKey === "ba_pemeriksaan" && (
             <BaPemeriksaanDocument
               number={getDocumentNumber("ba_pemeriksaan")}
-              kap="Balai"
+              kap={getDocumentKap("ba_pemeriksaan")}
               pemeriksaList={pemeriksaList}
               stNumber={stNumber}
               stTanggal={stTanggal}
@@ -661,7 +846,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <div id="surat-tugas-pemeriksaan-penilaian-print-root">
               <SuratTugasPemeriksaanPenilaianDocument
                 number={getDocumentNumber("surat_tugas_pemeriksaan_penilaian")}
-                kap="Balai"
+                kap={getDocumentKap("surat_tugas_pemeriksaan_penilaian")}
                 assets={mappedAssets}
                 kepalaBalai={kepalaBalai}
                 timPenilai={timPenilaiList}
@@ -672,7 +857,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
           {printingDocKey === "nota_dinas" && (
             <NotaDinasDocument
               number={getDocumentNumber("nota_dinas")}
-              kap="Balai"
+              kap={getDocumentKap("nota_dinas")}
               assets={mappedAssets}
               kepalaBalai={kepalaBalai}
               perihal="Permohonan Persetujuan Penjualan BMN Rusak Berat"
@@ -686,7 +871,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
           {printingDocKey === "permohonan_kpknl" && (
             <PermohonanKpknlDocument
               number={getDocumentNumber("permohonan_kpknl")}
-              kap="Balai"
+              kap={getDocumentKap("permohonan_kpknl")}
               assets={mappedAssets}
               kepalaBalai={kepalaBalai}
               perihal="Permohonan Pelaksanaan Lelang Barang Milik Negara"
@@ -699,19 +884,19 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
           {printingDocKey === "sk_kebenaran" && (
             <SkKebenaranDocument
               number={getDocumentNumber("sk_kebenaran")}
-              kap="Balai"
+              kap={getDocumentKap("sk_kebenaran")}
               assets={mappedAssets}
               kepalaBalai={kepalaBalai}
             />
           )}
           {printingDocKey === "sptjm" && (
-            <SptjmDocument number={getDocumentNumber("sptjm", "01")} kap="BALAI" kepalaBalai={kepalaBalai} />
+            <SptjmDocument number={getDocumentNumber("sptjm", "01")} kap={getDocumentKap("sptjm", "BALAI")} kepalaBalai={kepalaBalai} />
           )}
           {printingDocKey === "sptj_limit" && (
-            <SptjLimitDocument number={getDocumentNumber("sptj_limit", "01")} kap="BALAI" kepalaBalai={kepalaBalai} />
+            <SptjLimitDocument number={getDocumentNumber("sptj_limit", "01")} kap={getDocumentKap("sptj_limit", "BALAI")} kepalaBalai={kepalaBalai} />
           )}
           {printingDocKey === "sp_tugas" && (
-            <SpTugasDocument number={getDocumentNumber("sp_tugas", "01")} kap="BALAI" kepalaBalai={kepalaBalai} />
+            <SpTugasDocument number={getDocumentNumber("sp_tugas", "01")} kap={getDocumentKap("sp_tugas", "BALAI")} kepalaBalai={kepalaBalai} />
           )}
         </div>
       )}

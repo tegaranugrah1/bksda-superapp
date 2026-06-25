@@ -63,6 +63,10 @@ class AuctionBatchMetadataBuilder
             $existingMetadata['document_numbers'] ?? [],
             $input['document_numbers'] ?? []
         );
+        $documentKaps = array_replace(
+            $existingMetadata['document_kaps'] ?? [],
+            $input['document_kaps'] ?? []
+        );
         $documentDates = array_replace(
             $existingMetadata['document_dates'] ?? [],
             $input['document_dates'] ?? []
@@ -93,6 +97,7 @@ class AuctionBatchMetadataBuilder
                 'pemeriksa' => $pemeriksaMapped,
             ],
             'document_numbers' => $documentNumbers,
+            'document_kaps' => $documentKaps,
             'document_dates' => $documentDates,
             'print_config' => [
                 'paper' => 'A4',
