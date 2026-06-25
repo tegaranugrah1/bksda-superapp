@@ -4,33 +4,62 @@ import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getDocumentContext, recordPrintEvent, updateDraftMetadata, AuctionBatch, ChecklistResponse } from "../../_lib/api";
 import { AUCTION_DOCUMENT_WORKFLOW, AuctionDocumentPhase } from "../_lib/document-workflow";
-import { formatRupiah } from "../../../auction-candidates/_lib/auction-helpers";
 import { toast } from "sonner";
 import {
   Loader2,
   Printer,
-  FileCheck,
   AlertTriangle,
-  FileText,
-  Bookmark,
-  Building,
-  Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // Import candidate print components directly to avoid code duplication
-import { CorrectionDocument as BaKoreksiDocument } from "../../../auction-candidates/_components/BaKoreksiDocument";
-import { SkPenghentianDocument } from "../../../auction-candidates/_components/SkPenghentianDocument";
-import { SkPanitiaDocument } from "../../../auction-candidates/_components/SkPanitiaDocument";
-import { SkTimPenilaiDocument } from "../../../auction-candidates/_components/SkTimPenilaiDocument";
-import { SptjLimitDocument } from "../../../auction-candidates/_components/SptjLimitDocument";
-import { SptjmDocument } from "../../../auction-candidates/_components/SptjmDocument";
-import { SpTugasDocument } from "../../../auction-candidates/_components/SpTugasDocument";
-import { SkKebenaranDokumenDocument as SkKebenaranDocument } from "../../../auction-candidates/_components/SkKebenaranDokumenDocument";
-import { BaPemeriksaanDocument } from "../../../auction-candidates/_components/BaPemeriksaanDocument";
-import { NotaDinasDocument } from "../../../auction-candidates/_components/NotaDinasDocument";
-import { PermohonanKpknlDocument } from "../../../auction-candidates/_components/PermohonanKpknlDocument";
+import {
+  CorrectionDocument as BaKoreksiDocument,
+  handlePrintBa as handlePrintBaKoreksi,
+} from "../../../auction-candidates/_components/BaKoreksiDocument";
+import {
+  SkPenghentianDocument,
+  handlePrintSk as handlePrintSkPenghentian,
+} from "../../../auction-candidates/_components/SkPenghentianDocument";
+import {
+  SkPanitiaDocument,
+  handlePrintSkPanitia,
+} from "../../../auction-candidates/_components/SkPanitiaDocument";
+import {
+  SkTimPenilaiDocument,
+  handlePrintSkTimPenilai,
+} from "../../../auction-candidates/_components/SkTimPenilaiDocument";
+import {
+  SptjLimitDocument,
+  handlePrintSptjLimit,
+} from "../../../auction-candidates/_components/SptjLimitDocument";
+import {
+  SptjmDocument,
+  handlePrintSptjm,
+} from "../../../auction-candidates/_components/SptjmDocument";
+import {
+  SpTugasDocument,
+  handlePrintSpTugas,
+} from "../../../auction-candidates/_components/SpTugasDocument";
+import {
+  SkKebenaranDokumenDocument as SkKebenaranDocument,
+  handlePrintSkKebenaran,
+} from "../../../auction-candidates/_components/SkKebenaranDokumenDocument";
+import {
+  BaPemeriksaanDocument,
+  handlePrintBaPemeriksaan,
+} from "../../../auction-candidates/_components/BaPemeriksaanDocument";
+import {
+  NotaDinasDocument,
+  handlePrintNotaDinas,
+} from "../../../auction-candidates/_components/NotaDinasDocument";
+import {
+  PermohonanKpknlDocument,
+  handlePrintPermohonanKpknl,
+} from "../../../auction-candidates/_components/PermohonanKpknlDocument";
 import { SuratTugasPemeriksaanPenilaianDocument } from "../../../auction-candidates/_components/SuratTugasPemeriksaanPenilaianDocument";
+import { PERNYATAAN_PRINT_CSS } from "../../../auction-candidates/_lib/print-pernyataan";
 
 import {
   DEFAULT_MEMUTUSKAN,
@@ -67,6 +96,8 @@ interface DocumentItem {
   channel?: string;
   requiresValuation?: boolean;
   printable?: boolean;
+  numberKey?: string | null;
+  dateKey?: string | null;
 }
 
 const channelLabels: Record<string, string> = {
@@ -107,6 +138,39 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Gagal memperbarui status dokumen.");
+    },
+  });
+  const updateDocumentFieldsMutation = useMutation({
+    mutationFn: ({
+      numberKey,
+      dateKey,
+      number,
+      date,
+    }: {
+      numberKey?: string | null;
+      dateKey?: string | null;
+      number?: string | null;
+      date?: string | null;
+    }) => {
+      const payload: Parameters<typeof updateDraftMetadata>[1] = {};
+
+      if (numberKey) {
+        payload.document_numbers = { [numberKey]: number || null };
+      }
+
+      if (dateKey) {
+        payload.document_dates = { [dateKey]: date || null };
+      }
+
+      return updateDraftMetadata(batch.id, payload);
+    },
+    onSuccess: () => {
+      toast.success("Nomor dokumen diperbarui.");
+      refetchContext();
+      onRefetch?.();
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Gagal memperbarui nomor dokumen.");
     },
   });
 
@@ -213,91 +277,65 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
         return;
       }
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        setPrintingDocKey(null);
-        return;
-      }
+      switch (doc.key) {
+        case "ba_koreksi":
+          handlePrintBaKoreksi(mappedAssets);
+          break;
+        case "sk_penghentian":
+          handlePrintSkPenghentian(mappedAssets, getDocumentNumber("sk_penghentian"));
+          break;
+        case "sk_panitia":
+          handlePrintSkPanitia();
+          break;
+        case "sk_tim_penilai":
+          handlePrintSkTimPenilai();
+          break;
+        case "ba_pemeriksaan":
+          handlePrintBaPemeriksaan();
+          break;
+        case "nota_dinas":
+          handlePrintNotaDinas();
+          break;
+        case "permohonan_kpknl":
+          handlePrintPermohonanKpknl();
+          break;
+        case "sk_kebenaran":
+          handlePrintSkKebenaran();
+          break;
+        case "sptjm":
+          handlePrintSptjm();
+          break;
+        case "sptj_limit":
+          handlePrintSptjLimit();
+          break;
+        case "sp_tugas":
+          handlePrintSpTugas();
+          break;
+        default: {
+          const printWindow = window.open("", "_blank");
+          if (!printWindow) {
+            setPrintingDocKey(null);
+            return;
+          }
 
-      // Grab styling from our document component styles or inject default print layout
-      const printStyles = `
-        @page { size: A4; margin: 0 0 28mm 0; }
-        * { box-sizing: border-box; }
-        body {
-          margin: 0; padding: 0; background: white; color: black;
-          font-family: 'Bookman Old Style', Georgia, serif;
-          font-size: 11pt; line-height: 1.4;
+          printWindow.document.write(`
+            <html>
+              <head>
+                <title>${doc.title}</title>
+                <style>${PERNYATAAN_PRINT_CSS}</style>
+              </head>
+              <body>${printElement.innerHTML}</body>
+            </html>
+          `);
+          printWindow.document.close();
+          printWindow.focus();
+          setTimeout(() => printWindow.print(), 500);
         }
-        p { margin: 0; padding: 0; }
-        article { margin: 0; }
-        .doc-page { width: 210mm; box-sizing: border-box; margin: 0 auto; padding: 5mm 20mm 0; }
-        .doc-header { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; text-align: center; }
-        .doc-header img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
-        .doc-body { width: 166mm; margin-left: auto; margin-right: auto; text-align: justify; text-justify: inter-word; }
-        .doc-body p { text-align: justify; text-justify: inter-word; }
-        .doc-title { margin-top: 0.75rem; text-align: center; font-weight: 700; line-height: 1.3; }
-        .doc-title p { margin: 0; }
-        .doc-text-block { margin-top: 1rem; }
-        .doc-text-block > * + * { margin-top: 0.85rem; }
-        .doc-identity { display: grid; grid-template-columns: 28mm 5mm minmax(0, 1fr); row-gap: 0.2rem; column-gap: 0; }
-        .doc-identity .colon { text-align: center; }
-        .doc-list { padding-left: 0; margin: 0; }
-        .doc-list-item { display: grid; grid-template-columns: 8mm minmax(0, 1fr); column-gap: 0; }
-        .doc-list-item + .doc-list-item { margin-top: 0.5rem; }
-        .doc-list-item .text { text-align: justify; }
-        .signature { width: 20rem; margin-left: auto; margin-top: 1.5rem; }
-        .signature p { margin: 0; padding: 0; line-height: 1.3; }
-        .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; margin-top: 2rem; margin-bottom: 2rem; }
-        .doc-editable { border-bottom: none !important; }
-      `;
-
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>${doc.title}</title>
-            <style>${printStyles}</style>
-          </head>
-          <body>
-            ${printElement.innerHTML}
-          </body>
-        </html>
-      `);
-
-      // Watermark injecting if batch status is DRAFT or BATAL
-      let watermarkText = "";
-      if (batch.status === "DRAFT") {
-        watermarkText = "DRAFT - BELUM UNTUK DIKIRIM";
-      } else if (batch.status === "BATAL") {
-        watermarkText = "BATAL - ARSIP";
       }
 
-      if (watermarkText) {
-        const watermarkDiv = printWindow.document.createElement("div");
-        watermarkDiv.innerText = watermarkText;
-        watermarkDiv.style.position = "fixed";
-        watermarkDiv.style.top = "50%";
-        watermarkDiv.style.left = "50%";
-        watermarkDiv.style.transform = "translate(-50%, -50%) rotate(-30deg)";
-        watermarkDiv.style.fontSize = "36pt";
-        watermarkDiv.style.color = "rgba(220, 220, 220, 0.28)";
-        watermarkDiv.style.fontWeight = "bold";
-        watermarkDiv.style.whiteSpace = "nowrap";
-        watermarkDiv.style.pointerEvents = "none";
-        watermarkDiv.style.zIndex = "9999";
-        watermarkDiv.style.fontFamily = "sans-serif";
-        printWindow.document.body.appendChild(watermarkDiv);
-      }
-
-      printWindow.document.close();
-      printWindow.focus();
-
-      setTimeout(() => {
-        printWindow.print();
-        // Log printing event in backend audit logger
-        logPrintMutation.mutate(doc.workflowKey || doc.key);
-        setPrintingDocKey(null);
-      }, 500);
-    }, 100);
+      logPrintMutation.mutate(doc.workflowKey || doc.key);
+      setPrintingDocKey(null);
+    }, 150);
   };
 
   // Convert context data structures to fit expectations of imported candidate templates
@@ -313,11 +351,12 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   const timPenilaiList = meta.committees?.tim_penilai || [];
   const pemeriksaList = meta.committees?.pemeriksa || [];
 
-  const skNumber = meta.document_numbers?.sk || "____";
+  const getDocumentNumber = (key: string, fallback = "____") => meta.document_numbers?.[key] || fallback;
+  const getDocumentDate = (key: string) => meta.document_dates?.[key] || "";
   const skKap = "Balai"; // or from settings
 
-  const stNumber = meta.document_numbers?.surat_tugas || "____";
-  const stTanggal = meta.document_dates?.surat_tugas || "";
+  const stNumber = getDocumentNumber("surat_tugas_pemeriksaan_penilaian");
+  const stTanggal = getDocumentDate("surat_tugas_pemeriksaan_penilaian");
   const workflowPrintKeys: Record<string, string | null> = {
     sk_penghentian: "sk_penghentian",
     ba_koreksi: "ba_koreksi",
@@ -356,6 +395,8 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
         channel: definition.channel,
         requiresValuation: definition.requires_valuation,
         printable: Boolean(printDoc),
+        numberKey: definition.number_key,
+        dateKey: definition.date_key,
       };
     });
   const groupedDocuments = ["srikandi", "manual_ttd", "external", "app"]
@@ -431,6 +472,9 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               const status = progress?.status || "not_started";
               const waitingForValuation = Boolean(doc.requiresValuation && !valuationComplete);
               const workflowDisabled = batch.status !== "DRAFT" || updateWorkflowMutation.isPending || waitingForValuation;
+              const documentFieldDisabled = batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || waitingForValuation;
+              const documentNumber = doc.numberKey ? meta.document_numbers?.[doc.numberKey] ?? "" : "";
+              const documentDate = doc.dateKey ? meta.document_dates?.[doc.dateKey] ?? "" : "";
 
               return (
                 <div
@@ -460,6 +504,61 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                     </div>
                     <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-50">{doc.title}</h3>
                     <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500">{doc.description}</p>
+                    {(doc.numberKey || doc.dateKey) && (
+                      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_9.5rem]">
+                        {doc.numberKey && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase text-zinc-400">Nomor Dokumen</label>
+                            <Input
+                              key={`${workflowKey}-number-${documentNumber}`}
+                              defaultValue={documentNumber}
+                              disabled={documentFieldDisabled}
+                              placeholder="Masukkan nomor"
+                              onBlur={(event) => {
+                                const nextNumber = event.currentTarget.value.trim();
+                                if (nextNumber === documentNumber) {
+                                  return;
+                                }
+
+                                updateDocumentFieldsMutation.mutate({
+                                  numberKey: doc.numberKey,
+                                  number: nextNumber,
+                                });
+                              }}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                  event.currentTarget.blur();
+                                }
+                              }}
+                              className="h-9 rounded-xl text-xs font-semibold"
+                            />
+                          </div>
+                        )}
+                        {doc.dateKey && (
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase text-zinc-400">Tanggal</label>
+                            <Input
+                              key={`${workflowKey}-date-${documentDate}`}
+                              type="date"
+                              defaultValue={documentDate}
+                              disabled={documentFieldDisabled}
+                              onChange={(event) => {
+                                const nextDate = event.currentTarget.value;
+                                if (nextDate === documentDate) {
+                                  return;
+                                }
+
+                                updateDocumentFieldsMutation.mutate({
+                                  dateKey: doc.dateKey,
+                                  date: nextDate,
+                                });
+                              }}
+                              className="h-9 rounded-xl text-xs font-semibold"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="mt-4">
                       <label className="text-[10px] font-bold uppercase text-zinc-400">Status Workflow</label>
                       <select
@@ -504,74 +603,64 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
       {printingDocKey && (
         <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
           {printingDocKey === "ba_koreksi" && (
-            <div id="ba-koreksi-print-root">
-              <BaKoreksiDocument
-                assets={mappedAssets}
-                baNumber={meta.document_numbers?.ba_koreksi || "____"}
-                baKap="Balai"
-                kepalaBalai={kepalaBalai}
-              />
-            </div>
+            <BaKoreksiDocument
+              assets={mappedAssets}
+              baNumber={getDocumentNumber("ba_koreksi")}
+              baKap="Balai"
+              kepalaBalai={kepalaBalai}
+            />
           )}
           {printingDocKey === "sk_penghentian" && (
-            <div id="sk-penghentian-print-root">
-              <SkPenghentianDocument
-                assets={mappedAssets}
-                skNumber={skNumber}
-                skKap={skKap}
-                menimbang={meta.sk_details?.penghentian?.menimbang || DEFAULT_MENIMBANG}
-                mengingat={meta.sk_details?.penghentian?.mengingat || DEFAULT_MENGINGAT}
-                memutuskan={meta.sk_details?.penghentian?.memutuskan || DEFAULT_MEMUTUSKAN}
-                kepalaBalai={kepalaBalai}
-                tembusan={meta.sk_details?.penghentian?.tembusan || []}
-              />
-            </div>
+            <SkPenghentianDocument
+              assets={mappedAssets}
+              skNumber={getDocumentNumber("sk_penghentian")}
+              skKap={skKap}
+              menimbang={meta.sk_details?.penghentian?.menimbang || DEFAULT_MENIMBANG}
+              mengingat={meta.sk_details?.penghentian?.mengingat || DEFAULT_MENGINGAT}
+              memutuskan={meta.sk_details?.penghentian?.memutuskan || DEFAULT_MEMUTUSKAN}
+              kepalaBalai={kepalaBalai}
+              tembusan={meta.sk_details?.penghentian?.tembusan || []}
+            />
           )}
           {printingDocKey === "sk_panitia" && (
-            <div id="sk-panitia-print-root">
-              <SkPanitiaDocument
-                skNumber={skNumber}
-                skKap={skKap}
-                menimbang={meta.sk_details?.panitia?.menimbang || DEFAULT_PANITIA_MENIMBANG}
-                mengingat={meta.sk_details?.panitia?.mengingat || DEFAULT_PANITIA_MENGINGAT}
-                memutuskan={meta.sk_details?.panitia?.memutuskan || DEFAULT_PANITIA_MEMUTUSKAN}
-                kepalaBalai={kepalaBalai}
-                tembusan={meta.sk_details?.panitia?.tembusan || DEFAULT_PANITIA_TEMBUSAN}
-                susunanPanitia={panitiaList}
-              />
-            </div>
+            <SkPanitiaDocument
+              skNumber={getDocumentNumber("sk_panitia")}
+              skKap={skKap}
+              menimbang={meta.sk_details?.panitia?.menimbang || DEFAULT_PANITIA_MENIMBANG}
+              mengingat={meta.sk_details?.panitia?.mengingat || DEFAULT_PANITIA_MENGINGAT}
+              memutuskan={meta.sk_details?.panitia?.memutuskan || DEFAULT_PANITIA_MEMUTUSKAN}
+              kepalaBalai={kepalaBalai}
+              tembusan={meta.sk_details?.panitia?.tembusan || DEFAULT_PANITIA_TEMBUSAN}
+              susunanPanitia={panitiaList}
+            />
           )}
           {printingDocKey === "sk_tim_penilai" && (
-            <div id="sk-tim-penilai-print-root">
-              <SkTimPenilaiDocument
-                skNumber={skNumber}
-                skKap={skKap}
-                menimbang={meta.sk_details?.tim_penilai?.menimbang || DEFAULT_TIM_PENILAI_MENIMBANG}
-                mengingat={meta.sk_details?.tim_penilai?.mengingat || DEFAULT_TIM_PENILAI_MENGINGAT}
-                memutuskan={meta.sk_details?.tim_penilai?.memutuskan || DEFAULT_TIM_PENILAI_MEMUTUSKAN}
-                kepalaBalai={kepalaBalai}
-                tembusan={meta.sk_details?.tim_penilai?.tembusan || DEFAULT_TIM_PENILAI_TEMBUSAN}
-                susunanTimPenilai={timPenilaiList}
-              />
-            </div>
+            <SkTimPenilaiDocument
+              skNumber={getDocumentNumber("sk_tim_penilai")}
+              skKap={skKap}
+              menimbang={meta.sk_details?.tim_penilai?.menimbang || DEFAULT_TIM_PENILAI_MENIMBANG}
+              mengingat={meta.sk_details?.tim_penilai?.mengingat || DEFAULT_TIM_PENILAI_MENGINGAT}
+              memutuskan={meta.sk_details?.tim_penilai?.memutuskan || DEFAULT_TIM_PENILAI_MEMUTUSKAN}
+              kepalaBalai={kepalaBalai}
+              tembusan={meta.sk_details?.tim_penilai?.tembusan || DEFAULT_TIM_PENILAI_TEMBUSAN}
+              susunanTimPenilai={timPenilaiList}
+            />
           )}
           {printingDocKey === "ba_pemeriksaan" && (
-            <div id="ba-pemeriksaan-print-root">
-              <BaPemeriksaanDocument
-                number={meta.document_numbers?.ba_pemeriksaan || "____"}
-                kap="Balai"
-                pemeriksaList={pemeriksaList}
-                stNumber={stNumber}
-                stTanggal={stTanggal}
-                assets={mappedAssets}
-                kepalaBalai={kepalaBalai}
-              />
-            </div>
+            <BaPemeriksaanDocument
+              number={getDocumentNumber("ba_pemeriksaan")}
+              kap="Balai"
+              pemeriksaList={pemeriksaList}
+              stNumber={stNumber}
+              stTanggal={stTanggal}
+              assets={mappedAssets}
+              kepalaBalai={kepalaBalai}
+            />
           )}
           {printingDocKey === "surat_tugas_pemeriksaan_penilaian" && (
             <div id="surat-tugas-pemeriksaan-penilaian-print-root">
               <SuratTugasPemeriksaanPenilaianDocument
-                number={meta.document_numbers?.surat_tugas_pemeriksaan_penilaian || "____"}
+                number={getDocumentNumber("surat_tugas_pemeriksaan_penilaian")}
                 kap="Balai"
                 assets={mappedAssets}
                 kepalaBalai={kepalaBalai}
@@ -581,60 +670,48 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             </div>
           )}
           {printingDocKey === "nota_dinas" && (
-            <div id="nota-dinas-print-root">
-              <NotaDinasDocument
-                number={meta.document_numbers?.nota_dinas || "____"}
-                kap="Balai"
-                assets={mappedAssets}
-                kepalaBalai={kepalaBalai}
-                perihal="Permohonan Persetujuan Penjualan BMN Rusak Berat"
-                lampiran="1 (Satu) Berkas"
-                lokasi="Samarinda"
-                tembusan={[]}
-                kesimpulan="Aset BMN tersebut sudah tidak dapat digunakan dan perlu dihapuskan."
-                nilaiTaksiran={batch.nilai_taksiran_total || 0}
-              />
-            </div>
+            <NotaDinasDocument
+              number={getDocumentNumber("nota_dinas")}
+              kap="Balai"
+              assets={mappedAssets}
+              kepalaBalai={kepalaBalai}
+              perihal="Permohonan Persetujuan Penjualan BMN Rusak Berat"
+              lampiran="1 (Satu) Berkas"
+              lokasi="Samarinda"
+              tembusan={[]}
+              kesimpulan="Aset BMN tersebut sudah tidak dapat digunakan dan perlu dihapuskan."
+              nilaiTaksiran={batch.nilai_taksiran_total || 0}
+            />
           )}
           {printingDocKey === "permohonan_kpknl" && (
-            <div id="permohonan-kpknl-print-root">
-              <PermohonanKpknlDocument
-                number={meta.document_numbers?.permohonan_kpknl || "____"}
-                kap="Balai"
-                assets={mappedAssets}
-                kepalaBalai={kepalaBalai}
-                perihal="Permohonan Pelaksanaan Lelang Barang Milik Negara"
-                lampiran="1 (Satu) Berkas"
-                lokasi="Samarinda"
-                tembusan={[]}
-                kesimpulan="Aset BMN tersebut dalam kondisi Rusak Berat dan diusulkan untuk dilelang."
-              />
-            </div>
+            <PermohonanKpknlDocument
+              number={getDocumentNumber("permohonan_kpknl")}
+              kap="Balai"
+              assets={mappedAssets}
+              kepalaBalai={kepalaBalai}
+              perihal="Permohonan Pelaksanaan Lelang Barang Milik Negara"
+              lampiran="1 (Satu) Berkas"
+              lokasi="Samarinda"
+              tembusan={[]}
+              kesimpulan="Aset BMN tersebut dalam kondisi Rusak Berat dan diusulkan untuk dilelang."
+            />
           )}
           {printingDocKey === "sk_kebenaran" && (
-            <div id="sk-kebenaran-print-root">
-              <SkKebenaranDocument
-                number={meta.document_numbers?.sk_kebenaran || "____"}
-                kap="Balai"
-                assets={mappedAssets}
-                kepalaBalai={kepalaBalai}
-              />
-            </div>
+            <SkKebenaranDocument
+              number={getDocumentNumber("sk_kebenaran")}
+              kap="Balai"
+              assets={mappedAssets}
+              kepalaBalai={kepalaBalai}
+            />
           )}
           {printingDocKey === "sptjm" && (
-            <div id="sptjm-print-root">
-              <SptjmDocument number="01" kap="BALAI" kepalaBalai={kepalaBalai} />
-            </div>
+            <SptjmDocument number={getDocumentNumber("sptjm", "01")} kap="BALAI" kepalaBalai={kepalaBalai} />
           )}
           {printingDocKey === "sptj_limit" && (
-            <div id="sptj-limit-print-root">
-              <SptjLimitDocument number="01" kap="BALAI" kepalaBalai={kepalaBalai} />
-            </div>
+            <SptjLimitDocument number={getDocumentNumber("sptj_limit", "01")} kap="BALAI" kepalaBalai={kepalaBalai} />
           )}
           {printingDocKey === "sp_tugas" && (
-            <div id="sp-tugas-print-root">
-              <SpTugasDocument number="01" kap="BALAI" kepalaBalai={kepalaBalai} />
-            </div>
+            <SpTugasDocument number={getDocumentNumber("sp_tugas", "01")} kap="BALAI" kepalaBalai={kepalaBalai} />
           )}
         </div>
       )}
