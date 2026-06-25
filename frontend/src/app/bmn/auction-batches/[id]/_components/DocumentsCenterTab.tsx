@@ -106,6 +106,15 @@ interface DocumentItem {
   dateKey?: string | null;
 }
 
+interface CommitteePickerProps {
+  label: string;
+  description: string;
+  employees: Employee[];
+  selectedIds: string[];
+  disabled: boolean;
+  onChange: (ids: string[]) => void;
+}
+
 const channelLabels: Record<string, string> = {
   srikandi: "Srikandi",
   manual_ttd: "Manual TTD",
@@ -138,6 +147,121 @@ const getEmployeeName = (employee: Employee) => employee.nama_lengkap || employe
 const getEmployeePosition = (employee: Employee) => employee.jabatan || employee.position || "";
 const getEmployeeLabel = (employee: Employee) =>
   `${getEmployeeName(employee)}${employee.nip ? ` - NIP. ${employee.nip}` : ""}`;
+
+function normalizeIds(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter(Boolean).map((id) => String(id)) : [];
+}
+
+function toggleId(ids: string[], id: string) {
+  return ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id];
+}
+
+function CommitteePicker({
+  label,
+  description,
+  employees,
+  selectedIds,
+  disabled,
+  onChange,
+}: CommitteePickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const selectedEmployees = selectedIds
+    .map((id) => employees.find((employee) => String(employee.id) === id))
+    .filter(Boolean) as Employee[];
+  const filteredEmployees = employees.filter((employee) => {
+    const query = search.trim().toLowerCase();
+    if (!query) return true;
+
+    return [getEmployeeName(employee), employee.nip, getEmployeePosition(employee)]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
+
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-zinc-50/40 p-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-bold text-zinc-900 dark:text-zinc-50">{label}</p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">{description}</p>
+        </div>
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={disabled}
+              className="h-8 shrink-0 rounded-lg text-[11px] font-semibold"
+            >
+              Pilih ({selectedIds.length})
+              <ChevronsUpDown className="h-3.5 w-3.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[min(620px,calc(100vw-2rem))] p-0" align="end">
+            <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Cari nama, NIP, atau jabatan..."
+                  className="h-9 border-0 px-0 text-xs focus-visible:ring-0"
+                />
+              </div>
+            </div>
+            <div className="max-h-80 overflow-y-auto p-1.5">
+              {filteredEmployees.length === 0 ? (
+                <div className="px-3 py-6 text-center text-xs text-zinc-500">Pegawai tidak ditemukan.</div>
+              ) : (
+                filteredEmployees.map((employee) => {
+                  const employeeId = String(employee.id);
+                  const isSelected = selectedIds.includes(employeeId);
+
+                  return (
+                    <button
+                      key={employee.id}
+                      type="button"
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      onClick={() => onChange(toggleId(selectedIds, employeeId))}
+                    >
+                      <Check className={`h-4 w-4 shrink-0 text-emerald-600 ${isSelected ? "opacity-100" : "opacity-0"}`} />
+                      <span className="min-w-0">
+                        <span className="block truncate font-semibold text-zinc-850 dark:text-zinc-100">
+                          {getEmployeeName(employee)}
+                        </span>
+                        <span className="block truncate font-mono text-[10px] text-zinc-400">
+                          NIP. {employee.nip || "-"}
+                          {getEmployeePosition(employee) ? ` - ${getEmployeePosition(employee)}` : ""}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {selectedEmployees.map((employee, index) => (
+          <span
+            key={employee.id}
+            className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 ring-1 ring-zinc-200 dark:bg-zinc-950 dark:text-zinc-200 dark:ring-zinc-800"
+          >
+            {index + 1}. {getEmployeeName(employee)}
+          </span>
+        ))}
+        {selectedEmployees.length === 0 && (
+          <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-400 ring-1 ring-dashed ring-zinc-200 dark:bg-zinc-950 dark:ring-zinc-800">
+            Belum dipilih
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function buildDocumentNumberPreview(documentKey: string, number: string, kap: string) {
   const monthSuffix = `${String(new Date().getMonth() + 1).padStart(2, "0")}/${new Date().getFullYear()}`;
@@ -197,6 +321,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
       kap,
       date,
       kepalaBalaiId,
+      signatories,
     }: {
       numberKey?: string | null;
       kapKey?: string | null;
@@ -205,11 +330,20 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
       kap?: string | null;
       date?: string | null;
       kepalaBalaiId?: string | null;
+      signatories?: {
+        panitia?: string[];
+        tim_penilai?: string[];
+        pemeriksa?: string[];
+      };
     }) => {
       const payload: Parameters<typeof updateDraftMetadata>[1] = {};
 
       if (kepalaBalaiId !== undefined) {
         payload.kepala_balai_id = kepalaBalaiId || null;
+      }
+
+      if (signatories) {
+        payload.signatories = signatories;
       }
 
       if (numberKey) {
@@ -403,7 +537,11 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   // Convert context data structures to fit expectations of imported candidate templates
   const mappedAssets = context.assets || [];
   const meta = context.metadata || {};
+  const rawSignatories = meta.signatories_raw || {};
   const currentKepalaBalaiId = String(context.kepala_balai_id || batch.kepala_balai_id || meta.signatories?.kepala_balai?.id || "");
+  const panitiaIds = normalizeIds(rawSignatories.panitia);
+  const timPenilaiIds = normalizeIds(rawSignatories.tim_penilai);
+  const pemeriksaIds = normalizeIds(rawSignatories.pemeriksa);
   const selectedKepalaBalai = employees.find((employee) => String(employee.id) === currentKepalaBalaiId) || null;
   const defaultKepalaBalai =
     employees.find((employee) => {
@@ -426,10 +564,46 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
     nip: meta.signatories?.kepala_balai?.nip || printKepalaBalai?.nip || "",
   };
   const hasPrintableKepalaBalai = kepalaBalai.nama !== "-";
+  const resolveCommitteePeople = (people: any[] | undefined, ids: string[]) => {
+    if (Array.isArray(people) && people.length > 0) {
+      return people;
+    }
 
-  const panitiaList = meta.committees?.panitia_penghapusan || [];
-  const timPenilaiList = meta.committees?.tim_penilai || [];
-  const pemeriksaList = meta.committees?.pemeriksa || [];
+    return ids
+      .map((id) => employees.find((employee) => String(employee.id) === id))
+      .filter(Boolean)
+      .map((employee) => ({
+        id: employee!.id,
+        nama: getEmployeeName(employee!),
+        nip: employee!.nip || "",
+        jabatan: getEmployeePosition(employee!),
+      }));
+  };
+  const getCommitteeRole = (index: number) => (index === 0 ? "Ketua" : index === 1 ? "Sekretaris" : "Anggota");
+  const panitiaList = resolveCommitteePeople(meta.committees?.panitia_penghapusan, panitiaIds).map((person, index) => ({
+    id: String(person.id || person.nip || index),
+    nama: person.nama || person.name || "-",
+    nip: person.nip || "",
+    jabatanInstansi: person.jabatanInstansi || person.jabatan || person.position || person.unit_kerja || "",
+    jabatanKegiatan: person.jabatanKegiatan || person.jabatan_kegiatan || getCommitteeRole(index),
+  }));
+  const timPenilaiList = resolveCommitteePeople(meta.committees?.tim_penilai, timPenilaiIds).map((person, index) => ({
+    id: String(person.id || person.nip || index),
+    nama: person.nama || person.name || "-",
+    nip: person.nip || "",
+    jabatan: person.jabatan || person.position || person.unit_kerja || "",
+    jabatanKegiatan: person.jabatanKegiatan || person.jabatan_kegiatan || getCommitteeRole(index),
+    keterangan: person.keterangan || "",
+  }));
+  const pemeriksaList = resolveCommitteePeople(meta.committees?.pemeriksa, pemeriksaIds).map((person, index) => ({
+    id: String(person.id || person.nip || index),
+    nama: person.nama || person.name || "-",
+    nip: person.nip || "",
+    jabatan: person.jabatan || person.position || person.unit_kerja || "",
+    jabatanKegiatan: person.jabatanKegiatan || person.jabatan_kegiatan || getCommitteeRole(index),
+    keterangan: person.keterangan || "",
+  }));
+  const signatoryFieldDisabled = batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || isLoadingEmployees;
 
   const getDocumentNumber = (key: string, fallback = "____") => meta.document_numbers?.[key] || fallback;
   const getDocumentKap = (key: string, fallback = defaultDocumentKaps[key] || "Balai") => meta.document_kaps?.[key] || fallback;
@@ -542,12 +716,15 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
       </div>
 
       <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-center">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-start">
           <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400">Penandatangan Cetak</p>
+            <p className="text-[10px] font-bold uppercase text-zinc-400">Penandatangan & Panitia Dokumen</p>
             <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-50">Kepala Balai</h3>
             <p className="mt-1 text-xs text-zinc-500">
               {kepalaBalai.nama !== "-" ? `${kepalaBalai.nama}${kepalaBalai.nip ? ` - NIP. ${kepalaBalai.nip}` : ""}` : "Belum dipilih"}
+            </p>
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-zinc-500">
+              Panitia yang dipilih di sini dipakai langsung untuk lampiran SK Panitia Penghapusan, SK Panitia Penaksir Harga, Surat Tugas Pemeriksaan-Penilaian, dan BA Pemeriksaan.
             </p>
           </div>
 
@@ -558,7 +735,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                 variant="outline"
                 role="combobox"
                 aria-expanded={isKepalaPickerOpen}
-                disabled={batch.status !== "DRAFT" || isLoadingEmployees || updateDocumentFieldsMutation.isPending}
+                disabled={signatoryFieldDisabled}
                 className="h-auto min-h-11 w-full justify-between rounded-xl border-zinc-200 bg-white px-3 py-2 text-left text-xs font-normal dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <span className="min-w-0 truncate">
@@ -619,6 +796,33 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               </div>
             </PopoverContent>
           </Popover>
+        </div>
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <CommitteePicker
+            label="Panitia Penghapusan"
+            description="Muncul pada lampiran SK Panitia Penghapusan."
+            employees={employees}
+            selectedIds={panitiaIds}
+            disabled={signatoryFieldDisabled}
+            onChange={(ids) => updateDocumentFieldsMutation.mutate({ signatories: { panitia: ids } })}
+          />
+          <CommitteePicker
+            label="Panitia Penaksir Harga"
+            description="Muncul pada lampiran SK Panitia Penaksir dan Surat Tugas."
+            employees={employees}
+            selectedIds={timPenilaiIds}
+            disabled={signatoryFieldDisabled}
+            onChange={(ids) => updateDocumentFieldsMutation.mutate({ signatories: { tim_penilai: ids } })}
+          />
+          <CommitteePicker
+            label="Tim Pemeriksa"
+            description="Muncul pada Surat Tugas dan BA Pemeriksaan."
+            employees={employees}
+            selectedIds={pemeriksaIds}
+            disabled={signatoryFieldDisabled}
+            onChange={(ids) => updateDocumentFieldsMutation.mutate({ signatories: { pemeriksa: ids } })}
+          />
         </div>
       </div>
 
