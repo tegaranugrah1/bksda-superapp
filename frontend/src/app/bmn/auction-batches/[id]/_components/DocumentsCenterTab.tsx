@@ -139,10 +139,22 @@ const documentNumberPrefixes: Record<string, string> = {
   permohonan_kpknl: "S.",
 };
 
+const DEFAULT_GENERAL_KAP = "KAP.06.01";
+const DEFAULT_SK_KAP = "KAP.05.01";
+
 const defaultDocumentKaps: Record<string, string> = {
-  sptjm: "BALAI",
-  sptj_limit: "BALAI",
-  sp_tugas: "BALAI",
+  ba_koreksi: DEFAULT_GENERAL_KAP,
+  sk_penghentian: DEFAULT_SK_KAP,
+  sk_panitia: DEFAULT_SK_KAP,
+  sk_tim_penilai: DEFAULT_GENERAL_KAP,
+  sk_kebenaran: DEFAULT_GENERAL_KAP,
+  sptjm: DEFAULT_GENERAL_KAP,
+  sptj_limit: DEFAULT_GENERAL_KAP,
+  sp_tugas: DEFAULT_GENERAL_KAP,
+  ba_pemeriksaan: DEFAULT_GENERAL_KAP,
+  surat_tugas_pemeriksaan_penilaian: DEFAULT_GENERAL_KAP,
+  nota_dinas: DEFAULT_GENERAL_KAP,
+  permohonan_kpknl: DEFAULT_GENERAL_KAP,
 };
 
 const getEmployeeName = (employee: Employee) => employee.nama_lengkap || employee.name || "-";
@@ -319,6 +331,10 @@ function buildDocumentNumberPreview(documentKey: string, number: string, kap: st
   const prefix = documentNumberPrefixes[documentKey] || "";
 
   return `${prefix}${number || "____"}/K.18/TU/${kap || "____"}/B/${monthSuffix}`;
+}
+
+function isLegacyKapPlaceholder(value: unknown) {
+  return typeof value === "string" && ["balai", "bksda", "bksda kaltim"].includes(value.trim().toLowerCase());
 }
 
 export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }: DocumentsCenterTabProps) {
@@ -657,7 +673,11 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   const signatoryFieldDisabled = batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || isLoadingEmployees;
 
   const getDocumentNumber = (key: string, fallback = "____") => meta.document_numbers?.[key] || fallback;
-  const getDocumentKap = (key: string, fallback = defaultDocumentKaps[key] || "Balai") => meta.document_kaps?.[key] || fallback;
+  const getDocumentKap = (key: string, fallback = defaultDocumentKaps[key] || DEFAULT_GENERAL_KAP) => {
+    const value = meta.document_kaps?.[key];
+
+    return value && !isLegacyKapPlaceholder(value) ? value : fallback;
+  };
   const getDocumentDate = (key: string) => meta.document_dates?.[key] || "";
 
   const stNumber = getDocumentNumber("surat_tugas_pemeriksaan_penilaian");
@@ -891,7 +911,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               const documentFieldDisabled = batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || waitingForValuation;
               const documentNumber = doc.numberKey ? meta.document_numbers?.[doc.numberKey] ?? "" : "";
               const documentKap = doc.numberKey
-                ? getDocumentKap(doc.numberKey, defaultDocumentKaps[doc.numberKey] || defaultDocumentKaps[doc.key] || "Balai")
+                ? getDocumentKap(doc.numberKey, defaultDocumentKaps[doc.numberKey] || defaultDocumentKaps[doc.key] || DEFAULT_GENERAL_KAP)
                 : "";
               const documentDate = doc.dateKey ? meta.document_dates?.[doc.dateKey] ?? "" : "";
 
@@ -1157,13 +1177,13 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             />
           )}
           {printingDocKey === "sptjm" && (
-            <SptjmDocument number={getDocumentNumber("sptjm", "01")} kap={getDocumentKap("sptjm", "BALAI")} kepalaBalai={kepalaBalai} />
+            <SptjmDocument number={getDocumentNumber("sptjm", "01")} kap={getDocumentKap("sptjm")} kepalaBalai={kepalaBalai} />
           )}
           {printingDocKey === "sptj_limit" && (
-            <SptjLimitDocument number={getDocumentNumber("sptj_limit", "01")} kap={getDocumentKap("sptj_limit", "BALAI")} kepalaBalai={kepalaBalai} />
+            <SptjLimitDocument number={getDocumentNumber("sptj_limit", "01")} kap={getDocumentKap("sptj_limit")} kepalaBalai={kepalaBalai} />
           )}
           {printingDocKey === "sp_tugas" && (
-            <SpTugasDocument number={getDocumentNumber("sp_tugas", "01")} kap={getDocumentKap("sp_tugas", "BALAI")} kepalaBalai={kepalaBalai} />
+            <SpTugasDocument number={getDocumentNumber("sp_tugas", "01")} kap={getDocumentKap("sp_tugas")} kepalaBalai={kepalaBalai} />
           )}
         </div>
       )}
