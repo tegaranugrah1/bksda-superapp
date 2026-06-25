@@ -265,7 +265,7 @@ export function AssetLampiranLandscapeTable({
   const renderSignature = () => (
       <div className={`${prefix}lamp-ttd`}>
         <p>Kepala Balai,</p>
-        <div className={`${prefix}lamp-ttd-placeholder`}></div>
+        <div className={`${prefix}lamp-ttd-placeholder`}>${"{ttd_pengirim}"}</div>
         <p className={`${prefix}lamp-ttd-name`}>{kepalaBalai.nama}</p>
         <p>NIP. {kepalaBalai.nip}</p>
       </div>

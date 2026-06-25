@@ -363,7 +363,7 @@ export function SkPenghentianDocument({
   const renderAttachmentSignature = (measure = false) => (
     <div className="sk-lampiran-ttd signature mt-10 ml-auto w-80" data-sk-measure={measure ? "signature" : undefined}>
       <p className="m-0">Kepala Balai,</p>
-      <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400"></div>
+      <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
       <p className="m-0 mt-8">{kepalaBalai.nama}</p>
       <p className="m-0">NIP. {kepalaBalai.nip}</p>
     </div>
@@ -758,7 +758,7 @@ export function SkPenghentianDocument({
                 <span>{formatDateLong(today)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
-              <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400"></div>
+              <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
               <p className="sk-signature-name m-0 mt-8">{kepalaBalai.nama}</p>
               <p className="m-0">NIP. {kepalaBalai.nip}</p>
             </div>

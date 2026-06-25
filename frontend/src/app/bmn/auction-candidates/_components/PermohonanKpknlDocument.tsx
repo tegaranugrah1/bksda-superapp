@@ -232,7 +232,7 @@ export function PermohonanKpknlDocument({
 
         <div className="pkpknl-ttd">
           <p>Kepala Balai,</p>
-          <div className="pkpknl-ttd-placeholder"></div>
+          <div className="pkpknl-ttd-placeholder">${"{ttd_pengirim}"}</div>
           <p className="pkpknl-ttd-name">{kepalaBalai.nama}</p>
           <p>NIP. {kepalaBalai.nip}</p>
         </div>

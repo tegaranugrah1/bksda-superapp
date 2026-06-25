@@ -405,6 +405,13 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   const meta = context.metadata || {};
   const currentKepalaBalaiId = String(context.kepala_balai_id || batch.kepala_balai_id || meta.signatories?.kepala_balai?.id || "");
   const selectedKepalaBalai = employees.find((employee) => String(employee.id) === currentKepalaBalaiId) || null;
+  const defaultKepalaBalai =
+    employees.find((employee) => {
+      const position = getEmployeePosition(employee).toLowerCase();
+
+      return position.includes("kepala balai") && !position.includes("seksi") && !position.includes("subbagian");
+    }) || null;
+  const printKepalaBalai = selectedKepalaBalai || defaultKepalaBalai;
   const filteredKepalaBalaiEmployees = employees.filter((employee) => {
     const query = kepalaSearch.trim().toLowerCase();
     if (!query) return true;
@@ -415,9 +422,10 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   });
 
   const kepalaBalai = {
-    nama: meta.signatories?.kepala_balai?.nama || (selectedKepalaBalai ? getEmployeeName(selectedKepalaBalai) : "-"),
-    nip: meta.signatories?.kepala_balai?.nip || selectedKepalaBalai?.nip || "",
+    nama: meta.signatories?.kepala_balai?.nama || (printKepalaBalai ? getEmployeeName(printKepalaBalai) : "-"),
+    nip: meta.signatories?.kepala_balai?.nip || printKepalaBalai?.nip || "",
   };
+  const hasPrintableKepalaBalai = kepalaBalai.nama !== "-";
 
   const panitiaList = meta.committees?.panitia_penghapusan || [];
   const timPenilaiList = meta.committees?.tim_penilai || [];
@@ -554,7 +562,11 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                 className="h-auto min-h-11 w-full justify-between rounded-xl border-zinc-200 bg-white px-3 py-2 text-left text-xs font-normal dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <span className="min-w-0 truncate">
-                  {selectedKepalaBalai ? getEmployeeLabel(selectedKepalaBalai) : "-- Pilih Kepala Balai --"}
+                  {selectedKepalaBalai
+                    ? getEmployeeLabel(selectedKepalaBalai)
+                    : defaultKepalaBalai
+                    ? `${getEmployeeLabel(defaultKepalaBalai)} (default)`
+                    : "-- Pilih Kepala Balai --"}
                 </span>
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-zinc-400" />
               </Button>
@@ -771,7 +783,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                     <Button
                       onClick={() => handlePrint(doc)}
                       className="flex items-center gap-1.5 rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
-                      disabled={!!printingDocKey || !doc.printable || waitingForValuation}
+                      disabled={!!printingDocKey || !doc.printable || waitingForValuation || isLoadingEmployees || !hasPrintableKepalaBalai}
                     >
                       {isPrintingThis ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
                       {isPrintingThis ? "Menyiapkan..." : "Cetak Dokumen"}
