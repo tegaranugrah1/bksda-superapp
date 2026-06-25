@@ -303,6 +303,7 @@ class AuctionBatchController extends Controller
             'batch_number' => $batch->batch_number,
             'name' => $batch->name,
             'status' => $batch->status instanceof AuctionBatchStatus ? $batch->status->value : $batch->status,
+            'kepala_balai_id' => $batch->kepala_balai_id,
             'no_surat_persetujuan' => $batch->no_surat_persetujuan,
             'tanggal_surat_persetujuan' => $batch->tanggal_surat_persetujuan ? $batch->tanggal_surat_persetujuan->toDateString() : null,
             'no_surat_penetapan' => $batch->no_surat_penetapan,

@@ -252,7 +252,7 @@ export function NotaDinasDocument({
         </div>
 
         <div className="nd-ttd">
-          <div className="nd-ttd-placeholder">${"{ttd_pengirim}"}</div>
+          <div className="nd-ttd-placeholder"></div>
           <p className="nd-ttd-name">{kepalaBalai.nama}</p>
           <p>NIP. {kepalaBalai.nip}</p>
         </div>

@@ -543,7 +543,7 @@ export function SkPanitiaDocument({
                 <span>{formatDateLong(today)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
-              <div className="skp-ttd-placeholder mt-3 h-20 box-border pt-7 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+              <div className="skp-ttd-placeholder mt-3 h-20 box-border pt-7 pl-[1.35cm] text-zinc-400"></div>
               <p className="skp-signature-name m-0 mt-4">{kepalaBalai.nama}</p>
               <p className="m-0">NIP. {kepalaBalai.nip}</p>
             </div>
@@ -623,7 +623,7 @@ export function SkPanitiaDocument({
           {/* TTD */}
           <div className="skp-ttd signature mt-16 ml-auto w-80">
             <p className="m-0">Kepala Balai,</p>
-            <div className="skp-ttd-placeholder mt-4 h-24 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+            <div className="skp-ttd-placeholder mt-4 h-24 box-border pt-10 pl-[1.35cm] text-zinc-400"></div>
             <p className="skp-signature-name m-0 mt-4">{kepalaBalai.nama}</p>
             <p className="m-0">NIP. {kepalaBalai.nip}</p>
           </div>

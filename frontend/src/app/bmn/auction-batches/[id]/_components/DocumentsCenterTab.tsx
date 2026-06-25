@@ -403,7 +403,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   // Convert context data structures to fit expectations of imported candidate templates
   const mappedAssets = context.assets || [];
   const meta = context.metadata || {};
-  const currentKepalaBalaiId = String(batch.kepala_balai_id || meta.signatories?.kepala_balai?.id || "");
+  const currentKepalaBalaiId = String(context.kepala_balai_id || batch.kepala_balai_id || meta.signatories?.kepala_balai?.id || "");
   const selectedKepalaBalai = employees.find((employee) => String(employee.id) === currentKepalaBalaiId) || null;
   const filteredKepalaBalaiEmployees = employees.filter((employee) => {
     const query = kepalaSearch.trim().toLowerCase();
