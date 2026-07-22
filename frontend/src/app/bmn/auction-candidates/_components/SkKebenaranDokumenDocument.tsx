@@ -61,7 +61,7 @@ export function handlePrintSkKebenaran() {
           table.kebenaran-table thead th { font-weight: bold; }
           .signature { width: 20rem; margin-left: auto; margin-top: 1.5rem; break-inside: avoid; page-break-inside: avoid; }
           .signature p { margin: 0; padding: 0; line-height: 1.3; }
-          .ttd-placeholder { box-sizing: border-box; height: 96px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; margin-top: 1rem; margin-bottom: 0.5rem; }
+          .ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; color: #94a3b8; margin-top: 0.5rem; margin-bottom: 0.5rem; }
           .doc-editable { outline: none; border-bottom: none !important; }
         </style>
       </head>

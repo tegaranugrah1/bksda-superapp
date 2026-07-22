@@ -103,8 +103,8 @@ export function handlePrintBa(orderedSelectedAssets: AuctionAsset[]) {
           .attachment-signature { margin-top: 1.5rem; }
           .signature p { margin: 0; padding: 0; line-height: 1.15; }
           .signature p.ttd-spacer-top { margin-top: 2rem !important; }
-          .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; margin-top: 2rem; margin-bottom: 2rem; }
-          .attachment-signature .ttd-placeholder { height: 92px; padding-top: 30px; margin-top: 2rem; margin-bottom: 2rem; }
+          .ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; color: #94a3b8; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+          .attachment-signature .ttd-placeholder { height: 60px; padding-top: 0px; margin-top: 0.5rem; margin-bottom: 0.5rem; }
           .ba-editable { outline: none; border-bottom: none !important; }
           .ba-measurement { display: none !important; }
         </style>
@@ -225,8 +225,8 @@ function AttachmentSignature({ kepalaBalai }: { kepalaBalai: SkKepalaBalai }) {
   return (
     <div className="signature attachment-signature mt-6 ml-auto w-80">
       <p className="m-0">Kepala Balai,</p>
-      <div className="ttd-placeholder mt-8 h-[92px] box-border pt-[30px] pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-      <p className="m-0 mt-8">{kepalaBalai.nama}</p>
+      <div className="ttd-placeholder my-2 h-15 box-border pt-0 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+      <p className="m-0 mt-1">{kepalaBalai.nama}</p>
       <p className="m-0">NIP. {kepalaBalai.nip}</p>
     </div>
   );
@@ -612,8 +612,8 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { a
           .ba-asset-table tr { break-inside: avoid; page-break-inside: avoid; }
           .ba-continuation-spacer { height: 8mm; }
           .attachment-signature { margin-top: 1.5rem !important; break-inside: avoid; page-break-inside: avoid; }
-          .attachment-signature .ttd-placeholder { height: 92px !important; padding-top: 30px !important; margin-top: 2rem !important; margin-bottom: 2rem !important; }
-          .signature .ttd-placeholder { margin-top: 2rem !important; margin-bottom: 2rem !important; }
+          .attachment-signature .ttd-placeholder { height: 60px !important; padding-top: 0px !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+          .signature .ttd-placeholder { margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
           .ba-measurement { display: none !important; }
         }
       `}</style>
@@ -713,11 +713,11 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { a
           >
             Kepala Balai,
           </p>
-          <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+          <div className="ttd-placeholder my-2 h-15 box-border pt-0 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
           <p
             contentEditable="true"
             suppressContentEditableWarning
-            className="ba-editable m-0 mt-8"
+            className="ba-editable m-0 mt-1"
           >
             {kepalaBalai.nama}
           </p>
