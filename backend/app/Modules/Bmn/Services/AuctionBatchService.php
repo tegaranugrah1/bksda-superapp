@@ -454,6 +454,13 @@ class AuctionBatchService
                 );
             }
 
+            if (array_key_exists('document_kaps', $payload)) {
+                $metadata['document_kaps'] = array_replace(
+                    $metadata['document_kaps'] ?? [],
+                    $payload['document_kaps'] ?? []
+                );
+            }
+
             if (array_key_exists('document_dates', $payload)) {
                 $metadata['document_dates'] = array_replace(
                     $metadata['document_dates'] ?? [],

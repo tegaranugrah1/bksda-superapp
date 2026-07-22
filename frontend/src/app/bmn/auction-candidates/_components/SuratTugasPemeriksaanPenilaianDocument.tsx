@@ -122,7 +122,7 @@ export function SuratTugasPemeriksaanPenilaianDocument({
           <div className="signature">
             <p>Samarinda, {formatDateLong(today)}</p>
             <p>Kepala Balai,</p>
-            <div className="ttd-placeholder">TTD</div>
+            <div className="ttd-placeholder">${"{ttd_pengirim}"}</div>
             <p style={{ fontWeight: 700, textDecoration: "underline" }}>{kepalaBalai.nama || "________________"}</p>
             {kepalaBalai.nip && <p>NIP. {kepalaBalai.nip}</p>}
           </div>

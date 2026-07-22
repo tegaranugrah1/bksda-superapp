@@ -351,6 +351,9 @@ class AuctionBatchTest extends TestCase
                 'document_numbers' => [
                     'existing' => 'EX-001',
                 ],
+                'document_kaps' => [
+                    'existing' => 'KAP.OLD',
+                ],
                 'signatories_raw' => [
                     'panitia' => ['old-member'],
                 ],
@@ -365,6 +368,9 @@ class AuctionBatchTest extends TestCase
             ],
             'document_numbers' => [
                 'nota_dinas' => 'ND-001/BMN',
+            ],
+            'document_kaps' => [
+                'nota_dinas' => 'KAP.06.01',
             ],
             'document_dates' => [
                 'nota_dinas' => '2026-06-24',
@@ -391,6 +397,8 @@ class AuctionBatchTest extends TestCase
         $this->assertSame('keep-me', $metadata['custom_key']);
         $this->assertSame('EX-001', $metadata['document_numbers']['existing']);
         $this->assertSame('ND-001/BMN', $metadata['document_numbers']['nota_dinas']);
+        $this->assertSame('KAP.OLD', $metadata['document_kaps']['existing']);
+        $this->assertSame('KAP.06.01', $metadata['document_kaps']['nota_dinas']);
         $this->assertSame([$this->panitiaMember->id], $metadata['signatories_raw']['panitia']);
         $this->assertSame([$this->timPenilaiMember->id], $metadata['signatories_raw']['tim_penilai']);
         $this->assertSame('completed', $metadata['workflow']['documents']['sk_penghentian']['status']);
@@ -486,6 +494,9 @@ class AuctionBatchTest extends TestCase
             'document_numbers' => [
                 'surat_tugas' => 'ST/001/BMN',
             ],
+            'document_kaps' => [
+                'surat_tugas' => 'KAP.06.01',
+            ],
             'document_dates' => [
                 'surat_tugas' => '2026-06-22',
             ],
@@ -526,6 +537,9 @@ class AuctionBatchTest extends TestCase
             ],
             'document_numbers' => [
                 'surat_tugas' => 'ST/001/BMN',
+            ],
+            'document_kaps' => [
+                'surat_tugas' => 'KAP.06.01',
             ],
             'document_dates' => [
                 'surat_tugas' => '2026-06-22',
@@ -860,6 +874,9 @@ class AuctionBatchTest extends TestCase
             'document_numbers' => [
                 'surat_tugas' => 'ST/001/BMN',
             ],
+            'document_kaps' => [
+                'surat_tugas' => 'KAP.06.01',
+            ],
             'document_dates' => [
                 'surat_tugas' => '2026-06-22',
             ],
@@ -873,6 +890,33 @@ class AuctionBatchTest extends TestCase
         $this->assertTrue($metadata['workflow']['post_valuation_complete']);
         $this->assertEquals('M. Ari Wibawanto', $metadata['signatories']['kepala_balai']['nama']);
         $this->assertEquals('Panitia Satu', $metadata['committees']['panitia_penghapusan'][0]['nama']);
+        $this->assertEquals('KAP.06.01', $metadata['document_kaps']['surat_tugas']);
+    }
+
+    public function test_draft_document_context_hydrates_signatories_for_print_preview(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+            'kepala_balai_id' => $this->kepalaBalai->id,
+            'metadata' => [
+                'schema_version' => 2,
+                'signatories_raw' => [
+                    'panitia' => [$this->panitiaMember->id],
+                    'tim_penilai' => [$this->timPenilaiMember->id],
+                    'pemeriksa' => [$this->pemeriksaMember->id],
+                ],
+            ],
+        ]);
+
+        $response = $this->getJson("/api/bmn/auction-batches/{$batch->id}/documents/context");
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.metadata.signatories.kepala_balai.nama', 'M. Ari Wibawanto');
+        $response->assertJsonPath('data.metadata.committees.panitia_penghapusan.0.nama', 'Panitia Satu');
+        $response->assertJsonPath('data.metadata.committees.tim_penilai.0.nama', 'Penilai Satu');
+        $response->assertJsonPath('data.metadata.committees.pemeriksa.0.nama', 'Pemeriksa Satu');
     }
 
     public function test_schema_version_1_document_context_remains_readable(): void

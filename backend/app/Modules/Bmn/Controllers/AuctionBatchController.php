@@ -21,6 +21,7 @@ use App\Modules\Bmn\Resources\AuctionBatchResource;
 use App\Modules\Bmn\Resources\AuctionBatchAssetResource;
 use App\Modules\Bmn\Resources\AuctionBatchEventResource;
 use App\Modules\Bmn\Resources\AuctionCandidateAssetResource;
+use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -293,13 +294,16 @@ class AuctionBatchController extends Controller
         $batch = AuctionBatch::with(['assets' => function ($q) {
             $q->orderBy('bmn_asset_auction_batch.sort_order');
         }])->findOrFail($id);
+        $metadata = is_array($batch->metadata) ? $batch->metadata : [];
+        $metadata = $this->hydrateDraftDocumentMetadata($metadata, $batch);
 
         $context = [
-            'metadata_schema_version' => $batch->metadata['schema_version'] ?? 1,
+            'metadata_schema_version' => $metadata['schema_version'] ?? 1,
             'batch_id' => $batch->id,
             'batch_number' => $batch->batch_number,
             'name' => $batch->name,
             'status' => $batch->status instanceof AuctionBatchStatus ? $batch->status->value : $batch->status,
+            'kepala_balai_id' => $batch->kepala_balai_id,
             'no_surat_persetujuan' => $batch->no_surat_persetujuan,
             'tanggal_surat_persetujuan' => $batch->tanggal_surat_persetujuan ? $batch->tanggal_surat_persetujuan->toDateString() : null,
             'no_surat_penetapan' => $batch->no_surat_penetapan,
@@ -307,13 +311,97 @@ class AuctionBatchController extends Controller
             'no_surat_jadwal_ulang' => $batch->no_surat_jadwal_ulang,
             'tanggal_lelang_ulang' => $batch->tanggal_lelang_ulang ? $batch->tanggal_lelang_ulang->toDateString() : null,
             'reauction_count' => $batch->reauction_count,
-            'metadata' => $batch->metadata,
+            'metadata' => $metadata,
             'assets' => AuctionBatchAssetResource::collection($batch->assets),
         ];
 
         return response()->json([
             'data' => $context,
         ]);
+    }
+
+    /**
+     * Draft metadata stores selected employee ids, while frozen printable
+     * metadata is only built when the batch is locked. Hydrate the printable
+     * shape here so draft previews still show signatures and committees.
+     *
+     * @param array<string, mixed> $metadata
+     * @return array<string, mixed>
+     */
+    private function hydrateDraftDocumentMetadata(array $metadata, AuctionBatch $batch): array
+    {
+        if (!$batch->isDraft()) {
+            return $metadata;
+        }
+
+        $signatories = isset($metadata['signatories']) && is_array($metadata['signatories'])
+            ? $metadata['signatories']
+            : [];
+
+        if (empty($signatories['kepala_balai']) && $batch->kepala_balai_id) {
+            $signatories['kepala_balai'] = $this->mapEmployee(Employee::find($batch->kepala_balai_id));
+        }
+
+        if (!empty($signatories)) {
+            $metadata['signatories'] = $signatories;
+        }
+
+        $raw = isset($metadata['signatories_raw']) && is_array($metadata['signatories_raw'])
+            ? $metadata['signatories_raw']
+            : [];
+
+        if (!empty($raw)) {
+            $metadata['committees'] = array_replace($metadata['committees'] ?? [], [
+                'panitia_penghapusan' => $this->mapEmployeesByIds($raw['panitia'] ?? []),
+                'tim_penilai' => $this->mapEmployeesByIds($raw['tim_penilai'] ?? []),
+                'pemeriksa' => $this->mapEmployeesByIds($raw['pemeriksa'] ?? []),
+            ]);
+        }
+
+        return $metadata;
+    }
+
+    /**
+     * @param array<int, mixed> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapEmployeesByIds(array $ids): array
+    {
+        $ids = array_values(array_filter($ids, fn($id) => $id !== null && $id !== ''));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $employees = Employee::whereIn('id', $ids)
+            ->get()
+            ->keyBy(fn(Employee $employee) => (string) $employee->id);
+
+        return collect($ids)
+            ->map(fn($id) => $this->mapEmployee($employees->get((string) $id)))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function mapEmployee(?Employee $employee): ?array
+    {
+        if (!$employee) {
+            return null;
+        }
+
+        return [
+            'id' => $employee->id,
+            'nama' => $employee->nama_lengkap,
+            'nip' => $employee->nip,
+            'golongan' => $employee->pangkat_golongan,
+            'jabatan' => $employee->jabatan,
+            'unit_kerja' => $employee->satuan_kerja,
+            'source' => 'employees',
+        ];
     }
 
     /**

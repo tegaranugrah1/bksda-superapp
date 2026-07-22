@@ -174,6 +174,7 @@ export interface UpdateAuctionDraftMetadataPayload {
     pemeriksa?: string[];
   };
   document_numbers?: Record<string, string | null>;
+  document_kaps?: Record<string, string | null>;
   document_dates?: Record<string, string | null>;
   workflow?: {
     documents?: Record<

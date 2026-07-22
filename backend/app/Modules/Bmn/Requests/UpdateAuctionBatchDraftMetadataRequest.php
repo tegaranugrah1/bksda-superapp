@@ -29,6 +29,8 @@ class UpdateAuctionBatchDraftMetadataRequest extends FormRequest
             'signatories.pemeriksa.*' => ['nullable'],
             'document_numbers' => ['nullable', 'array'],
             'document_numbers.*' => ['nullable', 'string', 'max:255'],
+            'document_kaps' => ['nullable', 'array'],
+            'document_kaps.*' => ['nullable', 'string', 'max:255'],
             'document_dates' => ['nullable', 'array'],
             'document_dates.*' => ['nullable', 'date'],
             'workflow' => ['nullable', 'array'],
