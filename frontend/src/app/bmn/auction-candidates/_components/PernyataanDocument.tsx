@@ -38,7 +38,8 @@ export function PernyataanDocument({
         .${rootId} .doc-editable:hover { border-bottom-color: #94a3b8; }
         .${rootId} .doc-editable:focus { border-bottom-color: #64748b; }
         @media print {
-          @page { size: A4; margin: 0 0 28mm 0; }
+          @page { size: A4; margin: 20mm 0 28mm 0; }
+          @page :first { margin-top: 0; }
           body * { visibility: hidden; }
           .${rootId}, .${rootId} * { visibility: visible; }
           .${rootId} {
@@ -52,6 +53,7 @@ export function PernyataanDocument({
           .doc-header img { max-width: 196mm !important; }
           .doc-body { width: 166mm; margin-left: auto; margin-right: auto; }
           .doc-editable { border-bottom: none !important; }
+          .signature { break-inside: avoid; page-break-inside: avoid; }
         }
       `}</style>
 
@@ -76,8 +78,8 @@ export function PernyataanDocument({
         <div className="signature mt-6 ml-auto w-80">
           <p className="m-0">Samarinda, {formatDateLong(today)}</p>
           <p className="m-0">Kepala Balai,</p>
-          <div className="ttd-placeholder mt-8 box-border h-28 pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-          <p contentEditable suppressContentEditableWarning className="doc-editable m-0 mt-8">{kepalaBalai.nama}</p>
+          <div className="ttd-placeholder mt-8 box-border h-28 pt-10 pl-[1.35cm] text-zinc-400"></div>
+          <p contentEditable suppressContentEditableWarning className="doc-editable m-0">{kepalaBalai.nama}</p>
           <p contentEditable suppressContentEditableWarning className="doc-editable m-0">NIP. {kepalaBalai.nip}</p>
         </div>
       </article>
