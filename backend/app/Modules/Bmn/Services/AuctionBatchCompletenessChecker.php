@@ -31,13 +31,10 @@ class AuctionBatchCompletenessChecker
         $metadata = $this->mergedMetadata($batch, $payload);
 
         $assetsPresent = $assetsCount > 0;
-        $allLotNumbersPresent = $assetsPresent;
+        $allLotNumbersPresent = true;
         $allValuationsPositive = $assetsPresent;
 
         foreach ($assets as $asset) {
-            if (empty($asset->pivot->lot_number)) {
-                $allLotNumbersPresent = false;
-            }
 
             if (is_null($asset->pivot->nilai_taksiran) || $asset->pivot->nilai_taksiran <= 0) {
                 $allValuationsPositive = false;
@@ -124,7 +121,7 @@ class AuctionBatchCompletenessChecker
             $this->section('contracts', 'Kontrak Sistem', $contractItems),
         ];
 
-        $canEnterValuation = $sections[0]['complete'] && $sections[1]['complete'];
+        $canEnterValuation = $assetsPresent;
         $canCompletePostValuationDocuments = $sections[2]['complete'];
 
         $sections[4]['items'] = [
