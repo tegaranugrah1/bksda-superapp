@@ -379,6 +379,9 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
       {activeAsset && isVehicleAsset(activeAsset) && (
         <Dialog open={!!activeAsset} onOpenChange={() => setActiveAsset(null)}>
           <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] rounded-2xl max-h-[94vh] overflow-y-auto">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Kertas Kerja Penaksiran Kendaraan</DialogTitle>
+            </DialogHeader>
             <KertasKerjaAssetSection
               asset={toWorksheetAsset(activeAsset)}
               worksheetNumber={Number(activeAsset.pivot?.lot_number) || 1}
