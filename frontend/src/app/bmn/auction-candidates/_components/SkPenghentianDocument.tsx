@@ -385,7 +385,7 @@ export function SkPenghentianDocument({
 }: SkPenghentianDocumentProps) {
   const docDate = parseDocDate(date);
   const month = String(docDate.getMonth() + 1).padStart(2, "0");
-  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${docDate.getFullYear()}`;
+  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.06.01"}/B/${month}/${docDate.getFullYear()}`;
   const totalNilai = assets.reduce((sum, a) => sum + (a.nilai_perolehan || 0), 0);
 
   const measurementRef = useRef<HTMLDivElement>(null);

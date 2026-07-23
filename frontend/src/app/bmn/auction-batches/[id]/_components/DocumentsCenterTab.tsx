@@ -140,7 +140,7 @@ const documentNumberPrefixes: Record<string, string> = {
 };
 
 const DEFAULT_GENERAL_KAP = "KAP.06.01";
-const DEFAULT_SK_KAP = "KAP.05.01";
+const DEFAULT_SK_KAP = "KAP.06.01";
 
 const defaultDocumentKaps: Record<string, string> = {
   ba_koreksi: DEFAULT_GENERAL_KAP,
@@ -676,7 +676,10 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   const getDocumentKap = (key: string, fallback = defaultDocumentKaps[key] || DEFAULT_GENERAL_KAP) => {
     const value = meta.document_kaps?.[key];
 
-    return value && !isLegacyKapPlaceholder(value) ? value : fallback;
+    if (!value || isLegacyKapPlaceholder(value) || value === "KAP.05.01") {
+      return fallback;
+    }
+    return value;
   };
   const getDocumentDate = (key: string) => meta.document_dates?.[key] || "";
 

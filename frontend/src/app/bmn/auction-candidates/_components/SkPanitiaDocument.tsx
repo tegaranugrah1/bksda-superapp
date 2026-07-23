@@ -224,7 +224,7 @@ export function SkPanitiaDocument({
 }: SkPanitiaDocumentProps) {
   const docDate = parseDocDate(date);
   const month = String(docDate.getMonth() + 1).padStart(2, "0");
-  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${docDate.getFullYear()}`;
+  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.06.01"}/B/${month}/${docDate.getFullYear()}`;
 
   const mengingatTexts = mengingat.map((m) => m.text);
 
