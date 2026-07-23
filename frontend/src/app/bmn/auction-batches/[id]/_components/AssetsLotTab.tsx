@@ -478,33 +478,33 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
 
       {/* Add Assets Modal Dialog */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="max-w-3xl rounded-2xl flex flex-col max-h-[85vh]">
+        <DialogContent className="w-full sm:max-w-6xl max-w-[calc(100vw-2rem)] rounded-2xl flex flex-col max-h-[88vh] p-6 gap-4 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
               Tambah Aset Baru
             </DialogTitle>
-            <DialogDescription className="text-sm text-zinc-555 dark:text-zinc-400">
+            <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400">
               Pilih aset rusak berat yang tidak aktif di paket lain untuk ditambahkan ke paket lelang ini.
             </DialogDescription>
           </DialogHeader>
 
           {/* Search bar inside modal */}
-          <form onSubmit={handleModalSearchSubmit} className="flex gap-2 py-2">
+          <form onSubmit={handleModalSearchSubmit} className="flex gap-2 py-1">
             <div className="relative flex-1">
-              <Search className="absolute top-2.5 left-3 h-4 w-4 text-zinc-450" />
+              <Search className="absolute top-2.5 left-3 h-4 w-4 text-zinc-400" />
               <Input
                 type="text"
-                placeholder="Cari nama aset, kode barang..."
+                placeholder="Cari nama aset, kode barang, NUP..."
                 value={modalSearch}
                 onChange={(e) => setModalSearch(e.target.value)}
-                className="pl-9 rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-emerald-500 h-9"
+                className="pl-9 rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-emerald-500 h-9 text-xs"
               />
             </div>
             <Button
               type="submit"
               variant="outline"
               size="sm"
-              className="rounded-xl flex items-center gap-1.5 h-9"
+              className="rounded-xl flex items-center gap-1.5 h-9 text-xs px-4"
             >
               Cari
             </Button>
@@ -512,28 +512,30 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
 
           {/* Modal Table body */}
           <div className="flex-1 overflow-y-auto border border-zinc-100 dark:border-zinc-800 rounded-xl">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800">
-                <tr className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  <th className="w-12 px-4 py-2.5 text-center">Pilih</th>
-                  <th className="px-4 py-2.5">Identitas Aset</th>
-                  <th className="px-4 py-2.5">Status Dokumen</th>
-                  <th className="px-4 py-2.5 text-right">Nilai Perolehan</th>
+                <tr className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  <th className="w-12 px-4 py-3 text-center">Pilih</th>
+                  <th className="px-4 py-3">Identitas Aset</th>
+                  <th className="px-4 py-3">Merk / Tipe / Polisi</th>
+                  <th className="px-4 py-3 text-center">Kondisi</th>
+                  <th className="px-4 py-3 text-center">Status Dokumen</th>
+                  <th className="px-4 py-3 text-right">Nilai Perolehan</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60 text-xs">
                 {isLoadingCandidates ? (
                   <tr>
-                    <td colSpan={4} className="p-10 text-center">
+                    <td colSpan={6} className="p-12 text-center">
                       <Loader2 className="mx-auto h-5 w-5 animate-spin text-emerald-600" />
-                      <p className="text-xs text-zinc-400 mt-1">Memuat kandidat aset...</p>
+                      <p className="text-xs text-zinc-400 mt-2">Memuat kandidat aset...</p>
                     </td>
                   </tr>
                 ) : candidates.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-10 text-center">
+                    <td colSpan={6} className="p-12 text-center">
                       <Package className="mx-auto h-8 w-8 text-zinc-300 dark:text-zinc-700" />
-                      <p className="text-xs text-zinc-400 mt-1">Tidak ada kandidat aset tersedia.</p>
+                      <p className="text-xs text-zinc-400 mt-2">Tidak ada kandidat aset tersedia.</p>
                     </td>
                   </tr>
                 ) : (
@@ -544,8 +546,8 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                       return (
                         <tr
                           key={asset.id}
-                          className={`transition-colors hover:bg-zinc-50/50 dark:hover:bg-zinc-900/40 cursor-pointer ${
-                            isSelected ? "bg-emerald-50/10 dark:bg-emerald-950/5" : ""
+                          className={`transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-900/40 cursor-pointer ${
+                            isSelected ? "bg-emerald-50/20 dark:bg-emerald-950/20" : ""
                           }`}
                           onClick={() => toggleModalSelect(asset.id)}
                         >
@@ -559,19 +561,34 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                             <div className="font-semibold text-zinc-900 dark:text-zinc-100">
                               {asset.nama_barang}
                             </div>
-                            <div className="mt-0.5 flex items-center gap-1 font-mono text-[9px] text-zinc-500">
-                              <span className="font-bold text-red-700">{asset.kode_barang}</span>
+                            <div className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-zinc-500">
+                              <span className="font-bold text-red-700 dark:text-red-400">{asset.kode_barang}</span>
                               <span>•</span>
                               <span>NUP: {asset.nup}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3">
+                            <div className="font-medium text-zinc-800 dark:text-zinc-200">
+                              {asset.merk_tipe || "-"}
+                            </div>
+                            {asset.no_polisi && (
+                              <div className="text-[10px] font-mono text-zinc-500 mt-0.5">
+                                Polisi: {asset.no_polisi}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                              {asset.kondisi || "Rusak Berat"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
                             {asset.requires_document_review ? (
-                              <span className="inline-flex items-center gap-0.5 bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-full text-[9px] font-semibold">
+                              <span className="inline-flex items-center gap-0.5 bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-900 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
                                 Review Dokumen
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full text-[9px] font-semibold">
+                              <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
                                 Ready
                               </span>
                             )}
@@ -588,12 +605,12 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
           </div>
 
           <DialogFooter className="pt-2">
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="rounded-xl">
+            <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="rounded-xl text-xs">
               Batal
             </Button>
             <Button
               onClick={handleAddSubmit}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5 text-xs"
               disabled={addAssetsMutation.isPending || modalSelectedIds.size === 0}
             >
               {addAssetsMutation.isPending ? (
