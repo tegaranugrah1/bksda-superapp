@@ -50,6 +50,7 @@ class AuctionBatch extends Model
     public function assets(): BelongsToMany
     {
         return $this->belongsToMany(Asset::class, 'bmn_asset_auction_batch', 'bmn_auction_batch_id', 'bmn_asset_id')
+            ->withTrashed()
             ->withPivot([
                 'id',
                 'lot_number',

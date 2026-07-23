@@ -46,6 +46,20 @@ interface RealizationTabProps {
   onRefetch: () => void;
 }
 
+function formatThousandsInput(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "";
+  const digitsOnly = String(value).replace(/[^\d]/g, "");
+  if (!digitsOnly) return "";
+  return new Intl.NumberFormat("id-ID").format(Number(digitsOnly));
+}
+
+function parseThousandsInput(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const digitsOnly = String(value).replace(/[^\d]/g, "");
+  if (!digitsOnly) return null;
+  return Number(digitsOnly);
+}
+
 export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabProps) {
   const router = useRouter();
   const { isSuperAdmin, isAdmin } = useRole();
@@ -86,9 +100,9 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
         const pivot = asset.pivot;
         if (pivot) {
           initialFirstSold[asset.id] = pivot.first_auction_is_sold ?? false;
-          initialFirstPrice[asset.id] = pivot.first_auction_price ? String(pivot.first_auction_price) : "";
+          initialFirstPrice[asset.id] = pivot.first_auction_price ? formatThousandsInput(pivot.first_auction_price) : "";
           initialReSold[asset.id] = pivot.reauction_is_sold ?? false;
-          initialRePrice[asset.id] = pivot.reauction_price ? String(pivot.reauction_price) : "";
+          initialRePrice[asset.id] = pivot.reauction_price ? formatThousandsInput(pivot.reauction_price) : "";
         }
       });
 
@@ -162,9 +176,9 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
     const payload = assets.map((asset) => {
       const isSold = firstAuctionSold[asset.id] || false;
       const priceStr = firstAuctionPrice[asset.id];
-      const price = parseFloat(priceStr);
+      const price = parseThousandsInput(priceStr);
 
-      if (isSold && (isNaN(price) || price < 0)) {
+      if (isSold && (price === null || price < 0)) {
         throw new Error(`Harga terbentuk wajib diisi untuk aset terjual pada Lot ${asset.pivot?.lot_number}.`);
       }
 
@@ -182,14 +196,39 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
     }
   };
 
+  const handleSaveAndFinalize = async () => {
+    try {
+      const payload = assets.map((asset) => {
+        const isSold = firstAuctionSold[asset.id] || false;
+        const priceStr = firstAuctionPrice[asset.id];
+        const price = parseThousandsInput(priceStr);
+
+        if (isSold && (price === null || price < 0)) {
+          throw new Error(`Harga terbentuk wajib diisi untuk aset terjual.`);
+        }
+
+        return {
+          bmn_asset_id: asset.id,
+          first_auction_is_sold: isSold,
+          first_auction_price: isSold ? price : null,
+        };
+      });
+
+      await recordFirstMutation.mutateAsync(payload);
+      await realizeMutation.mutateAsync();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal memfinalisasi lelang.");
+    }
+  };
+
   const handleSaveReauctionResults = () => {
     const unsoldInFirst = assets.filter((a) => !a.pivot?.first_auction_is_sold);
     const payload = unsoldInFirst.map((asset) => {
       const isSold = reauctionSold[asset.id] || false;
       const priceStr = reauctionPrice[asset.id];
-      const price = parseFloat(priceStr);
+      const price = parseThousandsInput(priceStr);
 
-      if (isSold && (isNaN(price) || price < 0)) {
+      if (isSold && (price === null || price < 0)) {
         throw new Error(`Harga terbentuk wajib diisi untuk aset terjual pada Lot ${asset.pivot?.lot_number}.`);
       }
 
@@ -309,8 +348,8 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
         )}
       </div>
 
-      {/* -------------------- 1. JADWAL_DITETAPKAN STATUS VIEW -------------------- */}
-      {batch.status === "JADWAL_DITETAPKAN" && (
+      {/* -------------------- 1. REALISASI & PENCATATAN HASIL LELANG -------------------- */}
+      {batch.status !== "REALISASI" && batch.status !== "BATAL" && (
         <div className="space-y-6">
           <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs p-6 space-y-4">
             <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
@@ -367,14 +406,17 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                         </td>
                         <td className="px-4 py-3 text-right">
                           <Input
-                            type="number"
-                            placeholder="Rp Harga Terbentuk"
+                            type="text"
+                            placeholder="0"
                             value={firstAuctionPrice[asset.id] || ""}
                             onChange={(e) =>
-                              setFirstAuctionPrice({ ...firstAuctionPrice, [asset.id]: e.target.value })
+                              setFirstAuctionPrice({
+                                ...firstAuctionPrice,
+                                [asset.id]: formatThousandsInput(e.target.value),
+                              })
                             }
                             disabled={!isSold || !canFinalize}
-                            className="h-8 text-right text-xs rounded-lg border-zinc-200 dark:border-zinc-800"
+                            className="h-8 text-right font-mono text-xs rounded-lg border-zinc-200 dark:border-zinc-800"
                           />
                         </td>
                       </tr>
@@ -385,18 +427,31 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
             </div>
 
             {canFinalize && (
-              <div className="flex justify-end pt-2">
+              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
                 <Button
+                  variant="outline"
                   onClick={handleSaveFirstResults}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold py-2 px-4 shadow-sm flex items-center gap-1.5"
-                  disabled={recordFirstMutation.isPending}
+                  className="rounded-xl text-xs font-semibold py-2 px-4 flex items-center gap-1.5 border-zinc-300"
+                  disabled={recordFirstMutation.isPending || realizeMutation.isPending}
                 >
                   {recordFirstMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Check className="h-4 w-4" />
                   )}
-                  Simpan Hasil Lelang I
+                  Simpan Draf Realisasi
+                </Button>
+                <Button
+                  onClick={handleSaveAndFinalize}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold py-2 px-4 shadow-sm flex items-center gap-1.5"
+                  disabled={recordFirstMutation.isPending || realizeMutation.isPending}
+                >
+                  {realizeMutation.isPending || recordFirstMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4" />
+                  )}
+                  Finalisasi & Selesaikan Paket Lelang
                 </Button>
               </div>
             )}
@@ -628,13 +683,15 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                     let label = "Tidak Terjual";
                     let badgeCls = "bg-zinc-100 text-zinc-850";
 
-                    if (finalResult === "SOLD_FIRST") {
+                    if (finalResult === "SOLD_FIRST" || pivot?.first_auction_is_sold) {
                       label = "Terjual Lelang I";
                       badgeCls = "bg-emerald-50 text-emerald-800 border-emerald-100";
-                    } else if (finalResult === "SOLD_REAUCTION") {
+                    } else if (finalResult === "SOLD_REAUCTION" || pivot?.reauction_is_sold) {
                       label = "Terjual Lelang II";
                       badgeCls = "bg-purple-50 text-purple-800 border-purple-100";
                     }
+
+                    const displayPrice = finalPrice ?? (pivot?.first_auction_is_sold ? pivot?.first_auction_price : pivot?.reauction_is_sold ? pivot?.reauction_price : null);
 
                     return (
                       <tr key={asset.id}>
@@ -658,7 +715,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-right font-bold text-zinc-900 dark:text-zinc-100">
-                          {finalPrice ? formatRupiah(finalPrice) : "-"}
+                          {displayPrice ? formatRupiah(displayPrice) : "-"}
                         </td>
                       </tr>
                     );
@@ -747,16 +804,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
         </div>
       )}
 
-      {/* -------------------- 5. NO DATA EMPTY STATES (DRAFT/DIAJUKAN) -------------------- */}
-      {(batch.status === "DRAFT" || batch.status === "DIAJUKAN") && (
-        <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 p-8 rounded-2xl text-center space-y-3">
-          <TrendingUp className="h-10 w-10 text-zinc-350 dark:text-zinc-700 mx-auto" />
-          <h3 className="font-bold text-sm text-zinc-800 dark:text-zinc-200">Realisasi Belum Dimulai</h3>
-          <p className="text-xs text-zinc-450 max-w-sm mx-auto">
-            Halaman pencatatan realisasi baru akan tersedia setelah Surat Persetujuan dan Penetapan Jadwal lelang eksternal terbit (status <strong>JADWAL DITETAPKAN</strong>).
-          </p>
-        </div>
-      )}
+
 
       {/* -------------------- DIALOGS -------------------- */}
 

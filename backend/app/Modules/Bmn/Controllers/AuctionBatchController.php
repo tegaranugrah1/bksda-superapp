@@ -41,7 +41,9 @@ class AuctionBatchController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AuctionBatch::query()->withCount('assets');
+        $query = AuctionBatch::query()->withCount(['assets' => function ($q) {
+            $q->withTrashed();
+        }]);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -82,7 +84,7 @@ class AuctionBatchController extends Controller
     public function show(string $id): AuctionBatchResource
     {
         $batch = AuctionBatch::with(['assets' => function ($q) {
-            $q->orderBy('bmn_asset_auction_batch.sort_order');
+            $q->withTrashed()->orderBy('bmn_asset_auction_batch.sort_order');
         }])->findOrFail($id);
 
         return new AuctionBatchResource($batch);

@@ -1031,27 +1031,6 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                         )}
                       </div>
                     )}
-                    <div className="mt-4">
-                      <label className="text-[10px] font-bold uppercase text-zinc-400">Status Workflow</label>
-                      <select
-                        value={status}
-                        disabled={workflowDisabled}
-                        onChange={(event) =>
-                          updateWorkflowMutation.mutate({
-                            workflowKey,
-                            status: event.target.value,
-                          })
-                        }
-                        className="mt-1 h-9 w-full rounded-xl border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:bg-zinc-50 disabled:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-                      >
-                        <option value="not_started">Belum mulai</option>
-                        <option value="prepared">Disiapkan</option>
-                        <option value="printed">Dicetak</option>
-                        <option value="signed">Ditandatangani</option>
-                        <option value="completed">Selesai</option>
-                        <option value="skipped">Dilewati</option>
-                      </select>
-                    </div>
                   </div>
 
                   <div className="mt-5 flex justify-end border-t border-zinc-100 pt-3 dark:border-zinc-800">

@@ -160,67 +160,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Horizontal Status Timeline */}
-        <div className="mt-6 border-t border-zinc-100 dark:border-zinc-800/60 pt-5 overflow-x-auto">
-          <div className="flex items-center min-w-[700px] justify-between px-2">
-            {isCancelled ? (
-              <div className="flex items-center w-full justify-center gap-2 text-red-650 font-bold text-sm bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-3 rounded-xl">
-                <AlertCircle className="h-4 w-4" />
-                <span>Paket ini telah dibatalkan (BATAL) dan berstatus read-only.</span>
-              </div>
-            ) : (
-              statusesOrder.map((statusKey, index) => {
-                const stepState = getStatusStepState(statusKey);
-                const isLast = index === statusesOrder.length - 1;
 
-                return (
-                  <React.Fragment key={statusKey}>
-                    {/* Step circle */}
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all border ${
-                          stepState === "completed"
-                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                            : stepState === "active"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-650 ring-2 ring-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400"
-                            : "bg-zinc-100 text-zinc-400 border-zinc-200 dark:bg-zinc-850 dark:border-zinc-800"
-                        }`}
-                      >
-                        {stepState === "completed" ? (
-                          <CheckCircle2 className="h-4.5 w-4.5" />
-                        ) : (
-                          index + 1
-                        )}
-                      </div>
-                      <span
-                        className={`text-xs font-semibold whitespace-nowrap ${
-                          stepState === "active"
-                            ? "text-emerald-700 dark:text-emerald-400 font-bold"
-                            : stepState === "completed"
-                            ? "text-zinc-800 dark:text-zinc-200"
-                            : "text-zinc-400"
-                        }`}
-                      >
-                        {getStatusLabel(statusKey as any)}
-                      </span>
-                    </div>
-
-                    {/* Connecting line */}
-                    {!isLast && (
-                      <div
-                        className={`h-0.5 flex-1 mx-4 min-w-8 rounded-full transition-colors ${
-                          stepState === "completed"
-                            ? "bg-emerald-600"
-                            : "bg-zinc-200 dark:bg-zinc-800"
-                        }`}
-                      />
-                    )}
-                  </React.Fragment>
-                );
-              })
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Main Workspace Body with Tabs */}

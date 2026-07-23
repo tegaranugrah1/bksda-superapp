@@ -656,9 +656,9 @@ class AuctionBatchService
             $actorId = $actorId ?? Auth::id();
             $batch = AuctionBatch::findOrFail($batchId);
 
-            if ($batch->status !== AuctionBatchStatus::JADWAL_DITETAPKAN) {
+            if ($batch->status === AuctionBatchStatus::REALISASI || $batch->status === AuctionBatchStatus::BATAL) {
                 throw ValidationException::withMessages([
-                    'status' => 'Hasil lelang pertama hanya dapat dicatat jika status paket JADWAL_DITETAPKAN.',
+                    'status' => 'Hasil lelang pertama tidak dapat dicatat pada paket yang sudah selesai atau dibatalkan.',
                 ]);
             }
 
@@ -857,23 +857,15 @@ class AuctionBatchService
             }
 
             foreach ($pivots as $p) {
-                if ($batch->status === AuctionBatchStatus::JADWAL_DITETAPKAN) {
-                    if (is_null($p->first_auction_is_sold)) {
-                        throw ValidationException::withMessages([
-                            'status' => 'Hasil lelang pertama belum lengkap.',
-                        ]);
-                    }
-                } elseif ($batch->status === AuctionBatchStatus::LELANG_ULANG) {
-                    if (is_null($p->first_auction_is_sold)) {
-                        throw ValidationException::withMessages([
-                            'status' => 'Hasil lelang pertama belum lengkap.',
-                        ]);
-                    }
-                    if ($p->first_auction_is_sold === false && is_null($p->reauction_is_sold)) {
-                        throw ValidationException::withMessages([
-                            'status' => 'Hasil lelang ulang belum lengkap.',
-                        ]);
-                    }
+                if (is_null($p->first_auction_is_sold)) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Hasil lelang pertama belum lengkap.',
+                    ]);
+                }
+                if ($batch->status === AuctionBatchStatus::LELANG_ULANG && $p->first_auction_is_sold === false && is_null($p->reauction_is_sold)) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Hasil lelang ulang belum lengkap.',
+                    ]);
                 }
             }
 
