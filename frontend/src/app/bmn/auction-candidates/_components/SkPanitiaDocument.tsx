@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { formatDateLong } from "../_lib/auction-helpers";
+import { formatDateLong, parseDocDate } from "../_lib/auction-helpers";
 import { runSkPagination } from "../_lib/sk-print";
 import type {
   SkBuilderItem,
@@ -13,6 +13,7 @@ import type { PanitiaAnggota } from "../_lib/sk-panitia-defaults";
 interface SkPanitiaDocumentProps {
   skNumber: string;
   skKap: string;
+  date?: string;
   menimbang: SkBuilderItem[];
   mengingat: SkBuilderItem[];
   memutuskan: SkMemutuskan;
@@ -213,6 +214,7 @@ export function handlePrintSkPanitia() {
 export function SkPanitiaDocument({
   skNumber,
   skKap,
+  date,
   menimbang,
   mengingat,
   memutuskan,
@@ -220,9 +222,9 @@ export function SkPanitiaDocument({
   tembusan,
   susunanPanitia,
 }: SkPanitiaDocumentProps) {
-  const today = new Date();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${today.getFullYear()}`;
+  const docDate = parseDocDate(date);
+  const month = String(docDate.getMonth() + 1).padStart(2, "0");
+  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${docDate.getFullYear()}`;
 
   const mengingatTexts = mengingat.map((m) => m.text);
 
@@ -542,7 +544,7 @@ export function SkPanitiaDocument({
                 <span>Samarinda</span>
                 <span>Pada tanggal</span>
                 <span>:</span>
-                <span>{formatDateLong(today)}</span>
+                <span>{formatDateLong(docDate)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
               <div className="skp-ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
@@ -582,7 +584,7 @@ export function SkPanitiaDocument({
               <span>Nomor</span><span>:</span><span>{skNumberText}</span>
             </div>
             <div className="meta-row grid grid-cols-[24mm_5mm_minmax(0,1fr)]">
-              <span>Tanggal</span><span>:</span><span>{formatDateLong(today)}</span>
+              <span>Tanggal</span><span>:</span><span>{formatDateLong(docDate)}</span>
             </div>
           </div>
 

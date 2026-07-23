@@ -8,6 +8,7 @@ import {
   formatPlainRupiah,
   formatDateLong,
   getSpelledDate,
+  parseDocDate,
 } from "../_lib/auction-helpers";
 
 const BA_ATTACHMENT_PAGE_HEIGHT_MM = 269;
@@ -447,14 +448,14 @@ function buildFallbackLampiranPages(assets: AuctionAsset[]) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { assets: AuctionAsset[]; baNumber: string; baKap: string; kepalaBalai: SkKepalaBalai }) {
+export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai, date }: { assets: AuctionAsset[]; baNumber: string; baKap: string; date?: string; kepalaBalai: SkKepalaBalai }) {
   const measurementRef = useRef<HTMLDivElement>(null);
   const fallbackLampiranPages = useMemo(() => buildFallbackLampiranPages(assets), [assets]);
   const [lampiranPages, setLampiranPages] = useState<BaLampiranPage[]>(fallbackLampiranPages);
-  const today = new Date();
-  const { day, dateText, month, yearText } = getSpelledDate(today);
-  const monthNum = String(today.getMonth() + 1).padStart(2, "0");
-  const baNumberText = `BA.${baNumber.trim() || "____"}/K.18/TU/${baKap}/B/${monthNum}/${today.getFullYear()}`;
+  const docDate = parseDocDate(date);
+  const { day, dateText, month, yearText } = getSpelledDate(docDate);
+  const monthNum = String(docDate.getMonth() + 1).padStart(2, "0");
+  const baNumberText = `BA.${baNumber.trim() || "____"}/K.18/TU/${baKap}/B/${monthNum}/${docDate.getFullYear()}`;
   const datePhrase = `${dateText} bulan ${month} tahun ${yearText}`;
 
   useLayoutEffect(() => {
@@ -735,7 +736,7 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { a
       <div ref={measurementRef} className="ba-measurement" aria-hidden="true">
         <div data-ba-measure="page" className="ba-measure-page" />
         <div data-ba-measure="meta">
-          <AttachmentMeta baNumberText={baNumberText} today={today} />
+          <AttachmentMeta baNumberText={baNumberText} today={docDate} />
         </div>
         <div data-ba-measure="continuation-spacer">
           <div className="ba-continuation-spacer" />
@@ -771,7 +772,7 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { a
               page={page}
               baNumberText={baNumberText}
               kepalaBalai={kepalaBalai}
-              today={today}
+              today={parseDocDate(date)}
             />
           </div>
         </article>

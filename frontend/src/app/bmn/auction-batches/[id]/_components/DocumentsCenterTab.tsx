@@ -1058,6 +1058,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               assets={mappedAssets}
               baNumber={getDocumentNumber("ba_koreksi")}
               baKap={getDocumentKap("ba_koreksi")}
+              date={getDocumentDate("ba_koreksi")}
               kepalaBalai={kepalaBalai}
             />
           )}
@@ -1066,6 +1067,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               assets={mappedAssets}
               skNumber={getDocumentNumber("sk_penghentian")}
               skKap={getDocumentKap("sk_penghentian")}
+              date={getDocumentDate("sk_penghentian")}
               menimbang={meta.sk_details?.penghentian?.menimbang || DEFAULT_MENIMBANG}
               mengingat={meta.sk_details?.penghentian?.mengingat || DEFAULT_MENGINGAT}
               memutuskan={meta.sk_details?.penghentian?.memutuskan || DEFAULT_MEMUTUSKAN}
@@ -1077,6 +1079,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <SkPanitiaDocument
               skNumber={getDocumentNumber("sk_panitia")}
               skKap={getDocumentKap("sk_panitia")}
+              date={getDocumentDate("sk_panitia_penghapusan") || getDocumentDate("sk_panitia")}
               menimbang={meta.sk_details?.panitia?.menimbang || DEFAULT_PANITIA_MENIMBANG}
               mengingat={meta.sk_details?.panitia?.mengingat || DEFAULT_PANITIA_MENGINGAT}
               memutuskan={meta.sk_details?.panitia?.memutuskan || DEFAULT_PANITIA_MEMUTUSKAN}
@@ -1089,6 +1092,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <SkTimPenilaiDocument
               skNumber={getDocumentNumber("sk_tim_penilai")}
               skKap={getDocumentKap("sk_tim_penilai")}
+              date={getDocumentDate("sk_panitia_penaksir_harga") || getDocumentDate("sk_tim_penilai")}
               menimbang={meta.sk_details?.tim_penilai?.menimbang || DEFAULT_TIM_PENILAI_MENIMBANG}
               mengingat={meta.sk_details?.tim_penilai?.mengingat || DEFAULT_TIM_PENILAI_MENGINGAT}
               memutuskan={meta.sk_details?.tim_penilai?.memutuskan || DEFAULT_TIM_PENILAI_MEMUTUSKAN}
@@ -1101,6 +1105,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <BaPemeriksaanDocument
               number={getDocumentNumber("ba_pemeriksaan")}
               kap={getDocumentKap("ba_pemeriksaan")}
+              date={getDocumentDate("ba_pemeriksaan")}
               pemeriksaList={pemeriksaList}
               stNumber={stNumber}
               stTanggal={stTanggal}
@@ -1113,6 +1118,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               <SuratTugasPemeriksaanPenilaianDocument
                 number={getDocumentNumber("surat_tugas_pemeriksaan_penilaian")}
                 kap={getDocumentKap("surat_tugas_pemeriksaan_penilaian")}
+                date={getDocumentDate("surat_tugas_pemeriksaan_penilaian")}
                 assets={mappedAssets}
                 kepalaBalai={kepalaBalai}
                 timPenilai={timPenilaiList}
@@ -1124,6 +1130,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <NotaDinasDocument
               number={getDocumentNumber("nota_dinas")}
               kap={getDocumentKap("nota_dinas")}
+              date={getDocumentDate("nota_dinas_ksdae") || getDocumentDate("nota_dinas")}
               assets={mappedAssets}
               kepalaBalai={kepalaBalai}
               perihal="Permohonan Persetujuan Penjualan BMN Rusak Berat"
@@ -1138,6 +1145,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <PermohonanKpknlDocument
               number={getDocumentNumber("permohonan_kpknl")}
               kap={getDocumentKap("permohonan_kpknl")}
+              date={getDocumentDate("permohonan_kpknl")}
               assets={mappedAssets}
               kepalaBalai={kepalaBalai}
               perihal="Permohonan Pelaksanaan Lelang Barang Milik Negara"
@@ -1151,18 +1159,19 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
             <SkKebenaranDocument
               number={getDocumentNumber("sk_kebenaran")}
               kap={getDocumentKap("sk_kebenaran")}
+              date={getDocumentDate("sk_kebenaran")}
               assets={mappedAssets}
               kepalaBalai={kepalaBalai}
             />
           )}
           {printingDocKey === "sptjm" && (
-            <SptjmDocument number={getDocumentNumber("sptjm", "01")} kap={getDocumentKap("sptjm")} kepalaBalai={kepalaBalai} />
+            <SptjmDocument number={getDocumentNumber("sptjm", "01")} kap={getDocumentKap("sptjm")} date={getDocumentDate("sptjm")} kepalaBalai={kepalaBalai} />
           )}
           {printingDocKey === "sptj_limit" && (
-            <SptjLimitDocument number={getDocumentNumber("sptj_limit", "01")} kap={getDocumentKap("sptj_limit")} kepalaBalai={kepalaBalai} />
+            <SptjLimitDocument number={getDocumentNumber("sptj_limit", "01")} kap={getDocumentKap("sptj_limit")} date={getDocumentDate("sptj_limit")} kepalaBalai={kepalaBalai} />
           )}
           {printingDocKey === "sp_tugas" && (
-            <SpTugasDocument number={getDocumentNumber("sp_tugas", "01")} kap={getDocumentKap("sp_tugas")} kepalaBalai={kepalaBalai} />
+            <SpTugasDocument number={getDocumentNumber("sp_tugas", "01")} kap={getDocumentKap("sp_tugas")} date={getDocumentDate("sp_kelancaran_tugas") || getDocumentDate("sp_tugas")} kepalaBalai={kepalaBalai} />
           )}
         </div>
       )}

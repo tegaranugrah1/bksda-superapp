@@ -7,12 +7,14 @@ import {
   formatDateLong,
   formatPlainRupiah,
   numberToWords,
+  parseDocDate,
 } from "../_lib/auction-helpers";
 import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface NotaDinasDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
   perihal: string;
@@ -107,6 +109,7 @@ export function handlePrintNotaDinas() {
 export function NotaDinasDocument({
   number,
   kap,
+  date,
   assets,
   kepalaBalai,
   perihal,
@@ -116,9 +119,9 @@ export function NotaDinasDocument({
   kesimpulan,
   nilaiTaksiran,
 }: NotaDinasDocumentProps) {
-  const today = new Date();
-  const nomorText = buildNomor(number, kap, today);
-  const tanggalLong = formatDateLong(today);
+  const docDate = parseDocDate(date);
+  const nomorText = buildNomor(number, kap, docDate);
+  const tanggalLong = formatDateLong(docDate);
 
   const totalPerolehan = assets.reduce(
     (sum, a) => sum + (a.nilai_perolehan || 0),

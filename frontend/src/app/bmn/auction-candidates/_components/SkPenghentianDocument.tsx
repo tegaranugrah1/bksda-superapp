@@ -4,6 +4,7 @@ import type { AuctionAsset, AttachmentPage } from "../_lib/auction-helpers";
 import {
   formatPlainRupiah,
   formatDateLong,
+  parseDocDate,
 } from "../_lib/auction-helpers";
 import { AssetLampiranLandscapeTable, getAssetSuratStatus } from "./AssetLampiranLandscapeTable";
 import { runSkPagination } from "../_lib/sk-print";
@@ -17,6 +18,7 @@ interface SkPenghentianDocumentProps {
   assets: AuctionAsset[];
   skNumber: string;
   skKap: string;
+  date?: string;
   menimbang: SkBuilderItem[];
   mengingat: SkBuilderItem[];
   memutuskan: SkMemutuskan;
@@ -374,15 +376,16 @@ export function SkPenghentianDocument({
   assets,
   skNumber,
   skKap,
+  date,
   menimbang,
   mengingat,
   memutuskan,
   kepalaBalai,
   tembusan,
 }: SkPenghentianDocumentProps) {
-  const today = new Date();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${today.getFullYear()}`;
+  const docDate = parseDocDate(date);
+  const month = String(docDate.getMonth() + 1).padStart(2, "0");
+  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${docDate.getFullYear()}`;
   const totalNilai = assets.reduce((sum, a) => sum + (a.nilai_perolehan || 0), 0);
 
   const measurementRef = useRef<HTMLDivElement>(null);
@@ -514,7 +517,7 @@ export function SkPenghentianDocument({
         <div className="meta-row grid grid-cols-[24mm_5mm_minmax(0,1fr)]">
           <span className="meta-label whitespace-nowrap">Tanggal</span>
           <span className="meta-colon text-center">:</span>
-          <span className="meta-value min-w-0">{formatDateLong(today)}</span>
+          <span className="meta-value min-w-0">{formatDateLong(docDate)}</span>
         </div>
       </div>
 
@@ -918,7 +921,7 @@ export function SkPenghentianDocument({
                 <span>Samarinda</span>
                 <span>Pada tanggal</span>
                 <span>:</span>
-                <span>{formatDateLong(today)}</span>
+                <span>{formatDateLong(docDate)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
               <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionAsset } from "../_lib/auction-helpers";
-import { formatDateLong } from "../_lib/auction-helpers";
+import { formatDateLong, parseDocDate } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface PersonLike {
@@ -13,6 +13,7 @@ interface PersonLike {
 interface SuratTugasPemeriksaanPenilaianDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
   timPenilai: PersonLike[];
@@ -27,13 +28,14 @@ function buildNomor(number: string, kap: string, today: Date) {
 export function SuratTugasPemeriksaanPenilaianDocument({
   number,
   kap,
+  date,
   assets,
   kepalaBalai,
   timPenilai,
   pemeriksa,
 }: SuratTugasPemeriksaanPenilaianDocumentProps) {
-  const today = new Date();
-  const nomorText = buildNomor(number, kap, today);
+  const docDate = parseDocDate(date);
+  const nomorText = buildNomor(number, kap, docDate);
   const petugas = [...timPenilai, ...pemeriksa].filter((person) => person?.nama || person?.nip || person?.jabatan);
 
   return (
@@ -120,7 +122,7 @@ export function SuratTugasPemeriksaanPenilaianDocument({
           </div>
 
           <div className="signature">
-            <p>Samarinda, {formatDateLong(today)}</p>
+            <p>Samarinda, {formatDateLong(docDate)}</p>
             <p>Kepala Balai,</p>
             <div className="ttd-placeholder">${"{ttd_pengirim}"}</div>
             <p style={{ fontWeight: 700, textDecoration: "underline" }}>{kepalaBalai.nama || "________________"}</p>

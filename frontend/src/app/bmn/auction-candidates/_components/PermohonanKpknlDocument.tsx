@@ -3,12 +3,17 @@
 import { toast } from "sonner";
 import { AssetLampiranLandscapeTable } from "./AssetLampiranLandscapeTable";
 import type { AuctionAsset } from "../_lib/auction-helpers";
-import { formatDateLong } from "../_lib/auction-helpers";
+import {
+  formatDateLong,
+  formatPlainRupiah,
+  parseDocDate,
+} from "../_lib/auction-helpers";
 import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface PermohonanKpknlDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
   perihal: string;
@@ -103,6 +108,7 @@ export function handlePrintPermohonanKpknl() {
 export function PermohonanKpknlDocument({
   number,
   kap,
+  date,
   assets,
   kepalaBalai,
   perihal,
@@ -111,9 +117,9 @@ export function PermohonanKpknlDocument({
   tembusan,
   kesimpulan,
 }: PermohonanKpknlDocumentProps) {
-  const today = new Date();
-  const nomorText = buildNomor(number, kap, today);
-  const tanggalLong = formatDateLong(today);
+  const docDate = parseDocDate(date);
+  const nomorText = buildNomor(number, kap, docDate);
+  const tanggalLong = formatDateLong(docDate);
 
   return (
     <div id="permohonan-kpknl-print-root" className="permohonan-kpknl-print-root">

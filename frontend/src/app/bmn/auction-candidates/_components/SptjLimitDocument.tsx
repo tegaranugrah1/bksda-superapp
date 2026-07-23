@@ -1,5 +1,6 @@
 "use client";
 
+import { parseDocDate } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 import { buildPernyataanNomor, printPernyataan } from "../_lib/print-pernyataan";
 import { PernyataanDocument, PernyataanIdentity } from "./PernyataanDocument";
@@ -7,6 +8,7 @@ import { PernyataanDocument, PernyataanIdentity } from "./PernyataanDocument";
 interface SptjLimitDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   kepalaBalai: SkKepalaBalai;
 }
 
@@ -20,16 +22,16 @@ export function handlePrintSptjLimit() {
   });
 }
 
-export function SptjLimitDocument({ number, kap, kepalaBalai }: SptjLimitDocumentProps) {
-  const today = new Date();
-  const nomorText = buildPernyataanNomor("SM", number, kap, today);
+export function SptjLimitDocument({ number, kap, date, kepalaBalai }: SptjLimitDocumentProps) {
+  const docDate = parseDocDate(date);
+  const nomorText = buildPernyataanNomor("SM", number, kap, docDate);
 
   return (
     <PernyataanDocument
       rootId={ROOT_ID}
       title="SURAT PERNYATAAN TANGGUNG JAWAB NILAI LIMIT"
       nomorText={nomorText}
-      today={today}
+      today={docDate}
       kepalaBalai={kepalaBalai}
     >
       <p contentEditable suppressContentEditableWarning className="doc-editable">

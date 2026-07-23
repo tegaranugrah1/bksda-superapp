@@ -2,12 +2,13 @@
 
 import { toast } from "sonner";
 import type { AuctionAsset } from "../_lib/auction-helpers";
-import { formatDateLong } from "../_lib/auction-helpers";
+import { formatDateLong, parseDocDate } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface SkKebenaranDokumenDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
 }
@@ -73,9 +74,9 @@ export function handlePrintSkKebenaran() {
   setTimeout(() => printWindow.print(), 500);
 }
 
-export function SkKebenaranDokumenDocument({ number, kap, assets, kepalaBalai }: SkKebenaranDokumenDocumentProps) {
-  const today = new Date();
-  const nomorText = buildNomorText(number, kap, today);
+export function SkKebenaranDokumenDocument({ number, kap, date, assets, kepalaBalai }: SkKebenaranDokumenDocumentProps) {
+  const docDate = parseDocDate(date);
+  const nomorText = buildNomorText(number, kap, docDate);
 
   return (
     <div id="sk-kebenaran-print-root" className="sk-kebenaran-print-root">
@@ -190,7 +191,7 @@ export function SkKebenaranDokumenDocument({ number, kap, assets, kepalaBalai }:
             </p>
 
             <div className="signature mt-4 ml-auto w-80">
-          <p className="m-0">Samarinda, {formatDateLong(today)}</p>
+          <p className="m-0">Samarinda, {formatDateLong(docDate)}</p>
           <p className="m-0">Kepala Balai,</p>
           <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
           <p contentEditable suppressContentEditableWarning className="doc-editable m-0 mt-2">{kepalaBalai.nama}</p>
