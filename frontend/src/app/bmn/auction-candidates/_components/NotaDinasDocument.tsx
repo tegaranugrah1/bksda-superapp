@@ -65,7 +65,7 @@ export function handlePrintNotaDinas() {
           .nd-edit { outline: none; border-bottom: none !important; }
           .nd-ttd { width: 80mm; margin: 1.5rem 0 0 auto; text-align: left; }
           .nd-ttd p { margin: 0; line-height: 1.3; }
-          .nd-ttd .nd-ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+          .nd-ttd .nd-ttd-placeholder { box-sizing: border-box; height: 84px; display: flex; align-items: center; text-align: left; padding-top: 0px; padding-left: 1.1cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; }
           .nd-ttd .nd-ttd-name { font-weight: normal; margin-top: 0.4rem !important; }
           .nd-tembusan { width: 166mm; margin: 1.2rem auto 0; }
           .nd-tembusan-title { font-weight: normal; }
@@ -152,7 +152,7 @@ export function NotaDinasDocument({
         .nota-dinas-print-root .nd-body p { margin-bottom: 0.85rem; text-indent: 2.5em; }
         .nota-dinas-print-root .nd-ttd { width: 80mm; margin: 1.5rem 0 0 auto; text-align: left; }
         .nota-dinas-print-root .nd-ttd p { margin: 0; line-height: 1.3; }
-        .nota-dinas-print-root .nd-ttd .nd-ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+        .nota-dinas-print-root .nd-ttd .nd-ttd-placeholder { box-sizing: border-box; height: 84px; display: flex; align-items: center; text-align: left; padding-top: 0px; padding-left: 1.1cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; }
         .nota-dinas-print-root .nd-ttd .nd-ttd-name { font-weight: normal; }
         .nota-dinas-print-root .nd-tembusan { width: 166mm; margin: 1.2rem auto 0; }
         .nota-dinas-print-root .nd-tembusan-title { font-weight: normal; }

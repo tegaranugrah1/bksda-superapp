@@ -54,6 +54,7 @@ export function PernyataanDocument({
           .doc-body { width: 166mm; margin-left: auto; margin-right: auto; }
           .doc-editable { border-bottom: none !important; }
           .signature { break-inside: avoid; page-break-inside: avoid; }
+          .ttd-placeholder { box-sizing: border-box; height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
         }
       `}</style>
 
@@ -66,20 +67,23 @@ export function PernyataanDocument({
           <img src="/header-new.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
-        <div className="doc-title mt-2 text-center font-bold leading-snug">
-          <p className="m-0">{title}</p>
-          <p className="m-0 font-normal">Nomor : {nomorText}</p>
+        {/* Title */}
+        <div className="doc-title mt-3 text-center font-bold uppercase leading-snug">
+          <p contentEditable suppressContentEditableWarning className="doc-editable">{title}</p>
+          <p className="font-normal normal-case">Nomor : {nomorText}</p>
         </div>
 
-        <div className="doc-body doc-text-block mx-auto mt-4 w-[166mm] space-y-3 text-justify">
+        {/* Dynamic Body Content */}
+        <div className="doc-body mt-4 text-justify">
           {children}
         </div>
 
-        <div className="signature mt-6 ml-auto w-80">
+        {/* TTD */}
+        <div className="signature mt-4 ml-auto w-80">
           <p className="m-0">Samarinda, {formatDateLong(today)}</p>
           <p className="m-0">Kepala Balai,</p>
-          <div className="ttd-placeholder my-2 box-border h-15 pt-0 pl-[1.35cm] text-zinc-400"></div>
-          <p contentEditable suppressContentEditableWarning className="doc-editable m-0 mt-1">{kepalaBalai.nama}</p>
+          <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+          <p contentEditable suppressContentEditableWarning className="doc-editable m-0 mt-2">{kepalaBalai.nama}</p>
           <p contentEditable suppressContentEditableWarning className="doc-editable m-0">NIP. {kepalaBalai.nip}</p>
         </div>
       </article>

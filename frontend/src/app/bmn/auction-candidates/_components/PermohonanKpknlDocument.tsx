@@ -61,7 +61,7 @@ export function handlePrintPermohonanKpknl() {
           .pkpknl-body p { margin-bottom: 0.7rem; text-indent: 2.5em; }
           .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
           .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-          .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+          .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 84px; display: flex; align-items: center; text-align: left; padding-top: 0px; padding-left: 1.1cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; }
           .pkpknl-ttd .pkpknl-ttd-name { font-weight: normal; }
           .pkpknl-tembusan { width: 166mm; margin: 1.2rem auto 0; }
           .pkpknl-tembusan-title { font-weight: normal; }
@@ -139,7 +139,7 @@ export function PermohonanKpknlDocument({
         .permohonan-kpknl-print-root .pkpknl-body p { margin-bottom: 0.85rem; text-indent: 2.5em; }
         .permohonan-kpknl-print-root .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
         .permohonan-kpknl-print-root .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-        .permohonan-kpknl-print-root .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+        .permohonan-kpknl-print-root .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 84px; display: flex; align-items: center; text-align: left; padding-top: 0px; padding-left: 1.1cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; }
         .permohonan-kpknl-print-root .pkpknl-ttd .pkpknl-ttd-name { font-weight: normal; }
         .permohonan-kpknl-print-root .pkpknl-tembusan { width: 166mm; margin: 1.2rem auto 0; }
         .permohonan-kpknl-print-root .pkpknl-tembusan-title { font-weight: normal; }

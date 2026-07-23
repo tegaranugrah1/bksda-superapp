@@ -61,7 +61,7 @@ export function handlePrintSkKebenaran() {
           table.kebenaran-table thead th { font-weight: bold; }
           .signature { width: 20rem; margin-left: auto; margin-top: 1.5rem; break-inside: avoid; page-break-inside: avoid; }
           .signature p { margin: 0; padding: 0; line-height: 1.3; }
-          .ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; color: #94a3b8; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+          .ttd-placeholder { box-sizing: border-box; height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
           .doc-editable { outline: none; border-bottom: none !important; }
         </style>
       </head>
@@ -192,8 +192,8 @@ export function SkKebenaranDokumenDocument({ number, kap, assets, kepalaBalai }:
             <div className="signature mt-4 ml-auto w-80">
           <p className="m-0">Samarinda, {formatDateLong(today)}</p>
           <p className="m-0">Kepala Balai,</p>
-          <div className="ttd-placeholder mt-4 mb-2 box-border h-24 pt-10 pl-[1.35cm] text-zinc-400"></div>
-          <p contentEditable suppressContentEditableWarning className="doc-editable m-0">{kepalaBalai.nama}</p>
+          <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+          <p contentEditable suppressContentEditableWarning className="doc-editable m-0 mt-2">{kepalaBalai.nama}</p>
           <p contentEditable suppressContentEditableWarning className="doc-editable m-0">NIP. {kepalaBalai.nip}</p>
             </div>
           </div>

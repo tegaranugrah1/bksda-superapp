@@ -145,7 +145,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-ttd-meta span { font-weight: normal !important; text-align: left !important; }
           .sk-ketiga-group { break-inside: avoid !important; page-break-inside: avoid !important; }
           .sk-signature-name { font-weight: normal !important; }
-          .ttd-placeholder { height: 60px; padding-top: 0px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+          .ttd-placeholder { height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
           .sk-continuation-word { position: absolute; right: 23mm; bottom: 31mm; width: 163mm; height: 0; line-height: 11pt; overflow: visible; white-space: nowrap; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 20; }
           /* Tembusan */
           .sk-tembusan { margin-top: 2rem; }
@@ -166,7 +166,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-asset-table td.text-right { text-align: right; }
           .sk-lampiran-ttd { width: 20rem; margin-left: auto; margin-top: 1rem; break-inside: avoid; page-break-inside: avoid; }
           .sk-lampiran-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-          .sk-lampiran-ttd .ttd-placeholder { height: 60px !important; padding-top: 0px !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+          .sk-lampiran-ttd .ttd-placeholder { height: 84px !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -363,8 +363,8 @@ export function SkPenghentianDocument({
   const renderAttachmentSignature = (measure = false) => (
     <div className="sk-lampiran-ttd signature mt-10 ml-auto w-80" data-sk-measure={measure ? "signature" : undefined}>
       <p className="m-0">Kepala Balai,</p>
-      <div className="ttd-placeholder my-2 h-15 box-border pt-0 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-      <p className="m-0 mt-1">{kepalaBalai.nama}</p>
+      <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+      <p className="m-0 mt-2">{kepalaBalai.nama}</p>
       <p className="m-0">NIP. {kepalaBalai.nip}</p>
     </div>
   );
@@ -746,8 +746,8 @@ export function SkPenghentianDocument({
                 <span>{formatDateLong(today)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
-              <div className="ttd-placeholder my-2 h-15 box-border pt-0 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-              <p className="sk-signature-name m-0 mt-1">{kepalaBalai.nama}</p>
+              <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+              <p className="sk-signature-name m-0 mt-2">{kepalaBalai.nama}</p>
               <p className="m-0">NIP. {kepalaBalai.nip}</p>
             </div>
 

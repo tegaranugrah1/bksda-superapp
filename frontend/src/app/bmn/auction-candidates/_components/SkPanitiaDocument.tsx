@@ -160,7 +160,7 @@ export function handlePrintSkPanitia() {
           .skp-ttd-meta span { font-weight: normal !important; text-align: left !important; }
           .skp-ketiga-group { break-inside: avoid !important; page-break-inside: avoid !important; }
           .skp-signature-name { font-weight: normal !important; }
-          .skp-ttd-placeholder { height: 60px; padding-top: 0px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+          .skp-ttd-placeholder { height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
           .skp-continuation-word { position: absolute; right: 23mm; bottom: 31mm; width: 163mm; height: 0; line-height: 11pt; overflow: visible; white-space: nowrap; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 20; }
           /* Tembusan */
           .skp-tembusan { margin-top: 1rem; }
@@ -360,12 +360,14 @@ export function SkPanitiaDocument({
         }
         .skp-print-root .skp-ttd-placeholder {
           box-sizing: border-box;
-          height: 60px;
-          padding-top: 0px;
-          padding-left: 1.35cm;
+          height: 84px;
           color: #94a3b8;
           font-weight: normal !important;
           text-align: left !important;
+          display: flex !important;
+          align-items: center !important;
+          padding-top: 0px !important;
+          padding-left: 1.1cm !important;
           margin-top: 0.5rem;
           margin-bottom: 0.5rem;
         }
@@ -543,8 +545,8 @@ export function SkPanitiaDocument({
                 <span>{formatDateLong(today)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
-              <div className="skp-ttd-placeholder my-2 h-15 box-border pt-0 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-              <p className="skp-signature-name m-0 mt-1">{kepalaBalai.nama}</p>
+              <div className="skp-ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+              <p className="skp-signature-name m-0 mt-2">{kepalaBalai.nama}</p>
               <p className="m-0">NIP. {kepalaBalai.nip}</p>
             </div>
 
@@ -623,8 +625,8 @@ export function SkPanitiaDocument({
           {/* TTD */}
           <div className="skp-ttd signature mt-16 ml-auto w-80">
             <p className="m-0">Kepala Balai,</p>
-            <div className="skp-ttd-placeholder my-2 h-15 box-border pt-0 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-            <p className="skp-signature-name m-0 mt-1">{kepalaBalai.nama}</p>
+            <div className="skp-ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+            <p className="skp-signature-name m-0 mt-2">{kepalaBalai.nama}</p>
             <p className="m-0">NIP. {kepalaBalai.nip}</p>
           </div>
         </div>
