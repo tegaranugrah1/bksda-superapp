@@ -1,6 +1,4 @@
-"use client";
-
-import { useMemo } from "react";
+import { useMemo, useRef, useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
 import type { AuctionAsset, AttachmentPage } from "../_lib/auction-helpers";
 import {
@@ -33,6 +31,11 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
   }
   const printContent = document.getElementById("sk-penghentian-print-root");
   if (!printContent) return;
+  const clone = printContent.cloneNode(true) as HTMLElement;
+  const measurementNode = clone.querySelector(".sk-measurement");
+  if (measurementNode) {
+    measurementNode.remove();
+  }
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
@@ -44,7 +47,9 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           @page { size: A4; margin: 0; }
           @page sk-main { size: A4; margin: 0; }
           @page sk-main:first { size: A4; margin: 0; }
-          @page sk-attachment { size: A4; margin: 0; }
+          @page sk-attachment { size: A4 landscape; margin: 14mm 0 20mm 0; }
+          .sk-measurement, .sk-measurement * { display: none !important; visibility: hidden !important; }
+          .sk-no-print { display: none !important; }
           * { box-sizing: border-box; }
           body {
             margin: 0; padding: 0; background: white; color: black;
@@ -79,8 +84,30 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
             page: sk-attachment;
             page-break-before: always;
             break-before: page;
-            min-height: 297mm;
-            padding: 12mm 20mm 28mm !important;
+            width: 297mm !important;
+            max-width: 297mm !important;
+            padding: 10mm 16mm 20mm !important;
+          }
+          .sk-attachment-page {
+            width: 258mm;
+            margin: 0 auto;
+            page: sk-attachment;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          .sk-attachment-page-continuation {
+            page-break-before: always;
+            break-before: page;
+            padding-top: 12mm !important;
+          }
+          .sk-continuation-spacer {
+            height: 8mm !important;
+            display: block;
+          }
+          .sk-attachment-document .sk-body {
+            width: 258mm !important;
+            margin-left: auto;
+            margin-right: auto;
           }
           .sk-page-ttd { padding-bottom: 0; }
           article { margin: 0; }
@@ -152,7 +179,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-tembusan, .sk-tembusan p { font-weight: normal !important; text-align: left !important; }
           .sk-tembusan p { margin: 0; padding: 0; line-height: 1.5; }
           /* Halaman 3 lampiran */
-          .sk-attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
+          .sk-attachment-meta { width: 128mm; margin-left: auto; text-align: left; }
           .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
           .meta-label { white-space: nowrap; }
           .meta-colon { text-align: center; }
@@ -169,7 +196,7 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
           .sk-lampiran-ttd .ttd-placeholder { height: 84px !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
         </style>
       </head>
-      <body>${printContent.innerHTML}</body>
+      <body>${clone.innerHTML}</body>
     </html>
   `);
   printWindow.document.close();
@@ -188,6 +215,160 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
   );
 }
 
+function getOuterHeight(element: Element | null) {
+  if (!element) return 0;
+  const rect = element.getBoundingClientRect();
+  const styles = window.getComputedStyle(element);
+  const marginTop = Number.parseFloat(styles.marginTop) || 0;
+  const marginBottom = Number.parseFloat(styles.marginBottom) || 0;
+  return rect.height + marginTop + marginBottom;
+}
+
+function buildFallbackLampiranPages(assets: AuctionAsset[]): AttachmentPage[] {
+  const singlePageLimit = 10;
+  const firstPageLimit = 14;
+  const continuationLimit = 18;
+  const lastPageMaxLimit = 10;
+  const pages: AttachmentPage[] = [];
+
+  const pushPage = (pageAssets: AuctionAsset[], startIndex: number, includeMeta: boolean) => {
+    pages.push({
+      assets: pageAssets,
+      startIndex,
+      showColumnNumbers: !includeMeta,
+      includeMeta,
+      includeTotal: false,
+      includeSignature: false,
+    });
+  };
+
+  if (assets.length <= singlePageLimit) {
+    pushPage(assets, 0, true);
+  } else if (assets.length <= firstPageLimit + lastPageMaxLimit) {
+    const firstChunkSize = Math.min(firstPageLimit, assets.length - 1);
+    pushPage(assets.slice(0, firstChunkSize), 0, true);
+    pushPage(assets.slice(firstChunkSize), firstChunkSize, false);
+  } else {
+    const firstChunkSize = firstPageLimit;
+    pushPage(assets.slice(0, firstChunkSize), 0, true);
+
+    let cursor = firstChunkSize;
+    while (cursor < assets.length) {
+      const remaining = assets.length - cursor;
+
+      if (remaining <= lastPageMaxLimit) {
+        pushPage(assets.slice(cursor), cursor, false);
+        cursor = assets.length;
+      } else {
+        const chunkSize = Math.min(continuationLimit, remaining - 1);
+        pushPage(assets.slice(cursor, cursor + chunkSize), cursor, false);
+        cursor += chunkSize;
+      }
+    }
+  }
+
+  if (pages.length === 0) {
+    pushPage([], 0, true);
+  }
+
+  const lastPage = pages[pages.length - 1];
+  lastPage.includeTotal = true;
+  lastPage.includeSignature = true;
+
+  return pages;
+}
+
+function buildMeasuredSkAttachmentPages({
+  assets,
+  rowHeights,
+  metaHeight,
+  headerHeight,
+  totalHeight,
+  signatureHeight,
+  pageHeight,
+}: {
+  assets: AuctionAsset[];
+  rowHeights: number[];
+  metaHeight: number;
+  headerHeight: number;
+  totalHeight: number;
+  signatureHeight: number;
+  pageHeight: number;
+}): AttachmentPage[] {
+  if (assets.length === 0) return [];
+
+  const pages: AttachmentPage[] = [];
+  let startIndex = 0;
+
+  const getRowHeight = (idx: number) => rowHeights[idx] || 32;
+
+  // Real physical printable height for sk-body on A4 Landscape with 14mm/20mm margins
+  const effectivePageHeight = 550;
+
+  while (startIndex < assets.length) {
+    const isFirstPage = pages.length === 0;
+    const includeMeta = isFirstPage;
+    const topMargin = isFirstPage ? metaHeight : 24;
+    const availableHeight = effectivePageHeight - topMargin - headerHeight;
+
+    let currentUsedHeight = 0;
+    let count = 0;
+    const remainingCount = assets.length - startIndex;
+
+    let totalRemainingRowsHeight = 0;
+    for (let i = startIndex; i < assets.length; i++) {
+      totalRemainingRowsHeight += getRowHeight(i);
+    }
+    const fullPageNeeded = totalRemainingRowsHeight + totalHeight + signatureHeight;
+
+    if (fullPageNeeded <= availableHeight) {
+      pages.push({
+        assets: assets.slice(startIndex),
+        startIndex,
+        showColumnNumbers: !includeMeta,
+        includeMeta,
+        includeTotal: true,
+        includeSignature: true,
+      });
+      break;
+    }
+
+    const maxAllowedOnThisPage = Math.max(1, remainingCount - 1);
+
+    for (let i = startIndex; i < assets.length && count < maxAllowedOnThisPage; i++) {
+      const rH = getRowHeight(i);
+      if (currentUsedHeight + rH > availableHeight) {
+        break;
+      }
+      currentUsedHeight += rH;
+      count++;
+    }
+
+    if (count === 0) {
+      count = 1;
+    }
+
+    pages.push({
+      assets: assets.slice(startIndex, startIndex + count),
+      startIndex,
+      showColumnNumbers: !includeMeta,
+      includeMeta,
+      includeTotal: false,
+      includeSignature: false,
+    });
+
+    startIndex += count;
+  }
+
+  if (pages.length > 0) {
+    const lastPage = pages[pages.length - 1];
+    lastPage.includeTotal = true;
+    lastPage.includeSignature = true;
+  }
+
+  return pages;
+}
+
 export function SkPenghentianDocument({
   assets,
   skNumber,
@@ -202,72 +383,55 @@ export function SkPenghentianDocument({
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.05.01"}/B/${month}/${today.getFullYear()}`;
   const totalNilai = assets.reduce((sum, a) => sum + (a.nilai_perolehan || 0), 0);
-  const attachmentPages = useMemo<AttachmentPage[]>(() => {
-    const firstPageLimit = 15;
-    const continuationPageLimit = 17;
-    const lastPageLimit = 10;
-    const pages: AttachmentPage[] = [];
-    let cursor = 0;
 
-    const pushPage = (pageAssets: AuctionAsset[], startIndex: number, includeMeta: boolean) => {
-      pages.push({
-        assets: pageAssets,
-        startIndex,
-        showColumnNumbers: !includeMeta,
-        includeMeta,
-        includeTotal: false,
-        includeSignature: false,
-      });
-    };
+  const measurementRef = useRef<HTMLDivElement>(null);
+  const fallbackPages = useMemo(() => buildFallbackLampiranPages(assets), [assets]);
+  const [lampiranPages, setLampiranPages] = useState<AttachmentPage[]>(fallbackPages);
 
-    if (assets.length <= lastPageLimit) {
-      pushPage(assets, 0, true);
-    } else if (assets.length <= firstPageLimit) {
-      const firstChunkSize = assets.length - 1;
-      pushPage(assets.slice(0, firstChunkSize), 0, true);
-      pushPage(assets.slice(firstChunkSize), firstChunkSize, false);
-    } else if (assets.length <= firstPageLimit + lastPageLimit) {
-      pushPage(assets.slice(0, firstPageLimit), 0, true);
-      pushPage(assets.slice(firstPageLimit), firstPageLimit, false);
-    } else {
-      pushPage(assets.slice(0, firstPageLimit), 0, true);
-      const continuationChunks: AuctionAsset[][] = [];
-      let lastPageStart = assets.length;
-
-      for (let i = firstPageLimit; i < assets.length; i += continuationPageLimit) {
-        const remaining = assets.length - i;
-
-        if (remaining <= continuationPageLimit + lastPageLimit) {
-          const previousPageSize = Math.min(continuationPageLimit, Math.max(1, remaining - 1));
-          continuationChunks.push(assets.slice(i, i + previousPageSize));
-          lastPageStart = i + previousPageSize;
-          break;
-        }
-
-        continuationChunks.push(assets.slice(i, i + continuationPageLimit));
-      }
-
-      if (lastPageStart < assets.length) {
-        continuationChunks.push(assets.slice(lastPageStart));
-      }
-
-      cursor = firstPageLimit;
-      for (const chunk of continuationChunks) {
-        pushPage(chunk, cursor, false);
-        cursor += chunk.length;
-      }
+  useLayoutEffect(() => {
+    const root = measurementRef.current;
+    if (!root || assets.length === 0) {
+      setLampiranPages(fallbackPages);
+      return;
     }
 
-    if (pages.length === 0) {
-      pushPage([], 0, true);
+    const pageElement = root.querySelector("[data-sk-measure='page']");
+    const metaElement = root.querySelector("[data-sk-measure='attachment-meta-title']");
+    const headerElement = root.querySelector("[data-sk-measure='header-simple']");
+    const totalElement = root.querySelector("[data-sk-measure='total-row']");
+    const signatureElement = root.querySelector("[data-sk-measure='signature']");
+    const rows = Array.from(root.querySelectorAll("[data-sk-row-index]"));
+
+    const pageHeight = pageElement?.getBoundingClientRect().height || 0;
+    const metaHeight = getOuterHeight(metaElement);
+    const headerHeight = getOuterHeight(headerElement);
+    const totalHeight = getOuterHeight(totalElement);
+    const signatureHeight = getOuterHeight(signatureElement);
+    const rowHeights = assets.map((_, index) => getOuterHeight(rows[index]));
+
+    if (
+      !pageHeight ||
+      !metaHeight ||
+      !headerHeight ||
+      !signatureHeight ||
+      rowHeights.some((h) => h <= 0)
+    ) {
+      setLampiranPages(fallbackPages);
+      return;
     }
 
-    const lastPage = pages[pages.length - 1];
-    lastPage.includeTotal = true;
-    lastPage.includeSignature = true;
-
-    return pages;
-  }, [assets]);
+    setLampiranPages(
+      buildMeasuredSkAttachmentPages({
+        assets,
+        rowHeights,
+        metaHeight,
+        headerHeight,
+        totalHeight,
+        signatureHeight,
+        pageHeight,
+      })
+    );
+  }, [assets, fallbackPages]);
 
   const renderAttachmentTable = (chunk: AuctionAsset[], startIndex: number, showColumnNumbers: boolean, includeTotal: boolean) => (
     <table className="sk-asset-table mt-4 w-full border-collapse text-center" style={{ fontSize: "8.5pt" }}>
@@ -335,7 +499,7 @@ export function SkPenghentianDocument({
 
   const renderAttachmentMetaTitle = (measure = false) => (
     <div data-sk-measure={measure ? "attachment-meta-title" : undefined}>
-      <div className="sk-attachment-meta ml-auto w-[109mm]">
+      <div className="sk-attachment-meta ml-auto w-[128mm]">
         <div className="meta-row grid grid-cols-[24mm_5mm_minmax(0,1fr)]">
           <span className="meta-label whitespace-nowrap">Lampiran</span>
           <span className="meta-colon text-center">:</span>
@@ -376,9 +540,11 @@ export function SkPenghentianDocument({
           @page { size: A4; margin: 0 0 28mm 0; }
           @page sk-main { size: A4; margin: 12mm 0 28mm 0; }
           @page sk-main:first { size: A4; margin: 0 0 28mm 0; }
-          @page sk-attachment { size: A4; margin: 0; }
+          @page sk-attachment { size: A4 landscape; margin: 14mm 0 20mm 0; }
+          .sk-no-print, .sk-measurement, .sk-measurement * { display: none !important; visibility: hidden !important; }
           body * { visibility: hidden; }
           .sk-print-root, .sk-print-root * { visibility: visible; }
+          .sk-measurement, .sk-measurement * { display: none !important; visibility: hidden !important; }
           .sk-print-root {
             position: absolute; left: 0; top: 0; width: 100%;
             background: white; color: black;
@@ -394,8 +560,21 @@ export function SkPenghentianDocument({
             page: sk-attachment;
             page-break-before: always;
             break-before: page;
-            min-height: 297mm;
-            padding: 12mm 20mm 28mm !important;
+            width: 297mm !important;
+            max-width: 297mm !important;
+            padding: 10mm 16mm 20mm !important;
+          }
+          .sk-attachment-page {
+            width: 258mm;
+            margin: 0 auto;
+            page: sk-attachment;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          .sk-attachment-page-continuation {
+            page-break-before: always;
+            break-before: page;
+            padding-top: 8mm;
           }
           .sk-page-break { page-break-after: always; break-after: always; }
           .sk-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 4px; text-align: center; }
@@ -411,7 +590,7 @@ export function SkPenghentianDocument({
           .sk-mengingat-item { display: grid; grid-template-columns: 9mm minmax(0, 1fr); break-inside: avoid !important; page-break-inside: avoid !important; padding-top: 0.35rem; }
           .sk-mengingat-item:first-child { padding-top: 0; }
           .sk-mengingat-text { text-align: justify; }
-          .sk-no-print { display: none !important; }
+          .sk-no-print, .sk-measurement, .sk-measurement * { display: none !important; visibility: hidden !important; }
           .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
           .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
           .sk-asset-table thead { display: table-header-group; }
@@ -549,25 +728,26 @@ export function SkPenghentianDocument({
         .sk-print-root .sk-signature-name {
           font-weight: normal !important;
         }
-        .sk-print-root .ttd-placeholder {
-          box-sizing: border-box;
-          height: 112px;
-          padding-top: 40px;
-          padding-left: 1.35cm;
-          color: #94a3b8;
-          font-weight: normal !important;
-          text-align: left !important;
-          margin-top: 2rem;
-          margin-bottom: 2rem;
-        }
         .sk-print-root .sk-tembusan {
           margin-top: 2rem;
         }
         .sk-print-root .sk-tembusan p {
           line-height: 1.5;
         }
+        .sk-print-root .sk-attachment-document {
+          width: 297mm !important;
+          max-width: 297mm !important;
+          padding: 10mm 16mm 20mm !important;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .sk-print-root .sk-attachment-document .sk-body {
+          width: 258mm !important;
+          margin-left: auto;
+          margin-right: auto;
+        }
         .sk-print-root .sk-attachment-meta {
-          width: 109mm;
+          width: 128mm;
           margin-left: auto;
           text-align: left;
         }
@@ -624,12 +804,6 @@ export function SkPenghentianDocument({
           margin: 0;
           padding: 0;
           line-height: 1.15 !important;
-        }
-        .sk-print-root .sk-lampiran-ttd .ttd-placeholder {
-          height: 86px !important;
-          padding-top: 28px !important;
-          margin-top: 2rem !important;
-          margin-bottom: 2rem !important;
         }
       `}</style>
 
@@ -769,19 +943,46 @@ export function SkPenghentianDocument({
       </article>
 
       {/* ── HALAMAN 3 DST: Lampiran — Tabel Daftar Penghentian ── */}
-      {attachmentPages.map((pg, index) => (
+      <article
+        className="sk-page sk-attachment-document sk-page-landscape mx-auto max-w-[297mm] bg-white px-12 py-6 text-black shadow-xl ring-1 ring-zinc-200"
+        style={pageStyle}
+      >
+        <div className="sk-body mx-auto w-[258mm]">
+          {lampiranPages.map((pg, pageIndex) => (
+            <div
+              className={`sk-attachment-page${pageIndex > 0 ? " sk-attachment-page-continuation" : ""}`}
+              key={`sk-attachment-page-${pageIndex}`}
+            >
+              {pg.includeMeta ? (
+                renderAttachmentMetaTitle()
+              ) : (
+                <div className="sk-continuation-spacer h-4 w-full" />
+              )}
+              {renderAttachmentTable(pg.assets, pg.startIndex, pg.showColumnNumbers, pg.includeTotal)}
+              {pg.includeSignature && renderAttachmentSignature()}
+            </div>
+          ))}
+        </div>
+      </article>
+
+      {/* Hidden DOM measurement root for live height calculation */}
+      <div
+        ref={measurementRef}
+        className="sk-measurement sk-no-print print:hidden pointer-events-none absolute left-[-9999px] top-[-9999px] m-0 p-0 opacity-0 border-none"
+        aria-hidden="true"
+      >
         <article
-          className="sk-page sk-attachment-document mx-auto max-w-[210mm] bg-white px-24 py-12 text-black shadow-xl ring-1 ring-zinc-200"
+          className="sk-page sk-attachment-document sk-page-landscape max-w-[297mm] bg-white px-12 py-5"
+          data-sk-measure="page"
           style={pageStyle}
-          key={`sk-attachment-${index}`}
         >
-          <div className="sk-body mx-auto w-[166mm]">
-            {pg.includeMeta && renderAttachmentMetaTitle()}
-            {renderAttachmentTable(pg.assets, pg.startIndex, pg.showColumnNumbers, pg.includeTotal)}
-            {pg.includeSignature && renderAttachmentSignature()}
+          <div className="sk-body mx-auto w-[258mm]">
+            <div data-sk-measure="attachment-meta-title">{renderAttachmentMetaTitle(true)}</div>
+            {renderAttachmentTable(assets, 0, false, true)}
+            <div data-sk-measure="signature">{renderAttachmentSignature(true)}</div>
           </div>
         </article>
-      ))}
+      </div>
 
     </div>
   );

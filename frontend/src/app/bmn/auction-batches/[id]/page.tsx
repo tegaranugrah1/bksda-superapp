@@ -2,7 +2,7 @@
 
 import React, { use, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getBatch, getChecklist, AuctionBatch } from "../_lib/api";
 import { getStatusLabel, getStatusColorClass, isReadOnly } from "../_lib/status";
 import { formatRupiah } from "../../auction-candidates/_lib/auction-helpers";
@@ -36,6 +36,7 @@ interface PageProps {
 export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const batchId = resolvedParams.id;
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("assets");
 
   // Load batch data
@@ -80,6 +81,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   const refetchAll = () => {
     refetch();
     refetchChecklist();
+    queryClient.invalidateQueries({ queryKey: ["bmn-auction-document-context", batchId] });
   };
   const workflowTabs = getWorkflowTabs(batch);
   const activeTabIndex = Math.max(

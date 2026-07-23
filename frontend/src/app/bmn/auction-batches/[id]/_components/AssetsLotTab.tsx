@@ -123,12 +123,17 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
   const candidates = candidatesData?.data || [];
 
   // Mutations
+  const invalidateDocumentContext = () => {
+    queryClient.invalidateQueries({ queryKey: ["bmn-auction-document-context", batch.id] });
+  };
+
   const addAssetsMutation = useMutation({
     mutationFn: (assetIds: string[]) => addAssets(batch.id, assetIds),
     onSuccess: () => {
       toast.success("Aset berhasil ditambahkan!");
       setIsAddModalOpen(false);
       setModalSelectedIds(new Set());
+      invalidateDocumentContext();
       onRefetch();
     },
     onError: (error: any) => {
@@ -140,6 +145,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
     mutationFn: (assetId: string) => removeAsset(batch.id, assetId),
     onSuccess: () => {
       toast.success("Aset berhasil dikeluarkan dari paket.");
+      invalidateDocumentContext();
       onRefetch();
     },
     onError: (error: any) => {
@@ -150,6 +156,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
   const updateOrderMutation = useMutation({
     mutationFn: (orderedAssetIds: string[]) => updateOrder(batch.id, orderedAssetIds),
     onSuccess: () => {
+      invalidateDocumentContext();
       onRefetch();
     },
     onError: (error: any) => {
@@ -164,6 +171,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
       updateValuation(batch.id, assetId, { lot_number: lotNumber }),
     onSuccess: () => {
       toast.success("Nomor Lot berhasil diperbarui.");
+      invalidateDocumentContext();
       onRefetch();
     },
     onError: (error: any) => {
