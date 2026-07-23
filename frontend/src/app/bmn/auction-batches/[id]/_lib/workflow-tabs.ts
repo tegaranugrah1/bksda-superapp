@@ -9,8 +9,7 @@ export function getWorkflowTabs(_batch: AuctionBatch): WorkflowTab[] {
   return [
     { value: "assets", label: "1. Aset & Nilai Taksiran" },
     { value: "documents", label: "2. Pusat Generator Dokumen" },
-    { value: "schedule", label: "3. Jadwal & Penguncian" },
-    { value: "realization", label: "4. Realisasi & Pindah Paket" },
+    { value: "realization", label: "3. Realisasi & Pindah Paket" },
     { value: "audit", label: "Riwayat Audit" },
   ];
 }

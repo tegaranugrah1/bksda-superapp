@@ -294,10 +294,6 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
             />
           </TabsContent>
 
-          <TabsContent value="schedule" className="mt-0 focus-visible:outline-none">
-            <ScheduleTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
-          </TabsContent>
-
           <TabsContent value="realization" className="mt-0 focus-visible:outline-none">
             <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
           </TabsContent>
