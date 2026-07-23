@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRole } from "@/hooks/useRole";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 import {
   recordFirstAuctionResults,
   recordReauctionResults,
@@ -45,8 +47,10 @@ interface RealizationTabProps {
 }
 
 export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabProps) {
-  const { hasPermission } = useRole();
-  const canFinalize = hasPermission("bmn.auction.finalize");
+  const router = useRouter();
+  const { isSuperAdmin, isAdmin } = useRole();
+  const canFinalize = isSuperAdmin || isAdmin;
+  const [isMovingUnsold, setIsMovingUnsold] = useState(false);
 
   // First auction form state
   const [firstAuctionSold, setFirstAuctionSold] = useState<Record<string, boolean>>({});
@@ -220,6 +224,52 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
     cancelMutation.mutate(cancelNotes.trim() || null);
   };
 
+  // Move Unsold Assets to New Batch
+  const handleMoveUnsoldToNewBatch = async () => {
+    const unsoldAssets = assets.filter((asset) => {
+      const p = asset.pivot;
+      if (p?.final_result === "UNSOLD") return true;
+      if (p?.first_auction_is_sold === false && !p?.reauction_is_sold) return true;
+      return false;
+    });
+
+    if (unsoldAssets.length === 0) {
+      toast.error("Tidak ada barang tidak laku yang perlu dipindahkan.");
+      return;
+    }
+
+    setIsMovingUnsold(true);
+    try {
+      const newBatchRes = await api.post("/bmn/auction-batches", {
+        name: `Paket Lelang BMN (Lelang Ulang ${new Date().toLocaleDateString("id-ID")})`,
+      });
+
+      const newBatch = newBatchRes.data?.data;
+      if (!newBatch?.id) {
+        throw new Error("Gagal membuat paket lelang baru.");
+      }
+
+      const unsoldIds = unsoldAssets.map((a) => a.id);
+      await api.post(`/bmn/auction-batches/${newBatch.id}/assets`, {
+        asset_ids: unsoldIds,
+      });
+
+      if (batch.status !== "REALISASI") {
+        await realize(batch.id);
+      }
+
+      toast.success(
+        `Berhasil membuat Paket Lelang Baru (#${newBatch.batch_number}) dengan ${unsoldAssets.length} barang tidak laku. Riwayat paket lama telah dikunci aman.`
+      );
+
+      router.push(`/bmn/auction-batches/${newBatch.id}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Gagal memindahkan barang tidak laku.");
+    } finally {
+      setIsMovingUnsold(false);
+    }
+  };
+
   // Helper check status values
   const firstResultsSaved = assets.length > 0 && assets.every((a) => a.pivot?.first_auction_is_sold !== null);
   const reauctionResultsSaved =
@@ -372,6 +422,14 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                         className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold"
                       >
                         Jadwal Lelang Ulang (Lelang II)
+                      </Button>
+                      <Button
+                        onClick={handleMoveUnsoldToNewBatch}
+                        disabled={isMovingUnsold}
+                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold"
+                      >
+                        {isMovingUnsold && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
+                        Pindahkan Barang Tidak Laku ke Paket Baru
                       </Button>
                       <Button
                         variant="outline"
@@ -608,6 +666,27 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                 </tbody>
               </table>
             </div>
+
+            {assets.some((a) => a.pivot?.final_result === "UNSOLD" || (!a.pivot?.first_auction_is_sold && !a.pivot?.reauction_is_sold)) && (
+              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-blue-50/40 dark:bg-blue-950/10 p-4 rounded-xl">
+                <div>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                    Terdapat Aset Tidak Terjual
+                  </p>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">
+                    Buat paket lelang draf baru khusus untuk barang yang tidak laku dengan set dokumen SK/BA baru.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleMoveUnsoldToNewBatch}
+                  disabled={isMovingUnsold}
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shrink-0"
+                >
+                  {isMovingUnsold && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
+                  Pindahkan Barang Tidak Laku ke Paket Baru
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
