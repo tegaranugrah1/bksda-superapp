@@ -265,13 +265,8 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-zinc-100 bg-zinc-50/75 dark:border-zinc-800 dark:bg-zinc-900/50">
-                {!readOnly && (
-                  <th className="w-20 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    Urutan
-                  </th>
-                )}
-                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 w-56">
-                  Nomor Lot
+                <th className="w-24 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  No. / Urutan
                 </th>
                 <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   Identitas Aset
@@ -295,7 +290,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
               {localAssets.length === 0 ? (
                 <tr>
-                  <td colSpan={readOnly ? 5 : 7} className="p-16 text-center">
+                  <td colSpan={readOnly ? 4 : 5} className="p-16 text-center">
                     <div className="flex flex-col items-center justify-center space-y-3">
                       <Package className="h-9 w-9 text-zinc-300 dark:text-zinc-750" />
                       <div>
@@ -328,71 +323,37 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                   return (
                     <React.Fragment key={asset.id}>
                       <tr className="transition-colors hover:bg-zinc-50/40 dark:hover:bg-zinc-900/30">
-                        {/* Order action */}
-                        {!readOnly && (
-                          <td className="px-4 py-4 text-center">
-                            <div className="flex items-center justify-center gap-0.5">
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                disabled={index === 0}
-                                onClick={() => handleMoveUp(index)}
-                                className="rounded-lg h-7 w-7"
-                              >
-                                <ArrowUp className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                disabled={index === localAssets.length - 1}
-                                onClick={() => handleMoveDown(index)}
-                                className="rounded-lg h-7 w-7"
-                              >
-                                <ArrowDown className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </td>
-                        )}
-
-                        {/* Lot Number */}
-                        <td className="px-4 py-4">
-                          {!readOnly ? (
-                            <div className="flex min-w-48 items-center gap-2">
-                              <Input
-                                value={lotDrafts[asset.id] ?? ""}
-                                onChange={(e) =>
-                                  setLotDrafts((prev) => ({
-                                    ...prev,
-                                    [asset.id]: e.target.value,
-                                  }))
-                                }
-                                className="h-8 w-20 rounded-lg border-zinc-200 text-center font-mono text-xs font-semibold dark:border-zinc-800"
-                                placeholder="LOT"
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") handleSaveLot(asset.id);
-                                }}
-                              />
-                              <Button
-                                size="sm"
-                                onClick={() => handleSaveLot(asset.id)}
-                                className="h-8 rounded-lg border border-emerald-700 bg-emerald-600 px-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
-                                disabled={updateLotMutation.isPending}
-                              >
-                                <Check className="h-3.5 w-3.5" />
-                                Simpan
-                              </Button>
-                            </div>
-                          ) : (
-                            <div
-                              className={`text-xs font-bold font-mono px-2 py-1 rounded-md border text-center ${
-                                asset.pivot?.lot_number
-                                  ? "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200"
-                                  : "bg-red-50 border-red-100 text-red-700 dark:bg-red-950/20 dark:border-red-900/30"
-                              }`}
-                            >
-                              {asset.pivot?.lot_number || "LOT ?"}
-                            </div>
-                          )}
+                        {/* No / Urutan */}
+                        <td className="px-4 py-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="font-mono text-xs font-bold text-zinc-600 dark:text-zinc-300 w-5 text-right">
+                              {index + 1}.
+                            </span>
+                            {!readOnly && (
+                              <div className="flex items-center gap-0.5">
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  disabled={index === 0}
+                                  onClick={() => handleMoveUp(index)}
+                                  className="rounded-lg h-7 w-7"
+                                  title="Naikkan urutan"
+                                >
+                                  <ArrowUp className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  disabled={index === localAssets.length - 1}
+                                  onClick={() => handleMoveDown(index)}
+                                  className="rounded-lg h-7 w-7"
+                                  title="Turunkan urutan"
+                                >
+                                  <ArrowDown className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </td>
 
                         {/* Identitas Aset */}
@@ -477,9 +438,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                       {/* Expandable Warnings */}
                       {isExpanded && hasWarnings && (
                         <tr className="bg-amber-50/10 dark:bg-amber-900/5 border-t border-b border-amber-100/50 dark:border-amber-900/20">
-                          {/* Pad check/order column */}
-                          {!readOnly && <td />}
-                          <td colSpan={readOnly ? 5 : 6} className="px-5 py-3.5">
+                          <td colSpan={readOnly ? 4 : 5} className="px-5 py-3.5">
                             <div className="space-y-1.5">
                               <div className="text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1">
                                 <AlertTriangle className="h-3.5 w-3.5" />
