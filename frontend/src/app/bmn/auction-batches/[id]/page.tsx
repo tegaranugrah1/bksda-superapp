@@ -273,53 +273,34 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
           </div>
 
           {/* Tab Contents */}
-          <TabsContent value="assets" className="mt-0 focus-visible:outline-none">
+          <TabsContent value="assets" className="mt-0 space-y-8 focus-visible:outline-none">
             <AssetsLotTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <ValuationTab
+                batch={batch}
+                readOnly={readOnly}
+                onRefetch={refetchAll}
+                checklist={checklist}
+                onGoToPreDocs={() => setActiveTab("documents")}
+              />
+            </div>
           </TabsContent>
 
-          <TabsContent value="pre-docs" className="mt-0 focus-visible:outline-none">
+          <TabsContent value="documents" className="mt-0 focus-visible:outline-none">
             <DocumentsCenterTab
               batch={batch}
-              phaseFilter="pre_valuation"
               checklist={checklist}
               onRefetch={refetchAll}
             />
           </TabsContent>
 
-          <TabsContent value="valuation" className="mt-0 focus-visible:outline-none">
-            <ValuationTab
-              batch={batch}
-              readOnly={readOnly}
-              onRefetch={refetchAll}
-              checklist={checklist}
-              onGoToPreDocs={() => setActiveTab("pre-docs")}
-            />
+          <TabsContent value="schedule" className="mt-0 focus-visible:outline-none">
+            <ScheduleTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
           </TabsContent>
 
-          <TabsContent value="post-docs" className="mt-0 focus-visible:outline-none">
-            <DocumentsCenterTab
-              batch={batch}
-              phaseFilter="post_valuation"
-              checklist={checklist}
-              onRefetch={refetchAll}
-            />
+          <TabsContent value="realization" className="mt-0 focus-visible:outline-none">
+            <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
           </TabsContent>
-
-          <TabsContent value="submit" className="mt-0 focus-visible:outline-none">
-            <SignatoriesDocumentsTab batch={batch} readOnly={batch.status !== "DRAFT"} onRefetch={refetchAll} />
-          </TabsContent>
-
-          {batch.status !== "DRAFT" && (
-            <TabsContent value="schedule" className="mt-0 focus-visible:outline-none">
-              <ScheduleTab batch={batch} readOnly={batch.status !== "DIAJUKAN"} onRefetch={refetchAll} />
-            </TabsContent>
-          )}
-
-          {batch.status !== "DRAFT" && batch.status !== "DIAJUKAN" && (
-            <TabsContent value="realization" className="mt-0 focus-visible:outline-none">
-              <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
-            </TabsContent>
-          )}
 
           <TabsContent value="audit" className="mt-0 focus-visible:outline-none">
             <AuditTrailTab batchId={batch.id} />
