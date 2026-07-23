@@ -246,7 +246,7 @@ function WorksheetInput({
   return (
     <label className={`block ${className}`}>
       <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} className={inputCls} />
+      <input value={value ?? ""} onChange={(event) => onChange(event.target.value)} className={inputCls} />
     </label>
   );
 }
@@ -264,7 +264,7 @@ function CellInput({
 }) {
   return (
     <input
-      value={value}
+      value={value ?? ""}
       onChange={(event) => onChange(event.target.value)}
       onBlur={onBlur}
       className={`w-full min-w-0 border border-zinc-300 bg-white px-1 py-0.5 text-center outline-none focus:bg-yellow-50 ${className}`}
@@ -301,7 +301,7 @@ function CellTextarea({
   return (
     <textarea
       ref={ref}
-      value={value}
+      value={value ?? ""}
       rows={visualRows}
       onChange={(event) => onChange(event.target.value)}
       className={`w-full min-w-0 resize-none overflow-hidden border border-zinc-300 bg-white px-1 py-0.5 text-center leading-tight outline-none focus:bg-yellow-50 ${className}`}
@@ -553,7 +553,7 @@ export function KertasKerjaAssetSection({
               onClick={() => onSave({ nilaiTaksiran: pembulatan, worksheet: state })}
               disabled={isSaving}
             >
-              {isSaving ? "Menyimpan..." : "Simpan Nilai Taksiran"}
+              {isSaving ? "Menyimpan..." : "Simpan Kertas Kerja & Taksiran"}
             </Button>
           )}
           <Button className="rounded-xl gap-2 bg-slate-900 text-xs hover:bg-slate-800" onClick={handlePrintKertasKerjaAsset}>

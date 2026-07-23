@@ -14,12 +14,23 @@ export interface AuctionAsset {
   lokasi_spesifik?: string | null;
   tahun_perolehan?: number | null;
   no_polisi?: string | null;
+  no_stnk?: string | null;
   no_dokumen?: string | null;
   no_bpkp?: string | null;
   no_sertifikat?: string | null;
   no_identitas?: string | null;
   no_mesin?: string | null;
   no_rangka?: string | null;
+  nilai_taksiran?: number | null;
+  pivot?: {
+    lot_number?: string | null;
+    nilai_taksiran?: number | null;
+    kertas_kerja_data?: any;
+    first_auction_is_sold?: boolean | null;
+    first_auction_price?: number | null;
+    reauction_is_sold?: boolean | null;
+    reauction_price?: number | null;
+  };
 }
 
 export interface AssetResponse {

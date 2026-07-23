@@ -57,6 +57,7 @@ class AuctionBatchAssetResource extends JsonResource
             'no_mesin' => $this->no_mesin,
             'no_rangka' => $this->no_rangka,
             'no_bpkp' => $this->no_bpkp,
+            'tahun_perolehan' => $this->tahun_perolehan ? (int) $this->tahun_perolehan : null,
             'nilai_perolehan' => $this->nilai_perolehan ? (float) $this->nilai_perolehan : null,
             'nilai_buku' => $this->nilai_buku ? (float) $this->nilai_buku : null,
             'kondisi' => $this->kondisi,

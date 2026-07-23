@@ -5,6 +5,7 @@ import {
   formatPlainRupiah,
   formatDateLong,
 } from "../_lib/auction-helpers";
+import { AssetLampiranLandscapeTable, getAssetSuratStatus } from "./AssetLampiranLandscapeTable";
 import { runSkPagination } from "../_lib/sk-print";
 import type {
   SkBuilderItem,
@@ -475,7 +476,7 @@ export function SkPenghentianDocument({
             <td className="border border-black px-1 py-1">{asset.tahun_perolehan || "-"}</td>
             <td className="border border-black px-1 py-1 text-right">{formatPlainRupiah(asset.nilai_perolehan)}</td>
             <td className="border border-black px-1 py-1">{asset.kondisi}</td>
-            <td className="border border-black px-1 py-1">Surat Lengkap</td>
+            <td className="border border-black px-1 py-1">{getAssetSuratStatus(asset)}</td>
           </tr>
         ))}
         {includeTotal && (

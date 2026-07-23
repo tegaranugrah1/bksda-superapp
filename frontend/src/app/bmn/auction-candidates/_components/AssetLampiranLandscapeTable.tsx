@@ -102,15 +102,56 @@ function buildLampiranPages(assets: AuctionAsset[]): LampiranPage[] {
   return pages;
 }
 
+function isTruthyCheck(val: any): boolean {
+  if (val === true || val === "true" || val === 1 || val === "1") return true;
+  if (typeof val === "string" && val.trim() !== "" && val.trim() !== "-" && val.trim() !== "0") return true;
+  return false;
+}
+
+export function getAssetSuratStatus(asset: AuctionAsset): string {
+  let rawData =
+    (asset.pivot as any)?.kertas_kerja_data ??
+    (asset as any).auction?.kertas_kerja_data ??
+    (asset as any).kertas_kerja_data;
+
+  if (typeof rawData === "string") {
+    try {
+      rawData = JSON.parse(rawData);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (rawData && typeof rawData === "object") {
+    const ws = rawData.type === "vehicle_worksheet_v1" ? rawData.vehicleWorksheet : rawData;
+    if (ws && typeof ws === "object") {
+      const hasBpkbProp = "bpkb" in ws;
+      const hasStnkProp = "stnk" in ws;
+
+      if (hasBpkbProp || hasStnkProp) {
+        const bpkbChecked = isTruthyCheck(ws.bpkb);
+        const stnkChecked = isTruthyCheck(ws.stnk);
+        return bpkbChecked && stnkChecked ? "Surat Lengkap" : "Surat Tidak Lengkap";
+      }
+    }
+  }
+
+  const bpkbNumber = asset.no_bpkp || (asset as any).no_bpkb;
+  const stnkNumber = asset.no_stnk;
+
+  const hasBpkb = isTruthyCheck(bpkbNumber);
+  const hasStnk = isTruthyCheck(stnkNumber);
+
+  if (hasBpkb && hasStnk) {
+    return "Surat Lengkap";
+  }
+
+  return "Surat Tidak Lengkap";
+}
+
 /**
  * Shared landscape lampiran table (10-column DAFTAR BARANG MILIK NEGARA).
  * Used by NotaDinasDocument & PermohonanKpknlDocument.
- *
- * Notes:
- * - All cells are `contentEditable` so user can fill in nilai taksiran per
- *   asset and tweak any field before printing.
- * - Total nilai_perolehan is auto-summed; total nilai_taksiran is left blank
- *   (manual sum in italic) since it depends on user-entered taksiran.
  */
 export function AssetLampiranLandscapeTable({
   assets,
@@ -122,6 +163,10 @@ export function AssetLampiranLandscapeTable({
 }: AssetLampiranLandscapeTableProps) {
   const totalPerolehan = assets.reduce(
     (sum, a) => sum + (a.nilai_perolehan || 0),
+    0,
+  );
+  const totalTaksiran = assets.reduce(
+    (sum, a) => sum + (a.pivot?.nilai_taksiran ?? (a as any).nilai_taksiran ?? 0),
     0,
   );
   const pages = buildLampiranPages(assets);
@@ -208,41 +253,44 @@ export function AssetLampiranLandscapeTable({
               </td>
             </tr>
           ) : (
-            page.assets.map((asset, index) => (
-              <tr key={asset.id}>
-                <td>{page.startIndex + index + 1}</td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ whiteSpace: "nowrap", wordBreak: "keep-all", overflowWrap: "normal" }}>
-                  {asset.kode_barang}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>
-                  {asset.nup}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "left" }}>
-                  {asset.nama_barang}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "left" }}>
-                  {asset.merk_tipe || ""}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>
-                  {asset.no_polisi || ""}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ whiteSpace: "nowrap" }}>
-                  {asset.tahun_perolehan ?? ""}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                  {asset.nilai_perolehan ? formatPlainRupiah(asset.nilai_perolehan) : ""}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                  {/* user fills in */}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>
-                  {asset.kondisi}
-                </td>
-                <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>
-                  {/* keterangan */}
-                </td>
-              </tr>
-            ))
+            page.assets.map((asset, index) => {
+              const taksiran = asset.pivot?.nilai_taksiran ?? (asset as any).nilai_taksiran;
+              return (
+                <tr key={asset.id}>
+                  <td>{page.startIndex + index + 1}</td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ whiteSpace: "nowrap", wordBreak: "keep-all", overflowWrap: "normal" }}>
+                    {asset.kode_barang}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>
+                    {asset.nup}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "left" }}>
+                    {asset.nama_barang}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "left" }}>
+                    {asset.merk_tipe || ""}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>
+                    {asset.no_polisi || ""}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ whiteSpace: "nowrap" }}>
+                    {asset.tahun_perolehan ?? ""}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    {asset.nilai_perolehan ? formatPlainRupiah(asset.nilai_perolehan) : ""}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    {taksiran ? formatPlainRupiah(taksiran) : ""}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>
+                    {asset.kondisi}
+                  </td>
+                  <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`}>
+                    {getAssetSuratStatus(asset)}
+                  </td>
+                </tr>
+              );
+            })
           )}
           {page.includeTotal && assets.length > 0 && (
             <tr className={`${prefix}lamp-jumlah-row`}>
@@ -253,7 +301,7 @@ export function AssetLampiranLandscapeTable({
                 {formatPlainRupiah(totalPerolehan)}
               </td>
               <td contentEditable suppressContentEditableWarning className={`${prefix}lamp-edit`} style={{ textAlign: "right", fontStyle: "italic", fontWeight: 600, whiteSpace: "nowrap" }}>
-                {/* manual sum nilai taksiran */}
+                {totalTaksiran > 0 ? formatPlainRupiah(totalTaksiran) : ""}
               </td>
               <td colSpan={2} />
             </tr>

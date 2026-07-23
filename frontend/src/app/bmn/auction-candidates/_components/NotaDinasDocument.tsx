@@ -92,7 +92,7 @@ export function handlePrintNotaDinas() {
           .nd-lamp-jumlah-row td { background: #f3f4f6; }
           .nd-lamp-ttd { width: 20rem; margin: 1rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
           .nd-lamp-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-          .nd-lamp-ttd .nd-lamp-ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+          .nd-lamp-ttd .nd-lamp-ttd-placeholder { box-sizing: border-box; height: 84px; display: flex; align-items: center; text-align: left; padding-top: 0px; padding-left: 1.1cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; }
           .nd-lamp-ttd .nd-lamp-ttd-name { font-weight: normal; }
         </style>
       </head>
@@ -175,7 +175,7 @@ export function NotaDinasDocument({
         .nota-dinas-print-root .nd-lamp-jumlah-row td { background: #f3f4f6; }
         .nota-dinas-print-root .nd-lamp-ttd { width: 20rem; margin: 1rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
         .nota-dinas-print-root .nd-lamp-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-        .nota-dinas-print-root .nd-lamp-ttd .nd-lamp-ttd-placeholder { box-sizing: border-box; height: 60px; padding-top: 0px; padding-left: 1.35cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; text-align: left; }
+        .nota-dinas-print-root .nd-lamp-ttd .nd-lamp-ttd-placeholder { box-sizing: border-box; height: 84px; display: flex; align-items: center; text-align: left; padding-top: 0px; padding-left: 1.1cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; }
         .nota-dinas-print-root .nd-lamp-ttd .nd-lamp-ttd-name { font-weight: normal; }
 
         @media print {
@@ -252,6 +252,7 @@ export function NotaDinasDocument({
         </div>
 
         <div className="nd-ttd">
+          <p>Kepala Balai,</p>
           <div className="nd-ttd-placeholder">${"{ttd_pengirim}"}</div>
           <p className="nd-ttd-name">{kepalaBalai.nama}</p>
           <p>NIP. {kepalaBalai.nip}</p>

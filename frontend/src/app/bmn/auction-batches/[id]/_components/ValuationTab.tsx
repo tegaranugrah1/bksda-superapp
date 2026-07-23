@@ -115,9 +115,18 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
   });
 
   const getVehicleWorksheetInitialState = (data: any) => {
-    if (!data || typeof data !== "object") return null;
-    if (data.type === "vehicle_worksheet_v1") return data.vehicleWorksheet || null;
-    if (Array.isArray(data.lelangRows)) return data;
+    if (!data) return null;
+    let parsed = data;
+    if (typeof parsed === "string") {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch (e) {
+        return null;
+      }
+    }
+    if (!parsed || typeof parsed !== "object") return null;
+    if (parsed.type === "vehicle_worksheet_v1") return parsed.vehicleWorksheet || null;
+    if (Array.isArray(parsed.lelangRows)) return parsed;
     return null;
   };
 
@@ -135,15 +144,24 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
       faktorLimit: 0.7,
     };
 
-    if (!savedData || typeof savedData !== "object") return defaultData;
+    if (!savedData) return defaultData;
+    let parsed = savedData;
+    if (typeof parsed === "string") {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch (e) {
+        return defaultData;
+      }
+    }
+    if (!parsed || typeof parsed !== "object") return defaultData;
 
     return {
       ...defaultData,
-      ...savedData,
-      comparable1: { ...defaultData.comparable1, ...(savedData.comparable1 || {}) },
-      comparable2: { ...defaultData.comparable2, ...(savedData.comparable2 || {}) },
-      comparable3: { ...defaultData.comparable3, ...(savedData.comparable3 || {}) },
-      faktorLimit: savedData.faktorLimit ?? defaultData.faktorLimit,
+      ...parsed,
+      comparable1: { ...defaultData.comparable1, ...(parsed.comparable1 || {}) },
+      comparable2: { ...defaultData.comparable2, ...(parsed.comparable2 || {}) },
+      comparable3: { ...defaultData.comparable3, ...(parsed.comparable3 || {}) },
+      faktorLimit: parsed.faktorLimit ?? defaultData.faktorLimit,
     };
   };
 
