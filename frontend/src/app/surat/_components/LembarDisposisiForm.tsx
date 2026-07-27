@@ -267,7 +267,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
         ? String(Number(lastAgendaNo) + 1)
         : "1001";
 
-      setFormData2((prev) => ({
+      setFormData2((prev: SuratMasuk) => ({
         ...prev,
         no_agenda: nextAgendaVal,
       }));
@@ -510,7 +510,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
               <Input
                 type="date"
                 value={formData1.tanggal_agenda}
-                onChange={(e) => setFormData1({ ...formData1, tanggal_agenda: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, tanggal_agenda: e.target.value })}
                 className="mt-1 h-9 text-xs font-semibold"
                 required
               />
@@ -527,12 +527,12 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
               <Input
                 type="text"
                 value={formData1.no_agenda}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const val = e.target.value;
                   setFormData1({ ...formData1, no_agenda: val });
                   if (val && !isNaN(Number(val))) {
                     const nextVal = String(Number(val) + 1);
-                    setFormData2((prev) => ({ ...prev, no_agenda: nextVal }));
+                    setFormData2((prev: SuratMasuk) => ({ ...prev, no_agenda: nextVal }));
                   }
                 }}
                 placeholder="Contoh: 1004"
@@ -553,7 +553,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 <label className="text-[11px] font-semibold text-zinc-700">No Surat *</label>
                 <Input
                   value={formData1.no_surat}
-                  onChange={(e) => setFormData1({ ...formData1, no_surat: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, no_surat: e.target.value })}
                   placeholder="36/APEKLI/VII/2026"
                   className="mt-1 h-9 text-xs font-semibold"
                   required
@@ -564,7 +564,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 <Input
                   type="date"
                   value={formData1.tanggal_surat || ""}
-                  onChange={(e) => setFormData1({ ...formData1, tanggal_surat: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, tanggal_surat: e.target.value })}
                   className="mt-1 h-9 text-xs font-semibold"
                   required
                 />
@@ -575,7 +575,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
               <label className="text-[11px] font-semibold text-zinc-700">Isi Ringkas / Perihal *</label>
               <Textarea
                 value={formData1.isi_ringkas || ""}
-                onChange={(e) => setFormData1({ ...formData1, isi_ringkas: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData1({ ...formData1, isi_ringkas: e.target.value })}
                 placeholder="Usulan Evaluasi Kouta Ekspor..."
                 rows={2}
                 className="mt-1 text-xs font-medium"
@@ -588,7 +588,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 <label className="text-[11px] font-semibold text-zinc-700">Asal Surat *</label>
                 <Input
                   value={formData1.asal_surat || ""}
-                  onChange={(e) => setFormData1({ ...formData1, asal_surat: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, asal_surat: e.target.value })}
                   placeholder="Apekli"
                   className="mt-1 h-9 text-xs"
                   required
@@ -598,7 +598,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 <label className="text-[11px] font-semibold text-zinc-700">Lampiran *</label>
                 <Input
                   value={formData1.lampiran || ""}
-                  onChange={(e) => setFormData1({ ...formData1, lampiran: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, lampiran: e.target.value })}
                   placeholder="3 Set"
                   className="mt-1 h-9 text-xs"
                   required
@@ -612,7 +612,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 <label className="text-[11px] font-medium text-zinc-500">Indek (Opsional)</label>
                 <Input
                   value={formData1.indeks || ""}
-                  onChange={(e) => setFormData1({ ...formData1, indeks: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, indeks: e.target.value })}
                   className="mt-1 h-8 text-xs"
                 />
               </div>
@@ -620,7 +620,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 <label className="text-[11px] font-medium text-zinc-500">Kode (Opsional)</label>
                 <Input
                   value={formData1.kode || ""}
-                  onChange={(e) => setFormData1({ ...formData1, kode: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, kode: e.target.value })}
                   className="mt-1 h-8 text-xs"
                 />
               </div>
@@ -661,10 +661,10 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             <div className="flex items-center gap-2">
               <Input
                 value={newRecipientText}
-                onChange={(e) => setNewRecipientText(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewRecipientText(e.target.value)}
                 placeholder="Tambah penerus baru (misal: 10. Urusan XYZ)..."
                 className="h-8 text-xs flex-1"
-                onKeyDown={(e) => {
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     handleAddRecipient1();
@@ -688,7 +688,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 <div key={idx} className="flex items-center gap-2">
                   <Input
                     value={item}
-                    onChange={(e) => handleUpdateRecipient1(idx, e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateRecipient1(idx, e.target.value)}
                     className="h-7 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
                   />
                   <Button
@@ -736,7 +736,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <Input
                     type="date"
                     value={formData2.tanggal_agenda}
-                    onChange={(e) => setFormData2({ ...formData2, tanggal_agenda: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, tanggal_agenda: e.target.value })}
                     className="mt-1 h-9 text-xs font-semibold"
                   />
                 </div>
@@ -745,7 +745,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <Input
                     type="text"
                     value={formData2.no_agenda}
-                    onChange={(e) => setFormData2({ ...formData2, no_agenda: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, no_agenda: e.target.value })}
                     className="mt-1 h-9 text-xs font-semibold"
                   />
                 </div>
@@ -763,7 +763,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <label className="text-[11px] font-semibold text-zinc-700">No Surat</label>
                   <Input
                     value={formData2.no_surat}
-                    onChange={(e) => setFormData2({ ...formData2, no_surat: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, no_surat: e.target.value })}
                     className="mt-1 h-9 text-xs font-semibold"
                   />
                 </div>
@@ -772,7 +772,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <Input
                     type="date"
                     value={formData2.tanggal_surat}
-                    onChange={(e) => setFormData2({ ...formData2, tanggal_surat: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, tanggal_surat: e.target.value })}
                     className="mt-1 h-9 text-xs font-semibold"
                   />
                 </div>
@@ -782,7 +782,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 <label className="text-[11px] font-semibold text-zinc-700">Isi Ringkas / Perihal</label>
                 <Textarea
                   value={formData2.isi_ringkas || ""}
-                  onChange={(e) => setFormData2({ ...formData2, isi_ringkas: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData2({ ...formData2, isi_ringkas: e.target.value })}
                   rows={2}
                   className="mt-1 text-xs font-medium"
                 />
@@ -793,7 +793,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <label className="text-[11px] font-semibold text-zinc-700">Asal Surat</label>
                   <Input
                     value={formData2.asal_surat || ""}
-                    onChange={(e) => setFormData2({ ...formData2, asal_surat: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, asal_surat: e.target.value })}
                     className="mt-1 h-9 text-xs"
                   />
                 </div>
@@ -801,7 +801,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <label className="text-[11px] font-semibold text-zinc-700">Lampiran</label>
                   <Input
                     value={formData2.lampiran || ""}
-                    onChange={(e) => setFormData2({ ...formData2, lampiran: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, lampiran: e.target.value })}
                     className="mt-1 h-9 text-xs"
                   />
                 </div>
@@ -812,7 +812,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <label className="text-[11px] font-medium text-zinc-500">Indek (Opsional)</label>
                   <Input
                     value={formData2.indeks || ""}
-                    onChange={(e) => setFormData2({ ...formData2, indeks: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, indeks: e.target.value })}
                     className="mt-1 h-8 text-xs"
                   />
                 </div>
@@ -820,7 +820,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <label className="text-[11px] font-medium text-zinc-500">Kode (Opsional)</label>
                   <Input
                     value={formData2.kode || ""}
-                    onChange={(e) => setFormData2({ ...formData2, kode: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, kode: e.target.value })}
                     className="mt-1 h-8 text-xs"
                   />
                 </div>
@@ -849,10 +849,10 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
               <div className="flex items-center gap-2">
                 <Input
                   value={newRecipientText2}
-                  onChange={(e) => setNewRecipientText2(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewRecipientText2(e.target.value)}
                   placeholder="Tambah penerus baru (misal: 10. Urusan XYZ)..."
                   className="h-8 text-xs flex-1"
-                  onKeyDown={(e) => {
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
                       handleAddRecipient2();
@@ -876,7 +876,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   <div key={idx} className="flex items-center gap-2">
                     <Input
                       value={item}
-                      onChange={(e) => handleUpdateRecipient2(idx, e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateRecipient2(idx, e.target.value)}
                       className="h-7 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
                     />
                     <Button

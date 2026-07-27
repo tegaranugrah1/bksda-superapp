@@ -148,7 +148,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
 
         {/* Horizontal Status Timeline */}
         <div className="mt-6 border-t border-zinc-100 dark:border-zinc-800/60 pt-5 overflow-x-auto">
-          <div className="flex items-center min-w-[700px] justify-between px-2">
+          <div className="flex items-center min-w-175 justify-between px-2">
             {isCancelled ? (
               <div className="flex items-center w-full justify-center gap-2 text-red-650 font-bold text-sm bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-3 rounded-xl">
                 <AlertCircle className="h-4 w-4" />

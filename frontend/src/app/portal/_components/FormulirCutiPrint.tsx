@@ -180,20 +180,20 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
         </thead>
         <tbody>
           <tr className="border-b border-black">
-            <td className="w-24 px-2.5 py-[2px] font-semibold border-r border-black">Nama</td>
-            <td className="w-[42%] px-2.5 py-[2px] uppercase border-r border-black">{emp.nama_lengkap}</td>
-            <td className="w-20 px-2.5 py-[2px] font-semibold border-r border-black">NIP</td>
-            <td className="px-2.5 py-[2px]">{emp.nip}</td>
+            <td className="w-24 px-2.5 py-0.5 font-semibold border-r border-black">Nama</td>
+            <td className="w-[42%] px-2.5 py-0.5 uppercase border-r border-black">{emp.nama_lengkap}</td>
+            <td className="w-20 px-2.5 py-0.5 font-semibold border-r border-black">NIP</td>
+            <td className="px-2.5 py-0.5">{emp.nip}</td>
           </tr>
           <tr className="border-b border-black">
-            <td className="px-2.5 py-[2px] font-semibold border-r border-black">Jabatan</td>
-            <td className="px-2.5 py-[2px] uppercase border-r border-black">{emp.jabatan || "-"}</td>
-            <td className="px-2.5 py-[2px] font-semibold border-r border-black">Masa Kerja</td>
-            <td className="px-2.5 py-[2px]">{data.masa_kerja || calculateMasaKerja(emp.nip, emp.nama_lengkap)}</td>
+            <td className="px-2.5 py-0.5 font-semibold border-r border-black">Jabatan</td>
+            <td className="px-2.5 py-0.5 uppercase border-r border-black">{emp.jabatan || "-"}</td>
+            <td className="px-2.5 py-0.5 font-semibold border-r border-black">Masa Kerja</td>
+            <td className="px-2.5 py-0.5">{data.masa_kerja || calculateMasaKerja(emp.nip, emp.nama_lengkap)}</td>
           </tr>
           <tr>
-            <td className="px-2.5 py-[2px] font-semibold border-r border-black">Unit Kerja</td>
-            <td colSpan={3} className="px-2.5 py-[2px] uppercase">{emp.satuan_kerja || "Balai KSDA Kalimantan Timur"}</td>
+            <td className="px-2.5 py-0.5 font-semibold border-r border-black">Unit Kerja</td>
+            <td colSpan={3} className="px-2.5 py-0.5 uppercase">{emp.satuan_kerja || "Balai KSDA Kalimantan Timur"}</td>
           </tr>
         </tbody>
       </table>
@@ -209,21 +209,21 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
         </thead>
         <tbody>
           <tr className="border-b border-black">
-            <td className="px-2.5 py-[2px] w-[40%]">1. Cuti Tahunan</td>
+            <td className="px-2.5 py-0.5 w-[40%]">1. Cuti Tahunan</td>
             <td className="w-11 border-l border-r border-black text-center font-bold text-xs h-5.5">{isTahunan ? "✓" : ""}</td>
-            <td className="px-2.5 py-[2px] w-[40%] border-l border-black">2. Cuti Besar</td>
+            <td className="px-2.5 py-0.5 w-[40%] border-l border-black">2. Cuti Besar</td>
             <td className="w-11 border-l border-black text-center font-bold text-xs h-5.5">{isBesar ? "✓" : ""}</td>
           </tr>
           <tr className="border-b border-black">
-            <td className="px-2.5 py-[2px]">3. Cuti Sakit</td>
+            <td className="px-2.5 py-0.5">3. Cuti Sakit</td>
             <td className="w-11 border-l border-r border-black text-center font-bold text-xs h-5.5">{isSakit ? "✓" : ""}</td>
-            <td className="px-2.5 py-[2px] border-l border-black">4. Cuti Melahirkan</td>
+            <td className="px-2.5 py-0.5 border-l border-black">4. Cuti Melahirkan</td>
             <td className="w-11 border-l border-black text-center font-bold text-xs h-5.5">{isMelahirkan ? "✓" : ""}</td>
           </tr>
           <tr>
-            <td className="px-2.5 py-[2px]">5. Cuti Karena Alasan Penting</td>
+            <td className="px-2.5 py-0.5">5. Cuti Karena Alasan Penting</td>
             <td className="w-11 border-l border-r border-black text-center font-bold text-xs h-5.5">{isPenting ? "✓" : ""}</td>
-            <td className="px-2.5 py-[2px] border-l border-black">6. Cuti di Luar Tanggungan Negara</td>
+            <td className="px-2.5 py-0.5 border-l border-black">6. Cuti di Luar Tanggungan Negara</td>
             <td className="w-11 border-l border-black text-center font-bold text-xs h-5.5">{isLuarTanggungan ? "✓" : ""}</td>
           </tr>
         </tbody>
@@ -240,7 +240,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
         </thead>
         <tbody>
           <tr>
-            <td className="p-2 min-h-[38px] leading-tight">
+            <td className="p-2 min-h-9.5 leading-tight">
               {data.alasan_cuti || "-"}
             </td>
           </tr>
@@ -310,28 +310,27 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
               </table>
             </td>
 
-            {/* Right half: Cuti lainnya */}
-            <td colSpan={2} className="w-1/2 align-top p-0">
+            <td colSpan={2} className="w-[48%] align-top p-0">
               <table className="w-full border-collapse text-[9px]">
                 <tbody>
                   <tr className="border-b border-black">
-                    <td className="px-2.5 py-[2px]">2. Cuti Besar</td>
+                    <td className="px-2.5 py-0.5">2. Cuti Besar</td>
                     <td className="w-11 border-l border-black h-4.5" />
                   </tr>
                   <tr className="border-b border-black">
-                    <td className="px-2.5 py-[2px]">3. Cuti Sakit</td>
+                    <td className="px-2.5 py-0.5">3. Cuti Sakit</td>
                     <td className="w-11 border-l border-black h-4.5" />
                   </tr>
                   <tr className="border-b border-black">
-                    <td className="px-2.5 py-[2px]">4. Cuti Melahirkan</td>
+                    <td className="px-2.5 py-0.5">4. Cuti Melahirkan</td>
                     <td className="w-11 border-l border-black h-4.5" />
                   </tr>
                   <tr className="border-b border-black">
-                    <td className="px-2.5 py-[2px]">5. Cuti Tahunan</td>
+                    <td className="px-2.5 py-0.5">5. Cuti Tahunan</td>
                     <td className="w-11 border-l border-black h-4.5" />
                   </tr>
                   <tr className="border-b border-black">
-                    <td className="px-2.5 py-[2px]">6. Cuti di Luar Tanggungan Negara</td>
+                    <td className="px-2.5 py-0.5">6. Cuti di Luar Tanggungan Negara</td>
                     <td className="w-11 border-l border-black h-4.5" />
                   </tr>
                 </tbody>
@@ -341,7 +340,6 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
         </tbody>
       </table>
 
-      {/* VI. ALAMAT SELAMA MENJALANKAN CUTI */}
       <table className="w-full border-collapse border-x border-b border-black text-[9.5px]">
         <thead>
           <tr>
@@ -353,7 +351,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
         <tbody>
           <tr>
             <td className="align-top border-r border-black p-0">
-              <div className="p-2 min-h-[40px] leading-tight">
+              <div className="p-2 min-h-10 leading-tight">
                 {data.alamat_menjalankan_cuti || "-"}
               </div>
               <div className="p-1 border-t border-black">
@@ -361,7 +359,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
                 <span>{data.telepon || "-"}</span>
               </div>
             </td>
-            <td className="w-[280px] p-2 text-center align-bottom h-[80px]">
+            <td className="w-70 p-2 text-center align-bottom h-20">
               <div className="flex flex-col justify-between h-full">
                 <p className="text-[9px]">Hormat Saya,</p>
                 <div className="h-6" />
@@ -375,7 +373,6 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
         </tbody>
       </table>
 
-      {/* VII. PERTIMBANGAN ATASAN LANGSUNG */}
       <table className="w-full border-collapse border-x border-b border-black text-[9.5px]">
         <thead>
           <tr>
@@ -391,18 +388,16 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
           </tr>
         </thead>
         <tbody>
-          {/* 4 Empty Checkbox Cells Row */}
           <tr className="border-b border-black text-center font-bold text-xs h-7">
             <td className="border-r border-black" />
             <td className="border-r border-black" />
             <td className="border-r border-black" />
             <td />
           </tr>
-          {/* Signature Block Row */}
           <tr>
             <td colSpan={4} className="p-2">
               <div className="flex justify-end">
-                <div className="text-center w-[280px] h-[80px] flex flex-col justify-between">
+                <div className="text-center w-70 h-20 flex flex-col justify-between">
                   <p className="text-[9px] font-semibold">{atasanTitle},</p>
                   <div className="h-6" />
                   <div>
@@ -416,7 +411,6 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
         </tbody>
       </table>
 
-      {/* VIII. PERTIMBANGAN PEJABAT YANG BERWENANG MEMBERIKAN CUTI */}
       <table className="w-full border-collapse border-x border-b border-black text-[9.5px]">
         <thead>
           <tr>
@@ -432,18 +426,16 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
           </tr>
         </thead>
         <tbody>
-          {/* 4 Empty Checkbox Cells Row */}
           <tr className="border-b border-black text-center font-bold text-xs h-7">
             <td className="border-r border-black" />
             <td className="border-r border-black" />
             <td className="border-r border-black" />
             <td />
           </tr>
-          {/* Signature Block Row */}
           <tr>
             <td colSpan={4} className="p-2">
               <div className="flex justify-end">
-                <div className="text-center w-[280px] h-[80px] flex flex-col justify-between">
+                <div className="text-center w-70 h-20 flex flex-col justify-between">
                   <p className="text-[9px] font-semibold">Kepala Balai,</p>
                   <div className="h-6" />
                   <div>

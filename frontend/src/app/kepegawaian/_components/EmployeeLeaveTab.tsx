@@ -167,7 +167,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           {/* Top Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Total Hak Cuti Tahun Ini */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 relative overflow-hidden">
+            <div className="bg-linear-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-blue-700">Total Hak Cuti {selectedYear}</span>
                 <Award className="w-4 h-4 text-blue-600" />
@@ -182,7 +182,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
             </div>
 
             {/* Sisa Cuti Tersedia Saat Ini */}
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-4 relative overflow-hidden">
+            <div className="bg-linear-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-4 relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-emerald-700">Sisa Cuti Tersedia</span>
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />

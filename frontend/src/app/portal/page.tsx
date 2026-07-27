@@ -391,7 +391,7 @@ export default function PersonalDashboard() {
 
           {/* Sidebar Profile */}
           <aside className={cn(
-            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-[280px] sm:w-[320px] lg:w-[280px] bg-slate-50 dark:bg-slate-900/50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
+            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-70 sm:w-[320px] lg:w-70 bg-slate-50 dark:bg-slate-900/50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
             mobileProfileOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
           )}>
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-6 text-center relative">
@@ -461,7 +461,7 @@ export default function PersonalDashboard() {
                     <KeyRound className="w-4 h-4 mr-2 text-emerald-500" /> Ganti Password
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[400px] w-[90vw] mx-auto rounded-2xl">
+                <DialogContent className="sm:max-w-100 w-[90vw] mx-auto rounded-2xl">
                   <form onSubmit={handleChangePassword}>
                     <DialogHeader><DialogTitle>Ubah Password</DialogTitle><DialogDescription>Password baru minimal 8 karakter.</DialogDescription></DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -518,12 +518,17 @@ export default function PersonalDashboard() {
                     onClick={() => setActiveTab(tab.key)}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
-                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50"
+                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                     )}
                   >
                     {tab.icon} {tab.label}
                     {tab.count !== undefined && tab.count > 0 && (
-                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-bold", activeTab === tab.key ? "bg-white/20" : "bg-slate-100 dark:bg-zinc-700")}>{tab.count}</span>
+                      <span className={cn(
+                        "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                        activeTab === tab.key ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                      )}>
+                        {tab.count}
+                      </span>
                     )}
                   </button>
                 ))}
@@ -899,7 +904,7 @@ export default function PersonalDashboard() {
 
         {/* Edit Profile Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="sm:max-w-[400px]">
+          <DialogContent className="sm:max-w-100">
             <form onSubmit={handleSaveProfile}>
               <DialogHeader><DialogTitle>Edit Profil</DialogTitle><DialogDescription>Perbarui informasi profil Anda.</DialogDescription></DialogHeader>
               <div className="grid gap-4 py-4">

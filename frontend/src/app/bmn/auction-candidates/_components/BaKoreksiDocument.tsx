@@ -225,7 +225,7 @@ function AttachmentSignature({ kepalaBalai }: { kepalaBalai: SkKepalaBalai }) {
   return (
     <div className="signature attachment-signature mt-6 ml-auto w-80">
       <p className="m-0">Kepala Balai,</p>
-      <div className="ttd-placeholder mt-8 h-[92px] box-border pt-[30px] pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+      <div className="ttd-placeholder mt-8 h-23 box-border pt-7.5 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
       <p className="m-0 mt-8">{kepalaBalai.nama}</p>
       <p className="m-0">NIP. {kepalaBalai.nip}</p>
     </div>

@@ -270,7 +270,7 @@ export default function SuratMasukListPage() {
                       </span>
                     </td>
 
-                    <td className="p-3.5 max-w-[200px]">
+                    <td className="p-3.5 max-w-50">
                       <span className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
                         <Building2 className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                         <span className="truncate">{item.asal_surat}</span>
@@ -280,7 +280,7 @@ export default function SuratMasukListPage() {
                       </span>
                     </td>
 
-                    <td className="p-3.5 max-w-[280px]">
+                    <td className="p-3.5 max-w-70">
                       <p className="text-zinc-700 dark:text-zinc-300 line-clamp-2 leading-relaxed">
                         {item.isi_ringkas}
                       </p>

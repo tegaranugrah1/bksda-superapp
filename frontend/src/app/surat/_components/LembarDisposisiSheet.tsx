@@ -83,11 +83,11 @@ export function LembarDisposisiSheet({
 
           {/* Tanggal & No Agenda (Each has its own border via divide-y) */}
           <div className="divide-y divide-black whitespace-nowrap">
-            <div className="p-1 px-2 flex items-center min-h-[27px]">
+            <div className="p-1 px-2 flex items-center min-h-6.75">
               <span className="w-22 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Tanggal</span>
               <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_agenda || "24/07/26")}</span>
             </div>
-            <div className="p-1 px-2 flex items-center min-h-[27px]">
+            <div className="p-1 px-2 flex items-center min-h-6.75">
               <span className="w-22 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>No Agenda</span>
               <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_agenda || "1004"}</span>
             </div>
@@ -109,7 +109,7 @@ export function LembarDisposisiSheet({
                 {SIFAT_OPTIONS.slice(0, 5).map((item) => {
                   const isSangatPenting = item === "Sangat Penting";
                   return (
-                    <div key={item} className="p-0.5 font-bold flex items-center justify-center min-h-[27px] text-[13.5px] leading-tight">
+                    <div key={item} className="p-0.5 font-bold flex items-center justify-center min-h-6.75 text-[13.5px] leading-tight">
                       {isSangatPenting ? (
                         <span>
                           Sangat<br />Penting
@@ -123,7 +123,7 @@ export function LembarDisposisiSheet({
               </div>
 
               {/* 6th SIFAT Option: Kilat (Starts exactly at 50% unified vertical line) */}
-              <div className="p-0.5 font-bold flex items-center justify-center min-h-[27px] text-[14px]">
+              <div className="p-0.5 font-bold flex items-center justify-center min-h-6.75 text-[14px]">
                 Kilat
               </div>
             </div>
@@ -137,15 +137,15 @@ export function LembarDisposisiSheet({
         <div className="border-b border-black grid grid-cols-[50%_50%] divide-x divide-black">
           {/* Left Block: Separate Borders for Indek, Kode, No Surat (0% to 50%) */}
           <div className="divide-y divide-black">
-            <div className="p-0.5 px-2 flex items-center min-h-[26px]">
+            <div className="p-0.5 px-2 flex items-center min-h-6.5">
               <span className="w-18 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Indek</span>
               <span className="text-[14.5px]" style={FONT_ARIAL_NOVA_COND}>: {data.indeks || ""}</span>
             </div>
-            <div className="p-0.5 px-2 flex items-center min-h-[26px]">
+            <div className="p-0.5 px-2 flex items-center min-h-6.5">
               <span className="w-18 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Kode</span>
               <span className="text-[14.5px]" style={FONT_ARIAL_NOVA_COND}>: {data.kode || ""}</span>
             </div>
-            <div className="p-0.5 px-2 flex items-center min-h-[28px]">
+            <div className="p-0.5 px-2 flex items-center min-h-7">
               <span className="w-18 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>No Surat</span>
               <span className="break-all font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_surat || "36/APEKLI/VII/2026"}</span>
             </div>
@@ -180,13 +180,13 @@ export function LembarDisposisiSheet({
         </div>
 
         {/* Asal Surat Row (Has its own bottom border) */}
-        <div className="border-b border-black p-0.5 px-2 flex items-center min-h-[27px]">
+        <div className="border-b border-black p-0.5 px-2 flex items-center min-h-6.75">
           <span className="w-22 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Asal Surat</span>
           <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.asal_surat || "Apekli"}</span>
         </div>
 
         {/* Lampiran Row (Has its own bottom border) */}
-        <div className="border-b border-black p-0.5 px-2 flex items-center min-h-[27px]">
+        <div className="border-b border-black p-0.5 px-2 flex items-center min-h-6.75">
           <span className="w-22 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Lampiran</span>
           <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.lampiran || "3 Set"}</span>
         </div>
@@ -200,7 +200,7 @@ export function LembarDisposisiSheet({
             </div>
             <div className="divide-y divide-black">
               {diteruskanItems.map((option) => (
-                <div key={option} className="grid grid-cols-[1fr_56px] divide-x divide-black min-h-[21px]">
+                <div key={option} className="grid grid-cols-[1fr_56px] divide-x divide-black min-h-5.25">
                   <span className="p-0.5 px-2 leading-none flex items-center font-normal text-[13.5px]">{option}</span>
                   <div className="h-full" />
                 </div>
@@ -231,7 +231,7 @@ export function LembarDisposisiSheet({
                   <div className="w-16 h-5 border border-black shrink-0" />
                   <span className="font-normal">Harap Saran/Pertimbangan</span>
                 </div>
-                <div className="pl-[74px] text-[11px] font-normal mt-0.5">
+                <div className="pl-18.5 text-[11px] font-normal mt-0.5">
                   Penjelasan
                 </div>
               </div>
@@ -255,14 +255,14 @@ export function LembarDisposisiSheet({
       {/* ── 5. Catatan & TTD Box (Label Agency FB, Value Arial Nova Cond) ── */}
       <div className="divide-y divide-black flex-1 flex flex-col text-[13.5px]">
         {/* Upper Box: Ka Sub Bag TU */}
-        <div className="p-1 px-2 flex-1 min-h-[40px] flex flex-col justify-end">
+        <div className="p-1 px-2 flex-1 min-h-10 flex flex-col justify-end">
           <div className="text-right pr-3 font-extrabold text-[15px]" style={FONT_AGENCY}>
             Ka Sub Bag TU
           </div>
         </div>
 
         {/* Lower Box: Catatan & Kepala Balai */}
-        <div className="p-1 px-2 flex-1 min-h-[60px] flex flex-col justify-between">
+        <div className="p-1 px-2 flex-1 min-h-15 flex flex-col justify-between">
           <div>
             <span className="font-bold text-[14.5px]" style={FONT_AGENCY}>Catatan :</span>
             <p className="mt-0.5 italic whitespace-pre-wrap leading-tight text-[14px] font-semibold" style={FONT_ARIAL_NOVA_COND}>

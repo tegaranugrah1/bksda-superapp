@@ -202,7 +202,7 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
 
           {/* Alamat Selama Menjalankan Cuti */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-slate-400" />
               Alamat Selama Menjalankan Cuti *
             </label>
@@ -218,7 +218,7 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
 
           {/* Nomor Telepon */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
               <Phone className="w-3.5 h-3.5 text-slate-400" />
               Nomor Telepon Kontak Cuti
             </label>

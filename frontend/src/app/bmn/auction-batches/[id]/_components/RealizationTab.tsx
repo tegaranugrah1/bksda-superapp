@@ -752,7 +752,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
       <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl text-xs">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5 text-red-600">
+            <DialogTitle className="text-base font-bold dark:text-zinc-50 flex items-center gap-1.5 text-red-600">
               <XCircle className="h-5 w-5" />
               Batalkan Paket Lelang ini?
             </DialogTitle>

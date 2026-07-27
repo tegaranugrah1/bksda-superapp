@@ -216,10 +216,10 @@ export default function InboxSuratCutiPage() {
                       {item.tanggal_mulai} s/d {item.tanggal_selesai}
                     </span>
                   </td>
-                  <td className="p-3.5 max-w-[180px] truncate text-slate-600 dark:text-slate-400">
+                  <td className="p-3.5 max-w-45 truncate text-slate-600 dark:text-slate-400">
                     {item.alasan_cuti}
                   </td>
-                  <td className="p-3.5 max-w-[180px] truncate text-slate-600 dark:text-slate-400">
+                  <td className="p-3.5 max-w-45 truncate text-slate-600 dark:text-slate-400">
                     {item.alamat_menjalankan_cuti}
                   </td>
                   <td className="p-3.5">
