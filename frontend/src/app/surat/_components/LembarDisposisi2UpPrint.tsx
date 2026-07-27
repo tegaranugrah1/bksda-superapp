@@ -81,7 +81,7 @@ export function LembarDisposisi2UpPrint({
             min-width: 330mm !important;
             min-height: 215mm !important;
             background: white !important;
-            padding: 5mm 4mm !important;
+            padding: 3.5mm 4mm !important;
             box-sizing: border-box !important;
             z-index: 999999 !important;
           }
@@ -97,7 +97,7 @@ export function LembarDisposisi2UpPrint({
       `}</style>
 
       {/* Side-by-side 2-Up / 1-Up Landscape Grid Container (Symmetric 50-50 Grid with 5mm Cut Line Gap) */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 w-full h-[182mm] print:w-[322mm] print:h-[196mm] p-1 print:p-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 w-full h-[186mm] print:w-[322mm] print:h-[204mm] p-1 print:p-0">
         {/* Left Disposisi Sheet Column */}
         <div className={`w-full h-full flex flex-col ${!showLeftSheet ? "invisible print-invisible opacity-0" : ""}`}>
           <LembarDisposisiSheet
@@ -112,8 +112,8 @@ export function LembarDisposisi2UpPrint({
           <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-zinc-400 print:border-black" />
         </div>
 
-        {/* Right Disposisi Sheet Column (Scaled down to 95% when 1-Up Posisi Kanan to protect left border) */}
-        <div className={`w-full h-full flex flex-col transition-transform ${!showRightSheet ? "invisible print-invisible opacity-0" : ""} ${isOneUpKanan ? "scale-[0.95] origin-right" : ""}`}>
+        {/* Right Disposisi Sheet Column (Scaled to 98% when 1-Up Posisi Kanan to enlarge left, top, bottom while keeping right edge aligned) */}
+        <div className={`w-full h-full flex flex-col transition-transform ${!showRightSheet ? "invisible print-invisible opacity-0" : ""} ${isOneUpKanan ? "scale-[0.98] origin-right" : ""}`}>
           <LembarDisposisiSheet
             data={rightSuratData}
             customDiteruskanList={rightDiteruskan.length > 0 ? rightDiteruskan : undefined}
