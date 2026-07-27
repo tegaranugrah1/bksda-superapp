@@ -14,6 +14,7 @@ interface LembarDisposisi2UpPrintProps {
 
   isGreenTheme?: boolean;
   isTwoUpMode?: boolean;
+  oneUpPosition?: "kiri" | "kanan";
 }
 
 export function LembarDisposisi2UpPrint({
@@ -25,14 +26,17 @@ export function LembarDisposisi2UpPrint({
   catatan2 = "",
   isGreenTheme = false,
   isTwoUpMode = false,
+  oneUpPosition = "kiri",
 }: LembarDisposisi2UpPrintProps) {
   const secondSurat = surat2 || surat1;
   const secondDiteruskan = surat2 ? diteruskan2 : diteruskan1;
   const secondCatatan = surat2 ? catatan2 : catatan1;
 
+  const isKanan = oneUpPosition === "kanan";
+
   if (!isTwoUpMode) {
     return (
-      <div id="lembar-disposisi-2up-print-root" className="lembar-disposisi-2up-root flex justify-start">
+      <div id="lembar-disposisi-2up-print-root" className={`lembar-disposisi-2up-root flex ${isKanan ? "justify-end" : "justify-start"}`}>
         <style jsx global>{`
           @media print {
             @page {
@@ -73,12 +77,18 @@ export function LembarDisposisi2UpPrint({
               padding: 3.5mm 4mm !important;
               box-sizing: border-box !important;
               z-index: 999999 !important;
+              display: flex !important;
+              justify-content: ${isKanan ? "flex-end" : "flex-start"} !important;
+            }
+            .one-up-sheet-box {
+              margin-left: ${isKanan ? "auto" : "0"} !important;
+              margin-right: ${isKanan ? "0" : "auto"} !important;
             }
           }
         `}</style>
 
-        {/* Single 1-Up Container Positioned ON THE LEFT in Landscape Paper */}
-        <div className="w-full max-w-[160mm] h-[188mm] print:w-[157mm] print:h-[208mm] p-1 print:p-0 flex flex-col mr-auto">
+        {/* Single 1-Up Container Positioned ON THE LEFT or RIGHT in Landscape Paper */}
+        <div className={`one-up-sheet-box w-full max-w-[160mm] h-[188mm] print:w-[157mm] print:h-[208mm] p-1 print:p-0 flex flex-col ${isKanan ? "ml-auto mr-0 print:ml-auto print:mr-0" : "mr-auto ml-0 print:mr-auto print:ml-0"}`}>
           <LembarDisposisiSheet
             data={surat1}
             customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}

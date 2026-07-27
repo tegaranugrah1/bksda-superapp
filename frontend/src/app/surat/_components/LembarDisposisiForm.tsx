@@ -188,6 +188,9 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
   // Default Document Background: WHITE (false)
   const [isGreenTheme, setIsGreenTheme] = useState(false);
 
+  // Position 1-Up (Kiri / Kanan) when printing 1 Disposisi
+  const [oneUpPosition, setOneUpPosition] = useState<"kiri" | "kanan">("kiri");
+
   // Save current recipient list as permanent default in localStorage
   const handleSaveDefaultRecipients1 = () => {
     if (typeof window !== "undefined") {
@@ -457,6 +460,34 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
           >
             {isGreenTheme ? "🟢 Latar Hijau" : "⚪ Latar Putih (Bawaan)"}
           </Button>
+
+          {!isTwoUpMode && (
+            <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-0.5 rounded-xl text-xs font-semibold">
+              <span className="px-2 text-[10px] text-zinc-500 font-bold">Posisi 1-Up:</span>
+              <button
+                type="button"
+                onClick={() => setOneUpPosition("kiri")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  oneUpPosition === "kiri"
+                    ? "bg-white text-emerald-700 shadow-2xs dark:bg-zinc-800 dark:text-emerald-300"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                ⬅️ Kiri
+              </button>
+              <button
+                type="button"
+                onClick={() => setOneUpPosition("kanan")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  oneUpPosition === "kanan"
+                    ? "bg-white text-emerald-700 shadow-2xs dark:bg-zinc-800 dark:text-emerald-300"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}
+              >
+                Kanan ➡️
+              </button>
+            </div>
+          )}
 
           <Button
             type="button"
@@ -933,6 +964,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
           catatan2={isTwoUpMode ? catatanDisposisi2 : undefined}
           isGreenTheme={isGreenTheme}
           isTwoUpMode={isTwoUpMode}
+          oneUpPosition={oneUpPosition}
         />
       </div>
     </div>
