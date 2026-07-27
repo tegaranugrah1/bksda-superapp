@@ -17,6 +17,7 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+    allowedDevOrigins: ["192.168.100.176", "127.0.0.1", "localhost"],
 
     output: "standalone",
 
