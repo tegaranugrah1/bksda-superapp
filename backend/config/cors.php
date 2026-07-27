@@ -19,7 +19,7 @@ return [
     // Izinkan origin publik dan sub-domain produksi
     'allowed_origins' => ['*'],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => ['#^https?://.*$#'],
 
     // Izinkan semua header (termasuk Authorization untuk token Sanctum)
     'allowed_headers' => ['*'],

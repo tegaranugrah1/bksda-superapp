@@ -5,6 +5,13 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
 use Laravel\Sanctum\Sanctum;
 
+$requestHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+$hostOnly = $requestHost ? explode(':', $requestHost)[0] : '';
+$defaultDomains = 'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,bksdakaltim.net,www.bksdakaltim.net,api.bksdakaltim.net';
+if ($hostOnly) {
+    $defaultDomains .= ',' . $hostOnly . ',' . $hostOnly . ':3000,' . $hostOnly . ':8000,' . $requestHost;
+}
+
 return [
 
     /*
@@ -20,7 +27,7 @@ return [
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,bksdakaltim.net,www.bksdakaltim.net,api.bksdakaltim.net',
+        $defaultDomains,
         Sanctum::currentApplicationUrlWithPort(),
     ))),
 
