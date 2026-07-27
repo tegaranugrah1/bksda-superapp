@@ -36,14 +36,14 @@ export function LembarDisposisi2UpPrint({
 
   const isKanan = oneUpPosition === "kanan";
 
-  // Dedicated layout when printing on ALREADY HALF-CUT paper (Landscape 215mm x 165mm / A5 Landscape / Statement)
+  // Dedicated layout when printing on ALREADY HALF-CUT paper (165mm x 215mm / A5 / Statement)
   if (paperType === "half") {
     return (
       <div id="lembar-disposisi-2up-print-root" className="lembar-disposisi-half-root flex justify-center">
         <style jsx global>{`
           @media print {
             @page {
-              size: landscape;
+              size: portrait;
               margin: 0 !important;
             }
             html, body {
@@ -82,7 +82,7 @@ export function LembarDisposisi2UpPrint({
           }
         `}</style>
 
-        <div className="w-full max-w-[215mm] h-[165mm] print:w-full print:h-full p-1 print:p-0 flex flex-col mx-auto">
+        <div className="w-full max-w-[160mm] h-[188mm] print:w-full print:h-full p-1 print:p-0 flex flex-col mx-auto">
           <LembarDisposisiSheet
             data={surat1}
             customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
