@@ -36,7 +36,7 @@ export function LembarDisposisi2UpPrint({
 
   if (!isTwoUpMode) {
     return (
-      <div id="lembar-disposisi-2up-print-root" className={`lembar-disposisi-2up-root flex ${isKanan ? "justify-end" : "justify-start"}`}>
+      <div id="lembar-disposisi-2up-print-root" className="lembar-disposisi-2up-root">
         <style jsx global>{`
           @media print {
             @page {
@@ -77,24 +77,42 @@ export function LembarDisposisi2UpPrint({
               padding: 3.5mm 4mm !important;
               box-sizing: border-box !important;
               z-index: 999999 !important;
-              display: flex !important;
-              justify-content: ${isKanan ? "flex-end" : "flex-start"} !important;
-            }
-            .one-up-sheet-box {
-              margin-left: ${isKanan ? "auto" : "0"} !important;
-              margin-right: ${isKanan ? "0" : "auto"} !important;
             }
           }
         `}</style>
 
-        {/* Single 1-Up Container Positioned ON THE LEFT or RIGHT in Landscape Paper */}
-        <div className={`one-up-sheet-box w-full max-w-[160mm] h-[188mm] print:w-[157mm] print:h-[208mm] p-1 print:p-0 flex flex-col ${isKanan ? "ml-auto mr-0 print:ml-auto print:mr-0" : "mr-auto ml-0 print:mr-auto print:ml-0"}`}>
-          <LembarDisposisiSheet
-            data={surat1}
-            customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
-            catatanDisposisi={catatan1}
-            isGreenTheme={isGreenTheme}
-          />
+        {/* 1-Up Landscape Grid Container (Positioned Left or Right) */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-1 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
+          {/* Left Column */}
+          {isKanan ? (
+            <div className="w-full h-full" />
+          ) : (
+            <div className="w-full h-full flex flex-col">
+              <LembarDisposisiSheet
+                data={surat1}
+                customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
+                catatanDisposisi={catatan1}
+                isGreenTheme={isGreenTheme}
+              />
+            </div>
+          )}
+
+          {/* Middle Spacer Column */}
+          <div className="w-3 h-full" />
+
+          {/* Right Column */}
+          {isKanan ? (
+            <div className="w-full h-full flex flex-col">
+              <LembarDisposisiSheet
+                data={surat1}
+                customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
+                catatanDisposisi={catatan1}
+                isGreenTheme={isGreenTheme}
+              />
+            </div>
+          ) : (
+            <div className="w-full h-full" />
+          )}
         </div>
       </div>
     );
