@@ -26,9 +26,9 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
         if (!empty($this->filters['search'])) {
             $search = $this->filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('nama_barang', 'ilike', "%{$search}%")
-                    ->orWhere('kode_barang', 'ilike', "%{$search}%")
-                    ->orWhere('merk', 'ilike', "%{$search}%");
+                $q->where('nama_barang', 'LIKE', "%{$search}%")
+                    ->orWhere('kode_barang', 'LIKE', "%{$search}%")
+                    ->orWhere('merk', 'LIKE', "%{$search}%");
             });
         }
         if (!empty($this->filters['nup'])) {
@@ -45,7 +45,7 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
             $query->where('jenis_bmn', $this->filters['jenis_bmn']);
         }
         if (!empty($this->filters['lokasi_ruang'])) {
-            $query->where('lokasi_ruang', 'ilike', '%' . $this->filters['lokasi_ruang'] . '%');
+            $query->where('lokasi_ruang', 'LIKE', '%' . $this->filters['lokasi_ruang'] . '%');
         }
 
         return $query->get();

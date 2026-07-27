@@ -87,10 +87,10 @@ class AuctionBatchService
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('nama_barang', 'ilike', "%{$search}%")
-                  ->orWhere('kode_barang', 'ilike', "%{$search}%")
-                  ->orWhere('merk', 'ilike', "%{$search}%")
-                  ->orWhere('no_polisi', 'ilike', "%{$search}%");
+                $q->where('nama_barang', 'LIKE', "%{$search}%")
+                  ->orWhere('kode_barang', 'LIKE', "%{$search}%")
+                  ->orWhere('merk', 'LIKE', "%{$search}%")
+                  ->orWhere('no_polisi', 'LIKE', "%{$search}%");
             });
         }
 

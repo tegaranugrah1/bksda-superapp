@@ -51,8 +51,8 @@ class AuctionBatchController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('batch_number', 'ilike', "%{$search}%");
+            $query->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('batch_number', 'LIKE', "%{$search}%");
         }
 
         $query->latest();

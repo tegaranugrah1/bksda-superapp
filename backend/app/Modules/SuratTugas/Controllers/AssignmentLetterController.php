@@ -111,9 +111,9 @@ class AssignmentLetterController extends Controller
 
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('tempat_tujuan', 'ilike', "%{$search}%")
-                    ->orWhere('maksud_tujuan', 'ilike', "%{$search}%")
-                    ->orWhere('nomor_surat', 'ilike', "%{$search}%");
+                $q->where('tempat_tujuan', 'LIKE', "%{$search}%")
+                    ->orWhere('maksud_tujuan', 'LIKE', "%{$search}%")
+                    ->orWhere('nomor_surat', 'LIKE', "%{$search}%");
             });
         }
 

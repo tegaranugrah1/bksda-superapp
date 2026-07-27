@@ -26,10 +26,9 @@ class EmployeeController extends Controller
         $searchTerm = $request->input('search');
 
         if (! empty($searchTerm)) {
-            // Gunakan ILIKE (PostgreSQL) agar pencarian case-insensitive
             $query->where(function ($q) use ($searchTerm) {
-                $q->where('nama_lengkap', 'ilike', "%{$searchTerm}%")
-                    ->orWhere('nip', 'ilike', "%{$searchTerm}%");
+                $q->where('nama_lengkap', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('nip', 'LIKE', "%{$searchTerm}%");
             });
         }
 

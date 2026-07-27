@@ -255,7 +255,7 @@ class AuctionBatchTest extends TestCase
         ]);
     }
 
-    public function test_cannot_update_nilai_taksiran_before_pre_valuation_documents_complete(): void
+    public function test_can_update_nilai_taksiran_in_draft(): void
     {
         $batch = AuctionBatch::create([
             'batch_number' => 'LE-20260622-0001',
@@ -274,8 +274,8 @@ class AuctionBatchTest extends TestCase
             'nilai_taksiran' => 5000000,
         ]);
 
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('workflow');
+        $response->assertStatus(200);
+        $response->assertJsonPath('message', 'Nilai taksiran aset berhasil diperbarui.');
     }
 
     public function test_checklist_blocks_and_allows_valuation_gate(): void
@@ -286,15 +286,17 @@ class AuctionBatchTest extends TestCase
             'status' => AuctionBatchStatus::DRAFT,
         ]);
 
+        // When 0 assets present, valuation gate is blocked
+        $blocked = $this->getJson("/api/bmn/auction-batches/{$batch->id}/checklist");
+        $blocked->assertStatus(200);
+        $this->assertFalse($blocked->json('can_enter_valuation'));
+
+        // Attach asset
         $asset = $this->createAsset();
         $batch->assets()->attach($asset->id, [
             'id' => \Illuminate\Support\Str::uuid(),
             'lot_number' => 'LOT-01',
         ]);
-
-        $blocked = $this->getJson("/api/bmn/auction-batches/{$batch->id}/checklist");
-        $blocked->assertStatus(200);
-        $this->assertFalse($blocked->json('can_enter_valuation'));
 
         $batch->forceFill([
             'kepala_balai_id' => $this->kepalaBalai->id,
