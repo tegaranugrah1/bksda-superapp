@@ -15,7 +15,6 @@ interface LembarDisposisi2UpPrintProps {
   isGreenTheme?: boolean;
   isTwoUpMode?: boolean;
   oneUpPosition?: "kiri" | "kanan";
-  paperType?: "full" | "half";
 }
 
 export function LembarDisposisi2UpPrint({
@@ -28,71 +27,12 @@ export function LembarDisposisi2UpPrint({
   isGreenTheme = false,
   isTwoUpMode = false,
   oneUpPosition = "kiri",
-  paperType = "full",
 }: LembarDisposisi2UpPrintProps) {
   const secondSurat = surat2 || surat1;
   const secondDiteruskan = surat2 ? diteruskan2 : diteruskan1;
   const secondCatatan = surat2 ? catatan2 : catatan1;
 
   const isKanan = oneUpPosition === "kanan";
-
-  // Dedicated layout when printing on ALREADY HALF-CUT paper (165mm x 215mm / A5 / Statement)
-  if (paperType === "half") {
-    return (
-      <div id="lembar-disposisi-2up-print-root" className="lembar-disposisi-half-root flex justify-center">
-        <style jsx global>{`
-          @media print {
-            @page {
-              size: portrait;
-              margin: 0 !important;
-            }
-            html, body {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-              background: white !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              width: 100% !important;
-              height: 100% !important;
-              overflow: hidden !important;
-            }
-            .no-print {
-              display: none !important;
-            }
-            body * {
-              visibility: hidden;
-            }
-            .lembar-disposisi-half-root,
-            .lembar-disposisi-half-root * {
-              visibility: visible !important;
-            }
-            .lembar-disposisi-half-root {
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100% !important;
-              height: 100% !important;
-              background: white !important;
-              padding: 5mm 4mm !important;
-              box-sizing: border-box !important;
-              z-index: 999999 !important;
-              display: flex !important;
-              justify-content: center !important;
-            }
-          }
-        `}</style>
-
-        <div className="w-full max-w-[160mm] h-[182mm] print:w-[157mm] print:h-[196mm] p-1 print:p-0 flex flex-col mx-auto">
-          <LembarDisposisiSheet
-            data={surat1}
-            customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
-            catatanDisposisi={catatan1}
-            isGreenTheme={isGreenTheme}
-          />
-        </div>
-      </div>
-    );
-  }
 
   const showLeftSheet = isTwoUpMode || !isKanan;
   const showRightSheet = isTwoUpMode || isKanan;
@@ -104,6 +44,8 @@ export function LembarDisposisi2UpPrint({
   const rightSuratData = isTwoUpMode ? secondSurat : surat1;
   const rightDiteruskan = isTwoUpMode ? secondDiteruskan : diteruskan1;
   const rightCatatan = isTwoUpMode ? secondCatatan : catatan1;
+
+  const isOneUpKanan = !isTwoUpMode && isKanan;
 
   return (
     <div id="lembar-disposisi-2up-print-root" className="lembar-disposisi-2up-root">
@@ -176,8 +118,8 @@ export function LembarDisposisi2UpPrint({
           </span>
         </div>
 
-        {/* Right Disposisi Sheet Column */}
-        <div className={`w-full h-full flex flex-col ${!showRightSheet ? "invisible print-invisible opacity-0" : ""}`}>
+        {/* Right Disposisi Sheet Column (Scaled down to 95% when 1-Up Posisi Kanan to protect left border) */}
+        <div className={`w-full h-full flex flex-col transition-transform ${!showRightSheet ? "invisible print-invisible opacity-0" : ""} ${isOneUpKanan ? "scale-[0.95] origin-right" : ""}`}>
           <LembarDisposisiSheet
             data={rightSuratData}
             customDiteruskanList={rightDiteruskan.length > 0 ? rightDiteruskan : undefined}
