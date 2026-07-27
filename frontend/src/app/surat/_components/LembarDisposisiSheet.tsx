@@ -42,7 +42,7 @@ export function LembarDisposisiSheet({
 
   return (
     <div
-      className={`w-full h-full flex flex-col justify-between border-2 border-black box-border text-black text-[13.5px] leading-snug select-none ${
+      className={`w-full h-full flex flex-col justify-between border-2 border-solid border-black box-border text-black text-[13.5px] leading-snug select-none ${
         isGreenTheme ? "bg-[#bfe58f]" : "bg-white"
       }`}
       style={FONT_AGENCY}

@@ -51,6 +51,19 @@ class SuperAdminSeeder extends Seeder
             ]
         );
 
-        $this->command->info('Akun Super Admin (NIP & username superadmin) berhasil ditanamkan ke Database!');
+        // 4. Buat Akun Anak Magang
+        User::updateOrCreate(
+            ['username' => 'magang'],
+            [
+                'name' => 'Anak Magang',
+                'email' => 'magang@bksdakaltim.net',
+                'password' => 'konservasi#ksdae',
+                'role' => 'user',
+                'access_modules' => ['surat', 'kepegawaian', 'bmn', 'inventory', 'dereporting'],
+                'is_active' => true,
+            ]
+        );
+
+        $this->command->info('Akun Super Admin & User Magang berhasil ditanamkan ke Database!');
     }
 }
