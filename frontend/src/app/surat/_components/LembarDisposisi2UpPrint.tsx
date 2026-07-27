@@ -94,7 +94,7 @@ export function LembarDisposisi2UpPrint({
       {/* Side-by-side 2-Up / 1-Up Landscape Grid Container (Symmetric 50-50 Grid) */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
         {/* Left Disposisi Sheet Column */}
-        <div className={`w-full h-full flex flex-col ${!showLeftSheet ? "opacity-0 pointer-events-none aria-hidden" : ""}`}>
+        <div className={`w-full h-full flex flex-col ${!showLeftSheet ? "invisible" : ""}`}>
           <LembarDisposisiSheet
             data={leftSuratData}
             customDiteruskanList={leftDiteruskan.length > 0 ? leftDiteruskan : undefined}
@@ -112,7 +112,7 @@ export function LembarDisposisi2UpPrint({
         </div>
 
         {/* Right Disposisi Sheet Column */}
-        <div className={`w-full h-full flex flex-col ${!showRightSheet ? "opacity-0 pointer-events-none aria-hidden" : ""}`}>
+        <div className={`w-full h-full flex flex-col ${!showRightSheet ? "invisible" : ""}`}>
           <LembarDisposisiSheet
             data={rightSuratData}
             customDiteruskanList={rightDiteruskan.length > 0 ? rightDiteruskan : undefined}
