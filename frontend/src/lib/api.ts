@@ -1,10 +1,30 @@
 import axios from "axios";
 import { authStore } from "@/lib/auth-store";
 
+function getBaseApiUrl(): string {
+  if (typeof window === "undefined") {
+    return process.env.NEXT_PUBLIC_API_URL?.startsWith("http")
+      ? process.env.NEXT_PUBLIC_API_URL
+      : "http://127.0.0.1:8000/api";
+  }
+
+  const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  if (rawUrl.startsWith("http")) {
+    try {
+      const urlObj = new URL(rawUrl);
+      if (urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1") {
+        urlObj.hostname = window.location.hostname;
+      }
+      return urlObj.toString();
+    } catch {
+      return rawUrl;
+    }
+  }
+  return rawUrl;
+}
+
 const api = axios.create({
-  baseURL: typeof window === "undefined"
-    ? (process.env.NEXT_PUBLIC_API_URL?.startsWith("http") ? process.env.NEXT_PUBLIC_API_URL : "http://127.0.0.1:8000/api")
-    : (process.env.NEXT_PUBLIC_API_URL || "/api"),
+  baseURL: getBaseApiUrl(),
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

@@ -191,6 +191,9 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
   // Position 1-Up (Kiri / Kanan) when printing 1 Disposisi
   const [oneUpPosition, setOneUpPosition] = useState<"kiri" | "kanan">("kiri");
 
+  // Paper Type: "full" (Utuh F4 330mm) vs "half" (Potongan Setengah 165mm)
+  const [paperType, setPaperType] = useState<"full" | "half">("full");
+
   // Save current recipient list as permanent default in localStorage
   const handleSaveDefaultRecipients1 = () => {
     if (typeof window !== "undefined") {
@@ -461,7 +464,37 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             {isGreenTheme ? "🟢 Latar Hijau" : "⚪ Latar Putih (Bawaan)"}
           </Button>
 
-          {!isTwoUpMode && (
+          {/* Tipe Kertas Selector */}
+          <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-0.5 rounded-xl text-xs font-semibold">
+            <span className="px-2 text-[10px] text-zinc-500 font-bold">Bahan Kertas:</span>
+            <button
+              type="button"
+              onClick={() => setPaperType("full")}
+              className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
+                paperType === "full"
+                  ? "bg-white text-emerald-700 shadow-2xs dark:bg-zinc-800 dark:text-emerald-300"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+              }`}
+            >
+              📄 Utuh (330mm)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPaperType("half");
+                setIsTwoUpMode(false);
+              }}
+              className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
+                paperType === "half"
+                  ? "bg-white text-emerald-700 shadow-2xs dark:bg-zinc-800 dark:text-emerald-300"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+              }`}
+            >
+              ✂️ Potongan Setengah (165mm)
+            </button>
+          </div>
+
+          {paperType === "full" && !isTwoUpMode && (
             <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-0.5 rounded-xl text-xs font-semibold">
               <span className="px-2 text-[10px] text-zinc-500 font-bold">Posisi 1-Up:</span>
               <button
@@ -489,16 +522,18 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             </div>
           )}
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleToggleTwoUpMode}
-            className={`h-9 text-xs font-semibold ${isTwoUpMode ? "border-emerald-600 text-emerald-700 bg-emerald-50" : ""}`}
-          >
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            {isTwoUpMode ? "Mode 2-Up Aktif (2 Form)" : "Aktifkan Input 2 Form"}
-          </Button>
+          {paperType === "full" && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleToggleTwoUpMode}
+              className={`h-9 text-xs font-semibold ${isTwoUpMode ? "border-emerald-600 text-emerald-700 bg-emerald-50" : ""}`}
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              {isTwoUpMode ? "Mode 2-Up Aktif (2 Form)" : "Aktifkan Input 2 Form"}
+            </Button>
+          )}
 
           <Button
             type="button"
@@ -508,7 +543,11 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             className="h-9 text-xs font-semibold text-zinc-700 hover:bg-zinc-100"
           >
             <Printer className="mr-1.5 h-3.5 w-3.5" />
-            {isTwoUpMode ? "Cetak 2-Up (2 Disposisi Side-by-Side)" : "Cetak 1-Up (1 Disposisi)"}
+            {paperType === "half"
+              ? "Cetak di Kertas Setengah"
+              : isTwoUpMode
+              ? "Cetak 2-Up (2 Disposisi)"
+              : "Cetak 1-Up (Kertas Utuh)"}
           </Button>
 
           <Button
@@ -948,10 +987,18 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
       <div className="space-y-2">
         <div className="no-print flex items-center justify-between px-1">
           <span className="font-bold text-xs text-zinc-700 uppercase tracking-wider">
-            {isTwoUpMode ? "Pratinjau Cetak Fisik 2-Up (Letter Landscape)" : "Pratinjau Cetak Fisik 1-Up (1 Lembar Disposisi)"}
+            {paperType === "half"
+              ? "Pratinjau Cetak Fisik (Kertas Potongan Setengah 165mm)"
+              : isTwoUpMode
+              ? "Pratinjau Cetak Fisik 2-Up (Kertas Utuh 330mm)"
+              : "Pratinjau Cetak Fisik 1-Up (Kertas Utuh 330mm)"}
           </span>
           <span className="text-[11px] text-zinc-400">
-            {isTwoUpMode ? "Ukuran Kertas: Letter divided by 2 (Side-by-side)" : "Ukuran Kertas: 1 Lembar Disposisi"}
+            {paperType === "half"
+              ? "Ukuran Kertas: Potongan 165mm x 215mm"
+              : isTwoUpMode
+              ? "Ukuran Kertas: F4/Letter 330mm (Side-by-Side)"
+              : "Ukuran Kertas: F4/Letter 330mm (1 Disposisi)"}
           </span>
         </div>
 
@@ -965,6 +1012,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
           isGreenTheme={isGreenTheme}
           isTwoUpMode={isTwoUpMode}
           oneUpPosition={oneUpPosition}
+          paperType={paperType}
         />
       </div>
     </div>

@@ -15,6 +15,7 @@ interface LembarDisposisi2UpPrintProps {
   isGreenTheme?: boolean;
   isTwoUpMode?: boolean;
   oneUpPosition?: "kiri" | "kanan";
+  paperType?: "full" | "half";
 }
 
 export function LembarDisposisi2UpPrint({
@@ -27,12 +28,75 @@ export function LembarDisposisi2UpPrint({
   isGreenTheme = false,
   isTwoUpMode = false,
   oneUpPosition = "kiri",
+  paperType = "full",
 }: LembarDisposisi2UpPrintProps) {
   const secondSurat = surat2 || surat1;
   const secondDiteruskan = surat2 ? diteruskan2 : diteruskan1;
   const secondCatatan = surat2 ? catatan2 : catatan1;
 
   const isKanan = oneUpPosition === "kanan";
+
+  // Dedicated layout when printing on ALREADY HALF-CUT paper (165mm x 215mm)
+  if (paperType === "half") {
+    return (
+      <div id="lembar-disposisi-2up-print-root" className="lembar-disposisi-half-root flex justify-center">
+        <style jsx global>{`
+          @media print {
+            @page {
+              size: 165mm 215mm;
+              margin: 0 !important;
+            }
+            html, body {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              background: white !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 165mm !important;
+              height: 215mm !important;
+              min-width: 165mm !important;
+              min-height: 215mm !important;
+              overflow: hidden !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+            body * {
+              visibility: hidden;
+            }
+            .lembar-disposisi-half-root,
+            .lembar-disposisi-half-root * {
+              visibility: visible !important;
+            }
+            .lembar-disposisi-half-root {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 165mm !important;
+              height: 215mm !important;
+              min-width: 165mm !important;
+              min-height: 215mm !important;
+              background: white !important;
+              padding: 3.5mm 4mm !important;
+              box-sizing: border-box !important;
+              z-index: 999999 !important;
+              display: flex !important;
+              justify-content: center !important;
+            }
+          }
+        `}</style>
+
+        <div className="w-full max-w-[160mm] h-[188mm] print:w-[157mm] print:h-[208mm] p-1 print:p-0 flex flex-col mx-auto">
+          <LembarDisposisiSheet
+            data={surat1}
+            customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
+            catatanDisposisi={catatan1}
+            isGreenTheme={isGreenTheme}
+          />
+        </div>
+      </div>
+    );
+  }
 
   const showLeftSheet = isTwoUpMode || !isKanan;
   const showRightSheet = isTwoUpMode || isKanan;
@@ -96,8 +160,8 @@ export function LembarDisposisi2UpPrint({
         }
       `}</style>
 
-      {/* Side-by-side 2-Up / 1-Up Landscape Grid Container (Symmetric 50-50 Grid) */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
+      {/* Side-by-side 2-Up / 1-Up Landscape Grid Container (Symmetric 50-50 Grid with 5mm Cut Line Gap) */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
         {/* Left Disposisi Sheet Column */}
         <div className={`w-full h-full flex flex-col ${!showLeftSheet ? "invisible print-invisible opacity-0" : ""}`}>
           <LembarDisposisiSheet
@@ -108,10 +172,10 @@ export function LembarDisposisi2UpPrint({
           />
         </div>
 
-        {/* Ultra-Narrow Vertical Cut Line Guide */}
-        <div className="relative flex items-center justify-center w-3 h-full overflow-hidden">
+        {/* Vertical Cut Line Guide with Clear Side Padding */}
+        <div className="relative flex items-center justify-center w-5 h-full overflow-hidden">
           <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-zinc-400 print:border-black" />
-          <span className="relative z-10 text-[6px] text-zinc-500 print:text-black font-mono tracking-tighter uppercase whitespace-nowrap rotate-90 bg-white print:bg-transparent px-0.5 my-auto">
+          <span className="relative z-10 text-[7px] text-zinc-600 print:text-black font-mono tracking-tighter uppercase whitespace-nowrap rotate-90 bg-white print:bg-white px-1 py-0.5 rounded my-auto border border-zinc-200 print:border-black">
             ✂ POTONG DISINI ✂
           </span>
         </div>
