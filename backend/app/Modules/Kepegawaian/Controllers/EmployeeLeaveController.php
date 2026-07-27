@@ -30,7 +30,12 @@ class EmployeeLeaveController extends Controller
             ->first();
 
         if ($leave) {
-            if ((int) $leave->cuti_terpakai_n0 !== $approvedDays) {
+            $hasApprovedRequests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
+                ->where('status', 'DISETUJUI')
+                ->where('jenis_cuti', 'LIKE', '%Tahunan%')
+                ->whereYear('tanggal_mulai', $year)
+                ->exists();
+            if ($hasApprovedRequests && (int) $leave->cuti_terpakai_n0 !== $approvedDays) {
                 $leave->update(['cuti_terpakai_n0' => $approvedDays]);
                 $leave->refresh();
             }

@@ -44,6 +44,24 @@ class SuratModuleTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
+    public function test_can_list_surat_masuk_with_per_page_all(): void
+    {
+        SuratMasuk::create([
+            'no_agenda' => '1002',
+            'tanggal_agenda' => '2026-07-24',
+            'no_surat' => 'S.102/2026',
+            'isi_ringkas' => 'Surat All',
+            'asal_surat' => 'Dirjen',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/surat/surat-masuk?per_page=all');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('meta.per_page', 'all');
+    }
+
     public function test_can_create_surat_masuk_with_disposisi(): void
     {
         $payload = [

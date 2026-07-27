@@ -32,7 +32,16 @@ class SuratMasukController extends Controller
             $query->whereJsonContains('sifat_json', $sifat);
         }
 
-        $perPage = (int) $request->input('per_page', 15);
+        $rawPerPage = $request->input('per_page', 10);
+        if ($rawPerPage === 'all' || (is_numeric($rawPerPage) && (int) $rawPerPage <= 0)) {
+            $count = (clone $query)->count();
+            $perPage = max(1, $count);
+        } else {
+            $perPage = (int) $rawPerPage;
+            if ($perPage <= 0) {
+                $perPage = 10;
+            }
+        }
         $paginated = $query->paginate($perPage);
 
         return response()->json([
@@ -40,7 +49,7 @@ class SuratMasukController extends Controller
             'meta' => [
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
-                'per_page' => $paginated->perPage(),
+                'per_page' => $rawPerPage === 'all' ? 'all' : $paginated->perPage(),
                 'total' => $paginated->total(),
             ],
         ]);

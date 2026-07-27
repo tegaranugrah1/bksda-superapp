@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2 } from "lucide-react";
+import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
@@ -21,12 +21,18 @@ function formatDisplayDate(dateStr?: string | null): string {
   return rawDate;
 }
 
+const PER_PAGE_OPTIONS = ["10", "20", "50", "all"] as const;
+
 export default function SuratMasukListPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [suratList, setSuratList] = useState<SuratMasuk[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteItem, setDeleteItem] = useState<SuratMasuk | null>(null);
+
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState<string>("10");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -41,7 +47,7 @@ export default function SuratMasukListPage() {
     }
 
     try {
-      const res = await api.get("/api/surat-masuk");
+      const res = await api.get(`/api/surat-masuk?per_page=all`);
       const apiData = res.data?.data || res.data || [];
       const formattedApi: SuratMasuk[] = Array.isArray(apiData)
         ? apiData.map((d: any) => ({
@@ -176,15 +182,44 @@ export default function SuratMasukListPage() {
     setDeleteItem(null);
   };
 
-  const filtered = suratList.filter((s) => {
-    const q = search.toLowerCase();
-    return (
-      (s.no_surat || "").toLowerCase().includes(q) ||
-      (s.no_agenda || "").toLowerCase().includes(q) ||
-      (s.asal_surat || "").toLowerCase().includes(q) ||
-      (s.isi_ringkas || "").toLowerCase().includes(q)
-    );
-  });
+  const filtered = useMemo(() => {
+    return suratList.filter((s) => {
+      const q = search.toLowerCase();
+      return (
+        (s.no_surat || "").toLowerCase().includes(q) ||
+        (s.no_agenda || "").toLowerCase().includes(q) ||
+        (s.asal_surat || "").toLowerCase().includes(q) ||
+        (s.isi_ringkas || "").toLowerCase().includes(q)
+      );
+    });
+  }, [suratList, search]);
+
+  // Reset page to 1 when search or perPage changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
+
+  const handlePerPageChange = (val: string) => {
+    setPerPage(val);
+    setPage(1);
+  };
+
+  // Pagination calculation
+  const totalCount = filtered.length;
+  const isAll = perPage === "all";
+  const pageSize = isAll ? Math.max(1, totalCount) : parseInt(perPage, 10);
+  const totalPages = isAll ? 1 : Math.ceil(totalCount / pageSize) || 1;
+  const safePage = Math.min(Math.max(1, page), totalPages);
+
+  const paginatedList = useMemo(() => {
+    if (isAll) return filtered;
+    const start = (safePage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, isAll, safePage, pageSize]);
+
+  const startRecord = totalCount === 0 ? 0 : isAll ? 1 : (safePage - 1) * pageSize + 1;
+  const endRecord = isAll ? totalCount : Math.min(safePage * pageSize, totalCount);
 
   return (
     <div className="space-y-6 p-6">
@@ -216,14 +251,14 @@ export default function SuratMasukListPage() {
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             placeholder="Cari no surat, no agenda, pengirim, perihal..."
             className="pl-9 h-9 text-xs border-zinc-200 focus-visible:ring-emerald-500"
           />
         </div>
 
         <div className="text-xs font-semibold text-zinc-500">
-          Menampilkan <span className="text-zinc-900 font-bold dark:text-zinc-50">{filtered.length}</span> Surat Masuk
+          Total <span className="text-zinc-900 font-bold dark:text-zinc-50">{totalCount}</span> Surat Masuk
         </div>
       </div>
 
@@ -249,7 +284,7 @@ export default function SuratMasukListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {filtered.map((item) => (
+                {paginatedList.map((item) => (
                   <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
                     <td className="p-3.5 font-bold text-emerald-600">
                       <div className="flex items-center gap-1.5">
@@ -331,6 +366,72 @@ export default function SuratMasukListPage() {
             </table>
           )}
         </div>
+
+        {/* Pagination Footer */}
+        {!loading && totalCount > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 text-xs">
+            {/* Info Text */}
+            <div className="text-zinc-500 dark:text-zinc-400 font-medium">
+              Menampilkan <span className="font-bold text-zinc-900 dark:text-zinc-100">{startRecord}</span> -{" "}
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">{endRecord}</span> dari{" "}
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">{totalCount}</span> Surat Masuk
+            </div>
+
+            {/* Controls */}
+            <div className="flex flex-wrap items-center gap-4">
+              {/* Per Page Selector */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-zinc-500 text-[11px] font-semibold">Tampilkan:</span>
+                <div className="flex items-center gap-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-0.5 rounded-lg shadow-2xs">
+                  {PER_PAGE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => handlePerPageChange(opt)}
+                      className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                        perPage === opt
+                          ? "bg-emerald-600 text-white shadow-2xs"
+                          : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                      }`}
+                    >
+                      {opt === "all" ? "Semua" : opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Navigation buttons (hidden if perPage === 'all') */}
+              {!isAll && totalPages > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={safePage <= 1}
+                    className="h-8 px-2.5 text-xs font-semibold"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-0.5" />
+                    Sebelumnya
+                  </Button>
+
+                  <span className="px-2 text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
+                    Halaman {safePage} dari {totalPages}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={safePage >= totalPages}
+                    className="h-8 px-2.5 text-xs font-semibold"
+                  >
+                    Selanjutnya
+                    <ChevronRight className="h-4 w-4 ml-0.5" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
