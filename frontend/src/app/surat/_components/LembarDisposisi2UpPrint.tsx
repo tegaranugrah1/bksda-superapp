@@ -12,7 +12,6 @@ interface LembarDisposisi2UpPrintProps {
   diteruskan2?: string[];
   catatan2?: string;
 
-  isGreenTheme?: boolean;
   isTwoUpMode?: boolean;
   oneUpPosition?: "kiri" | "kanan";
 }
@@ -24,7 +23,6 @@ export function LembarDisposisi2UpPrint({
   surat2,
   diteruskan2 = [],
   catatan2 = "",
-  isGreenTheme = false,
   isTwoUpMode = false,
   oneUpPosition = "kiri",
 }: LembarDisposisi2UpPrintProps) {
@@ -106,16 +104,12 @@ export function LembarDisposisi2UpPrint({
             data={leftSuratData}
             customDiteruskanList={leftDiteruskan.length > 0 ? leftDiteruskan : undefined}
             catatanDisposisi={leftCatatan}
-            isGreenTheme={isGreenTheme}
           />
         </div>
 
-        {/* Vertical Cut Line Guide with Clear Side Padding */}
+        {/* Vertical Dashed Cut Line Guide (No Text) */}
         <div className="relative flex items-center justify-center w-5 h-full overflow-hidden">
           <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-zinc-400 print:border-black" />
-          <span className="relative z-10 text-[7px] text-zinc-600 print:text-black font-mono tracking-tighter uppercase whitespace-nowrap rotate-90 bg-white print:bg-white px-1 py-0.5 rounded my-auto border border-zinc-200 print:border-black">
-            ✂ POTONG DISINI ✂
-          </span>
         </div>
 
         {/* Right Disposisi Sheet Column (Scaled down to 95% when 1-Up Posisi Kanan to protect left border) */}
@@ -124,7 +118,6 @@ export function LembarDisposisi2UpPrint({
             data={rightSuratData}
             customDiteruskanList={rightDiteruskan.length > 0 ? rightDiteruskan : undefined}
             catatanDisposisi={rightCatatan}
-            isGreenTheme={isGreenTheme}
           />
         </div>
       </div>

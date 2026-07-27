@@ -185,9 +185,6 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
   });
   const [catatanDisposisi2, setCatatanDisposisi2] = useState("");
 
-  // Default Document Background: WHITE (false)
-  const [isGreenTheme, setIsGreenTheme] = useState(false);
-
   // Position 1-Up (Kiri / Kanan) when printing 1 Disposisi
   const [oneUpPosition, setOneUpPosition] = useState<"kiri" | "kanan">("kiri");
 
@@ -451,16 +448,6 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsGreenTheme(!isGreenTheme)}
-            className="h-9 text-xs font-semibold"
-          >
-            {isGreenTheme ? "🟢 Latar Hijau" : "⚪ Latar Putih (Bawaan)"}
-          </Button>
-
           {!isTwoUpMode && (
             <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-0.5 rounded-xl text-xs font-semibold">
               <span className="px-2 text-[10px] text-zinc-500 font-bold">Posisi 1-Up:</span>
@@ -962,7 +949,6 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
           surat2={isTwoUpMode ? formData2 : undefined}
           diteruskan2={isTwoUpMode ? diteruskanList2 : undefined}
           catatan2={isTwoUpMode ? catatanDisposisi2 : undefined}
-          isGreenTheme={isGreenTheme}
           isTwoUpMode={isTwoUpMode}
           oneUpPosition={oneUpPosition}
         />

@@ -7,7 +7,6 @@ interface LembarDisposisiSheetProps {
   data: SuratMasuk;
   customDiteruskanList?: string[];
   catatanDisposisi?: string;
-  isGreenTheme?: boolean;
 }
 
 // Helper to format date string to DD/MM/YY format (e.g. 2026-07-24 -> 24/07/26)
@@ -36,15 +35,12 @@ export function LembarDisposisiSheet({
   data,
   customDiteruskanList,
   catatanDisposisi = "",
-  isGreenTheme = false,
 }: LembarDisposisiSheetProps) {
   const diteruskanItems = customDiteruskanList || DITERUSKAN_OPTIONS;
 
   return (
     <div
-      className={`w-full h-full flex flex-col justify-between border-2 border-solid border-black box-border text-black text-[13.5px] leading-snug select-none ${
-        isGreenTheme ? "bg-[#bfe58f]" : "bg-white"
-      }`}
+      className="w-full h-full flex flex-col justify-between border-2 border-solid border-black box-border text-black text-[13.5px] leading-snug select-none bg-white"
       style={FONT_AGENCY}
     >
       <div>
