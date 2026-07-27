@@ -71,11 +71,8 @@ export function LembarDisposisi2UpPrint({
           body * {
             visibility: hidden;
           }
-          .lembar-disposisi-2up-root,
-          .lembar-disposisi-2up-root * {
-            visibility: visible !important;
-          }
           .lembar-disposisi-2up-root {
+            visibility: visible !important;
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
@@ -88,13 +85,21 @@ export function LembarDisposisi2UpPrint({
             box-sizing: border-box !important;
             z-index: 999999 !important;
           }
+          .lembar-disposisi-2up-root * {
+            visibility: visible !important;
+          }
+          .print-invisible,
+          .print-invisible * {
+            visibility: hidden !important;
+            opacity: 0 !important;
+          }
         }
       `}</style>
 
       {/* Side-by-side 2-Up / 1-Up Landscape Grid Container (Symmetric 50-50 Grid) */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
         {/* Left Disposisi Sheet Column */}
-        <div className={`w-full h-full flex flex-col ${!showLeftSheet ? "invisible" : ""}`}>
+        <div className={`w-full h-full flex flex-col ${!showLeftSheet ? "invisible print-invisible opacity-0" : ""}`}>
           <LembarDisposisiSheet
             data={leftSuratData}
             customDiteruskanList={leftDiteruskan.length > 0 ? leftDiteruskan : undefined}
@@ -112,7 +117,7 @@ export function LembarDisposisi2UpPrint({
         </div>
 
         {/* Right Disposisi Sheet Column */}
-        <div className={`w-full h-full flex flex-col ${!showRightSheet ? "invisible" : ""}`}>
+        <div className={`w-full h-full flex flex-col ${!showRightSheet ? "invisible print-invisible opacity-0" : ""}`}>
           <LembarDisposisiSheet
             data={rightSuratData}
             customDiteruskanList={rightDiteruskan.length > 0 ? rightDiteruskan : undefined}
