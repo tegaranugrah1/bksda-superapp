@@ -12,11 +12,15 @@ use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
+        web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Percayai semua proxy reverse (Dokploy / Nginx) untuk mengamankan SSL HTTPS & IP
+        $middleware->trustProxies(at: '*');
+
         // Mengaktifkan stateful API middleware agar cookie session/CSRF Sanctum aktif untuk SPA
         $middleware->statefulApi();
 

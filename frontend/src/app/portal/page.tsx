@@ -254,7 +254,7 @@ export default function PersonalDashboard() {
   const modules = useMemo(() => {
     if (!data) return [];
     return data.user.role === "super_admin" || (data.user.access_modules?.includes("*"))
-      ? ["kepegawaian", "bmn", "inventory", "dereporting", "cms"]
+      ? ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"]
       : (data.user.access_modules || []);
   }, [data]);
 
@@ -265,6 +265,7 @@ export default function PersonalDashboard() {
       { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: <Boxes className="w-6 h-6" />, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-500/10" },
       { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: <FileText className="w-6 h-6" />, color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-500/10" },
       { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: <LayoutGrid className="w-6 h-6" />, color: "text-teal-600", bg: "bg-teal-50 dark:bg-teal-500/10" },
+      { key: "surat", href: "/surat", label: "Persuratan", desc: "Surat & Disposisi", icon: <Mail className="w-6 h-6" />, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
     ];
     return all.filter(m => modules.includes(m.key));
   }, [modules]);

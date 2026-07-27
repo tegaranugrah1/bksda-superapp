@@ -8,6 +8,7 @@ const MODULE_ROUTES: Record<string, string> = {
   "kepegawaian": "kepegawaian",
   "dereporting": "dereporting",
   "cms": "cms",
+  "surat": "surat",
 };
 
 export default function proxy(request: NextRequest) {
@@ -25,15 +26,18 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Proteksi Halaman Login (Redirect jika sudah login)
-  if (pathname === "/login") {
-    if (loggedIn && userCookie) {
-      return NextResponse.redirect(new URL("/portal", request.url));
-    }
+  // 2. Jika tidak ada cookie di HTTP request header, serahkan pengecekan otentikasi ke client-side RouteGuard
+  // untuk mencegah race condition / redirect loop antara server cookie vs client localStorage.
+  if (!loggedIn || !userCookie) {
     return NextResponse.next();
   }
 
-  // 3. Define protected routes
+  // 3. Proteksi Halaman Login (Redirect jika sudah ada cookie login)
+  if (pathname === "/login") {
+    return NextResponse.redirect(new URL("/portal", request.url));
+  }
+
+  // 4. Define protected routes
   const isProtectedRoute = 
     pathname === "/" ||
     pathname.startsWith('/portal') ||
@@ -41,26 +45,34 @@ export default function proxy(request: NextRequest) {
     pathname.startsWith('/inventory') ||
     pathname.startsWith('/kepegawaian') ||
     pathname.startsWith('/dereporting') ||
-    pathname.startsWith('/cms');
+    pathname.startsWith('/cms') ||
+    pathname.startsWith('/surat');
 
   if (!isProtectedRoute) {
     return NextResponse.next();
   }
 
-  // 4. Check for session
-  if (!loggedIn || !userCookie) {
-    const url = new URL('/login', request.url);
-    const response = NextResponse.redirect(url);
-    // Cleanup invalid cookies if any
-    response.cookies.delete("bksda_logged_in");
-    response.cookies.delete("bksda_user");
-    response.cookies.delete("bksda_token");
-    return response;
-  }
-
   try {
-    const user = JSON.parse(decodeURIComponent(userCookie));
-    
+    let userStr = userCookie;
+    try {
+      userStr = decodeURIComponent(userCookie);
+    } catch {
+      userStr = userCookie;
+    }
+
+    let user: any = null;
+    try {
+      user = JSON.parse(userStr);
+    } catch {
+      try {
+        user = JSON.parse(userCookie);
+      } catch {}
+    }
+
+    if (!user) {
+      return NextResponse.next();
+    }
+
     // Super admin bypasses all checks
     if (user.role === 'super_admin') {
       return NextResponse.next();
@@ -82,11 +94,6 @@ export default function proxy(request: NextRequest) {
 
   } catch (error) {
     console.error('Proxy auth parsing error:', error);
-    const response = NextResponse.redirect(new URL('/login', request.url));
-    response.cookies.delete("bksda_logged_in");
-    response.cookies.delete("bksda_user");
-    response.cookies.delete("bksda_token");
-    return response;
   }
 
   return NextResponse.next();
@@ -102,5 +109,6 @@ export const config = {
     '/kepegawaian/:path*',
     '/dereporting/:path*',
     '/cms/:path*',
+    '/surat/:path*',
   ],
 };

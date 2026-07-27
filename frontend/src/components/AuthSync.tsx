@@ -67,16 +67,13 @@ export function AuthSync() {
     // 2. Deteksi LOGIN di tab lain (Transition: false -> true)
     if (prevAuth.current === false && isAuthenticated === true) {
       if (pathname === "/login") {
-        toast.success(`Selamat datang kembali, ${user?.name || 'User'}!`, {
-          id: "auth-sync-login",
-        });
         router.push("/portal");
       }
     }
 
     // Update ref untuk deteksi transisi berikutnya
     prevAuth.current = isAuthenticated;
-  }, [isAuthenticated, pathname, router, user]);
+  }, [isAuthenticated, pathname, router]);
 
   return null;
 }

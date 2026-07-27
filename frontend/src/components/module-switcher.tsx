@@ -8,6 +8,7 @@ import {
   Archive,
   FileText,
   Settings,
+  Mail,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -57,6 +58,13 @@ const moduleDefinitions = [
     icon: Settings,
     href: "/cms",
     color: "bg-teal-100 text-teal-700",
+  },
+  {
+    name: "Persuratan",
+    slug: "surat",
+    icon: Mail,
+    href: "/surat",
+    color: "bg-emerald-100 text-emerald-700",
   },
 ];
 

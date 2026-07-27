@@ -42,6 +42,7 @@ const AVAILABLE_MODULES = [
   { id: "inventory", label: "Inventory", description: "Stok Barang & Logistik Persediaan" },
   { id: "dereporting", label: "D-Reporting", description: "Pelaporan Kejadian Digital Elektronik" },
   { id: "cms", label: "CMS Panel", description: "Manajemen Konten Website & Portal Publik" },
+  { id: "surat", label: "Persuratan & Disposisi", description: "Pengelolaan Surat Masuk & Keluar" },
 ];
 
 const BMN_PERMISSIONS = [

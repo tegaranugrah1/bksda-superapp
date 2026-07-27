@@ -28,9 +28,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    restart: always
+    ports:
+      - "8000:80"
+      - "9000:9000"
     command: >
-      sh -c "php artisan migrate --force && php-fpm"
+      sh -c "mkdir -p /run/nginx; sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force; php artisan db:seed --class=SuperAdminSeeder --force; chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache; php-fpm & nginx -g 'daemon off;'"
     depends_on:
       db:
         condition: service_healthy
@@ -73,6 +75,8 @@ services:
   nginx-backend:
     image: nginx:alpine
     restart: always
+    ports:
+      - "8080:80"
     depends_on:
       - backend
     volumes:
