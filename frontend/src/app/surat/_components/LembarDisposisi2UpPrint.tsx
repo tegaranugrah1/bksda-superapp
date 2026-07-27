@@ -36,14 +36,14 @@ export function LembarDisposisi2UpPrint({
 
   const isKanan = oneUpPosition === "kanan";
 
-  // Dedicated layout when printing on ALREADY HALF-CUT paper (165mm x 215mm)
+  // Dedicated layout when printing on ALREADY HALF-CUT paper (165mm x 215mm / A5 / Statement)
   if (paperType === "half") {
     return (
       <div id="lembar-disposisi-2up-print-root" className="lembar-disposisi-half-root flex justify-center">
         <style jsx global>{`
           @media print {
             @page {
-              size: 165mm 215mm;
+              size: portrait;
               margin: 0 !important;
             }
             html, body {
@@ -52,10 +52,8 @@ export function LembarDisposisi2UpPrint({
               background: white !important;
               margin: 0 !important;
               padding: 0 !important;
-              width: 165mm !important;
-              height: 215mm !important;
-              min-width: 165mm !important;
-              min-height: 215mm !important;
+              width: 100% !important;
+              height: 100% !important;
               overflow: hidden !important;
             }
             .no-print {
@@ -72,10 +70,8 @@ export function LembarDisposisi2UpPrint({
               position: absolute !important;
               left: 0 !important;
               top: 0 !important;
-              width: 165mm !important;
-              height: 215mm !important;
-              min-width: 165mm !important;
-              min-height: 215mm !important;
+              width: 100% !important;
+              height: 100% !important;
               background: white !important;
               padding: 3.5mm 4mm !important;
               box-sizing: border-box !important;
@@ -86,7 +82,7 @@ export function LembarDisposisi2UpPrint({
           }
         `}</style>
 
-        <div className="w-full max-w-[160mm] h-[188mm] print:w-[157mm] print:h-[208mm] p-1 print:p-0 flex flex-col mx-auto">
+        <div className="w-full max-w-[160mm] h-[188mm] print:w-full print:h-full p-1 print:p-0 flex flex-col mx-auto">
           <LembarDisposisiSheet
             data={surat1}
             customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
