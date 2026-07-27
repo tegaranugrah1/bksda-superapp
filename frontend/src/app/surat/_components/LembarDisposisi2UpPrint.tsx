@@ -73,7 +73,7 @@ export function LembarDisposisi2UpPrint({
               width: 100% !important;
               height: 100% !important;
               background: white !important;
-              padding: 3.5mm 4mm !important;
+              padding: 5mm 4mm !important;
               box-sizing: border-box !important;
               z-index: 999999 !important;
               display: flex !important;
@@ -82,7 +82,7 @@ export function LembarDisposisi2UpPrint({
           }
         `}</style>
 
-        <div className="w-full max-w-[160mm] h-[188mm] print:w-full print:h-full p-1 print:p-0 flex flex-col mx-auto">
+        <div className="w-full max-w-[160mm] h-[182mm] print:w-[157mm] print:h-[196mm] p-1 print:p-0 flex flex-col mx-auto">
           <LembarDisposisiSheet
             data={surat1}
             customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
@@ -141,7 +141,7 @@ export function LembarDisposisi2UpPrint({
             min-width: 330mm !important;
             min-height: 215mm !important;
             background: white !important;
-            padding: 3.5mm 4mm !important;
+            padding: 5mm 4mm !important;
             box-sizing: border-box !important;
             z-index: 999999 !important;
           }
@@ -157,7 +157,7 @@ export function LembarDisposisi2UpPrint({
       `}</style>
 
       {/* Side-by-side 2-Up / 1-Up Landscape Grid Container (Symmetric 50-50 Grid with 5mm Cut Line Gap) */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 w-full h-[182mm] print:w-[322mm] print:h-[196mm] p-1 print:p-0">
         {/* Left Disposisi Sheet Column */}
         <div className={`w-full h-full flex flex-col ${!showLeftSheet ? "invisible print-invisible opacity-0" : ""}`}>
           <LembarDisposisiSheet
