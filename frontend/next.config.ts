@@ -10,7 +10,7 @@ const contentSecurityPolicy = [
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: http: https:",
     "font-src 'self' data: https:",
-    "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 https://bksdakaltim.net https://www.bksdakaltim.net https://api.bksdakaltim.net https://storage.bksdakaltim.net https://*.supabase.co",
+    "connect-src 'self' ws: wss: http: https: http://localhost:8000 http://127.0.0.1:8000 https://bksdakaltim.net https://www.bksdakaltim.net https://api.bksdakaltim.net https://storage.bksdakaltim.net https://*.supabase.co",
     "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
     "media-src 'self' blob: https:",
     "worker-src 'self' blob:",
