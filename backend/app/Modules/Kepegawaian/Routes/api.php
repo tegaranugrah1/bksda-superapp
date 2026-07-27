@@ -24,6 +24,17 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::post('/employees/{employee}/photo', [EmployeeController::class, 'updatePhoto']);
         Route::post('/employees/{employee}/reset-password', [EmployeeController::class, 'resetPassword']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
+
+        // --- MANAJEMEN CUTI PEGAWAI (PERBKN 24/2017 & 7/2021) ---
+        Route::get('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'show']);
+        Route::post('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'store']);
+
+        // --- INBOX SURAT CUTI (ADMIN KEPEGAWAIAN) ---
+        Route::get('/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminIndex']);
+        Route::get('/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminShow']);
+        Route::put('/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminUpdate']);
+        Route::delete('/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminDestroy']);
+        Route::put('/leave-requests/{id}/status', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminUpdateStatus']);
     });
 
     // --- MANAJEMEN HAK AKSES (IAM) ---

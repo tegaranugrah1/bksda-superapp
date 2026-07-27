@@ -3,11 +3,13 @@
 import Image from "next/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, User, FileText, Shield, Briefcase, Building2, BadgeCheck, Hash, ChevronDown, Pencil, Save, X, KeyRound } from "lucide-react";
+import { ArrowLeft, User, FileText, Shield, Briefcase, Building2, BadgeCheck, Hash, ChevronDown, Pencil, Save, X, KeyRound, Calendar } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { AssignmentLetterHistory } from "../../_components/AssignmentLetterHistory";
 import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
+import { EmployeeLeaveTab } from "../../_components/EmployeeLeaveTab";
+import { calculateMasaKerja } from "@/app/portal/_components/FormulirCutiPrint";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
@@ -65,7 +67,7 @@ export default function EmployeeDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"history" | "biodata">("history");
+  const [activeTab, setActiveTab] = useState<"history" | "biodata" | "leave">("history");
   const { canManageAccess, canWrite } = useRole();
 
   // Biodata edit state
@@ -90,6 +92,22 @@ export default function EmployeeDetailPage() {
       const { data } = await api.get<{ data: Employee }>(`/kepegawaian/employees/${id}`);
       return data.data;
     },
+  });
+
+  const currentYear = new Date().getFullYear();
+  const { data: leaveBalance } = useQuery({
+    queryKey: ["employeeLeave", id, currentYear],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get<{ data: { sisa_cuti_tersedia: number; total_hak_cuti: number } }>(
+          `/kepegawaian/employees/${id}/leaves?year=${currentYear}`
+        );
+        return data.data;
+      } catch (e) {
+        return null;
+      }
+    },
+    enabled: !!id,
   });
 
   const startEditing = () => {
@@ -263,10 +281,15 @@ export default function EmployeeDetailPage() {
           </div>
 
           {/* Info Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
             <InfoCard icon={<Briefcase className="w-4 h-4 text-blue-500" />} label="Jabatan" value={employee.jabatan || "-"} />
             <InfoCard icon={<Building2 className="w-4 h-4 text-violet-500" />} label="Unit Kerja" value={employee.satuan_kerja || "-"} />
             <InfoCard icon={<Hash className="w-4 h-4 text-amber-500" />} label="Pangkat/Gol" value={employee.pangkat_golongan || "-"} />
+            <InfoCard
+              icon={<Calendar className="w-4 h-4 text-emerald-500" />}
+              label={`Sisa Cuti (${currentYear})`}
+              value={leaveBalance ? `${leaveBalance.sisa_cuti_tersedia} Hari Kerja` : "12 Hari Kerja"}
+            />
           </div>
         </div>
       </div>
@@ -292,11 +315,34 @@ export default function EmployeeDetailPage() {
           >
             <User className="w-4 h-4" /> Biodata
           </button>
+          <button
+            onClick={() => setActiveTab("leave")}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+              activeTab === "leave" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
+            )}
+          >
+            <Calendar className="w-4 h-4" /> Cuti Pegawai (PNS)
+            <span
+              className={cn(
+                "px-2 py-0.5 rounded-full text-[10px] font-bold ml-1 transition-colors",
+                activeTab === "leave" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"
+              )}
+            >
+              {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
+            </span>
+          </button>
         </div>
 
         {activeTab === "history" && (
           <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <AssignmentLetterHistory employeeId={employee.id} />
+          </div>
+        )}
+
+        {activeTab === "leave" && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6">
+            <EmployeeLeaveTab employeeId={employee.id} />
           </div>
         )}
 
@@ -331,6 +377,7 @@ export default function EmployeeDetailPage() {
                 <BioItem label="Jabatan" value={employee.jabatan || "-"} />
                 <BioItem label="Pangkat / Golongan" value={employee.pangkat_golongan || "-"} />
                 <BioItem label="Unit Kerja" value={employee.satuan_kerja || "-"} />
+                <BioItem label="Masa Kerja" value={calculateMasaKerja(employee.nip, employee.nama_lengkap)} />
                 <BioItem label="Status" value={employee.is_active ? "Aktif Bertugas" : "Non-Aktif"} />
               </div>
             ) : (
@@ -388,6 +435,15 @@ export default function EmployeeDetailPage() {
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
+                </BioField>
+                <BioField label="Masa Kerja">
+                  <input
+                    type="text"
+                    readOnly
+                    disabled
+                    value={calculateMasaKerja(editForm.nip, editForm.nama_lengkap)}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-semibold cursor-not-allowed"
+                  />
                 </BioField>
                 <BioField label="Status">
                   <div className="relative">

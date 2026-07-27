@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, UserCog, Trash2, Users } from "lucide-react";
+import { Search, Plus, UserCog, Trash2, Users, Inbox } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { EmployeeAccessSheet } from "./_components/EmployeeAccessSheet";
@@ -75,9 +75,15 @@ export default function EmployeeListPage() {
               placeholder="Cari NIP / Nama..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all md:w-[300px] shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all md:w-[260px] shadow-sm"
             />
           </div>
+          <Link href="/kepegawaian/cuti">
+            <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-2xl text-sm font-bold transition-all shadow-sm border border-blue-200/50">
+              <Inbox className="w-4 h-4" />
+              <span>Inbox Surat Cuti</span>
+            </button>
+          </Link>
           {canWrite && (
             <Link href="/kepegawaian/employees/create">
               <button className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl">

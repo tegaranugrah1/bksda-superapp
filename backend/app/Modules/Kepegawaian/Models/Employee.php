@@ -108,4 +108,9 @@ class Employee extends Model
             ->withPivot('peran')
             ->withTimestamps();
     }
+
+    public function leaves(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EmployeeLeave::class, 'employee_id');
+    }
 }
