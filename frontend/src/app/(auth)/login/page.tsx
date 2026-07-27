@@ -53,8 +53,9 @@ export default function LoginPage() {
     try {
       // Dapatkan CSRF cookie jika tersedia (non-blocking untuk otentikasi Bearer Token)
       try {
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
-        const backendBaseUrl = apiBaseUrl.replace(/\/api$/, "");
+        const backendBaseUrl = typeof window !== "undefined"
+          ? `http://${window.location.hostname}:8000`
+          : "http://127.0.0.1:8000";
         await axios.get(`${backendBaseUrl}/sanctum/csrf-cookie`, { withCredentials: true });
       } catch {
         // Abaikan error CSRF cookie untuk otentikasi token produksi
