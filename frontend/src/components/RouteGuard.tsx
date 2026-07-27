@@ -11,6 +11,7 @@ const MODULE_ROUTES: Record<string, string> = {
   "/kepegawaian": "kepegawaian",
   "/dereporting": "dereporting",
   "/cms": "cms",
+  "/surat": "surat",
 };
 
 interface RouteGuardProps {
@@ -26,10 +27,19 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuth();
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Determine access status synchronously using useMemo
   const accessStatus = useMemo((): AccessStatus => {
-    // Not authenticated yet - still loading
-    if (!isAuthenticated && !user) {
+    if (!mounted) {
+      return "loading";
+    }
+
+    // Not authenticated yet
+    if (!isAuthenticated || !user) {
       return "loading";
     }
 
@@ -53,20 +63,13 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
     }
 
     return "allowed";
-  }, [user, isAuthenticated, pathname, requiredModule]);
+  }, [mounted, user, isAuthenticated, pathname, requiredModule]);
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
-
-  // Handle redirect for denied access
+  // Handle redirect for unauthenticated or denied access
   useEffect(() => {
     if (!mounted) return;
 
-    // Tunggu sampai store sinkron dengan localStorage (isAuthenticated tidak lagi di state awal server)
-    if (isAuthenticated === false) {
+    if (!isAuthenticated && !user) {
       router.replace("/login");
       return;
     }
@@ -74,7 +77,7 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
     if (accessStatus === "denied") {
       router.replace("/portal?unauthorized=1");
     }
-  }, [mounted, accessStatus, isAuthenticated, router]);
+  }, [mounted, accessStatus, isAuthenticated, user, router]);
 
   // Show loading spinner while checking auth
   if (accessStatus === "loading" || accessStatus === "denied") {

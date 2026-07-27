@@ -42,4 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/me/change-password', [AuthController::class, 'changePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
+
+    // Leave requests for logged-in employee (Portal)
+    Route::get('/me/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myIndex']);
+    Route::post('/me/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myStore']);
 });

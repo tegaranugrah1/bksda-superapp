@@ -16,4 +16,5 @@ return [
     BmnServiceProvider::class,
     DeReportingServiceProvider::class,
     CMSServiceProvider::class,
+    App\Modules\Surat\SuratServiceProvider::class,
 ];

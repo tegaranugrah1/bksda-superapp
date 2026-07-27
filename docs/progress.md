@@ -1,3 +1,36 @@
+# Progress - Phase 140: Module Surat (Digital Letter Management & 2-Up Disposition Sheets)
+
+> Document updated: 2026-07-27
+> Status: Selesai di-merge ke main (via Squash Merge, commit `26c26be` & `4fad007`) dan di-push ke repository.
+
+---
+
+## Digital Letter Management & 2-Up Disposition Sheets
+
+### Status: SELESAI
+- Scope: Surat Module (Persuratan Digital & Lembar Disposisi 2-Up)
+- Tujuan: Mengimplementasikan sistem pengelolaan Surat Masuk, Surat Keluar, dan pencetakan presisi Lembar Disposisi 2-Up (Letter Divided by 2) sesuai format resmi BKSDA Kaltim.
+
+### Implementasi
+- **Backend (Laravel)**:
+  - Membuat migrasi `2026_07_23_100000_create_surat_tables.php` untuk tabel `dr_surat_masuk`, `dr_surat_keluar`, dan `dr_surat_disposisi`.
+  - Membuat Model [SuratMasuk.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratMasuk.php), [SuratKeluar.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratKeluar.php), dan [SuratDisposisi.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratDisposisi.php) dengan `$fillable`, `SoftDeletes`, dan type casting.
+  - Memperbarui [SuratMasukController.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Controllers/SuratMasukController.php) menggunakan `updateOrCreate` pada `no_agenda` untuk mencegah simpan ganda/duplikasi data di database MySQL.
+  - Memperbarui [SuratServiceProvider.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/SuratServiceProvider.php) dengan dual prefix route `/api` & `/api/surat` untuk mendukung seluruh format endpoint.
+- **Frontend (Next.js)**:
+  - Membuat halaman Hub Modul Surat [page.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/page.tsx) dengan statistik Surat Masuk & Keluar.
+  - Memperbarui Halaman Daftar Surat Masuk [page.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/masuk/page.tsx) dengan sorting numerik descending `no_agenda`, deduplikasi data, dan format tampilan tanggal bersih (`DD/MM/YYYY`).
+  - Memperbarui Form Input & Edit [LembarDisposisiForm.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/_components/LembarDisposisiForm.tsx) dengan penomoran agenda otomatis berurutan (Mode 2-Up), sync real-time, dan helper `formatDateForInput` untuk mencegah field tanggal kosong saat edit.
+  - Memperbarui komponen cetak presisi [LembarDisposisiSheet.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/_components/LembarDisposisiSheet.tsx) & [LembarDisposisi2UpPrint.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/_components/LembarDisposisi2UpPrint.tsx) (2-Up side-by-side) dengan font reguler (Agency FB & Arial Nova Cond), serta perataan `1,2,3 Sdr/Sdri.` ke kanan tanpa garis bawah.
+  - Memperbaiki race condition otentikasi hidrasi client pada [RouteGuard.tsx](file:///e:/bksda-superapp/frontend/src/components/RouteGuard.tsx) dan [proxy.ts](file:///e:/bksda-superapp/frontend/src/proxy.ts) (menghentikan redirect loop 100%).
+  - Memperbarui handler logout pada [logout-button.tsx](file:///e:/bksda-superapp/frontend/src/components/logout-button.tsx) & [api.ts](file:///e:/bksda-superapp/frontend/src/lib/api.ts) untuk penanganan 401 secara senyap tanpa kilatan error di terminal Node.js.
+
+### Validasi
+- `npx tsc --noEmit --skipLibCheck`: Sukses tanpa error.
+- Git merge & push: Branch `task/surat-module-setup` berhasil di-squash merge ke branch `main`.
+
+---
+
 # Progress - Phase 139: Split Asset NUP Search
 
 > Document updated: 2026-06-22

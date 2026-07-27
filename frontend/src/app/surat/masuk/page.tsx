@@ -1,0 +1,337 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import type { SuratMasuk } from "../_lib/surat-types";
+
+function formatDisplayDate(dateStr?: string | null): string {
+  if (!dateStr) return "-";
+  const str = String(dateStr).trim();
+  const rawDate = str.includes("T") ? str.split("T")[0] : str.includes(" ") ? str.split(" ")[0] : str;
+  const parts = rawDate.split("-");
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return rawDate;
+}
+
+export default function SuratMasukListPage() {
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [suratList, setSuratList] = useState<SuratMasuk[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteItem, setDeleteItem] = useState<SuratMasuk | null>(null);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    let localItems: SuratMasuk[] = [];
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("bksda_saved_surat_masuk");
+      if (saved) {
+        try {
+          localItems = JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+
+    try {
+      const res = await api.get("/api/surat-masuk");
+      const apiData = res.data?.data || res.data || [];
+      const formattedApi: SuratMasuk[] = Array.isArray(apiData)
+        ? apiData.map((d: any) => ({
+            id: d.id,
+            no_agenda: d.no_agenda || "",
+            tanggal_agenda: d.tanggal_agenda || "",
+            indeks: d.indeks || "",
+            kode: d.kode || "",
+            no_surat: d.no_surat || "",
+            referensi: d.referensi || "",
+            tanggal_penyelesaian: d.tanggal_penyelesaian || "",
+            tanggal_surat: d.tanggal_surat || "",
+            isi_ringkas: d.isi_ringkas || "",
+            asal_surat: d.asal_surat || "",
+            lampiran: d.lampiran || "",
+            catatan: d.catatan || "",
+            sifat_json: d.sifat_json || ["Penting"],
+          }))
+        : [];
+
+      const combined = [...formattedApi];
+
+      for (const localItem of localItems) {
+        if (!combined.some((item) => String(item.no_agenda) === String(localItem.no_agenda))) {
+          combined.push(localItem);
+          try {
+            const fd = new FormData();
+            fd.append("no_agenda", localItem.no_agenda || "1000");
+            if (localItem.tanggal_agenda) fd.append("tanggal_agenda", localItem.tanggal_agenda);
+            if (localItem.indeks) fd.append("indeks", localItem.indeks);
+            if (localItem.kode) fd.append("kode", localItem.kode);
+            fd.append("no_surat", localItem.no_surat || "SURAT/BKSDA/2026");
+            if (localItem.referensi) fd.append("referensi", localItem.referensi);
+            if (localItem.tanggal_penyelesaian) fd.append("tanggal_penyelesaian", localItem.tanggal_penyelesaian);
+            if (localItem.tanggal_surat) fd.append("tanggal_surat", localItem.tanggal_surat);
+            if (localItem.isi_ringkas) fd.append("isi_ringkas", localItem.isi_ringkas);
+            if (localItem.asal_surat) fd.append("asal_surat", localItem.asal_surat);
+            if (localItem.lampiran) fd.append("lampiran", localItem.lampiran);
+            if (localItem.catatan) fd.append("catatan", localItem.catatan);
+            await api.post("/api/surat-masuk", fd);
+          } catch (e) {}
+        }
+      }
+
+      const uniqueCombined: SuratMasuk[] = [];
+      const seenAgenda = new Set<string>();
+
+      combined.forEach((item) => {
+        const key = String(item.no_agenda);
+        if (key && !seenAgenda.has(key)) {
+          seenAgenda.add(key);
+          uniqueCombined.push(item);
+        } else if (!key) {
+          uniqueCombined.push(item);
+        }
+      });
+
+      uniqueCombined.sort((a, b) => {
+        const numA = parseInt(a.no_agenda || "0", 10);
+        const numB = parseInt(b.no_agenda || "0", 10);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numB - numA;
+        }
+        return 0;
+      });
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("bksda_saved_surat_masuk", JSON.stringify(uniqueCombined));
+      }
+
+      setSuratList(uniqueCombined);
+      setLoading(false);
+      return;
+    } catch (err) {}
+
+    const uniqueLocal: SuratMasuk[] = [];
+    const seenLocalAgenda = new Set<string>();
+    localItems.forEach((item) => {
+      const key = String(item.no_agenda);
+      if (key && !seenLocalAgenda.has(key)) {
+        seenLocalAgenda.add(key);
+        uniqueLocal.push(item);
+      } else if (!key) {
+        uniqueLocal.push(item);
+      }
+    });
+
+    uniqueLocal.sort((a, b) => {
+      const numA = parseInt(a.no_agenda || "0", 10);
+      const numB = parseInt(b.no_agenda || "0", 10);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numB - numA;
+      }
+      return 0;
+    });
+
+    setSuratList(uniqueLocal);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleDeleteSurat = async (item: SuratMasuk) => {
+    try {
+      if (item.id) {
+        await api.delete(`/api/surat-masuk/${item.id}`).catch(() => {});
+      }
+    } catch (e) {}
+
+    const updated = suratList.filter((s) => s.id !== item.id && s.no_agenda !== item.no_agenda);
+    setSuratList(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bksda_saved_surat_masuk", JSON.stringify(updated));
+
+      let maxNo = 0;
+      updated.forEach((i) => {
+        const n = Number(i.no_agenda);
+        if (!isNaN(n) && n > maxNo) {
+          maxNo = n;
+        }
+      });
+
+      if (maxNo > 0) {
+        localStorage.setItem("bksda_last_no_agenda", String(maxNo));
+      } else {
+        localStorage.removeItem("bksda_last_no_agenda");
+      }
+    }
+    toast.success(`Surat Masuk (Agenda ${item.no_agenda}) berhasil dihapus.`);
+    setDeleteItem(null);
+  };
+
+  const filtered = suratList.filter((s) => {
+    const q = search.toLowerCase();
+    return (
+      (s.no_surat || "").toLowerCase().includes(q) ||
+      (s.no_agenda || "").toLowerCase().includes(q) ||
+      (s.asal_surat || "").toLowerCase().includes(q) ||
+      (s.isi_ringkas || "").toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+              <Inbox className="h-5 w-5" />
+            </div>
+            <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
+              Daftar Surat Masuk
+            </h1>
+          </div>
+          <p className="text-xs text-zinc-500">
+            Kelola arsip surat masuk, pengagendaan, dan disposisi pimpinan.
+          </p>
+        </div>
+
+        <Link href="/surat/masuk/create">
+          <Button className="h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20">
+            <Plus className="mr-1.5 h-4 w-4" />
+            Input Surat Masuk Baru
+          </Button>
+        </Link>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari no surat, no agenda, pengirim, perihal..."
+            className="pl-9 h-9 text-xs border-zinc-200 focus-visible:ring-emerald-500"
+          />
+        </div>
+
+        <div className="text-xs font-semibold text-zinc-500">
+          Menampilkan <span className="text-zinc-900 font-bold dark:text-zinc-50">{filtered.length}</span> Surat Masuk
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="p-12 text-center text-xs text-zinc-400">Memuat data...</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-12 text-center space-y-3">
+              <Inbox className="h-10 w-10 text-zinc-300 mx-auto" />
+              <h3 className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Belum Ada Surat Masuk Terarsip</h3>
+            </div>
+          ) : (
+            <table className="w-full text-left text-xs">
+              <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="p-3.5">No Agenda</th>
+                  <th className="p-3.5">Nomor & Tanggal Surat</th>
+                  <th className="p-3.5">Asal Surat / Pengirim</th>
+                  <th className="p-3.5">Isi Ringkas / Perihal</th>
+                  <th className="p-3.5">Sifat</th>
+                  <th className="p-3.5 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {filtered.map((item) => (
+                  <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
+                    <td className="p-3.5 font-bold text-emerald-600">
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="h-4 w-4 shrink-0" />
+                        <span>{item.no_agenda}</span>
+                      </div>
+                      <span className="text-[10px] font-normal text-zinc-400 block mt-0.5">
+                        {formatDisplayDate(item.tanggal_agenda)}
+                      </span>
+                    </td>
+
+                    <td className="p-3.5">
+                      <span className="font-bold text-zinc-900 dark:text-zinc-100 block">
+                        {item.no_surat}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 flex items-center gap-1 mt-0.5">
+                        <Calendar className="h-3 w-3" /> Tanggal: {formatDisplayDate(item.tanggal_surat)}
+                      </span>
+                    </td>
+
+                    <td className="p-3.5 max-w-50">
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                        <span className="truncate">{item.asal_surat}</span>
+                      </span>
+                      <span className="text-[10px] text-zinc-400 block mt-0.5">
+                        Lampiran: {item.lampiran || "-"}
+                      </span>
+                    </td>
+
+                    <td className="p-3.5 max-w-70">
+                      <p className="text-zinc-700 dark:text-zinc-300 line-clamp-2 leading-relaxed">
+                        {item.isi_ringkas}
+                      </p>
+                    </td>
+
+                    <td className="p-3.5">
+                      <div className="flex flex-wrap gap-1">
+                        {(item.sifat_json || ["Penting"]).map((sifat) => (
+                          <span
+                            key={sifat}
+                            className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300"
+                          >
+                            {sifat}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+
+                    <td className="p-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link href={`/surat/masuk/create?id=${item.id}`}>
+                          <Button variant="outline" size="sm" className="h-8 text-[11px] font-semibold text-amber-700 border-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300">
+                            <Pencil className="mr-1 h-3 w-3" />
+                            Edit
+                          </Button>
+                        </Link>
+
+                        <Link href={`/surat/masuk/create?id=${item.id}`}>
+                          <Button variant="outline" size="sm" className="h-8 text-[11px] font-semibold text-emerald-700 border-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300">
+                            <Printer className="mr-1 h-3 w-3" />
+                            Cetak
+                          </Button>
+                        </Link>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteSurat(item)}
+                          className="h-8 w-8 p-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -8,7 +8,7 @@ import {
   Boxes, LayoutGrid, Package, FileText, LogOut,
   Fingerprint, KeyRound, Loader2, BadgeCheck, Mail, Phone, Briefcase,
   HandHelping, Sun, Sunset, Moon, Pencil, Sparkles, Bell,
-  Eye, Users, ClipboardList, Building2, List, Camera,
+  Eye, Users, ClipboardList, Building2, List, Camera, Calendar,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -25,6 +25,9 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
 import SuratTugasLetterPreview from "@/components/SuratTugasLetterPreview";
+import { LeaveRequestDialog } from "./_components/LeaveRequestDialog";
+import { FormulirCutiPrint, LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
+import { Printer, Plus } from "lucide-react";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -74,7 +77,7 @@ interface SuratTugasDetail {
   approver?: { id: number; name: string; nip?: string };
 }
 
-type TabKey = "pinjaman" | "aset" | "surat_tugas";
+type TabKey = "pinjaman" | "aset" | "surat_tugas" | "cuti";
 
 function getGreeting(): { text: string; icon: React.ReactNode } {
   const hour = new Date().getHours();
@@ -227,6 +230,39 @@ export default function PersonalDashboard() {
   }, [activeTab, fetchAssets]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  // Fetch leave balance for logged-in employee
+  const currentYear = new Date().getFullYear();
+  const [myLeaveBalance, setMyLeaveBalance] = useState<{ sisa_cuti_tersedia: number; total_hak_cuti: number } | null>(null);
+
+  const [myLeaveRequests, setMyLeaveRequests] = useState<LeaveRequestPrintData[]>([]);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [printLeaveData, setPrintLeaveData] = useState<LeaveRequestPrintData | null>(null);
+
+  const fetchMyLeaveRequests = useCallback(async () => {
+    try {
+      const res = await api.get("/me/leave-requests");
+      setMyLeaveRequests(res.data.data || []);
+      if (data?.employee?.id) {
+        const balRes = await api.get(`/kepegawaian/employees/${data.employee.id}/leaves?year=${currentYear}`);
+        setMyLeaveBalance(balRes.data.data);
+      }
+    } catch (e) {}
+  }, [data, currentYear]);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (data?.employee?.id) {
+      api.get(`/kepegawaian/employees/${data.employee.id}/leaves?year=${currentYear}`)
+        .then((res) => setMyLeaveBalance(res.data.data))
+        .catch(() => {});
+    }
+  }, [data, currentYear]);
+
+  useEffect(() => {
+    fetchMyLeaveRequests();
+  }, [fetchMyLeaveRequests]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   const handleLogout = () => { authStore.logout(); router.push("/login"); };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -254,7 +290,7 @@ export default function PersonalDashboard() {
   const modules = useMemo(() => {
     if (!data) return [];
     return data.user.role === "super_admin" || (data.user.access_modules?.includes("*"))
-      ? ["kepegawaian", "bmn", "inventory", "dereporting", "cms"]
+      ? ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"]
       : (data.user.access_modules || []);
   }, [data]);
 
@@ -265,6 +301,7 @@ export default function PersonalDashboard() {
       { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: <Boxes className="w-6 h-6" />, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-500/10" },
       { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: <FileText className="w-6 h-6" />, color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-500/10" },
       { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: <LayoutGrid className="w-6 h-6" />, color: "text-teal-600", bg: "bg-teal-50 dark:bg-teal-500/10" },
+      { key: "surat", href: "/surat", label: "Persuratan", desc: "Surat & Disposisi", icon: <Mail className="w-6 h-6" />, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
     ];
     return all.filter(m => modules.includes(m.key));
   }, [modules]);
@@ -298,6 +335,7 @@ export default function PersonalDashboard() {
     { key: "pinjaman", label: "Pinjaman Aktif", icon: <HandHelping className="w-4 h-4" />, count: data.my_assets.length },
     { key: "aset", label: "Aset Saya", icon: <Briefcase className="w-4 h-4" />, count: filteredMyAssets.length },
     { key: "surat_tugas", label: "Surat Tugas", icon: <ClipboardList className="w-4 h-4" />, count: suratTugas.length },
+    { key: "cuti", label: "Pengajuan Cuti Saya", icon: <Calendar className="w-4 h-4" />, count: myLeaveRequests.length },
   ];
 
   return (
@@ -353,7 +391,7 @@ export default function PersonalDashboard() {
 
           {/* Sidebar Profile */}
           <aside className={cn(
-            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-[280px] sm:w-[320px] lg:w-[280px] bg-slate-50 dark:bg-slate-900/50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
+            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-70 sm:w-[320px] lg:w-70 bg-slate-50 dark:bg-slate-900/50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
             mobileProfileOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
           )}>
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-6 text-center relative">
@@ -402,6 +440,7 @@ export default function PersonalDashboard() {
               {[
                 { icon: <Fingerprint className="w-4 h-4" />, label: "Jabatan", value: data.employee?.position || "-", color: "text-emerald-500" },
                 { icon: <Building2 className="w-4 h-4" />, label: "Unit Kerja", value: data.employee?.department || "-", color: "text-blue-500" },
+                { icon: <Calendar className="w-4 h-4" />, label: `Sisa Cuti (${currentYear})`, value: myLeaveBalance ? `${myLeaveBalance.sisa_cuti_tersedia} Hari Kerja` : "12 Hari Kerja", color: "text-amber-500" },
                 { icon: <Mail className="w-4 h-4" />, label: "Email", value: data.employee?.email || data.user.email || "-", color: "text-rose-500" },
                 { icon: <Phone className="w-4 h-4" />, label: "Telepon", value: data.employee?.phone || "-", color: "text-teal-500" },
               ].map((item) => (
@@ -422,7 +461,7 @@ export default function PersonalDashboard() {
                     <KeyRound className="w-4 h-4 mr-2 text-emerald-500" /> Ganti Password
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[400px] w-[90vw] mx-auto rounded-2xl">
+                <DialogContent className="sm:max-w-100 w-[90vw] mx-auto rounded-2xl">
                   <form onSubmit={handleChangePassword}>
                     <DialogHeader><DialogTitle>Ubah Password</DialogTitle><DialogDescription>Password baru minimal 8 karakter.</DialogDescription></DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -479,12 +518,17 @@ export default function PersonalDashboard() {
                     onClick={() => setActiveTab(tab.key)}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
-                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50"
+                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                     )}
                   >
                     {tab.icon} {tab.label}
                     {tab.count !== undefined && tab.count > 0 && (
-                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-bold", activeTab === tab.key ? "bg-white/20" : "bg-slate-100 dark:bg-zinc-700")}>{tab.count}</span>
+                      <span className={cn(
+                        "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                        activeTab === tab.key ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                      )}>
+                        {tab.count}
+                      </span>
                     )}
                   </button>
                 ))}
@@ -742,9 +786,89 @@ export default function PersonalDashboard() {
                   )}
                 </div>
               )}
+              {activeTab === "cuti" && (
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Daftar Pengajuan Cuti Saya</h3>
+                      <p className="text-xs text-slate-500">Ajukan permohonan cuti dan cetak formulir resmi BKSDA.</p>
+                    </div>
+                    <Button
+                      onClick={() => setLeaveDialogOpen(true)}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl shadow-sm gap-1.5"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Ajukan Cuti Baru
+                    </Button>
+                  </div>
+
+                  {myLeaveRequests.length === 0 ? (
+                    <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/30 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl space-y-3">
+                      <Calendar className="w-10 h-10 text-slate-300 mx-auto" />
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Belum Ada Pengajuan Cuti</p>
+                      <p className="text-xs text-slate-400">Klik tombol "Ajukan Cuti Baru" untuk mengisi formulir permohonan cuti.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {myLeaveRequests.map((item) => (
+                        <div key={item.id} className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-4 space-y-3 shadow-sm">
+                          <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{item.jenis_cuti}</span>
+                              <span className={cn(
+                                "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                                (item.status === "DISETUJUI" || item.status_pertimbangan_atasan === "DISETUJUI")
+                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                                  : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                              )}>
+                                {(item.status === "DISETUJUI" || item.status_pertimbangan_atasan === "DISETUJUI") ? "Disetujui" : "Pengajuan"}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                              {item.jumlah_hari} Hari ({item.tanggal_mulai} s/d {item.tanggal_selesai})
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">Alasan: </span>
+                            {item.alasan_cuti}
+                          </p>
+                          <div className="flex items-center justify-between pt-2">
+                            <span className="text-[11px] text-slate-400">Pengajuan: {item.tanggal_pengajuan}</span>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setPrintLeaveData(item);
+                                setTimeout(() => window.print(), 300);
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                              Cetak Formulir Cuti
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </main>
         </div>
+
+        {/* Modal Pengajuan Cuti Mandiri */}
+        <LeaveRequestDialog
+          open={leaveDialogOpen}
+          onClose={() => setLeaveDialogOpen(false)}
+          onSuccess={() => fetchMyLeaveRequests()}
+        />
+
+        {/* Hidden Printable Formulir Cuti */}
+        {printLeaveData && (
+          <div className="hidden print:block">
+            <FormulirCutiPrint data={printLeaveData} />
+          </div>
+        )}
 
         {/* Surat Tugas Formal Letter Preview */}
         {stPreviewOpen && stDetail && (
@@ -780,7 +904,7 @@ export default function PersonalDashboard() {
 
         {/* Edit Profile Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="sm:max-w-[400px]">
+          <DialogContent className="sm:max-w-100">
             <form onSubmit={handleSaveProfile}>
               <DialogHeader><DialogTitle>Edit Profil</DialogTitle><DialogDescription>Perbarui informasi profil Anda.</DialogDescription></DialogHeader>
               <div className="grid gap-4 py-4">

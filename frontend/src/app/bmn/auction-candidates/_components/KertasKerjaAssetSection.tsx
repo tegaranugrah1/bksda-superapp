@@ -672,8 +672,8 @@ export function KertasKerjaAssetSection({
           </div>
         </div>
 
-        <div id="kertas-kerja-print-root" className="min-w-0 overflow-x-auto">
-          <div className="kk-page mx-auto w-full min-w-[840px] max-w-[1160px] border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
+        <div id="kertas-kerja-print-root" className="overflow-x-auto">
+          <div className="kk-page mx-auto min-w-245 border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
             <style jsx global>{`
               .kk-page { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; }
               .kk-page table { border-collapse: collapse; width: 100%; }

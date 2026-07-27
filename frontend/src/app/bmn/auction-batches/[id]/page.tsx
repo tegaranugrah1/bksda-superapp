@@ -160,6 +160,58 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Horizontal Status Timeline */}
+        <div className="mt-6 border-t border-zinc-100 dark:border-zinc-800/60 pt-5 overflow-x-auto">
+          <div className="flex items-center min-w-175 justify-between px-2">
+            {isCancelled ? (
+              <div className="flex items-center w-full justify-center gap-2 text-red-650 font-bold text-sm bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-3 rounded-xl">
+                <AlertCircle className="h-4 w-4" />
+                <span>Paket ini telah dibatalkan (BATAL) dan berstatus read-only.</span>
+              </div>
+            ) : (
+              statusesOrder.map((statusKey, index) => {
+                const stepState = getStatusStepState(statusKey);
+                const isLast = index === statusesOrder.length - 1;
+                return (
+                  <React.Fragment key={statusKey}>
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={cn(
+                          "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                          stepState.isCurrent && "bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950/50 shadow-xs",
+                          stepState.isPassed && "bg-emerald-500 text-white",
+                          !stepState.isCurrent && !stepState.isPassed && "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500"
+                        )}
+                      >
+                        {stepState.isPassed ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                      </div>
+                      <div>
+                        <p
+                          className={cn(
+                            "text-xs font-bold leading-tight",
+                            stepState.isCurrent && "text-emerald-700 dark:text-emerald-400",
+                            stepState.isPassed && "text-zinc-800 dark:text-zinc-200",
+                            !stepState.isCurrent && !stepState.isPassed && "text-zinc-400 dark:text-zinc-500"
+                          )}
+                        >
+                          {STATUS_LABELS[statusKey as keyof typeof STATUS_LABELS] || statusKey}
+                        </p>
+                      </div>
+                    </div>
+                    {!isLast && (
+                      <div
+                        className={cn(
+                          "h-0.5 flex-1 mx-3 rounded-full transition-all",
+                          stepState.isPassed ? "bg-emerald-500" : "bg-zinc-200 dark:bg-zinc-800"
+                        )}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </div>
+        </div>
 
       </div>
 

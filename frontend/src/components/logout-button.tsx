@@ -12,14 +12,9 @@ export function LogoutButton() {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      
-      // Gunakan Promise.race agar tidak nyangkut selamanya jika backend hang
-      await Promise.race([
-        api.post("/logout"),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000))
-      ]);
-    } catch (error) {
-      console.error("Logout backend skip/timeout", error);
+      await api.post("/logout").catch(() => {});
+    } catch {
+      // Ignore network or token expiration errors on logout
     } finally {
       // Sapu bersih data lokal (Cookie & LocalStorage)
       authStore.logout();

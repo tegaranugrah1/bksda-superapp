@@ -24,6 +24,17 @@ function getCookie(name: string): string | null {
 }
 
 api.interceptors.request.use((config) => {
+  // Prevent double /api prefix if baseURL already contains /api
+  if (config.url && config.baseURL) {
+    const baseEndsWithApi = config.baseURL.replace(/\/$/, "").endsWith("/api");
+    if (baseEndsWithApi && config.url.startsWith("/api/")) {
+      config.url = config.url.substring(4);
+    }
+  } else if (config.url && config.url.startsWith("/api/")) {
+    // Default fallback if baseURL is implicitly /api
+    config.url = config.url.substring(4);
+  }
+
   if (typeof FormData !== "undefined" && config.data instanceof FormData) {
     delete config.headers["Content-Type"];
   }
@@ -50,12 +61,12 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url ?? "unknown endpoint";
 
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === "development" && !url.includes("logout")) {
       const detail = status ? `HTTP ${status}` : error.message;
       console.warn(`[API] ${url} failed: ${detail}`);
     }
 
-    if (status === 401 && typeof window !== "undefined" && url !== "/login") {
+    if (status === 401 && typeof window !== "undefined" && url !== "/login" && !url.includes("logout")) {
       authStore.logout();
       window.location.href = "/login";
     }

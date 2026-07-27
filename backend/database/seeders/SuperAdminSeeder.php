@@ -25,18 +25,32 @@ class SuperAdminSeeder extends Seeder
             ]
         );
 
-        // 2. Buat Akun Aksesnya
+        // 2. Buat Akun Akses NIP
         User::updateOrCreate(
-            ['username' => $nipAdmin], // Username = NIP
+            ['username' => $nipAdmin], // Cari berdasarkan NIP
             [
                 'name' => 'Administrator Pusat BKSDA',
                 'email' => 'admin@bksda.local', // Required by database constraint
                 'password' => 'Bksda2026!@#', // Password polos (Akan otomatis di-hash oleh sistem casts User.php)
                 'role' => 'super_admin',
-                'access_modules' => ['kepegawaian', 'bmn', 'inventory', 'dereporting'],
+                'access_modules' => ['kepegawaian', 'bmn', 'inventory', 'dereporting', 'surat'],
+                'is_active' => true,
             ]
         );
 
-        $this->command->info('Akun Super Admin berhasil ditanamkan ke Database!');
+        // 3. Buat Akun Direct Username `superadmin`
+        User::updateOrCreate(
+            ['username' => 'superadmin'],
+            [
+                'name' => 'Super Admin System',
+                'email' => 'superadmin@bksdakaltim.net',
+                'password' => 'Lolipop@147258379',
+                'role' => 'super_admin',
+                'access_modules' => ['kepegawaian', 'bmn', 'inventory', 'dereporting', 'surat'],
+                'is_active' => true,
+            ]
+        );
+
+        $this->command->info('Akun Super Admin (NIP & username superadmin) berhasil ditanamkan ke Database!');
     }
 }

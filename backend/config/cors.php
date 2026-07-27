@@ -10,14 +10,14 @@
  */
 
 return [
-    // Hanya izinkan CORS untuk route /api/* dan sanctum/csrf-cookie
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    // Izinkan CORS untuk semua route API, auth, dan sanctum
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout', '*'],
 
     // Izinkan semua HTTP method (GET, POST, PUT, DELETE, dll.)
     'allowed_methods' => ['*'],
 
-    // Hanya izinkan request dari frontend URL
-    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL', 'http://localhost:3000') . ',https://bksdakaltim.net,https://www.bksdakaltim.net')),
+    // Izinkan origin publik dan sub-domain produksi
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
@@ -27,6 +27,6 @@ return [
     'exposed_headers' => [],
     'max_age' => 0,
 
-    // Izinkan cookie/credentials (dibutuhkan untuk Sanctum token)
+    // Izinkan credentials/cookies
     'supports_credentials' => true,
 ];

@@ -2,6 +2,7 @@ FROM php:8.4-fpm-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
+    nginx \
     postgresql-dev \
     libzip-dev \
     zip \
@@ -45,6 +46,12 @@ COPY . .
 # Generate optimized autoload
 RUN composer dump-autoload --optimize --no-dev
 
+# Copy Nginx config for standalone container
+COPY nginx.conf /etc/nginx/http.d/default.conf
+
+# Create Nginx run directory
+RUN mkdir -p /run/nginx && chown -R www-data:www-data /run/nginx /var/lib/nginx
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
@@ -62,6 +69,6 @@ RUN echo "opcache.enable=1" >> "$PHP_INI_DIR/conf.d/opcache.ini" && \
 RUN echo "upload_max_filesize=20M" >> "$PHP_INI_DIR/conf.d/uploads.ini" && \
     echo "post_max_size=25M" >> "$PHP_INI_DIR/conf.d/uploads.ini"
 
-EXPOSE 9000
+EXPOSE 80 9000
 
-CMD ["php-fpm"]
+CMD ["sh", "-c", "mkdir -p /run/nginx; sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force; php artisan db:seed --class=SuperAdminSeeder --force; chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache; php-fpm & nginx -g 'daemon off;'"]
