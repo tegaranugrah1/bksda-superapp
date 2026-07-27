@@ -81,38 +81,30 @@ export function LembarDisposisi2UpPrint({
           }
         `}</style>
 
-        {/* 1-Up Landscape Grid Container (Positioned Left or Right) */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-1 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
+        {/* 1-Up Landscape Grid Container (Symmetric 50-50 Grid for Left/Right Alignment) */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
           {/* Left Column */}
-          {isKanan ? (
-            <div className="w-full h-full" />
-          ) : (
-            <div className="w-full h-full flex flex-col">
-              <LembarDisposisiSheet
-                data={surat1}
-                customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
-                catatanDisposisi={catatan1}
-                isGreenTheme={isGreenTheme}
-              />
-            </div>
-          )}
+          <div className={`w-full h-full flex flex-col ${isKanan ? "opacity-0 pointer-events-none" : ""}`}>
+            <LembarDisposisiSheet
+              data={surat1}
+              customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
+              catatanDisposisi={catatan1}
+              isGreenTheme={isGreenTheme}
+            />
+          </div>
 
           {/* Middle Spacer Column */}
           <div className="w-3 h-full" />
 
           {/* Right Column */}
-          {isKanan ? (
-            <div className="w-full h-full flex flex-col">
-              <LembarDisposisiSheet
-                data={surat1}
-                customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
-                catatanDisposisi={catatan1}
-                isGreenTheme={isGreenTheme}
-              />
-            </div>
-          ) : (
-            <div className="w-full h-full" />
-          )}
+          <div className={`w-full h-full flex flex-col ${!isKanan ? "opacity-0 pointer-events-none" : ""}`}>
+            <LembarDisposisiSheet
+              data={surat1}
+              customDiteruskanList={diteruskan1.length > 0 ? diteruskan1 : undefined}
+              catatanDisposisi={catatan1}
+              isGreenTheme={isGreenTheme}
+            />
+          </div>
         </div>
       </div>
     );
@@ -165,7 +157,7 @@ export function LembarDisposisi2UpPrint({
       `}</style>
 
       {/* Side-by-side 2-Up Landscape Container (Exact F4 330mm x 215mm Fit) */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-1 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1 w-full h-[188mm] print:w-[322mm] print:h-[208mm] p-1 print:p-0">
         {/* Left Disposisi Sheet */}
         <div className="w-full h-full flex flex-col">
           <LembarDisposisiSheet
