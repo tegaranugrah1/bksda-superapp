@@ -1,3 +1,30 @@
+# Progress - Phase 166: Pengajuan Surat Tugas Baru 3-Step Wizard Mobile
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Layar Wizard 3-Langkah Presisi Web Portal (`BuatSuratTugasScreen.tsx`)**:
+     - Membangun komponen layar wizard 3 langkah [BuatSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx) yang mengadopsi alur penuh Web Portal `http://localhost:3000/surat-tugas`.
+     - **Step 1 (Pilih Pegawai)**: Card header `👥 Pilih Pegawai`, pencarian instan NIP/Nama pegawai dari API kepegawaian backend, chip kartu pegawai terpilih dengan tombol hapus `✖`, serta tombol **`Lanjutkan >`**.
+     - **Step 2 (Detail Perjalanan Dinas)**: Input `Maksud / Nama Kegiatan *`, `Tanggal Mulai & Tanggal Selesai *`, `Lokasi Kegiatan / Tujuan *`, pilihan `Sumber Dana *` (`DIPA Balai KSDA Kaltim`, `DIPA Instansi Lain`, `Non-DIPA`, `Tanpa Biaya`), dan deteksi otomatis penunjukan PLH untuk Pejabat Struktural.
+     - **Step 3 (Upload Dokumen Dasar & Kirim)**: Upload dotted box dokumen pendukung (PDF/Foto), checkbox persetujuan pengajuan, ringkasan pengajuan, dan tombol **`🚀 Kirim Pengajuan ST`** (`POST /api/kepegawaian/surat-tugas`).
+  2. **Akses Langsung untuk Seluruh Pegawai dari Portal Dashboard**:
+     - Menambahkan tombol aksi cepat **`📝 Buat ST Baru`** pada Banner Portal Dashboard (`PortalDashboardScreen.tsx`) dan FAB Drawer Menu (`Buat Surat Tugas`), sehingga setiap pegawai dapat mengajukan Surat Tugas secara mandiri dari HP, bahkan jika pengguna tidak memiliki modul akses admin kepegawaian penuh.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 165: Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy
 
 > Document updated: 2026-07-28
