@@ -52,6 +52,15 @@ export default function SuratTugasForm() {
         sumber_dana_other: '',
         keterangan: ''
     });
+
+    // Builder State untuk Nama Kegiatan Presisi Directive User
+    const [jenisKegiatan, setJenisKegiatan] = useState<'perjalanan_dinas' | 'kegiatan_1hari'>('perjalanan_dinas');
+    const [rutePerjalanan, setRutePerjalanan] = useState('Samarinda ke Kabupaten Kutai Barat');
+    const [dalamRangka, setDalamRangka] = useState('Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi');
+    const [diLokasiOptional, setDiLokasiOptional] = useState('Suaka Margasatwa Kelian');
+
+    const [diKegiatan1Hari, setDiKegiatan1Hari] = useState('opname fisik (stok opname) barang persediaan pada tempat kegiatannya');
+    const [kotaKegiatan1Hari, setKotaKegiatan1Hari] = useState('Samarinda');
     const [namaPlh, setNamaPlh] = useState('');
     const [plhSearchQuery, setPlhSearchQuery] = useState('');
     const [showPlhDropdown, setShowPlhDropdown] = useState(false);
@@ -135,8 +144,13 @@ export default function SuratTugasForm() {
         
         setIsSubmitting(true);
         try {
+            const finalNamaKegiatan = jenisKegiatan === 'perjalanan_dinas'
+                ? `Melaksanakan Perjalanan Dinas dari ${rutePerjalanan.trim()} dalam rangka ${dalamRangka.trim()}${diLokasiOptional.trim() ? ` di ${diLokasiOptional.trim()}` : ''}`
+                : `Melaksanakan Kegiatan ${diKegiatan1Hari.trim()} di ${kotaKegiatan1Hari.trim()}`;
+
             const submitData = new FormData();
-            submitData.append('maksud_tujuan', formData.nama_kegiatan);
+            submitData.append('maksud_tujuan', finalNamaKegiatan);
+            submitData.append('nama_kegiatan', finalNamaKegiatan);
             submitData.append('tanggal_mulai', formData.tanggal_mulai);
             submitData.append('tanggal_selesai', formData.tanggal_selesai);
             submitData.append('sumber_dana', formData.sumber_dana);
@@ -313,17 +327,142 @@ export default function SuratTugasForm() {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            Nama Kegiatan <span className="text-red-500">*</span>
+                    <div className="space-y-4 bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+                            Jenis Perjalanan / Kegiatan <span className="text-red-500">*</span>
                         </label>
-                        <textarea 
-                            required
-                            value={formData.nama_kegiatan}
-                            onChange={e => setFormData({...formData, nama_kegiatan: e.target.value})}
-                            className="w-full min-h-[100px] p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm font-medium"
-                            placeholder="Contoh: Melaksanakan Perjalanan Dinas dari Samarinda ke Kabupaten Kutai Barat dalam rangka Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi di Suaka Margasatwa Kelian."
-                        />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label className={cn(
+                                "flex items-center p-3.5 border rounded-xl cursor-pointer transition-all",
+                                jenisKegiatan === 'perjalanan_dinas' 
+                                    ? "bg-blue-50 border-blue-500 ring-1 ring-blue-500/20 text-blue-900 font-bold" 
+                                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold"
+                            )}>
+                                <input 
+                                    type="radio" 
+                                    name="jenis_kegiatan" 
+                                    checked={jenisKegiatan === 'perjalanan_dinas'}
+                                    onChange={() => setJenisKegiatan('perjalanan_dinas')}
+                                    className="sr-only"
+                                />
+                                <div className={cn(
+                                    "w-4 h-4 rounded-full border-2 flex items-center justify-center mr-2.5 shrink-0",
+                                    jenisKegiatan === 'perjalanan_dinas' ? "border-blue-600" : "border-slate-300"
+                                )}>
+                                    {jenisKegiatan === 'perjalanan_dinas' && <div className="w-2 h-2 bg-blue-600 rounded-full" />}
+                                </div>
+                                <span className="text-xs">Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )</span>
+                            </label>
+
+                            <label className={cn(
+                                "flex items-center p-3.5 border rounded-xl cursor-pointer transition-all",
+                                jenisKegiatan === 'kegiatan_1hari' 
+                                    ? "bg-blue-50 border-blue-500 ring-1 ring-blue-500/20 text-blue-900 font-bold" 
+                                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold"
+                            )}>
+                                <input 
+                                    type="radio" 
+                                    name="jenis_kegiatan" 
+                                    checked={jenisKegiatan === 'kegiatan_1hari'}
+                                    onChange={() => setJenisKegiatan('kegiatan_1hari')}
+                                    className="sr-only"
+                                />
+                                <div className={cn(
+                                    "w-4 h-4 rounded-full border-2 flex items-center justify-center mr-2.5 shrink-0",
+                                    jenisKegiatan === 'kegiatan_1hari' ? "border-blue-600" : "border-slate-300"
+                                )}>
+                                    {jenisKegiatan === 'kegiatan_1hari' && <div className="w-2 h-2 bg-blue-600 rounded-full" />}
+                                </div>
+                                <span className="text-xs">Melaksanakan Kegiatan ( 1 Hari )</span>
+                            </label>
+                        </div>
+
+                        {/* Form Builder Mode 1: Perjalanan Dinas */}
+                        {jenisKegiatan === 'perjalanan_dinas' ? (
+                            <div className="space-y-4 pt-2 animate-in fade-in duration-300">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Rute Perjalanan ( Asal ke Tujuan ) <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" required
+                                        value={rutePerjalanan}
+                                        onChange={e => setRutePerjalanan(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                        placeholder="Contoh: Samarinda ke Kabupaten Kutai Barat"
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Dalam Rangka <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" required
+                                        value={dalamRangka}
+                                        onChange={e => setDalamRangka(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                        placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi"
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Di ( Opsional / Tempat Spesifik )
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={diLokasiOptional}
+                                        onChange={e => setDiLokasiOptional(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                        placeholder="Contoh: Suaka Margasatwa Kelian"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            /* Form Builder Mode 2: Kegiatan 1 Hari */
+                            <div className="space-y-4 pt-2 animate-in fade-in duration-300">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Di ( Rincian Kegiatan / Tempat ) <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" required
+                                        value={diKegiatan1Hari}
+                                        onChange={e => setDiKegiatan1Hari(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                        placeholder="Contoh: opname fisik (stok opname) barang persediaan pada tempat kegiatannya"
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Di Kota / Kabupaten <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" required
+                                        value={kotaKegiatan1Hari}
+                                        onChange={e => setKotaKegiatan1Hari(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                        placeholder="Contoh: Samarinda"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Live Generated Preview Box */}
+                        <div className="mt-3 p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-blue-900">
+                            <span className="block text-[11px] font-bold uppercase tracking-wider text-blue-600 mb-1">
+                                📌 Hasil Teks Nama Kegiatan Resmi
+                            </span>
+                            <p className="text-xs font-bold leading-relaxed">
+                                {jenisKegiatan === 'perjalanan_dinas' 
+                                    ? `Melaksanakan Perjalanan Dinas dari ${rutePerjalanan || '...'} dalam rangka ${dalamRangka || '...'}${diLokasiOptional ? ` di ${diLokasiOptional}` : ''}`
+                                    : `Melaksanakan Kegiatan ${diKegiatan1Hari || '...'} di ${kotaKegiatan1Hari || '...'}`
+                                }
+                            </p>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
