@@ -110,9 +110,13 @@ export const FabMenu: React.FC<FabMenuProps> = ({
   const handleSelectSubmenu = (key: string) => {
     setShowModulePopover(false);
     setIsOpen(false);
-    if (key === "daftar-pegawai" || key === "tambah-pegawai") {
+    if (key === "tambah-pegawai") {
+      onNavigateToModule("tambah-pegawai");
+    } else if (key === "inbox-surat-tugas") {
+      onNavigateToModule("inbox-surat-tugas");
+    } else if (key === "daftar-pegawai") {
       onNavigateToModule("kepegawaian");
-    } else if (key === "inbox-surat-tugas" || key === "buat-surat-tugas" || key === "riwayat-surat-tugas") {
+    } else if (key === "buat-surat-tugas" || key === "riwayat-surat-tugas") {
       onNavigateToModule("surat");
     } else {
       onNavigateToModule("kepegawaian");

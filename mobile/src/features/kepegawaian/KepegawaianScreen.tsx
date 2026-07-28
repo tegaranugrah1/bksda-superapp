@@ -322,6 +322,10 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
       } else if (onBack) {
         onBack();
       }
+    } else if (tabKey === "tambah-pegawai") {
+      if (navigation) navigation.navigate("TambahPegawai");
+    } else if (tabKey === "inbox-surat-tugas") {
+      if (navigation) navigation.navigate("InboxSuratTugas");
     } else if (tabKey === "bmn") {
       if (navigation) navigation.navigate("Bmn");
     } else if (tabKey === "surat") {
