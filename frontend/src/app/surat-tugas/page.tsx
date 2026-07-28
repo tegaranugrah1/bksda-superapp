@@ -74,6 +74,31 @@ export default function SuratTugasForm() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Deteksi otomatis Kota Asal berdasarkan Penempatan Satker Pegawai
+    const detectDefaultKotaAsal = useCallback((employees: Employee[]) => {
+        if (!employees || employees.length === 0) return "Samarinda";
+        const depts = employees.map(e => (e.department || "").toLowerCase());
+
+        const isAllSeksi1 = depts.every(d => d.includes("seksi i") || d.includes("seksi 1") || d.includes("wilayah i") || d.includes("berau") || d.includes("skw i"));
+        if (isAllSeksi1) return "Berau";
+
+        const isAllSeksi2 = depts.every(d => d.includes("seksi ii") || d.includes("seksi 2") || d.includes("wilayah ii") || d.includes("tenggarong") || d.includes("skw ii"));
+        if (isAllSeksi2) return "Tenggarong";
+
+        const isAllSeksi3 = depts.every(d => d.includes("seksi iii") || d.includes("seksi 3") || d.includes("wilayah iii") || d.includes("balikpapan") || d.includes("skw iii"));
+        if (isAllSeksi3) return "Balikpapan";
+
+        return "Samarinda";
+    }, []);
+
+    useEffect(() => {
+        if (selectedEmployees.length > 0) {
+            setKotaAsal(detectDefaultKotaAsal(selectedEmployees));
+        } else {
+            setKotaAsal("Samarinda");
+        }
+    }, [selectedEmployees, detectDefaultKotaAsal]);
+
     // Deteksi apakah ada pejabat struktural (Kasubag TU / Kepala Seksi) yang ikut perjalanan
     const hasPejabatStruktural = selectedEmployees.some((emp) => {
         const pos = (emp.position || '').toLowerCase();

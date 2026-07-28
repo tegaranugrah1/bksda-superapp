@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -172,6 +172,35 @@ export default function STCreatePremiumPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedEmployees([normalized]);
   }, [allEmployees, initialEmployeeId, selectedEmployees.length]);
+
+  // Deteksi otomatis Kota Asal berdasarkan Penempatan Satker Pegawai
+  useEffect(() => {
+    if (!selectedEmployees || selectedEmployees.length === 0) {
+      setKotaAsal("Samarinda");
+      return;
+    }
+    const depts = selectedEmployees.map((e) => ((e as any).department || (e as any).satuan_kerja || "").toLowerCase());
+
+    const isAllSeksi1 = depts.every((d) => d.includes("seksi i") || d.includes("seksi 1") || d.includes("wilayah i") || d.includes("berau") || d.includes("skw i"));
+    if (isAllSeksi1) {
+      setKotaAsal("Berau");
+      return;
+    }
+
+    const isAllSeksi2 = depts.every((d) => d.includes("seksi ii") || d.includes("seksi 2") || d.includes("wilayah ii") || d.includes("tenggarong") || d.includes("skw ii"));
+    if (isAllSeksi2) {
+      setKotaAsal("Tenggarong");
+      return;
+    }
+
+    const isAllSeksi3 = depts.every((d) => d.includes("seksi iii") || d.includes("seksi 3") || d.includes("wilayah iii") || d.includes("balikpapan") || d.includes("skw iii"));
+    if (isAllSeksi3) {
+      setKotaAsal("Balikpapan");
+      return;
+    }
+
+    setKotaAsal("Samarinda");
+  }, [selectedEmployees]);
 
   // Apply BMN Penghapusan template â€” extracted into a function so it can be triggered by query param OR sidebar button
   const applyBmnTemplate = useCallback(() => {
