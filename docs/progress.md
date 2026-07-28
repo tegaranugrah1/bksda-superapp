@@ -1,3 +1,38 @@
+# Progress - Phase 168: Form Builder Jenis Perjalanan & Kegiatan Surat Tugas
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Form Builder Structured Jenis Perjalanan Dinas vs Kegiatan (1 Hari) Presisi Directive User
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Pilihan Radio Jenis Perjalanan / Kegiatan**:
+     - Opsi 1: `Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )`
+     - Opsi 2: `Melaksanakan Kegiatan ( 1 Hari )`
+  2. **Form Builder Input Dinamis**:
+     - **Jika memilih Perjalanan Dinas (> 1 Hari)**:
+       - Kolom `Rute Perjalanan ( Asal ke Tujuan )` (contoh: *"Samarinda ke Kabupaten Kutai Barat"*)
+       - Kolom `Dalam Rangka` (contoh: *"Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi"*)
+       - Kolom `Di ( Tempat Spesifik / Opsional )` (contoh: *"Suaka Margasatwa Kelian"*)
+       - *Output Teks Otomatis*: `"Melaksanakan Perjalanan Dinas dari [Rute] dalam rangka [Dalam Rangka] di [Di]"`
+     - **Jika memilih Melaksanakan Kegiatan (1 Hari)**:
+       - Kolom `Di ( Rincian Kegiatan / Tempat )` (contoh: *"opname fisik (stok opname) barang persediaan pada tempat kegiatannya"*)
+       - Kolom `Di Kota / Kabupaten` (contoh: *"Samarinda"*)
+       - *Output Teks Otomatis*: `"Melaksanakan Kegiatan [Di] di [Kota]"`
+  3. **Live Preview Box**:
+     - Menampilkan pratinjau teks resmi hasil gabungan otomatis sebelum disubmit.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 167: Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST
 
 > Document updated: 2026-07-28
