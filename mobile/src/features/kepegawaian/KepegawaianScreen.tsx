@@ -78,7 +78,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     {
       id: "2",
       name: "Abdul Farij",
-      nip: "-",
+      nip: "MMP-006",
       position: "MMP Resor KSDA Wilayah 02 Kepulauan Derawan",
       workUnit: "Seksi KSDA Wilayah I Berau",
       rankGrade: "Non-ASN",
@@ -119,11 +119,23 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
       role: "super_admin",
       accessModules: ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"],
     },
+    {
+      id: "6",
+      name: "Tegar Anugrah, A.Md.Kom.",
+      nip: "199907072025061006",
+      position: "Pranata Komputer Terampil",
+      workUnit: "Kantor Balai KSDA Kalimantan Timur",
+      rankGrade: "Golongan II/c",
+      remainingLeaveDays: 12,
+      role: "super_admin",
+      accessModules: ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"],
+    },
   ];
 
   const fetchEmployeeData = async () => {
     try {
-      const response = await apiClient.get<any>("/kepegawaian/employees");
+      // Fetch up to 500 records so all employees (e.g. Tegar Anugrah) are fetched from database
+      const response = await apiClient.get<any>("/kepegawaian/employees?per_page=500");
       if (response.data && Array.isArray(response.data.data)) {
         const apiList = response.data.data.map((emp: any) => ({
           id: emp.id,
@@ -342,12 +354,14 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
                   <Text style={[styles.empUnit, { color: colors.textMuted }]}>{emp.workUnit}</Text>
                 </View>
 
-                {/* Column 2: NIP */}
+                {/* Column 2: NIP (Dibuat muat 1 baris tanpa terpotong) */}
                 <View style={styles.tableDataCol2}>
-                  <Text style={[styles.empNip, { color: colors.textDark }]}>{emp.nip}</Text>
+                  <Text style={[styles.empNip, { color: colors.textDark }]} numberOfLines={1}>
+                    {emp.nip}
+                  </Text>
                 </View>
 
-                {/* Column 3: Action Buttons (Search Detail, IAM Access, Delete) */}
+                {/* Column 3: Action Buttons (Detail Search & Delete, Kelola Akses moved to Detail Modal) */}
                 <View style={styles.tableDataCol3}>
                   <TouchableOpacity
                     style={styles.actionIconButton}
@@ -360,20 +374,12 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
                   {isSuperAdmin && (
                     <TouchableOpacity
                       style={styles.actionIconButton}
-                      onPress={() => handleOpenAccess(emp)}
+                      onPress={() => handleDeleteEmployee(emp)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="shield-checkmark-outline" size={16} color="#d97706" />
+                      <Ionicons name="trash-outline" size={16} color="#ef4444" />
                     </TouchableOpacity>
                   )}
-
-                  <TouchableOpacity
-                    style={styles.actionIconButton}
-                    onPress={() => handleDeleteEmployee(emp)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={16} color="#ef4444" />
-                  </TouchableOpacity>
                 </View>
               </TouchableOpacity>
             ))
@@ -384,14 +390,14 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
       {/* Floating Action Button (FAB ☰ Menu) */}
       <FabMenu onNavigateToModule={handleSelectNavTab} />
 
-      {/* Modal Detail Pegawai (Opens when clicking any employee) */}
+      {/* Modal Detail Pegawai (Opens when clicking any employee, includes 🛡️ Kelola Akses in header) */}
       <EmployeeDetailModal
         visible={detailModalVisible}
         onClose={() => setDetailModalVisible(false)}
         employee={selectedEmployeeForDetail}
       />
 
-      {/* Modal Manajemen Hak Akses IAM (Opens when clicking 🛡️ icon or Kelola Akses) */}
+      {/* Modal Manajemen Hak Akses IAM (Accessible from Employee Detail Header) */}
       {isSuperAdmin && (
         <EmployeeAccessModal
           visible={accessModalVisible}
@@ -416,7 +422,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
               <Text style={styles.label}>Nama Lengkap & Gelar</Text>
               <TextInput
                 style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                placeholder="Contoh: Drs. Ahmad Subagja, M.Si."
+                placeholder="Contoh: Tegar Anugrah, A.Md.Kom."
                 placeholderTextColor="#94a3b8"
                 value={newNama}
                 onChangeText={setNewNama}
@@ -427,7 +433,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
               <Text style={styles.label}>NIP</Text>
               <TextInput
                 style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                placeholder="Contoh: 19850412 201012 1 002"
+                placeholder="Contoh: 199907072025061006"
                 placeholderTextColor="#94a3b8"
                 keyboardType="numeric"
                 value={newNip}
@@ -439,7 +445,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
               <Text style={styles.label}>Jabatan</Text>
               <TextInput
                 style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                placeholder="Contoh: Kepala Sub Bagian TU"
+                placeholder="Contoh: Pranata Komputer Terampil"
                 placeholderTextColor="#94a3b8"
                 value={newJabatan}
                 onChangeText={setNewJabatan}
@@ -450,7 +456,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
               <Text style={styles.label}>Seksi / Wilayah Kerja</Text>
               <TextInput
                 style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                placeholder="Contoh: Seksi KSDA Wilayah II Tenggarong"
+                placeholder="Contoh: Kantor Balai KSDA Kalimantan Timur"
                 placeholderTextColor="#94a3b8"
                 value={newWilayah}
                 onChangeText={setNewWilayah}
@@ -503,7 +509,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 90,
   },
@@ -545,7 +551,7 @@ const styles = StyleSheet.create({
     borderColor: "#bfdbfe",
     borderRadius: 14,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -553,25 +559,25 @@ const styles = StyleSheet.create({
   },
   inboxCutiText: {
     color: "#2563eb",
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: "800",
-    lineHeight: 14,
+    lineHeight: 13,
     textAlign: "center",
   },
   tambahPegawaiBtn: {
     backgroundColor: "#0f172a",
     borderRadius: 14,
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     justifyContent: "center",
     alignItems: "center",
     height: 48,
   },
   tambahPegawaiText: {
     color: "#ffffff",
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: "800",
-    lineHeight: 14,
+    lineHeight: 13,
     textAlign: "center",
   },
 
@@ -583,26 +589,26 @@ const styles = StyleSheet.create({
   tableHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
   },
   tableHeaderCol1: {
-    flex: 1.3,
+    flex: 1.2,
     color: "#64748b",
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   tableHeaderCol2: {
-    flex: 1,
+    flex: 1.5,
     color: "#64748b",
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   tableHeaderCol3: {
-    width: 72,
+    width: 48,
     color: "#64748b",
     fontSize: 10,
     fontWeight: "800",
@@ -612,38 +618,41 @@ const styles = StyleSheet.create({
   tableDataRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 12,
   },
   tableDataCol1: {
-    flex: 1.3,
-    paddingRight: 6,
+    flex: 1.2,
+    paddingRight: 4,
   },
   empName: {
-    fontSize: 13.5,
+    fontSize: 13,
     fontWeight: "800",
     marginBottom: 2,
   },
   empUnit: {
-    fontSize: 10.5,
-    lineHeight: 14,
+    fontSize: 10,
+    lineHeight: 13,
   },
   tableDataCol2: {
-    flex: 1,
+    flex: 1.5,
     justifyContent: "center",
+    paddingRight: 4,
   },
   empNip: {
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: "600",
+    letterSpacing: -0.2,
   },
   tableDataCol3: {
-    width: 72,
+    width: 48,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    gap: 4,
   },
   actionIconButton: {
-    padding: 4,
+    padding: 3,
   },
 
   modalOverlay: {
