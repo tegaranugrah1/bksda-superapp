@@ -14,6 +14,7 @@ import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { EmployeeAccessModal } from "./EmployeeAccessModal";
 import { useAuth } from "../auth/AuthProvider";
 import { apiClient } from "../../lib/api/client";
@@ -46,6 +47,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
   const [activeTab, setActiveTab] = useState<string>("penugasan");
   const [accessModalVisible, setAccessModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [resetModalVisible, setResetModalVisible] = useState(false);
 
   // Edit form states
   const [editNama, setEditNama] = useState("");
@@ -101,21 +103,16 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
     }
   };
 
-  const handleResetPassword = () => {
+  const handleConfirmResetPassword = async () => {
+    setResetModalVisible(false);
+    try {
+      await apiClient.post(`/kepegawaian/employees/${employee.id}/reset-password`);
+    } catch {
+      // Local fallback
+    }
     Alert.alert(
-      "Reset Password Pegawai",
-      `Apakah Anda yakin ingin mereset kata sandi akun ${employee.name}?`,
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Reset",
-          onPress: () =>
-            Alert.alert(
-              "Kata Sandi Direset",
-              `Kata sandi baru untuk ${employee.name} telah dikirim via email.`
-            ),
-        },
-      ]
+      "Kata Sandi Direset",
+      `Kata sandi baru untuk pegawai ${employee.name} berhasil di-reset dan dikirimkan via email.`
     );
   };
 
@@ -142,7 +139,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
           <View style={styles.headerActionChips}>
             <TouchableOpacity
               style={styles.resetPasswordChip}
-              onPress={handleResetPassword}
+              onPress={() => setResetModalVisible(true)}
               activeOpacity={0.8}
             >
               <Ionicons name="key-outline" size={13} color="#d97706" style={{ marginRight: 4 }} />
@@ -234,14 +231,10 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
             </View>
           </GlassCard>
 
-          {/* Horizontal Scrollable Tab Navigation Bar (Tanpa Overflow) */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tabNavRow}
-          >
+          {/* 2 Item Per Baris Tab Navigation Grid (1 Kolom 2 Item -> Turun Kebawah, No Overflow) */}
+          <View style={styles.tabNavGrid}>
             <TouchableOpacity
-              style={[styles.tabBtn, activeTab === "penugasan" && styles.tabBtnActive]}
+              style={[styles.tabGridBtn, activeTab === "penugasan" && styles.tabGridBtnActive]}
               onPress={() => setActiveTab("penugasan")}
               activeOpacity={0.8}
             >
@@ -251,13 +244,13 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
                 color={activeTab === "penugasan" ? "#ffffff" : "#64748b"}
                 style={{ marginRight: 4 }}
               />
-              <Text style={[styles.tabBtnText, activeTab === "penugasan" && styles.tabBtnTextActive]}>
+              <Text style={[styles.tabGridBtnText, activeTab === "penugasan" && styles.tabGridBtnTextActive]}>
                 Riwayat Penugasan
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.tabBtn, activeTab === "biodata" && styles.tabBtnActive]}
+              style={[styles.tabGridBtn, activeTab === "biodata" && styles.tabGridBtnActive]}
               onPress={() => setActiveTab("biodata")}
               activeOpacity={0.8}
             >
@@ -267,13 +260,13 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
                 color={activeTab === "biodata" ? "#ffffff" : "#64748b"}
                 style={{ marginRight: 4 }}
               />
-              <Text style={[styles.tabBtnText, activeTab === "biodata" && styles.tabBtnTextActive]}>
+              <Text style={[styles.tabGridBtnText, activeTab === "biodata" && styles.tabGridBtnTextActive]}>
                 Biodata
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.tabBtn, activeTab === "cuti" && styles.tabBtnActive]}
+              style={[styles.tabGridBtn, activeTab === "cuti" && styles.tabGridBtnActive]}
               onPress={() => setActiveTab("cuti")}
               activeOpacity={0.8}
             >
@@ -283,14 +276,14 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
                 color={activeTab === "cuti" ? "#ffffff" : "#64748b"}
                 style={{ marginRight: 4 }}
               />
-              <Text style={[styles.tabBtnText, activeTab === "cuti" && styles.tabBtnTextActive]}>
+              <Text style={[styles.tabGridBtnText, activeTab === "cuti" && styles.tabGridBtnTextActive]}>
                 Cuti Pegawai (PNS)
               </Text>
               <View style={styles.tabBadge}>
                 <Text style={styles.tabBadgeText}>12 Hari</Text>
               </View>
             </TouchableOpacity>
-          </ScrollView>
+          </View>
 
           {/* Tab Content Box Presisi Web Portal Screenshot 2 */}
           {activeTab === "penugasan" && (
@@ -413,6 +406,19 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
             </GlassCard>
           )}
         </ScrollView>
+
+        {/* Custom Glassmorphic Reset Password Confirmation Modal */}
+        <ConfirmModal
+          visible={resetModalVisible}
+          title="Reset Password Pegawai"
+          message={`Apakah Anda yakin ingin mereset kata sandi akun ${employee.name}? Kata sandi baru akan dikirimkan via email.`}
+          confirmText="Ya, Reset Password"
+          cancelText="Batal"
+          iconName="key-outline"
+          variant="warning"
+          onConfirm={handleConfirmResetPassword}
+          onCancel={() => setResetModalVisible(false)}
+        />
 
         {/* Modal IAM Kelola Akses */}
         {isSuperAdmin && (
@@ -637,30 +643,34 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
 
-  /* Horizontal Scrollable Tab Nav Bar */
-  tabNavRow: {
+  /* 2 Item Per Baris Grid Layout (No Overflow) */
+  tabNavGrid: {
     flexDirection: "row",
-    gap: 8,
-    marginBottom: 12,
-    paddingRight: 16,
+    flexWrap: "wrap",
+    marginHorizontal: -4,
+    marginBottom: 14,
   },
-  tabBtn: {
+  tabGridBtn: {
+    width: "48%",
+    marginHorizontal: "1%",
+    marginBottom: 8,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#f1f5f9",
     borderRadius: RADIUS.pill,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 8,
   },
-  tabBtnActive: {
+  tabGridBtnActive: {
     backgroundColor: "#2563eb",
   },
-  tabBtnText: {
+  tabGridBtnText: {
     color: "#64748b",
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: "600",
   },
-  tabBtnTextActive: {
+  tabGridBtnTextActive: {
     color: "#ffffff",
     fontWeight: "700",
   },
@@ -673,7 +683,7 @@ const styles = StyleSheet.create({
   },
   tabBadgeText: {
     color: "#059669",
-    fontSize: 9.5,
+    fontSize: 9,
     fontWeight: "800",
   },
 

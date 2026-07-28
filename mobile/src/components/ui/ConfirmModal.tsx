@@ -30,8 +30,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const { isDark, colors } = useTheme();
 
   const isDanger = variant === "danger";
-  const accentColor = isDanger ? "#ef4444" : "#059669";
-  const badgeBg = isDanger ? "#fef2f2" : "#ecfdf5";
+  const isWarning = variant === "warning";
+  const accentColor = isDanger ? "#ef4444" : isWarning ? "#d97706" : "#059669";
+  const badgeBg = isDanger ? "#fef2f2" : isWarning ? "#fffbe8" : "#ecfdf5";
 
   return (
     <Modal visible={visible} animationType="fade" transparent>
