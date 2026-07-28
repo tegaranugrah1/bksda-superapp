@@ -1,3 +1,34 @@
+# Progress - Phase 146: Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Fitur & Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Floating Pill Navigation Bar (`FloatingNav.tsx`)**:
+     - Menghapus bottom tab bar standar yang menempel di bawah (`AppTabs.tsx`), digantikan dengan **Floating Glassmorphic Pill Navigation Bar** melayang yang elegan (`Beranda`, `Aset BMN`, `Surat`, `Inventaris`, `Profil`).
+  2. **Aktifkan Mode Terang & Gelap (Light/Dark Theme Toggle)**:
+     - Membuat `ThemeContext.tsx` dengan fungsionalitas penuh. Menekan tombol ☀️ / 🌙 di header langsung mengubah tema aplikasi secara dinamis antara **Clean Light Emerald** (`#f8fafc` / `#ffffff`) dan **Dark Forest Emerald** (`#061a12` / `#092318`).
+  3. **Modul Akses Ultra-Compact (3 Kolom x 2 Baris)**:
+     - Mengubah Grid Modul Akses menjadi **3 Kolom x 2 Baris (3x2)** dengan ukuran badge 32x32px dan padding ultra-ringkas, sehingga hemat ruang dan tidak menghabiskan tinggi layar HP.
+  4. **Kartu Statistik Sisa Cuti di Banner Greeting**:
+     - Menambahkan kotak/chip statistik di bawah greeting *"Selamat datang di portal BKSDA Kalimantan Timur"*:
+       - `📅 Sisa Cuti (2026): 12 Hari Kerja`.
+  5. **Tombol Kembali (`← Kembali`) pada Profil Pengguna**:
+     - Menambahkan tombol **Back (`← Kembali`)** yang jelas dan aktif di header [ProfileScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/ProfileScreen.tsx) agar pengguna dapat dengan mudah kembali ke Dashboard utama.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 145: Mobile Dashboard Compact Grid & 2-Row Interactive Tabs
 
 > Document updated: 2026-07-28
