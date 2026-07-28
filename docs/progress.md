@@ -1,3 +1,37 @@
+# Progress - Phase 143: Mobile Application UI/UX Polishing & Single Navigation Fix
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke main (via Git Workflow Pro Squash Merge) dan di-push ke repository.
+
+---
+
+## Mobile Application UI/UX Polishing & Single Navigation Fix
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Tujuan: Memperbaiki masalah navigasi ganda (*double bottom nav bar*), mengintegrasikan sistem `@expo/vector-icons` (`Ionicons` & `MaterialCommunityIcons`) di seluruh screen, dan meningkatkan kontras & kerapihan antarmuka pengguna.
+
+### Implementasi
+- **Single Floating Navigation Bar**:
+  - Memperbarui [AppTabs.tsx](file:///e:/bksda-superapp/mobile/src/navigation/AppTabs.tsx) dengan ikon `Ionicons` melayang (`home-sharp`, `car-sport-sharp`, `document-text-sharp`, `cube-sharp`, `person-sharp`).
+  - Menghapus nav bar internal dari [PortalDashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx), menyelesaikan masalah penumpukan navigasi di bagian bawah.
+- **Screen 0 (Login Mobile)**:
+  - Memperbarui [LoginScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/screens/LoginScreen.tsx) dengan vector icons untuk NIP, kata sandi, toggle mata password, dan sidik jari biometrik.
+- **Screen 1 (Portal Hub Dashboard)**:
+  - Memperbarui ikon Layanan Utama dan stream aktivitas dengan vector icons yang tajam.
+- **Screen 2 (BMN Asset Catalog)**:
+  - Memperbarui [BmnAssetCatalogScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/BmnAssetCatalogScreen.tsx) dengan vector icons untuk search, filter, scan QR, dan PDF.
+- **Screen 3 (Surat Masuk & Disposisi)**:
+  - Memperbarui [SuratMasukInputScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/surat/SuratMasukInputScreen.tsx) dan [SuratMasukHistoryScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/surat/SuratMasukHistoryScreen.tsx) dengan ikon vector cetak & edit.
+- **Screen 4 (Inventory Stock) & Screen 5 (Profile)**:
+  - Memperbarui [InventoryStockScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/inventory/InventoryStockScreen.tsx) dan [ProfileScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/ProfileScreen.tsx) dengan vector icons untuk barang & opsi menu profil.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Seluruh perbaikan di-squash merge ke `main` dan di-push ke `origin main`.
+
+---
+
 # Progress - Phase 142: Mobile Application Overhaul & Redesign (Forest Emerald & Dark Glassmorphism)
 
 > Document updated: 2026-07-28
