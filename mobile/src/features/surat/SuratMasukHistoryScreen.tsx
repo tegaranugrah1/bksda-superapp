@@ -114,11 +114,11 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
+            <Ionicons name="arrow-back" size={22} color="#0f172a" />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Ionicons name="document-text-sharp" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
+          <Ionicons name="document-text" size={22} color="#059669" style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Riwayat Surat Masuk</Text>
         </View>
         <TouchableOpacity
@@ -132,17 +132,17 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchBarContainer}>
-          <Ionicons name="search-outline" size={18} color={COLORS.textMint} style={{ marginRight: 8 }} />
+          <Ionicons name="search-outline" size={18} color="#64748b" style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Cari No. Agenda, No. Surat, atau Perihal..."
-            placeholderTextColor="rgba(167, 243, 208, 0.4)"
+            placeholderTextColor="#94a3b8"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={18} color={COLORS.textMint} style={{ opacity: 0.6 }} />
+              <Ionicons name="close-circle" size={18} color="#94a3b8" />
             </TouchableOpacity>
           )}
         </View>
@@ -182,7 +182,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
               </View>
 
               <Text style={styles.noSuratText}>{item.noSurat}</Text>
-              <Text style={styles.asalSuratText}>Asal Surat: <Text style={{ color: COLORS.textWhite }}>{item.asalSurat}</Text></Text>
+              <Text style={styles.asalSuratText}>Asal Surat: <Text style={{ color: "#0f172a", fontWeight: "700" }}>{item.asalSurat}</Text></Text>
               <Text style={styles.perihalText} numberOfLines={2}>
                 {item.perihal}
               </Text>
@@ -197,7 +197,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
                   style={styles.editBtn}
                   onPress={() => onNavigateToCreate && onNavigateToCreate()}
                 >
-                  <Ionicons name="pencil" size={14} color={COLORS.textMint} style={{ marginRight: 4 }} />
+                  <Ionicons name="pencil" size={14} color="#64748b" style={{ marginRight: 4 }} />
                   <Text style={styles.editBtnText}>Edit</Text>
                 </TouchableOpacity>
               </View>
@@ -213,7 +213,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
           onPress={onNavigateToCreate}
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={32} color={COLORS.textDark} />
+          <Ionicons name="add" size={32} color="#ffffff" />
         </TouchableOpacity>
       )}
 
@@ -239,11 +239,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 54,
+    paddingTop: 48,
     paddingBottom: 16,
-    backgroundColor: "rgba(15, 41, 30, 0.8)",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.glassBorder,
+    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
     marginRight: 10,
@@ -255,20 +255,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   addNavBtn: {
-    backgroundColor: "rgba(16, 185, 129, 0.2)",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: COLORS.emeraldElectric,
+    borderColor: "#a7f3d0",
     paddingVertical: 5,
     paddingHorizontal: 12,
     borderRadius: RADIUS.pill,
   },
   addNavIcon: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -280,9 +280,9 @@ const styles = StyleSheet.create({
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(15, 41, 30, 0.6)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 46,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 14,
   },
   filterScroll: {
@@ -300,22 +300,22 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
-    backgroundColor: "rgba(15, 41, 30, 0.5)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#e2e8f0",
     marginRight: 8,
   },
   filterPillActive: {
-    backgroundColor: "rgba(16, 185, 129, 0.2)",
-    borderColor: COLORS.emeraldElectric,
+    backgroundColor: "#ecfdf5",
+    borderColor: "#059669",
   },
   filterPillText: {
-    color: COLORS.textMuted,
+    color: "#64748b",
     fontSize: 12.5,
     fontWeight: "600",
   },
   filterPillTextActive: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontWeight: "700",
   },
   historyList: {
@@ -323,6 +323,7 @@ const styles = StyleSheet.create({
   },
   historyCard: {
     padding: 16,
+    backgroundColor: "#ffffff",
   },
   cardHeaderRow: {
     flexDirection: "row",
@@ -331,20 +332,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   agendaBadge: {
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderColor: "#a7f3d0",
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: RADIUS.pill,
   },
   agendaBadgeText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 11,
     fontWeight: "800",
   },
   dateText: {
-    color: COLORS.textMuted,
+    color: "#94a3b8",
     fontSize: 11.5,
   },
   sifatBadge: {
@@ -358,19 +359,18 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   noSuratText: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 4,
   },
   asalSuratText: {
-    color: COLORS.textMint,
+    color: "#64748b",
     fontSize: 12,
     marginBottom: 6,
-    opacity: 0.85,
   },
   perihalText: {
-    color: COLORS.textWhite,
+    color: "#334155",
     fontSize: 13,
     lineHeight: 18,
     marginBottom: 14,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     borderTopWidth: 1,
-    borderTopColor: COLORS.glassBorder,
+    borderTopColor: "#f1f5f9",
     paddingTop: 12,
   },
   reprintBtn: {
@@ -394,11 +394,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: RADIUS.button,
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    borderColor: "#e2e8f0",
+    backgroundColor: "#f8fafc",
   },
   editBtnText: {
-    color: COLORS.textMint,
+    color: "#64748b",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.emeraldElectric,
+    backgroundColor: "#059669",
     alignItems: "center",
     justifyContent: "center",
   },

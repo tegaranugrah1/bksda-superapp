@@ -100,11 +100,11 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
+            <Ionicons name="arrow-back" size={22} color="#0f172a" />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Ionicons name="create-outline" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
+          <Ionicons name="create-outline" size={22} color="#059669" style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Input Surat Masuk</Text>
         </View>
         <View style={styles.agendaBadge}>
@@ -116,7 +116,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
         {/* Section 1: Data Surat Masuk */}
         <GlassCard style={styles.sectionCard} highlighted>
           <View style={styles.cardHeaderRow}>
-            <Ionicons name="document-text-outline" size={18} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
+            <Ionicons name="document-text-outline" size={18} color="#059669" style={{ marginRight: 8 }} />
             <Text style={styles.cardHeaderTitle}>Informasi Surat Masuk</Text>
           </View>
 
@@ -127,7 +127,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
               value={noSurat}
               onChangeText={setNoSurat}
               placeholder="SURAT/BKSDA/2026/1016"
-              placeholderTextColor="rgba(167, 243, 208, 0.4)"
+              placeholderTextColor="#94a3b8"
             />
           </View>
 
@@ -139,7 +139,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
                 value={tanggalSurat}
                 onChangeText={setTanggalSurat}
                 placeholder="26/07/2026"
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholderTextColor="#94a3b8"
               />
             </View>
 
@@ -150,7 +150,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
                 value={terimaAgenda}
                 onChangeText={setTerimaAgenda}
                 placeholder="28/07/2026"
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholderTextColor="#94a3b8"
               />
             </View>
           </View>
@@ -163,7 +163,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
                 value={asalSurat}
                 onChangeText={setAsalSurat}
                 placeholder="Apekli"
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholderTextColor="#94a3b8"
               />
             </View>
 
@@ -174,7 +174,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
                 value={lampiran}
                 onChangeText={setLampiran}
                 placeholder="3 Set"
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholderTextColor="#94a3b8"
               />
             </View>
           </View>
@@ -188,7 +188,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
               multiline
               numberOfLines={3}
               placeholder="Isi perihal surat..."
-              placeholderTextColor="rgba(167, 243, 208, 0.4)"
+              placeholderTextColor="#94a3b8"
             />
           </View>
         </GlassCard>
@@ -196,7 +196,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
         {/* Section 2: Diteruskan Kepada Yth (9 Items Default + Add 10th Custom Item) */}
         <GlassCard style={styles.sectionCard}>
           <View style={styles.cardHeaderRow}>
-            <Ionicons name="list-outline" size={18} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
+            <Ionicons name="list-outline" size={18} color="#059669" style={{ marginRight: 8 }} />
             <Text style={styles.cardHeaderTitle}>Diteruskan Kepada Yth (Daftar Baris)</Text>
           </View>
 
@@ -206,7 +206,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
                 <Text style={styles.recipientItemText}>{item}</Text>
                 {index >= 9 && (
                   <TouchableOpacity onPress={() => handleRemoveRecipientItem(index)}>
-                    <Ionicons name="trash-outline" size={16} color={COLORS.statusUrgent} />
+                    <Ionicons name="trash-outline" size={16} color="#ef4444" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -219,7 +219,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
               <TextInput
                 style={styles.input}
                 placeholder="Ketik Unit / Posisi Penerus Ke-10..."
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholderTextColor="#94a3b8"
                 value={customRecipientInput}
                 onChangeText={setCustomRecipientInput}
               />
@@ -253,7 +253,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
         {/* Section 3: Catatan & Sifat Surat */}
         <GlassCard style={styles.sectionCard}>
           <View style={styles.cardHeaderRow}>
-            <Ionicons name="pricetag-outline" size={18} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
+            <Ionicons name="pricetag-outline" size={18} color="#059669" style={{ marginRight: 8 }} />
             <Text style={styles.cardHeaderTitle}>Catatan & Sifat Disposisi</Text>
           </View>
 
@@ -286,7 +286,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
               multiline
               numberOfLines={3}
               placeholder="Tambahkan catatan instruksi disposisi..."
-              placeholderTextColor="rgba(167, 243, 208, 0.4)"
+              placeholderTextColor="#94a3b8"
             />
           </View>
         </GlassCard>
@@ -338,11 +338,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 54,
+    paddingTop: 48,
     paddingBottom: 16,
-    backgroundColor: "rgba(15, 41, 30, 0.8)",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.glassBorder,
+    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
     marginRight: 10,
@@ -354,20 +354,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   agendaBadge: {
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderColor: "#a7f3d0",
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: RADIUS.pill,
   },
   agendaBadgeText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 11.5,
     fontWeight: "700",
   },
@@ -379,17 +379,18 @@ const styles = StyleSheet.create({
   sectionCard: {
     padding: 18,
     marginBottom: 16,
+    backgroundColor: "#ffffff",
   },
   cardHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.glassBorder,
+    borderBottomColor: "#f1f5f9",
     paddingBottom: 10,
   },
   cardHeaderTitle: {
-    color: COLORS.textMint,
+    color: "#0f172a",
     fontSize: 15,
     fontWeight: "700",
   },
@@ -401,19 +402,19 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   label: {
-    color: COLORS.textMint,
+    color: "#1e293b",
     fontSize: 12,
     fontWeight: "600",
     marginBottom: 6,
   },
   input: {
-    backgroundColor: "rgba(6, 26, 18, 0.7)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 46,
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 13.5,
   },
   textarea: {
@@ -429,30 +430,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "rgba(6, 26, 18, 0.6)",
+    backgroundColor: "#f8fafc",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#e2e8f0",
     borderRadius: RADIUS.input,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
   recipientItemText: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 13,
     fontWeight: "600",
   },
   addDashedBtn: {
     borderWidth: 1.5,
     borderStyle: "dashed",
-    borderColor: COLORS.emeraldElectric,
-    backgroundColor: "rgba(16, 185, 129, 0.06)",
+    borderColor: "#059669",
+    backgroundColor: "#ecfdf5",
     borderRadius: RADIUS.button,
     paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   addDashedText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -474,7 +475,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   cancelAddText: {
-    color: COLORS.textMuted,
+    color: "#64748b",
     fontSize: 13,
   },
   sifatScroll: {
@@ -484,22 +485,22 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: RADIUS.pill,
-    backgroundColor: "rgba(6, 26, 18, 0.6)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#e2e8f0",
     marginRight: 8,
   },
   sifatChipActive: {
-    backgroundColor: "rgba(245, 158, 11, 0.2)",
-    borderColor: COLORS.statusPending,
+    backgroundColor: "#fff7ed",
+    borderColor: "#f97316",
   },
   sifatChipText: {
-    color: COLORS.textMuted,
+    color: "#64748b",
     fontSize: 12,
     fontWeight: "600",
   },
   sifatChipTextActive: {
-    color: COLORS.statusPending,
+    color: "#f97316",
     fontWeight: "800",
   },
   actionBtnContainer: {

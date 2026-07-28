@@ -8,7 +8,11 @@ interface GlassCardProps {
   highlighted?: boolean;
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({ children, style, highlighted = false }) => {
+export const GlassCard: React.FC<GlassCardProps> = ({
+  children,
+  style,
+  highlighted = false,
+}) => {
   return (
     <View
       style={[
@@ -25,14 +29,12 @@ export const GlassCard: React.FC<GlassCardProps> = ({ children, style, highlight
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.bgCardGlass,
+    backgroundColor: COLORS.bgSurface,
     borderRadius: RADIUS.card,
     borderWidth: 1,
     borderColor: COLORS.glassBorder,
-    padding: 16,
   },
   highlightedCard: {
-    borderColor: COLORS.glassBorderHighlight,
-    backgroundColor: "rgba(16, 78, 59, 0.4)",
+    borderColor: COLORS.emeraldElectric,
   },
 });

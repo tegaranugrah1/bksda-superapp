@@ -24,27 +24,32 @@ export default function AppTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: COLORS.emeraldElectric,
-        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarInactiveTintColor: '#64748b',
         tabBarStyle: {
-          backgroundColor: 'rgba(15, 41, 30, 0.95)',
-          borderTopColor: COLORS.glassBorder,
+          backgroundColor: '#ffffff',
+          borderTopColor: '#e2e8f0',
           height: 64,
           paddingBottom: 10,
           paddingTop: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 8,
         },
         tabBarIcon: ({ color, size, focused }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'home-outline';
 
           if (route.name === 'Dashboard') {
-            iconName = focused ? 'home-sharp' : 'home-outline';
+            iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Bmn') {
-            iconName = focused ? 'car-sport-sharp' : 'car-sport-outline';
+            iconName = focused ? 'car-sport' : 'car-sport-outline';
           } else if (route.name === 'Surat') {
-            iconName = focused ? 'document-text-sharp' : 'document-text-outline';
+            iconName = focused ? 'document-text' : 'document-text-outline';
           } else if (route.name === 'Inventory') {
-            iconName = focused ? 'cube-sharp' : 'cube-outline';
+            iconName = focused ? 'cube' : 'cube-outline';
           } else if (route.name === 'Profile') {
-            iconName = focused ? 'person-sharp' : 'person-outline';
+            iconName = focused ? 'person' : 'person-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;

@@ -1,6 +1,14 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle, StyleProp } from "react-native";
-import { COLORS, RADIUS, SHADOWS } from "../../theme";
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
+} from "react-native";
+import { COLORS, RADIUS } from "../../theme";
 
 interface EmeraldButtonProps {
   title: string;
@@ -21,31 +29,32 @@ export const EmeraldButton: React.FC<EmeraldButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const isPrimary = variant === "primary";
   const isOutline = variant === "outline";
-  const isSecondary = variant === "secondary";
 
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onPress}
-      disabled={disabled || loading}
       style={[
         styles.button,
-        isOutline && styles.buttonOutline,
-        isSecondary && styles.buttonSecondary,
-        !isOutline && !isSecondary && SHADOWS.glowEmerald,
-        (disabled || loading) && styles.buttonDisabled,
+        isPrimary && styles.primaryBtn,
+        variant === "secondary" && styles.secondaryBtn,
+        isOutline && styles.outlineBtn,
+        (disabled || loading) && styles.disabledBtn,
         style,
       ]}
+      onPress={onPress}
+      disabled={disabled || loading}
+      activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator color={isOutline ? COLORS.emeraldElectric : COLORS.textDark} />
+        <ActivityIndicator color={isOutline ? COLORS.emeraldElectric : COLORS.textWhite} size="small" />
       ) : (
         <Text
           style={[
             styles.text,
-            isOutline && styles.textOutline,
-            isSecondary && styles.textSecondary,
+            isPrimary && styles.primaryText,
+            variant === "secondary" && styles.secondaryText,
+            isOutline && styles.outlineText,
             textStyle,
           ]}
         >
@@ -58,37 +67,39 @@ export const EmeraldButton: React.FC<EmeraldButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: COLORS.emeraldElectric,
+    height: 48,
     borderRadius: RADIUS.button,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
+    paddingHorizontal: 20,
   },
-  buttonSecondary: {
-    backgroundColor: COLORS.bgSurface,
+  primaryBtn: {
+    backgroundColor: COLORS.emeraldElectric,
+  },
+  secondaryBtn: {
+    backgroundColor: "#f1f5f9",
     borderWidth: 1,
-    borderColor: COLORS.glassBorderHighlight,
+    borderColor: "#e2e8f0",
   },
-  buttonOutline: {
+  outlineBtn: {
     backgroundColor: "transparent",
     borderWidth: 1.5,
     borderColor: COLORS.emeraldElectric,
   },
-  buttonDisabled: {
+  disabledBtn: {
     opacity: 0.5,
   },
   text: {
-    color: COLORS.textDark,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
-    letterSpacing: 0.3,
   },
-  textSecondary: {
-    color: COLORS.textMint,
+  primaryText: {
+    color: COLORS.textWhite,
   },
-  textOutline: {
+  secondaryText: {
+    color: COLORS.textDark,
+  },
+  outlineText: {
     color: COLORS.emeraldElectric,
   },
 });

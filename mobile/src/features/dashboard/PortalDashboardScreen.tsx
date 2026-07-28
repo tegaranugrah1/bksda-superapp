@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
 import { GlassCard } from "../../components/ui/GlassCard";
 
@@ -23,74 +23,109 @@ interface PortalDashboardScreenProps {
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
   userProfile = {
-    name: "Subagja",
-    nip: "19850412 201012 1 002",
+    name: "Super",
+    nip: "superadmin",
     avatarUrl: "https://bksdakaltim.net/assets/img/logobksda.png",
   },
 }) => {
+  const [activeTab, setActiveTab] = useState<string>("pinjaman");
+
   const modules = [
-    { key: "bmn", title: "Aset BMN", iconName: "car-sport", badgeColor: COLORS.emeraldElectric },
-    { key: "surat", title: "Surat & Disposisi", iconName: "mail", badgeColor: "#3b82f6" },
-    { key: "inventory", title: "Stok Inventaris", iconName: "cube", badgeColor: "#f59e0b" },
-    { key: "kepegawaian", title: "Kepegawaian", iconName: "people", badgeColor: "#8b5cf6" },
-    { key: "dereporting", title: "DeReporting", iconName: "shield-checkmark", badgeColor: "#ef4444" },
-    { key: "portal", title: "Portal Publik", iconName: "globe-outline", badgeColor: "#06b6d4" },
+    {
+      key: "kepegawaian",
+      title: "Kepegawaian",
+      subtitle: "Surat Tugas & SDM",
+      iconName: "people-outline",
+      badgeBg: COLORS.badgeBlueBg,
+      iconColor: COLORS.badgeBlueIcon,
+    },
+    {
+      key: "bmn",
+      title: "BMN",
+      subtitle: "Barang Milik Negara",
+      iconName: "cube-outline",
+      badgeBg: COLORS.badgeEmeraldBg,
+      iconColor: COLORS.badgeEmeraldIcon,
+    },
+    {
+      key: "inventory",
+      title: "Persediaan",
+      subtitle: "Stok & Distribusi",
+      iconName: "apps-outline",
+      badgeBg: COLORS.badgeOrangeBg,
+      iconColor: COLORS.badgeOrangeIcon,
+    },
+    {
+      key: "dereporting",
+      title: "DeReporting",
+      subtitle: "Pelaporan Digital",
+      iconName: "document-text-outline",
+      badgeBg: COLORS.badgePurpleBg,
+      iconColor: COLORS.badgePurpleIcon,
+    },
+    {
+      key: "cms",
+      title: "CMS Portal",
+      subtitle: "Manajemen Konten",
+      iconName: "grid-outline",
+      badgeBg: COLORS.badgeTealBg,
+      iconColor: COLORS.badgeTealIcon,
+    },
+    {
+      key: "surat",
+      title: "Persuratan",
+      subtitle: "Surat & Disposisi",
+      iconName: "mail-outline",
+      badgeBg: COLORS.badgeMintBg,
+      iconColor: COLORS.badgeMintIcon,
+    },
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      title: "Surat Tugas Patroli Kawasan",
-      subtitle: "Menunggu Persetujuan Kepala Balai",
-      time: "10:30 AM",
-      status: "Menunggu",
-      statusColor: COLORS.statusPending,
-      iconName: "document-text",
-    },
-    {
-      id: 2,
-      title: "Peminjaman Kendaraan Dinas",
-      subtitle: "Disetujui - No. Polisi KT 8192 BKS",
-      time: "Kemarin",
-      status: "Disetujui",
-      statusColor: COLORS.statusAvailable,
-      iconName: "car-sport",
-    },
-    {
-      id: 3,
-      title: "Laporan Monitoring Badak",
-      subtitle: "Terverifikasi oleh Tim Teknis",
-      time: "2 Hari Lalu",
-      status: "Selesai",
-      statusColor: COLORS.statusInfo,
-      iconName: "shield-checkmark",
-    },
+  const tabOptions = [
+    { key: "pinjaman", label: "Pinjaman Aktif", icon: "swap-horizontal-outline" },
+    { key: "aset", label: "Aset Saya", icon: "briefcase-outline" },
+    { key: "surattugas", label: "Surat Tugas", icon: "document-text-outline" },
+    { key: "cuti", label: "Pengajuan Cuti Saya", icon: "calendar-outline" },
   ];
 
   return (
     <View style={styles.container}>
-      {/* Top Header */}
+      {/* Web Portal Header Bar */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons name="tree" size={24} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
-          <Text style={styles.headerTitle}>BKSDA KALTIM</Text>
+          <Image
+            source={{ uri: userProfile.avatarUrl }}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+          <View style={styles.headerTitleCol}>
+            <Text style={styles.brandTitle}>BKSDA Kaltim</Text>
+            <Text style={styles.brandSubtitle}>SUPERAPP PORTAL</Text>
+          </View>
         </View>
 
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7}>
-            <Ionicons name="notifications-outline" size={22} color={COLORS.textWhite} />
+          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.7}>
+            <Ionicons name="sunny-outline" size={20} color="#64748b" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.7}>
+            <Ionicons name="notifications-outline" size={20} color="#64748b" />
             <View style={styles.notifDot} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.avatarContainer}
+            style={styles.avatarCircle}
             onPress={() => onNavigateToModule && onNavigateToModule("profile")}
           >
-            <Image
-              source={{ uri: userProfile.avatarUrl }}
-              style={styles.avatar}
-              resizeMode="cover"
-            />
+            <Text style={styles.avatarInitial}>S</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={() => onNavigateToModule && onNavigateToModule("profile")}
+          >
+            <Ionicons name="exit-outline" size={18} color="#64748b" />
           </TouchableOpacity>
         </View>
       </View>
@@ -99,45 +134,19 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Welcome Greeting */}
-        <View style={styles.greetingRow}>
-          <View>
-            <Text style={styles.greetingTitle}>Halo, {userProfile.name} 👋</Text>
-            <Text style={styles.greetingNip}>NIP: {userProfile.nip}</Text>
-          </View>
-          <View style={styles.statusBadge}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>Aktif</Text>
-          </View>
-        </View>
-
-        {/* Hero Stats Banner */}
+        {/* Emerald Hero Greeting Banner */}
         <View style={styles.heroBanner}>
-          <Text style={styles.heroTitle}>Overview Status</Text>
-
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>14</Text>
-              <Text style={styles.statLabel}>Disposisi{"\n"}Aktif</Text>
-            </View>
-
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>3</Text>
-              <Text style={styles.statLabel}>Peminjaman{"\n"}Aset</Text>
-            </View>
-
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>2</Text>
-              <Text style={styles.statLabel}>Laporan{"\n"}Masuk</Text>
-            </View>
-          </View>
+          <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
+          <Text style={styles.heroGreeting}>Selamat Siang, {userProfile.name}! ☀️</Text>
+          <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur.</Text>
         </View>
 
-        {/* Module Navigation Grid */}
+        {/* Section Title */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Layanan Utama</Text>
+          <Text style={styles.sectionTitle}>Modul Akses</Text>
         </View>
 
+        {/* Module Access Grid */}
         <View style={styles.moduleGrid}>
           {modules.map((mod) => (
             <TouchableOpacity
@@ -147,46 +156,53 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               onPress={() => onNavigateToModule && onNavigateToModule(mod.key)}
             >
               <GlassCard style={styles.moduleCard}>
-                <View style={[styles.moduleIconBadge, { backgroundColor: `${mod.badgeColor}20` }]}>
-                  <Ionicons name={mod.iconName as any} size={24} color={mod.badgeColor} />
+                <View style={[styles.moduleIconBadge, { backgroundColor: mod.badgeBg }]}>
+                  <Ionicons name={mod.iconName as any} size={24} color={mod.iconColor} />
                 </View>
                 <Text style={styles.moduleTitle}>{mod.title}</Text>
+                <Text style={styles.moduleSubtitle}>{mod.subtitle}</Text>
               </GlassCard>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Recent Activity Feed */}
-        <View style={styles.sectionHeaderBetween}>
-          <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={styles.seeAllText}>Lihat Semua</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Horizontal Segmented Tab Controller */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabScroll}
+          contentContainerStyle={styles.tabScrollContent}
+        >
+          {tabOptions.map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                onPress={() => setActiveTab(tab.key)}
+                style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={tab.icon as any}
+                  size={16}
+                  color={isActive ? "#ffffff" : "#64748b"}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
-        <View style={styles.activityList}>
-          {recentActivities.map((act) => (
-            <GlassCard key={act.id} style={styles.activityCard}>
-              <View style={[styles.activityIconBg, { backgroundColor: `${act.statusColor}20` }]}>
-                <Ionicons name={act.iconName as any} size={20} color={act.statusColor} />
-              </View>
-
-              <View style={styles.activityMain}>
-                <Text style={styles.activityTitle}>{act.title}</Text>
-                <Text style={styles.activitySubtitle}>{act.subtitle}</Text>
-              </View>
-
-              <View style={styles.activityRight}>
-                <Text style={styles.activityTime}>{act.time}</Text>
-                <View style={[styles.activityStatusTag, { borderColor: act.statusColor }]}>
-                  <Text style={[styles.activityStatusText, { color: act.statusColor }]}>
-                    {act.status}
-                  </Text>
-                </View>
-              </View>
-            </GlassCard>
-          ))}
-        </View>
+        {/* Tab Content / Empty State Card */}
+        <GlassCard style={styles.emptyCard}>
+          <View style={styles.emptyIconBg}>
+            <Ionicons name="cube-outline" size={36} color="#cbd5e1" />
+          </View>
+          <Text style={styles.emptyText}>Tidak ada pinjaman aktif</Text>
+        </GlassCard>
       </ScrollView>
     </View>
   );
@@ -201,163 +217,113 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 54,
-    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingTop: 48,
+    paddingBottom: 14,
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.glassBorder,
-    backgroundColor: "rgba(15, 41, 30, 0.8)",
+    borderBottomColor: "#e2e8f0",
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
-  headerTitle: {
-    color: COLORS.emeraldElectric,
-    fontSize: 18,
+  logoImage: {
+    width: 32,
+    height: 32,
+    marginRight: 10,
+  },
+  headerTitleCol: {
+    justifyContent: "center",
+  },
+  brandTitle: {
+    color: "#0f172a",
+    fontSize: 15,
     fontWeight: "800",
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
+  },
+  brandSubtitle: {
+    color: "#64748b",
+    fontSize: 9.5,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 6,
   },
-  notifBtn: {
+  headerIconBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
     position: "relative",
-    padding: 8,
-    marginRight: 12,
   },
   notifDot: {
     position: "absolute",
     top: 6,
     right: 6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.statusUrgent,
-  },
-  avatarContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    overflow: "hidden",
-    borderWidth: 1.5,
-    borderColor: COLORS.emeraldElectric,
-  },
-  avatar: {
-    width: "100%",
-    height: "100%",
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
-  },
-  greetingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
-  greetingTitle: {
-    color: COLORS.textWhite,
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  greetingNip: {
-    color: COLORS.textMint,
-    fontSize: 12,
-    marginTop: 2,
-    opacity: 0.8,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
-    borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: RADIUS.pill,
-  },
-  statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: COLORS.emeraldElectric,
-    marginRight: 6,
+    backgroundColor: "#ef4444",
   },
-  statusText: {
-    color: COLORS.emeraldElectric,
-    fontSize: 11.5,
-    fontWeight: "700",
+  avatarCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.emeraldElectric,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarInitial: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
   heroBanner: {
+    backgroundColor: COLORS.emeraldElectric,
     borderRadius: RADIUS.card,
     padding: 20,
-    backgroundColor: COLORS.bgSurface,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  heroTitle: {
-    color: COLORS.textWhite,
-    fontSize: 17,
-    fontWeight: "700",
-    marginBottom: 16,
+  heroDate: {
+    color: "rgba(255, 255, 255, 0.85)",
+    fontSize: 12.5,
+    fontWeight: "600",
+    marginBottom: 6,
   },
-  statsGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "rgba(6, 26, 18, 0.6)",
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
-    borderRadius: RADIUS.input,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    alignItems: "center",
-    marginHorizontal: 4,
-  },
-  statNumber: {
-    color: COLORS.textWhite,
+  heroGreeting: {
+    color: "#ffffff",
     fontSize: 22,
     fontWeight: "800",
     marginBottom: 4,
   },
-  statLabel: {
-    color: COLORS.textMint,
-    fontSize: 11,
-    fontWeight: "600",
-    textAlign: "center",
-    lineHeight: 14,
+  heroSubtitle: {
+    color: "rgba(255, 255, 255, 0.9)",
+    fontSize: 13,
   },
   sectionHeader: {
     marginBottom: 14,
   },
-  sectionHeaderBetween: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 24,
-    marginBottom: 14,
-  },
   sectionTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 16,
-    fontWeight: "700",
-  },
-  seeAllText: {
-    color: COLORS.emeraldElectric,
-    fontSize: 12.5,
-    fontWeight: "600",
+    fontWeight: "800",
   },
   moduleGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginHorizontal: -6,
+    marginBottom: 20,
   },
   moduleCardWrapper: {
     width: "50%",
@@ -368,67 +334,69 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 18,
     paddingHorizontal: 12,
+    backgroundColor: "#ffffff",
   },
   moduleIconBadge: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   moduleTitle: {
-    color: COLORS.textWhite,
-    fontSize: 13.5,
-    fontWeight: "600",
+    color: "#0f172a",
+    fontSize: 14,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 2,
+  },
+  moduleSubtitle: {
+    color: "#64748b",
+    fontSize: 11,
     textAlign: "center",
   },
-  activityList: {
-    gap: 10,
+  tabScroll: {
+    marginBottom: 16,
   },
-  activityCard: {
+  tabScrollContent: {
+    gap: 8,
+  },
+  tabButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: RADIUS.pill,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
-  activityIconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
+  tabButtonActive: {
+    backgroundColor: COLORS.emeraldElectric,
+    borderColor: COLORS.emeraldElectric,
   },
-  activityMain: {
-    flex: 1,
-  },
-  activityTitle: {
-    color: COLORS.textWhite,
-    fontSize: 13.5,
+  tabButtonText: {
+    color: "#64748b",
+    fontSize: 12.5,
     fontWeight: "600",
   },
-  activitySubtitle: {
-    color: COLORS.textMint,
-    fontSize: 11.5,
-    marginTop: 2,
-    opacity: 0.75,
-  },
-  activityRight: {
-    alignItems: "flex-end",
-  },
-  activityTime: {
-    color: COLORS.textMuted,
-    fontSize: 10.5,
-    marginBottom: 4,
-  },
-  activityStatusTag: {
-    borderWidth: 1,
-    borderRadius: RADIUS.pill,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-  },
-  activityStatusText: {
-    fontSize: 10,
+  tabButtonTextActive: {
+    color: "#ffffff",
     fontWeight: "700",
+  },
+  emptyCard: {
+    paddingVertical: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  emptyIconBg: {
+    marginBottom: 10,
+  },
+  emptyText: {
+    color: "#64748b",
+    fontSize: 13.5,
+    fontWeight: "600",
   },
 });

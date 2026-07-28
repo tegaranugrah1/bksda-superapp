@@ -116,11 +116,11 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
+            <Ionicons name="arrow-back" size={22} color="#0f172a" />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Ionicons name="cube-sharp" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
+          <Ionicons name="cube" size={22} color="#059669" style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Stok Inventaris</Text>
         </View>
         <View style={styles.countBadge}>
@@ -131,17 +131,17 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchBarContainer}>
-          <Ionicons name="search-outline" size={18} color={COLORS.textMint} style={{ marginRight: 8 }} />
+          <Ionicons name="search-outline" size={18} color="#64748b" style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Cari Nama Barang, Kode, atau Kategori..."
-            placeholderTextColor="rgba(167, 243, 208, 0.4)"
+            placeholderTextColor="#94a3b8"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={18} color={COLORS.textMint} style={{ opacity: 0.6 }} />
+              <Ionicons name="close-circle" size={18} color="#94a3b8" />
             </TouchableOpacity>
           )}
         </View>
@@ -169,7 +169,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
           {filteredItems.map((item) => (
             <GlassCard key={item.id} style={styles.itemCard} highlighted={item.status === "Stok Tipis"}>
               <View style={styles.itemIconBg}>
-                <Ionicons name={item.iconName as any} size={22} color={COLORS.emeraldElectric} />
+                <Ionicons name={item.iconName as any} size={22} color="#059669" />
               </View>
 
               <View style={styles.itemMain}>
@@ -214,12 +214,12 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
                 {transType === "out" ? "Catat Stok Keluar" : "Tambah Stok Masuk"}
               </Text>
               <TouchableOpacity onPress={() => setTransModalVisible(false)}>
-                <Ionicons name="close" size={20} color={COLORS.textMint} />
+                <Ionicons name="close" size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
 
             <Text style={styles.modalSub}>
-              Barang: <Text style={{ color: COLORS.textWhite }}>{selectedItem?.name}</Text>
+              Barang: <Text style={{ color: "#0f172a", fontWeight: "700" }}>{selectedItem?.name}</Text>
             </Text>
 
             <View style={styles.inputGroup}>
@@ -238,7 +238,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
               <TextInput
                 style={styles.input}
                 placeholder="Contoh: Digunakan untuk Patroli Lapangan"
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholderTextColor="#94a3b8"
                 value={notesInput}
                 onChangeText={setNotesInput}
               />
@@ -266,11 +266,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 54,
+    paddingTop: 48,
     paddingBottom: 16,
-    backgroundColor: "rgba(15, 41, 30, 0.8)",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.glassBorder,
+    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
     marginRight: 10,
@@ -282,20 +282,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   countBadge: {
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderColor: "#a7f3d0",
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: RADIUS.pill,
   },
   countText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 11.5,
     fontWeight: "700",
   },
@@ -307,9 +307,9 @@ const styles = StyleSheet.create({
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(15, 41, 30, 0.6)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 46,
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 14,
   },
   filterScroll: {
@@ -327,22 +327,22 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
-    backgroundColor: "rgba(15, 41, 30, 0.5)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#e2e8f0",
     marginRight: 8,
   },
   filterPillActive: {
-    backgroundColor: "rgba(16, 185, 129, 0.2)",
-    borderColor: COLORS.emeraldElectric,
+    backgroundColor: "#ecfdf5",
+    borderColor: "#059669",
   },
   filterPillText: {
-    color: COLORS.textMuted,
+    color: "#64748b",
     fontSize: 12.5,
     fontWeight: "600",
   },
   filterPillTextActive: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontWeight: "700",
   },
   itemList: {
@@ -352,12 +352,13 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#ffffff",
   },
   itemIconBg: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    backgroundColor: "#ecfdf5",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -367,15 +368,14 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   itemTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 14,
     fontWeight: "700",
   },
   itemCode: {
-    color: COLORS.textMint,
+    color: "#64748b",
     fontSize: 11.5,
     marginTop: 2,
-    opacity: 0.8,
   },
   stockQtyRow: {
     flexDirection: "row",
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   stockQtyLabel: {
-    color: COLORS.textMuted,
+    color: "#94a3b8",
     fontSize: 11.5,
     marginRight: 4,
   },
@@ -395,9 +395,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionOutBtn: {
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    backgroundColor: "#fef2f2",
     borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.3)",
+    borderColor: "#fecaca",
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: RADIUS.pill,
@@ -409,27 +409,28 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   actionInBtn: {
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderColor: "#a7f3d0",
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: RADIUS.pill,
     alignItems: "center",
   },
   actionInText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 11,
     fontWeight: "700",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
     justifyContent: "center",
     paddingHorizontal: 20,
   },
   modalContent: {
     padding: 22,
+    backgroundColor: "#ffffff",
   },
   modalHeader: {
     flexDirection: "row",
@@ -438,33 +439,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   modalSub: {
-    color: COLORS.textMint,
+    color: "#64748b",
     fontSize: 12.5,
     marginBottom: 16,
-    opacity: 0.85,
   },
   inputGroup: {
     marginBottom: 14,
   },
   label: {
-    color: COLORS.textMint,
+    color: "#1e293b",
     fontSize: 12,
     fontWeight: "600",
     marginBottom: 6,
   },
   input: {
-    backgroundColor: "rgba(6, 26, 18, 0.7)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 12,
     height: 44,
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 13.5,
   },
 });

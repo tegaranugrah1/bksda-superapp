@@ -68,7 +68,7 @@ export default function LoginScreen() {
           <Text style={styles.portalTitle}>BALAI KONSERVASI SUMBER DAYA ALAM</Text>
           <Text style={styles.portalSubtitle}>KALIMANTAN TIMUR</Text>
           <View style={styles.goldBadge}>
-            <Ionicons name="shield-checkmark" size={12} color={COLORS.emeraldElectric} style={{ marginRight: 4 }} />
+            <Ionicons name="shield-checkmark" size={12} color="#059669" style={{ marginRight: 4 }} />
             <Text style={styles.goldBadgeText}>SIMONDOK MOBILE PORTAL</Text>
           </View>
         </View>
@@ -81,9 +81,7 @@ export default function LoginScreen() {
           {errorMessage && (
             <View style={styles.errorAlertBox}>
               <Ionicons name="alert-circle" size={18} color="#ef4444" style={{ marginRight: 6 }} />
-              <Text style={styles.errorAlertText}>
-                {errorMessage}
-              </Text>
+              <Text style={styles.errorAlertText}>{errorMessage}</Text>
             </View>
           )}
 
@@ -93,7 +91,7 @@ export default function LoginScreen() {
             onPress={handleFillTestAccount}
             activeOpacity={0.8}
           >
-            <Ionicons name="flash" size={14} color={COLORS.emeraldElectric} style={{ marginRight: 6 }} />
+            <Ionicons name="flash" size={14} color="#059669" style={{ marginRight: 6 }} />
             <Text style={styles.testAccountText}>Isi Akun Test Super Admin</Text>
           </TouchableOpacity>
 
@@ -101,11 +99,11 @@ export default function LoginScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>NIP / Username</Text>
             <View style={styles.inputWrapper}>
-              <Ionicons name="person-outline" size={18} color={COLORS.textMint} style={styles.inputLeftIcon} />
+              <Ionicons name="person-outline" size={18} color="#64748b" style={styles.inputLeftIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Contoh: 19850412 201012 1 002"
-                placeholderTextColor="rgba(167, 243, 208, 0.35)"
+                placeholderTextColor="#94a3b8"
                 value={username}
                 onChangeText={(val) => {
                   setUsername(val);
@@ -115,7 +113,7 @@ export default function LoginScreen() {
               />
               {username.length > 0 && (
                 <TouchableOpacity onPress={() => setUsername("")} style={styles.clearBtn}>
-                  <Ionicons name="close-circle" size={18} color={COLORS.textMint} style={{ opacity: 0.6 }} />
+                  <Ionicons name="close-circle" size={18} color="#94a3b8" />
                 </TouchableOpacity>
               )}
             </View>
@@ -125,11 +123,11 @@ export default function LoginScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Kata Sandi</Text>
             <View style={styles.inputWrapper}>
-              <Ionicons name="lock-closed-outline" size={18} color={COLORS.textMint} style={styles.inputLeftIcon} />
+              <Ionicons name="lock-closed-outline" size={18} color="#64748b" style={styles.inputLeftIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="••••••••••••"
-                placeholderTextColor="rgba(167, 243, 208, 0.35)"
+                placeholderTextColor="#94a3b8"
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(val) => {
@@ -144,8 +142,7 @@ export default function LoginScreen() {
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={18}
-                  color={COLORS.textMint}
-                  style={{ opacity: 0.7 }}
+                  color="#64748b"
                 />
               </TouchableOpacity>
             </View>
@@ -165,7 +162,7 @@ export default function LoginScreen() {
             onPress={() => Alert.alert("Login Biometrik", "Pindai Sidik Jari / FaceID untuk masuk instan.")}
             activeOpacity={0.7}
           >
-            <Ionicons name="finger-print" size={24} color={COLORS.emeraldElectric} />
+            <Ionicons name="finger-print" size={24} color="#059669" />
             <Text style={styles.biometricText}>Masuk Cepat dengan Biometrik</Text>
           </TouchableOpacity>
         </GlassCard>
@@ -186,73 +183,72 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 54,
     paddingBottom: 40,
     alignItems: "center",
   },
   logoSection: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   logo: {
-    width: 84,
-    height: 84,
-    marginBottom: 12,
+    width: 80,
+    height: 80,
+    marginBottom: 10,
   },
   portalTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 14,
     fontWeight: "800",
-    letterSpacing: 1,
+    letterSpacing: 0.5,
     textAlign: "center",
   },
   portalSubtitle: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 13,
     fontWeight: "700",
-    letterSpacing: 1.5,
+    letterSpacing: 1,
     textAlign: "center",
     marginTop: 2,
   },
   goldBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(16, 185, 129, 0.12)",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderColor: "#a7f3d0",
     borderRadius: RADIUS.pill,
     paddingVertical: 4,
     paddingHorizontal: 12,
     marginTop: 10,
   },
   goldBadgeText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 10.5,
     fontWeight: "800",
-    letterSpacing: 0.5,
   },
   formCard: {
     width: "100%",
     padding: 22,
+    backgroundColor: "#ffffff",
   },
   cardHeader: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 20,
     fontWeight: "800",
     marginBottom: 4,
   },
   cardSub: {
-    color: COLORS.textMint,
+    color: "#64748b",
     fontSize: 12.5,
-    opacity: 0.8,
     marginBottom: 16,
   },
   errorAlertBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    backgroundColor: "#fef2f2",
     borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.4)",
+    borderColor: "#fecaca",
     borderRadius: RADIUS.input,
     padding: 10,
     marginBottom: 14,
@@ -266,16 +262,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(16, 185, 129, 0.12)",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderColor: "#a7f3d0",
     borderRadius: RADIUS.pill,
     paddingVertical: 8,
     paddingHorizontal: 14,
     marginBottom: 18,
   },
   testAccountText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -284,7 +280,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   label: {
-    color: COLORS.textMint,
+    color: "#1e293b",
     fontSize: 12,
     fontWeight: "600",
     marginBottom: 6,
@@ -292,19 +288,19 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(6, 26, 18, 0.75)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 12,
-    height: 48,
+    height: 46,
   },
   inputLeftIcon: {
     marginRight: 10,
   },
   input: {
     flex: 1,
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 14,
   },
   clearBtn: {
@@ -321,19 +317,18 @@ const styles = StyleSheet.create({
     marginTop: 18,
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: COLORS.glassBorder,
+    borderTopColor: "#f1f5f9",
   },
   biometricText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 12.5,
     fontWeight: "600",
     marginLeft: 8,
   },
   footerText: {
-    color: COLORS.textMuted,
+    color: "#94a3b8",
     fontSize: 11,
     marginTop: 24,
     textAlign: "center",
-    opacity: 0.6,
   },
 });

@@ -9,7 +9,7 @@ import {
   Modal,
   Alert,
 } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS, SHADOWS } from "../../theme";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
@@ -102,11 +102,11 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
+            <Ionicons name="arrow-back" size={22} color="#0f172a" />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Ionicons name="car-sport-sharp" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
+          <Ionicons name="car-sport" size={22} color="#059669" style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Katalog Aset BMN</Text>
         </View>
         <View style={styles.countBadge}>
@@ -117,17 +117,17 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchBarContainer}>
-          <Ionicons name="search-outline" size={18} color={COLORS.textMint} style={{ marginRight: 8 }} />
+          <Ionicons name="search-outline" size={18} color="#64748b" style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Cari Nama Aset, NUP, atau Plat Nomor..."
-            placeholderTextColor="rgba(167, 243, 208, 0.4)"
+            placeholderTextColor="#94a3b8"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={18} color={COLORS.textMint} style={{ opacity: 0.6 }} />
+              <Ionicons name="close-circle" size={18} color="#94a3b8" />
             </TouchableOpacity>
           )}
         </View>
@@ -178,7 +178,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
           </View>
 
           <View style={styles.borrowerCard}>
-            <Ionicons name="person-circle-outline" size={24} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
+            <Ionicons name="person-circle-outline" size={24} color="#059669" style={{ marginRight: 8 }} />
             <View style={styles.borrowerInfo}>
               <Text style={styles.borrowerName}>Dipinjam oleh Subagja</Text>
               <Text style={styles.borrowerRole}>Ka Sub Bag TU (Operasional Patroli)</Text>
@@ -207,7 +207,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
           {filteredAssets.map((asset) => (
             <GlassCard key={asset.id} style={styles.assetCard}>
               <View style={styles.assetIconBg}>
-                <Ionicons name={asset.iconName as any} size={20} color={COLORS.emeraldElectric} />
+                <Ionicons name={asset.iconName as any} size={20} color="#059669" />
               </View>
 
               <View style={styles.assetMain}>
@@ -246,7 +246,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
         onPress={() => handleOpenLoanModal()}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={32} color={COLORS.textDark} />
+        <Ionicons name="add" size={32} color="#ffffff" />
       </TouchableOpacity>
 
       {/* Loan Request Modal */}
@@ -256,12 +256,12 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Form Peminjaman BMN</Text>
               <TouchableOpacity onPress={() => setLoanModalVisible(false)}>
-                <Ionicons name="close" size={20} color={COLORS.textMint} />
+                <Ionicons name="close" size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
 
             <Text style={styles.modalSub}>
-              Aset: <Text style={{ color: COLORS.textWhite }}>{selectedAssetForLoan?.name}</Text> (NUP: {selectedAssetForLoan?.nup})
+              Aset: <Text style={{ color: "#0f172a", fontWeight: "700" }}>{selectedAssetForLoan?.name}</Text> (NUP: {selectedAssetForLoan?.nup})
             </Text>
 
             <View style={styles.inputGroup}>
@@ -269,7 +269,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
               <TextInput
                 style={[styles.input, styles.textarea]}
                 placeholder="Contoh: Operasional Patroli Kawasan Cagar Alam"
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholderTextColor="#94a3b8"
                 multiline
                 numberOfLines={3}
                 value={loanPurpose}
@@ -310,11 +310,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 54,
+    paddingTop: 48,
     paddingBottom: 16,
-    backgroundColor: "rgba(15, 41, 30, 0.8)",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.glassBorder,
+    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
     marginRight: 10,
@@ -326,20 +326,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   countBadge: {
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderColor: "#a7f3d0",
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: RADIUS.pill,
   },
   countText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 11.5,
     fontWeight: "700",
   },
@@ -351,9 +351,9 @@ const styles = StyleSheet.create({
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(15, 41, 30, 0.6)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 46,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 14,
   },
   filterScroll: {
@@ -371,26 +371,27 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
-    backgroundColor: "rgba(15, 41, 30, 0.5)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#e2e8f0",
     marginRight: 8,
   },
   filterPillActive: {
-    backgroundColor: "rgba(16, 185, 129, 0.2)",
-    borderColor: COLORS.emeraldElectric,
+    backgroundColor: "#ecfdf5",
+    borderColor: "#059669",
   },
   filterPillText: {
-    color: COLORS.textMuted,
+    color: "#64748b",
     fontSize: 12.5,
     fontWeight: "600",
   },
   filterPillTextActive: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontWeight: "700",
   },
   featuredCard: {
     padding: 18,
+    backgroundColor: "#ffffff",
     marginBottom: 24,
   },
   featuredTagRow: {
@@ -400,9 +401,9 @@ const styles = StyleSheet.create({
   statusBadgeWarning: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(245, 158, 11, 0.15)",
+    backgroundColor: "#fff7ed",
     borderWidth: 1,
-    borderColor: "rgba(245, 158, 11, 0.4)",
+    borderColor: "#ffedd5",
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: RADIUS.pill,
@@ -413,7 +414,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   featuredTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 19,
     fontWeight: "800",
     marginBottom: 12,
@@ -427,21 +428,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailLabel: {
-    color: COLORS.textMuted,
+    color: "#94a3b8",
     fontSize: 11,
     textTransform: "uppercase",
     marginBottom: 2,
+    fontWeight: "700",
   },
   detailValue: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 13.5,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   platRow: {
     marginBottom: 14,
   },
   platValue: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 17,
     fontWeight: "800",
     letterSpacing: 1,
@@ -450,9 +452,9 @@ const styles = StyleSheet.create({
   borrowerCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(6, 26, 18, 0.7)",
+    backgroundColor: "#f8fafc",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#e2e8f0",
     borderRadius: RADIUS.input,
     padding: 10,
     marginBottom: 16,
@@ -461,14 +463,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   borrowerName: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 13,
     fontWeight: "700",
   },
   borrowerRole: {
-    color: COLORS.textMint,
+    color: "#64748b",
     fontSize: 11,
-    opacity: 0.8,
   },
   actionBtnRow: {
     flexDirection: "row",
@@ -478,9 +479,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "800",
     marginBottom: 12,
   },
   assetList: {
@@ -490,12 +491,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
+    backgroundColor: "#ffffff",
   },
   assetIconBg: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    backgroundColor: "#ecfdf5",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -504,20 +506,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   assetTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 14,
     fontWeight: "700",
   },
   assetMeta: {
-    color: COLORS.textMint,
+    color: "#64748b",
     fontSize: 11.5,
     marginTop: 2,
-    opacity: 0.8,
   },
   assetBorrower: {
     color: COLORS.statusPending,
     fontSize: 11,
     marginTop: 2,
+    fontWeight: "600",
   },
   assetRight: {
     alignItems: "flex-end",
@@ -534,13 +536,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   loanQuickBtn: {
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    backgroundColor: "#ecfdf5",
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: RADIUS.pill,
   },
   loanQuickText: {
-    color: COLORS.emeraldElectric,
+    color: "#059669",
     fontSize: 11,
     fontWeight: "700",
   },
@@ -551,18 +553,19 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.emeraldElectric,
+    backgroundColor: "#059669",
     alignItems: "center",
     justifyContent: "center",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
     justifyContent: "center",
     paddingHorizontal: 20,
   },
   modalContent: {
     padding: 22,
+    backgroundColor: "#ffffff",
   },
   modalHeader: {
     flexDirection: "row",
@@ -571,33 +574,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalTitle: {
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   modalSub: {
-    color: COLORS.textMint,
+    color: "#64748b",
     fontSize: 12.5,
     marginBottom: 16,
-    opacity: 0.85,
   },
   inputGroup: {
     marginBottom: 14,
   },
   label: {
-    color: COLORS.textMint,
+    color: "#1e293b",
     fontSize: 12,
     fontWeight: "600",
     marginBottom: 6,
   },
   input: {
-    backgroundColor: "rgba(6, 26, 18, 0.7)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 12,
     height: 44,
-    color: COLORS.textWhite,
+    color: "#0f172a",
     fontSize: 13.5,
   },
   textarea: {
