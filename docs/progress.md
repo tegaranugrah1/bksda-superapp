@@ -1,3 +1,27 @@
+# Progress - Phase 163: Inbox Surat Tugas Alur Master-Detail Mobile
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Inbox Surat Tugas Alur Master-Detail Mobile
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Alur Navigasi Master-Detail Resmi (Native Mobile Flow)**:
+     - Mengubah alur pada [InboxSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx) agar pengguna melihat **Daftar Kartu Surat Tugas Vertikal (List Mode)** terlebih dahulu.
+     - **Tampilan Daftar (List Mode)**: Menampilkan kartu-kartu Surat Tugas penuh selebar layar (`100% width`) dengan status badge (`DRAFT`, `DITERBITKAN`), tanggal, perihal, lokasi, dan indikator panah `Detail >`.
+     - **Tampilan Detail (Detail Mode)**: Saat kartu diketuk, aplikasi membuka tampilan detail utuh Surat Tugas dengan deskripsi lengkap, 3 kartu bento metrik (`PERIODE`, `LOKASI`, `DANA`), `DAFTAR PERSONIL`, dokumen pendukung PDF, serta tombol **`Kembali ke Daftar Inbox`** di bagian atas.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 162: Penghapusan Tombol Toggle Tema Header Modul
 
 > Document updated: 2026-07-28
