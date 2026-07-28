@@ -133,19 +133,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [sumberDana, setSumberDana] = useState("DIPA Balai KSDA Kalimantan Timur");
   const [namaPlh, setNamaPlh] = useState("");
 
-  // BUILDER STATE UNTUK NAMA KEGIATAN PRESISI DIRECTIVE USER
-  const [jenisKegiatan, setJenisKegiatan] = useState<"perjalanan_dinas" | "kegiatan_1hari">("perjalanan_dinas");
-  
-  // Mode 1: Perjalanan Dinas (> 1 Hari)
-  const [dariAsal, setDariAsal] = useState("");
-  const [keTujuan, setKeTujuan] = useState("");
-  const [dalamRangka, setDalamRangka] = useState("");
-  const [diLokasiOptional, setDiLokasiOptional] = useState("");
-
-  // Mode 2: Melaksanakan Kegiatan (1 Hari)
-  const [namaKegiatan1Hari, setNamaKegiatan1Hari] = useState("");
-  const [padaTempat1Hari, setPadaTempat1Hari] = useState("");
-  const [kotaKegiatan1Hari, setKotaKegiatan1Hari] = useState("");
+  // BUILDER STATE UNTUK DETAIL KEGIATAN (SYNCED 100% DENGAN /kepegawaian/surat-tugas/create)
+  const [jenisTugas, setJenisTugas] = useState<"Perjalanan Dinas" | "Melaksanakan Tugas" | "Menugaskan Staf">("Perjalanan Dinas");
+  const [kotaAsal, setKotaAsal] = useState("Samarinda");
+  const [kotaTujuan, setKotaTujuan] = useState("");
+  const [namaKegiatanText, setNamaKegiatanText] = useState("");
+  const [tempatSpesifik, setTempatSpesifik] = useState("");
 
   // STEP 3: KONFIRMASI & DOKUMEN
   const [setujuData, setSetujuData] = useState(false);
@@ -271,9 +264,14 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       return;
     }
 
-    const finalNamaKegiatan = jenisKegiatan === "perjalanan_dinas"
-      ? `Melaksanakan Perjalanan Dinas dari ${dariAsal.trim() || "..."} ke ${keTujuan.trim() || "..."} dalam rangka ${dalamRangka.trim() || "..."}${diLokasiOptional.trim() ? ` di ${diLokasiOptional.trim()}` : ""}`
-      : `Melaksanakan Kegiatan ${namaKegiatan1Hari.trim() || "..."}${padaTempat1Hari.trim() ? ` pada ${padaTempat1Hari.trim()}` : ""}${kotaKegiatan1Hari.trim() ? ` di ${kotaKegiatan1Hari.trim()}` : ""}`;
+    let finalNamaKegiatan = `${jenisTugas}`;
+    if (jenisTugas === "Perjalanan Dinas") {
+      finalNamaKegiatan = `Perjalanan Dinas dari ${kotaAsal.trim() || "..."} ke ${kotaTujuan.trim() || "..."}${namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ""}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}`;
+    } else if (jenisTugas === "Melaksanakan Tugas") {
+      finalNamaKegiatan = `Melaksanakan Tugas ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
+    } else {
+      finalNamaKegiatan = `Menugaskan Staf ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
+    }
 
     setIsSubmitting(true);
     try {
@@ -282,7 +280,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         nama_kegiatan: finalNamaKegiatan,
         tanggal_mulai: tanggalMulai,
         tanggal_selesai: tanggalSelesai,
-        tujuan: jenisKegiatan === "perjalanan_dinas" ? (diLokasiOptional || keTujuan || dariAsal) : kotaKegiatan1Hari,
+        tujuan: kotaTujuan || tempatSpesifik || kotaAsal,
         sumber_dana: sumberDana,
         plh: namaPlh,
         personil_ids: selectedEmployees.map((e) => e.id),
@@ -483,144 +481,94 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             <Text style={[styles.cardTitle, { color: colors.textDark }]}>Detail Kegiatan</Text>
             <Text style={styles.cardSubTitle}>Lengkapi maksud perjalanan dinas, periode, dan lokasi tujuan.</Text>
 
-            {/* Pilihan Jenis Perjalanan / Kegiatan */}
+            {/* JENIS TUGAS Dropdown Select */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                JENIS PERJALANAN / KEGIATAN <Text style={{ color: "#ef4444" }}>*</Text>
+                JENIS TUGAS <Text style={{ color: "#ef4444" }}>*</Text>
               </Text>
-
-              <TouchableOpacity
-                style={styles.radioRow}
-                onPress={() => setJenisKegiatan("perjalanan_dinas")}
-              >
-                <View style={[styles.radioCircle, jenisKegiatan === "perjalanan_dinas" && styles.radioCircleActive]}>
-                  {jenisKegiatan === "perjalanan_dinas" && <View style={styles.radioDot} />}
-                </View>
-                <Text style={[styles.radioText, { color: colors.textDark }]}>
-                  Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.radioRow}
-                onPress={() => setJenisKegiatan("kegiatan_1hari")}
-              >
-                <View style={[styles.radioCircle, jenisKegiatan === "kegiatan_1hari" && styles.radioCircleActive]}>
-                  {jenisKegiatan === "kegiatan_1hari" && <View style={styles.radioDot} />}
-                </View>
-                <Text style={[styles.radioText, { color: colors.textDark }]}>
-                  Melaksanakan Kegiatan ( 1 hari )
-                </Text>
-              </TouchableOpacity>
+              {["Perjalanan Dinas", "Melaksanakan Tugas", "Menugaskan Staf"].map((opt) => (
+                <TouchableOpacity
+                  key={opt}
+                  style={styles.radioRow}
+                  onPress={() => setJenisTugas(opt as any)}
+                >
+                  <View style={[styles.radioCircle, jenisTugas === opt && styles.radioCircleActive]}>
+                    {jenisTugas === opt && <View style={styles.radioDot} />}
+                  </View>
+                  <Text style={[styles.radioText, { color: colors.textDark }]}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
 
-            {/* Builder Inputs Presisi User Directive */}
-            {jenisKegiatan === "perjalanan_dinas" ? (
-              <View style={{ marginBottom: 14 }}>
-                {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
-                <View style={styles.rowTwoInputs}>
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>
-                      DARI ( ASAL ) <Text style={{ color: "#ef4444" }}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                      placeholder="Samarinda"
-                      placeholderTextColor="#94a3b8"
-                      value={dariAsal}
-                      onChangeText={setDariAsal}
-                    />
-                  </View>
-
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>
-                      KE ( TUJUAN ) <Text style={{ color: "#ef4444" }}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                      placeholder="Kabupaten Kutai Barat"
-                      placeholderTextColor="#94a3b8"
-                      value={keTujuan}
-                      onChangeText={setKeTujuan}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    DALAM RANGKA <Text style={{ color: "#ef4444" }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Kegiatan Inventarisasi dan Verifikasi Keanekaragaman..."
-                    placeholderTextColor="#94a3b8"
-                    value={dalamRangka}
-                    onChangeText={setDalamRangka}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>DI ( OPSIONAL / TEMPAT SPESIFIK )</Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Suaka Margasatwa Kelian"
-                    placeholderTextColor="#94a3b8"
-                    value={diLokasiOptional}
-                    onChangeText={setDiLokasiOptional}
-                  />
-                </View>
+            {/* 2 Split Columns: Asal & Tujuan */}
+            <View style={styles.rowTwoInputs}>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.label}>
+                  KOTA ASAL <Text style={{ color: "#ef4444" }}>*</Text>
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                  placeholder="Samarinda"
+                  placeholderTextColor="#94a3b8"
+                  value={kotaAsal}
+                  onChangeText={setKotaAsal}
+                />
               </View>
-            ) : (
-              <View style={{ marginBottom: 14 }}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    MELAKSANAKAN KEGIATAN <Text style={{ color: "#ef4444" }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="opname fisik (stok opname) barang persediaan"
-                    placeholderTextColor="#94a3b8"
-                    value={namaKegiatan1Hari}
-                    onChangeText={setNamaKegiatan1Hari}
-                  />
-                </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>PADA ( TEMPAT / UNIT / LOKASI KEGIATAN )</Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Kantor Balai KSDA Kalimantan Timur / tempat kegiatannya"
-                    placeholderTextColor="#94a3b8"
-                    value={padaTempat1Hari}
-                    onChangeText={setPadaTempat1Hari}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    DI ( KOTA / KABUPATEN ) <Text style={{ color: "#ef4444" }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Samarinda"
-                    placeholderTextColor="#94a3b8"
-                    value={kotaKegiatan1Hari}
-                    onChangeText={setKotaKegiatan1Hari}
-                  />
-                </View>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.label}>
+                  KOTA / TUJUAN <Text style={{ color: "#ef4444" }}>*</Text>
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                  placeholder="Tujuan"
+                  placeholderTextColor="#94a3b8"
+                  value={kotaTujuan}
+                  onChangeText={setKotaTujuan}
+                />
               </View>
-            )}
+            </View>
+
+            {/* Kegiatan... */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                NAMA KEGIATAN <Text style={{ color: "#ef4444" }}>*</Text>
+              </Text>
+              <TextInput
+                style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                placeholder="Kegiatan..."
+                placeholderTextColor="#94a3b8"
+                multiline
+                numberOfLines={2}
+                value={namaKegiatanText}
+                onChangeText={setNamaKegiatanText}
+              />
+            </View>
+
+            {/* Tempat Spesifik */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>TEMPAT SPESIFIK / PADA</Text>
+              <TextInput
+                style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                placeholder="Tempat Spesifik"
+                placeholderTextColor="#94a3b8"
+                value={tempatSpesifik}
+                onChangeText={setTempatSpesifik}
+              />
+            </View>
 
             {/* Preview Box Teks Resmi */}
             <View style={styles.plhAlertCard}>
               <View style={styles.plhHeaderRow}>
                 <Ionicons name="document-text-outline" size={16} color="#2563eb" style={{ marginRight: 6 }} />
-                <Text style={styles.plhAlertTitle}>📌 Pratinjau Hasil Teks Nama Kegiatan Resmi</Text>
+                <Text style={styles.plhAlertTitle}>📌 Pratinjau Teks Hasil Resmi</Text>
               </View>
               <Text style={{ fontSize: 11.5, fontWeight: "700", color: "#1e3a8a", marginTop: 2 }}>
-                {jenisKegiatan === "perjalanan_dinas"
-                  ? `Melaksanakan Perjalanan Dinas dari ${dariAsal || "..."} ke ${keTujuan || "..."} dalam rangka ${dalamRangka || "..."}${diLokasiOptional ? ` di ${diLokasiOptional}` : ""}`
-                  : `Melaksanakan Kegiatan ${namaKegiatan1Hari || "..."}${padaTempat1Hari ? ` pada ${padaTempat1Hari}` : ""}${kotaKegiatan1Hari ? ` di ${kotaKegiatan1Hari}` : ""}`}
+                {jenisTugas === "Perjalanan Dinas"
+                  ? `Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ""}${tempatSpesifik ? ` di ${tempatSpesifik}` : ""}`
+                  : jenisTugas === "Melaksanakan Tugas"
+                  ? `Melaksanakan Tugas ${namaKegiatanText || "..."}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`
+                  : `Menugaskan Staf ${namaKegiatanText || "..."}${tempatSpesifik ? ` di ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`}
               </Text>
             </View>
 
@@ -719,14 +667,14 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               <TouchableOpacity
                 style={styles.nextStepBtn}
                 onPress={() => {
-                  if (jenisKegiatan === "perjalanan_dinas") {
-                    if (!dariAsal.trim() || !keTujuan.trim() || !dalamRangka.trim()) {
-                      Alert.alert("Perhatian", "Silakan isi Lokasi Asal (Dari), Tujuan (Ke), dan Dalam Rangka (*).");
+                  if (jenisTugas === "Perjalanan Dinas") {
+                    if (!kotaAsal.trim() || !kotaTujuan.trim()) {
+                      Alert.alert("Perhatian", "Silakan isi Kota Asal dan Kota/Tujuan (*).");
                       return;
                     }
                   } else {
-                    if (!namaKegiatan1Hari.trim() || !kotaKegiatan1Hari.trim()) {
-                      Alert.alert("Perhatian", "Silakan isi Melaksanakan Kegiatan dan Kota/Kabupaten (*).");
+                    if (!namaKegiatanText.trim()) {
+                      Alert.alert("Perhatian", "Silakan isi Nama Kegiatan (*).");
                       return;
                     }
                   }
