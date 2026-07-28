@@ -3,22 +3,8 @@
  * Reads environment variables prefixed with EXPO_PUBLIC_
  */
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.176:8000/api';
 const APP_ENV = process.env.EXPO_PUBLIC_APP_ENV || 'development';
-
-if (!API_URL) {
-  const errorMsg =
-    "Konfigurasi Error: EXPO_PUBLIC_API_URL tidak ditemukan di environment variable.\n" +
-    "Silakan buat berkas '.env' di folder 'mobile/' dan tambahkan:\n" +
-    "EXPO_PUBLIC_API_URL=http://<IP_KOMPUTER_ANDA>:8000/api";
-  
-  if (process.env.NODE_ENV !== 'test') {
-    console.error(errorMsg);
-  }
-  
-  // Throw a clear developer-friendly error
-  throw new Error(errorMsg);
-}
 
 export const config = {
   apiUrl: API_URL,

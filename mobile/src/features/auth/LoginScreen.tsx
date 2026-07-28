@@ -1,85 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
+  View,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  StyleSheet,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Alert,
-} from 'react-native';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { COLORS, RADIUS } from '@/theme';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { EmeraldButton } from '@/components/ui/EmeraldButton';
+} from "react-native";
+import { COLORS, RADIUS } from "../../theme";
+import { GlassCard } from "../../components/ui/GlassCard";
+import { EmeraldButton } from "../../components/ui/EmeraldButton";
 
-export default function LoginScreen() {
-  const { login, isLoading } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+interface LoginScreenProps {
+  onLoginSuccess: (nip: string) => void;
+}
+
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
+  const [username, setUsername] = useState("19850412 201012 1 002");
+  const [password, setPassword] = useState("12345678");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [usernameError, setUsernameError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [submitError, setSubmitError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const fillTestAccount = () => {
-    setUsername('19850412 201012 1 002');
-    setPassword('12345678');
-    setUsernameError('');
-    setPasswordError('');
-  };
-
-  const handleSubmit = async () => {
-    const nextUsernameError = username.trim() ? '' : 'NIP / Username wajib diisi.';
-    const nextPasswordError = password ? '' : 'Password wajib diisi.';
-
-    setUsernameError(nextUsernameError);
-    setPasswordError(nextPasswordError);
-    setSubmitError('');
-
-    if (nextUsernameError || nextPasswordError) {
+  const handleLogin = async () => {
+    if (!username.trim() || !password.trim()) {
+      Alert.alert("Perhatian", "Silakan masukkan NIP/Username dan Password Anda.");
       return;
     }
 
-    try {
-      await login(username.trim(), password);
-    } catch {
-      setSubmitError('Login gagal. Periksa NIP/Username dan Password, lalu coba lagi.');
-    }
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onLoginSuccess(username.trim());
+    }, 800);
   };
 
   const handleBiometricLogin = () => {
-    fillTestAccount();
-    Alert.alert('Biometrik', 'Verifikasi Sidik Jari berhasil!', [
-      { text: 'Lanjutkan', onPress: () => handleSubmit() },
+    Alert.alert("Biometrik", "Verifikasi Sidik Jari berhasil!", [
+      { text: "Lanjutkan", onPress: () => onLoginSuccess("19850412 201012 1 002") },
     ]);
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
-        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {/* Branding Header */}
         <View style={styles.header}>
           <View style={styles.logoRow}>
             <Image
-              source={{ uri: 'https://bksdakaltim.net/assets/img/logokemenhut.png' }}
+              source={{ uri: "https://bksdakaltim.net/assets/img/logokemenhut.png" }}
               style={styles.logo}
               resizeMode="contain"
             />
             <View style={styles.logoDivider} />
             <Image
-              source={{ uri: 'https://bksdakaltim.net/assets/img/logobksda.png' }}
+              source={{ uri: "https://bksdakaltim.net/assets/img/logobksda.png" }}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -97,33 +83,23 @@ export default function LoginScreen() {
           {/* Username / NIP Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>NIP / Username</Text>
-            <View style={[styles.inputContainer, Boolean(usernameError) && styles.inputError]}>
+            <View style={styles.inputContainer}>
               <Text style={styles.inputIcon}>👤</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Contoh: 19850412 201012 1 002"
+                placeholder="Masukkan NIP 18 Digit atau Username"
                 placeholderTextColor="rgba(167, 243, 208, 0.4)"
                 value={username}
-                onChangeText={(val) => {
-                  setUsername(val);
-                  if (usernameError) setUsernameError('');
-                }}
+                onChangeText={setUsername}
                 autoCapitalize="none"
-                editable={!isLoading}
               />
-              {username.length > 0 && (
-                <TouchableOpacity onPress={() => setUsername('')} style={styles.clearBtn}>
-                  <Text style={styles.clearText}>✕</Text>
-                </TouchableOpacity>
-              )}
             </View>
-            {usernameError ? <Text style={styles.errorText}>{usernameError}</Text> : null}
           </View>
 
           {/* Password Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Kata Sandi</Text>
-            <View style={[styles.inputContainer, Boolean(passwordError) && styles.inputError]}>
+            <View style={styles.inputContainer}>
               <Text style={styles.inputIcon}>🔒</Text>
               <TextInput
                 style={styles.input}
@@ -131,31 +107,16 @@ export default function LoginScreen() {
                 placeholderTextColor="rgba(167, 243, 208, 0.4)"
                 secureTextEntry={!showPassword}
                 value={password}
-                onChangeText={(val) => {
-                  setPassword(val);
-                  if (passwordError) setPasswordError('');
-                }}
-                editable={!isLoading}
+                onChangeText={setPassword}
               />
-              {password.length > 0 && (
-                <TouchableOpacity onPress={() => setPassword('')} style={styles.clearBtn}>
-                  <Text style={styles.clearText}>✕</Text>
-                </TouchableOpacity>
-              )}
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeBtn}
               >
-                <Text style={styles.eyeText}>{showPassword ? '👁️' : '🙈'}</Text>
+                <Text style={styles.eyeText}>{showPassword ? "👁️" : "🙈"}</Text>
               </TouchableOpacity>
             </View>
-            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
           </View>
-
-          {/* Quick Test Fill Chip */}
-          <TouchableOpacity onPress={fillTestAccount} style={styles.quickFillChip} activeOpacity={0.7}>
-            <Text style={styles.quickFillText}>⚡ Masukkan Akun Test Super Admin</Text>
-          </TouchableOpacity>
 
           {/* Options Row */}
           <View style={styles.optionsRow}>
@@ -170,19 +131,16 @@ export default function LoginScreen() {
               <Text style={styles.rememberText}>Ingat Saya</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => Alert.alert('Bantuan', 'Silakan hubungi Subbag TU untuk reset password.')}>
+            <TouchableOpacity onPress={() => Alert.alert("Bantuan", "Silakan hubungi Subbag TU untuk reset password.")}>
               <Text style={styles.forgotText}>Lupa Password?</Text>
             </TouchableOpacity>
           </View>
 
-          {submitError ? <Text style={styles.submitErrorText}>{submitError}</Text> : null}
-
           {/* Primary Action Button */}
           <EmeraldButton
             title="MASUK KE APLIKASI  ➔"
-            onPress={handleSubmit}
-            loading={isLoading}
-            disabled={isLoading}
+            onPress={handleLogin}
+            loading={loading}
             style={styles.loginBtn}
           />
 
@@ -191,7 +149,6 @@ export default function LoginScreen() {
             style={styles.biometricBtn}
             onPress={handleBiometricLogin}
             activeOpacity={0.8}
-            disabled={isLoading}
           >
             <Text style={styles.biometricIcon}>👆</Text>
             <Text style={styles.biometricText}>Login dengan Sidik Jari / Touch ID</Text>
@@ -206,7 +163,7 @@ export default function LoginScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -218,16 +175,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 40,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 28,
   },
   logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   logo: {
@@ -243,15 +200,15 @@ const styles = StyleSheet.create({
   title: {
     color: COLORS.textWhite,
     fontSize: 24,
-    fontWeight: '800',
-    textAlign: 'center',
+    fontWeight: "800",
+    textAlign: "center",
     letterSpacing: -0.5,
     marginBottom: 6,
   },
   subtitle: {
     color: COLORS.textMint,
     fontSize: 12.5,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: 10,
     lineHeight: 18,
     opacity: 0.85,
@@ -262,9 +219,9 @@ const styles = StyleSheet.create({
   formTitle: {
     color: COLORS.textWhite,
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   inputGroup: {
     marginBottom: 16,
@@ -272,21 +229,18 @@ const styles = StyleSheet.create({
   label: {
     color: COLORS.textMint,
     fontSize: 12.5,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 6,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(6, 26, 18, 0.7)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(6, 26, 18, 0.7)",
     borderWidth: 1,
     borderColor: COLORS.glassBorder,
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 48,
-  },
-  inputError: {
-    borderColor: '#ef4444',
   },
   inputIcon: {
     fontSize: 16,
@@ -296,7 +250,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: COLORS.textWhite,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   eyeBtn: {
     padding: 4,
@@ -304,50 +258,15 @@ const styles = StyleSheet.create({
   eyeText: {
     fontSize: 16,
   },
-  clearBtn: {
-    padding: 6,
-    marginRight: 4,
-  },
-  clearText: {
-    color: COLORS.textMint,
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  quickFillChip: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-    borderRadius: RADIUS.pill,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignSelf: 'center',
-    marginBottom: 6,
-  },
-  quickFillText: {
-    color: COLORS.emeraldElectric,
-    fontSize: 11.5,
-    fontWeight: '600',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 11.5,
-    marginTop: 4,
-  },
-  submitErrorText: {
-    color: '#ef4444',
-    fontSize: 12.5,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
   optionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginVertical: 14,
   },
   rememberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   checkbox: {
     width: 18,
@@ -355,8 +274,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1.5,
     borderColor: COLORS.emeraldElectric,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 8,
   },
   checkboxChecked: {
@@ -365,7 +284,7 @@ const styles = StyleSheet.create({
   checkmark: {
     color: COLORS.textDark,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: "900",
   },
   rememberText: {
     color: COLORS.textMint,
@@ -374,22 +293,22 @@ const styles = StyleSheet.create({
   forgotText: {
     color: COLORS.emeraldElectric,
     fontSize: 12.5,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   loginBtn: {
     marginTop: 8,
     height: 50,
   },
   biometricBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
     marginTop: 14,
     paddingVertical: 12,
     borderRadius: RADIUS.button,
     borderWidth: 1,
     borderColor: COLORS.glassBorder,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
   },
   biometricIcon: {
     fontSize: 18,
@@ -398,21 +317,20 @@ const styles = StyleSheet.create({
   biometricText: {
     color: COLORS.textMint,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
     marginTop: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   footerText: {
     color: COLORS.textMuted,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   footerSubtext: {
-    color: 'rgba(167, 243, 208, 0.4)',
+    color: "rgba(167, 243, 208, 0.4)",
     fontSize: 11,
     marginTop: 4,
   },
 });
-
