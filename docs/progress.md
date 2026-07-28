@@ -1,3 +1,26 @@
+# Progress - Phase 162: Penghapusan Tombol Toggle Tema Header Modul
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Penghapusan Tombol Toggle Tema Header Modul
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Pembersihan Tombol Toggle Tema Header Bar (`🌙`)**:
+     - Menghapus tombol toggle tema light/dark pada header bar di `KepegawaianScreen.tsx`, `TambahPegawaiScreen.tsx`, dan `InboxSuratTugasScreen.tsx`.
+     - Tombol toggle tema kini terpusat secara rapi di dalam **Header Drawer Navigasi (`FAB ☰`)**, sehingga tampilan header modul atas menjadi lebih bersih, simpel, dan konsisten.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 161: Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker
 
 > Document updated: 2026-07-28
