@@ -1,3 +1,38 @@
+# Progress - Phase 160: Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Tangkapan Layar User:
+  1. **Layar Tambah Pegawai Baru (`TambahPegawaiScreen.tsx`) Presisi Screenshot 1**:
+     - Membangun layar penuh [TambahPegawaiScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/TambahPegawaiScreen.tsx).
+     - **Komponen Pas Foto**: Kotak unggah pas foto bertanda garis putus-putus (`MAX 10MB • RASIO 3:4`, `📷 PILIH FOTO`).
+     - **Formulir Input Data**: `NIP INDUK *`, `NAMA LENGKAP *`, `JABATAN`, `PANGKAT/GOLONGAN`, `PENEMPATAN SATKER`, dan `STATUS KEPEGAWAIAN (🟢 Pegawai Aktif)`.
+     - **Tombol Simpan**: Tombol **`💾 Simpan Pegawai`** yang mengirimkan data ke API backend `/api/kepegawaian/employees`.
+  2. **Layar Inbox Surat Tugas (`InboxSuratTugasScreen.tsx`) Presisi Screenshot 2**:
+     - Membangun layar penuh [InboxSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx).
+     - **Search & Status Filter Bar**: *"Cari kegiatan atau nama..."* dan filter status (`Semua Status`, `DRAFT`, `DITERBITKAN`).
+     - **Karusel Kartu Surat Tugas**: Menampilkan daftar pengajuan Surat Tugas dengan status badge (`DRAFT`, `DITERBITKAN`), tanggal, perihal, dan lokasi.
+     - **Tampilan Detail Surat Tugas**:
+       - Deskripsi lengkap kegiatan perjalanan dinas.
+       - 3 Kartu Bento Metrik: `PERIODE` (`22 Juni 2026 — 24 Juni 2026`), `LOKASI` (`Kecamatan Marangkayu...`), `DANA` (`🔵 DIPA`).
+       - `DAFTAR PERSONIL (3)`: Kartu personil yang ditugaskan (`Rido, S.Hut.`, `Witono, S.Hut.`, `Ahmad Ripai, S.Hut.`).
+       - `📄 Dokumen Dasar Surat`: Kartu dokumen pendukung PDF / Status lampiran.
+       - Group Tombol Aksi: **`EDIT SURAT TUGAS`** (Tombol Ungu), **`TOLAK`** (Teks Merah), dan **`ARSIPKAN`** (Teks Abu-abu).
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 159: Fix Tombol Kembali Header & Navigasi Portal Utama
 
 > Document updated: 2026-07-28
