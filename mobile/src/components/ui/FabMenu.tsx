@@ -30,7 +30,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
   userProfile,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showModuleSelector, setShowModuleSelector] = useState(false);
+  const [showModulePopover, setShowModulePopover] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const { isDark, toggleTheme, colors } = useTheme();
   const { user, logout } = useAuth();
@@ -39,25 +39,76 @@ export const FabMenu: React.FC<FabMenuProps> = ({
   const resolvedRole = userProfile?.role || user?.role || "super_admin";
   const avatarInitial = (resolvedName.charAt(0) || "S").toUpperCase();
 
-  const moduleList = [
-    { key: "kepegawaian", title: "Kepegawaian", icon: "people", color: "#2563eb" },
-    { key: "bmn", title: "BMN & Aset", icon: "cube", color: "#10b981" },
-    { key: "inventory", title: "Inventory", icon: "apps", color: "#f97316" },
-    { key: "dereporting", title: "DeReporting", icon: "document-text", color: "#8b5cf6" },
-    { key: "cms", title: "CMS Portal", icon: "grid", color: "#0d9488" },
-    { key: "surat", title: "Persuratan", icon: "mail", color: "#0284c7" },
+  const floatingModules = [
+    {
+      key: "home",
+      title: "Portal Utama",
+      subtitle: "Klik untuk berpindah modul",
+      icon: "grid-outline",
+      badgeBg: "#f1f5f9",
+      iconColor: "#475569",
+    },
+    {
+      key: "kepegawaian",
+      title: "Kepegawaian",
+      subtitle: "Klik untuk berpindah modul",
+      icon: "people-outline",
+      badgeBg: "#eff6ff",
+      iconColor: "#2563eb",
+    },
+    {
+      key: "bmn",
+      title: "BMN & Aset",
+      subtitle: "Klik untuk berpindah modul",
+      icon: "cube-outline",
+      badgeBg: "#ecfdf5",
+      iconColor: "#10b981",
+    },
+    {
+      key: "inventory",
+      title: "Inventory",
+      subtitle: "Klik untuk berpindah modul",
+      icon: "archive-outline",
+      badgeBg: "#fff7ed",
+      iconColor: "#f97316",
+    },
+    {
+      key: "dereporting",
+      title: "D-Reporting",
+      subtitle: "Klik untuk berpindah modul",
+      icon: "document-text-outline",
+      badgeBg: "#faf5ff",
+      iconColor: "#8b5cf6",
+    },
+    {
+      key: "cms",
+      title: "CMS Panel",
+      subtitle: "Klik untuk berpindah modul",
+      icon: "settings-outline",
+      badgeBg: "#f0fdfa",
+      iconColor: "#0d9488",
+    },
+    {
+      key: "surat",
+      title: "Persuratan",
+      subtitle: "Klik untuk berpindah modul",
+      icon: "mail-outline",
+      badgeBg: "#ecfeff",
+      iconColor: "#0284c7",
+    },
   ];
 
   const submenus = [
     { key: "daftar-pegawai", title: "Daftar Pegawai", icon: "people-outline" },
     { key: "tambah-pegawai", title: "Tambah Pegawai", icon: "person-add-outline" },
-    { key: "inbox-surat-tugas", title: "Inbox Surat Tugas", icon: "tray-outline" },
+    { key: "inbox-surat-tugas", title: "Inbox Surat Tugas", icon: "mail-unread-outline" },
     { key: "inbox-surat-cuti", title: "Inbox Surat Cuti", icon: "calendar-outline" },
     { key: "buat-surat-tugas", title: "Buat Surat Tugas", icon: "document-text-outline" },
     { key: "riwayat-surat-tugas", title: "Riwayat Surat Tugas", icon: "time-outline" },
   ];
 
   const handleSelectSubmenu = (key: string) => {
+    setShowModulePopover(false);
     setIsOpen(false);
     if (key === "daftar-pegawai" || key === "tambah-pegawai") {
       onNavigateToModule("kepegawaian");
@@ -69,7 +120,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
   };
 
   const handleSwitchModule = (modKey: string) => {
-    setShowModuleSelector(false);
+    setShowModulePopover(false);
     setIsOpen(false);
     onNavigateToModule(modKey);
   };
@@ -91,7 +142,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
         <Ionicons name="menu" size={26} color="#ffffff" />
       </TouchableOpacity>
 
-      {/* Slide Drawer Navigation from Left Presisi Screenshot */}
+      {/* Slide Drawer Navigation from Left */}
       <Modal visible={isOpen} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
           {/* Left Drawer Body Panel */}
@@ -137,8 +188,9 @@ export const FabMenu: React.FC<FabMenuProps> = ({
               style={[
                 styles.moduleDropdownCard,
                 { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#f8fafc" },
+                showModulePopover && styles.moduleDropdownCardActive,
               ]}
-              onPress={() => setShowModuleSelector(!showModuleSelector)}
+              onPress={() => setShowModulePopover(!showModulePopover)}
               activeOpacity={0.8}
             >
               <View style={styles.dropdownLeft}>
@@ -153,31 +205,13 @@ export const FabMenu: React.FC<FabMenuProps> = ({
                 </View>
               </View>
               <Ionicons
-                name={showModuleSelector ? "chevron-up" : "chevron-down"}
+                name={showModulePopover ? "chevron-up" : "chevron-down"}
                 size={18}
                 color="#64748b"
               />
             </TouchableOpacity>
 
-            {/* Expandable Module Selector Menu */}
-            {showModuleSelector && (
-              <View style={[styles.moduleSelectorBox, { backgroundColor: isDark ? "#092318" : "#f1f5f9" }]}>
-                {moduleList.map((mod) => (
-                  <TouchableOpacity
-                    key={mod.key}
-                    style={styles.moduleSelectorItem}
-                    onPress={() => handleSwitchModule(mod.key)}
-                  >
-                    <Ionicons name={mod.icon as any} size={15} color={mod.color} style={{ marginRight: 8 }} />
-                    <Text style={[styles.moduleSelectorText, { color: colors.textDark }]}>
-                      {mod.title}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            {/* Submenu Links List Presisi Screenshot */}
+            {/* Submenu Links List */}
             <ScrollView style={styles.menuScroll} showsVerticalScrollIndicator={false}>
               {submenus.map((item) => {
                 const isActive = item.key === activeSubmenu;
@@ -211,7 +245,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
               })}
             </ScrollView>
 
-            {/* Drawer Bottom User & Logout Section Presisi Screenshot */}
+            {/* Drawer Bottom User & Logout Section */}
             <View style={[styles.drawerFooter, { borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0" }]}>
               <View style={styles.userInfoRow}>
                 <View style={styles.userAvatarCircle}>
@@ -238,13 +272,61 @@ export const FabMenu: React.FC<FabMenuProps> = ({
                 <Text style={styles.logoutText}>Keluar Sistem</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Floating Popover Card for Active Module Presisi Screenshot */}
+            {showModulePopover && (
+              <View
+                style={[
+                  styles.floatingPopoverCard,
+                  SHADOWS.cardGlass,
+                  {
+                    backgroundColor: isDark ? "#092318" : "#ffffff",
+                    borderColor: isDark ? "rgba(255,255,255,0.15)" : "#3b82f6",
+                  },
+                ]}
+              >
+                <ScrollView style={{ maxHeight: 340 }} showsVerticalScrollIndicator={false}>
+                  {floatingModules.map((mod) => {
+                    const isSelected = mod.key === activeModule;
+                    return (
+                      <TouchableOpacity
+                        key={mod.key}
+                        style={[
+                          styles.popoverItemRow,
+                          isSelected && styles.popoverItemRowSelected,
+                        ]}
+                        onPress={() => handleSwitchModule(mod.key)}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[styles.popoverIconCircle, { backgroundColor: mod.badgeBg }]}>
+                          <Ionicons name={mod.icon as any} size={18} color={mod.iconColor} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.popoverTitle, { color: colors.textDark }]}>
+                            {mod.title}
+                          </Text>
+                          <Text style={styles.popoverSubtitle}>{mod.subtitle}</Text>
+                        </View>
+                        {isSelected && <View style={styles.greenActiveDot} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
           </View>
 
           {/* Right Backdrop Overlay */}
           <TouchableOpacity
             style={styles.backdrop}
             activeOpacity={1}
-            onPress={() => setIsOpen(false)}
+            onPress={() => {
+              if (showModulePopover) {
+                setShowModulePopover(false);
+              } else {
+                setIsOpen(false);
+              }
+            }}
           />
         </View>
       </Modal>
@@ -299,6 +381,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     paddingHorizontal: 16,
     justifyContent: "space-between",
+    position: "relative",
   },
   drawerHeaderRow: {
     flexDirection: "row",
@@ -348,6 +431,10 @@ const styles = StyleSheet.create({
     borderColor: "#e2e8f0",
     marginBottom: 12,
   },
+  moduleDropdownCardActive: {
+    borderColor: "#2563eb",
+    backgroundColor: "#eff6ff",
+  },
   dropdownLeft: {
     flexDirection: "row",
     alignItems: "center",
@@ -371,23 +458,61 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
   },
-  moduleSelectorBox: {
-    borderRadius: RADIUS.input,
+
+  /* Floating Popover Overlay Card Presisi Screenshot */
+  floatingPopoverCard: {
+    position: "absolute",
+    top: 172,
+    left: 16,
+    right: 16,
+    borderRadius: 18,
+    borderWidth: 1.5,
     padding: 8,
-    marginBottom: 12,
-    gap: 6,
+    elevation: 14,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    zIndex: 9999,
   },
-  moduleSelectorItem: {
+  popoverItemRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.card,
+    marginBottom: 4,
   },
-  moduleSelectorText: {
-    fontSize: 12.5,
-    fontWeight: "700",
+  popoverItemRowSelected: {
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
   },
+  popoverIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  popoverTitle: {
+    fontSize: 13.5,
+    fontWeight: "800",
+  },
+  popoverSubtitle: {
+    color: "#94a3b8",
+    fontSize: 10,
+    marginTop: 1,
+  },
+  greenActiveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#10b981",
+    marginLeft: 6,
+  },
+
   menuScroll: {
     flex: 1,
   },
