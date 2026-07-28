@@ -42,12 +42,6 @@ export default function LoginScreen() {
     }
   };
 
-  const handleFillTestAccount = () => {
-    setUsername("superadmin");
-    setPassword("Lolipop@147258379");
-    setErrorMessage(null);
-  };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -58,19 +52,15 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Crest Logomark */}
+        {/* Top Crest Logomark using Official Logo Asset */}
         <View style={styles.logoSection}>
           <Image
-            source={{ uri: "https://bksdakaltim.net/assets/img/logobksda.png" }}
+            source={require("../../../../assets/logo_bksda.png")}
             style={styles.logo}
             resizeMode="contain"
           />
           <Text style={styles.portalTitle}>BALAI KONSERVASI SUMBER DAYA ALAM</Text>
           <Text style={styles.portalSubtitle}>KALIMANTAN TIMUR</Text>
-          <View style={styles.goldBadge}>
-            <Ionicons name="shield-checkmark" size={12} color="#059669" style={{ marginRight: 4 }} />
-            <Text style={styles.goldBadgeText}>SIMONDOK MOBILE PORTAL</Text>
-          </View>
         </View>
 
         {/* Login Form Card */}
@@ -84,16 +74,6 @@ export default function LoginScreen() {
               <Text style={styles.errorAlertText}>{errorMessage}</Text>
             </View>
           )}
-
-          {/* Quick Fill Test Account Chip */}
-          <TouchableOpacity
-            style={styles.testAccountChip}
-            onPress={handleFillTestAccount}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="flash" size={14} color="#059669" style={{ marginRight: 6 }} />
-            <Text style={styles.testAccountText}>Isi Akun Test Super Admin</Text>
-          </TouchableOpacity>
 
           {/* Username Input */}
           <View style={styles.inputGroup}>
@@ -167,9 +147,9 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </GlassCard>
 
-        {/* Footer info */}
+        {/* Footer info updated to Ministry of Forestry */}
         <Text style={styles.footerText}>
-          Kementerian Lingkungan Hidup dan Kehutanan © 2026
+          Kementerian Kehutanan © 2026
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -192,9 +172,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 10,
+    width: 86,
+    height: 86,
+    marginBottom: 12,
   },
   portalTitle: {
     color: "#0f172a",
@@ -211,22 +191,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 2,
   },
-  goldBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ecfdf5",
-    borderWidth: 1,
-    borderColor: "#a7f3d0",
-    borderRadius: RADIUS.pill,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    marginTop: 10,
-  },
-  goldBadgeText: {
-    color: "#059669",
-    fontSize: 10.5,
-    fontWeight: "800",
-  },
   formCard: {
     width: "100%",
     padding: 22,
@@ -241,7 +205,7 @@ const styles = StyleSheet.create({
   cardSub: {
     color: "#64748b",
     fontSize: 12.5,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   errorAlertBox: {
     flexDirection: "row",
@@ -257,23 +221,6 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     fontSize: 12,
     flex: 1,
-  },
-  testAccountChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#ecfdf5",
-    borderWidth: 1,
-    borderColor: "#a7f3d0",
-    borderRadius: RADIUS.pill,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    marginBottom: 18,
-  },
-  testAccountText: {
-    color: "#059669",
-    fontSize: 12,
-    fontWeight: "700",
   },
   inputGroup: {
     marginBottom: 16,
