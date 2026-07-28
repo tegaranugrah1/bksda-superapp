@@ -1,3 +1,39 @@
+# Progress - Phase 161: Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Tangkapan Layar User:
+  1. **Daftar Opsi Lengkap Pangkat / Golongan Presisi Screenshot 1**:
+     - Memperbarui modal pemilih Pangkat/Golongan pada [TambahPegawaiScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/TambahPegawaiScreen.tsx) dengan daftar resmi lengkap:
+       - `- (Tidak ada pangkat)`
+       - Golongan I: `Juru Muda (I/a)`, `Juru Muda Tingkat I (I/b)`, `Juru (I/c)`, `Juru Tingkat I (I/d)`
+       - Golongan II: `Pengatur Muda (II/a)`, `Pengatur Muda Tingkat I (II/b)`, `Pengatur (II/c)`, `Pengatur Tingkat I (II/d)`
+       - Golongan III: `Penata Muda (III/a)`, `Penata Muda Tingkat I (III/b)`, `Penata (III/c)`, `Penata Tingkat I (III/d)`
+       - Golongan IV: `Pembina (IV/a)`, `Pembina Tingkat I (IV/b)`, `Pembina Utama Muda (IV/c)`, `Pembina Utama Madya (IV/d)`, `Pembina Utama (IV/e)`
+       - PPPK: `PPPK Golongan I` hingga `PPPK Golongan XVII`
+  2. **Daftar Opsi Lengkap Penempatan Satker & Resor Presisi Screenshot 2**:
+     - Memperbarui modal pemilih Penempatan Satker dengan daftar hierarki lengkap:
+       - `Kantor Balai KSDA Kalimantan Timur`
+       - `Seksi KSDA Wilayah I Berau` & Resor 01-04 (Berau, Semama/Sangalaki, Tanjung Selor, Tarakan)
+       - `Seksi KSDA Wilayah II Tenggarong` & Resor 05-09 (Samarinda, Padang Luway, Muara Kaman, Sangatta, Suaka Badak Kelian)
+       - `Seksi KSDA Wilayah III Balikpapan` & Resor 10-14 (Balikpapan, Teluk Adang, Teluk Apar, Paser, Ibu Kota Nusantara)
+  3. **Pencarian Cepat dalam Modal**:
+     - Menyediakan kolom input pencarian instan dalam modal pemilih agar pengguna dapat mencari pangkat atau resor dengan sangat cepat.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 160: Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal
 
 > Document updated: 2026-07-28
