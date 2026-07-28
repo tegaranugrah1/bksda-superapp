@@ -1,3 +1,33 @@
+# Progress - Phase 155: Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User & Tangkapan Layar:
+  1. **Pagination Tabel Daftar Pegawai Presisi Web Portal**:
+     - Menambahkan baris kontrol pagination di bagian bawah tabel [KepegawaianScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/KepegawaianScreen.tsx).
+     - Format: `HALAMAN X DARI Y` dengan tombol **`[ Sebelumnya ]`** dan **`[ Berikutnya ]`**.
+     - Menampilkan 10 pegawai per halaman sehingga pengguna tidak perlu melakukan scroll panjang ke bawah.
+  2. **Fitur Edit Identitas Pegawai Khusus SuperAdmin (`EmployeeDetailModal.tsx`)**:
+     - Menambahkan tombol **`✏️ Edit`** pada tab **Identitas Kepegawaian (Biodata)** yang presisi sesuai Screenshot Web Portal 2.
+     - Mengubah Nama, NIP, Jabatan, Unit Kerja/Seksi, dan Pangkat/Golongan pegawai dengan mengirimkan permohonan ke API backend `/api/kepegawaian/employees/{id}`.
+  3. **Penataan Layout Tab Tanpa Overflow (No-Overflow Responsive Layout)**:
+     - Mengubah bilah navigasi tab (`Riwayat Penugasan`, `Biodata`, `Cuti Pegawai (PNS)`) menjadi `ScrollView` horizontal tanpa scroller bar.
+     - Menata bento grid pada **Biodata** (NIP, Nama Lengkap, Jabatan, Pangkat/Golongan, Unit Kerja, Masa Kerja, Status) agar tampil rapi dan responsif 100% tanpa potongan horizontal.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 154: Mobile Employee Full Search Sync & Single-Line NIP Layout
 
 > Document updated: 2026-07-28
