@@ -1,3 +1,29 @@
+# Progress - Phase 159: Fix Tombol Kembali Header & Navigasi Portal Utama
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Fix Tombol Kembali Header & Navigasi Portal Utama
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Navigasi Langsung ke Portal Utama (`Dashboard`)**:
+     - Mengubah handler navigasi di `KepegawaianScreen`, `BmnAssetCatalogScreen`, `SuratMasukHistoryScreen`, dan `InventoryStockScreen`.
+     - Saat mengeklik pilihan **Portal Utama** / **Beranda** dari drawer maupun kartu popover melayang, aplikasi secara otomatis memanggil `navigation.navigate('Dashboard')` untuk langsung membuka Portal Utama.
+  2. **Responsif Tombol Kembali Header (`←`)**:
+     - Memperluas area sentuh (`hitSlop: { top: 25, bottom: 25, left: 25, right: 35 }`) dan menambahkan fallback langsung ke `navigation.navigate('Dashboard')`.
+     - Menjamin tombol **Kembali (`←`)** di pojok kiri atas semua modul 100% responsif ketika diketuk.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 158: Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning
 
 > Document updated: 2026-07-28
