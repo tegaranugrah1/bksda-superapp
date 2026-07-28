@@ -1,3 +1,31 @@
+# Progress - Phase 156: 2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## 2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Tab Grid Layout 1 Baris 2 Item (Anti Overflow Ke Samping)**:
+     - Mengubah susunan bilah navigasi tab pada [EmployeeDetailModal.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/EmployeeDetailModal.tsx) menjadi `flexWrap: "wrap"` dengan 2 item per baris (`width: "48%"`).
+     - **Baris 1**: `Riwayat Penugasan` | `Biodata`.
+     - **Baris 2**: `Cuti Pegawai (PNS)` di bawahnya.
+     - **100% Bebas dari Potongan / Overflow Horizontal** pada semua ukuran layar mobile.
+  2. **Notifikasi Modal Kustom Reset Password (Glassmorphic ConfirmModal)**:
+     - Menggantikan `Alert.alert` bawaan HP yang standar dengan komponen modal kustom glassmorphic [ConfirmModal.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/ConfirmModal.tsx).
+     - Dilengkapi ikon kunci ambar (`🔑 key-outline`), judul **Reset Password Pegawai**, pesan konfirmasi yang jelas, serta tombol **`Batal`** & **`Ya, Reset Password`**.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 155: Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail
 
 > Document updated: 2026-07-28
