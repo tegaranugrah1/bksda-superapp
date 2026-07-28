@@ -1,3 +1,37 @@
+# Progress - Phase 158: Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User & Screenshot:
+  1. **Kartu Popover Melayang (Floating Popover Overlay Card) Modul Aktif Presisi Screenshot**:
+     - Mengubah dropdown **MODUL AKTIF** pada [FabMenu.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/FabMenu.tsx) agar saat diklik mengeluarkan **kartu popover melayang (floating overlay)** langsung di atas drawer.
+     - **Kartu Popover**: Elevasi bayangan `elevation: 14`, `borderRadius: 18`, border aksen biru.
+     - **Daftar Modul Melayang (7 Modul)**:
+       1. `Portal Utama` (Badge abu-abu)
+       2. `Kepegawaian` (Badge biru `#eff6ff`, indikator titik hijau `🟢`)
+       3. `BMN & Aset` (Badge emerald `#ecfdf5`)
+       4. `Inventory` (Badge orange `#fff7ed`)
+       5. `D-Reporting` (Badge ungu `#faf5ff`)
+       6. `CMS Panel` (Badge teal `#f0fdfa`)
+       7. `Persuratan` (Badge cyan `#ecfeff`)
+  2. **Perbaikan Peringatan Ionicons (`tray-outline` WARN Fix)**:
+     - Mengganti nama ikon `"tray-outline"` yang tidak valid pada keluarga Ionicons dengan ikon valid `"mail-unread-outline"`.
+     - Peringatan console Expo kini **100% hilang (0 warnings)**.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 157: FabMenu Drawer Sidebar Presisi 100% Kepegawaian Web Portal
 
 > Document updated: 2026-07-28
