@@ -1,3 +1,37 @@
+# Progress - Phase 170: Sinkronisasi Detail Kegiatan 100% dengan /kepegawaian/surat-tugas/create
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Harmonisasi Kolom `Detail Kegiatan` dengan ST Builder Premium**:
+     - **Dropdown `JENIS TUGAS`**:
+       - `Perjalanan Dinas`
+       - `Melaksanakan Tugas`
+       - `Menugaskan Staf`
+     - **Grid 2 Kolom Lokasi**:
+       - `Kota Asal` (default: *"Samarinda"*)
+       - `Kota / Kabupaten Tujuan` (placeholder: *"Tujuan"*)
+     - **Input `Nama Kegiatan`**: Textarea / Input (`Kegiatan...`)
+     - **Input `Tempat Spesifik / Pada`**: Input tempat rincian lokasi / unit
+  2. **Format Pratinjau Teks Resmi Terintegrasi**:
+     - *Perjalanan Dinas*: `"Perjalanan Dinas dari [Kota Asal] ke [Kota Tujuan] dalam rangka [Nama Kegiatan] di [Tempat Spesifik]"`
+     - *Melaksanakan Tugas*: `"Melaksanakan Tugas [Nama Kegiatan] pada [Tempat Spesifik] di [Kota Tujuan]"`
+     - *Menugaskan Staf*: `"Menugaskan Staf [Nama Kegiatan] di [Tempat Spesifik] di [Kota Tujuan]"`
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 169: Pemisahan Rute Perjalanan (Dari/Ke) & Kolom Pada Kegiatan
 
 > Document updated: 2026-07-28
