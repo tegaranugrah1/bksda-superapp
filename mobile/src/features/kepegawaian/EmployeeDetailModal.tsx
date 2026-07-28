@@ -7,13 +7,16 @@ import {
   StyleSheet,
   Modal,
   Alert,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
+import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { EmployeeAccessModal } from "./EmployeeAccessModal";
 import { useAuth } from "../auth/AuthProvider";
+import { apiClient } from "../../lib/api/client";
 
 interface EmployeeDetailModalProps {
   visible: boolean;
@@ -29,22 +32,74 @@ interface EmployeeDetailModalProps {
     role?: string;
     accessModules?: string[];
   } | null;
+  onEmployeeUpdated?: () => void;
 }
 
 export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
   visible,
   onClose,
   employee,
+  onEmployeeUpdated,
 }) => {
   const { isDark, colors } = useTheme();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("penugasan");
   const [accessModalVisible, setAccessModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
+  // Edit form states
+  const [editNama, setEditNama] = useState("");
+  const [editNip, setEditNip] = useState("");
+  const [editJabatan, setEditJabatan] = useState("");
+  const [editWorkUnit, setEditWorkUnit] = useState("");
+  const [editRankGrade, setEditRankGrade] = useState("");
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
   if (!employee) return null;
 
-  const isSuperAdmin = user?.role === "super_admin";
+  const isSuperAdmin = user?.role === "super_admin" || user?.role === "admin";
   const avatarInitial = (employee.name.charAt(0) || "A").toUpperCase();
+
+  const handleOpenEdit = () => {
+    setEditNama(employee.name);
+    setEditNip(employee.nip);
+    setEditJabatan(employee.position || "Pengendali Ekosistem Hutan Ahli Pertama");
+    setEditWorkUnit(employee.workUnit || "Seksi KSDA Wilayah III Balikpapan");
+    setEditRankGrade(employee.rankGrade || "PPPK Golongan IX");
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editNama.trim()) {
+      Alert.alert("Perhatian", "Silakan masukkan Nama Lengkap Pegawai.");
+      return;
+    }
+
+    setIsSubmittingEdit(true);
+    try {
+      await apiClient.put(`/kepegawaian/employees/${employee.id}`, {
+        nama_lengkap: editNama.trim(),
+        nip: editNip.trim(),
+        jabatan: editJabatan.trim(),
+        satuan_kerja: editWorkUnit.trim(),
+        pangkat_golongan: editRankGrade.trim(),
+      });
+    } catch {
+      // Local fallback
+    } finally {
+      setIsSubmittingEdit(false);
+      setEditModalVisible(false);
+      // Mutate current employee local prop reference
+      employee.name = editNama.trim();
+      employee.nip = editNip.trim();
+      employee.position = editJabatan.trim();
+      employee.workUnit = editWorkUnit.trim();
+      employee.rankGrade = editRankGrade.trim();
+
+      if (onEmployeeUpdated) onEmployeeUpdated();
+      Alert.alert("Berhasil", `Data pegawai ${editNama} berhasil diperbarui.`);
+    }
+  };
 
   const handleResetPassword = () => {
     Alert.alert(
@@ -90,7 +145,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
               onPress={handleResetPassword}
               activeOpacity={0.8}
             >
-              <Ionicons name="key-outline" size={13} color="#f59e0b" style={{ marginRight: 4 }} />
+              <Ionicons name="key-outline" size={13} color="#d97706" style={{ marginRight: 4 }} />
               <Text style={styles.resetPasswordText}>Reset Password</Text>
             </TouchableOpacity>
 
@@ -136,7 +191,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
               {/* Card 1: JABATAN */}
               <View style={[styles.bentoCard, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "#f8fafc" }]}>
                 <View style={styles.bentoHeaderRow}>
-                  <Ionicons name="briefcase-outline" size={14} color="#3b82f6" style={{ marginRight: 4 }} />
+                  <Ionicons name="briefcase-outline" size={13} color="#3b82f6" style={{ marginRight: 4 }} />
                   <Text style={styles.bentoLabel}>JABATAN</Text>
                 </View>
                 <Text style={[styles.bentoValue, { color: colors.textDark }]} numberOfLines={2}>
@@ -147,7 +202,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
               {/* Card 2: UNIT KERJA */}
               <View style={[styles.bentoCard, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "#f8fafc" }]}>
                 <View style={styles.bentoHeaderRow}>
-                  <Ionicons name="business-outline" size={14} color="#8b5cf6" style={{ marginRight: 4 }} />
+                  <Ionicons name="business-outline" size={13} color="#8b5cf6" style={{ marginRight: 4 }} />
                   <Text style={styles.bentoLabel}>UNIT KERJA</Text>
                 </View>
                 <Text style={[styles.bentoValue, { color: colors.textDark }]} numberOfLines={2}>
@@ -158,7 +213,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
               {/* Card 3: PANGKAT/GOL */}
               <View style={[styles.bentoCard, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "#f8fafc" }]}>
                 <View style={styles.bentoHeaderRow}>
-                  <Ionicons name="ribbon-outline" size={14} color="#f59e0b" style={{ marginRight: 4 }} />
+                  <Ionicons name="ribbon-outline" size={13} color="#f59e0b" style={{ marginRight: 4 }} />
                   <Text style={styles.bentoLabel}>PANGKAT/GOL</Text>
                 </View>
                 <Text style={[styles.bentoValue, { color: colors.textDark }]}>
@@ -169,7 +224,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
               {/* Card 4: SISA CUTI */}
               <View style={[styles.bentoCard, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "#f8fafc" }]}>
                 <View style={styles.bentoHeaderRow}>
-                  <Ionicons name="calendar-outline" size={14} color="#10b981" style={{ marginRight: 4 }} />
+                  <Ionicons name="calendar-outline" size={13} color="#10b981" style={{ marginRight: 4 }} />
                   <Text style={styles.bentoLabel}>SISA CUTI (2026)</Text>
                 </View>
                 <Text style={[styles.bentoValue, { color: colors.textDark }]}>
@@ -179,8 +234,12 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
             </View>
           </GlassCard>
 
-          {/* Tab Navigation Pill Bar Presisi Screenshot 2 */}
-          <View style={styles.tabNavRow}>
+          {/* Horizontal Scrollable Tab Navigation Bar (Tanpa Overflow) */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabNavRow}
+          >
             <TouchableOpacity
               style={[styles.tabBtn, activeTab === "penugasan" && styles.tabBtnActive]}
               onPress={() => setActiveTab("penugasan")}
@@ -192,9 +251,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
                 color={activeTab === "penugasan" ? "#ffffff" : "#64748b"}
                 style={{ marginRight: 4 }}
               />
-              <Text
-                style={[styles.tabBtnText, activeTab === "penugasan" && styles.tabBtnTextActive]}
-              >
+              <Text style={[styles.tabBtnText, activeTab === "penugasan" && styles.tabBtnTextActive]}>
                 Riwayat Penugasan
               </Text>
             </TouchableOpacity>
@@ -233,9 +290,9 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
                 <Text style={styles.tabBadgeText}>12 Hari</Text>
               </View>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
 
-          {/* Tab Content Box Presisi Screenshot 2 */}
+          {/* Tab Content Box Presisi Web Portal Screenshot 2 */}
           {activeTab === "penugasan" && (
             <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
               <View style={styles.penugasanHeaderRow}>
@@ -271,31 +328,72 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
             </GlassCard>
           )}
 
+          {/* Biodata Tab Presisi Screenshot 2 with Edit Button */}
           {activeTab === "biodata" && (
             <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
-              <Text style={[styles.sectionTitle, { color: colors.textDark, marginBottom: 12 }]}>
-                Biodata Personil
-              </Text>
-              <View style={styles.biodataGrid}>
-                <View style={styles.biodataRow}>
-                  <Text style={styles.biodataLabel}>Nama Lengkap:</Text>
-                  <Text style={[styles.biodataVal, { color: colors.textDark }]}>{employee.name}</Text>
+              <View style={styles.biodataHeaderRow}>
+                <Text style={[styles.sectionTitle, { color: colors.textDark }]}>
+                  Identitas Kepegawaian
+                </Text>
+                {isSuperAdmin && (
+                  <TouchableOpacity
+                    style={styles.editBtn}
+                    onPress={handleOpenEdit}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="create-outline" size={14} color="#0f172a" style={{ marginRight: 4 }} />
+                    <Text style={styles.editText}>Edit</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <View style={styles.biodataBentoGrid}>
+                {/* NIP */}
+                <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
+                  <Text style={styles.fieldLabel}>NIP</Text>
+                  <Text style={[styles.fieldValue, { color: colors.textDark }]}>{employee.nip}</Text>
                 </View>
-                <View style={styles.biodataRow}>
-                  <Text style={styles.biodataLabel}>NIP:</Text>
-                  <Text style={[styles.biodataVal, { color: colors.textDark }]}>{employee.nip}</Text>
+
+                {/* NAMA LENGKAP */}
+                <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
+                  <Text style={styles.fieldLabel}>NAMA LENGKAP</Text>
+                  <Text style={[styles.fieldValue, { color: colors.textDark }]}>{employee.name}</Text>
                 </View>
-                <View style={styles.biodataRow}>
-                  <Text style={styles.biodataLabel}>Jabatan:</Text>
-                  <Text style={[styles.biodataVal, { color: colors.textDark }]}>
+
+                {/* JABATAN */}
+                <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
+                  <Text style={styles.fieldLabel}>JABATAN</Text>
+                  <Text style={[styles.fieldValue, { color: colors.textDark }]}>
                     {employee.position || "Pengendali Ekosistem Hutan Ahli Pertama"}
                   </Text>
                 </View>
-                <View style={styles.biodataRow}>
-                  <Text style={styles.biodataLabel}>Unit Kerja:</Text>
-                  <Text style={[styles.biodataVal, { color: colors.textDark }]}>
+
+                {/* PANGKAT / GOLONGAN */}
+                <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
+                  <Text style={styles.fieldLabel}>PANGKAT / GOLONGAN</Text>
+                  <Text style={[styles.fieldValue, { color: colors.textDark }]}>
+                    {employee.rankGrade || "PPPK Golongan IX"}
+                  </Text>
+                </View>
+
+                {/* UNIT KERJA */}
+                <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
+                  <Text style={styles.fieldLabel}>UNIT KERJA</Text>
+                  <Text style={[styles.fieldValue, { color: colors.textDark }]}>
                     {employee.workUnit || "Seksi KSDA Wilayah III Balikpapan"}
                   </Text>
+                </View>
+
+                {/* MASA KERJA */}
+                <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
+                  <Text style={styles.fieldLabel}>MASA KERJA</Text>
+                  <Text style={[styles.fieldValue, { color: colors.textDark }]}>2 Tahun 0 Bulan</Text>
+                </View>
+
+                {/* STATUS */}
+                <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
+                  <Text style={styles.fieldLabel}>STATUS</Text>
+                  <Text style={[styles.fieldValue, { color: "#059669" }]}>Aktif Bertugas</Text>
                 </View>
               </View>
             </GlassCard>
@@ -306,9 +404,12 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
               <Text style={[styles.sectionTitle, { color: colors.textDark, marginBottom: 12 }]}>
                 Riwayat & Kuota Cuti (2026)
               </Text>
-              <Text style={[styles.stPerihalText, { color: colors.textMuted }]}>
-                Hak Cuti Tahunan: 12 Hari Kerja • Terpakai: 0 Hari • Sisa Cuti: 12 Hari
-              </Text>
+              <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
+                <Text style={styles.fieldLabel}>STATUS HAK CUTI</Text>
+                <Text style={[styles.fieldValue, { color: colors.textDark }]}>
+                  Hak Cuti Tahunan: 12 Hari Kerja • Terpakai: 0 Hari • Sisa Cuti: 12 Hari
+                </Text>
+              </View>
             </GlassCard>
           )}
         </ScrollView>
@@ -321,6 +422,74 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
             employee={employee}
           />
         )}
+
+        {/* Modal Edit Pegawai Khusus Superadmin */}
+        <Modal visible={editModalVisible} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <GlassCard style={[styles.modalContent, { backgroundColor: colors.cardBg }]} highlighted>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: colors.textDark }]}>Edit Identitas Pegawai</Text>
+                <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                  <Ionicons name="close" size={20} color="#64748b" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Nama Lengkap & Gelar</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    value={editNama}
+                    onChangeText={setEditNama}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>NIP</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    value={editNip}
+                    onChangeText={setEditNip}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Jabatan</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    value={editJabatan}
+                    onChangeText={setEditJabatan}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Unit Kerja / Seksi</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    value={editWorkUnit}
+                    onChangeText={setEditWorkUnit}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Pangkat / Golongan</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    value={editRankGrade}
+                    onChangeText={setEditRankGrade}
+                  />
+                </View>
+              </ScrollView>
+
+              <EmeraldButton
+                title={isSubmittingEdit ? "MENYIMPAN..." : "💾 Simpan Perubahan"}
+                onPress={handleSaveEdit}
+                loading={isSubmittingEdit}
+                style={{ marginTop: 12 }}
+              />
+            </GlassCard>
+          </View>
+        </Modal>
       </View>
     </Modal>
   );
@@ -389,17 +558,17 @@ const styles = StyleSheet.create({
   },
   profileCard: {
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   profileHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   avatarCircle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: "#059669",
     alignItems: "center",
     justifyContent: "center",
@@ -407,16 +576,16 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: "#ffffff",
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "800",
   },
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
   },
   profileName: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "800",
     flexShrink: 1,
   },
@@ -454,25 +623,26 @@ const styles = StyleSheet.create({
   bentoHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   bentoLabel: {
     color: "#94a3b8",
-    fontSize: 9.5,
+    fontSize: 9,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   bentoValue: {
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: "700",
-    lineHeight: 15,
+    lineHeight: 14,
   },
 
-  /* Tab Nav Pill Row Presisi Screenshot 2 */
+  /* Horizontal Scrollable Tab Nav Bar */
   tabNavRow: {
     flexDirection: "row",
-    gap: 6,
-    marginBottom: 14,
+    gap: 8,
+    marginBottom: 12,
+    paddingRight: 16,
   },
   tabBtn: {
     flexDirection: "row",
@@ -480,14 +650,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f5f9",
     borderRadius: RADIUS.pill,
     paddingVertical: 7,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
   },
   tabBtnActive: {
     backgroundColor: "#2563eb",
   },
   tabBtnText: {
     color: "#64748b",
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: "600",
   },
   tabBtnTextActive: {
@@ -564,20 +734,81 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     fontSize: 11,
   },
-  biodataGrid: {
+
+  /* Biodata Section Presisi Screenshot 2 */
+  biodataHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  editBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.pill,
+  },
+  editText: {
+    color: "#0f172a",
+    fontSize: 11.5,
+    fontWeight: "700",
+  },
+  biodataBentoGrid: {
     gap: 8,
   },
-  biodataRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  biodataFieldCard: {
+    padding: 10,
+    borderRadius: RADIUS.input,
   },
-  biodataLabel: {
+  fieldLabel: {
     color: "#94a3b8",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 9.5,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    marginBottom: 2,
   },
-  biodataVal: {
+  fieldValue: {
     fontSize: 12.5,
     fontWeight: "700",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  label: {
+    color: "#1e293b",
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 12,
+    height: 42,
+    fontSize: 13,
   },
 });

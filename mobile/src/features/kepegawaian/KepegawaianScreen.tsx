@@ -49,6 +49,10 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [addModalVisible, setAddModalVisible] = useState(false);
 
+  // Pagination state (10 items per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
   // Selected Employee for Modals
   const [selectedEmployeeForDetail, setSelectedEmployeeForDetail] = useState<EmployeeItem | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -121,6 +125,61 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     },
     {
       id: "6",
+      name: "Affi Agung Rahmadi",
+      nip: "199306242025061001",
+      position: "Pengendali Ekosistem Hutan Pemula",
+      workUnit: "Seksi KSDA Wilayah III Balikpapan",
+      rankGrade: "Golongan II/c",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
+    },
+    {
+      id: "7",
+      name: "Afrizal Maula Alfarisi, S.Hut.",
+      nip: "199308162025061005",
+      position: "Polisi Kehutanan Ahli Pertama",
+      workUnit: "Seksi KSDA Wilayah II Tenggarong",
+      rankGrade: "Golongan III/a",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
+    },
+    {
+      id: "8",
+      name: "Agung Suseno, S.PKP.",
+      nip: "198108242000121002",
+      position: "Pengendali Ekosistem Hutan Ahli Muda",
+      workUnit: "Seksi KSDA Wilayah III Balikpapan",
+      rankGrade: "Golongan III/c",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
+    },
+    {
+      id: "9",
+      name: "Agus Salim",
+      nip: "MMP-008",
+      position: "MMP Resor KSDA Wilayah 02 Kepulauan Derawan",
+      workUnit: "Seksi KSDA Wilayah I Berau",
+      rankGrade: "Non-ASN",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
+    },
+    {
+      id: "10",
+      name: "Agustaf Samber",
+      nip: "197208292007101001",
+      position: "Polisi Kehutanan Penyelia",
+      workUnit: "Seksi KSDA Wilayah I Berau",
+      rankGrade: "Golongan III/d",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
+    },
+    {
+      id: "11",
       name: "Tegar Anugrah, A.Md.Kom.",
       nip: "199907072025061006",
       position: "Pranata Komputer Terampil",
@@ -134,7 +193,6 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
 
   const fetchEmployeeData = async () => {
     try {
-      // Fetch up to 500 records so all employees (e.g. Tegar Anugrah) are fetched from database
       const response = await apiClient.get<any>("/kepegawaian/employees?per_page=500");
       if (response.data && Array.isArray(response.data.data)) {
         const apiList = response.data.data.map((emp: any) => ({
@@ -163,6 +221,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     fetchEmployeeData();
   }, []);
 
+  // Filter employees & reset page to 1 when typing search
   const filteredEmployees = employees.filter((emp) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -172,6 +231,18 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
       emp.workUnit.toLowerCase().includes(q)
     );
   });
+
+  const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
+
+  const displayedEmployees = filteredEmployees.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleSearchChange = (text: string) => {
+    setSearchQuery(text);
+    setCurrentPage(1);
+  };
 
   const handleOpenDetail = (emp: EmployeeItem) => {
     setSelectedEmployeeForDetail(emp);
@@ -297,7 +368,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
               placeholder="Cari NIP / Nama..."
               placeholderTextColor="#94a3b8"
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={handleSearchChange}
             />
           </View>
 
@@ -335,12 +406,12 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
               <ActivityIndicator size="small" color="#059669" />
             </View>
           ) : (
-            filteredEmployees.map((emp, index) => (
+            displayedEmployees.map((emp, index) => (
               <TouchableOpacity
                 key={emp.id}
                 style={[
                   styles.tableDataRow,
-                  index < filteredEmployees.length - 1 && {
+                  index < displayedEmployees.length - 1 && {
                     borderBottomWidth: 1,
                     borderBottomColor: isDark ? "rgba(255, 255, 255, 0.06)" : "#f1f5f9",
                   },
@@ -354,14 +425,14 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
                   <Text style={[styles.empUnit, { color: colors.textMuted }]}>{emp.workUnit}</Text>
                 </View>
 
-                {/* Column 2: NIP (Dibuat muat 1 baris tanpa terpotong) */}
+                {/* Column 2: NIP (Muat 1 baris tanpa terpotong) */}
                 <View style={styles.tableDataCol2}>
                   <Text style={[styles.empNip, { color: colors.textDark }]} numberOfLines={1}>
                     {emp.nip}
                   </Text>
                 </View>
 
-                {/* Column 3: Action Buttons (Detail Search & Delete, Kelola Akses moved to Detail Modal) */}
+                {/* Column 3: Action Buttons */}
                 <View style={styles.tableDataCol3}>
                   <TouchableOpacity
                     style={styles.actionIconButton}
@@ -384,20 +455,68 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
               </TouchableOpacity>
             ))
           )}
+
+          {/* Table Pagination Bar Presisi Web Portal */}
+          <View style={[styles.paginationRow, { borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0" }]}>
+            <Text style={[styles.paginationText, { color: colors.textMuted }]}>
+              HALAMAN {currentPage} DARI {totalPages || 1}
+            </Text>
+
+            <View style={styles.paginationBtnGroup}>
+              <TouchableOpacity
+                style={[
+                  styles.pageBtn,
+                  currentPage === 1 && styles.pageBtnDisabled,
+                ]}
+                disabled={currentPage === 1}
+                onPress={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.pageBtnText,
+                    currentPage === 1 && styles.pageBtnTextDisabled,
+                  ]}
+                >
+                  Sebelumnya
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.pageBtn,
+                  currentPage >= totalPages && styles.pageBtnDisabled,
+                ]}
+                disabled={currentPage >= totalPages}
+                onPress={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.pageBtnText,
+                    currentPage >= totalPages && styles.pageBtnTextDisabled,
+                  ]}
+                >
+                  Berikutnya
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </GlassCard>
       </ScrollView>
 
       {/* Floating Action Button (FAB ☰ Menu) */}
       <FabMenu onNavigateToModule={handleSelectNavTab} />
 
-      {/* Modal Detail Pegawai (Opens when clicking any employee, includes 🛡️ Kelola Akses in header) */}
+      {/* Modal Detail Pegawai (Opens when clicking any employee) */}
       <EmployeeDetailModal
         visible={detailModalVisible}
         onClose={() => setDetailModalVisible(false)}
         employee={selectedEmployeeForDetail}
+        onEmployeeUpdated={fetchEmployeeData}
       />
 
-      {/* Modal Manajemen Hak Akses IAM (Accessible from Employee Detail Header) */}
+      {/* Modal Manajemen Hak Akses IAM */}
       {isSuperAdmin && (
         <EmployeeAccessModal
           visible={accessModalVisible}
@@ -653,6 +772,45 @@ const styles = StyleSheet.create({
   },
   actionIconButton: {
     padding: 3,
+  },
+
+  /* Pagination Row Presisi Web Portal */
+  paginationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+  },
+  paginationText: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  paginationBtnGroup: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  pageBtn: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.pill,
+  },
+  pageBtnDisabled: {
+    opacity: 0.4,
+    borderColor: "#e2e8f0",
+  },
+  pageBtnText: {
+    color: "#0f172a",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  pageBtnTextDisabled: {
+    color: "#94a3b8",
   },
 
   modalOverlay: {
