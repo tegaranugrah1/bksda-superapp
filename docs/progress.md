@@ -1,3 +1,29 @@
+# Progress - Phase 154: Mobile Employee Full Search Sync & Single-Line NIP Layout
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Employee Full Search Sync & Single-Line NIP Layout
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Sinkronisasi Pencarian Seluruh Pegawai (`per_page=500`) (Tegar Anugrah, A.Md.Kom.)**:
+     - Mengubah permohonan API backend pada [KepegawaianScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/KepegawaianScreen.tsx) menjadi `GET /api/kepegawaian/employees?per_page=500`.
+     - Seluruh pegawai di database web (termasuk **Tegar Anugrah, A.Md.Kom.** NIP: `199907072025061006`) kini **100% muncul dan dapat dicari secara instan** pada aplikasi mobile.
+  2. **Tata Letak NIP 1 Baris Rapi Tanpa Terpotong (Single-Line NIP Layout)**:
+     - Memindahkan tombol `🛡️ Kelola Akses` secara eksklusif ke dalam **Layar Detail Pegawai** (`EmployeeDetailModal.tsx`).
+     - Mengubah proporsi lebar kolom NIP menjadi `flex: 1.5`, sehingga NIP 18 digit (`199907072025061006`) muat sempurna dalam **1 baris tanpa tertekuk/turun ke bawah**.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 153: Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal
 
 > Document updated: 2026-07-28
