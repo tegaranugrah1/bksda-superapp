@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
@@ -94,6 +95,20 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     },
   ];
 
+  // Handle hardware back press & back gesture: return to Inbox list view first
+  useEffect(() => {
+    const onBackPress = () => {
+      if (selectedSt !== null) {
+        setSelectedSt(null);
+        return true; // Consume event & stay in Inbox Surat Tugas list view
+      }
+      return false; // Delegate to default navigation back
+    };
+
+    const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () => subscription.remove();
+  }, [selectedSt]);
+
   const handleGoBack = () => {
     if (selectedSt !== null) {
       setSelectedSt(null);
@@ -163,7 +178,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* VIEW 1: LIST MODE (Default List View Presisi Target User) */}
+        {/* VIEW 1: LIST MODE (Default List View) */}
         {!selectedSt ? (
           <>
             {/* Controls Search & Filter Row */}
@@ -258,7 +273,34 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
               {selectedSt.title}
             </Text>
 
-            {/* 3 Bento Metric Cards Presisi Screenshot */}
+            {/* DAFTAR PERSONIL Presisi User Directive: Ditaruh di Atas Lokasi & Bento Metrics */}
+            <View style={styles.personilSection}>
+              <View style={styles.personilHeaderRow}>
+                <Ionicons name="people-outline" size={15} color="#2563eb" style={{ marginRight: 4 }} />
+                <Text style={styles.personilTitle}>
+                  DAFTAR PERSONIL ({selectedSt.personil.length})
+                </Text>
+              </View>
+
+              <View style={styles.personilGrid}>
+                {selectedSt.personil.map((p, idx) => (
+                  <View
+                    key={idx}
+                    style={[styles.personilCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}
+                  >
+                    <View style={styles.personilAvatar}>
+                      <Ionicons name="person-outline" size={14} color="#2563eb" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.personilName, { color: colors.textDark }]}>{p.name}</Text>
+                      <Text style={styles.personilNip}>{p.nip}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* 3 Bento Metric Cards (PERIODE, LOKASI, DANA) */}
             <View style={styles.bentoMetricsRow}>
               {/* Metric 1: PERIODE */}
               <View style={[styles.metricCard, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc" }]}>
@@ -294,34 +336,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
               </View>
             </View>
 
-            {/* DAFTAR PERSONIL Presisi Screenshot */}
-            <View style={styles.personilSection}>
-              <View style={styles.personilHeaderRow}>
-                <Ionicons name="people-outline" size={15} color="#2563eb" style={{ marginRight: 4 }} />
-                <Text style={styles.personilTitle}>
-                  DAFTAR PERSONIL ({selectedSt.personil.length})
-                </Text>
-              </View>
-
-              <View style={styles.personilGrid}>
-                {selectedSt.personil.map((p, idx) => (
-                  <View
-                    key={idx}
-                    style={[styles.personilCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}
-                  >
-                    <View style={styles.personilAvatar}>
-                      <Ionicons name="person-outline" size={14} color="#2563eb" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.personilName, { color: colors.textDark }]}>{p.name}</Text>
-                      <Text style={styles.personilNip}>{p.nip}</Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            {/* Dokumen Dasar Surat Card Presisi Screenshot */}
+            {/* Dokumen Dasar Surat Card */}
             <View style={styles.dokumenCard}>
               <View style={styles.dokumenHeaderRow}>
                 <Ionicons name="document-text-outline" size={20} color="#60a5fa" style={{ marginRight: 10 }} />
@@ -333,7 +348,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
               <Text style={styles.dokumenStatusText}>TIDAK ADA LAMPIRAN</Text>
             </View>
 
-            {/* Action Button Group Presisi Screenshot */}
+            {/* Action Button Group */}
             <View style={styles.actionGroup}>
               <TouchableOpacity
                 style={styles.editStBtn}
@@ -535,34 +550,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
 
-  bentoMetricsRow: {
-    gap: 8,
-    marginBottom: 16,
-  },
-  metricCard: {
-    padding: 10,
-    borderRadius: RADIUS.input,
-  },
-  metricLabel: {
-    color: "#94a3b8",
-    fontSize: 8.5,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  metricValue: {
-    fontSize: 11.5,
-    fontWeight: "700",
-    lineHeight: 15,
-  },
-  blueDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#2563eb",
-    marginRight: 6,
-  },
-
   personilSection: {
     marginBottom: 16,
   },
@@ -602,6 +589,34 @@ const styles = StyleSheet.create({
   personilNip: {
     color: "#94a3b8",
     fontSize: 10,
+  },
+
+  bentoMetricsRow: {
+    gap: 8,
+    marginBottom: 16,
+  },
+  metricCard: {
+    padding: 10,
+    borderRadius: RADIUS.input,
+  },
+  metricLabel: {
+    color: "#94a3b8",
+    fontSize: 8.5,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  metricValue: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    lineHeight: 15,
+  },
+  blueDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#2563eb",
+    marginRight: 6,
   },
 
   dokumenCard: {
