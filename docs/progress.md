@@ -1,3 +1,30 @@
+# Progress - Phase 171: Deteksi Otomatis Kota Asal Berdasarkan Satker Pegawai
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`), ST Builder Premium (`frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`), & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Logika Otomatisasi `Kota Asal` Berdasarkan Satker Pegawai yang Dipilih**:
+     - Jika **semua pegawai Balai / TU**: Default `Kota Asal` = **`Samarinda`**
+     - Jika **semua pegawai Seksi 1 (SKW I)**: Default `Kota Asal` = **`Berau`**
+     - Jika **semua pegawai Seksi 2 (SKW II)**: Default `Kota Asal` = **`Tenggarong`**
+     - Jika **semua pegawai Seksi 3 (SKW III)**: Default `Kota Asal` = **`Balikpapan`**
+  2. **Reaktivitas Real-Time**:
+     - Setiap kali daftar pegawai yang dipilih berubah di form Surat Tugas, `Kota Asal` secara otomatis ter-update mengikuti aturan lokasi penempatan satker pegawai tersebut.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 170: Sinkronisasi Detail Kegiatan 100% dengan /kepegawaian/surat-tugas/create
 
 > Document updated: 2026-07-28
