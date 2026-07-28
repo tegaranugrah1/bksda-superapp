@@ -1,3 +1,34 @@
+# Progress - Phase 152: Mobile Application Kepegawaian & SDM Module Screen
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Application Kepegawaian & SDM Module Screen
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Fitur & Layout Utama Berdasarkan screenshot User:
+  1. **Header Modul Kepegawaian & SDM**:
+     - Header top bar dengan ikon badge biru `👥 KEPEGAWAIAN & SDM`, judul **"Daftar Pegawai"**, serta deskripsi *"Kelola informasi personil dan hak akses sistem."*.
+  2. **Baris Kontrol Akses Cepat**:
+     - Input pencarian pegawai `[ 🔍 Cari N... ]`.
+     - Tombol pill soft blue `[ 📥 Inbox Surat Cuti ]`.
+     - Tombol solid hitam `[ + Tambah Pegawai ]` yang membuka Modal Form Tambah Pegawai Baru.
+  3. **Tabel Daftar Pegawai (Presisi Screenshot 1)**:
+     - Header Kolom: `PROFIL PEGAWAI` | `NIP`.
+     - Menampilkan daftar personil resmi (A. Aliah Indah Fitriah, S.Hut., Abdul Farij, Abdurrahman, Achmad Syafey N, Administrator Pusat BKSDA) tersinkronisasi dari API backend `/api/kepegawaian/employees`.
+  4. **Floating Action Button (`FabMenu` ☰)**:
+     - Tombol FAB bundar di pojok kanan bawah yang terhubung langsung ke navigasi modul Kepegawaian & SDM.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 151: Mobile App Empty States 100% Sync with Web Portal
 
 > Document updated: 2026-07-28
