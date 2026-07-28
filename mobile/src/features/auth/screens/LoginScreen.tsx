@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -24,6 +24,9 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const usernameInputRef = useRef<TextInput>(null);
+  const passwordInputRef = useRef<TextInput>(null);
+
   const handleLogin = async () => {
     if (!username.trim()) {
       Alert.alert("Perhatian", "Silakan masukkan NIP atau Username.");
@@ -45,14 +48,16 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Crest Logomark using Official Logo Asset */}
+        {/* Top Crest Logomark */}
         <View style={styles.logoSection}>
           <Image
             source={require("../../../../assets/logo_bksda.png")}
@@ -75,12 +80,17 @@ export default function LoginScreen() {
             </View>
           )}
 
-          {/* Username Input */}
+          {/* Username Input Box (Tap anywhere to focus) */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>NIP / Username</Text>
-            <View style={styles.inputWrapper}>
+            <TouchableOpacity
+              style={styles.inputWrapper}
+              activeOpacity={1}
+              onPress={() => usernameInputRef.current?.focus()}
+            >
               <Ionicons name="person-outline" size={18} color="#64748b" style={styles.inputLeftIcon} />
               <TextInput
+                ref={usernameInputRef}
                 style={styles.input}
                 placeholder="Contoh: 19850412 201012 1 002"
                 placeholderTextColor="#94a3b8"
@@ -90,21 +100,28 @@ export default function LoginScreen() {
                   if (errorMessage) setErrorMessage(null);
                 }}
                 autoCapitalize="none"
+                returnKeyType="next"
+                onSubmitEditing={() => passwordInputRef.current?.focus()}
               />
               {username.length > 0 && (
                 <TouchableOpacity onPress={() => setUsername("")} style={styles.clearBtn}>
                   <Ionicons name="close-circle" size={18} color="#94a3b8" />
                 </TouchableOpacity>
               )}
-            </View>
+            </TouchableOpacity>
           </View>
 
-          {/* Password Input */}
+          {/* Password Input Box (Tap anywhere to focus) */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Kata Sandi</Text>
-            <View style={styles.inputWrapper}>
+            <TouchableOpacity
+              style={styles.inputWrapper}
+              activeOpacity={1}
+              onPress={() => passwordInputRef.current?.focus()}
+            >
               <Ionicons name="lock-closed-outline" size={18} color="#64748b" style={styles.inputLeftIcon} />
               <TextInput
+                ref={passwordInputRef}
                 style={styles.input}
                 placeholder="••••••••••••"
                 placeholderTextColor="#94a3b8"
@@ -114,6 +131,8 @@ export default function LoginScreen() {
                   setPassword(val);
                   if (errorMessage) setErrorMessage(null);
                 }}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
@@ -125,7 +144,7 @@ export default function LoginScreen() {
                   color="#64748b"
                 />
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Submit Login Button */}
@@ -147,7 +166,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </GlassCard>
 
-        {/* Footer info updated to Ministry of Forestry */}
+        {/* Footer Info */}
         <Text style={styles.footerText}>
           Kementerian Kehutanan © 2026
         </Text>
@@ -162,30 +181,32 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bgDark,
   },
   scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
     paddingHorizontal: 24,
-    paddingTop: 54,
+    paddingTop: 36,
     paddingBottom: 40,
     alignItems: "center",
   },
   logoSection: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   logo: {
-    width: 86,
-    height: 86,
-    marginBottom: 12,
+    width: 68,
+    height: 68,
+    marginBottom: 8,
   },
   portalTitle: {
     color: "#0f172a",
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: "800",
     letterSpacing: 0.5,
     textAlign: "center",
   },
   portalSubtitle: {
     color: "#059669",
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: "700",
     letterSpacing: 1,
     textAlign: "center",
@@ -198,14 +219,14 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     color: "#0f172a",
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: "800",
     marginBottom: 4,
   },
   cardSub: {
     color: "#64748b",
-    fontSize: 12.5,
-    marginBottom: 18,
+    fontSize: 12,
+    marginBottom: 16,
   },
   errorAlertBox: {
     flexDirection: "row",
@@ -223,7 +244,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 14,
     width: "100%",
   },
   label: {
@@ -240,7 +261,7 @@ const styles = StyleSheet.create({
     borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 12,
-    height: 46,
+    height: 48,
   },
   inputLeftIcon: {
     marginRight: 10,
@@ -249,9 +270,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#0f172a",
     fontSize: 14,
+    height: "100%",
   },
   clearBtn: {
-    padding: 4,
+    padding: 6,
   },
   submitBtn: {
     marginTop: 8,
@@ -261,7 +283,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 18,
+    marginTop: 16,
     paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: "#f1f5f9",
@@ -275,7 +297,7 @@ const styles = StyleSheet.create({
   footerText: {
     color: "#94a3b8",
     fontSize: 11,
-    marginTop: 24,
+    marginTop: 20,
     textAlign: "center",
   },
 });
