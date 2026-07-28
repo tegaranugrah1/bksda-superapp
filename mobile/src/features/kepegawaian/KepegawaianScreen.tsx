@@ -363,18 +363,6 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
           <Ionicons name="people" size={20} color="#3b82f6" style={{ marginRight: 6 }} />
           <Text style={[styles.headerTitle, { color: colors.textDark }]}>KEPEGAWAIAN & SDM</Text>
         </View>
-
-        <TouchableOpacity
-          style={[styles.headerIconBtn, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "#f1f5f9" }]}
-          activeOpacity={0.7}
-          onPress={toggleTheme}
-        >
-          <Ionicons
-            name={isDark ? "sunny" : "moon-outline"}
-            size={18}
-            color={isDark ? "#f59e0b" : "#64748b"}
-          />
-        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
