@@ -1,3 +1,28 @@
+# Progress - Phase 172: Perbaikan Tampilan Lokasi di Inbox Surat Tugas
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)
+
+### Status: SELESAI
+- Scope: Form Submit Pengajuan (`frontend/src/app/surat-tugas/page.tsx`) & Inbox Page (`frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Pengiriman Field `tempat_tujuan` pada Submit Form Pengajuan**:
+     - Sebelumnya field `tempat_tujuan` belum dimasukkan ke `FormData` saat `handleSubmit`. Sekarang `tempat_tujuan` diisi dengan lokasi spesifik / kota tujuan (`tempatSpesifik || kotaTujuan || kotaAsal`).
+  2. **Smart Fallback Parser Lokasi di Inbox**:
+     - Ditambahkan fungsi `getResolvedTempatTujuan` yang mengekstrak lokasi dari `maksud_tujuan` (kata kunci `" ke "`, `" di "`, atau `" pada "`) jika data lama di Inbox belum memiliki field `tempat_tujuan`.
+     - Hasilnya, data lama seperti *"Perjalanan Dinas dari Berau ke Pulau Semama..."* langsung menampilkan **Lokasi: Pulau Semama** di Inbox!
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 171: Deteksi Otomatis Kota Asal Berdasarkan Satker Pegawai
 
 > Document updated: 2026-07-28
