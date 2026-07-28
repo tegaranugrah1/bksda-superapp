@@ -1,3 +1,31 @@
+# Progress - Phase 148: Mobile Login Screen Branding & Clean Up
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Login Screen Branding & Clean Up
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Pembaruan Utama Berdasarkan Permintaan User:
+  1. **Penggunaan Logo Resmi BKSDA Kaltim**:
+     - Menggantikan logo gambar di [LoginScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/screens/LoginScreen.tsx) dengan aset resmi BKSDA Kaltim (`logo_bksda.png`).
+  2. **Penghapusan Badge SIMONDOK**:
+     - Menghapus badge `"SIMONDOK MOBILE PORTAL"` di bagian header di bawah nama balai.
+  3. **Pembaruan Teks Hak Cipta Footer**:
+     - Mengubah teks footer dari *"Kementerian Lingkungan Hidup dan Kehutanan © 2026"* menjadi **`"Kementerian Kehutanan © 2026"`**.
+  4. **Penghapusan Tombol Isi Akun Test Super Admin**:
+     - Menghapus tombol shortcut *"⚡ Isi Akun Test Super Admin"* agar tampilan form login bersih, profesional, dan siap produksi.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 147: Custom Premium Logout Confirmation Modal & FAB Menu
 
 > Document updated: 2026-07-28
