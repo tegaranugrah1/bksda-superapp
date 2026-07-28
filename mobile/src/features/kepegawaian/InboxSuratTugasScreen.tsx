@@ -37,9 +37,10 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
   onBack,
   onNavigateToModule,
 }) => {
-  const { isDark, toggleTheme, colors } = useTheme();
+  const { isDark, colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("Semua Status");
+  const [selectedSt, setSelectedSt] = useState<SuratTugasItem | null>(null);
 
   const stList: SuratTugasItem[] = [
     {
@@ -64,7 +65,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
       statusColor: "#2563eb",
       date: "16 JUNI 2026",
       periode: "16 Juni 2026 — 18 Juni 2026",
-      title: "Test dinas Ari ke Balikpapan dalam rangka pengawasan kawasan.",
+      title: "Test dinas Ari ke Balikpapan dalam rangka pengawasan kawasan konservasi.",
       location: "Balikpapan",
       dana: "DIPA",
       personil: [{ name: "Ari Susanto, S.Hut.", nip: "NIP. 198502102008011002" }],
@@ -75,17 +76,28 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
       statusColor: "#64748b",
       date: "29 MEI 2026",
       periode: "29 Mei 2026 — 31 Mei 2026",
-      title: "Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi...",
+      title: "Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Wilayah I...",
       location: "Kepala Seksi Konservasi Wilayah I",
       dana: "DIPA",
       personil: [{ name: "Budi Santoso, S.Hut.", nip: "NIP. 198001012005011001" }],
     },
+    {
+      id: "4",
+      status: "DRAFT",
+      statusColor: "#64748b",
+      date: "28 MEI 2026",
+      periode: "28 Mei 2026 — 30 Mei 2026",
+      title: "Perjalanan Dinas dari Samarinda dan Tanjung Redeb ke TWA Pulau Sangalaki dan Tarakan...",
+      location: "TWA Pulau Sangalaki",
+      dana: "DIPA",
+      personil: [{ name: "Ahmad Ripai, S.Hut.", nip: "NIP. 198004122000121003" }],
+    },
   ];
 
-  const [selectedSt, setSelectedSt] = useState<SuratTugasItem>(stList[0]);
-
   const handleGoBack = () => {
-    if (onBack) {
+    if (selectedSt !== null) {
+      setSelectedSt(null);
+    } else if (onBack) {
       onBack();
     } else if (navigation) {
       navigation.navigate("Kepegawaian");
@@ -123,7 +135,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
-      {/* Header Bar Presisi Screenshot 2 */}
+      {/* Top Header Bar */}
       <View
         style={[
           styles.header,
@@ -144,87 +156,109 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
             <Ionicons name="business" size={13} color="#2563eb" style={{ marginRight: 4 }} />
             <Text style={styles.headerBadgeText}>KEPEGAWAIAN & SDM</Text>
           </View>
-          <Text style={[styles.headerTitle, { color: colors.textDark }]}>Inbox Surat Tugas</Text>
+          <Text style={[styles.headerTitle, { color: colors.textDark }]}>
+            {selectedSt ? "Detail Surat Tugas" : "Inbox Surat Tugas"}
+          </Text>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Controls Search & Filter Row */}
-        <View style={styles.controlsRow}>
-          <View style={[styles.searchBox, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-            <Ionicons name="search-outline" size={16} color="#94a3b8" style={{ marginRight: 6 }} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.textDark }]}
-              placeholder="Cari kegiatan atau nama..."
-              placeholderTextColor="#94a3b8"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
+        {/* VIEW 1: LIST MODE (Default List View Presisi Target User) */}
+        {!selectedSt ? (
+          <>
+            {/* Controls Search & Filter Row */}
+            <View style={styles.controlsRow}>
+              <View style={[styles.searchBox, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+                <Ionicons name="search-outline" size={16} color="#94a3b8" style={{ marginRight: 6 }} />
+                <TextInput
+                  style={[styles.searchInput, { color: colors.textDark }]}
+                  placeholder="Cari kegiatan atau nama..."
+                  placeholderTextColor="#94a3b8"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
 
-          <TouchableOpacity
-            style={[styles.filterBtn, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}
-            onPress={() =>
-              Alert.alert("Filter Status", "Pilih status pengajuan:", [
-                { text: "Semua Status", onPress: () => setSelectedStatusFilter("Semua Status") },
-                { text: "DRAFT", onPress: () => setSelectedStatusFilter("DRAFT") },
-                { text: "DITERBITKAN", onPress: () => setSelectedStatusFilter("DITERBITKAN") },
-                { text: "Batal", style: "cancel" },
-              ])
-            }
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.filterBtnText, { color: colors.textDark }]}>
-              {selectedStatusFilter}
-            </Text>
-            <Ionicons name="chevron-down" size={14} color="#64748b" />
-          </TouchableOpacity>
-        </View>
-
-        {/* ST Cards Horizontal Carousel / Selection List */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardsScroll}>
-          {filteredStList.map((item) => {
-            const isSelected = item.id === selectedSt.id;
-            return (
               <TouchableOpacity
-                key={item.id}
-                style={[
-                  styles.stCardItem,
-                  { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
-                  isSelected && styles.stCardItemSelected,
-                ]}
-                onPress={() => setSelectedSt(item)}
+                style={[styles.filterBtn, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}
+                onPress={() =>
+                  Alert.alert("Filter Status", "Pilih status pengajuan:", [
+                    { text: "Semua Status", onPress: () => setSelectedStatusFilter("Semua Status") },
+                    { text: "DRAFT", onPress: () => setSelectedStatusFilter("DRAFT") },
+                    { text: "DITERBITKAN", onPress: () => setSelectedStatusFilter("DITERBITKAN") },
+                    { text: "Batal", style: "cancel" },
+                  ])
+                }
                 activeOpacity={0.8}
               >
-                <View style={styles.stCardHeaderRow}>
-                  <View style={[styles.statusBadge, { backgroundColor: `${item.statusColor}15` }]}>
-                    <Text style={[styles.statusBadgeText, { color: item.statusColor }]}>
-                      {item.status}
-                    </Text>
-                  </View>
-                  <Text style={styles.stCardDate}>{item.date}</Text>
-                </View>
-
-                <Text style={[styles.stCardTitle, { color: colors.textDark }]} numberOfLines={2}>
-                  {item.title}
+                <Text style={[styles.filterBtnText, { color: colors.textDark }]}>
+                  {selectedStatusFilter}
                 </Text>
-                <Text style={styles.stCardLocation} numberOfLines={1}>
-                  📍 {item.location}
-                </Text>
+                <Ionicons name="chevron-down" size={14} color="#64748b" />
               </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+            </View>
 
-        {/* Selected ST Detail Card View Presisi Screenshot 2 */}
-        {selectedSt && (
+            {/* Vertical List of Surat Tugas Cards */}
+            <View style={styles.verticalListContainer}>
+              {filteredStList.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.verticalStCard,
+                    { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
+                  ]}
+                  onPress={() => setSelectedSt(item)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.cardHeaderRow}>
+                    <View style={[styles.statusBadge, { backgroundColor: `${item.statusColor}15` }]}>
+                      <Text style={[styles.statusBadgeText, { color: item.statusColor }]}>
+                        {item.status}
+                      </Text>
+                    </View>
+                    <Text style={styles.cardDateText}>{item.date}</Text>
+                  </View>
+
+                  <Text style={[styles.cardTitleText, { color: colors.textDark }]} numberOfLines={2}>
+                    {item.title}
+                  </Text>
+
+                  <View style={styles.cardFooterRow}>
+                    <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                      <Ionicons name="location-outline" size={13} color="#2563eb" style={{ marginRight: 4 }} />
+                      <Text style={styles.cardLocationText} numberOfLines={1}>
+                        {item.location}
+                      </Text>
+                    </View>
+
+                    <View style={styles.viewDetailBadge}>
+                      <Text style={styles.viewDetailText}>Detail</Text>
+                      <Ionicons name="chevron-forward" size={12} color="#2563eb" />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        ) : (
+          /* VIEW 2: DETAIL MODE (Opens when tapping a card) */
           <GlassCard style={[styles.detailCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+            {/* Top Back Button to List View */}
+            <TouchableOpacity
+              style={styles.backToListBtn}
+              onPress={() => setSelectedSt(null)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={16} color="#2563eb" style={{ marginRight: 4 }} />
+              <Text style={styles.backToListText}>Kembali ke Daftar Inbox</Text>
+            </TouchableOpacity>
+
             {/* Full Title / Activity Description */}
             <Text style={[styles.detailFullTitle, { color: colors.textDark }]}>
               {selectedSt.title}
             </Text>
 
-            {/* 3 Bento Metric Cards Presisi Screenshot 2 */}
+            {/* 3 Bento Metric Cards Presisi Screenshot */}
             <View style={styles.bentoMetricsRow}>
               {/* Metric 1: PERIODE */}
               <View style={[styles.metricCard, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc" }]}>
@@ -260,7 +294,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
               </View>
             </View>
 
-            {/* DAFTAR PERSONIL Presisi Screenshot 2 */}
+            {/* DAFTAR PERSONIL Presisi Screenshot */}
             <View style={styles.personilSection}>
               <View style={styles.personilHeaderRow}>
                 <Ionicons name="people-outline" size={15} color="#2563eb" style={{ marginRight: 4 }} />
@@ -287,7 +321,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
               </View>
             </View>
 
-            {/* Dokumen Dasar Surat Card Presisi Screenshot 2 */}
+            {/* Dokumen Dasar Surat Card Presisi Screenshot */}
             <View style={styles.dokumenCard}>
               <View style={styles.dokumenHeaderRow}>
                 <Ionicons name="document-text-outline" size={20} color="#60a5fa" style={{ marginRight: 10 }} />
@@ -299,7 +333,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
               <Text style={styles.dokumenStatusText}>TIDAK ADA LAMPIRAN</Text>
             </View>
 
-            {/* Action Button Group Presisi Screenshot 2 */}
+            {/* Action Button Group Presisi Screenshot */}
             <View style={styles.actionGroup}>
               <TouchableOpacity
                 style={styles.editStBtn}
@@ -372,13 +406,6 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: -0.3,
   },
-  headerIconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -387,7 +414,7 @@ const styles = StyleSheet.create({
   controlsRow: {
     flexDirection: "row",
     gap: 8,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   searchBox: {
     flex: 1,
@@ -416,54 +443,90 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  cardsScroll: {
-    marginBottom: 14,
+  /* Vertical List of ST Cards */
+  verticalListContainer: {
+    gap: 12,
   },
-  stCardItem: {
-    width: 220,
-    borderRadius: 16,
+  verticalStCard: {
+    borderRadius: 18,
     borderWidth: 1,
-    padding: 12,
-    marginRight: 10,
+    padding: 14,
   },
-  stCardItemSelected: {
-    borderColor: "#2563eb",
-    backgroundColor: "#eff6ff",
-  },
-  stCardHeaderRow: {
+  cardHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   statusBadge: {
-    paddingVertical: 2,
-    paddingHorizontal: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
     borderRadius: RADIUS.pill,
   },
   statusBadgeText: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "800",
   },
-  stCardDate: {
+  cardDateText: {
     color: "#94a3b8",
-    fontSize: 9.5,
-    fontWeight: "700",
-  },
-  stCardTitle: {
-    fontSize: 11.5,
-    fontWeight: "700",
-    lineHeight: 15,
-    marginBottom: 4,
-  },
-  stCardLocation: {
-    color: "#64748b",
     fontSize: 10,
+    fontWeight: "700",
+  },
+  cardTitleText: {
+    fontSize: 13,
+    fontWeight: "800",
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  cardFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+  },
+  cardLocationText: {
+    color: "#64748b",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  viewDetailBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eff6ff",
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: RADIUS.pill,
+  },
+  viewDetailText: {
+    color: "#2563eb",
+    fontSize: 11,
+    fontWeight: "800",
+    marginRight: 2,
   },
 
+  /* Detail Card View */
   detailCard: {
     padding: 18,
     borderRadius: 22,
+  },
+  backToListBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.pill,
+    marginBottom: 14,
+  },
+  backToListText: {
+    color: "#2563eb",
+    fontSize: 11.5,
+    fontWeight: "800",
   },
   detailFullTitle: {
     fontSize: 13.5,
