@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Image,
   Modal,
   Alert,
 } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { COLORS, RADIUS, SHADOWS } from "../../theme";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
@@ -39,7 +39,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
       category: "Elektronik",
       status: "Tersedia",
       statusColor: COLORS.statusAvailable,
-      image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400",
+      iconName: "laptop-outline",
     },
     {
       id: "2",
@@ -50,7 +50,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
       status: "Dipinjam",
       statusColor: COLORS.statusPending,
       borrower: "Hendra (Urusan Teknis)",
-      image: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=400",
+      iconName: "navigate-outline",
     },
     {
       id: "3",
@@ -60,7 +60,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
       category: "Elektronik",
       status: "Tersedia",
       statusColor: COLORS.statusAvailable,
-      image: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=400",
+      iconName: "airplane-outline",
     },
   ];
 
@@ -102,11 +102,11 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Text style={styles.backIcon}>←</Text>
+            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerIcon}>🚗</Text>
+          <Ionicons name="car-sport-sharp" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Katalog Aset BMN</Text>
         </View>
         <View style={styles.countBadge}>
@@ -117,7 +117,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchBarContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search-outline" size={18} color={COLORS.textMint} style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Cari Nama Aset, NUP, atau Plat Nomor..."
@@ -127,7 +127,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Text style={styles.clearSearchText}>✕</Text>
+              <Ionicons name="close-circle" size={18} color={COLORS.textMint} style={{ opacity: 0.6 }} />
             </TouchableOpacity>
           )}
         </View>
@@ -154,7 +154,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
         <GlassCard style={styles.featuredCard} highlighted>
           <View style={styles.featuredTagRow}>
             <View style={styles.statusBadgeWarning}>
-              <Text style={styles.statusDotWarning}>⏱️</Text>
+              <Ionicons name="time-outline" size={13} color={COLORS.statusPending} style={{ marginRight: 4 }} />
               <Text style={styles.statusTextWarning}>Dipinjam (Sisa 3 Hari)</Text>
             </View>
           </View>
@@ -178,7 +178,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
           </View>
 
           <View style={styles.borrowerCard}>
-            <Text style={styles.borrowerAvatar}>👤</Text>
+            <Ionicons name="person-circle-outline" size={24} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
             <View style={styles.borrowerInfo}>
               <Text style={styles.borrowerName}>Dipinjam oleh Subagja</Text>
               <Text style={styles.borrowerRole}>Ka Sub Bag TU (Operasional Patroli)</Text>
@@ -187,12 +187,12 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
 
           <View style={styles.actionBtnRow}>
             <EmeraldButton
-              title="📷 Scan QR Aset"
+              title="Scan QR Aset"
               onPress={() => Alert.alert("QR Scanner", "Pemindai Kamera QR Code BMN aktif!")}
               style={styles.actionBtnFlex}
             />
             <EmeraldButton
-              title="📄 Surat Kuasa PDF"
+              title="Surat Kuasa PDF"
               variant="outline"
               onPress={() => Alert.alert("PDF Document", "Mengunduh Surat Kuasa Penggunaan Kendaraan Dinas...")}
               style={styles.actionBtnFlex}
@@ -206,6 +206,10 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
         <View style={styles.assetList}>
           {filteredAssets.map((asset) => (
             <GlassCard key={asset.id} style={styles.assetCard}>
+              <View style={styles.assetIconBg}>
+                <Ionicons name={asset.iconName as any} size={20} color={COLORS.emeraldElectric} />
+              </View>
+
               <View style={styles.assetMain}>
                 <Text style={styles.assetTitle}>{asset.name}</Text>
                 <Text style={styles.assetMeta}>
@@ -227,7 +231,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
                     style={styles.loanQuickBtn}
                     onPress={() => handleOpenLoanModal(asset)}
                   >
-                    <Text style={styles.loanQuickText}>Pinjam ➔</Text>
+                    <Text style={styles.loanQuickText}>Pinjam ›</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -242,7 +246,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
         onPress={() => handleOpenLoanModal()}
         activeOpacity={0.8}
       >
-        <Text style={styles.fabIcon}>+</Text>
+        <Ionicons name="add" size={32} color={COLORS.textDark} />
       </TouchableOpacity>
 
       {/* Loan Request Modal */}
@@ -252,7 +256,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Form Peminjaman BMN</Text>
               <TouchableOpacity onPress={() => setLoanModalVisible(false)}>
-                <Text style={styles.closeText}>✕</Text>
+                <Ionicons name="close" size={20} color={COLORS.textMint} />
               </TouchableOpacity>
             </View>
 
@@ -316,18 +320,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
     padding: 4,
   },
-  backIcon: {
-    color: COLORS.textWhite,
-    fontSize: 20,
-  },
   headerTitleRow: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-  },
-  headerIcon: {
-    fontSize: 20,
-    marginRight: 8,
   },
   headerTitle: {
     color: COLORS.textWhite,
@@ -350,7 +346,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 90,
+    paddingBottom: 40,
   },
   searchBarContainer: {
     flexDirection: "row",
@@ -363,19 +359,10 @@ const styles = StyleSheet.create({
     height: 46,
     marginBottom: 14,
   },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 10,
-  },
   searchInput: {
     flex: 1,
     color: COLORS.textWhite,
     fontSize: 14,
-  },
-  clearSearchText: {
-    color: COLORS.textMint,
-    fontSize: 14,
-    opacity: 0.6,
   },
   filterScroll: {
     marginBottom: 16,
@@ -419,10 +406,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: RADIUS.pill,
-  },
-  statusDotWarning: {
-    fontSize: 12,
-    marginRight: 4,
   },
   statusTextWarning: {
     color: COLORS.statusPending,
@@ -474,10 +457,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 16,
   },
-  borrowerAvatar: {
-    fontSize: 20,
-    marginRight: 10,
-  },
   borrowerInfo: {
     flex: 1,
   },
@@ -511,6 +490,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
+  },
+  assetIconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
   assetMain: {
     flex: 1,
@@ -567,12 +555,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  fabIcon: {
-    color: COLORS.textDark,
-    fontSize: 32,
-    fontWeight: "300",
-    marginTop: -2,
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.75)",
@@ -592,11 +574,6 @@ const styles = StyleSheet.create({
     color: COLORS.textWhite,
     fontSize: 18,
     fontWeight: "700",
-  },
-  closeText: {
-    color: COLORS.textMint,
-    fontSize: 18,
-    padding: 4,
   },
   modalSub: {
     color: COLORS.textMint,
