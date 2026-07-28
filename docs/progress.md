@@ -1,3 +1,28 @@
+# Progress - Phase 164: Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Penataan Ulang Urutan Tampilan Detail Surat Tugas**:
+     - Mengubah posisi seksion **`DAFTAR PERSONIL`** pada [InboxSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx) agar berada tepat **di atas kartu metrik `LOKASI` & `PERIODE`**.
+  2. **Penanganan Gestur Swipe Back / Hardware Back Press pada HP**:
+     - Menambahkan listener `BackHandler` ketika `selectedSt !== null` (sedang membuka detail Surat Tugas).
+     - Saat pengguna melakukan **swipe back pada layar HP** atau mengeklik tombol `←`, aplikasi secara mulus **kembali ke Daftar Inbox Surat Tugas (List View)** dan tidak langsung melompat keluar ke Portal Dashboard.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 163: Inbox Surat Tugas Alur Master-Detail Mobile
 
 > Document updated: 2026-07-28
