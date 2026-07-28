@@ -374,63 +374,109 @@ export default function SuratTugasForm() {
                             </select>
                         </div>
 
-                        {/* 2 Split Columns: Asal & Tujuan */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Kota Asal <span className="text-red-500">*</span>
-                                </label>
-                                <input 
-                                    type="text" required
-                                    value={kotaAsal}
-                                    onChange={e => setKotaAsal(e.target.value)}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
-                                    placeholder="Samarinda"
-                                />
+                        {jenisTugas === 'Perjalanan Dinas' ? (
+                            <div className="space-y-4 pt-1 animate-in fade-in duration-300">
+                                {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Dari ( Kota / Lokasi Asal ) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" required
+                                            value={kotaAsal}
+                                            onChange={e => setKotaAsal(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Samarinda"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Ke ( Kota / Kabupaten Tujuan ) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" required
+                                            value={kotaTujuan}
+                                            onChange={e => setKotaTujuan(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Kabupaten Kutai Barat"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Dalam Rangka <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        required
+                                        rows={2}
+                                        value={namaKegiatanText}
+                                        onChange={e => setNamaKegiatanText(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
+                                        placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati..."
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Di ( Tempat Spesifik / Opsional )
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={tempatSpesifik}
+                                        onChange={e => setTempatSpesifik(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                        placeholder="Contoh: Suaka Margasatwa Kelian"
+                                    />
+                                </div>
                             </div>
+                        ) : (
+                            <div className="space-y-4 pt-1 animate-in fade-in duration-300">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        {jenisTugas === 'Melaksanakan Tugas' ? 'Melaksanakan Tugas / Kegiatan' : 'Menugaskan Staf'} <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        required
+                                        rows={2}
+                                        value={namaKegiatanText}
+                                        onChange={e => setNamaKegiatanText(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
+                                        placeholder={jenisTugas === 'Melaksanakan Tugas' ? 'Contoh: opname fisik (stok opname) barang persediaan' : 'Contoh: verifikasi berkas administrasi persediaan'}
+                                    />
+                                </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Kota / Kabupaten Tujuan <span className="text-red-500">*</span>
-                                </label>
-                                <input 
-                                    type="text" required
-                                    value={kotaTujuan}
-                                    onChange={e => setKotaTujuan(e.target.value)}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
-                                    placeholder="Tujuan"
-                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Pada ( Tempat / Unit / Lokasi Kegiatan )
+                                        </label>
+                                        <input 
+                                            type="text"
+                                            value={tempatSpesifik}
+                                            onChange={e => setTempatSpesifik(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Kantor Balai / tempat kegiatannya"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Di ( Kota / Kabupaten ) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" required
+                                            value={kotaTujuan}
+                                            onChange={e => setKotaTujuan(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Samarinda"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        {/* Kegiatan... */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Nama Kegiatan <span className="text-red-500">*</span>
-                            </label>
-                            <textarea
-                                required
-                                rows={2}
-                                value={namaKegiatanText}
-                                onChange={e => setNamaKegiatanText(e.target.value)}
-                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
-                                placeholder="Kegiatan..."
-                            />
-                        </div>
-
-                        {/* Tempat Spesifik */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                Tempat Spesifik / Pada
-                            </label>
-                            <input 
-                                type="text"
-                                value={tempatSpesifik}
-                                onChange={e => setTempatSpesifik(e.target.value)}
-                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
-                                placeholder="Tempat Spesifik"
-                            />
-                        </div>
+                        )}
 
                         {/* Live Generated Preview Box */}
                         <div className="mt-3 p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-blue-900">
@@ -439,7 +485,7 @@ export default function SuratTugasForm() {
                             </span>
                             <p className="text-xs font-bold leading-relaxed">
                                 {jenisTugas === 'Perjalanan Dinas'
-                                    ? `Perjalanan Dinas dari ${kotaAsal || '...'} ke ${kotaTujuan || '...'}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ''}${tempatSpesifik ? ` di ${tempatSpesifik}` : ''}`
+                                    ? `Melaksanakan Perjalanan Dinas dari ${kotaAsal || '...'} ke ${kotaTujuan || '...'}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ''}${tempatSpesifik ? ` di ${tempatSpesifik}` : ''}`
                                     : jenisTugas === 'Melaksanakan Tugas'
                                     ? `Melaksanakan Tugas ${namaKegiatanText || '...'}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ''}${kotaTujuan ? ` di ${kotaTujuan}` : ''}`
                                     : `Menugaskan Staf ${namaKegiatanText || '...'}${tempatSpesifik ? ` di ${tempatSpesifik}` : ''}${kotaTujuan ? ` di ${kotaTujuan}` : ''}`

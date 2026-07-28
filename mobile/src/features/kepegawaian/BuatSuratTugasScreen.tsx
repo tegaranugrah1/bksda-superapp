@@ -529,62 +529,106 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               ))}
             </View>
 
-            {/* 2 Split Columns: Asal & Tujuan */}
-            <View style={styles.rowTwoInputs}>
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>
-                  KOTA ASAL <Text style={{ color: "#ef4444" }}>*</Text>
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                  placeholder="Samarinda"
-                  placeholderTextColor="#94a3b8"
-                  value={kotaAsal}
-                  onChangeText={setKotaAsal}
-                />
+            {/* Builder Inputs Presisi User Directive */}
+            {jenisTugas === "Perjalanan Dinas" ? (
+              <View style={{ marginBottom: 14 }}>
+                {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
+                <View style={styles.rowTwoInputs}>
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.label}>
+                      DARI ( ASAL ) <Text style={{ color: "#ef4444" }}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                      placeholder="Samarinda"
+                      placeholderTextColor="#94a3b8"
+                      value={kotaAsal}
+                      onChangeText={setKotaAsal}
+                    />
+                  </View>
+
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.label}>
+                      KE ( TUJUAN ) <Text style={{ color: "#ef4444" }}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                      placeholder="Kabupaten Kutai Barat"
+                      placeholderTextColor="#94a3b8"
+                      value={kotaTujuan}
+                      onChangeText={setKotaTujuan}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    DALAM RANGKA <Text style={{ color: "#ef4444" }}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    placeholder="Kegiatan Inventarisasi dan Verifikasi Keanekaragaman..."
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    numberOfLines={2}
+                    value={namaKegiatanText}
+                    onChangeText={setNamaKegiatanText}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>DI ( TEMPAT SPESIFIK / OPSIONAL )</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    placeholder="Suaka Margasatwa Kelian"
+                    placeholderTextColor="#94a3b8"
+                    value={tempatSpesifik}
+                    onChangeText={setTempatSpesifik}
+                  />
+                </View>
               </View>
+            ) : (
+              <View style={{ marginBottom: 14 }}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    {jenisTugas === "Melaksanakan Tugas" ? "MELAKSANAKAN TUGAS / KEGIATAN" : "MENUGASKAN STAF"} <Text style={{ color: "#ef4444" }}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    placeholder={jenisTugas === "Melaksanakan Tugas" ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"}
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    numberOfLines={2}
+                    value={namaKegiatanText}
+                    onChangeText={setNamaKegiatanText}
+                  />
+                </View>
 
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>
-                  KOTA / TUJUAN <Text style={{ color: "#ef4444" }}>*</Text>
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                  placeholder="Tujuan"
-                  placeholderTextColor="#94a3b8"
-                  value={kotaTujuan}
-                  onChangeText={setKotaTujuan}
-                />
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>PADA ( TEMPAT / UNIT / LOKASI KEGIATAN )</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    placeholder="Kantor Balai / tempat kegiatannya"
+                    placeholderTextColor="#94a3b8"
+                    value={tempatSpesifik}
+                    onChangeText={setTempatSpesifik}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    DI ( KOTA / KABUPATEN ) <Text style={{ color: "#ef4444" }}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    placeholder="Samarinda"
+                    placeholderTextColor="#94a3b8"
+                    value={kotaTujuan}
+                    onChangeText={setKotaTujuan}
+                  />
+                </View>
               </View>
-            </View>
-
-            {/* Kegiatan... */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                NAMA KEGIATAN <Text style={{ color: "#ef4444" }}>*</Text>
-              </Text>
-              <TextInput
-                style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                placeholder="Kegiatan..."
-                placeholderTextColor="#94a3b8"
-                multiline
-                numberOfLines={2}
-                value={namaKegiatanText}
-                onChangeText={setNamaKegiatanText}
-              />
-            </View>
-
-            {/* Tempat Spesifik */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>TEMPAT SPESIFIK / PADA</Text>
-              <TextInput
-                style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                placeholder="Tempat Spesifik"
-                placeholderTextColor="#94a3b8"
-                value={tempatSpesifik}
-                onChangeText={setTempatSpesifik}
-              />
-            </View>
+            )}
 
             {/* Preview Box Teks Resmi */}
             <View style={styles.plhAlertCard}>
