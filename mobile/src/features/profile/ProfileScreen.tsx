@@ -9,9 +9,9 @@ import {
   Alert,
   Switch,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
 import { GlassCard } from "../../components/ui/GlassCard";
-import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { useAuth } from "../auth/AuthProvider";
 
 interface ProfileScreenProps {
@@ -54,11 +54,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Text style={styles.backIcon}>←</Text>
+            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerIcon}>👤</Text>
+          <Ionicons name="person-sharp" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Profil & Pengaturan</Text>
         </View>
       </View>
@@ -80,7 +80,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
           <Text style={styles.profileNip}>NIP. {officerNip}</Text>
 
           <View style={styles.superAdminTag}>
-            <Text style={styles.superAdminTagText}>⭐ Super Admin / Full Access</Text>
+            <Ionicons name="star" size={12} color={COLORS.emeraldElectric} style={{ marginRight: 4 }} />
+            <Text style={styles.superAdminTagText}>Super Admin / Full Access</Text>
           </View>
 
           <View style={styles.profileBtnRow}>
@@ -88,13 +89,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
               style={styles.profileActionBtn}
               onPress={() => Alert.alert("Edit Profil", "Fitur ubah data biodata pegawai.")}
             >
-              <Text style={styles.profileActionText}>✏️ Edit Profil</Text>
+              <Ionicons name="pencil" size={14} color={COLORS.textMint} style={{ marginRight: 4 }} />
+              <Text style={styles.profileActionText}>Edit Profil</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.profileActionBtn}
               onPress={() => Alert.alert("ID Card Digital", "Kartu Tanda Anggota Digital BKSDA Kaltim.")}
             >
-              <Text style={styles.profileActionText}>🪪 Kartu Pegawai</Text>
+              <Ionicons name="card-outline" size={14} color={COLORS.textMint} style={{ marginRight: 4 }} />
+              <Text style={styles.profileActionText}>Kartu Pegawai</Text>
             </TouchableOpacity>
           </View>
         </GlassCard>
@@ -102,7 +105,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
         {/* Module Access Permissions Card */}
         <GlassCard style={styles.sectionCard}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardHeaderIcon}>🔑</Text>
+            <Ionicons name="key-outline" size={18} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
             <Text style={styles.cardHeaderTitle}>Hak Akses Modul Aktif</Text>
           </View>
 
@@ -127,7 +130,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
         {/* Account Options & Security */}
         <GlassCard style={styles.sectionCard}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardHeaderIcon}>⚙️</Text>
+            <Ionicons name="settings-outline" size={18} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
             <Text style={styles.cardHeaderTitle}>Pengaturan & Keamanan</Text>
           </View>
 
@@ -136,43 +139,43 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
               style={styles.menuItem}
               onPress={() => Alert.alert("Keamanan", "Fitur Ubah Password & PIN Biometrik.")}
             >
-              <Text style={styles.menuIcon}>🔒</Text>
+              <Ionicons name="lock-closed-outline" size={16} color={COLORS.textMint} style={styles.menuIcon} />
               <Text style={styles.menuTitle}>Keamanan & Ubah Password</Text>
-              <Text style={styles.menuArrow}>›</Text>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => Alert.alert("Surat Kuasa", "Riwayat Surat Kuasa Penggunaan Kendaraan.")}
             >
-              <Text style={styles.menuIcon}>📜</Text>
+              <Ionicons name="document-attach-outline" size={16} color={COLORS.textMint} style={styles.menuIcon} />
               <Text style={styles.menuTitle}>Riwayat Surat Kuasa Kendaraan</Text>
-              <Text style={styles.menuArrow}>›</Text>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => Alert.alert("Notifikasi", "Pengaturan Push Notification Disposisi.")}
             >
-              <Text style={styles.menuIcon}>🔔</Text>
+              <Ionicons name="notifications-outline" size={16} color={COLORS.textMint} style={styles.menuIcon} />
               <Text style={styles.menuTitle}>Notifikasi Disposisi & Surat</Text>
-              <Text style={styles.menuArrow}>›</Text>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => Alert.alert("SIMONDOK", "Panduan Penggunaan SIMONDOK & BKSDA Superapp.")}
             >
-              <Text style={styles.menuIcon}>📖</Text>
+              <Ionicons name="book-outline" size={16} color={COLORS.textMint} style={styles.menuIcon} />
               <Text style={styles.menuTitle}>Panduan SIMONDOK Guide</Text>
-              <Text style={styles.menuArrow}>›</Text>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
           </View>
         </GlassCard>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
-          <Text style={styles.logoutIcon}>🚪</Text>
+          <Ionicons name="log-out-outline" size={18} color="#ef4444" style={{ marginRight: 8 }} />
           <Text style={styles.logoutText}>KELUAR DARI APLIKASI</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -200,18 +203,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
     padding: 4,
   },
-  backIcon: {
-    color: COLORS.textWhite,
-    fontSize: 20,
-  },
   headerTitleRow: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-  },
-  headerIcon: {
-    fontSize: 20,
-    marginRight: 8,
   },
   headerTitle: {
     color: COLORS.textWhite,
@@ -221,7 +216,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 60,
+    paddingBottom: 40,
   },
   profileCard: {
     alignItems: "center",
@@ -273,6 +268,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   superAdminTag: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "rgba(16, 185, 129, 0.15)",
     borderWidth: 1,
     borderColor: "rgba(16, 185, 129, 0.3)",
@@ -293,12 +290,14 @@ const styles = StyleSheet.create({
   },
   profileActionBtn: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "rgba(6, 26, 18, 0.7)",
     borderWidth: 1,
     borderColor: COLORS.glassBorder,
     borderRadius: RADIUS.button,
     paddingVertical: 10,
-    alignItems: "center",
   },
   profileActionText: {
     color: COLORS.textMint,
@@ -316,10 +315,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.glassBorder,
     paddingBottom: 10,
-  },
-  cardHeaderIcon: {
-    fontSize: 18,
-    marginRight: 8,
   },
   cardHeaderTitle: {
     color: COLORS.textMint,
@@ -358,7 +353,6 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(255, 255, 255, 0.05)",
   },
   menuIcon: {
-    fontSize: 16,
     marginRight: 12,
   },
   menuTitle: {
@@ -366,10 +360,6 @@ const styles = StyleSheet.create({
     color: COLORS.textWhite,
     fontSize: 13.5,
     fontWeight: "500",
-  },
-  menuArrow: {
-    color: COLORS.textMuted,
-    fontSize: 18,
   },
   logoutBtn: {
     flexDirection: "row",
@@ -381,10 +371,6 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.button,
     paddingVertical: 14,
     marginTop: 10,
-  },
-  logoutIcon: {
-    fontSize: 16,
-    marginRight: 8,
   },
   logoutText: {
     color: "#ef4444",

@@ -9,7 +9,8 @@ import {
   Modal,
   Alert,
 } from "react-native";
-import { COLORS, RADIUS, SHADOWS } from "../../theme";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS, RADIUS } from "../../theme";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
 
@@ -38,6 +39,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
       unit: "Unit",
       status: "Tersedia",
       statusColor: COLORS.statusAvailable,
+      iconName: "bonfire-outline",
     },
     {
       id: "2",
@@ -48,6 +50,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
       unit: "Paket",
       status: "Stok Tipis",
       statusColor: COLORS.statusPending,
+      iconName: "medical-outline",
     },
     {
       id: "3",
@@ -58,6 +61,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
       unit: "Rim",
       status: "Tersedia",
       statusColor: COLORS.statusAvailable,
+      iconName: "document-text-outline",
     },
     {
       id: "4",
@@ -68,6 +72,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
       unit: "Unit",
       status: "Tersedia",
       statusColor: COLORS.statusAvailable,
+      iconName: "compass-outline",
     },
   ];
 
@@ -111,11 +116,11 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Text style={styles.backIcon}>←</Text>
+            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerIcon}>📦</Text>
+          <Ionicons name="cube-sharp" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Stok Inventaris</Text>
         </View>
         <View style={styles.countBadge}>
@@ -126,7 +131,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchBarContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search-outline" size={18} color={COLORS.textMint} style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Cari Nama Barang, Kode, atau Kategori..."
@@ -136,7 +141,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Text style={styles.clearSearchText}>✕</Text>
+              <Ionicons name="close-circle" size={18} color={COLORS.textMint} style={{ opacity: 0.6 }} />
             </TouchableOpacity>
           )}
         </View>
@@ -163,6 +168,10 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
         <View style={styles.itemList}>
           {filteredItems.map((item) => (
             <GlassCard key={item.id} style={styles.itemCard} highlighted={item.status === "Stok Tipis"}>
+              <View style={styles.itemIconBg}>
+                <Ionicons name={item.iconName as any} size={22} color={COLORS.emeraldElectric} />
+              </View>
+
               <View style={styles.itemMain}>
                 <Text style={styles.itemTitle}>{item.name}</Text>
                 <Text style={styles.itemCode}>
@@ -181,14 +190,14 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
                   style={styles.actionOutBtn}
                   onPress={() => handleOpenTransaction(item, "out")}
                 >
-                  <Text style={styles.actionOutText}>📤 Keluar</Text>
+                  <Text style={styles.actionOutText}>Stok Keluar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.actionInBtn}
                   onPress={() => handleOpenTransaction(item, "in")}
                 >
-                  <Text style={styles.actionInText}>📥 Masuk</Text>
+                  <Text style={styles.actionInText}>Tambah Stok</Text>
                 </TouchableOpacity>
               </View>
             </GlassCard>
@@ -205,7 +214,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
                 {transType === "out" ? "Catat Stok Keluar" : "Tambah Stok Masuk"}
               </Text>
               <TouchableOpacity onPress={() => setTransModalVisible(false)}>
-                <Text style={styles.closeText}>✕</Text>
+                <Ionicons name="close" size={20} color={COLORS.textMint} />
               </TouchableOpacity>
             </View>
 
@@ -267,18 +276,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
     padding: 4,
   },
-  backIcon: {
-    color: COLORS.textWhite,
-    fontSize: 20,
-  },
   headerTitleRow: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-  },
-  headerIcon: {
-    fontSize: 20,
-    marginRight: 8,
   },
   headerTitle: {
     color: COLORS.textWhite,
@@ -314,19 +315,10 @@ const styles = StyleSheet.create({
     height: 46,
     marginBottom: 14,
   },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 10,
-  },
   searchInput: {
     flex: 1,
     color: COLORS.textWhite,
     fontSize: 14,
-  },
-  clearSearchText: {
-    color: COLORS.textMint,
-    fontSize: 14,
-    opacity: 0.6,
   },
   filterScroll: {
     marginBottom: 16,
@@ -360,7 +352,15 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+  },
+  itemIconBg: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
   itemMain: {
     flex: 1,
@@ -441,11 +441,6 @@ const styles = StyleSheet.create({
     color: COLORS.textWhite,
     fontSize: 18,
     fontWeight: "700",
-  },
-  closeText: {
-    color: COLORS.textMint,
-    fontSize: 18,
-    padding: 4,
   },
   modalSub: {
     color: COLORS.textMint,
