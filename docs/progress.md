@@ -1,3 +1,31 @@
+# Progress - Phase 145: Mobile Dashboard Compact Grid & 2-Row Interactive Tabs
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Dashboard Compact Grid & 2-Row Interactive Tabs
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Penyesuaian Berdasarkan Umpan Balik User:
+  1. **Modul Akses Ringkas (Ukuran Lebih Kecil)**: Mengompres ukuran padding, tinggi kartu, dan ikon badge modul (36x36px) agar 6 modul akses dapat tampil ringkas dan efisien tanpa memenuhi layar HP.
+  2. **Tab Controller 2 Baris x 2 Kolom (Grid)**: Mengubah tab controller (`Pinjaman Aktif`, `Aset Saya`, `Surat Tugas`, `Pengajuan Cuti Saya`) dari 1 baris scroll horizontal menjadi **Grid 2 Baris x 2 Kolom** agar seluruh tab dapat terlihat penuh dan mudah ditekan di layar HP.
+  3. **Tab Interaktif saat Ditekan**: Saat tab ditekan, konten di bawahnya langsung berganti sesuai konteks:
+     - `Pinjaman Aktif`: Menampilkan info/empty state pinjaman aktif.
+     - `Aset Saya`: Menampilkan aset kendaraan dinas yang sedang dipegang (`Toyota Hilux Double Cabin 4x4 - KT 8192 BKS`).
+     - `Surat Tugas`: Menampilkan Surat Tugas Patroli Kawasan `#1015`.
+     - `Pengajuan Cuti Saya`: Menampilkan sisa hak cuti tahunan (12 Hari).
+  4. **Official Logo Asset**: Mengintegrasikan logo resmi BKSDA Kaltim dari `frontend/public/logo_bksda.png` ke `mobile/assets/logo_bksda.png` untuk header dashboard.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 144: Mobile Application Web Portal Light Emerald Alignment
 
 > Document updated: 2026-07-28
