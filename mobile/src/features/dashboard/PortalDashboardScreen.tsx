@@ -23,9 +23,8 @@ interface PortalDashboardScreenProps {
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
   userProfile = {
-    name: "Super",
-    nip: "superadmin",
-    avatarUrl: "https://bksdakaltim.net/assets/img/logobksda.png",
+    name: "Subagja",
+    nip: "19850412 201012 1 002",
   },
 }) => {
   const [activeTab, setActiveTab] = useState<string>("pinjaman");
@@ -88,13 +87,84 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     { key: "cuti", label: "Pengajuan Cuti Saya", icon: "calendar-outline" },
   ];
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "pinjaman":
+        return (
+          <GlassCard style={styles.tabContentCard}>
+            <View style={styles.emptyIconBg}>
+              <Ionicons name="cube-outline" size={32} color="#cbd5e1" />
+            </View>
+            <Text style={styles.emptyText}>Tidak ada pinjaman aktif saat ini</Text>
+            <TouchableOpacity
+              style={styles.actionLinkBtn}
+              onPress={() => onNavigateToModule && onNavigateToModule("bmn")}
+            >
+              <Text style={styles.actionLinkText}>+ Ajukan Peminjaman BMN</Text>
+            </TouchableOpacity>
+          </GlassCard>
+        );
+
+      case "aset":
+        return (
+          <GlassCard style={styles.tabContentCard}>
+            <View style={styles.contentItemRow}>
+              <View style={styles.contentIconBg}>
+                <Ionicons name="car-sport-outline" size={20} color="#059669" />
+              </View>
+              <View style={styles.contentMain}>
+                <Text style={styles.contentTitle}>Toyota Hilux Double Cabin 4x4</Text>
+                <Text style={styles.contentSubtitle}>Plat: KT 8192 BKS • NUP: 00012</Text>
+                <Text style={styles.contentMeta}>Status: Dipinjam (Sisa 3 Hari)</Text>
+              </View>
+            </View>
+          </GlassCard>
+        );
+
+      case "surattugas":
+        return (
+          <GlassCard style={styles.tabContentCard}>
+            <View style={styles.contentItemRow}>
+              <View style={[styles.contentIconBg, { backgroundColor: "#eff6ff" }]}>
+                <Ionicons name="document-text-outline" size={20} color="#3b82f6" />
+              </View>
+              <View style={styles.contentMain}>
+                <Text style={styles.contentTitle}>ST Patroli Pengamanan Kawasan #1015</Text>
+                <Text style={styles.contentSubtitle}>Tujuan: Cagar Alam Wilayah I Kaltim</Text>
+                <Text style={styles.contentMeta}>Tanggal: 25 Juli 2026 - 30 Juli 2026</Text>
+              </View>
+            </View>
+          </GlassCard>
+        );
+
+      case "cuti":
+        return (
+          <GlassCard style={styles.tabContentCard}>
+            <View style={styles.contentItemRow}>
+              <View style={[styles.contentIconBg, { backgroundColor: "#fff7ed" }]}>
+                <Ionicons name="calendar-outline" size={20} color="#f97316" />
+              </View>
+              <View style={styles.contentMain}>
+                <Text style={styles.contentTitle}>Cuti Tahunan Pegawai (2026)</Text>
+                <Text style={styles.contentSubtitle}>Hak Cuti: 12 Hari Kerja • Terpakai: 0 Hari</Text>
+                <Text style={styles.contentMeta}>Status: Tersedia (Sisa 12 Hari)</Text>
+              </View>
+            </View>
+          </GlassCard>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Web Portal Header Bar */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Image
-            source={{ uri: userProfile.avatarUrl }}
+            source={require("../../../assets/logo_bksda.png")}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -106,11 +176,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.7}>
-            <Ionicons name="sunny-outline" size={20} color="#64748b" />
+            <Ionicons name="sunny-outline" size={18} color="#64748b" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.7}>
-            <Ionicons name="notifications-outline" size={20} color="#64748b" />
+            <Ionicons name="notifications-outline" size={18} color="#64748b" />
             <View style={styles.notifDot} />
           </TouchableOpacity>
 
@@ -119,13 +189,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             onPress={() => onNavigateToModule && onNavigateToModule("profile")}
           >
             <Text style={styles.avatarInitial}>S</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.headerIconBtn}
-            onPress={() => onNavigateToModule && onNavigateToModule("profile")}
-          >
-            <Ionicons name="exit-outline" size={18} color="#64748b" />
           </TouchableOpacity>
         </View>
       </View>
@@ -137,7 +200,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         {/* Emerald Hero Greeting Banner */}
         <View style={styles.heroBanner}>
           <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
-          <Text style={styles.heroGreeting}>Selamat Siang, {userProfile.name}! ☀️</Text>
+          <Text style={styles.heroGreeting}>Selamat Siang, Drs. Ahmad Subagja, M.Si.! ☀️</Text>
           <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur.</Text>
         </View>
 
@@ -146,7 +209,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           <Text style={styles.sectionTitle}>Modul Akses</Text>
         </View>
 
-        {/* Module Access Grid */}
+        {/* Compact Module Access Grid (Lebih Kecil untuk Mobile) */}
         <View style={styles.moduleGrid}>
           {modules.map((mod) => (
             <TouchableOpacity
@@ -157,22 +220,17 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             >
               <GlassCard style={styles.moduleCard}>
                 <View style={[styles.moduleIconBadge, { backgroundColor: mod.badgeBg }]}>
-                  <Ionicons name={mod.iconName as any} size={24} color={mod.iconColor} />
+                  <Ionicons name={mod.iconName as any} size={18} color={mod.iconColor} />
                 </View>
-                <Text style={styles.moduleTitle}>{mod.title}</Text>
-                <Text style={styles.moduleSubtitle}>{mod.subtitle}</Text>
+                <Text style={styles.moduleTitle} numberOfLines={1}>{mod.title}</Text>
+                <Text style={styles.moduleSubtitle} numberOfLines={1}>{mod.subtitle}</Text>
               </GlassCard>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Horizontal Segmented Tab Controller */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabScroll}
-          contentContainerStyle={styles.tabScrollContent}
-        >
+        {/* 2-Row x 2-Column Tab Buttons Grid Layout */}
+        <View style={styles.tabGrid}>
           {tabOptions.map((tab) => {
             const isActive = activeTab === tab.key;
             return (
@@ -184,25 +242,23 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               >
                 <Ionicons
                   name={tab.icon as any}
-                  size={16}
+                  size={14}
                   color={isActive ? "#ffffff" : "#64748b"}
                   style={{ marginRight: 6 }}
                 />
-                <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
+                <Text
+                  style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}
+                  numberOfLines={1}
+                >
                   {tab.label}
                 </Text>
               </TouchableOpacity>
             );
           })}
-        </ScrollView>
+        </View>
 
-        {/* Tab Content / Empty State Card */}
-        <GlassCard style={styles.emptyCard}>
-          <View style={styles.emptyIconBg}>
-            <Ionicons name="cube-outline" size={36} color="#cbd5e1" />
-          </View>
-          <Text style={styles.emptyText}>Tidak ada pinjaman aktif</Text>
-        </GlassCard>
+        {/* Dynamic Tab Content Box */}
+        {renderTabContent()}
       </ScrollView>
     </View>
   );
@@ -219,7 +275,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 48,
-    paddingBottom: 14,
+    paddingBottom: 12,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
@@ -231,7 +287,7 @@ const styles = StyleSheet.create({
   logoImage: {
     width: 32,
     height: 32,
-    marginRight: 10,
+    marginRight: 8,
   },
   headerTitleCol: {
     justifyContent: "center",
@@ -244,19 +300,19 @@ const styles = StyleSheet.create({
   },
   brandSubtitle: {
     color: "#64748b",
-    fontSize: 9.5,
+    fontSize: 9,
     fontWeight: "700",
     letterSpacing: 0.5,
   },
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
   },
   headerIconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: "#f1f5f9",
     alignItems: "center",
     justifyContent: "center",
@@ -264,113 +320,122 @@ const styles = StyleSheet.create({
   },
   notifDot: {
     position: "absolute",
-    top: 6,
-    right: 6,
+    top: 5,
+    right: 5,
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: "#ef4444",
   },
   avatarCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: COLORS.emeraldElectric,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarInitial: {
     color: "#ffffff",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "800",
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 14,
     paddingBottom: 40,
   },
   heroBanner: {
     backgroundColor: COLORS.emeraldElectric,
     borderRadius: RADIUS.card,
-    padding: 20,
-    marginBottom: 20,
+    padding: 16,
+    marginBottom: 16,
   },
   heroDate: {
     color: "rgba(255, 255, 255, 0.85)",
-    fontSize: 12.5,
+    fontSize: 11.5,
     fontWeight: "600",
-    marginBottom: 6,
+    marginBottom: 4,
   },
   heroGreeting: {
     color: "#ffffff",
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "800",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   heroSubtitle: {
     color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 13,
+    fontSize: 12,
   },
   sectionHeader: {
-    marginBottom: 14,
+    marginBottom: 10,
   },
   sectionTitle: {
     color: "#0f172a",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "800",
   },
+
+  /* Compact 2x3 Module Grid */
   moduleGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginHorizontal: -6,
-    marginBottom: 20,
+    marginHorizontal: -4,
+    marginBottom: 14,
   },
   moduleCardWrapper: {
     width: "50%",
-    paddingHorizontal: 6,
-    marginBottom: 12,
+    paddingHorizontal: 4,
+    marginBottom: 8,
   },
   moduleCard: {
     alignItems: "center",
-    paddingVertical: 18,
-    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     backgroundColor: "#ffffff",
+    borderRadius: 12,
   },
   moduleIconBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 6,
   },
   moduleTitle: {
     color: "#0f172a",
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 2,
+    marginBottom: 1,
   },
   moduleSubtitle: {
     color: "#64748b",
-    fontSize: 11,
+    fontSize: 10,
     textAlign: "center",
   },
-  tabScroll: {
-    marginBottom: 16,
-  },
-  tabScrollContent: {
-    gap: 8,
+
+  /* 2 Baris x 2 Kolom Tab Grid */
+  tabGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -4,
+    marginBottom: 12,
   },
   tabButton: {
+    width: "48%",
+    marginHorizontal: "1%",
+    marginBottom: 8,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#e2e8f0",
     borderRadius: RADIUS.pill,
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
   },
   tabButtonActive: {
     backgroundColor: COLORS.emeraldElectric,
@@ -378,25 +443,75 @@ const styles = StyleSheet.create({
   },
   tabButtonText: {
     color: "#64748b",
-    fontSize: 12.5,
+    fontSize: 11.5,
     fontWeight: "600",
   },
   tabButtonTextActive: {
     color: "#ffffff",
     fontWeight: "700",
   },
-  emptyCard: {
-    paddingVertical: 48,
+
+  /* Dynamic Tab Content Box */
+  tabContentCard: {
+    padding: 16,
+    backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#ffffff",
+    minHeight: 100,
   },
   emptyIconBg: {
-    marginBottom: 10,
+    marginBottom: 6,
   },
   emptyText: {
     color: "#64748b",
-    fontSize: 13.5,
+    fontSize: 13,
     fontWeight: "600",
+    textAlign: "center",
+  },
+  actionLinkBtn: {
+    marginTop: 8,
+    backgroundColor: "#ecfdf5",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.pill,
+  },
+  actionLinkText: {
+    color: "#059669",
+    fontSize: 11.5,
+    fontWeight: "700",
+  },
+
+  contentItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  contentIconBg: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#ecfdf5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  contentMain: {
+    flex: 1,
+  },
+  contentTitle: {
+    color: "#0f172a",
+    fontSize: 13.5,
+    fontWeight: "700",
+  },
+  contentSubtitle: {
+    color: "#64748b",
+    fontSize: 11.5,
+    marginTop: 2,
+  },
+  contentMeta: {
+    color: "#059669",
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 2,
   },
 });
