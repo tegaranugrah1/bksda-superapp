@@ -1,3 +1,27 @@
+# Progress - Phase 167: Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Dukungan Pencarian Lengkap (Master List Fallback + API Merge)**:
+     - Memperbarui mekanisme pencarian pegawai pada [BuatSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx) dengan menggabungkan respons API `/kepegawaian/employees/select` dan master list pegawai resmi (termasuk `Tegar Anugrah, A.Md.Kom. (199907072025061006)`, `Rido, S.Hut.`, `Witono, S.Hut.`, `Ahmad Ripai, S.Hut.`, `Budi Santoso, S.Hut.`, `Ari Susanto`, dll.).
+  2. **Fitur `+ Tambah Pegawai Manual`**:
+     - Ketika pengguna mengetikkan nama pegawai di kolom pencarian, opsi **`➕ Tambahkan "[Nama]" ke Pegawai Ditugaskan`** selalu muncul di dalam dropdown. Pengguna dapat mengeklik opsi tersebut untuk langsung menambahkan nama yang diketik ke dalam daftar personil ditugaskan tanpa terhalang "Pegawai tidak ditemukan".
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 166: Pengajuan Surat Tugas Baru 3-Step Wizard Mobile
 
 > Document updated: 2026-07-28
