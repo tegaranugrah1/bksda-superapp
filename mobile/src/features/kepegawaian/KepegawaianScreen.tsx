@@ -11,11 +11,14 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { RADIUS, SHADOWS } from "../../theme";
+import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { FabMenu } from "../../components/ui/FabMenu";
+import { EmployeeDetailModal } from "./EmployeeDetailModal";
+import { EmployeeAccessModal } from "./EmployeeAccessModal";
+import { useAuth } from "../auth/AuthProvider";
 import { apiClient } from "../../lib/api/client";
 
 interface EmployeeItem {
@@ -24,6 +27,10 @@ interface EmployeeItem {
   nip: string;
   position: string;
   workUnit: string;
+  rankGrade?: string;
+  remainingLeaveDays?: number;
+  role?: string;
+  accessModules?: string[];
 }
 
 interface KepegawaianScreenProps {
@@ -36,10 +43,17 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
   onNavigateToModule,
 }) => {
   const { isDark, toggleTheme, colors } = useTheme();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [addModalVisible, setAddModalVisible] = useState(false);
+
+  // Selected Employee for Modals
+  const [selectedEmployeeForDetail, setSelectedEmployeeForDetail] = useState<EmployeeItem | null>(null);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedEmployeeForAccess, setSelectedEmployeeForAccess] = useState<EmployeeItem | null>(null);
+  const [accessModalVisible, setAccessModalVisible] = useState(false);
 
   // Form states for Tambah Pegawai
   const [newNama, setNewNama] = useState("");
@@ -47,67 +61,93 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
   const [newJabatan, setNewJabatan] = useState("");
   const [newWilayah, setNewWilayah] = useState("");
 
+  const isSuperAdmin = user?.role === "super_admin";
+
   const defaultEmployeeList: EmployeeItem[] = [
     {
       id: "1",
       name: "A. Aliah Indah Fitriah, S.Hut.",
       nip: "199601032024212050",
-      position: "Pengendali Ekosistem Hutan",
+      position: "Pengendali Ekosistem Hutan Ahli Pertama",
       workUnit: "Seksi KSDA Wilayah III Balikpapan",
+      rankGrade: "PPPK Golongan IX",
+      remainingLeaveDays: 12,
+      role: "admin",
+      accessModules: ["kepegawaian"],
     },
     {
       id: "2",
       name: "Abdul Farij",
       nip: "-",
-      position: "Polisi Kehutanan",
+      position: "MMP Resor KSDA Wilayah 02 Kepulauan Derawan",
       workUnit: "Seksi KSDA Wilayah I Berau",
+      rankGrade: "Non-ASN",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
     },
     {
       id: "3",
       name: "Abdurrahman",
       nip: "196906172025211013",
-      position: "Staf Urusan Teknis",
+      position: "Manggala Agni Pemula",
       workUnit: "Seksi KSDA Wilayah II Tenggarong",
+      rankGrade: "Golongan II/a",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
     },
     {
       id: "4",
       name: "Achmad Syafey N",
       nip: "200009222024211004",
-      position: "Pengolah Data Evlap",
+      position: "Pengendali Ekosistem Hutan Pemula",
       workUnit: "Seksi KSDA Wilayah II Tenggarong",
+      rankGrade: "Golongan II/c",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
     },
     {
       id: "5",
       name: "Administrator Pusat BKSDA",
-      nip: "-",
-      position: "Pengelola Sistem Informasi",
-      workUnit: "Balai KSDA Kalimantan Timur",
+      nip: "198001012005011001",
+      position: "Kepala Satuan Teknologi",
+      workUnit: "BKSDA Pusat Provinsi",
+      rankGrade: "Golongan IV/a",
+      remainingLeaveDays: 12,
+      role: "super_admin",
+      accessModules: ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"],
     },
   ];
 
-  useEffect(() => {
-    async function fetchEmployeeData() {
-      try {
-        const response = await apiClient.get<any>("/kepegawaian/employees");
-        if (response.data && Array.isArray(response.data.data)) {
-          const apiList = response.data.data.map((emp: any) => ({
-            id: emp.id,
-            name: emp.nama_lengkap || emp.name,
-            nip: emp.nip || "-",
-            position: emp.jabatan || "-",
-            workUnit: emp.satuan_kerja || "Seksi KSDA Kaltim",
-          }));
-          setEmployees(apiList.length > 0 ? apiList : defaultEmployeeList);
-        } else {
-          setEmployees(defaultEmployeeList);
-        }
-      } catch {
+  const fetchEmployeeData = async () => {
+    try {
+      const response = await apiClient.get<any>("/kepegawaian/employees");
+      if (response.data && Array.isArray(response.data.data)) {
+        const apiList = response.data.data.map((emp: any) => ({
+          id: emp.id,
+          name: emp.nama_lengkap || emp.name,
+          nip: emp.nip || "-",
+          position: emp.jabatan || "Staf BKSDA",
+          workUnit: emp.satuan_kerja || "Balai KSDA Kaltim",
+          rankGrade: emp.pangkat_golongan || "Golongan III/a",
+          remainingLeaveDays: emp.sisa_cuti ?? 12,
+          role: emp.user?.role || emp.role || "user",
+          accessModules: emp.user?.access_modules || emp.access_modules || ["kepegawaian"],
+        }));
+        setEmployees(apiList.length > 0 ? apiList : defaultEmployeeList);
+      } else {
         setEmployees(defaultEmployeeList);
-      } finally {
-        setIsLoading(false);
       }
+    } catch {
+      setEmployees(defaultEmployeeList);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchEmployeeData();
   }, []);
 
@@ -116,9 +156,43 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     return (
       emp.name.toLowerCase().includes(q) ||
       emp.nip.includes(q) ||
+      emp.position.toLowerCase().includes(q) ||
       emp.workUnit.toLowerCase().includes(q)
     );
   });
+
+  const handleOpenDetail = (emp: EmployeeItem) => {
+    setSelectedEmployeeForDetail(emp);
+    setDetailModalVisible(true);
+  };
+
+  const handleOpenAccess = (emp: EmployeeItem) => {
+    setSelectedEmployeeForAccess(emp);
+    setAccessModalVisible(true);
+  };
+
+  const handleDeleteEmployee = (emp: EmployeeItem) => {
+    Alert.alert(
+      "Hapus Data Pegawai",
+      `Apakah Anda yakin ingin menghapus data pegawai ${emp.name}?`,
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Hapus",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await apiClient.delete(`/kepegawaian/employees/${emp.id}`);
+            } catch {
+              // Local fallback delete
+            }
+            setEmployees(employees.filter((item) => item.id !== emp.id));
+            Alert.alert("Berhasil", `Data pegawai ${emp.name} telah dihapus.`);
+          },
+        },
+      ]
+    );
+  };
 
   const handleAddEmployee = () => {
     if (!newNama.trim()) {
@@ -132,6 +206,10 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
       nip: newNip.trim() || "-",
       position: newJabatan.trim() || "Staf BKSDA",
       workUnit: newWilayah.trim() || "Balai KSDA Kaltim",
+      rankGrade: "Golongan III/a",
+      remainingLeaveDays: 12,
+      role: "user",
+      accessModules: ["kepegawaian"],
     };
 
     setEmployees([newEmp, ...employees]);
@@ -204,7 +282,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
             <Ionicons name="search-outline" size={16} color="#94a3b8" style={{ marginRight: 6 }} />
             <TextInput
               style={[styles.searchInput, { color: colors.textDark }]}
-              placeholder="Cari N..."
+              placeholder="Cari NIP / Nama..."
               placeholderTextColor="#94a3b8"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -237,6 +315,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
           <View style={[styles.tableHeaderRow, { borderBottomColor: isDark ? "rgba(255, 255, 255, 0.1)" : "#e2e8f0" }]}>
             <Text style={styles.tableHeaderCol1}>PROFIL PEGAWAI</Text>
             <Text style={styles.tableHeaderCol2}>NIP</Text>
+            <Text style={styles.tableHeaderCol3}>AKSI</Text>
           </View>
 
           {isLoading ? (
@@ -245,7 +324,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
             </View>
           ) : (
             filteredEmployees.map((emp, index) => (
-              <View
+              <TouchableOpacity
                 key={emp.id}
                 style={[
                   styles.tableDataRow,
@@ -254,6 +333,8 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
                     borderBottomColor: isDark ? "rgba(255, 255, 255, 0.06)" : "#f1f5f9",
                   },
                 ]}
+                activeOpacity={0.7}
+                onPress={() => handleOpenDetail(emp)}
               >
                 {/* Column 1: Profil Pegawai */}
                 <View style={styles.tableDataCol1}>
@@ -265,14 +346,60 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
                 <View style={styles.tableDataCol2}>
                   <Text style={[styles.empNip, { color: colors.textDark }]}>{emp.nip}</Text>
                 </View>
-              </View>
+
+                {/* Column 3: Action Buttons (Search Detail, IAM Access, Delete) */}
+                <View style={styles.tableDataCol3}>
+                  <TouchableOpacity
+                    style={styles.actionIconButton}
+                    onPress={() => handleOpenDetail(emp)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="search-outline" size={16} color="#2563eb" />
+                  </TouchableOpacity>
+
+                  {isSuperAdmin && (
+                    <TouchableOpacity
+                      style={styles.actionIconButton}
+                      onPress={() => handleOpenAccess(emp)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="shield-checkmark-outline" size={16} color="#d97706" />
+                    </TouchableOpacity>
+                  )}
+
+                  <TouchableOpacity
+                    style={styles.actionIconButton}
+                    onPress={() => handleDeleteEmployee(emp)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
             ))
           )}
         </GlassCard>
       </ScrollView>
 
-      {/* Floating Action Button (FAB ☰ Menu) in Bottom Right Corner */}
+      {/* Floating Action Button (FAB ☰ Menu) */}
       <FabMenu onNavigateToModule={handleSelectNavTab} />
+
+      {/* Modal Detail Pegawai (Opens when clicking any employee) */}
+      <EmployeeDetailModal
+        visible={detailModalVisible}
+        onClose={() => setDetailModalVisible(false)}
+        employee={selectedEmployeeForDetail}
+      />
+
+      {/* Modal Manajemen Hak Akses IAM (Opens when clicking 🛡️ icon or Kelola Akses) */}
+      {isSuperAdmin && (
+        <EmployeeAccessModal
+          visible={accessModalVisible}
+          onClose={() => setAccessModalVisible(false)}
+          employee={selectedEmployeeForAccess}
+          onSuccess={fetchEmployeeData}
+        />
+      )}
 
       {/* Modal Tambah Pegawai Baru */}
       <Modal visible={addModalVisible} animationType="slide" transparent>
@@ -393,7 +520,6 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
   },
 
-  /* Controls Row Presisi Screenshot 1 */
   controlsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -449,7 +575,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  /* Table Presisi Screenshot 1 */
   tableCard: {
     borderRadius: 18,
     padding: 0,
@@ -458,50 +583,67 @@ const styles = StyleSheet.create({
   tableHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
   },
   tableHeaderCol1: {
-    flex: 1.4,
+    flex: 1.3,
     color: "#64748b",
-    fontSize: 10.5,
+    fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   tableHeaderCol2: {
     flex: 1,
     color: "#64748b",
-    fontSize: 10.5,
+    fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
+  tableHeaderCol3: {
+    width: 72,
+    color: "#64748b",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    textAlign: "center",
+  },
   tableDataRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   tableDataCol1: {
-    flex: 1.4,
-    paddingRight: 8,
+    flex: 1.3,
+    paddingRight: 6,
   },
   empName: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: "800",
     marginBottom: 2,
   },
   empUnit: {
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 10.5,
+    lineHeight: 14,
   },
   tableDataCol2: {
     flex: 1,
-    justifyContent: "flex-start",
+    justifyContent: "center",
   },
   empNip: {
-    fontSize: 12.5,
+    fontSize: 11.5,
     fontWeight: "600",
+  },
+  tableDataCol3: {
+    width: 72,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  actionIconButton: {
+    padding: 4,
   },
 
   modalOverlay: {
