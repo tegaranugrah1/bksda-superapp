@@ -7,7 +7,8 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import { COLORS, RADIUS, SHADOWS } from "../../theme";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { COLORS, RADIUS } from "../../theme";
 import { GlassCard } from "../../components/ui/GlassCard";
 
 interface PortalDashboardScreenProps {
@@ -28,12 +29,12 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   },
 }) => {
   const modules = [
-    { key: "bmn", title: "Aset BMN", icon: "🚗", badgeColor: COLORS.emeraldElectric },
-    { key: "surat", title: "Surat & Disposisi", icon: "✉️", badgeColor: "#3b82f6" },
-    { key: "inventory", title: "Stok Inventaris", icon: "📦", badgeColor: "#f59e0b" },
-    { key: "kepegawaian", title: "Kepegawaian", icon: "👤", badgeColor: "#8b5cf6" },
-    { key: "dereporting", title: "DeReporting", icon: "🛡️", badgeColor: "#ef4444" },
-    { key: "portal", title: "Portal Publik", icon: "🌐", badgeColor: "#06b6d4" },
+    { key: "bmn", title: "Aset BMN", iconName: "car-sport", badgeColor: COLORS.emeraldElectric },
+    { key: "surat", title: "Surat & Disposisi", iconName: "mail", badgeColor: "#3b82f6" },
+    { key: "inventory", title: "Stok Inventaris", iconName: "cube", badgeColor: "#f59e0b" },
+    { key: "kepegawaian", title: "Kepegawaian", iconName: "people", badgeColor: "#8b5cf6" },
+    { key: "dereporting", title: "DeReporting", iconName: "shield-checkmark", badgeColor: "#ef4444" },
+    { key: "portal", title: "Portal Publik", iconName: "globe-outline", badgeColor: "#06b6d4" },
   ];
 
   const recentActivities = [
@@ -44,7 +45,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       time: "10:30 AM",
       status: "Menunggu",
       statusColor: COLORS.statusPending,
-      icon: "✉️",
+      iconName: "document-text",
     },
     {
       id: 2,
@@ -53,7 +54,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       time: "Kemarin",
       status: "Disetujui",
       statusColor: COLORS.statusAvailable,
-      icon: "🚗",
+      iconName: "car-sport",
     },
     {
       id: 3,
@@ -62,7 +63,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       time: "2 Hari Lalu",
       status: "Selesai",
       statusColor: COLORS.statusInfo,
-      icon: "🛡️",
+      iconName: "shield-checkmark",
     },
   ];
 
@@ -71,23 +72,26 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       {/* Top Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerIcon}>🏛️</Text>
+          <MaterialCommunityIcons name="tree" size={24} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>BKSDA KALTIM</Text>
         </View>
 
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7}>
-            <Text style={styles.notifIcon}>🔔</Text>
+            <Ionicons name="notifications-outline" size={22} color={COLORS.textWhite} />
             <View style={styles.notifDot} />
           </TouchableOpacity>
 
-          <View style={styles.avatarContainer}>
+          <TouchableOpacity
+            style={styles.avatarContainer}
+            onPress={() => onNavigateToModule && onNavigateToModule("profile")}
+          >
             <Image
               source={{ uri: userProfile.avatarUrl }}
               style={styles.avatar}
               resizeMode="cover"
             />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -144,7 +148,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             >
               <GlassCard style={styles.moduleCard}>
                 <View style={[styles.moduleIconBadge, { backgroundColor: `${mod.badgeColor}20` }]}>
-                  <Text style={styles.moduleIcon}>{mod.icon}</Text>
+                  <Ionicons name={mod.iconName as any} size={24} color={mod.badgeColor} />
                 </View>
                 <Text style={styles.moduleTitle}>{mod.title}</Text>
               </GlassCard>
@@ -164,7 +168,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           {recentActivities.map((act) => (
             <GlassCard key={act.id} style={styles.activityCard}>
               <View style={[styles.activityIconBg, { backgroundColor: `${act.statusColor}20` }]}>
-                <Text style={styles.activityIcon}>{act.icon}</Text>
+                <Ionicons name={act.iconName as any} size={20} color={act.statusColor} />
               </View>
 
               <View style={styles.activityMain}>
@@ -184,38 +188,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           ))}
         </View>
       </ScrollView>
-
-      {/* Floating Bottom Nav Bar */}
-      <View style={[styles.bottomNav, SHADOWS.glowEmerald]}>
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-          <Text style={styles.navIconActive}>🏠</Text>
-          <Text style={styles.navTextActive}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigateToModule && onNavigateToModule("bmn")}
-        >
-          <Text style={styles.navIcon}>🚗</Text>
-          <Text style={styles.navText}>Assets</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigateToModule && onNavigateToModule("surat")}
-        >
-          <Text style={styles.navIcon}>✉️</Text>
-          <Text style={styles.navText}>Letters</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigateToModule && onNavigateToModule("profile")}
-        >
-          <Text style={styles.navIcon}>👤</Text>
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -240,10 +212,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  headerIcon: {
-    fontSize: 22,
-    marginRight: 8,
-  },
   headerTitle: {
     color: COLORS.emeraldElectric,
     fontSize: 18,
@@ -258,9 +226,6 @@ const styles = StyleSheet.create({
     position: "relative",
     padding: 8,
     marginRight: 12,
-  },
-  notifIcon: {
-    fontSize: 20,
   },
   notifDot: {
     position: "absolute",
@@ -286,7 +251,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 110,
+    paddingBottom: 40,
   },
   greetingRow: {
     flexDirection: "row",
@@ -412,9 +377,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 10,
   },
-  moduleIcon: {
-    fontSize: 22,
-  },
   moduleTitle: {
     color: COLORS.textWhite,
     fontSize: 13.5,
@@ -436,9 +398,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
-  },
-  activityIcon: {
-    fontSize: 18,
   },
   activityMain: {
     flex: 1,
@@ -471,49 +430,5 @@ const styles = StyleSheet.create({
   activityStatusText: {
     fontSize: 10,
     fontWeight: "700",
-  },
-  bottomNav: {
-    position: "absolute",
-    bottom: 24,
-    left: 20,
-    right: 20,
-    backgroundColor: "rgba(15, 41, 30, 0.92)",
-    borderRadius: RADIUS.pill,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorderHighlight,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-  },
-  navItem: {
-    alignItems: "center",
-    paddingHorizontal: 12,
-  },
-  navItemActive: {
-    backgroundColor: "rgba(16, 185, 129, 0.2)",
-    borderRadius: RADIUS.pill,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-  },
-  navIcon: {
-    fontSize: 18,
-    opacity: 0.6,
-  },
-  navIconActive: {
-    fontSize: 18,
-  },
-  navText: {
-    color: COLORS.textMuted,
-    fontSize: 10.5,
-    fontWeight: "600",
-    marginTop: 2,
-  },
-  navTextActive: {
-    color: COLORS.emeraldElectric,
-    fontSize: 10.5,
-    fontWeight: "700",
-    marginTop: 2,
   },
 });
