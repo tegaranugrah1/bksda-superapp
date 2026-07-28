@@ -1,7 +1,12 @@
 import React from 'react';
+import { useAuth } from '../../../features/auth/AuthProvider';
+import { useMobileDashboard } from '../useMobileDashboard';
 import { PortalDashboardScreen } from '../PortalDashboardScreen';
 
 export default function DashboardScreen({ navigation }: any) {
+  const { user, employee } = useAuth();
+  const { data: dashboardApiData } = useMobileDashboard();
+
   const handleNavigate = (moduleKey: string) => {
     if (moduleKey === 'bmn') {
       navigation.navigate('Bmn');
@@ -14,15 +19,17 @@ export default function DashboardScreen({ navigation }: any) {
     }
   };
 
+  const displayName = user?.name || employee?.name || user?.username || 'Super Admin System';
+  const displayNip = employee?.nip || user?.username || 'superadmin';
+
   return (
     <PortalDashboardScreen
       onNavigateToModule={handleNavigate}
       userProfile={{
-        name: 'Drs. Ahmad Subagja, M.Si.',
-        nip: '19850412 201012 1 002',
-        avatarUrl: 'https://bksdakaltim.net/assets/img/logobksda.png',
+        name: displayName,
+        nip: displayNip,
       }}
+      dashboardData={dashboardApiData}
     />
   );
 }
-

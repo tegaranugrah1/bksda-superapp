@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
+import { useAuth } from "../auth/AuthProvider";
+import { DashboardData } from "./types";
 
 interface PortalDashboardScreenProps {
   onNavigateToModule?: (moduleKey: string) => void;
@@ -19,17 +21,36 @@ interface PortalDashboardScreenProps {
     nip: string;
     avatarUrl?: string;
   };
+  dashboardData?: DashboardData;
 }
 
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
-  userProfile = {
-    name: "Drs. Ahmad Subagja, M.Si.",
-    nip: "19850412 201012 1 002",
-  },
+  userProfile,
+  dashboardData,
 }) => {
   const { isDark, toggleTheme, colors } = useTheme();
+  const { user, employee } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("pinjaman");
+
+  // Dynamic user profile resolution
+  const resolvedName =
+    userProfile?.name ||
+    user?.name ||
+    employee?.name ||
+    user?.employee?.name ||
+    "Super Admin System";
+
+  const resolvedNip =
+    userProfile?.nip ||
+    employee?.nip ||
+    user?.employee?.nip ||
+    user?.username ||
+    "superadmin";
+
+  const avatarInitial = (resolvedName.charAt(0) || "S").toUpperCase();
+
+  const summary = dashboardData?.summary;
 
   const modules = [
     {
@@ -92,6 +113,26 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const renderTabContent = () => {
     switch (activeTab) {
       case "pinjaman":
+        if (summary && summary.active_loans_count > 0) {
+          return (
+            <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
+              <View style={styles.contentItemRow}>
+                <View style={styles.contentIconBg}>
+                  <Ionicons name="swap-horizontal-outline" size={18} color="#059669" />
+                </View>
+                <View style={styles.contentMain}>
+                  <Text style={[styles.contentTitle, { color: colors.textDark }]}>
+                    {summary.active_loans_count} Peminjaman BMN Aktif
+                  </Text>
+                  <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
+                    Data tersinkronisasi dengan portal web BKSDA
+                  </Text>
+                  <Text style={styles.contentMeta}>Status: Aktif Dipinjam</Text>
+                </View>
+              </View>
+            </GlassCard>
+          );
+        }
         return (
           <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
             <View style={styles.emptyIconBg}>
@@ -123,7 +164,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
                   Plat: KT 8192 BKS • NUP: 00012
                 </Text>
-                <Text style={styles.contentMeta}>Status: Dipinjam (Sisa 3 Hari)</Text>
+                <Text style={styles.contentMeta}>
+                  Status: Dipinjam ({summary?.assigned_assets_count || 1} Aset Terpegang)
+                </Text>
               </View>
             </View>
           </GlassCard>
@@ -143,7 +186,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
                   Tujuan: Cagar Alam Wilayah I Kaltim
                 </Text>
-                <Text style={styles.contentMeta}>Tanggal: 25 Juli 2026 - 30 Juli 2026</Text>
+                <Text style={styles.contentMeta}>
+                  Tanggal: 25 Juli 2026 - 30 Juli 2026 ({summary?.active_my_letters_count || 1} ST Aktif)
+                </Text>
               </View>
             </View>
           </GlassCard>
@@ -224,7 +269,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             style={styles.avatarCircle}
             onPress={() => onNavigateToModule && onNavigateToModule("profile")}
           >
-            <Text style={styles.avatarInitial}>S</Text>
+            <Text style={styles.avatarInitial}>{avatarInitial}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -233,10 +278,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Emerald Hero Greeting Banner */}
+        {/* Emerald Hero Greeting Banner with Dynamic Name */}
         <View style={styles.heroBanner}>
           <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
-          <Text style={styles.heroGreeting}>Selamat Siang, {userProfile.name}! ☀️</Text>
+          <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
           <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur.</Text>
 
           {/* Dedicated Sisa Cuti Box Card */}
@@ -320,8 +365,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         {/* Dynamic Tab Content Box */}
         {renderTabContent()}
       </ScrollView>
-
-      {/* Clean Portal Hub — No Bottom Nav on Portal Hub */}
     </View>
   );
 };
@@ -450,8 +493,6 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     fontWeight: "800",
   },
-
-  /* Ultra-Compact 3-Column Module Grid */
   moduleGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -487,8 +528,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     textAlign: "center",
   },
-
-  /* 2 Baris x 2 Kolom Tab Grid */
   tabGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -519,8 +558,6 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontWeight: "700",
   },
-
-  /* Dynamic Tab Content Box */
   tabContentCard: {
     padding: 14,
     alignItems: "center",
@@ -547,7 +584,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
   },
-
   contentItemRow: {
     flexDirection: "row",
     alignItems: "center",
