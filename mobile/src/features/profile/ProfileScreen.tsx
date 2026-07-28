@@ -9,15 +9,23 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
+import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { useAuth } from "../auth/AuthProvider";
+import { FloatingNav } from "../../components/ui/FloatingNav";
 
 interface ProfileScreenProps {
   onBack?: () => void;
   onLogout?: () => void;
+  onNavigateToModule?: (moduleKey: string) => void;
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }) => {
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({
+  onBack,
+  onLogout,
+  onNavigateToModule,
+}) => {
+  const { isDark, colors } = useTheme();
   const { user, logout } = useAuth();
 
   const officerName = user?.name || user?.employee?.name || "Super Admin System";
@@ -46,23 +54,43 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
     ]);
   };
 
+  const handleSelectNavTab = (tabKey: string) => {
+    if (onNavigateToModule) {
+      onNavigateToModule(tabKey);
+    } else if (tabKey === "home" && onBack) {
+      onBack();
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        {onBack && (
-          <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color="#0f172a" />
-          </TouchableOpacity>
-        )}
+    <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
+      {/* Header with Prominent Back Button */}
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.headerBg,
+            borderBottomColor: colors.headerBorder,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={onBack ? onBack : () => onNavigateToModule && onNavigateToModule("home")}
+          style={styles.backBtn}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.textDark} />
+          <Text style={[styles.backText, { color: colors.textDark }]}> Kembali</Text>
+        </TouchableOpacity>
+
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>Profil Pengguna</Text>
+          <Text style={[styles.headerTitle, { color: colors.textDark }]}>Profil Pengguna</Text>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Profile Card Presisi Screenshot 2 */}
-        <GlassCard style={styles.profileCard}>
+        {/* Profile Card */}
+        <GlassCard style={[styles.profileCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
           {/* Avatar Circle */}
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarInitial}>S</Text>
@@ -74,16 +102,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
             <Text style={styles.statusBadgeText}>AKTIF</Text>
           </View>
 
-          <Text style={styles.profileName}>{officerName}</Text>
-          <Text style={styles.profileNip}>NIP {officerNip}</Text>
+          <Text style={[styles.profileName, { color: colors.textDark }]}>{officerName}</Text>
+          <Text style={[styles.profileNip, { color: colors.textMuted }]}>NIP {officerNip}</Text>
 
           <View style={styles.roleBadge}>
             <Text style={styles.roleBadgeText}>Super Admin</Text>
           </View>
         </GlassCard>
 
-        {/* Details Card Presisi Screenshot 2 */}
-        <GlassCard style={styles.detailsCard}>
+        {/* Details Card */}
+        <GlassCard style={[styles.detailsCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
           {profileDetails.map((item, index) => (
             <View
               key={item.label}
@@ -92,12 +120,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
                 index < profileDetails.length - 1 && styles.detailRowBorder,
               ]}
             >
-              <View style={styles.detailIconBg}>
+              <View style={[styles.detailIconBg, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "#f8fafc" }]}>
                 <Ionicons name={item.icon as any} size={18} color={item.color} />
               </View>
               <View style={styles.detailTextCol}>
                 <Text style={styles.detailLabel}>{item.label}</Text>
-                <Text style={styles.detailValue}>{item.value}</Text>
+                <Text style={[styles.detailValue, { color: colors.textDark }]}>{item.value}</Text>
               </View>
             </View>
           ))}
@@ -105,7 +133,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
 
         {/* Action Buttons */}
         <TouchableOpacity
-          style={styles.changePasswordBtn}
+          style={[styles.changePasswordBtn, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}
           onPress={() => Alert.alert("Ganti Password", "Formulir ubah kata sandi akun.")}
           activeOpacity={0.8}
         >
@@ -118,6 +146,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
           <Text style={styles.logoutText}>Keluar dari Aplikasi</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Floating Bottom Nav */}
+      <FloatingNav currentTab="profile" onSelectTab={handleSelectNavTab} />
     </View>
   );
 };
@@ -125,46 +156,47 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onLogout }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 48,
-    paddingBottom: 16,
-    backgroundColor: "#ffffff",
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
-    marginRight: 10,
-    padding: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 12,
+  },
+  backText: {
+    fontSize: 14,
+    fontWeight: "700",
   },
   headerTitleRow: {
     flex: 1,
+    alignItems: "center",
+    paddingRight: 60, // Balance title alignment
   },
   headerTitle: {
-    color: "#0f172a",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "800",
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
+    paddingTop: 16,
+    paddingBottom: 90, // Spacing for floating nav
   },
   profileCard: {
     alignItems: "center",
     padding: 24,
-    backgroundColor: "#ffffff",
     marginBottom: 16,
   },
   avatarCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     backgroundColor: "#059669",
     alignItems: "center",
     justifyContent: "center",
@@ -172,7 +204,7 @@ const styles = StyleSheet.create({
   },
   avatarInitial: {
     color: "#ffffff",
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: "800",
   },
   statusBadge: {
@@ -192,14 +224,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   profileName: {
-    color: "#0f172a",
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: "800",
     marginBottom: 2,
   },
   profileNip: {
-    color: "#64748b",
-    fontSize: 13,
+    fontSize: 12.5,
     marginBottom: 10,
   },
   roleBadge: {
@@ -215,7 +245,6 @@ const styles = StyleSheet.create({
   },
   detailsCard: {
     padding: 16,
-    backgroundColor: "#ffffff",
     marginBottom: 16,
   },
   detailRow: {
@@ -231,7 +260,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#f8fafc",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
@@ -247,7 +275,6 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   detailValue: {
-    color: "#0f172a",
     fontSize: 13.5,
     fontWeight: "700",
   },
@@ -255,9 +282,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     borderRadius: RADIUS.button,
     paddingVertical: 14,
     marginBottom: 12,

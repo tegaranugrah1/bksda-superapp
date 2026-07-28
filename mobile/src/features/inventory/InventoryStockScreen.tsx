@@ -11,14 +11,21 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
+import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
+import { FloatingNav } from "../../components/ui/FloatingNav";
 
 interface InventoryStockScreenProps {
   onBack?: () => void;
+  onNavigateToModule?: (moduleKey: string) => void;
 }
 
-export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBack }) => {
+export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
+  onBack,
+  onNavigateToModule,
+}) => {
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua Stok");
   const [transModalVisible, setTransModalVisible] = useState(false);
@@ -110,18 +117,32 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
     );
   };
 
+  const handleSelectNavTab = (tabKey: string) => {
+    if (onNavigateToModule) {
+      onNavigateToModule(tabKey);
+    } else if (tabKey === "home" && onBack) {
+      onBack();
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
       {/* Header */}
-      <View style={styles.header}>
-        {onBack && (
-          <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color="#0f172a" />
-          </TouchableOpacity>
-        )}
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.headerBg, borderBottomColor: colors.headerBorder },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={onBack ? onBack : () => onNavigateToModule && onNavigateToModule("home")}
+          style={styles.backBtn}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.textDark} />
+        </TouchableOpacity>
         <View style={styles.headerTitleRow}>
           <Ionicons name="cube" size={22} color="#059669" style={{ marginRight: 8 }} />
-          <Text style={styles.headerTitle}>Stok Inventaris</Text>
+          <Text style={[styles.headerTitle, { color: colors.textDark }]}>Stok Inventaris</Text>
         </View>
         <View style={styles.countBadge}>
           <Text style={styles.countText}>{stockItems.length} Item</Text>
@@ -130,10 +151,10 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
-        <View style={styles.searchBarContainer}>
-          <Ionicons name="search-outline" size={18} color="#64748b" style={{ marginRight: 8 }} />
+        <View style={[styles.searchBarContainer, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+          <Ionicons name="search-outline" size={18} color={colors.textMuted} style={{ marginRight: 8 }} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.textDark }]}
             placeholder="Cari Nama Barang, Kode, atau Kategori..."
             placeholderTextColor="#94a3b8"
             value={searchQuery}
@@ -154,7 +175,11 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
               <TouchableOpacity
                 key={cat}
                 onPress={() => setSelectedCategory(cat)}
-                style={[styles.filterPill, isActive && styles.filterPillActive]}
+                style={[
+                  styles.filterPill,
+                  { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
+                  isActive && styles.filterPillActive,
+                ]}
               >
                 <Text style={[styles.filterPillText, isActive && styles.filterPillTextActive]}>
                   {cat}
@@ -167,14 +192,14 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
         {/* Stock Items Grid / List */}
         <View style={styles.itemList}>
           {filteredItems.map((item) => (
-            <GlassCard key={item.id} style={styles.itemCard} highlighted={item.status === "Stok Tipis"}>
+            <GlassCard key={item.id} style={[styles.itemCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]} highlighted={item.status === "Stok Tipis"}>
               <View style={styles.itemIconBg}>
                 <Ionicons name={item.iconName as any} size={22} color="#059669" />
               </View>
 
               <View style={styles.itemMain}>
-                <Text style={styles.itemTitle}>{item.name}</Text>
-                <Text style={styles.itemCode}>
+                <Text style={[styles.itemTitle, { color: colors.textDark }]}>{item.name}</Text>
+                <Text style={[styles.itemCode, { color: colors.textMuted }]}>
                   Kode: {item.code} • {item.category}
                 </Text>
                 <View style={styles.stockQtyRow}>
@@ -205,12 +230,15 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
         </View>
       </ScrollView>
 
+      {/* Floating Bottom Nav */}
+      <FloatingNav currentTab="inventory" onSelectTab={handleSelectNavTab} />
+
       {/* Transaction Modal */}
       <Modal visible={transModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <GlassCard style={styles.modalContent} highlighted>
+          <GlassCard style={[styles.modalContent, { backgroundColor: colors.cardBg }]} highlighted>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <Text style={[styles.modalTitle, { color: colors.textDark }]}>
                 {transType === "out" ? "Catat Stok Keluar" : "Tambah Stok Masuk"}
               </Text>
               <TouchableOpacity onPress={() => setTransModalVisible(false)}>
@@ -219,13 +247,13 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
             </View>
 
             <Text style={styles.modalSub}>
-              Barang: <Text style={{ color: "#0f172a", fontWeight: "700" }}>{selectedItem?.name}</Text>
+              Barang: <Text style={{ color: colors.textDark, fontWeight: "700" }}>{selectedItem?.name}</Text>
             </Text>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Jumlah ({selectedItem?.unit})</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
                 placeholder="1"
                 keyboardType="numeric"
                 value={qtyInput}
@@ -236,7 +264,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Keterangan / Tujuan Penggunaan</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
                 placeholder="Contoh: Digunakan untuk Patroli Lapangan"
                 placeholderTextColor="#94a3b8"
                 value={notesInput}
@@ -259,7 +287,6 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark,
   },
   header: {
     flexDirection: "row",
@@ -268,9 +295,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 48,
     paddingBottom: 16,
-    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
     marginRight: 10,
@@ -282,7 +307,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: "#0f172a",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -302,14 +326,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 90,
   },
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 46,
@@ -317,7 +339,6 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "#0f172a",
     fontSize: 14,
   },
   filterScroll: {
@@ -327,9 +348,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     marginRight: 8,
   },
   filterPillActive: {
@@ -352,7 +371,6 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
   },
   itemIconBg: {
     width: 44,
@@ -368,12 +386,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   itemTitle: {
-    color: "#0f172a",
     fontSize: 14,
     fontWeight: "700",
   },
   itemCode: {
-    color: "#64748b",
     fontSize: 11.5,
     marginTop: 2,
   },
@@ -430,7 +446,6 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 22,
-    backgroundColor: "#ffffff",
   },
   modalHeader: {
     flexDirection: "row",
@@ -439,7 +454,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalTitle: {
-    color: "#0f172a",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -458,13 +472,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   input: {
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 12,
     height: 44,
-    color: "#0f172a",
     fontSize: 13.5,
   },
 });
