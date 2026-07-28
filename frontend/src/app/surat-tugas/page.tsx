@@ -176,9 +176,12 @@ export default function SuratTugasForm() {
                 finalNamaKegiatan = `Menugaskan Staf ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
             }
 
+            const calculatedTempatTujuan = tempatSpesifik.trim() || kotaTujuan.trim() || (jenisTugas === 'Perjalanan Dinas' ? kotaAsal.trim() : '');
+
             const submitData = new FormData();
             submitData.append('maksud_tujuan', finalNamaKegiatan);
             submitData.append('nama_kegiatan', finalNamaKegiatan);
+            submitData.append('tempat_tujuan', calculatedTempatTujuan);
             submitData.append('tanggal_mulai', formData.tanggal_mulai);
             submitData.append('tanggal_selesai', formData.tanggal_selesai);
             submitData.append('sumber_dana', formData.sumber_dana);
