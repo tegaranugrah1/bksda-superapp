@@ -1,3 +1,30 @@
+# Progress - Phase 149: Mobile Login Keyboard Avoiding & Input Focus Fix
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Login Keyboard Avoiding & Input Focus Fix
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Pembaruan & Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Kemudahan Fokus Input NIP & Kata Sandi**:
+     - Menambahkan `TextInput` `useRef` dan pembungkus `TouchableOpacity` interaktif. Mengetuk area manapun pada kotak input NIP / Kata Sandi langsung memunculkan keyboard HP secara instan.
+  2. **Penyesuaian Responsif Keyboard Android (`KeyboardAvoidingView`)**:
+     - Mengatur perilaku `KeyboardAvoidingView` menjadi `Platform.OS === 'ios' ? 'padding' : undefined` dengan `keyboardShouldPersistTaps="handled"` dan `keyboardDismissMode="on-drag"`.
+     - Layout formulir kini bergeser dengan mulus tanpa menutupi bidang NIP dan Kata Sandi saat keyboard muncul di Android.
+  3. **Pengaturan Tata Letak Terpusat (Proprsional)**:
+     - Menyesuaikan ukuran header & logo agar form login tampil seimbang di tengah layar (`flexGrow: 1`, `justifyContent: 'center'`) tanpa terdorong terlalu atas.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 148: Mobile Login Screen Branding & Clean Up
 
 > Document updated: 2026-07-28
