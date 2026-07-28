@@ -156,6 +156,18 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
             {selectedSt ? "Detail Surat Tugas" : "Inbox Surat Tugas"}
           </Text>
         </View>
+
+        <TouchableOpacity
+          style={styles.headerAddStBtn}
+          onPress={() => {
+            if (navigation) navigation.navigate("BuatSuratTugas");
+            else if (onNavigateToModule) onNavigateToModule("buat-surat-tugas");
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={16} color="#ffffff" />
+          <Text style={styles.headerAddStText}>Buat ST</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -401,6 +413,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "900",
     letterSpacing: -0.3,
+  },
+  headerAddStBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2563eb",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.pill,
+  },
+  headerAddStText: {
+    color: "#ffffff",
+    fontSize: 11.5,
+    fontWeight: "800",
+    marginLeft: 2,
   },
   scrollContent: {
     paddingHorizontal: 16,

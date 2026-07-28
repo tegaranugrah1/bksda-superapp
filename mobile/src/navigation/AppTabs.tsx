@@ -8,6 +8,7 @@ import ProfileScreen from "../features/profile/screens/ProfileScreen";
 import { KepegawaianScreen } from "../features/kepegawaian/KepegawaianScreen";
 import { TambahPegawaiScreen } from "../features/kepegawaian/TambahPegawaiScreen";
 import { InboxSuratTugasScreen } from "../features/kepegawaian/InboxSuratTugasScreen";
+import { BuatSuratTugasScreen } from "../features/kepegawaian/BuatSuratTugasScreen";
 
 export type AppTabParamList = {
   Dashboard: undefined;
@@ -18,6 +19,7 @@ export type AppTabParamList = {
   Kepegawaian: undefined;
   TambahPegawai: undefined;
   InboxSuratTugas: undefined;
+  BuatSuratTugas: undefined;
 };
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
@@ -40,6 +42,7 @@ export default function AppTabs() {
       <Tab.Screen name="Kepegawaian" component={KepegawaianScreen} />
       <Tab.Screen name="TambahPegawai" component={TambahPegawaiScreen} />
       <Tab.Screen name="InboxSuratTugas" component={InboxSuratTugasScreen} />
+      <Tab.Screen name="BuatSuratTugas" component={BuatSuratTugasScreen} />
     </Tab.Navigator>
   );
 }

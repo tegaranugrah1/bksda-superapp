@@ -319,11 +319,22 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
           <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur.</Text>
 
-          {/* Dedicated Sisa Cuti Box Card */}
-          <View style={styles.sisaCutiBox}>
-            <Ionicons name="calendar-outline" size={16} color="#059669" style={{ marginRight: 6 }} />
-            <Text style={styles.sisaCutiLabel}>Sisa Cuti (2026):</Text>
-            <Text style={styles.sisaCutiValue}> 12 Hari Kerja</Text>
+          {/* Quick Actions Row for Employees (Sisa Cuti & Buat Surat Tugas) */}
+          <View style={styles.employeeQuickActionsRow}>
+            <View style={styles.sisaCutiBox}>
+              <Ionicons name="calendar-outline" size={16} color="#059669" style={{ marginRight: 6 }} />
+              <Text style={styles.sisaCutiLabel}>Sisa Cuti:</Text>
+              <Text style={styles.sisaCutiValue}> 12 Hari</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.buatStQuickBtn}
+              onPress={() => onNavigateToModule && onNavigateToModule("buat-surat-tugas")}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="paper-plane-outline" size={15} color="#ffffff" style={{ marginRight: 6 }} />
+              <Text style={styles.buatStQuickText}>Buat ST Baru</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -502,23 +513,41 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     marginBottom: 10,
   },
+  employeeQuickActionsRow: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+  },
   sisaCutiBox: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: RADIUS.button,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    alignSelf: "flex-start",
+    paddingVertical: 7,
+    paddingHorizontal: 10,
   },
   sisaCutiLabel: {
-    color: "#0f172a",
-    fontSize: 11.5,
-    fontWeight: "600",
+    color: "#059669",
+    fontSize: 10.5,
+    fontWeight: "700",
   },
   sisaCutiValue: {
-    color: "#059669",
-    fontSize: 11.5,
+    color: "#065f46",
+    fontSize: 10.5,
+    fontWeight: "800",
+  },
+  buatStQuickBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0f172a",
+    borderRadius: RADIUS.button,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+  },
+  buatStQuickText: {
+    color: "#ffffff",
+    fontSize: 11,
     fontWeight: "800",
   },
   sectionHeader: {
