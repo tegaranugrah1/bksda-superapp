@@ -30,6 +30,87 @@ interface BuatSuratTugasScreenProps {
   onNavigateToModule?: (moduleKey: string) => void;
 }
 
+// Master Employee List Fallback
+const masterEmployeeList: Employee[] = [
+  {
+    id: "m-1",
+    name: "Tegar Anugrah, A.Md.Kom.",
+    nip: "199907072025061006",
+    position: "Pranata Komputer Terampil",
+    department: "Kantor Balai KSDA Kalimantan Timur",
+  },
+  {
+    id: "m-2",
+    name: "Rido, S.Hut.",
+    nip: "198106052000121004",
+    position: "Kepala Seksi Konservasi Wilayah II",
+    department: "Seksi KSDA Wilayah II Tenggarong",
+  },
+  {
+    id: "m-3",
+    name: "Witono, S.Hut.",
+    nip: "197912232000121001",
+    position: "Polisi Kehutanan Ahli Madya",
+    department: "Seksi KSDA Wilayah II Tenggarong",
+  },
+  {
+    id: "m-4",
+    name: "Ahmad Ripai, S.Hut.",
+    nip: "198004122000121003",
+    position: "Pengendali Ekosistem Hutan Ahli Muda",
+    department: "Seksi KSDA Wilayah I Berau",
+  },
+  {
+    id: "m-5",
+    name: "Budi Santoso, S.Hut.",
+    nip: "198001012005011001",
+    position: "Kepala Seksi Konservasi Wilayah I",
+    department: "Seksi KSDA Wilayah I Berau",
+  },
+  {
+    id: "m-6",
+    name: "Ari Susanto, S.Hut.",
+    nip: "198502102008011002",
+    position: "Polisi Kehutanan Ahli Pertama",
+    department: "Seksi KSDA Wilayah III Balikpapan",
+  },
+  {
+    id: "m-7",
+    name: "Afrizal Maula Alfarisi, S.Hut.",
+    nip: "199308162025061005",
+    position: "Polisi Kehutanan Ahli Pertama",
+    department: "Seksi KSDA Wilayah II Tenggarong",
+  },
+  {
+    id: "m-8",
+    name: "Agung Suseno, S.PKP.",
+    nip: "198108242000121002",
+    position: "Pengendali Ekosistem Hutan Ahli Muda",
+    department: "Seksi KSDA Wilayah III Balikpapan",
+  },
+  {
+    id: "m-9",
+    name: "Agus Salim",
+    nip: "MMP-008",
+    position: "MMP Resor KSDA Wilayah 02 Kepulauan Derawan",
+    department: "Seksi KSDA Wilayah I Berau",
+  },
+  {
+    id: "m-10",
+    name: "Agustaf Samber",
+    nip: "197208292007101001",
+    position: "Polisi Kehutanan Penyelia",
+    department: "Seksi KSDA Wilayah I Berau",
+  },
+  {
+    id: "m-11",
+    name: "Affi Agung Rahmadi",
+    nip: "199306242025061001",
+    position: "Pengendali Ekosistem Hutan Pemula",
+    department: "Seksi KSDA Wilayah III Balikpapan",
+  },
+];
+
 export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   navigation,
   onBack,
@@ -40,7 +121,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
 
   // STEP 1: PILIH PEGAWAI
   const [searchQuery, setSearchQuery] = useState("");
-  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [allEmployees, setAllEmployees] = useState<Employee[]>(masterEmployeeList);
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -63,26 +144,48 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     return pos.includes("kepala seksi") || pos.includes("kepala subbagian") || pos.includes("kasubag");
   });
 
-  // Fetch employees from API for search autocomplete
+  // Fetch employees from API and merge with master list
   useEffect(() => {
     const fetchEmployees = async () => {
       setIsSearching(true);
       try {
-        const response = await apiClient.get<any>("/kepegawaian/employees?per_page=100");
-        if (response.data && Array.isArray(response.data.data)) {
-          const list = response.data.data.map((emp: any) => ({
-            id: String(emp.id),
-            name: emp.nama_lengkap || emp.name,
-            nip: emp.nip || "-",
-            position: emp.jabatan || "Staf BKSDA",
-            department: emp.satuan_kerja || "Balai KSDA Kaltim",
-          }));
-          setAllEmployees(list);
-        } else {
-          setAllEmployees([]);
+        let apiList: Employee[] = [];
+        try {
+          const respSelect = await apiClient.get<any>("/kepegawaian/employees/select");
+          if (respSelect.data && Array.isArray(respSelect.data.data)) {
+            apiList = respSelect.data.data.map((emp: any) => ({
+              id: String(emp.id),
+              name: emp.name || emp.nama_lengkap,
+              nip: emp.nip || "-",
+              position: emp.position || emp.jabatan || "Staf BKSDA",
+              department: emp.department || emp.satuan_kerja || "Balai KSDA Kaltim",
+            }));
+          }
+        } catch {
+          // fallback to index
+          const respIndex = await apiClient.get<any>("/kepegawaian/employees?per_page=200");
+          if (respIndex.data && Array.isArray(respIndex.data.data)) {
+            apiList = respIndex.data.data.map((emp: any) => ({
+              id: String(emp.id),
+              name: emp.nama_lengkap || emp.name,
+              nip: emp.nip || "-",
+              position: emp.jabatan || "Staf BKSDA",
+              department: emp.satuan_kerja || "Balai KSDA Kaltim",
+            }));
+          }
         }
+
+        // Merge API employees with masterEmployeeList (deduplicate by NIP or ID)
+        const combined = [...apiList];
+        masterEmployeeList.forEach((mEmp) => {
+          if (!combined.some((c) => c.nip === mEmp.nip || c.name.toLowerCase() === mEmp.name.toLowerCase())) {
+            combined.push(mEmp);
+          }
+        });
+
+        setAllEmployees(combined);
       } catch {
-        setAllEmployees([]);
+        setAllEmployees(masterEmployeeList);
       } finally {
         setIsSearching(false);
       }
@@ -94,7 +197,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const searchResults = allEmployees.filter(
     (emp) =>
       emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.nip.toLowerCase().includes(searchQuery.toLowerCase())
+      emp.nip.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (emp.position && emp.position.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const toggleEmployee = (emp: Employee) => {
@@ -104,6 +208,19 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       setSelectedEmployees((prev) => [...prev, emp]);
       setSearchQuery("");
     }
+  };
+
+  const handleAddManualEmployee = () => {
+    if (!searchQuery.trim()) return;
+    const manualEmp: Employee = {
+      id: `manual-${Date.now()}`,
+      name: searchQuery.trim(),
+      nip: `PEG-${Math.floor(100000 + Math.random() * 900000)}`,
+      position: "Staf Ditugaskan",
+      department: "Balai KSDA Kalimantan Timur",
+    };
+    setSelectedEmployees((prev) => [...prev, manualEmp]);
+    setSearchQuery("");
   };
 
   const handleGoBack = () => {
@@ -270,7 +387,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 8 }} />
               <TextInput
                 style={[styles.searchInput, { color: colors.textDark }]}
-                placeholder="Ketik nama atau NIP pegawai (min. 2 karakter)..."
+                placeholder="Ketik nama atau NIP pegawai (min. 1 karakter)..."
                 placeholderTextColor="#94a3b8"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -279,33 +396,41 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             </View>
 
             {/* Autocomplete Dropdown Search Results */}
-            {searchQuery.trim().length >= 2 && (
+            {searchQuery.trim().length >= 1 && (
               <View style={[styles.dropdownResults, { backgroundColor: isDark ? "#1e293b" : "#ffffff" }]}>
-                {searchResults.length === 0 ? (
-                  <Text style={styles.noResultsText}>Pegawai tidak ditemukan</Text>
-                ) : (
-                  searchResults.map((emp) => {
-                    const isSelected = selectedEmployees.some((e) => e.id === emp.id);
-                    return (
-                      <TouchableOpacity
-                        key={emp.id}
-                        style={[styles.searchResultRow, isSelected && styles.searchResultSelected]}
-                        onPress={() => toggleEmployee(emp)}
-                      >
-                        <Ionicons
-                          name={isSelected ? "checkmark-circle" : "add-circle-outline"}
-                          size={20}
-                          color={isSelected ? "#2563eb" : "#64748b"}
-                          style={{ marginRight: 10 }}
-                        />
-                        <View style={{ flex: 1 }}>
-                          <Text style={[styles.resultName, { color: colors.textDark }]}>{emp.name}</Text>
-                          <Text style={styles.resultNip}>NIP. {emp.nip} • {emp.position}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
+                {searchResults.map((emp) => {
+                  const isSelected = selectedEmployees.some((e) => e.id === emp.id);
+                  return (
+                    <TouchableOpacity
+                      key={emp.id}
+                      style={[styles.searchResultRow, isSelected && styles.searchResultSelected]}
+                      onPress={() => toggleEmployee(emp)}
+                    >
+                      <Ionicons
+                        name={isSelected ? "checkmark-circle" : "add-circle-outline"}
+                        size={20}
+                        color={isSelected ? "#2563eb" : "#64748b"}
+                        style={{ marginRight: 10 }}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.resultName, { color: colors.textDark }]}>{emp.name}</Text>
+                        <Text style={styles.resultNip}>NIP. {emp.nip} • {emp.position}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+
+                {/* Option to Add Custom Typed Name */}
+                <TouchableOpacity
+                  style={styles.addCustomNameRow}
+                  onPress={handleAddManualEmployee}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="person-add" size={18} color="#2563eb" style={{ marginRight: 8 }} />
+                  <Text style={styles.addCustomNameText}>
+                    Tambahkan "<Text style={{ fontWeight: "800" }}>{searchQuery}</Text>" ke Pegawai Ditugaskan
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -745,13 +870,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#cbd5e1",
     marginTop: 4,
-    maxHeight: 180,
-  },
-  noResultsText: {
-    padding: 12,
-    color: "#94a3b8",
-    fontSize: 11.5,
-    textAlign: "center",
+    maxHeight: 220,
   },
   searchResultRow: {
     flexDirection: "row",
@@ -770,6 +889,21 @@ const styles = StyleSheet.create({
   resultNip: {
     color: "#64748b",
     fontSize: 10,
+  },
+
+  addCustomNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: "#eff6ff",
+    borderTopWidth: 1,
+    borderTopColor: "#bfdbfe",
+  },
+  addCustomNameText: {
+    color: "#2563eb",
+    fontSize: 12,
+    fontWeight: "700",
+    flex: 1,
   },
 
   inputGroup: {
