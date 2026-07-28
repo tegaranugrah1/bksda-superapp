@@ -5,6 +5,7 @@ import { BmnAssetCatalogScreen } from '../features/bmn/BmnAssetCatalogScreen';
 import { SuratMasukHistoryScreen } from '../features/surat/SuratMasukHistoryScreen';
 import { InventoryStockScreen } from '../features/inventory/InventoryStockScreen';
 import ProfileScreen from '../features/profile/screens/ProfileScreen';
+import { KepegawaianScreen } from '../features/kepegawaian/KepegawaianScreen';
 
 export type AppTabParamList = {
   Dashboard: undefined;
@@ -12,6 +13,7 @@ export type AppTabParamList = {
   Surat: undefined;
   Inventory: undefined;
   Profile: undefined;
+  Kepegawaian: undefined;
 };
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
@@ -22,7 +24,7 @@ export default function AppTabs() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          display: 'none', // Hide standard fixed bottom bar in favor of FloatingNav
+          display: 'none', // Hide standard fixed bottom bar in favor of Floating Action Button (FabMenu)
         },
       }}
     >
@@ -31,6 +33,7 @@ export default function AppTabs() {
       <Tab.Screen name="Surat" component={SuratMasukHistoryScreen} />
       <Tab.Screen name="Inventory" component={InventoryStockScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Kepegawaian" component={KepegawaianScreen} />
     </Tab.Navigator>
   );
 }

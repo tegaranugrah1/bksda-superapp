@@ -14,7 +14,9 @@ export default function DashboardScreen({ navigation }: any) {
       navigation.navigate('Surat');
     } else if (moduleKey === 'inventory') {
       navigation.navigate('Inventory');
-    } else if (moduleKey === 'profile' || moduleKey === 'kepegawaian') {
+    } else if (moduleKey === 'kepegawaian') {
+      navigation.navigate('Kepegawaian');
+    } else if (moduleKey === 'profile') {
       navigation.navigate('Profile');
     }
   };
