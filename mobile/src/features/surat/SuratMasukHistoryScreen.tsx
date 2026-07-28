@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { SuratDisposisiPrintPreviewModal } from "./SuratDisposisiPrintPreviewModal";
 import { FabMenu } from "../../components/ui/FabMenu";
+import { apiClient } from "../../lib/api/client";
 
 interface SuratMasukHistoryScreenProps {
   navigation?: any;
@@ -35,56 +36,39 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
 
   const filters = ["Semua Surat", "Sangat Penting", "Penting", "Biasa"];
+  const [suratHistoryList, setSuratHistoryList] = useState<any[]>([]);
 
-  const suratHistoryList = [
-    {
-      id: "1",
-      noAgenda: "1015",
-      noSurat: "SURAT/BKSDA/2026/1015",
-      tanggalSurat: "25/07/2026",
-      terimaAgenda: "25/07/2026",
-      asalSurat: "Apekli",
-      lampiran: "3 Set",
-      perihal: "Permohonan Pengadaan Obat-Obatan Translokasi Badak Sumatera",
-      sifat: "SANGAT PENTING",
-      sifatColor: COLORS.statusPending,
-      catatan: "Harap segera ditindaklanjuti dan disiapkan bahan laporannya.",
-      diteruskanList: [
-        "1. Ka Sub Bag TU",
-        "2. Urusan Kepegawaian",
-        "3. Urusan Keuangan",
-        "4. Urusan Teknis",
-      ],
-    },
-    {
-      id: "2",
-      noAgenda: "1014",
-      noSurat: "UND/DIRJEN/142/2026",
-      tanggalSurat: "24/07/2026",
-      terimaAgenda: "24/07/2026",
-      asalSurat: "Direktorat Jenderal KSDAE",
-      lampiran: "1 Berkas",
-      perihal: "Undangan Rapat Koordinasi Evaluasi Kawasan Konservasi TW II 2026",
-      sifat: "PENTING",
-      sifatColor: "#3b82f6",
-      catatan: "Kepala Balai & Kasubbag TU wajib hadir via Zoom Meeting.",
-      diteruskanList: ["1. Ka Sub Bag TU", "2. SKW I Berau", "3. SKW II Tenggarong"],
-    },
-    {
-      id: "3",
-      noAgenda: "1013",
-      noSurat: "500/BKSDA-KALTIM/VII/2026",
-      tanggalSurat: "22/07/2026",
-      terimaAgenda: "22/07/2026",
-      asalSurat: "Dinas Kehutanan Prov Kaltim",
-      lampiran: "-",
-      perihal: "Pemberitahuan Pelaksanaan Patroli Bersama Pengamanan Hutan",
-      sifat: "BIASA",
-      sifatColor: "#64748b",
-      catatan: "Koordinasikan dengan Polhut SKW III Balikpapan.",
-      diteruskanList: ["1. SKW III Balikpapan", "2. Tim Polhut Balai"],
-    },
-  ];
+  const fetchSuratMasuk = async () => {
+    try {
+      const response = await apiClient.get<any>("/surat/surat-masuk");
+      if (response.data && Array.isArray(response.data.data)) {
+        const apiList = response.data.data.map((surat: any) => ({
+          id: String(surat.id),
+          noAgenda: surat.nomor_agenda || String(surat.id),
+          noSurat: surat.nomor_surat || "-",
+          tanggalSurat: surat.tanggal_surat || "2026",
+          terimaAgenda: surat.created_at ? new Date(surat.created_at).toLocaleDateString("id-ID") : "2026",
+          asalSurat: surat.pengirim || surat.asal_surat || "-",
+          lampiran: surat.lampiran || "-",
+          perihal: surat.perihal || "-",
+          sifat: (surat.sifat || "Biasa").toUpperCase(),
+          sifatColor: surat.sifat === "Sangat Penting" ? COLORS.statusPending : "#3b82f6",
+          catatan: surat.ringkasan || surat.catatan || "-",
+          diteruskanList: Array.isArray(surat.diteruskan_ke) ? surat.diteruskan_ke : [],
+        }));
+        setSuratHistoryList(apiList);
+      } else {
+        setSuratHistoryList([]);
+      }
+    } catch {
+      setSuratHistoryList([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuratMasuk();
+  }, []);
+
 
   const filteredList = suratHistoryList.filter((item) => {
     const matchesFilter =

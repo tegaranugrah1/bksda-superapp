@@ -14,6 +14,7 @@ import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { FabMenu } from "../../components/ui/FabMenu";
+import { apiClient } from "../../lib/api/client";
 
 interface InboxSuratTugasScreenProps {
   navigation?: any;
@@ -42,58 +43,38 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("Semua Status");
   const [selectedSt, setSelectedSt] = useState<SuratTugasItem | null>(null);
+  const [stList, setStList] = useState<SuratTugasItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const stList: SuratTugasItem[] = [
-    {
-      id: "1",
-      status: "DRAFT",
-      statusColor: "#64748b",
-      date: "22 JUNI 2026",
-      periode: "22 Juni 2026 — 24 Juni 2026",
-      title:
-        "Perjalanan dinas dari Tenggarong ke Kecamatan Marangkayu Kab. Kutai Kartanegara dalam rangka Penanganan konflik orangutan di Kecamatan Marangkayu Kab. Kutai Kartanegara, selama 3 (tiga) hari terhitung mulai tanggal 22 Juni 2026 sampai dengan 24 Juni 2026; Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut. Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran 2026;",
-      location: "Kecamatan Marangkayu Kab. Kutai Kartanegara",
-      dana: "DIPA",
-      personil: [
-        { name: "Rido, S.Hut.", nip: "NIP. 198106052000121004" },
-        { name: "Witono, S.Hut.", nip: "NIP. 197912232000121001" },
-        { name: "Ahmad Ripai, S.Hut.", nip: "NIP. 198004122000121003" },
-      ],
-    },
-    {
-      id: "2",
-      status: "DITERBITKAN",
-      statusColor: "#2563eb",
-      date: "16 JUNI 2026",
-      periode: "16 Juni 2026 — 18 Juni 2026",
-      title: "Test dinas Ari ke Balikpapan dalam rangka pengawasan kawasan konservasi.",
-      location: "Balikpapan",
-      dana: "DIPA",
-      personil: [{ name: "Ari Susanto, S.Hut.", nip: "NIP. 198502102008011002" }],
-    },
-    {
-      id: "3",
-      status: "DRAFT",
-      statusColor: "#64748b",
-      date: "29 MEI 2026",
-      periode: "29 Mei 2026 — 31 Mei 2026",
-      title: "Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Wilayah I...",
-      location: "Kepala Seksi Konservasi Wilayah I",
-      dana: "DIPA",
-      personil: [{ name: "Budi Santoso, S.Hut.", nip: "NIP. 198001012005011001" }],
-    },
-    {
-      id: "4",
-      status: "DRAFT",
-      statusColor: "#64748b",
-      date: "28 MEI 2026",
-      periode: "28 Mei 2026 — 30 Mei 2026",
-      title: "Perjalanan Dinas dari Samarinda dan Tanjung Redeb ke TWA Pulau Sangalaki dan Tarakan...",
-      location: "TWA Pulau Sangalaki",
-      dana: "DIPA",
-      personil: [{ name: "Ahmad Ripai, S.Hut.", nip: "NIP. 198004122000121003" }],
-    },
-  ];
+  const fetchSuratTugas = async () => {
+    try {
+      const response = await apiClient.get<any>("/kepegawaian/surat-tugas");
+      if (response.data && Array.isArray(response.data.data)) {
+        const apiList = response.data.data.map((st: any) => ({
+          id: String(st.id),
+          status: st.status || "DRAFT",
+          statusColor: st.status === "DITERBITKAN" ? "#2563eb" : "#64748b",
+          date: st.created_at ? new Date(st.created_at).toLocaleDateString("id-ID") : "2026",
+          periode: st.periode || "2026",
+          title: st.perihal || st.title || "-",
+          location: st.tujuan || st.location || "Kalimantan Timur",
+          dana: st.sumber_dana || "DIPA",
+          personil: Array.isArray(st.personil) ? st.personil : [],
+        }));
+        setStList(apiList);
+      } else {
+        setStList([]);
+      }
+    } catch {
+      setStList([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuratTugas();
+  }, []);
 
   // Handle hardware back press & back gesture: return to Inbox list view first
   useEffect(() => {

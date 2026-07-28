@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { FabMenu } from "../../components/ui/FabMenu";
+import { apiClient } from "../../lib/api/client";
 
 interface BmnAssetCatalogScreenProps {
   onBack?: () => void;
@@ -35,40 +36,34 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
   const [loanDurationDays, setLoanDurationDays] = useState("3");
 
   const categories = ["Semua Aset", "Kendaraan", "Elektronik", "Dipinjam"];
+  const [assets, setAssets] = useState<any[]>([]);
 
-  const assets = [
-    {
-      id: "1",
-      name: "Laptop Panasonic Toughbook",
-      nup: "00045",
-      code: "3.02.02.01.005",
-      category: "Elektronik",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "laptop-outline",
-    },
-    {
-      id: "2",
-      name: "GPS Garmin GPSMAP 66sr",
-      nup: "00112",
-      code: "3.02.02.03.012",
-      category: "Elektronik",
-      status: "Dipinjam",
-      statusColor: COLORS.statusPending,
-      borrower: "Hendra (Urusan Teknis)",
-      iconName: "navigate-outline",
-    },
-    {
-      id: "3",
-      name: "Drone DJI Mavic 3 Enterprise",
-      nup: "00088",
-      code: "3.02.02.04.001",
-      category: "Elektronik",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "airplane-outline",
-    },
-  ];
+  const fetchBmnAssets = async () => {
+    try {
+      const response = await apiClient.get<any>("/bmn/assets");
+      if (response.data && Array.isArray(response.data.data)) {
+        const apiAssets = response.data.data.map((item: any) => ({
+          id: String(item.id),
+          name: item.nama_barang || item.name,
+          nup: item.nup || "00001",
+          code: item.kode_barang || "3.02.01",
+          category: item.kategori || "Elektronik",
+          status: item.status || "Tersedia",
+          statusColor: item.status === "Dipinjam" ? COLORS.statusPending : COLORS.statusAvailable,
+          iconName: item.kategori === "Kendaraan" ? "car-outline" : "laptop-outline",
+        }));
+        setAssets(apiAssets);
+      } else {
+        setAssets([]);
+      }
+    } catch {
+      setAssets([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchBmnAssets();
+  }, []);
 
   const filteredAssets = assets.filter((asset) => {
     const matchesSearch =

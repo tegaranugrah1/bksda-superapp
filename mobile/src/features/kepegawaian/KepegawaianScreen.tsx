@@ -208,12 +208,12 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
           role: emp.user?.role || emp.role || "user",
           accessModules: emp.user?.access_modules || emp.access_modules || ["kepegawaian"],
         }));
-        setEmployees(apiList.length > 0 ? apiList : defaultEmployeeList);
+        setEmployees(apiList);
       } else {
-        setEmployees(defaultEmployeeList);
+        setEmployees([]);
       }
     } catch {
-      setEmployees(defaultEmployeeList);
+      setEmployees([]);
     } finally {
       setIsLoading(false);
     }

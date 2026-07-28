@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { FabMenu } from "../../components/ui/FabMenu";
+import { apiClient } from "../../lib/api/client";
 
 interface InventoryStockScreenProps {
   navigation?: any;
@@ -37,53 +38,35 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
   const [notesInput, setNotesInput] = useState("");
 
   const categories = ["Semua Stok", "Perlengkapan Lapangan", "ATK", "Obat Satwa"];
+  const [stockItems, setStockItems] = useState<any[]>([]);
 
-  const stockItems = [
-    {
-      id: "1",
-      name: "Kantung Tidur / Sleeping Bag Patroli",
-      code: "INV-PL-001",
-      category: "Perlengkapan Lapangan",
-      stock: 24,
-      unit: "Unit",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "bonfire-outline",
-    },
-    {
-      id: "2",
-      name: "Obat Translokasi & Anestesi Satwa",
-      code: "INV-MED-004",
-      category: "Obat Satwa",
-      stock: 5,
-      unit: "Paket",
-      status: "Stok Tipis",
-      statusColor: COLORS.statusPending,
-      iconName: "medical-outline",
-    },
-    {
-      id: "3",
-      name: "GPS Garmin Handheld 66s",
-      code: "INV-PL-009",
-      category: "Perlengkapan Lapangan",
-      stock: 12,
-      unit: "Unit",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "navigate-outline",
-    },
-    {
-      id: "4",
-      name: "Kertas HVS A4 80gr Sidu",
-      code: "INV-ATK-012",
-      category: "ATK",
-      stock: 80,
-      unit: "Rim",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "document-outline",
-    },
-  ];
+  const fetchInventoryStocks = async () => {
+    try {
+      const response = await apiClient.get<any>("/inventory/stocks");
+      if (response.data && Array.isArray(response.data.data)) {
+        const apiItems = response.data.data.map((item: any) => ({
+          id: String(item.id),
+          name: item.nama_barang || item.name,
+          code: item.kode_barang || "INV-001",
+          category: item.kategori || "Perlengkapan Lapangan",
+          stock: item.stok ?? item.stock ?? 0,
+          unit: item.satuan || "Unit",
+          status: (item.stok ?? item.stock ?? 0) < 10 ? "Stok Tipis" : "Tersedia",
+          statusColor: (item.stok ?? item.stock ?? 0) < 10 ? COLORS.statusPending : COLORS.statusAvailable,
+          iconName: "cube-outline",
+        }));
+        setStockItems(apiItems);
+      } else {
+        setStockItems([]);
+      }
+    } catch {
+      setStockItems([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventoryStocks();
+  }, []);
 
   const filteredItems = stockItems.filter((item) => {
     const matchesCat =
