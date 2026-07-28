@@ -135,12 +135,17 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
 
   // BUILDER STATE UNTUK NAMA KEGIATAN PRESISI DIRECTIVE USER
   const [jenisKegiatan, setJenisKegiatan] = useState<"perjalanan_dinas" | "kegiatan_1hari">("perjalanan_dinas");
-  const [rutePerjalanan, setRutePerjalanan] = useState("Samarinda ke Kabupaten Kutai Barat");
-  const [dalamRangka, setDalamRangka] = useState("Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi");
-  const [diLokasiOptional, setDiLokasiOptional] = useState("Suaka Margasatwa Kelian");
+  
+  // Mode 1: Perjalanan Dinas (> 1 Hari)
+  const [dariAsal, setDariAsal] = useState("");
+  const [keTujuan, setKeTujuan] = useState("");
+  const [dalamRangka, setDalamRangka] = useState("");
+  const [diLokasiOptional, setDiLokasiOptional] = useState("");
 
-  const [diKegiatan1Hari, setDiKegiatan1Hari] = useState("opname fisik (stok opname) barang persediaan pada tempat kegiatannya");
-  const [kotaKegiatan1Hari, setKotaKegiatan1Hari] = useState("Samarinda");
+  // Mode 2: Melaksanakan Kegiatan (1 Hari)
+  const [namaKegiatan1Hari, setNamaKegiatan1Hari] = useState("");
+  const [padaTempat1Hari, setPadaTempat1Hari] = useState("");
+  const [kotaKegiatan1Hari, setKotaKegiatan1Hari] = useState("");
 
   // STEP 3: KONFIRMASI & DOKUMEN
   const [setujuData, setSetujuData] = useState(false);
@@ -267,8 +272,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     }
 
     const finalNamaKegiatan = jenisKegiatan === "perjalanan_dinas"
-      ? `Melaksanakan Perjalanan Dinas dari ${rutePerjalanan.trim()} dalam rangka ${dalamRangka.trim()}${diLokasiOptional.trim() ? ` di ${diLokasiOptional.trim()}` : ""}`
-      : `Melaksanakan Kegiatan ${diKegiatan1Hari.trim()} di ${kotaKegiatan1Hari.trim()}`;
+      ? `Melaksanakan Perjalanan Dinas dari ${dariAsal.trim() || "..."} ke ${keTujuan.trim() || "..."} dalam rangka ${dalamRangka.trim() || "..."}${diLokasiOptional.trim() ? ` di ${diLokasiOptional.trim()}` : ""}`
+      : `Melaksanakan Kegiatan ${namaKegiatan1Hari.trim() || "..."}${padaTempat1Hari.trim() ? ` pada ${padaTempat1Hari.trim()}` : ""}${kotaKegiatan1Hari.trim() ? ` di ${kotaKegiatan1Hari.trim()}` : ""}`;
 
     setIsSubmitting(true);
     try {
@@ -277,7 +282,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         nama_kegiatan: finalNamaKegiatan,
         tanggal_mulai: tanggalMulai,
         tanggal_selesai: tanggalSelesai,
-        tujuan: jenisKegiatan === "perjalanan_dinas" ? (diLokasiOptional || rutePerjalanan) : kotaKegiatan1Hari,
+        tujuan: jenisKegiatan === "perjalanan_dinas" ? (diLokasiOptional || keTujuan || dariAsal) : kotaKegiatan1Hari,
         sumber_dana: sumberDana,
         plh: namaPlh,
         personil_ids: selectedEmployees.map((e) => e.id),
@@ -512,17 +517,33 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             {/* Builder Inputs Presisi User Directive */}
             {jenisKegiatan === "perjalanan_dinas" ? (
               <View style={{ marginBottom: 14 }}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    RUTE PERJALANAN ( ASAL KE TUJUAN ) <Text style={{ color: "#ef4444" }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Samarinda ke Kabupaten Kutai Barat"
-                    placeholderTextColor="#94a3b8"
-                    value={rutePerjalanan}
-                    onChangeText={setRutePerjalanan}
-                  />
+                {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
+                <View style={styles.rowTwoInputs}>
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.label}>
+                      DARI ( ASAL ) <Text style={{ color: "#ef4444" }}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                      placeholder="Samarinda"
+                      placeholderTextColor="#94a3b8"
+                      value={dariAsal}
+                      onChangeText={setDariAsal}
+                    />
+                  </View>
+
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.label}>
+                      KE ( TUJUAN ) <Text style={{ color: "#ef4444" }}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                      placeholder="Kabupaten Kutai Barat"
+                      placeholderTextColor="#94a3b8"
+                      value={keTujuan}
+                      onChangeText={setKeTujuan}
+                    />
+                  </View>
                 </View>
 
                 <View style={styles.inputGroup}>
@@ -553,20 +574,31 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               <View style={{ marginBottom: 14 }}>
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>
-                    DI ( RINCIAN KEGIATAN / TEMPAT ) <Text style={{ color: "#ef4444" }}>*</Text>
+                    MELAKSANAKAN KEGIATAN <Text style={{ color: "#ef4444" }}>*</Text>
                   </Text>
                   <TextInput
                     style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="opname fisik (stok opname) barang persediaan..."
+                    placeholder="opname fisik (stok opname) barang persediaan"
                     placeholderTextColor="#94a3b8"
-                    value={diKegiatan1Hari}
-                    onChangeText={setDiKegiatan1Hari}
+                    value={namaKegiatan1Hari}
+                    onChangeText={setNamaKegiatan1Hari}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>PADA ( TEMPAT / UNIT / LOKASI KEGIATAN )</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    placeholder="Kantor Balai KSDA Kalimantan Timur / tempat kegiatannya"
+                    placeholderTextColor="#94a3b8"
+                    value={padaTempat1Hari}
+                    onChangeText={setPadaTempat1Hari}
                   />
                 </View>
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>
-                    DI KOTA / KABUPATEN <Text style={{ color: "#ef4444" }}>*</Text>
+                    DI ( KOTA / KABUPATEN ) <Text style={{ color: "#ef4444" }}>*</Text>
                   </Text>
                   <TextInput
                     style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
@@ -583,12 +615,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             <View style={styles.plhAlertCard}>
               <View style={styles.plhHeaderRow}>
                 <Ionicons name="document-text-outline" size={16} color="#2563eb" style={{ marginRight: 6 }} />
-                <Text style={styles.plhAlertTitle}>📌 Preview Hasil Nama Kegiatan Resmi</Text>
+                <Text style={styles.plhAlertTitle}>📌 Pratinjau Hasil Teks Nama Kegiatan Resmi</Text>
               </View>
               <Text style={{ fontSize: 11.5, fontWeight: "700", color: "#1e3a8a", marginTop: 2 }}>
                 {jenisKegiatan === "perjalanan_dinas"
-                  ? `Melaksanakan Perjalanan Dinas dari ${rutePerjalanan || "..."} dalam rangka ${dalamRangka || "..."}${diLokasiOptional ? ` di ${diLokasiOptional}` : ""}`
-                  : `Melaksanakan Kegiatan ${diKegiatan1Hari || "..."} di ${kotaKegiatan1Hari || "..."}`}
+                  ? `Melaksanakan Perjalanan Dinas dari ${dariAsal || "..."} ke ${keTujuan || "..."} dalam rangka ${dalamRangka || "..."}${diLokasiOptional ? ` di ${diLokasiOptional}` : ""}`
+                  : `Melaksanakan Kegiatan ${namaKegiatan1Hari || "..."}${padaTempat1Hari ? ` pada ${padaTempat1Hari}` : ""}${kotaKegiatan1Hari ? ` di ${kotaKegiatan1Hari}` : ""}`}
               </Text>
             </View>
 
@@ -688,13 +720,13 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 style={styles.nextStepBtn}
                 onPress={() => {
                   if (jenisKegiatan === "perjalanan_dinas") {
-                    if (!rutePerjalanan.trim() || !dalamRangka.trim()) {
-                      Alert.alert("Perhatian", "Silakan isi Rute Perjalanan dan Dalam Rangka (*).");
+                    if (!dariAsal.trim() || !keTujuan.trim() || !dalamRangka.trim()) {
+                      Alert.alert("Perhatian", "Silakan isi Lokasi Asal (Dari), Tujuan (Ke), dan Dalam Rangka (*).");
                       return;
                     }
                   } else {
-                    if (!diKegiatan1Hari.trim() || !kotaKegiatan1Hari.trim()) {
-                      Alert.alert("Perhatian", "Silakan isi Rincian Kegiatan dan Kota/Kabupaten (*).");
+                    if (!namaKegiatan1Hari.trim() || !kotaKegiatan1Hari.trim()) {
+                      Alert.alert("Perhatian", "Silakan isi Melaksanakan Kegiatan dan Kota/Kabupaten (*).");
                       return;
                     }
                   }

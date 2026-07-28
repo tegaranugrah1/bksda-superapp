@@ -55,12 +55,17 @@ export default function SuratTugasForm() {
 
     // Builder State untuk Nama Kegiatan Presisi Directive User
     const [jenisKegiatan, setJenisKegiatan] = useState<'perjalanan_dinas' | 'kegiatan_1hari'>('perjalanan_dinas');
-    const [rutePerjalanan, setRutePerjalanan] = useState('Samarinda ke Kabupaten Kutai Barat');
-    const [dalamRangka, setDalamRangka] = useState('Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi');
-    const [diLokasiOptional, setDiLokasiOptional] = useState('Suaka Margasatwa Kelian');
+    
+    // Mode 1: Perjalanan Dinas (> 1 Hari)
+    const [dariAsal, setDariAsal] = useState('');
+    const [keTujuan, setKeTujuan] = useState('');
+    const [dalamRangka, setDalamRangka] = useState('');
+    const [diLokasiOptional, setDiLokasiOptional] = useState('');
 
-    const [diKegiatan1Hari, setDiKegiatan1Hari] = useState('opname fisik (stok opname) barang persediaan pada tempat kegiatannya');
-    const [kotaKegiatan1Hari, setKotaKegiatan1Hari] = useState('Samarinda');
+    // Mode 2: Melaksanakan Kegiatan (1 Hari)
+    const [namaKegiatan1Hari, setNamaKegiatan1Hari] = useState('');
+    const [padaTempat1Hari, setPadaTempat1Hari] = useState('');
+    const [kotaKegiatan1Hari, setKotaKegiatan1Hari] = useState('');
     const [namaPlh, setNamaPlh] = useState('');
     const [plhSearchQuery, setPlhSearchQuery] = useState('');
     const [showPlhDropdown, setShowPlhDropdown] = useState(false);
@@ -145,8 +150,8 @@ export default function SuratTugasForm() {
         setIsSubmitting(true);
         try {
             const finalNamaKegiatan = jenisKegiatan === 'perjalanan_dinas'
-                ? `Melaksanakan Perjalanan Dinas dari ${rutePerjalanan.trim()} dalam rangka ${dalamRangka.trim()}${diLokasiOptional.trim() ? ` di ${diLokasiOptional.trim()}` : ''}`
-                : `Melaksanakan Kegiatan ${diKegiatan1Hari.trim()} di ${kotaKegiatan1Hari.trim()}`;
+                ? `Melaksanakan Perjalanan Dinas dari ${dariAsal.trim() || '...'} ke ${keTujuan.trim() || '...'} dalam rangka ${dalamRangka.trim() || '...'}${diLokasiOptional.trim() ? ` di ${diLokasiOptional.trim()}` : ''}`
+                : `Melaksanakan Kegiatan ${namaKegiatan1Hari.trim() || '...'}${padaTempat1Hari.trim() ? ` pada ${padaTempat1Hari.trim()}` : ''}${kotaKegiatan1Hari.trim() ? ` di ${kotaKegiatan1Hari.trim()}` : ''}`;
 
             const submitData = new FormData();
             submitData.append('maksud_tujuan', finalNamaKegiatan);
@@ -381,17 +386,33 @@ export default function SuratTugasForm() {
                         {/* Form Builder Mode 1: Perjalanan Dinas */}
                         {jenisKegiatan === 'perjalanan_dinas' ? (
                             <div className="space-y-4 pt-2 animate-in fade-in duration-300">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                        Rute Perjalanan ( Asal ke Tujuan ) <span className="text-red-500">*</span>
-                                    </label>
-                                    <input 
-                                        type="text" required
-                                        value={rutePerjalanan}
-                                        onChange={e => setRutePerjalanan(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
-                                        placeholder="Contoh: Samarinda ke Kabupaten Kutai Barat"
-                                    />
+                                {/* Split 2 Columns: Dari (Asal) & Ke (Tujuan) */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Dari ( Kota / Lokasi Asal ) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" required
+                                            value={dariAsal}
+                                            onChange={e => setDariAsal(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Samarinda"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Ke ( Kota / Kabupaten Tujuan ) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" required
+                                            value={keTujuan}
+                                            onChange={e => setKeTujuan(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Kabupaten Kutai Barat"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-1.5">
@@ -409,7 +430,7 @@ export default function SuratTugasForm() {
 
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                        Di ( Opsional / Tempat Spesifik )
+                                        Di ( Tempat Spesifik / Opsional )
                                     </label>
                                     <input 
                                         type="text"
@@ -425,20 +446,33 @@ export default function SuratTugasForm() {
                             <div className="space-y-4 pt-2 animate-in fade-in duration-300">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                        Di ( Rincian Kegiatan / Tempat ) <span className="text-red-500">*</span>
+                                        Melaksanakan Kegiatan <span className="text-red-500">*</span>
                                     </label>
                                     <input 
                                         type="text" required
-                                        value={diKegiatan1Hari}
-                                        onChange={e => setDiKegiatan1Hari(e.target.value)}
+                                        value={namaKegiatan1Hari}
+                                        onChange={e => setNamaKegiatan1Hari(e.target.value)}
                                         className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
-                                        placeholder="Contoh: opname fisik (stok opname) barang persediaan pada tempat kegiatannya"
+                                        placeholder="Contoh: opname fisik (stok opname) barang persediaan"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                        Di Kota / Kabupaten <span className="text-red-500">*</span>
+                                        Pada ( Tempat / Unit / Lokasi Kegiatan )
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={padaTempat1Hari}
+                                        onChange={e => setPadaTempat1Hari(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                        placeholder="Contoh: Kantor Balai KSDA Kalimantan Timur / tempat kegiatannya"
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Di ( Kota / Kabupaten ) <span className="text-red-500">*</span>
                                     </label>
                                     <input 
                                         type="text" required
@@ -454,12 +488,12 @@ export default function SuratTugasForm() {
                         {/* Live Generated Preview Box */}
                         <div className="mt-3 p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-blue-900">
                             <span className="block text-[11px] font-bold uppercase tracking-wider text-blue-600 mb-1">
-                                📌 Hasil Teks Nama Kegiatan Resmi
+                                📌 Pratinjau Hasil Teks Nama Kegiatan Resmi
                             </span>
                             <p className="text-xs font-bold leading-relaxed">
                                 {jenisKegiatan === 'perjalanan_dinas' 
-                                    ? `Melaksanakan Perjalanan Dinas dari ${rutePerjalanan || '...'} dalam rangka ${dalamRangka || '...'}${diLokasiOptional ? ` di ${diLokasiOptional}` : ''}`
-                                    : `Melaksanakan Kegiatan ${diKegiatan1Hari || '...'} di ${kotaKegiatan1Hari || '...'}`
+                                    ? `Melaksanakan Perjalanan Dinas dari ${dariAsal || '...'} ke ${keTujuan || '...'} dalam rangka ${dalamRangka || '...'}${diLokasiOptional ? ` di ${diLokasiOptional}` : ''}`
+                                    : `Melaksanakan Kegiatan ${namaKegiatan1Hari || '...'}${padaTempat1Hari ? ` pada ${padaTempat1Hari}` : ''}${kotaKegiatan1Hari ? ` di ${kotaKegiatan1Hari}` : ''}`
                                 }
                             </p>
                         </div>
