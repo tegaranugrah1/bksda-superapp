@@ -1,3 +1,34 @@
+# Progress - Phase 153: Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Fitur & Layout Utama Berdasarkan 3 Tangkapan Layar Web Portal:
+  1. **Layar Detail Pegawai Interaktif (`EmployeeDetailModal.tsx`) (Presisi Screenshot 2)**:
+     - Mengklik baris pegawai mana saja di tabel kini **membuka Layar Detail Pegawai**.
+     - **Header Profile Card**: Avatar, Nama, Status (`Aktif`), NIP.
+     - **Tombol Aksi Atas**: `🔑 Reset Password` & `🛡️ Kelola Akses`.
+     - **4 Bento Stat Cards Grid**: Jabatan, Unit Kerja, Pangkat/Gol (`PPPK Golongan IX`), Sisa Cuti (`12 Hari Kerja`).
+     - **Tab Interaktif**: `Riwayat Penugasan` (dengan tombol `+ Buat Surat Tugas`), `Biodata`, dan `Cuti Pegawai (PNS)`.
+  2. **Modal Manajemen Hak Akses IAM (`EmployeeAccessModal.tsx`) (Presisi Screenshot 3)**:
+     - Khusus untuk pengguna `super_admin`, mengklik ikon `🛡️` di tabel atau tombol `🛡️ Kelola Akses` di detail pegawai membuka **Modal Manajemen Hak Akses**.
+     - Pilihan **Peran Sistem (Role)**: Admin (Pengelola Modul), Super Admin, User (Pegawai Biasa).
+     - Checkbox **Akses Modul** 6 Modul: Kepegawaian, BMN & Aset, Inventory, D-Reporting, CMS Panel, Persuratan & Disposisi.
+     - Mengirim permohonan pembaruan ke API backend `/api/kepegawaian/employees/{id}/access`.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 152: Mobile Application Kepegawaian & SDM Module Screen
 
 > Document updated: 2026-07-28
