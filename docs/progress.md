@@ -1,11 +1,45 @@
-# Progress - Phase 141: LAN Access Authentication & Precision Disposition Print Optimization
+# Progress - Phase 142: Mobile Application Overhaul & Redesign (Forest Emerald & Dark Glassmorphism)
 
 > Document updated: 2026-07-28
-> Status: Selesai di-merge ke main (via Squash Merge) dan di-push ke repository.
+> Status: Selesai di-merge ke main (via Git Workflow Pro Squash Merge) dan di-push ke repository.
 
 ---
 
-## LAN Access Authentication & Precision Disposition Print Optimization
+## Mobile Application Overhaul & Redesign
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Tujuan: Merombak total aplikasi mobile BKSDA Superapp menggunakan tema Forest Emerald & Dark Glassmorphism, menyelaraskan dengan Google Stitch UI, menerapkan Git Workflow Pro 1 Screen 1 Issue, dan mengintegrasikan seluruh screen secara presisi.
+
+### Implementasi
+- **Theme & Design System**:
+  - Membuat [theme/index.ts](file:///e:/bksda-superapp/mobile/src/theme/index.ts) dengan palet Forest Emerald & Dark Glassmorphism (`COLORS`, `RADIUS`, `SHADOWS`).
+  - Membuat komponen reusable UI [GlassCard.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/GlassCard.tsx) dan [EmeraldButton.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/EmeraldButton.tsx).
+- **Screen 0 (Halaman Login Mobile)**:
+  - Membuat [LoginScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/screens/LoginScreen.tsx) dengan dual logo resmi (BKSDA & Kemenhut), input awal kosong (`""`), tombol bersihkan 1-klik `✕`, chip isi otomatis akun test `⚡ Masukkan Akun Test Super Admin`, dan login biometrik.
+- **Screen 1 (Portal Hub Dashboard Mobile)**:
+  - Membuat [PortalDashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx) dengan header BKSDA Kaltim, hero stats banner (14 Disposisi Aktif, 3 Peminjaman Aset, 2 Laporan Masuk), grid 2x3 modul layanan utama, recent activity feed, dan floating bottom navigation bar.
+- **Screen 2 (Katalog & Peminjaman Aset BMN)**:
+  - Membuat [BmnAssetCatalogScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/bmn/BmnAssetCatalogScreen.tsx) dengan search bar, filter pills, kartu bento aset unggulan Toyota Hilux (Plat KT 8192 BKS, NUP 00012, status Dipinjam), tombol Scan QR & Surat Kuasa PDF, katalog aset lainnya, serta modal permohonan peminjaman aset.
+- **Screen 3A & 3B (Input Surat Masuk & Pratinjau Cetak Disposisi)**:
+  - Membuat [SuratMasukInputScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/surat/SuratMasukInputScreen.tsx) dengan auto agenda `#1016`, form data surat, chip sifat surat, 9 baris default penerus + tombol `+ Tambah Baris ke-10 (Kustom)`.
+  - Membuat [SuratDisposisiPrintPreviewModal.tsx](file:///e:/bksda-superapp/mobile/src/features/surat/SuratDisposisiPrintPreviewModal.tsx) untuk pratinjau presisi Lembar Disposisi BKSDA dengan toggle mode `1-Up` / `2-Up` dan toggle posisi `Kiri` / `Kanan`.
+- **Screen 3C (Daftar & Riwayat Surat Masuk)**:
+  - Membuat [SuratMasukHistoryScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/surat/SuratMasukHistoryScreen.tsx) dengan urutan riwayat surat (terurut descending agenda: `#1015`, `#1014`, `#1013`), search bar, filter sifat surat, dan tombol `🖨️ Cetak Ulang Disposisi` instan.
+- **Screen 4 (Stok Inventaris Barang Habis Pakai)**:
+  - Membuat [InventoryStockScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/inventory/InventoryStockScreen.tsx) dengan daftar stok barang habis pakai (Sleeping Bag, Obat Satwa, ATK), indikator progress stok, serta modal transaksi `📤 Stok Keluar` dan `📥 Tambah Stok`.
+- **Screen 5 (Profil Pegawai & Hak Akses Modul)**:
+  - Membuat [ProfileScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/ProfileScreen.tsx) dengan kartu profil pegawai Drs. Ahmad Subagja, M.Si. (NIP, Jabatan Ka Sub Bag TU), grid hak akses modul (`access_modules`), opsi keamanan, panduan SIMONDOK, dan tombol logout merah.
+- **App Navigation Integration**:
+  - Memperbarui [AppTabs.tsx](file:///e:/bksda-superapp/mobile/src/navigation/AppTabs.tsx) dan [DashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/screens/DashboardScreen.tsx) untuk menghubungkan seluruh tab dan modul secara seamless end-to-end.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Setiap screen dikerjakan di branch terpisah (`task/mobile-screen-*`), diverifikasi, di-squash merge ke `main`, dan di-push ke `origin main`.
+
+---
+
+# Progress - Phase 141: LAN Access Authentication & Precision Disposition Print Optimization
 
 ### Status: SELESAI
 - Scope: Core Auth & Surat Module (LAN IP Support & Print Layout Precision)
