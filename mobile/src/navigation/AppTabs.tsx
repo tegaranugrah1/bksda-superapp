@@ -1,11 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import DashboardScreen from '@/features/dashboard/screens/DashboardScreen';
-import { BmnAssetCatalogScreen } from '@/features/bmn/BmnAssetCatalogScreen';
-import { SuratMasukHistoryScreen } from '@/features/surat/SuratMasukHistoryScreen';
-import { InventoryStockScreen } from '@/features/inventory/InventoryStockScreen';
-import ProfileScreen from '@/features/profile/screens/ProfileScreen';
-import { COLORS } from '@/theme';
+import DashboardScreen from '../features/dashboard/screens/DashboardScreen';
+import { BmnAssetCatalogScreen } from '../features/bmn/BmnAssetCatalogScreen';
+import { SuratMasukHistoryScreen } from '../features/surat/SuratMasukHistoryScreen';
+import { InventoryStockScreen } from '../features/inventory/InventoryStockScreen';
+import ProfileScreen from '../features/profile/screens/ProfileScreen';
+import { COLORS } from '../theme';
 
 export type AppTabParamList = {
   Dashboard: undefined;
