@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../theme/ThemeContext";
+import { useAuth } from "../../features/auth/AuthProvider";
+import { ConfirmModal } from "./ConfirmModal";
 
 interface FabMenuProps {
   onNavigateToModule: (moduleKey: string) => void;
@@ -26,7 +28,9 @@ export const FabMenu: React.FC<FabMenuProps> = ({
   },
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const { isDark, colors } = useTheme();
+  const { logout } = useAuth();
 
   const menuItems = [
     { key: "home", title: "Beranda / Portal Hub", icon: "home-outline", color: "#059669" },
@@ -42,6 +46,12 @@ export const FabMenu: React.FC<FabMenuProps> = ({
     onNavigateToModule(key);
   };
 
+  const handleConfirmLogout = async () => {
+    setLogoutModalVisible(false);
+    setIsOpen(false);
+    if (logout) await logout();
+  };
+
   return (
     <>
       {/* Floating Action Button (FAB) in Bottom Right Corner */}
@@ -53,7 +63,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
         <Ionicons name="menu-outline" size={26} color="#ffffff" />
       </TouchableOpacity>
 
-      {/* Slide / Overlay Drawer Menu Presisi Gambar 1 */}
+      {/* Slide / Overlay Drawer Menu */}
       <Modal visible={isOpen} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
           <TouchableOpacity
@@ -104,6 +114,17 @@ export const FabMenu: React.FC<FabMenuProps> = ({
                   <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
                 </TouchableOpacity>
               ))}
+
+              <TouchableOpacity
+                style={[styles.menuRow, { borderBottomWidth: 0, marginTop: 10 }]}
+                activeOpacity={0.7}
+                onPress={() => setLogoutModalVisible(true)}
+              >
+                <View style={[styles.menuIconBg, { backgroundColor: "#fef2f2" }]}>
+                  <Ionicons name="log-out-outline" size={18} color="#ef4444" />
+                </View>
+                <Text style={[styles.menuText, { color: "#ef4444" }]}>Keluar Sistem</Text>
+              </TouchableOpacity>
             </ScrollView>
 
             {/* Drawer Footer User Info */}
@@ -123,6 +144,19 @@ export const FabMenu: React.FC<FabMenuProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* Custom Premium Logout Confirm Modal */}
+      <ConfirmModal
+        visible={logoutModalVisible}
+        title="Konfirmasi Keluar"
+        message="Apakah Anda yakin ingin keluar dari aplikasi BKSDA Superapp?"
+        confirmText="Ya, Keluar"
+        cancelText="Batal"
+        iconName="log-out-outline"
+        variant="danger"
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setLogoutModalVisible(false)}
+      />
     </>
   );
 };

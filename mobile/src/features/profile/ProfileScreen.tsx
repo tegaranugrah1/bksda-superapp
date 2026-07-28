@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { useAuth } from "../auth/AuthProvider";
 import { FabMenu } from "../../components/ui/FabMenu";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 
 interface ProfileScreenProps {
   onBack?: () => void;
@@ -27,6 +28,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 }) => {
   const { isDark, colors } = useTheme();
   const { user, logout } = useAuth();
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const officerName = user?.name || user?.employee?.name || "Super Admin System";
   const officerNip = user?.username || user?.employee?.nip || "superadmin";
@@ -40,18 +42,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     { label: "TELEPON", value: "-", icon: "call-outline", color: "#0d9488" },
   ];
 
-  const handleLogout = async () => {
-    Alert.alert("Konfirmasi Keluar", "Apakah Anda yakin ingin keluar dari aplikasi BKSDA Superapp?", [
-      { text: "Batal", style: "cancel" },
-      {
-        text: "Keluar",
-        style: "destructive",
-        onPress: async () => {
-          if (logout) await logout();
-          if (onLogout) onLogout();
-        },
-      },
-    ]);
+  const handleConfirmLogout = async () => {
+    setLogoutModalVisible(false);
+    if (logout) await logout();
+    if (onLogout) onLogout();
   };
 
   const handlePressBack = () => {
@@ -72,7 +66,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
-      {/* Header with Prominent Clickable Back Button */}
+      {/* Header with Clickable Back Button */}
       <View
         style={[
           styles.header,
@@ -150,14 +144,31 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <Text style={styles.changePasswordText}>Ganti Password</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.logoutBtn}
+          onPress={() => setLogoutModalVisible(true)}
+          activeOpacity={0.8}
+        >
           <Ionicons name="log-out-outline" size={18} color="#ef4444" style={{ marginRight: 8 }} />
           <Text style={styles.logoutText}>Keluar dari Aplikasi</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Floating Action Button (FAB ☰ Menu) in Bottom Right Corner */}
+      {/* Floating Action Button (FAB ☰ Menu) */}
       <FabMenu onNavigateToModule={handleSelectNavTab} />
+
+      {/* Custom Premium Logout Confirm Modal */}
+      <ConfirmModal
+        visible={logoutModalVisible}
+        title="Konfirmasi Keluar"
+        message="Apakah Anda yakin ingin keluar dari aplikasi BKSDA Superapp?"
+        confirmText="Ya, Keluar"
+        cancelText="Batal"
+        iconName="log-out-outline"
+        variant="danger"
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setLogoutModalVisible(false)}
+      />
     </View>
   );
 };
@@ -187,7 +198,7 @@ const styles = StyleSheet.create({
   headerTitleRow: {
     flex: 1,
     alignItems: "center",
-    paddingRight: 70, // Balance title alignment
+    paddingRight: 70,
   },
   headerTitle: {
     fontSize: 17,
