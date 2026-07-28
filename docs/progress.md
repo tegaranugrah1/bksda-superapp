@@ -1,3 +1,30 @@
+# Progress - Phase 150: Dynamic Logged-In User Profile & Web Backend Data Sync
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Dynamic Logged-In User Profile & Web Backend Data Sync
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Pembaruan Utama Berdasarkan Permintaan User:
+  1. **Profil Pengguna Dinamis Sesuai Akun Login**:
+     - Mengubah resolver nama & NIP di [DashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/screens/DashboardScreen.tsx) & [PortalDashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx) sehingga membaca langsung dari data autentikasi `useAuth()`.
+     - Saat masuk sebagai `superadmin`, greeting otomatis menampilkan *"Selamat Siang, Super Admin System! ☀️"* dengan avatar initial `"S"`.
+     - Saat masuk sebagai pegawai (misal Ahmad Subagja), greeting otomatis menampilkan *"Selamat Siang, Drs. Ahmad Subagja, M.Si.! ☀️"* dengan avatar initial `"A"`.
+  2. **Sinkronisasi Data Tab Interaktif dengan Web Portal Backend**:
+     - Menghubungkan 4 tab interaktif (`Pinjaman Aktif`, `Aset Saya`, `Surat Tugas`, `Pengajuan Cuti Saya`) dengan API backend `/api/mobile/dashboard` & `/api/me`.
+     - Jumlah pinjaman aktif, aset terpegang, surat tugas aktif, dan hak cuti pegawai kini **100% tersinkronisasi secara real-time** dengan database web portal BKSDA.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 149: Mobile Login Keyboard Avoiding & Input Focus Fix
 
 > Document updated: 2026-07-28
