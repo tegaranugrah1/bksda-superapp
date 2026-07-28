@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
@@ -49,7 +50,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     "superadmin";
 
   const avatarInitial = (resolvedName.charAt(0) || "S").toUpperCase();
-
   const summary = dashboardData?.summary;
 
   const modules = [
@@ -134,9 +134,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           );
         }
         return (
-          <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
+          <GlassCard style={[styles.tabContentCard, styles.emptyStateCard, { backgroundColor: colors.cardBg }]}>
             <View style={styles.emptyIconBg}>
-              <Ionicons name="cube-outline" size={28} color={colors.textMuted} />
+              <Ionicons name="swap-horizontal-outline" size={36} color="#cbd5e1" />
             </View>
             <Text style={[styles.emptyText, { color: colors.textMuted }]}>
               Tidak ada pinjaman aktif saat ini
@@ -151,67 +151,102 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         );
 
       case "aset":
+        if (summary && summary.assigned_assets_count > 0) {
+          return (
+            <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
+              <View style={styles.contentItemRow}>
+                <View style={styles.contentIconBg}>
+                  <Ionicons name="car-sport-outline" size={18} color="#059669" />
+                </View>
+                <View style={styles.contentMain}>
+                  <Text style={[styles.contentTitle, { color: colors.textDark }]}>
+                    Aset Terpenuhi ({summary.assigned_assets_count} Unit)
+                  </Text>
+                  <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
+                    Kendaraan & barang di bawah tanggung jawab Anda
+                  </Text>
+                  <Text style={styles.contentMeta}>Status: Aktif Pegang</Text>
+                </View>
+              </View>
+            </GlassCard>
+          );
+        }
+        // Exact Web Portal Empty State Matching Screenshot 1
         return (
-          <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
-            <View style={styles.contentItemRow}>
-              <View style={styles.contentIconBg}>
-                <Ionicons name="car-sport-outline" size={18} color="#059669" />
-              </View>
-              <View style={styles.contentMain}>
-                <Text style={[styles.contentTitle, { color: colors.textDark }]}>
-                  Toyota Hilux Double Cabin 4x4
-                </Text>
-                <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
-                  Plat: KT 8192 BKS • NUP: 00012
-                </Text>
-                <Text style={styles.contentMeta}>
-                  Status: Dipinjam ({summary?.assigned_assets_count || 1} Aset Terpegang)
-                </Text>
-              </View>
+          <GlassCard style={[styles.tabContentCard, styles.emptyStateCard, { backgroundColor: colors.cardBg }]}>
+            <View style={styles.emptyIconBg}>
+              <Ionicons name="briefcase-outline" size={44} color="#cbd5e1" />
             </View>
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+              Tidak ada aset di bawah tanggung jawab Anda.
+            </Text>
           </GlassCard>
         );
 
       case "surattugas":
+        if (summary && (summary.active_my_letters_count > 0 || summary.pending_my_letters_count > 0)) {
+          return (
+            <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
+              <View style={styles.contentItemRow}>
+                <View style={[styles.contentIconBg, { backgroundColor: "#eff6ff" }]}>
+                  <Ionicons name="document-text-outline" size={18} color="#3b82f6" />
+                </View>
+                <View style={styles.contentMain}>
+                  <Text style={[styles.contentTitle, { color: colors.textDark }]}>
+                    {summary.active_my_letters_count || summary.pending_my_letters_count} Surat Tugas Aktif
+                  </Text>
+                  <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
+                    ST Operasional & Patroli Kawasan
+                  </Text>
+                  <Text style={styles.contentMeta}>Status: Berjalan / Menunggu Approval</Text>
+                </View>
+              </View>
+            </GlassCard>
+          );
+        }
+        // Exact Web Portal Empty State Matching Screenshot 2
         return (
-          <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
-            <View style={styles.contentItemRow}>
-              <View style={[styles.contentIconBg, { backgroundColor: "#eff6ff" }]}>
-                <Ionicons name="document-text-outline" size={18} color="#3b82f6" />
-              </View>
-              <View style={styles.contentMain}>
-                <Text style={[styles.contentTitle, { color: colors.textDark }]}>
-                  ST Patroli Pengamanan Kawasan #1015
-                </Text>
-                <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
-                  Tujuan: Cagar Alam Wilayah I Kaltim
-                </Text>
-                <Text style={styles.contentMeta}>
-                  Tanggal: 25 Juli 2026 - 30 Juli 2026 ({summary?.active_my_letters_count || 1} ST Aktif)
-                </Text>
-              </View>
+          <GlassCard style={[styles.tabContentCard, styles.emptyStateCard, { backgroundColor: colors.cardBg }]}>
+            <View style={styles.emptyIconBg}>
+              <Ionicons name="clipboard-outline" size={44} color="#cbd5e1" />
             </View>
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+              Belum ada surat tugas yang diterbitkan
+            </Text>
           </GlassCard>
         );
 
       case "cuti":
+        // Exact Web Portal Structure Matching Screenshot 3
         return (
-          <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
-            <View style={styles.contentItemRow}>
-              <View style={[styles.contentIconBg, { backgroundColor: "#fff7ed" }]}>
-                <Ionicons name="calendar-outline" size={18} color="#f97316" />
-              </View>
-              <View style={styles.contentMain}>
-                <Text style={[styles.contentTitle, { color: colors.textDark }]}>
-                  Pengajuan Cuti Tahunan (2026)
+          <View>
+            <View style={styles.cutiHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.cutiHeaderTitle, { color: colors.textDark }]}>
+                  Daftar Pengajuan Cuti Saya
                 </Text>
-                <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
-                  Hak Cuti: 12 Hari Kerja • Terpakai: 0 Hari
+                <Text style={[styles.cutiHeaderSub, { color: colors.textMuted }]}>
+                  Ajukan permohonan cuti dan cetak formulir resmi BKSDA.
                 </Text>
-                <Text style={styles.contentMeta}>Status: Disetujui (Sisa 12 Hari)</Text>
               </View>
+              <TouchableOpacity
+                style={styles.ajukanCutiBtn}
+                onPress={() => Alert.alert("Formulir Cuti", "Formulir Pengajuan Cuti Baru BKSDA Kaltim.")}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.ajukanCutiText}>+ Ajukan Cuti Baru</Text>
+              </TouchableOpacity>
             </View>
-          </GlassCard>
+
+            <GlassCard style={[styles.tabContentCard, styles.emptyStateCard, { backgroundColor: colors.cardBg }]}>
+              <View style={styles.emptyIconBg}>
+                <Ionicons name="calendar-outline" size={44} color="#cbd5e1" />
+              </View>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                Belum ada pengajuan cuti
+              </Text>
+            </GlassCard>
+          </View>
         );
 
       default:
@@ -278,7 +313,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Emerald Hero Greeting Banner with Dynamic Name */}
+        {/* Emerald Hero Greeting Banner */}
         <View style={styles.heroBanner}>
           <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
           <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
@@ -362,7 +397,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           })}
         </View>
 
-        {/* Dynamic Tab Content Box */}
+        {/* Dynamic Tab Content Box Presisi Web Portal */}
         {renderTabContent()}
       </ScrollView>
     </View>
@@ -559,29 +594,33 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   tabContentCard: {
-    padding: 14,
+    padding: 16,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 90,
+    minHeight: 110,
+  },
+  emptyStateCard: {
+    paddingVertical: 24,
   },
   emptyIconBg: {
-    marginBottom: 4,
+    marginBottom: 8,
+    alignItems: "center",
   },
   emptyText: {
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: "600",
     textAlign: "center",
   },
   actionLinkBtn: {
-    marginTop: 6,
+    marginTop: 8,
     backgroundColor: "#ecfdf5",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: RADIUS.pill,
   },
   actionLinkText: {
     color: "#059669",
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: "700",
   },
   contentItemRow: {
@@ -614,5 +653,30 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: "700",
     marginTop: 1,
+  },
+  cutiHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  cutiHeaderTitle: {
+    fontSize: 13.5,
+    fontWeight: "800",
+  },
+  cutiHeaderSub: {
+    fontSize: 10.5,
+    marginTop: 1,
+  },
+  ajukanCutiBtn: {
+    backgroundColor: "#059669",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.pill,
+  },
+  ajukanCutiText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "700",
   },
 });
