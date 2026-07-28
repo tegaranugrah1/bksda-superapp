@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
@@ -99,11 +100,11 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Text style={styles.backIcon}>←</Text>
+            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerIcon}>📝</Text>
+          <Ionicons name="create-outline" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Input Surat Masuk</Text>
         </View>
         <View style={styles.agendaBadge}>
@@ -115,7 +116,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
         {/* Section 1: Data Surat Masuk */}
         <GlassCard style={styles.sectionCard} highlighted>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardHeaderIcon}>📄</Text>
+            <Ionicons name="document-text-outline" size={18} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
             <Text style={styles.cardHeaderTitle}>Informasi Surat Masuk</Text>
           </View>
 
@@ -195,7 +196,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
         {/* Section 2: Diteruskan Kepada Yth (9 Items Default + Add 10th Custom Item) */}
         <GlassCard style={styles.sectionCard}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardHeaderIcon}>📋</Text>
+            <Ionicons name="list-outline" size={18} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
             <Text style={styles.cardHeaderTitle}>Diteruskan Kepada Yth (Daftar Baris)</Text>
           </View>
 
@@ -205,7 +206,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
                 <Text style={styles.recipientItemText}>{item}</Text>
                 {index >= 9 && (
                   <TouchableOpacity onPress={() => handleRemoveRecipientItem(index)}>
-                    <Text style={styles.deleteRecipientText}>✕</Text>
+                    <Ionicons name="trash-outline" size={16} color={COLORS.statusUrgent} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -252,7 +253,7 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
         {/* Section 3: Catatan & Sifat Surat */}
         <GlassCard style={styles.sectionCard}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardHeaderIcon}>🏷️</Text>
+            <Ionicons name="pricetag-outline" size={18} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
             <Text style={styles.cardHeaderTitle}>Catatan & Sifat Disposisi</Text>
           </View>
 
@@ -293,12 +294,12 @@ export const SuratMasukInputScreen: React.FC<SuratMasukInputScreenProps> = ({
         {/* Primary Action Buttons */}
         <View style={styles.actionBtnContainer}>
           <EmeraldButton
-            title="🖨️ CETAK LEMBAR DISPOSISI"
+            title="CETAK LEMBAR DISPOSISI"
             onPress={() => setPreviewModalVisible(true)}
             style={styles.printPrimaryBtn}
           />
           <EmeraldButton
-            title="💾 Simpan Data Surat"
+            title="Simpan Data Surat"
             variant="secondary"
             onPress={handleSaveSurat}
             style={styles.saveSecondaryBtn}
@@ -347,18 +348,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
     padding: 4,
   },
-  backIcon: {
-    color: COLORS.textWhite,
-    fontSize: 20,
-  },
   headerTitleRow: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-  },
-  headerIcon: {
-    fontSize: 20,
-    marginRight: 8,
   },
   headerTitle: {
     color: COLORS.textWhite,
@@ -394,10 +387,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.glassBorder,
     paddingBottom: 10,
-  },
-  cardHeaderIcon: {
-    fontSize: 18,
-    marginRight: 8,
   },
   cardHeaderTitle: {
     color: COLORS.textMint,
@@ -451,11 +440,6 @@ const styles = StyleSheet.create({
     color: COLORS.textWhite,
     fontSize: 13,
     fontWeight: "600",
-  },
-  deleteRecipientText: {
-    color: COLORS.statusUrgent,
-    fontSize: 15,
-    paddingHorizontal: 6,
   },
   addDashedBtn: {
     borderWidth: 1.5,

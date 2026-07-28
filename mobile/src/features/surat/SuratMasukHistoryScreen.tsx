@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS, SHADOWS } from "../../theme";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
@@ -113,11 +114,11 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Text style={styles.backIcon}>←</Text>
+            <Ionicons name="arrow-back" size={22} color={COLORS.textWhite} />
           </TouchableOpacity>
         )}
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerIcon}>📋</Text>
+          <Ionicons name="document-text-sharp" size={22} color={COLORS.emeraldElectric} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>Riwayat Surat Masuk</Text>
         </View>
         <TouchableOpacity
@@ -131,7 +132,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchBarContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search-outline" size={18} color={COLORS.textMint} style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Cari No. Agenda, No. Surat, atau Perihal..."
@@ -141,7 +142,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Text style={styles.clearSearchText}>✕</Text>
+              <Ionicons name="close-circle" size={18} color={COLORS.textMint} style={{ opacity: 0.6 }} />
             </TouchableOpacity>
           )}
         </View>
@@ -188,7 +189,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
 
               <View style={styles.cardActionRow}>
                 <EmeraldButton
-                  title="🖨️ Cetak Ulang Disposisi"
+                  title="Cetak Ulang Disposisi"
                   onPress={() => handleOpenReprintModal(item)}
                   style={styles.reprintBtn}
                 />
@@ -196,7 +197,8 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
                   style={styles.editBtn}
                   onPress={() => onNavigateToCreate && onNavigateToCreate()}
                 >
-                  <Text style={styles.editBtnText}>✏️ Edit</Text>
+                  <Ionicons name="pencil" size={14} color={COLORS.textMint} style={{ marginRight: 4 }} />
+                  <Text style={styles.editBtnText}>Edit</Text>
                 </TouchableOpacity>
               </View>
             </GlassCard>
@@ -211,7 +213,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
           onPress={onNavigateToCreate}
           activeOpacity={0.8}
         >
-          <Text style={styles.fabIcon}>+</Text>
+          <Ionicons name="add" size={32} color={COLORS.textDark} />
         </TouchableOpacity>
       )}
 
@@ -247,18 +249,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
     padding: 4,
   },
-  backIcon: {
-    color: COLORS.textWhite,
-    fontSize: 20,
-  },
   headerTitleRow: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-  },
-  headerIcon: {
-    fontSize: 20,
-    marginRight: 8,
   },
   headerTitle: {
     color: COLORS.textWhite,
@@ -281,7 +275,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 90,
+    paddingBottom: 40,
   },
   searchBarContainer: {
     flexDirection: "row",
@@ -294,19 +288,10 @@ const styles = StyleSheet.create({
     height: 46,
     marginBottom: 14,
   },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 10,
-  },
   searchInput: {
     flex: 1,
     color: COLORS.textWhite,
     fontSize: 14,
-  },
-  clearSearchText: {
-    color: COLORS.textMint,
-    fontSize: 14,
-    opacity: 0.6,
   },
   filterScroll: {
     marginBottom: 16,
@@ -403,6 +388,8 @@ const styles = StyleSheet.create({
     height: 42,
   },
   editBtn: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: RADIUS.button,
@@ -425,11 +412,5 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.emeraldElectric,
     alignItems: "center",
     justifyContent: "center",
-  },
-  fabIcon: {
-    color: COLORS.textDark,
-    fontSize: 32,
-    fontWeight: "300",
-    marginTop: -2,
   },
 });
