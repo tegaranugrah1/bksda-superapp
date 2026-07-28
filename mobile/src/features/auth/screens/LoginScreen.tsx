@@ -1,208 +1,179 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
+  View,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  StyleSheet,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Alert,
-} from 'react-native';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { COLORS, RADIUS } from '@/theme';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { EmeraldButton } from '@/components/ui/EmeraldButton';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS, RADIUS, SHADOWS } from "../../../theme";
+import { GlassCard } from "../../../components/ui/GlassCard";
+import { EmeraldButton } from "../../../components/ui/EmeraldButton";
+import { useAuth } from "../AuthProvider";
 
 export default function LoginScreen() {
   const { login, isLoading } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
-  const [usernameError, setUsernameError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [submitError, setSubmitError] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const fillTestAccount = () => {
-    setUsername('19850412 201012 1 002');
-    setPassword('12345678');
-    setUsernameError('');
-    setPasswordError('');
-  };
-
-  const handleSubmit = async () => {
-    const nextUsernameError = username.trim() ? '' : 'NIP / Username wajib diisi.';
-    const nextPasswordError = password ? '' : 'Password wajib diisi.';
-
-    setUsernameError(nextUsernameError);
-    setPasswordError(nextPasswordError);
-    setSubmitError('');
-
-    if (nextUsernameError || nextPasswordError) {
+  const handleLogin = async () => {
+    if (!username.trim()) {
+      Alert.alert("Perhatian", "Silakan masukkan NIP atau Username.");
+      return;
+    }
+    if (!password) {
+      Alert.alert("Perhatian", "Silakan masukkan Kata Sandi.");
       return;
     }
 
+    setErrorMessage(null);
     try {
       await login(username.trim(), password);
-    } catch {
-      setSubmitError('Login gagal. Periksa NIP/Username dan Password, lalu coba lagi.');
+    } catch (err: any) {
+      setErrorMessage(err?.message || "Gagal masuk. Periksa username & kata sandi Anda.");
     }
   };
 
-  const handleBiometricLogin = () => {
-    fillTestAccount();
-    Alert.alert('Biometrik', 'Verifikasi Sidik Jari berhasil!', [
-      { text: 'Lanjutkan', onPress: () => handleSubmit() },
-    ]);
+  const handleFillTestAccount = () => {
+    setUsername("superadmin");
+    setPassword("Lolipop@147258379");
+    setErrorMessage(null);
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
-        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Branding Header */}
-        <View style={styles.header}>
-          <View style={styles.logoRow}>
-            <Image
-              source={{ uri: 'https://bksdakaltim.net/assets/img/logokemenhut.png' }}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <View style={styles.logoDivider} />
-            <Image
-              source={{ uri: 'https://bksdakaltim.net/assets/img/logobksda.png' }}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+        {/* Top Crest Logomark */}
+        <View style={styles.logoSection}>
+          <Image
+            source={{ uri: "https://bksdakaltim.net/assets/img/logobksda.png" }}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.portalTitle}>BALAI KONSERVASI SUMBER DAYA ALAM</Text>
+          <Text style={styles.portalSubtitle}>KALIMANTAN TIMUR</Text>
+          <View style={styles.goldBadge}>
+            <Ionicons name="shield-checkmark" size={12} color={COLORS.emeraldElectric} style={{ marginRight: 4 }} />
+            <Text style={styles.goldBadgeText}>SIMONDOK MOBILE PORTAL</Text>
           </View>
-          <Text style={styles.title}>BKSDA Kaltim Superapp</Text>
-          <Text style={styles.subtitle}>
-            Sistem Informasi Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur
-          </Text>
         </View>
 
-        {/* Login Form Glass Card */}
+        {/* Login Form Card */}
         <GlassCard style={styles.formCard} highlighted>
-          <Text style={styles.formTitle}>Masuk ke Akun Staf</Text>
+          <Text style={styles.cardHeader}>Masuk ke Akun Anda</Text>
+          <Text style={styles.cardSub}>Gunakan NIP / Username yang terdaftar di Superapp</Text>
 
-          {/* Username / NIP Field */}
+          {errorMessage && (
+            <View style={styles.errorAlertBox}>
+              <Ionicons name="alert-circle" size={18} color="#ef4444" style={{ marginRight: 6 }} />
+              <Text style={styles.errorAlertText}>
+                {errorMessage}
+              </Text>
+            </View>
+          )}
+
+          {/* Quick Fill Test Account Chip */}
+          <TouchableOpacity
+            style={styles.testAccountChip}
+            onPress={handleFillTestAccount}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="flash" size={14} color={COLORS.emeraldElectric} style={{ marginRight: 6 }} />
+            <Text style={styles.testAccountText}>Isi Akun Test Super Admin</Text>
+          </TouchableOpacity>
+
+          {/* Username Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>NIP / Username</Text>
-            <View style={[styles.inputContainer, Boolean(usernameError) && styles.inputError]}>
-              <Text style={styles.inputIcon}>👤</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="person-outline" size={18} color={COLORS.textMint} style={styles.inputLeftIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Contoh: 19850412 201012 1 002"
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholderTextColor="rgba(167, 243, 208, 0.35)"
                 value={username}
                 onChangeText={(val) => {
                   setUsername(val);
-                  if (usernameError) setUsernameError('');
+                  if (errorMessage) setErrorMessage(null);
                 }}
                 autoCapitalize="none"
-                editable={!isLoading}
               />
               {username.length > 0 && (
-                <TouchableOpacity onPress={() => setUsername('')} style={styles.clearBtn}>
-                  <Text style={styles.clearText}>✕</Text>
+                <TouchableOpacity onPress={() => setUsername("")} style={styles.clearBtn}>
+                  <Ionicons name="close-circle" size={18} color={COLORS.textMint} style={{ opacity: 0.6 }} />
                 </TouchableOpacity>
               )}
             </View>
-            {usernameError ? <Text style={styles.errorText}>{usernameError}</Text> : null}
           </View>
 
-          {/* Password Field */}
+          {/* Password Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Kata Sandi</Text>
-            <View style={[styles.inputContainer, Boolean(passwordError) && styles.inputError]}>
-              <Text style={styles.inputIcon}>🔒</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={18} color={COLORS.textMint} style={styles.inputLeftIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Masukkan Kata Sandi"
-                placeholderTextColor="rgba(167, 243, 208, 0.4)"
+                placeholder="••••••••••••"
+                placeholderTextColor="rgba(167, 243, 208, 0.35)"
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(val) => {
                   setPassword(val);
-                  if (passwordError) setPasswordError('');
+                  if (errorMessage) setErrorMessage(null);
                 }}
-                editable={!isLoading}
               />
-              {password.length > 0 && (
-                <TouchableOpacity onPress={() => setPassword('')} style={styles.clearBtn}>
-                  <Text style={styles.clearText}>✕</Text>
-                </TouchableOpacity>
-              )}
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeBtn}
+                style={styles.clearBtn}
               >
-                <Text style={styles.eyeText}>{showPassword ? '👁️' : '🙈'}</Text>
+                <Ionicons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={18}
+                  color={COLORS.textMint}
+                  style={{ opacity: 0.7 }}
+                />
               </TouchableOpacity>
             </View>
-            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
           </View>
 
-          {/* Quick Test Fill Chip */}
-          <TouchableOpacity onPress={fillTestAccount} style={styles.quickFillChip} activeOpacity={0.7}>
-            <Text style={styles.quickFillText}>⚡ Masukkan Akun Test Super Admin</Text>
-          </TouchableOpacity>
-
-          {/* Options Row */}
-          <View style={styles.optionsRow}>
-            <TouchableOpacity
-              style={styles.rememberRow}
-              onPress={() => setRememberMe(!rememberMe)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-                {rememberMe && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.rememberText}>Ingat Saya</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => Alert.alert('Bantuan', 'Silakan hubungi Subbag TU untuk reset password.')}>
-              <Text style={styles.forgotText}>Lupa Password?</Text>
-            </TouchableOpacity>
-          </View>
-
-          {submitError ? <Text style={styles.submitErrorText}>{submitError}</Text> : null}
-
-          {/* Primary Action Button */}
+          {/* Submit Login Button */}
           <EmeraldButton
-            title="MASUK KE APLIKASI  ➔"
-            onPress={handleSubmit}
+            title={isLoading ? "MEMPROSES..." : "MASUK KE SUPERAPP ➔"}
+            onPress={handleLogin}
             loading={isLoading}
-            disabled={isLoading}
-            style={styles.loginBtn}
+            style={[styles.submitBtn, SHADOWS.glowEmerald]}
           />
 
-          {/* Biometric Secondary Button */}
+          {/* Biometric Quick Login Option */}
           <TouchableOpacity
             style={styles.biometricBtn}
-            onPress={handleBiometricLogin}
-            activeOpacity={0.8}
-            disabled={isLoading}
+            onPress={() => Alert.alert("Login Biometrik", "Pindai Sidik Jari / FaceID untuk masuk instan.")}
+            activeOpacity={0.7}
           >
-            <Text style={styles.biometricIcon}>👆</Text>
-            <Text style={styles.biometricText}>Login dengan Sidik Jari / Touch ID</Text>
+            <Ionicons name="finger-print" size={24} color={COLORS.emeraldElectric} />
+            <Text style={styles.biometricText}>Masuk Cepat dengan Biometrik</Text>
           </TouchableOpacity>
         </GlassCard>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>BKSDA Kaltim © 2026. Mobile App v1.0</Text>
-          <Text style={styles.footerSubtext}>Kementerian Lingkungan Hidup dan Kehutanan RI</Text>
-        </View>
+        {/* Footer info */}
+        <Text style={styles.footerText}>
+          Kementerian Lingkungan Hidup dan Kehutanan © 2026
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -214,205 +185,155 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bgDark,
   },
   scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 60,
     paddingBottom: 40,
-    justifyContent: 'center',
+    alignItems: "center",
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 28,
-  },
-  logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+  logoSection: {
+    alignItems: "center",
+    marginBottom: 24,
   },
   logo: {
-    width: 48,
-    height: 48,
+    width: 84,
+    height: 84,
+    marginBottom: 12,
   },
-  logoDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: COLORS.glassBorder,
-    marginHorizontal: 16,
-  },
-  title: {
+  portalTitle: {
     color: COLORS.textWhite,
-    fontSize: 24,
-    fontWeight: '800',
-    textAlign: 'center',
-    letterSpacing: -0.5,
-    marginBottom: 6,
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 1,
+    textAlign: "center",
   },
-  subtitle: {
-    color: COLORS.textMint,
-    fontSize: 12.5,
-    textAlign: 'center',
-    paddingHorizontal: 10,
-    lineHeight: 18,
-    opacity: 0.85,
+  portalSubtitle: {
+    color: COLORS.emeraldElectric,
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 1.5,
+    textAlign: "center",
+    marginTop: 2,
+  },
+  goldBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(16, 185, 129, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderRadius: RADIUS.pill,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    marginTop: 10,
+  },
+  goldBadgeText: {
+    color: COLORS.emeraldElectric,
+    fontSize: 10.5,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   formCard: {
+    width: "100%",
     padding: 22,
   },
-  formTitle: {
+  cardHeader: {
     color: COLORS.textWhite,
-    fontSize: 17,
-    fontWeight: '700',
-    marginBottom: 20,
-    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  cardSub: {
+    color: COLORS.textMint,
+    fontSize: 12.5,
+    opacity: 0.8,
+    marginBottom: 16,
+  },
+  errorAlertBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.4)",
+    borderRadius: RADIUS.input,
+    padding: 10,
+    marginBottom: 14,
+  },
+  errorAlertText: {
+    color: "#ef4444",
+    fontSize: 12,
+    flex: 1,
+  },
+  testAccountChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(16, 185, 129, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderRadius: RADIUS.pill,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 18,
+  },
+  testAccountText: {
+    color: COLORS.emeraldElectric,
+    fontSize: 12,
+    fontWeight: "700",
   },
   inputGroup: {
     marginBottom: 16,
+    width: "100%",
   },
   label: {
     color: COLORS.textMint,
-    fontSize: 12.5,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: "600",
     marginBottom: 6,
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(6, 26, 18, 0.7)',
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(6, 26, 18, 0.75)",
     borderWidth: 1,
     borderColor: COLORS.glassBorder,
     borderRadius: RADIUS.input,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     height: 48,
   },
-  inputError: {
-    borderColor: '#ef4444',
-  },
-  inputIcon: {
-    fontSize: 16,
+  inputLeftIcon: {
     marginRight: 10,
   },
   input: {
     flex: 1,
     color: COLORS.textWhite,
     fontSize: 14,
-    fontWeight: '500',
-  },
-  eyeBtn: {
-    padding: 4,
-  },
-  eyeText: {
-    fontSize: 16,
   },
   clearBtn: {
-    padding: 6,
-    marginRight: 4,
+    padding: 4,
   },
-  clearText: {
-    color: COLORS.textMint,
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  quickFillChip: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-    borderRadius: RADIUS.pill,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignSelf: 'center',
-    marginBottom: 6,
-  },
-  quickFillText: {
-    color: COLORS.emeraldElectric,
-    fontSize: 11.5,
-    fontWeight: '600',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 11.5,
-    marginTop: 4,
-  },
-  submitErrorText: {
-    color: '#ef4444',
-    fontSize: 12.5,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginVertical: 14,
-  },
-  rememberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: COLORS.emeraldElectric,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  checkboxChecked: {
-    backgroundColor: COLORS.emeraldElectric,
-  },
-  checkmark: {
-    color: COLORS.textDark,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  rememberText: {
-    color: COLORS.textMint,
-    fontSize: 12.5,
-  },
-  forgotText: {
-    color: COLORS.emeraldElectric,
-    fontSize: 12.5,
-    fontWeight: '600',
-  },
-  loginBtn: {
+  submitBtn: {
     marginTop: 8,
     height: 50,
   },
   biometricBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    marginTop: 14,
-    paddingVertical: 12,
-    borderRadius: RADIUS.button,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  },
-  biometricIcon: {
-    fontSize: 18,
-    marginRight: 8,
+    marginTop: 18,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.glassBorder,
   },
   biometricText: {
-    color: COLORS.textMint,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  footer: {
-    marginTop: 32,
-    alignItems: 'center',
+    color: COLORS.emeraldElectric,
+    fontSize: 12.5,
+    fontWeight: "600",
+    marginLeft: 8,
   },
   footerText: {
     color: COLORS.textMuted,
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  footerSubtext: {
-    color: 'rgba(167, 243, 208, 0.4)',
     fontSize: 11,
-    marginTop: 4,
+    marginTop: 24,
+    textAlign: "center",
+    opacity: 0.6,
   },
 });
-
