@@ -1,3 +1,34 @@
+# Progress - Phase 141: LAN Access Authentication & Precision Disposition Print Optimization
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke main (via Squash Merge) dan di-push ke repository.
+
+---
+
+## LAN Access Authentication & Precision Disposition Print Optimization
+
+### Status: SELESAI
+- Scope: Core Auth & Surat Module (LAN IP Support & Print Layout Precision)
+- Tujuan: Mengatasi masalah otentikasi/logout otomatis saat aplikasi diakses dari perangkat jaringan lokal (LAN IP) serta menyempurnakan cetak presisi Lembar Disposisi 1-Up dan 2-Up.
+
+### Implementasi
+- **Backend (Laravel)**:
+  - Memperbarui [sanctum.php](file:///e:/bksda-superapp/backend/config/sanctum.php) untuk secara dinamis mendaftarkan IP host pemanggil (`HTTP_HOST` / LAN IP e.g. `192.168.100.176`) ke dalam *Sanctum Stateful Domains*.
+  - Memperbarui [cors.php](file:///e:/bksda-superapp/backend/config/cors.php) dengan pola regex `allowed_origins_patterns` (`#^https?://.*$#`) untuk mendukung CORS credentials dari IP jaringan lokal.
+- **Frontend (Next.js)**:
+  - Memperbarui halaman login [page.tsx](file:///e:/bksda-superapp/frontend/src/app/(auth)/login/page.tsx) untuk mengambil CSRF cookie `/sanctum/csrf-cookie` secara dinamis dari `window.location.hostname`, memecahkan error `419 CSRF Token Mismatch` dan `ERR_CONNECTION_REFUSED` pada perangkat LAN.
+  - Memperbarui [LembarDisposisi2UpPrint.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/_components/LembarDisposisi2UpPrint.tsx) dengan mengoptimalkan tinggi cetak vertikal (`204mm` dengan padding `3.5mm`) agar border bawah, kotak Catatan, dan tanda tangan (Ka Sub Bag TU & Kepala Balai) tidak terpotong oleh batas margin fisik printer.
+  - Mengatur skala presisi 1-Up Posisi Kanan (`scale-98 origin-right`) agar garis border kiri aman dari garis potong tengah (`165mm`) tanpa mengurangi kerapihan dan keterbacaan teks.
+  - Membersihkan komponen pembatas tengah: menghapus teks badge `✂ POTONG DISINI ✂` dan mempertahankan garis vertikal putus-putus (*dashed line*) sebagai panduan pengguntingan.
+  - Memperbarui [LembarDisposisiSheet.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/_components/LembarDisposisiSheet.tsx) & [LembarDisposisiForm.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/_components/LembarDisposisiForm.tsx) untuk menegaskan latar belakang putih murni (`bg-white`) secara konsisten.
+
+### Validasi
+- `php artisan test`: 47 tests passed (100% lulus).
+- `npx tsc --noEmit --skipLibCheck`: Sukses tanpa error.
+- Git merge & push: Squash merge ke branch `main` sukses.
+
+---
+
 # Progress - Phase 140: Module Surat (Digital Letter Management & 2-Up Disposition Sheets)
 
 > Document updated: 2026-07-27
