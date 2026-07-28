@@ -1,3 +1,34 @@
+# Progress - Phase 169: Pemisahan Rute Perjalanan (Dari/Ke) & Kolom Pada Kegiatan
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Split 2 Kolom Rute Perjalanan (`Dari` & `Ke`)**:
+     - Kolom `Dari ( Kota / Lokasi Asal )` (placeholder: *"Samarinda"*)
+     - Kolom `Ke ( Kota / Kabupaten Tujuan )` (placeholder: *"Kabupaten Kutai Barat"*)
+     - Pengguna tidak perlu lagi menghapus teks awal secara manual (semua input diawali string kosong `""` dengan placeholder pembimbing).
+  2. **Penambahan Kolom `Pada` pada Mode Melaksanakan Kegiatan (1 Hari)**:
+     - Kolom 1: `Melaksanakan Kegiatan` (placeholder: *"opname fisik (stok opname) barang persediaan"*)
+     - Kolom 2: `Pada ( Tempat / Unit / Lokasi Kegiatan )` (placeholder: *"Kantor Balai KSDA Kalimantan Timur / tempat kegiatannya"*)
+     - Kolom 3: `Di ( Kota / Kabupaten )` (placeholder: *"Samarinda"*)
+  3. **Format Pratinjau Teks Resmi Real-Time**:
+     - Mode 1: `"Melaksanakan Perjalanan Dinas dari [Dari] ke [Ke] dalam rangka [Dalam Rangka] di [Di]"`
+     - Mode 2: `"Melaksanakan Kegiatan [Kegiatan] pada [Pada] di [Kota]"`
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 168: Form Builder Jenis Perjalanan & Kegiatan Surat Tugas
 
 > Document updated: 2026-07-28
