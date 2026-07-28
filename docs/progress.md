@@ -1,3 +1,26 @@
+# Progress - Phase 165: Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Sinkronisasi 100% Real-Time dengan Database Backend**:
+     - Memperbarui mekanisme pengambilan data API di seluruh modul mobile (`KepegawaianScreen`, `InboxSuratTugasScreen`, `BmnAssetCatalogScreen`, `InventoryStockScreen`, `SuratMasukHistoryScreen`).
+     - **Dukungan Penghapusan Data Lokal Backend**: Ketika user menghapus seluruh data pada database lokal backend (0 data), aplikasi mobile secara presisi menampilkan **0 data / list kosong (`[]`)**, dan tidak lagi memaksa (force) penampilan data dummy tiruan hardcoded.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 164: Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST
 
 > Document updated: 2026-07-28
