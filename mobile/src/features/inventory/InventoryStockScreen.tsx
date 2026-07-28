@@ -17,11 +17,13 @@ import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { FabMenu } from "../../components/ui/FabMenu";
 
 interface InventoryStockScreenProps {
+  navigation?: any;
   onBack?: () => void;
   onNavigateToModule?: (moduleKey: string) => void;
 }
 
 export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
+  navigation,
   onBack,
   onNavigateToModule,
 }) => {
@@ -61,25 +63,25 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
     },
     {
       id: "3",
-      name: "Kertas HVS A4 80gr Sidu",
-      code: "INV-ATK-012",
-      category: "ATK",
-      stock: 42,
-      unit: "Rim",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "document-text-outline",
-    },
-    {
-      id: "4",
-      name: "Tenda Lapangan Waterproof 4P",
-      code: "INV-PL-008",
+      name: "GPS Garmin Handheld 66s",
+      code: "INV-PL-009",
       category: "Perlengkapan Lapangan",
       stock: 12,
       unit: "Unit",
       status: "Tersedia",
       statusColor: COLORS.statusAvailable,
-      iconName: "compass-outline",
+      iconName: "navigate-outline",
+    },
+    {
+      id: "4",
+      name: "Kertas HVS A4 80gr Sidu",
+      code: "INV-ATK-012",
+      category: "ATK",
+      stock: 80,
+      unit: "Rim",
+      status: "Tersedia",
+      statusColor: COLORS.statusAvailable,
+      iconName: "document-outline",
     },
   ];
 
@@ -117,11 +119,33 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
     );
   };
 
-  const handleSelectNavTab = (tabKey: string) => {
-    if (onNavigateToModule) {
-      onNavigateToModule(tabKey);
-    } else if (tabKey === "home" && onBack) {
+  const handleGoBack = () => {
+    if (onBack) {
       onBack();
+    } else if (navigation) {
+      navigation.navigate("Dashboard");
+    }
+  };
+
+  const handleSelectNavTab = (tabKey: string) => {
+    if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
+      if (navigation) {
+        navigation.navigate("Dashboard");
+      } else if (onBack) {
+        onBack();
+      }
+    } else if (tabKey === "bmn") {
+      if (navigation) navigation.navigate("Bmn");
+    } else if (tabKey === "surat") {
+      if (navigation) navigation.navigate("Surat");
+    } else if (tabKey === "inventory") {
+      if (navigation) navigation.navigate("Inventory");
+    } else if (tabKey === "profile") {
+      if (navigation) navigation.navigate("Profile");
+    } else if (tabKey === "kepegawaian") {
+      if (navigation) navigation.navigate("Kepegawaian");
+    } else if (onNavigateToModule) {
+      onNavigateToModule(tabKey);
     }
   };
 
@@ -135,10 +159,10 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
         ]}
       >
         <TouchableOpacity
-          onPress={onBack ? onBack : () => onNavigateToModule && onNavigateToModule("home")}
+          onPress={handleGoBack}
           style={styles.backBtn}
           activeOpacity={0.6}
-          hitSlop={{ top: 15, bottom: 15, left: 15, right: 20 }}
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 35 }}
         >
           <Ionicons name="arrow-back" size={22} color={colors.textDark} />
         </TouchableOpacity>

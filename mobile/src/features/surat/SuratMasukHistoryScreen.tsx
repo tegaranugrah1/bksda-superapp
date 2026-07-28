@@ -16,12 +16,14 @@ import { SuratDisposisiPrintPreviewModal } from "./SuratDisposisiPrintPreviewMod
 import { FabMenu } from "../../components/ui/FabMenu";
 
 interface SuratMasukHistoryScreenProps {
+  navigation?: any;
   onBack?: () => void;
   onNavigateToCreate?: () => void;
   onNavigateToModule?: (moduleKey: string) => void;
 }
 
 export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = ({
+  navigation,
   onBack,
   onNavigateToCreate,
   onNavigateToModule,
@@ -60,35 +62,27 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
       noSurat: "UND/DIRJEN/142/2026",
       tanggalSurat: "24/07/2026",
       terimaAgenda: "24/07/2026",
-      asalSurat: "Kementerian LHK",
+      asalSurat: "Direktorat Jenderal KSDAE",
       lampiran: "1 Berkas",
-      perihal: "Undangan Rapat Koordinasi Mitigasi Konflik Satwa Liar Regional Kalimantan",
-      sifat: "BIASA",
-      sifatColor: COLORS.statusAvailable,
-      catatan: "Wakili dan koordinasikan dengan Urusan Teknis.",
-      diteruskanList: [
-        "1. Ka Sub Bag TU",
-        "2. Urusan Teknis",
-        "3. Urusan Perlindungan",
-      ],
+      perihal: "Undangan Rapat Koordinasi Evaluasi Kawasan Konservasi TW II 2026",
+      sifat: "PENTING",
+      sifatColor: "#3b82f6",
+      catatan: "Kepala Balai & Kasubbag TU wajib hadir via Zoom Meeting.",
+      diteruskanList: ["1. Ka Sub Bag TU", "2. SKW I Berau", "3. SKW II Tenggarong"],
     },
     {
       id: "3",
       noAgenda: "1013",
-      noSurat: "LAP/RESORT-W/089/2026",
-      tanggalSurat: "23/07/2026",
-      terimaAgenda: "24/07/2026",
-      asalSurat: "Resort Konservasi Wilayah Barat",
-      lampiran: "2 Lembar",
-      perihal: "Laporan Patroli Rutin Pencegahan Ilegal Logging Kawasan Penyangga",
-      sifat: "PENTING",
-      sifatColor: COLORS.statusInfo,
-      catatan: "Arsipkan dan masukkan dalam laporan triwulanan.",
-      diteruskanList: [
-        "1. Ka Sub Bag TU",
-        "2. Urusan Data Evlap dan Humas",
-        "3. Urusan Program",
-      ],
+      noSurat: "500/BKSDA-KALTIM/VII/2026",
+      tanggalSurat: "22/07/2026",
+      terimaAgenda: "22/07/2026",
+      asalSurat: "Dinas Kehutanan Prov Kaltim",
+      lampiran: "-",
+      perihal: "Pemberitahuan Pelaksanaan Patroli Bersama Pengamanan Hutan",
+      sifat: "BIASA",
+      sifatColor: "#64748b",
+      catatan: "Koordinasikan dengan Polhut SKW III Balikpapan.",
+      diteruskanList: ["1. SKW III Balikpapan", "2. Tim Polhut Balai"],
     },
   ];
 
@@ -113,11 +107,33 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
     setPreviewModalVisible(true);
   };
 
-  const handleSelectNavTab = (tabKey: string) => {
-    if (onNavigateToModule) {
-      onNavigateToModule(tabKey);
-    } else if (tabKey === "home" && onBack) {
+  const handleGoBack = () => {
+    if (onBack) {
       onBack();
+    } else if (navigation) {
+      navigation.navigate("Dashboard");
+    }
+  };
+
+  const handleSelectNavTab = (tabKey: string) => {
+    if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
+      if (navigation) {
+        navigation.navigate("Dashboard");
+      } else if (onBack) {
+        onBack();
+      }
+    } else if (tabKey === "bmn") {
+      if (navigation) navigation.navigate("Bmn");
+    } else if (tabKey === "surat") {
+      if (navigation) navigation.navigate("Surat");
+    } else if (tabKey === "inventory") {
+      if (navigation) navigation.navigate("Inventory");
+    } else if (tabKey === "profile") {
+      if (navigation) navigation.navigate("Profile");
+    } else if (tabKey === "kepegawaian") {
+      if (navigation) navigation.navigate("Kepegawaian");
+    } else if (onNavigateToModule) {
+      onNavigateToModule(tabKey);
     }
   };
 
@@ -131,10 +147,10 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
         ]}
       >
         <TouchableOpacity
-          onPress={onBack ? onBack : () => onNavigateToModule && onNavigateToModule("home")}
+          onPress={handleGoBack}
           style={styles.backBtn}
           activeOpacity={0.6}
-          hitSlop={{ top: 15, bottom: 15, left: 15, right: 20 }}
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 35 }}
         >
           <Ionicons name="arrow-back" size={22} color={colors.textDark} />
         </TouchableOpacity>

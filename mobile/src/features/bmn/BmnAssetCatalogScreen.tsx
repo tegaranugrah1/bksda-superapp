@@ -71,42 +71,68 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
   ];
 
   const filteredAssets = assets.filter((asset) => {
-    const matchesCategory =
-      selectedCategory === "Semua Aset" ||
-      (selectedCategory === "Kendaraan" && asset.category === "Kendaraan") ||
-      (selectedCategory === "Elektronik" && asset.category === "Elektronik") ||
-      (selectedCategory === "Dipinjam" && asset.status === "Dipinjam");
-
     const matchesSearch =
       asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      asset.nup.includes(searchQuery);
+      asset.nup.includes(searchQuery) ||
+      asset.code.includes(searchQuery);
 
-    return matchesCategory && matchesSearch;
+    if (selectedCategory === "Semua Aset") return matchesSearch;
+    if (selectedCategory === "Dipinjam") return matchesSearch && asset.status === "Dipinjam";
+    return matchesSearch && asset.category === selectedCategory;
   });
 
   const handleOpenLoanModal = (asset?: any) => {
-    setSelectedAssetForLoan(asset || { name: "Toyota Hilux Double Cabin 4x4", nup: "00012" });
+    const target = asset || { name: "Toyota Hilux Double Cabin 4x4", nup: "00012" };
+    if (target.status === "Dipinjam") {
+      Alert.alert(
+        "Aset Sedang Dipinjam",
+        `Aset ${target.name} (NUP: ${target.nup}) saat ini sedang dipinjam oleh personil lain.`
+      );
+      return;
+    }
+    setSelectedAssetForLoan(target);
     setLoanModalVisible(true);
   };
 
   const handleSubmitLoan = () => {
     if (!loanPurpose.trim()) {
-      Alert.alert("Perhatian", "Silakan masukkan tujuan keperluan peminjaman.");
+      Alert.alert("Perhatian", "Silakan isi keperluan peminjaman aset.");
       return;
     }
-
     Alert.alert(
-      "Pengajuan Berhasil",
+      "Peminjaman Berhasil Diajukan!",
       `Permohonan peminjaman ${selectedAssetForLoan?.name} selama ${loanDurationDays} hari telah diajukan ke Subbag TU.`,
       [{ text: "OK", onPress: () => setLoanModalVisible(false) }]
     );
   };
 
-  const handleSelectNavTab = (tabKey: string) => {
-    if (onNavigateToModule) {
-      onNavigateToModule(tabKey);
-    } else if (tabKey === "home" && onBack) {
+  const handleGoBack = () => {
+    if (onBack) {
       onBack();
+    } else if (navigation) {
+      navigation.navigate("Dashboard");
+    }
+  };
+
+  const handleSelectNavTab = (tabKey: string) => {
+    if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
+      if (navigation) {
+        navigation.navigate("Dashboard");
+      } else if (onBack) {
+        onBack();
+      }
+    } else if (tabKey === "bmn") {
+      if (navigation) navigation.navigate("Bmn");
+    } else if (tabKey === "surat") {
+      if (navigation) navigation.navigate("Surat");
+    } else if (tabKey === "inventory") {
+      if (navigation) navigation.navigate("Inventory");
+    } else if (tabKey === "profile") {
+      if (navigation) navigation.navigate("Profile");
+    } else if (tabKey === "kepegawaian") {
+      if (navigation) navigation.navigate("Kepegawaian");
+    } else if (onNavigateToModule) {
+      onNavigateToModule(tabKey);
     }
   };
 
@@ -120,10 +146,10 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
         ]}
       >
         <TouchableOpacity
-          onPress={onBack ? onBack : () => onNavigateToModule && onNavigateToModule("home")}
+          onPress={handleGoBack}
           style={styles.backBtn}
           activeOpacity={0.6}
-          hitSlop={{ top: 15, bottom: 15, left: 15, right: 20 }}
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 35 }}
         >
           <Ionicons name="arrow-back" size={22} color={colors.textDark} />
         </TouchableOpacity>
