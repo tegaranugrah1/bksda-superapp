@@ -1,3 +1,32 @@
+# Progress - Phase 147: Custom Premium Logout Confirmation Modal & FAB Menu
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Custom Premium Logout Confirmation Modal & FAB Menu
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Fitur & Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Custom Confirmation Modal (`ConfirmModal.tsx`)**:
+     - Menggantikan dialog alert bawaan OS (`Alert.alert`) yang polos/standar dengan **Modal Konfirmasi Kustom Berpenampilan Mewah & Glassmorphic**.
+     - Dilengkapi dengan badge ikon merah melingkar (`log-out-outline`), pesan yang jelas, serta dua tombol aksi responsif (`Batal` & `Ya, Keluar`).
+  2. **Integrasi Logout di Profil & FAB Drawer Menu**:
+     - Menekan tombol *"Keluar dari Aplikasi"* di Profil Pengguna maupun *"Keluar Sistem"* di FAB Drawer Menu kini membuka `ConfirmModal` yang elegan.
+  3. **Tombol Kembali (`← Kembali`) 100% Aktif & Clickable**:
+     - Menambahkan navigasi kembali ke `Dashboard` dengan hit area tombol yang besar dan responsif.
+  4. **Clean Portal Hub & Floating FAB (`☰`)**:
+     - Menghapus bottom nav pada portal utama hub dan menghadirkan **Floating Action Button (`☰`)** di pojok kanan bawah khusus layar modul.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 146: Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid
 
 > Document updated: 2026-07-28
