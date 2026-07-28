@@ -11,7 +11,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
-import { FloatingNav } from "../../components/ui/FloatingNav";
 
 interface PortalDashboardScreenProps {
   onNavigateToModule?: (moduleKey: string) => void;
@@ -89,16 +88,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     { key: "surattugas", label: "Surat Tugas", icon: "document-text-outline" },
     { key: "cuti", label: "Pengajuan Cuti Saya", icon: "calendar-outline" },
   ];
-
-  const handleSelectNavTab = (tabKey: string) => {
-    if (onNavigateToModule) {
-      if (tabKey === "home") onNavigateToModule("home");
-      else if (tabKey === "bmn") onNavigateToModule("bmn");
-      else if (tabKey === "surat") onNavigateToModule("surat");
-      else if (tabKey === "inventory") onNavigateToModule("inventory");
-      else if (tabKey === "profile") onNavigateToModule("profile");
-    }
-  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -210,7 +199,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         </View>
 
         <View style={styles.headerRight}>
-          {/* Active Light / Dark Mode Toggle */}
+          {/* Active Light / Dark Mode Toggle Button */}
           <TouchableOpacity
             style={[styles.headerIconBtn, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "#f1f5f9" }]}
             activeOpacity={0.7}
@@ -263,7 +252,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           <Text style={[styles.sectionTitle, { color: colors.textDark }]}>Modul Akses</Text>
         </View>
 
-        {/* Compact 3-Column Module Grid (Lebih Kecil Lagi untuk Mobile) */}
+        {/* Compact 3-Column Module Grid */}
         <View style={styles.moduleGrid}>
           {modules.map((mod) => (
             <TouchableOpacity
@@ -332,8 +321,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         {renderTabContent()}
       </ScrollView>
 
-      {/* Custom Floating Pill Bottom Navigation Bar */}
-      <FloatingNav currentTab="home" onSelectTab={handleSelectNavTab} />
+      {/* Clean Portal Hub — No Bottom Nav on Portal Hub */}
     </View>
   );
 };
@@ -411,7 +399,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 90, // Spacing for floating nav
+    paddingBottom: 40,
   },
   heroBanner: {
     backgroundColor: COLORS.emeraldElectric,

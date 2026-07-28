@@ -14,7 +14,7 @@ import { COLORS, RADIUS, SHADOWS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
-import { FloatingNav } from "../../components/ui/FloatingNav";
+import { FabMenu } from "../../components/ui/FabMenu";
 
 interface BmnAssetCatalogScreenProps {
   onBack?: () => void;
@@ -112,7 +112,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
-      {/* Header */}
+      {/* Header with Working Back Button */}
       <View
         style={[
           styles.header,
@@ -122,6 +122,8 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
         <TouchableOpacity
           onPress={onBack ? onBack : () => onNavigateToModule && onNavigateToModule("home")}
           style={styles.backBtn}
+          activeOpacity={0.6}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 20 }}
         >
           <Ionicons name="arrow-back" size={22} color={colors.textDark} />
         </TouchableOpacity>
@@ -264,17 +266,8 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
         </View>
       </ScrollView>
 
-      {/* FAB (+) Button */}
-      <TouchableOpacity
-        style={[styles.fab, SHADOWS.glowEmerald]}
-        onPress={() => handleOpenLoanModal()}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={32} color="#ffffff" />
-      </TouchableOpacity>
-
-      {/* Floating Bottom Nav */}
-      <FloatingNav currentTab="bmn" onSelectTab={handleSelectNavTab} />
+      {/* Floating Action Button (FAB ☰ Menu) in Bottom Right Corner */}
+      <FabMenu onNavigateToModule={handleSelectNavTab} />
 
       {/* Loan Request Modal */}
       <Modal visible={loanModalVisible} animationType="slide" transparent>
@@ -342,7 +335,7 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     marginRight: 10,
-    padding: 4,
+    padding: 6,
   },
   headerTitleRow: {
     flexDirection: "row",
@@ -554,17 +547,6 @@ const styles = StyleSheet.create({
     color: "#059669",
     fontSize: 11,
     fontWeight: "700",
-  },
-  fab: {
-    position: "absolute",
-    bottom: 90,
-    right: 20,
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#059669",
-    alignItems: "center",
-    justifyContent: "center",
   },
   modalOverlay: {
     flex: 1,

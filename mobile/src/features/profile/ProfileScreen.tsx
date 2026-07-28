@@ -8,11 +8,11 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS, RADIUS } from "../../theme";
+import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { useAuth } from "../auth/AuthProvider";
-import { FloatingNav } from "../../components/ui/FloatingNav";
+import { FabMenu } from "../../components/ui/FabMenu";
 
 interface ProfileScreenProps {
   onBack?: () => void;
@@ -54,6 +54,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     ]);
   };
 
+  const handlePressBack = () => {
+    if (onBack) {
+      onBack();
+    } else if (onNavigateToModule) {
+      onNavigateToModule("home");
+    }
+  };
+
   const handleSelectNavTab = (tabKey: string) => {
     if (onNavigateToModule) {
       onNavigateToModule(tabKey);
@@ -64,7 +72,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
-      {/* Header with Prominent Back Button */}
+      {/* Header with Prominent Clickable Back Button */}
       <View
         style={[
           styles.header,
@@ -75,11 +83,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         ]}
       >
         <TouchableOpacity
-          onPress={onBack ? onBack : () => onNavigateToModule && onNavigateToModule("home")}
+          onPress={handlePressBack}
           style={styles.backBtn}
-          activeOpacity={0.7}
+          activeOpacity={0.6}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 20 }}
         >
-          <Ionicons name="arrow-back" size={22} color={colors.textDark} />
+          <Ionicons name="arrow-back" size={24} color={colors.textDark} />
           <Text style={[styles.backText, { color: colors.textDark }]}> Kembali</Text>
         </TouchableOpacity>
 
@@ -147,8 +156,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Floating Bottom Nav */}
-      <FloatingNav currentTab="profile" onSelectTab={handleSelectNavTab} />
+      {/* Floating Action Button (FAB ☰ Menu) in Bottom Right Corner */}
+      <FabMenu onNavigateToModule={handleSelectNavTab} />
     </View>
   );
 };
@@ -168,16 +177,17 @@ const styles = StyleSheet.create({
   backBtn: {
     flexDirection: "row",
     alignItems: "center",
-    paddingRight: 12,
+    paddingVertical: 6,
+    paddingRight: 16,
   },
   backText: {
-    fontSize: 14,
+    fontSize: 14.5,
     fontWeight: "700",
   },
   headerTitleRow: {
     flex: 1,
     alignItems: "center",
-    paddingRight: 60, // Balance title alignment
+    paddingRight: 70, // Balance title alignment
   },
   headerTitle: {
     fontSize: 17,
@@ -186,7 +196,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 90, // Spacing for floating nav
+    paddingBottom: 90,
   },
   profileCard: {
     alignItems: "center",

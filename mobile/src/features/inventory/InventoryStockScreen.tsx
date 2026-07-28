@@ -14,7 +14,7 @@ import { COLORS, RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
-import { FloatingNav } from "../../components/ui/FloatingNav";
+import { FabMenu } from "../../components/ui/FabMenu";
 
 interface InventoryStockScreenProps {
   onBack?: () => void;
@@ -137,6 +137,8 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
         <TouchableOpacity
           onPress={onBack ? onBack : () => onNavigateToModule && onNavigateToModule("home")}
           style={styles.backBtn}
+          activeOpacity={0.6}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 20 }}
         >
           <Ionicons name="arrow-back" size={22} color={colors.textDark} />
         </TouchableOpacity>
@@ -230,8 +232,8 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
         </View>
       </ScrollView>
 
-      {/* Floating Bottom Nav */}
-      <FloatingNav currentTab="inventory" onSelectTab={handleSelectNavTab} />
+      {/* Floating Action Button (FAB ☰ Menu) in Bottom Right Corner */}
+      <FabMenu onNavigateToModule={handleSelectNavTab} />
 
       {/* Transaction Modal */}
       <Modal visible={transModalVisible} animationType="slide" transparent>
@@ -299,7 +301,7 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     marginRight: 10,
-    padding: 4,
+    padding: 6,
   },
   headerTitleRow: {
     flexDirection: "row",
