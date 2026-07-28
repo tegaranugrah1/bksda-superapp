@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Modal,
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -28,33 +29,89 @@ export const TambahPegawaiScreen: React.FC<TambahPegawaiScreenProps> = ({
 }) => {
   const { isDark, toggleTheme, colors } = useTheme();
 
-  // Form states matching Screenshot 1
+  // Form states matching Screenshot 1 & 2
   const [nipInduk, setNipInduk] = useState("");
   const [namaLengkap, setNamaLengkap] = useState("");
   const [jabatan, setJabatan] = useState("");
-  const [pangkatGolongan, setPangkatGolongan] = useState("PPPK Golongan IX");
-  const [penempatanSatker, setPenempatanSatker] = useState("Seksi KSDA Wilayah III Balikpapan");
+  const [pangkatGolongan, setPangkatGolongan] = useState("Pilih Pangkat/Golongan");
+  const [penempatanSatker, setPenempatanSatker] = useState("Pilih Penempatan...");
   const [statusKepegawaian, setStatusKepegawaian] = useState("Pegawai Aktif");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Modal pickers state
+  const [pangkatModalVisible, setPangkatModalVisible] = useState(false);
+  const [satkerModalVisible, setSatkerModalVisible] = useState(false);
+  const [pangkatSearch, setPangkatSearch] = useState("");
+  const [satkerSearch, setSatkerSearch] = useState("");
+
+  // Official Pangkat / Golongan Options Presisi Screenshot 1
   const pangkatOptions = [
+    "- (Tidak ada pangkat)",
+    "Juru Muda (I/a)",
+    "Juru Muda Tingkat I (I/b)",
+    "Juru (I/c)",
+    "Juru Tingkat I (I/d)",
+    "Pengatur Muda (II/a)",
+    "Pengatur Muda Tingkat I (II/b)",
+    "Pengatur (II/c)",
+    "Pengatur Tingkat I (II/d)",
+    "Penata Muda (III/a)",
+    "Penata Muda Tingkat I (III/b)",
+    "Penata (III/c)",
+    "Penata Tingkat I (III/d)",
+    "Pembina (IV/a)",
+    "Pembina Tingkat I (IV/b)",
+    "Pembina Utama Muda (IV/c)",
+    "Pembina Utama Madya (IV/d)",
+    "Pembina Utama (IV/e)",
+    "PPPK Golongan I",
+    "PPPK Golongan II",
+    "PPPK Golongan III",
+    "PPPK Golongan IV",
+    "PPPK Golongan V",
+    "PPPK Golongan VI",
+    "PPPK Golongan VII",
+    "PPPK Golongan VIII",
     "PPPK Golongan IX",
-    "Golongan II/a",
-    "Golongan II/c",
-    "Golongan III/a",
-    "Golongan III/b",
-    "Golongan III/c",
-    "Golongan III/d",
-    "Golongan IV/a",
-    "Non-ASN / MMP",
+    "PPPK Golongan X",
+    "PPPK Golongan XI",
+    "PPPK Golongan XII",
+    "PPPK Golongan XIII",
+    "PPPK Golongan XIV",
+    "PPPK Golongan XV",
+    "PPPK Golongan XVI",
+    "PPPK Golongan XVII",
   ];
 
+  // Official Penempatan Satker & Resor Options Presisi Screenshot 2
   const satkerOptions = [
-    "Seksi KSDA Wilayah I Berau",
-    "Seksi KSDA Wilayah II Tenggarong",
-    "Seksi KSDA Wilayah III Balikpapan",
     "Kantor Balai KSDA Kalimantan Timur",
+    "Seksi KSDA Wilayah I Berau",
+    "Seksi KSDA Wil I - Resor 01. Berau",
+    "Seksi KSDA Wil I - Resor 02. Pulau Semama dan Pulau Sangalaki",
+    "Seksi KSDA Wil I - Resor 03. Tanjung Selor",
+    "Seksi KSDA Wil I - Resor 04. Tarakan",
+    "Seksi KSDA Wilayah II Tenggarong",
+    "Seksi KSDA Wil II - Resor 05. Samarinda",
+    "Seksi KSDA Wil II - Resor 06. Padang Luway",
+    "Seksi KSDA Wil II - Resor 07. Muara Kaman Sedulang",
+    "Seksi KSDA Wil II - Resor 08. Sangatta",
+    "Seksi KSDA Wil II - Resor 09. Suaka Badak Kelian",
+    "Seksi KSDA Wilayah III Balikpapan",
+    "Seksi KSDA Wil III - Resor 10. Balikpapan",
+    "Seksi KSDA Wil III - Resor 11. Teluk Adang",
+    "Seksi KSDA Wil III - Resor 12. Teluk Apar",
+    "Seksi KSDA Wil III - Resor 13. Paser",
+    "Seksi KSDA Wil III - Resor 14. Ibu Kota Nusantara",
   ];
+
+  const filteredPangkatOptions = pangkatOptions.filter((opt) =>
+    opt.toLowerCase().includes(pangkatSearch.toLowerCase())
+  );
+
+  const filteredSatkerOptions = satkerOptions.filter((opt) =>
+    opt.toLowerCase().includes(satkerSearch.toLowerCase())
+  );
 
   const handleGoBack = () => {
     if (onBack) {
@@ -94,8 +151,8 @@ export const TambahPegawaiScreen: React.FC<TambahPegawaiScreenProps> = ({
         nip: nipInduk.trim(),
         nama_lengkap: namaLengkap.trim(),
         jabatan: jabatan.trim() || "Staf BKSDA",
-        satuan_kerja: penempatanSatker,
-        pangkat_golongan: pangkatGolongan,
+        satuan_kerja: penempatanSatker === "Pilih Penempatan..." ? "Kantor Balai KSDA Kalimantan Timur" : penempatanSatker,
+        pangkat_golongan: pangkatGolongan === "Pilih Pangkat/Golongan" ? "Penata Muda (III/a)" : pangkatGolongan,
         status: statusKepegawaian,
       });
     } catch {
@@ -158,7 +215,7 @@ export const TambahPegawaiScreen: React.FC<TambahPegawaiScreenProps> = ({
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Main Form Card Presisi Screenshot 1 */}
+        {/* Main Form Card Presisi Screenshot 1 & 2 */}
         <GlassCard style={[styles.formCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
           {/* PAS FOTO Upload Section */}
           <View style={styles.pasFotoSection}>
@@ -216,44 +273,44 @@ export const TambahPegawaiScreen: React.FC<TambahPegawaiScreenProps> = ({
             />
           </View>
 
-          {/* Input 4: PANGKAT / GOLONGAN */}
+          {/* Input 4: PANGKAT / GOLONGAN Presisi Screenshot 1 */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>PANGKAT/GOLONGAN</Text>
             <TouchableOpacity
               style={[styles.pickerBox, { borderColor: colors.glassBorder }]}
-              onPress={() =>
-                Alert.alert("Pilih Pangkat/Golongan", "Pilih jenjang pangkat pegawai:", [
-                  ...pangkatOptions.map((opt) => ({
-                    text: opt,
-                    onPress: () => setPangkatGolongan(opt),
-                  })),
-                  { text: "Batal", style: "cancel" },
-                ])
-              }
+              onPress={() => setPangkatModalVisible(true)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.pickerText, { color: colors.textDark }]}>{pangkatGolongan}</Text>
+              <Text
+                style={[
+                  styles.pickerText,
+                  { color: pangkatGolongan.startsWith("Pilih") ? "#94a3b8" : colors.textDark },
+                ]}
+                numberOfLines={1}
+              >
+                {pangkatGolongan}
+              </Text>
               <Ionicons name="chevron-down" size={16} color="#64748b" />
             </TouchableOpacity>
           </View>
 
-          {/* Input 5: PENEMPATAN SATKER */}
+          {/* Input 5: PENEMPATAN SATKER Presisi Screenshot 2 */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>PENEMPATAN SATKER</Text>
             <TouchableOpacity
               style={[styles.pickerBox, { borderColor: colors.glassBorder }]}
-              onPress={() =>
-                Alert.alert("Pilih Penempatan Satker", "Pilih wilayah penempatan:", [
-                  ...satkerOptions.map((opt) => ({
-                    text: opt,
-                    onPress: () => setPenempatanSatker(opt),
-                  })),
-                  { text: "Batal", style: "cancel" },
-                ])
-              }
+              onPress={() => setSatkerModalVisible(true)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.pickerText, { color: colors.textDark }]}>{penempatanSatker}</Text>
+              <Text
+                style={[
+                  styles.pickerText,
+                  { color: penempatanSatker.startsWith("Pilih") ? "#94a3b8" : colors.textDark },
+                ]}
+                numberOfLines={1}
+              >
+                {penempatanSatker}
+              </Text>
               <Ionicons name="chevron-down" size={16} color="#64748b" />
             </TouchableOpacity>
           </View>
@@ -270,7 +327,7 @@ export const TambahPegawaiScreen: React.FC<TambahPegawaiScreenProps> = ({
             </View>
           </View>
 
-          {/* Bottom Actions Presisi Screenshot 1 */}
+          {/* Bottom Actions Presisi Screenshot 1 & 2 */}
           <View style={styles.formFooterRow}>
             <Text style={styles.helperText}>LENGKAPI SEMUA DATA BERTANDA BINTANG</Text>
 
@@ -288,6 +345,114 @@ export const TambahPegawaiScreen: React.FC<TambahPegawaiScreenProps> = ({
           </View>
         </GlassCard>
       </ScrollView>
+
+      {/* Modal Picker for PANGKAT/GOLONGAN Presisi Screenshot 1 */}
+      <Modal visible={pangkatModalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <GlassCard style={[styles.modalContent, { backgroundColor: colors.cardBg }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textDark }]}>Pilih Pangkat/Golongan</Text>
+              <TouchableOpacity onPress={() => setPangkatModalVisible(false)}>
+                <Ionicons name="close" size={22} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.searchBox, { borderColor: colors.glassBorder, marginBottom: 12 }]}>
+              <Ionicons name="search-outline" size={16} color="#94a3b8" style={{ marginRight: 6 }} />
+              <TextInput
+                style={[styles.searchInput, { color: colors.textDark }]}
+                placeholder="Cari pangkat/golongan..."
+                placeholderTextColor="#94a3b8"
+                value={pangkatSearch}
+                onChangeText={setPangkatSearch}
+              />
+            </View>
+
+            <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
+              {filteredPangkatOptions.map((opt, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[
+                    styles.optionRow,
+                    pangkatGolongan === opt && styles.optionRowSelected,
+                  ]}
+                  onPress={() => {
+                    setPangkatGolongan(opt);
+                    setPangkatModalVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: colors.textDark },
+                      pangkatGolongan === opt && styles.optionTextSelected,
+                    ]}
+                  >
+                    {opt}
+                  </Text>
+                  {pangkatGolongan === opt && (
+                    <Ionicons name="checkmark-circle" size={18} color="#2563eb" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </GlassCard>
+        </View>
+      </Modal>
+
+      {/* Modal Picker for PENEMPATAN SATKER Presisi Screenshot 2 */}
+      <Modal visible={satkerModalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <GlassCard style={[styles.modalContent, { backgroundColor: colors.cardBg }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textDark }]}>Pilih Penempatan Satker / Resor</Text>
+              <TouchableOpacity onPress={() => setSatkerModalVisible(false)}>
+                <Ionicons name="close" size={22} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.searchBox, { borderColor: colors.glassBorder, marginBottom: 12 }]}>
+              <Ionicons name="search-outline" size={16} color="#94a3b8" style={{ marginRight: 6 }} />
+              <TextInput
+                style={[styles.searchInput, { color: colors.textDark }]}
+                placeholder="Cari satker atau resor..."
+                placeholderTextColor="#94a3b8"
+                value={satkerSearch}
+                onChangeText={setSatkerSearch}
+              />
+            </View>
+
+            <ScrollView style={{ maxHeight: 340 }} showsVerticalScrollIndicator={false}>
+              {filteredSatkerOptions.map((opt, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[
+                    styles.optionRow,
+                    penempatanSatker === opt && styles.optionRowSelected,
+                  ]}
+                  onPress={() => {
+                    setPenempatanSatker(opt);
+                    setSatkerModalVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: colors.textDark },
+                      penempatanSatker === opt && styles.optionTextSelected,
+                    ]}
+                  >
+                    {opt}
+                  </Text>
+                  {penempatanSatker === opt && (
+                    <Ionicons name="checkmark-circle" size={18} color="#2563eb" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </GlassCard>
+        </View>
+      </Modal>
 
       {/* Floating Action Button (FAB ☰ Menu) */}
       <FabMenu onNavigateToModule={handleSelectNavTab} activeSubmenu="tambah-pegawai" />
@@ -347,7 +512,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
   },
 
-  /* PAS FOTO Section Presisi Screenshot 1 */
   pasFotoSection: {
     alignItems: "center",
     marginBottom: 20,
@@ -415,6 +579,8 @@ const styles = StyleSheet.create({
   pickerText: {
     fontSize: 13,
     fontWeight: "700",
+    flex: 1,
+    paddingRight: 6,
   },
   greenActiveDot: {
     width: 8,
@@ -424,7 +590,6 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
 
-  /* Footer Presisi Screenshot 1 */
   formFooterRow: {
     marginTop: 10,
     alignItems: "flex-end",
@@ -450,6 +615,60 @@ const styles = StyleSheet.create({
   simpanBtnText: {
     color: "#ffffff",
     fontSize: 13,
+    fontWeight: "800",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    padding: 20,
+    borderRadius: 22,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 12.5,
+  },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.input,
+    marginBottom: 4,
+  },
+  optionRowSelected: {
+    backgroundColor: "#eff6ff",
+  },
+  optionText: {
+    fontSize: 13,
+    fontWeight: "600",
+    flex: 1,
+  },
+  optionTextSelected: {
+    color: "#2563eb",
     fontWeight: "800",
   },
 });
