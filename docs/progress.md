@@ -1,3 +1,40 @@
+# Progress - Phase 173: Dinamisasi Form Detail Kegiatan Berdasarkan Jenis Tugas
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Tampilan Formulir Beradaptasi Secara Dinamis**:
+     - **Mode 1: `Perjalanan Dinas`**:
+       - Kolom `Dari ( Kota / Lokasi Asal ) *`
+       - Kolom `Ke ( Kota / Kabupaten Tujuan ) *`
+       - Kolom `Dalam Rangka *` (placeholder: *"Kegiatan Inventarisasi..."*)
+       - Kolom `Di ( Tempat Spesifik / Opsional )` (placeholder: *"Suaka Margasatwa Kelian"*)
+       - *Preview*: `"Melaksanakan Perjalanan Dinas dari [Dari] ke [Ke] dalam rangka [Dalam Rangka] di [Di]"`
+     - **Mode 2: `Melaksanakan Tugas / Melaksanakan Kegiatan`**:
+       - Kolom `Melaksanakan Tugas / Kegiatan *` (placeholder: *"opname fisik (stok opname) barang persediaan"*)
+       - Kolom `Pada ( Tempat / Unit / Lokasi Kegiatan )` (placeholder: *"Kantor Balai / tempat kegiatannya"*)
+       - Kolom `Di ( Kota / Kabupaten ) *` (placeholder: *"Samarinda"*)
+       - *Preview*: `"Melaksanakan Tugas [Kegiatan] pada [Pada] di [Kota]"`
+     - **Mode 3: `Menugaskan Staf`**:
+       - Kolom `Menugaskan Staf *` (placeholder: *"verifikasi berkas persediaan..."*)
+       - Kolom `Pada ( Tempat / Unit / Lokasi )`
+       - Kolom `Di ( Kota / Kabupaten ) *`
+       - *Preview*: `"Menugaskan Staf [Kegiatan] pada [Pada] di [Kota]"`
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 172: Perbaikan Tampilan Lokasi di Inbox Surat Tugas
 
 > Document updated: 2026-07-28
