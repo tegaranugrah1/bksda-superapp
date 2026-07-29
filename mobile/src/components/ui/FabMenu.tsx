@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { RADIUS, SHADOWS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { useAuth } from "../../features/auth/AuthProvider";
+import { hasModule } from "../../lib/permissions";
 import { ConfirmModal } from "./ConfirmModal";
 
 interface FabMenuProps {
@@ -98,14 +99,24 @@ export const FabMenu: React.FC<FabMenuProps> = ({
     },
   ];
 
+  const accessibleFloatingModules = floatingModules.filter(
+    (mod) => mod.key === "home" || hasModule(user, mod.key)
+  );
+
+  const canAccessKepegawaian = hasModule(user, "kepegawaian");
+
   const submenus = [
-    { key: "daftar-pegawai", title: "Daftar Pegawai", icon: "people-outline" },
-    { key: "tambah-pegawai", title: "Tambah Pegawai", icon: "person-add-outline" },
-    { key: "inbox-surat-tugas", title: "Inbox Surat Tugas", icon: "mail-unread-outline" },
-    { key: "inbox-surat-cuti", title: "Inbox Surat Cuti", icon: "calendar-outline" },
-    { key: "buat-surat-tugas", title: "Buat Surat Tugas", icon: "document-text-outline" },
-    { key: "riwayat-surat-tugas", title: "Riwayat Surat Tugas", icon: "time-outline" },
+    { key: "daftar-pegawai", title: "Daftar Pegawai", icon: "people-outline", requireKepegawaian: true },
+    { key: "tambah-pegawai", title: "Tambah Pegawai", icon: "person-add-outline", requireKepegawaian: true },
+    { key: "inbox-surat-tugas", title: "Inbox Surat Tugas", icon: "mail-unread-outline", requireKepegawaian: true },
+    { key: "inbox-surat-cuti", title: "Inbox Surat Cuti", icon: "calendar-outline", requireKepegawaian: true },
+    { key: "buat-surat-tugas", title: "Buat Surat Tugas", icon: "document-text-outline", requireKepegawaian: false },
+    { key: "riwayat-surat-tugas", title: "Riwayat Surat Tugas", icon: "time-outline", requireKepegawaian: false },
   ];
+
+  const accessibleSubmenus = submenus.filter(
+    (item) => !item.requireKepegawaian || canAccessKepegawaian
+  );
 
   const handleSelectSubmenu = (key: string) => {
     setShowModulePopover(false);
@@ -116,6 +127,8 @@ export const FabMenu: React.FC<FabMenuProps> = ({
       onNavigateToModule("tambah-pegawai");
     } else if (key === "inbox-surat-tugas") {
       onNavigateToModule("inbox-surat-tugas");
+    } else if (key === "inbox-surat-cuti") {
+      onNavigateToModule("inbox-surat-cuti");
     } else if (key === "daftar-pegawai") {
       onNavigateToModule("kepegawaian");
     } else if (key === "riwayat-surat-tugas") {
@@ -219,7 +232,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
 
             {/* Submenu Links List */}
             <ScrollView style={styles.menuScroll} showsVerticalScrollIndicator={false}>
-              {submenus.map((item) => {
+              {accessibleSubmenus.map((item) => {
                 const isActive = item.key === activeSubmenu;
                 return (
                   <TouchableOpacity
@@ -292,7 +305,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
                 ]}
               >
                 <ScrollView style={{ maxHeight: 340 }} showsVerticalScrollIndicator={false}>
-                  {floatingModules.map((mod) => {
+                  {accessibleFloatingModules.map((mod) => {
                     const isSelected = mod.key === activeModule;
                     return (
                       <TouchableOpacity

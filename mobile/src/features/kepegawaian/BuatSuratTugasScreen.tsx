@@ -144,6 +144,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     type: "warning" | "error" | "success" | "info";
     title: string;
     message: string;
+    onConfirm?: () => void;
   }>({
     visible: false,
     type: "warning",
@@ -151,8 +152,13 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     message: "",
   });
 
-  const showNotif = (title: string, message: string, type: "warning" | "error" | "success" | "info" = "warning") => {
-    setNotification({ visible: true, title, message, type });
+  const showNotif = (
+    title: string,
+    message: string,
+    type: "warning" | "error" | "success" | "info" = "warning",
+    onConfirm?: () => void
+  ) => {
+    setNotification({ visible: true, title, message, type, onConfirm });
   };
 
   // BUILDER STATE UNTUK DETAIL KEGIATAN (SYNCED 100% DENGAN /kepegawaian/surat-tugas/create)
@@ -338,30 +344,38 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         sumber_dana_other: sumberDana === "other" ? sumberDanaOther : undefined,
         keterangan: keterangan || undefined,
         nama_plh: namaPlh || undefined,
-        employee_ids: selectedEmployees.map((e) => e.id),
+        employees: selectedEmployees.map((e) => ({
+          id: Number(e.id),
+          peran: undefined,
+        })),
       };
 
-      await apiClient.post("/surat-tugas/public-submit", payload).catch(async () => {
-        // Fallback to /kepegawaian/surat-tugas endpoint
-        await apiClient.post("/kepegawaian/surat-tugas", payload);
+      await apiClient.post("/surat-tugas/submit", payload).catch(async () => {
+        await apiClient.post("/surat-tugas", payload);
       });
-    } catch (err) {
+
+      showNotif(
+        "Pengajuan Surat Tugas Berhasil!",
+        `Surat Tugas untuk ${selectedEmployees.length} pegawai telah berhasil diajukan dan dikirim ke Admin untuk diproses.`,
+        "success",
+        () => {
+          setNotification((prev) => ({ ...prev, visible: false }));
+          if (onNavigateToModule) {
+            onNavigateToModule("portal");
+          } else if (onBack) {
+            onBack();
+          } else if (navigation) {
+            navigation.navigate("Dashboard");
+          }
+        }
+      );
+    } catch (err: any) {
       console.error("Submit Surat Tugas Error:", err);
+      const errMsg =
+        err?.response?.data?.message || err?.message || "Terjadi kesalahan saat menyimpan data pengajuan.";
+      showNotif("Gagal Mengajukan Surat Tugas", errMsg, "error");
     } finally {
       setIsSubmitting(false);
-      Alert.alert(
-        "Pengajuan Surat Tugas Berhasil!",
-        `Surat Tugas untuk ${selectedEmployees.length} pegawai telah berhasil diajukan dan dikirim ke sistem untuk diproses.`,
-        [
-          {
-            text: "Lihat Inbox Surat Tugas",
-            onPress: () => {
-              if (navigation) navigation.navigate("InboxSuratTugas");
-              else handleGoBack();
-            },
-          },
-        ]
-      );
     }
   };
 
@@ -1163,7 +1177,13 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                         : "#2563eb",
                   },
                 ]}
-                onPress={() => setNotification((prev) => ({ ...prev, visible: false }))}
+                onPress={() => {
+                  if (notification.onConfirm) {
+                    notification.onConfirm();
+                  } else {
+                    setNotification((prev) => ({ ...prev, visible: false }));
+                  }
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={styles.notifBtnText}>Saya Mengerti</Text>

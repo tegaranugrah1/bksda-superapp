@@ -326,6 +326,8 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
       if (navigation) navigation.navigate("TambahPegawai");
     } else if (tabKey === "inbox-surat-tugas") {
       if (navigation) navigation.navigate("InboxSuratTugas");
+    } else if (tabKey === "inbox-surat-cuti") {
+      if (navigation) navigation.navigate("InboxSuratCuti");
     } else if (tabKey === "bmn") {
       if (navigation) navigation.navigate("Bmn");
     } else if (tabKey === "surat") {
@@ -391,7 +393,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
           {/* Inbox Surat Cuti Pill Button */}
           <TouchableOpacity
             style={styles.inboxCutiBtn}
-            onPress={() => Alert.alert("Inbox Cuti", "Membuka Inbox Permohonan Cuti Pegawai...")}
+            onPress={() => handleSelectNavTab("inbox-surat-cuti")}
             activeOpacity={0.8}
           >
             <Ionicons name="mail-unread-outline" size={14} color="#2563eb" style={{ marginRight: 4 }} />

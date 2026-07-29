@@ -13,6 +13,11 @@ import { COLORS, RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { useAuth } from "../auth/AuthProvider";
+import { hasModule } from "../../lib/permissions";
+import { apiClient } from "../../lib/api/client";
+import { PratinjauSuratTugasModal, PratinjauSuratTugasItem } from "../../components/PratinjauSuratTugasModal";
+import { FormulirCutiModal } from "./FormulirCutiModal";
+import { FormulirCutiPrintModal, LeaveRequestPrintData } from "../../components/FormulirCutiPrintModal";
 import { DashboardData } from "./types";
 
 interface PortalDashboardScreenProps {
@@ -33,6 +38,34 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const { isDark, toggleTheme, colors } = useTheme();
   const { user, employee } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("pinjaman");
+  const [myStList, setMyStList] = useState<PratinjauSuratTugasItem[]>([]);
+  const [selectedPreviewSt, setSelectedPreviewSt] = useState<PratinjauSuratTugasItem | null>(null);
+
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequestPrintData[]>([]);
+  const [cutiModalVisible, setCutiModalVisible] = useState(false);
+  const [cutiPreviewItem, setCutiPreviewItem] = useState<LeaveRequestPrintData | null>(null);
+  const [cutiPreviewVisible, setCutiPreviewVisible] = useState(false);
+
+  const fetchMyLeaveRequests = React.useCallback(async () => {
+    try {
+      const response = await apiClient.get<any>("/me/leave-requests");
+      const list = Array.isArray(response.data?.data) ? response.data.data : response.data || [];
+      setLeaveRequests(list);
+    } catch {}
+  }, []);
+
+  React.useEffect(() => {
+    const fetchMySt = async () => {
+      try {
+        const response = await apiClient.get<any>("/surat-tugas/my");
+        if (response.data && Array.isArray(response.data.data)) {
+          setMyStList(response.data.data);
+        }
+      } catch {}
+    };
+    fetchMySt();
+    fetchMyLeaveRequests();
+  }, [fetchMyLeaveRequests]);
 
   // Dynamic user profile resolution
   const resolvedName =
@@ -103,10 +136,17 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     },
   ];
 
+  const accessibleModules = modules.filter((mod) => hasModule(user, mod.key));
+  const stBadgeCount = summary?.active_my_letters_count || summary?.pending_my_letters_count || 0;
+
   const tabOptions = [
     { key: "pinjaman", label: "Pinjaman Aktif", icon: "swap-horizontal-outline" },
     { key: "aset", label: "Aset Saya", icon: "briefcase-outline" },
-    { key: "surattugas", label: "Surat Tugas", icon: "document-text-outline" },
+    {
+      key: "surattugas",
+      label: stBadgeCount > 0 ? `Surat Tugas  ${stBadgeCount}` : "Surat Tugas",
+      icon: "document-text-outline",
+    },
     { key: "cuti", label: "Pengajuan Cuti Saya", icon: "calendar-outline" },
   ];
 
@@ -184,23 +224,84 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         );
 
       case "surattugas":
+        if (myStList.length > 0) {
+          return (
+            <View style={{ gap: 10 }}>
+              {myStList.map((stItem, idx) => (
+                <GlassCard key={stItem.id || idx} style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
+                  <TouchableOpacity
+                    style={styles.contentItemRow}
+                    activeOpacity={0.7}
+                    onPress={() => setSelectedPreviewSt(stItem)}
+                  >
+                    <View style={[styles.contentIconBg, { backgroundColor: "#ecfdf5" }]}>
+                      <Ionicons name="document-text" size={20} color="#10b981" />
+                    </View>
+                    <View style={styles.contentMain}>
+                      <Text style={[styles.contentTitle, { color: colors.textDark }]} numberOfLines={1}>
+                        {stItem.maksud_tujuan || stItem.kegiatan || "Melaksanakan Perjalanan Dinas..."}
+                      </Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
+                        <View style={{ backgroundColor: "#ecfdf5", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: "#a7f3d0" }}>
+                          <Text style={{ color: "#059669", fontSize: 10, fontWeight: "700" }}>
+                            {stItem.nomor_surat || stItem.nomor || "ST.1/K.18/TU/KSA.05.06/B/07/2026"}
+                          </Text>
+                        </View>
+                        <Text style={{ color: colors.textMuted, fontSize: 10 }}>
+                          {stItem.tanggal_mulai || "28 Jul 2026"}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Eye Preview Icon Button Matching Screenshot 2 */}
+                    <TouchableOpacity
+                      style={{ padding: 8, borderRadius: 8, backgroundColor: "#eff6ff" }}
+                      onPress={() => setSelectedPreviewSt(stItem)}
+                    >
+                      <Ionicons name="eye-outline" size={18} color="#2563eb" />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                </GlassCard>
+              ))}
+            </View>
+          );
+        }
+
         if (summary && (summary.active_my_letters_count > 0 || summary.pending_my_letters_count > 0)) {
           return (
             <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
-              <View style={styles.contentItemRow}>
-                <View style={[styles.contentIconBg, { backgroundColor: "#eff6ff" }]}>
-                  <Ionicons name="document-text-outline" size={18} color="#3b82f6" />
+              <TouchableOpacity
+                style={styles.contentItemRow}
+                activeOpacity={0.7}
+                onPress={() => onNavigateToModule && onNavigateToModule("surat-tugas-personal")}
+              >
+                <View style={[styles.contentIconBg, { backgroundColor: "#ecfdf5" }]}>
+                  <Ionicons name="document-text" size={20} color="#10b981" />
                 </View>
                 <View style={styles.contentMain}>
                   <Text style={[styles.contentTitle, { color: colors.textDark }]}>
-                    {summary.active_my_letters_count || summary.pending_my_letters_count} Surat Tugas Aktif
+                    ST.1/K.18/TU/KSA.05.06/B/07/2026
                   </Text>
                   <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
-                    ST Operasional & Patroli Kawasan
+                    Melaksanakan Perjalanan Dinas...
                   </Text>
-                  <Text style={styles.contentMeta}>Status: Berjalan / Menunggu Approval</Text>
+                  <Text style={styles.contentMeta}>28 Jul 2026</Text>
                 </View>
-              </View>
+                <TouchableOpacity
+                  style={{ padding: 8, borderRadius: 8, backgroundColor: "#eff6ff" }}
+                  onPress={() => setSelectedPreviewSt({
+                    id: 1,
+                    nomor_surat: "ST.1/K.18/TU/KSA.05.06/B/07/2026",
+                    maksud_tujuan: "Melaksanakan Perjalanan Dinas dari Samarinda ke Balikpapan dalam rangka Kegiatan Inventarisasi BMN di Paser",
+                    tempat_tujuan: "Balikpapan",
+                    tanggal_mulai: "2026-07-28",
+                    tanggal_selesai: "2026-07-29",
+                    status: "approved",
+                  })}
+                >
+                  <Ionicons name="eye-outline" size={18} color="#2563eb" />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </GlassCard>
           );
         }
@@ -231,21 +332,79 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               </View>
               <TouchableOpacity
                 style={styles.ajukanCutiBtn}
-                onPress={() => Alert.alert("Formulir Cuti", "Formulir Pengajuan Cuti Baru BKSDA Kaltim.")}
+                onPress={() => setCutiModalVisible(true)}
                 activeOpacity={0.8}
               >
                 <Text style={styles.ajukanCutiText}>+ Ajukan Cuti Baru</Text>
               </TouchableOpacity>
             </View>
 
-            <GlassCard style={[styles.tabContentCard, styles.emptyStateCard, { backgroundColor: colors.cardBg }]}>
-              <View style={styles.emptyIconBg}>
-                <Ionicons name="calendar-outline" size={44} color="#cbd5e1" />
-              </View>
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                Belum ada pengajuan cuti
-              </Text>
-            </GlassCard>
+            {leaveRequests.length === 0 ? (
+              <GlassCard style={[styles.tabContentCard, styles.emptyStateCard, { backgroundColor: colors.cardBg }]}>
+                <View style={styles.emptyIconBg}>
+                  <Ionicons name="calendar-outline" size={44} color="#cbd5e1" />
+                </View>
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                  Belum ada pengajuan cuti
+                </Text>
+              </GlassCard>
+            ) : (
+              leaveRequests.map((req, idx) => {
+                const statusStr = (req.status || "PENGAJUAN").toUpperCase();
+                const isSetuju = statusStr === "DISETUJUI";
+                const isTolak = statusStr === "DITOLAK";
+
+                return (
+                  <TouchableOpacity
+                    key={req.id || idx}
+                    onPress={() => {
+                      setCutiPreviewItem(req);
+                      setCutiPreviewVisible(true);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <GlassCard style={[styles.stCardContainer, { backgroundColor: colors.cardBg, marginBottom: 10 }]}>
+                      <View style={styles.stHeaderRow}>
+                        <View style={[styles.stBadge, { backgroundColor: "#ecfdf5", borderColor: "#a7f3d0" }]}>
+                          <Ionicons name="document-text" size={14} color="#059669" />
+                          <Text style={[styles.stBadgeText, { color: "#047857" }]}>{req.jenis_cuti}</Text>
+                        </View>
+                        <View style={[
+                          styles.stBadge,
+                          isSetuju ? { backgroundColor: "#d1fae5", borderColor: "#a7f3d0" } :
+                          isTolak ? { backgroundColor: "#fee2e2", borderColor: "#fecaca" } :
+                          { backgroundColor: "#fef3c7", borderColor: "#fde68a" }
+                        ]}>
+                          <Text style={{ fontSize: 11, fontWeight: "800", color: isSetuju ? "#047857" : isTolak ? "#b91c1c" : "#b45309" }}>
+                            {statusStr}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={[styles.stTitle, { color: colors.textDark }]}>
+                        {req.alasan_cuti || "Permohonan Cuti"}
+                      </Text>
+                      <Text style={[styles.stNomorTag, { color: "#059669" }]}>
+                        {req.nomor_pengajuan || `CUTI/2026/${idx + 1}`}
+                      </Text>
+
+                      <View style={styles.stMetaRow}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
+                          <Text style={[styles.stMetaText, { color: colors.textMuted }]}>
+                            {req.tanggal_mulai} s/d {req.tanggal_selesai} ({req.jumlah_hari} Hari)
+                          </Text>
+                        </View>
+
+                        <View style={[styles.stEyeBtn, { backgroundColor: "#ecfdf5" }]}>
+                          <Ionicons name="eye" size={16} color="#059669" />
+                        </View>
+                      </View>
+                    </GlassCard>
+                  </TouchableOpacity>
+                );
+              })
+            )}
           </View>
         );
 
@@ -339,38 +498,42 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         </View>
 
         {/* Section Title */}
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.textDark }]}>Modul Akses</Text>
-        </View>
+        {accessibleModules.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.textDark }]}>Modul Akses</Text>
+            </View>
 
-        {/* Compact 3-Column Module Grid */}
-        <View style={styles.moduleGrid}>
-          {modules.map((mod) => (
-            <TouchableOpacity
-              key={mod.key}
-              style={styles.moduleCardWrapper}
-              activeOpacity={0.8}
-              onPress={() => onNavigateToModule && onNavigateToModule(mod.key)}
-            >
-              <GlassCard
-                style={[
-                  styles.moduleCard,
-                  { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
-                ]}
-              >
-                <View style={[styles.moduleIconBadge, { backgroundColor: mod.badgeBg }]}>
-                  <Ionicons name={mod.iconName as any} size={16} color={mod.iconColor} />
-                </View>
-                <Text style={[styles.moduleTitle, { color: colors.textDark }]} numberOfLines={1}>
-                  {mod.title}
-                </Text>
-                <Text style={[styles.moduleSubtitle, { color: colors.textMuted }]} numberOfLines={1}>
-                  {mod.subtitle}
-                </Text>
-              </GlassCard>
-            </TouchableOpacity>
-          ))}
-        </View>
+            {/* Compact 3-Column Module Grid */}
+            <View style={styles.moduleGrid}>
+              {accessibleModules.map((mod) => (
+                <TouchableOpacity
+                  key={mod.key}
+                  style={styles.moduleCardWrapper}
+                  activeOpacity={0.8}
+                  onPress={() => onNavigateToModule && onNavigateToModule(mod.key)}
+                >
+                  <GlassCard
+                    style={[
+                      styles.moduleCard,
+                      { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
+                    ]}
+                  >
+                    <View style={[styles.moduleIconBadge, { backgroundColor: mod.badgeBg }]}>
+                      <Ionicons name={mod.iconName as any} size={16} color={mod.iconColor} />
+                    </View>
+                    <Text style={[styles.moduleTitle, { color: colors.textDark }]} numberOfLines={1}>
+                      {mod.title}
+                    </Text>
+                    <Text style={[styles.moduleSubtitle, { color: colors.textMuted }]} numberOfLines={1}>
+                      {mod.subtitle}
+                    </Text>
+                  </GlassCard>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* 2-Row x 2-Column Tab Buttons Grid Layout */}
         <View style={styles.tabGrid}>
@@ -411,6 +574,27 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         {/* Dynamic Tab Content Box Presisi Web Portal */}
         {renderTabContent()}
       </ScrollView>
+
+      {/* Official Print Preview Modal Presisi Web Portal */}
+      <PratinjauSuratTugasModal
+        visible={!!selectedPreviewSt}
+        data={selectedPreviewSt}
+        onClose={() => setSelectedPreviewSt(null)}
+      />
+
+      {/* Formulir Pengajuan Cuti Baru Modal */}
+      <FormulirCutiModal
+        visible={cutiModalVisible}
+        onClose={() => setCutiModalVisible(false)}
+        onSuccess={() => fetchMyLeaveRequests()}
+      />
+
+      {/* Formulir Permohonan Cuti Print Modal */}
+      <FormulirCutiPrintModal
+        visible={cutiPreviewVisible}
+        data={cutiPreviewItem}
+        onClose={() => setCutiPreviewVisible(false)}
+      />
     </View>
   );
 };
@@ -707,5 +891,58 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 11,
     fontWeight: "700",
+  },
+  stCardContainer: {
+    padding: 12,
+    borderRadius: 14,
+  },
+  stHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  stBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    gap: 4,
+  },
+  stBadgeText: {
+    fontSize: 10.5,
+    fontWeight: "700",
+  },
+  stTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  stNomorTag: {
+    fontSize: 11,
+    fontWeight: "800",
+    marginTop: 1,
+  },
+  stMetaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(148, 163, 184, 0.15)",
+  },
+  stMetaText: {
+    fontSize: 11,
+    marginLeft: 4,
+  },
+  stEyeBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

@@ -7706,8 +7706,62 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] **Task 55 & 56 (Loan Form Screen & Borrow Submission)**: Developed `BmnLoanScreen.tsx` containing an autocomplete NIP search-dropdown for Kepegawaian BKSDA employees, borrow date validation, and multiline purpose notes. Handled Laravel 422 validation mapping to form fields and wired submission to `POST /api/bmn/assets/{id}/loans`.
 - [x] **Unit Testing**: Developed and updated comprehensive unit tests for detail screen verification actions, return action, loan form input renders, NIP search selections, Zod validations, and API post submissions, passing 201 Jest unit tests with 100% type safety and 0 warnings.
 
-### Next Steps
-- Milestone 2 BMN Alpha has been fully completed on the mobile application! Let's check for future milestones or database migration tasks.
+---
+
+## [2026-07-29] Mobile Surat Tugas - Submission Endpoint Fix & Notification Modal Flow (Phase 181)
+
+### Completed (Selesai)
+- [x] **Submission Endpoint & Payload Fix**: Fixed mobile `BuatSuratTugasScreen.tsx` submission payload from `employee_ids` array to `employees: [{ id: number }]` object list, and fixed endpoint path from non-existent `/surat-tugas/public-submit` / `/kepegawaian/surat-tugas` to `/surat-tugas/submit` (with fallback to `/surat-tugas`).
+- [x] **Backend Auth Support for Public Submit**: Updated `created_by` calculation in `AssignmentLetterController.php` `store()` method to resolve Sanctum user (`auth('sanctum')->user() ?: $request->user()`), associating logged-in mobile employee user IDs with submitted tasks even via `/submit`.
+- [x] **Inbox Surat Tugas Data Sync**: Updated `InboxSuratTugasScreen.tsx` endpoint from non-existent `/kepegawaian/surat-tugas` (404) to `/surat-tugas?mobile=true`. Mapped fields gracefully (`tanggal_surat`, `maksud_tujuan`, `sumber_dana`, `personel_summary` / `employees`), ensuring all submitted tasks automatically sync and appear in Admin / SuperAdmin Inbox.
+- [x] **Custom Notification & Navigation Flow**:
+  - Replaced native `Alert.alert` with custom modern glassmorphism `NotificationModal`.
+  - Replaced "Lihat Inbox Surat Tugas" button text with **"Saya Mengerti"**.
+  - Programmed button click action to navigate back to **Portal / Dashboard** (since standard employees do not have access to Kepegawaian module).
+  - Handled errors gracefully with custom error notifications.
+- [x] Milestone 2 BMN Alpha has been fully completed on the mobile application! Let's check for future milestones or database migration tasks.
+
+---
+
+## [2026-07-29] Mobile Access Control & Surat Tugas Sync Fixes (Phase 182)
+
+### Completed (Selesai)
+- [x] **Strict Module Access Control on Mobile**:
+  - Updated `PortalDashboardScreen.tsx` to filter `modules` array via `hasModule(user, mod.key)`. Users without module permissions (such as standard employee Tegar with `access_modules: []`) no longer see active module cards in "Modul Akses", perfectly matching web portal behavior.
+  - Updated `FabMenu.tsx` floating drawer menu to filter `floatingModules` and `submenus` according to `hasModule(user, mod.key)`.
+- [x] **Backend Query Fix for Active Letters Count**:
+  - Fixed SQL query in `MobileDashboardController.php`: corrected invalid `employee_id` column reference to `kpg_employees.id` in `whereHas('employees')`.
+  - Added support for multiple active statuses (`approved`, `completed`, `published`, `diterbitkan`) in `MobileDashboardController.php` and `AssignmentLetterController.php` (`myLetters` & `myDownload`).
+  - Mobile dashboard under Surat Tugas tab now correctly displays the badge count `1` ("Surat Tugas 1").
+- [x] **Interactive Mobile Surat Tugas Card & PDF Preview**:
+  - Wrapped `1 Surat Tugas Aktif` card in `PortalDashboardScreen.tsx` with `<TouchableOpacity>` so tapping it triggers navigation to personal Surat Tugas list/detail.
+  - Updated `toMobileDetailItem` in `AssignmentLetterController.php` so `file.available` and `can_download` are set to `true`, providing immediate download/preview links for mobile.
+  - Added fallback text/PDF stream generation in `AssignmentLetterController.php@myDownload` for letters without an uploaded physical attachment.
+- [x] **Official Mobile Surat Tugas Print Preview Modal (`PratinjauSuratTugasModal`)**:
+  - Built `PratinjauSuratTugasModal.tsx` using `react-native-webview` rendering the **exact HTML/CSS document template** from the web portal ST Builder & Preview (`SuratTugasLetterPreview.tsx`).
+  - Rendered official Kop Surat image (`HEADER_NEW_BASE64`) featuring the **Pohon Hayati Kementerian Kehutanan Logo** on the left with double black line underline (`header-new.png`), matching localhost web preview 100%.
+  - Synced "Menimbang" (`a. bahwa dalam rangka {kegiatan}, perlu ;`), "Dasar", "Memberi Tugas", "Kepada" (Personnel list with NIP & Jabatan), "Untuk" (Activity, location, dates, days count in words, DIPA funding source), "Penutup" (`Demikian untuk dilaksanakan dengan penuh tanggung jawab.`), and signature block (`Samarinda, {tanggal}`, `Kepala Balai,`, `M. Ari Wibawanto, S.Hut., M.Sc.`, `NIP. 19740514 199903 1 001`).
+  - Configured scaled viewport (`initial-scale=0.42, user-scalable=yes`) so text font size (`11pt`), margins, and alignments do not reflow into narrow columns, maintaining identical web proportions with **pinch-to-zoom** support.
+  - Integrated `PratinjauSuratTugasModal` in `PortalDashboardScreen.tsx` and `SuratTugasListScreen.tsx`, opening the scaled A4 document modal when tapping any item or eye `👁` button.
+- [x] **Mobile Kepegawaian Inbox Surat Cuti & Mobile Portal Pengajuan Cuti Workspace**:
+  - Built `FormulirCutiPrintModal.tsx` rendering the official 8-section BKSDA Formulir Permintaan dan Pemberian Cuti table document using `react-native-webview` with `🖨 Cetak (A4)` print/download action and pinch-to-zoom support.
+  - Built `FormulirCutiModal.tsx` allowing employees to submit new leave applications (`jenis_cuti`, `alasan_cuti`, `tanggal_mulai`, `tanggal_selesai`, `alamat_menjalankan_cuti`, `telepon`) to `POST /api/me/leave-requests`.
+  - Updated `PortalDashboardScreen.tsx` under `cuti` tab to display personal leave requests list, status badges (`PENGAJUAN`, `DISETUJUI`, `DITOLAK`), `+ Ajukan Cuti Baru` button, and A4 print preview.
+  - Created `InboxSuratCutiScreen.tsx` for Kepegawaian module managers to manage employee leave requests (`GET /api/kepegawaian/leave-requests`) with search, filter chips (`Semua`, `Pengajuan`, `Disetujui`, `Ditolak`), quick approval/rejection (`PUT /api/kepegawaian/leave-requests/{id}/status`), and Formulir Cuti A4 preview modal.
+  - Registered `InboxSuratCutiScreen` in `AppTabs.tsx`, `DashboardScreen.tsx`, `FabMenu.tsx`, and `KepegawaianScreen.tsx` with `handleSelectNavTab` routing handler for seamless opening.
+  - Replaced `SafeAreaView` from `react-native` with `react-native-safe-area-context` to eliminate deprecation warning.
+  - Added `useFocusEffect` and immediate state refetching in `InboxSuratCutiScreen.tsx` so leave request state updates instantly without manual app restart.
+  - Refined `FormulirCutiPrintModal.tsx` document layout: removed top right status badge, removed PARAF column in Catatan Cuti (Section V), removed text underlines from signature names, and expanded signature block width to prevent name line-wrapping (`BAMBANG HARI TRIMARSITO, S.Si., M.P.`).
+  - Added `EditCutiModal.tsx` for admin/superadmin to edit leave request details (`PUT /api/kepegawaian/leave-requests/{id}`) and **Hapus** action (`DELETE /api/kepegawaian/leave-requests/{id}`).
+  - Added pagination controls (`Sebelumnya`, `Berikutnya`, `Hal X dari Y`) to `InboxSuratCutiScreen.tsx`.
+  - Achieved 100% exact visual parity between Mobile and Web Formulir Cuti document (`FormulirCutiPrintModal.tsx`): dynamic header city (`Balikpapan`, `Tenggarong`, `Tanjung Redeb`, or `Samarinda`) based on `satuan_kerja`, exact 6-cell table layout in Section IV (`SELAMA | 1 HARI | MULAI TANGGAL | date | S.D | date`), 2-column split table in Section V (`CATATAN CUTI ***`), exact headers in Section VII/VIII (`PERUBAHAN****`, `DITANGGUHKAN****`, `TIDAK DISETUJUI****`), and full footer notes table.
+  - Built custom styled confirmation modal (`ConfirmStatusModal`) in `InboxSuratCutiScreen.tsx` with color-coded status icons for approval, rejection, and status resets.
+  - Enabled status resetting back to `PENGAJUAN` for any approved or rejected request in mobile.
+  - Added distinct top border (`border-top: 1px solid #000000`) between `Alamat` and `TELPON` in Section VI.
+  - Cleared approval check-box cells in Section VII & VIII so checkmarks remain empty for manual entry upon printing.
+  - Dynamically populated checkmarks `✓` in Section V (Catatan Cuti) right-side list table matching selected `jenis_cuti` (Cuti Besar, Cuti Sakit, Cuti Melahirkan, Cuti Karena Alasan Penting, Cuti di Luar Tanggungan Negara) across both Web (`FormulirCutiPrint.tsx`) and Mobile (`FormulirCutiPrintModal.tsx`).
+  - Fixed Section V left box header to `1. CUTI TAHUNAN` and right table item 5 to `5. Cuti Karena Alasan Penting` (checked `✓` strictly only when `Cuti Karena Alasan Penting` is selected).
+
 
 ---
 

@@ -48,19 +48,40 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
 
   const fetchSuratTugas = async () => {
     try {
-      const response = await apiClient.get<any>("/kepegawaian/surat-tugas");
+      const response = await apiClient.get<any>("/surat-tugas?mobile=true");
       if (response.data && Array.isArray(response.data.data)) {
-        const apiList = response.data.data.map((st: any) => ({
-          id: String(st.id),
-          status: st.status || "DRAFT",
-          statusColor: st.status === "DITERBITKAN" ? "#2563eb" : "#64748b",
-          date: st.created_at ? new Date(st.created_at).toLocaleDateString("id-ID") : "2026",
-          periode: st.periode || "2026",
-          title: st.perihal || st.title || "-",
-          location: st.tujuan || st.location || "Kalimantan Timur",
-          dana: st.sumber_dana || "DIPA",
-          personil: Array.isArray(st.personil) ? st.personil : [],
-        }));
+        const apiList = response.data.data.map((st: any) => {
+          const rawStatus = (st.status || "DRAFT").toUpperCase();
+          const statusColor =
+            rawStatus === "DITERBITKAN" || rawStatus === "APPROVED"
+              ? "#2563eb"
+              : rawStatus === "DITOLAK" || rawStatus === "REJECTED"
+              ? "#ef4444"
+              : "#64748b";
+          const dateStr =
+            st.tanggal_surat ||
+            st.tanggal_mulai ||
+            (st.created_at ? new Date(st.created_at).toLocaleDateString("id-ID") : "2026");
+          const personilArr = st.personel_summary
+            ? [{ name: st.personel_summary, nip: "" }]
+            : Array.isArray(st.employees)
+            ? st.employees.map((e: any) => ({ name: e.nama_lengkap || e.name || "", nip: e.nip || "" }))
+            : Array.isArray(st.personil)
+            ? st.personil
+            : [];
+
+          return {
+            id: String(st.id),
+            status: rawStatus,
+            statusColor,
+            date: dateStr,
+            periode: st.periode || "2026",
+            title: st.maksud_tujuan || st.kegiatan || st.perihal || st.title || "-",
+            location: st.tempat_tujuan || st.tujuan || st.location || "Kalimantan Timur",
+            dana: (st.sumber_dana || "DIPA").toUpperCase(),
+            personil: personilArr,
+          };
+        });
         setStList(apiList);
       } else {
         setStList([]);

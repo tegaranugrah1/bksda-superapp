@@ -12,6 +12,10 @@ export default function DashboardScreen({ navigation }: any) {
       navigation.navigate('BuatSuratTugas');
     } else if (moduleKey === 'inbox-surat-tugas') {
       navigation.navigate('InboxSuratTugas');
+    } else if (moduleKey === 'inbox-surat-cuti') {
+      navigation.navigate('InboxSuratCuti');
+    } else if (moduleKey === 'surat-tugas' || moduleKey === 'surattugas' || moduleKey === 'surat-tugas-personal') {
+      navigation.navigate('SuratTugasList', { initialMode: 'personal' });
     } else if (moduleKey === 'bmn') {
       navigation.navigate('Bmn');
     } else if (moduleKey === 'surat') {

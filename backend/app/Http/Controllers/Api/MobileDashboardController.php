@@ -61,13 +61,13 @@ class MobileDashboardController extends Controller
 
             // My assignment letters: Pending
             $pendingMyLettersCount = AssignmentLetter::whereHas('employees', function ($q) use ($employeeId) {
-                $q->where('employee_id', $employeeId);
-            })->where('status', 'pending')->count();
+                $q->where('kpg_employees.id', $employeeId);
+            })->whereIn('status', ['pending', 'draft'])->count();
 
             // My assignment letters: Active (Approved)
             $activeMyLettersCount = AssignmentLetter::whereHas('employees', function ($q) use ($employeeId) {
-                $q->where('employee_id', $employeeId);
-            })->where('status', 'approved')->count();
+                $q->where('kpg_employees.id', $employeeId);
+            })->whereIn('status', ['approved', 'completed', 'published', 'diterbitkan'])->count();
 
             // Urgent STNK Tax Vehicles (next 30 days)
             $now = Carbon::now();

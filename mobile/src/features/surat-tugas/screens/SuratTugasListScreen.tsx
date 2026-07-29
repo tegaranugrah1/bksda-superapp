@@ -11,6 +11,7 @@ import { SearchInput } from '@/components/SearchInput';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
 import { usePermissions } from '@/lib/permissions';
+import { PratinjauSuratTugasModal } from '@/components/PratinjauSuratTugasModal';
 import AssignmentCard from '../components/AssignmentCard';
 import { SuratTugasStackParamList } from '../navigation/SuratTugasNavigator';
 import { useAssignments } from '../useAssignments';
@@ -63,10 +64,12 @@ export default function SuratTugasListScreen() {
   });
   useForegroundRefresh(refetch, { enabled: items.length > 0, staleMs: 60_000 });
 
+  const [selectedPreviewSt, setSelectedPreviewSt] = React.useState<any>(null);
+
   const renderAssignment = ({ item }: { item: AssignmentListItem }) => (
     <AssignmentCard
       assignment={item}
-      onPress={() => navigation.navigate('AssignmentDetail', { id: item.id, mode: activeMode })}
+      onPress={() => setSelectedPreviewSt(item)}
     />
   );
 
@@ -280,6 +283,12 @@ export default function SuratTugasListScreen() {
 
         {renderContent()}
       </View>
+
+      <PratinjauSuratTugasModal
+        visible={!!selectedPreviewSt}
+        data={selectedPreviewSt}
+        onClose={() => setSelectedPreviewSt(null)}
+      />
     </SafeAreaView>
   );
 }
