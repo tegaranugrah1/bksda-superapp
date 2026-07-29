@@ -1,3 +1,32 @@
+# Progress - Phase 176: Sinkronisasi Form Detail Kegiatan ST Builder Premium
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`
+
+### Status: SELESAI
+- Scope: ST Builder Create (`frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`) & Builder Edit (`frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Diselaraskan Opsi Jenis Tugas**:
+     - `Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )`
+     - `Melaksanakan Kegiatan ( 1 Hari )`
+     - `Menugaskan Staf`
+  2. **Diselaraskan Kolom Input Dinamis pada Section Detail Kegiatan**:
+     - Mode Perjalanan Dinas: Kolom `Dari (Asal)`, `Ke (Tujuan)`, `Dalam Rangka`, `Di (Tempat Spesifik / Opsional)`.
+     - Mode Melaksanakan Kegiatan / Menugaskan Staf: Kolom `Kegiatan *`, `Pada (Tempat/Unit)`, `Di (Kota/Kabupaten)`.
+  3. **Diselaraskan Penulisan Teks Resmi**:
+     - Opsi `Menugaskan Staf` kini menggunakan kata kunci `"Menugaskan Staf untuk [kegiatan] pada [tempat] di [kota]"`.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 175: Perbaikan Evaluasi Pratinjau Teks & Formulasi Menugaskan Staf
 
 > Document updated: 2026-07-29
