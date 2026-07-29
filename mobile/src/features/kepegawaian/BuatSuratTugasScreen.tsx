@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
@@ -127,11 +128,14 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
 
   // STEP 2: DETAIL PERJALANAN DINAS
   const [maksudKegiatan, setMaksudKegiatan] = useState("");
-  const [tanggalMulai, setTanggalMulai] = useState("");
-  const [tanggalSelesai, setTanggalSelesai] = useState("");
-  const [lokasiKegiatan, setLokasiKegiatan] = useState("");
-  const [sumberDana, setSumberDana] = useState("DIPA Balai KSDA Kalimantan Timur");
+  const [tanggalMulai, setTanggalMulai] = useState(new Date().toISOString().substring(0, 10));
+  const [tanggalSelesai, setTanggalSelesai] = useState(new Date().toISOString().substring(0, 10));
+  const [keterangan, setKeterangan] = useState("");
+  const [sumberDana, setSumberDana] = useState("dipa");
+  const [sumberDanaOther, setSumberDanaOther] = useState("");
   const [namaPlh, setNamaPlh] = useState("");
+  const [activeDatePicker, setActiveDatePicker] = useState<"mulai" | "selesai" | null>(null);
+  const [currentPickerMonth, setCurrentPickerMonth] = useState(new Date());
 
   // BUILDER STATE UNTUK DETAIL KEGIATAN (SYNCED 100% DENGAN /kepegawaian/surat-tugas/create)
   const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
@@ -302,20 +306,29 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       finalNamaKegiatan = `Menugaskan Staf untuk ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
     }
 
+    const calculatedTempatTujuan = tempatSpesifik.trim() || kotaTujuan.trim() || (jenisTugas.includes("Perjalanan Dinas") ? kotaAsal.trim() : "");
+
     setIsSubmitting(true);
     try {
-      await apiClient.post("/kepegawaian/surat-tugas", {
-        maksud_kegiatan: finalNamaKegiatan,
+      const payload = {
+        maksud_tujuan: finalNamaKegiatan,
         nama_kegiatan: finalNamaKegiatan,
+        tempat_tujuan: calculatedTempatTujuan,
         tanggal_mulai: tanggalMulai,
         tanggal_selesai: tanggalSelesai,
-        tujuan: kotaTujuan || tempatSpesifik || kotaAsal,
         sumber_dana: sumberDana,
-        plh: namaPlh,
-        personil_ids: selectedEmployees.map((e) => e.id),
+        sumber_dana_other: sumberDana === "other" ? sumberDanaOther : undefined,
+        keterangan: keterangan || undefined,
+        nama_plh: namaPlh || undefined,
+        employee_ids: selectedEmployees.map((e) => e.id),
+      };
+
+      await apiClient.post("/surat-tugas/public-submit", payload).catch(async () => {
+        // Fallback to /kepegawaian/surat-tugas endpoint
+        await apiClient.post("/kepegawaian/surat-tugas", payload);
       });
-    } catch {
-      // Local fallback
+    } catch (err) {
+      console.error("Submit Surat Tugas Error:", err);
     } finally {
       setIsSubmitting(false);
       Alert.alert(
@@ -465,18 +478,6 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                     </TouchableOpacity>
                   );
                 })}
-
-                {/* Option to Add Custom Typed Name */}
-                <TouchableOpacity
-                  style={styles.addCustomNameRow}
-                  onPress={handleAddManualEmployee}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="person-add" size={18} color="#2563eb" style={{ marginRight: 8 }} />
-                  <Text style={styles.addCustomNameText}>
-                    Tambahkan "<Text style={{ fontWeight: "800" }}>{searchQuery}</Text>" ke Pegawai Ditugaskan
-                  </Text>
-                </TouchableOpacity>
               </View>
             )}
 
@@ -645,65 +646,93 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               </Text>
             </View>
 
-            {/* Input 2 & 3: Periode Tanggal */}
+            {/* Input 2 & 3: Periode Tanggal (Pakai DatePicker Button) */}
             <View style={styles.rowTwoInputs}>
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.label}>TANGGAL MULAI *</Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                  placeholder="22 Juni 2026"
-                  placeholderTextColor="#94a3b8"
-                  value={tanggalMulai}
-                  onChangeText={setTanggalMulai}
-                />
+                <TouchableOpacity
+                  style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]}
+                  onPress={() => setActiveDatePicker("mulai")}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginRight: 8 }} />
+                  <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>
+                    {tanggalMulai || "Pilih Tanggal Mulai"}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.label}>TANGGAL SELESAI *</Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                  placeholder="24 Juni 2026"
-                  placeholderTextColor="#94a3b8"
-                  value={tanggalSelesai}
-                  onChangeText={setTanggalSelesai}
-                />
+                <TouchableOpacity
+                  style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]}
+                  onPress={() => setActiveDatePicker("selesai")}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginRight: 8 }} />
+                  <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>
+                    {tanggalSelesai || "Pilih Tanggal Selesai"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
-            {/* Input 4: Lokasi Kegiatan / Tujuan */}
+            {/* Input 4: Keterangan Lainnya (Gantikan Lokasi Kegiatan yang sudah ada di atas) */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                LOKASI KEGIATAN / TUJUAN <Text style={{ color: "#ef4444" }}>*</Text>
-              </Text>
+              <Text style={styles.label}>KETERANGAN LAINNYA</Text>
               <TextInput
-                style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                placeholder="Kecamatan Marangkayu Kab. Kutai Kartanegara"
+                style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                placeholder="Catatan tambahan (opsional)"
                 placeholderTextColor="#94a3b8"
-                value={lokasiKegiatan}
-                onChangeText={setLokasiKegiatan}
+                multiline
+                numberOfLines={3}
+                value={keterangan}
+                onChangeText={setKeterangan}
               />
             </View>
 
-            {/* Input 5: Sumber Dana */}
+            {/* Input 5: Sumber Dana (Synched 100% dengan Localhost) */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>SUMBER DANA *</Text>
               {[
-                "DIPA Balai KSDA Kalimantan Timur",
-                "DIPA Instansi Lain",
-                "Non-DIPA / Swadaya",
-                "Tanpa Biaya",
-              ].map((opt, idx) => (
+                { id: "dipa", label: "DIPA Balai KSDA Kalimantan Timur" },
+                { id: "dipa_lain", label: "DIPA Instansi Lain" },
+                { id: "swadaya", label: "Non-DIPA / Swadaya" },
+                { id: "dl1", label: "Tanpa Biaya / DL 1" },
+                { id: "kja", label: "Dana Kerjasama KJA" },
+                { id: "mja", label: "Dana Kerjasama MJA" },
+                { id: "cop", label: "Dana Kerjasama COP" },
+                { id: "tjiwi", label: "Dana Kerjasama PT. Tjiwi Kimia Tbk." },
+                { id: "bosf", label: "Dana Kerjasama BOSF" },
+                { id: "can", label: "Dana Kerjasama CAN" },
+                { id: "alert", label: "Dana Kerjasama ALeRT" },
+                { id: "folu", label: "Dana Kerjasama FOLU" },
+                { id: "other", label: "Lainnya" },
+              ].map((opt) => (
                 <TouchableOpacity
-                  key={idx}
+                  key={opt.id}
                   style={styles.radioRow}
-                  onPress={() => setSumberDana(opt)}
+                  onPress={() => setSumberDana(opt.id)}
                 >
-                  <View style={[styles.radioCircle, sumberDana === opt && styles.radioCircleActive]}>
-                    {sumberDana === opt && <View style={styles.radioDot} />}
+                  <View style={[styles.radioCircle, sumberDana === opt.id && styles.radioCircleActive]}>
+                    {sumberDana === opt.id && <View style={styles.radioDot} />}
                   </View>
-                  <Text style={[styles.radioText, { color: colors.textDark }]}>{opt}</Text>
+                  <Text style={[styles.radioText, { color: colors.textDark }]}>{opt.label}</Text>
                 </TouchableOpacity>
               ))}
+
+              {sumberDana === "other" && (
+                <View style={{ marginTop: 8 }}>
+                  <Text style={[styles.label, { fontSize: 10 }]}>SEBUTKAN SUMBER DANA LAINNYA *</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    placeholder="Sebutkan sumber dana..."
+                    placeholderTextColor="#94a3b8"
+                    value={sumberDanaOther}
+                    onChangeText={setSumberDanaOther}
+                  />
+                </View>
+              )}
             </View>
 
             {/* Conditional PLH Input (If Pejabat Struktural is in team) */}
@@ -798,8 +827,13 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 • Kegiatan: <Text style={{ fontWeight: "800" }}>{maksudKegiatan || "-"}</Text>
               </Text>
               <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                • Lokasi: <Text style={{ fontWeight: "800" }}>{lokasiKegiatan || "-"}</Text>
+                • Lokasi: <Text style={{ fontWeight: "800" }}>{tempatSpesifik || kotaTujuan || kotaAsal}</Text>
               </Text>
+              {Boolean(keterangan) && (
+                <Text style={[styles.summaryLine, { color: colors.textDark }]}>
+                  • Keterangan: <Text style={{ fontWeight: "800" }}>{keterangan}</Text>
+                </Text>
+              )}
               <Text style={[styles.summaryLine, { color: colors.textDark }]}>
                 • Sumber Dana: <Text style={{ fontWeight: "800" }}>{sumberDana}</Text>
               </Text>
@@ -848,6 +882,106 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           </GlassCard>
         )}
       </ScrollView>
+
+      {/* Render Modal DatePicker */}
+      {Boolean(activeDatePicker) && (
+        <Modal visible transparent animationType="fade">
+          <TouchableOpacity 
+            style={styles.modalOverlay} 
+            activeOpacity={1} 
+            onPress={() => setActiveDatePicker(null)}
+          >
+            <TouchableOpacity activeOpacity={1} style={styles.datePickerCard}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity 
+                  onPress={() => setCurrentPickerMonth(new Date(currentPickerMonth.getFullYear(), currentPickerMonth.getMonth() - 1, 1))} 
+                  style={styles.monthNavBtn}
+                >
+                  <Ionicons name="chevron-back" size={20} color="#2563eb" />
+                </TouchableOpacity>
+                <Text style={styles.datePickerMonthTitle}>
+                  {["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][currentPickerMonth.getMonth()]} {currentPickerMonth.getFullYear()}
+                </Text>
+                <TouchableOpacity 
+                  onPress={() => setCurrentPickerMonth(new Date(currentPickerMonth.getFullYear(), currentPickerMonth.getMonth() + 1, 1))} 
+                  style={styles.monthNavBtn}
+                >
+                  <Ionicons name="chevron-forward" size={20} color="#2563eb" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Weekday headers */}
+              <View style={styles.weekDaysRow}>
+                {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
+                  <Text key={d} style={styles.weekDayText}>{d}</Text>
+                ))}
+              </View>
+
+              {/* Grid of days */}
+              <View style={styles.daysGrid}>
+                {(() => {
+                  const y = currentPickerMonth.getFullYear();
+                  const m = currentPickerMonth.getMonth();
+                  const totalDays = new Date(y, m + 1, 0).getDate();
+                  const firstDay = new Date(y, m, 1).getDay();
+                  const grid = [];
+                  for (let i = 0; i < firstDay; i++) grid.push(null);
+                  for (let d = 1; d <= totalDays; d++) grid.push(d);
+
+                  return grid.map((day, idx) => {
+                    if (day === null) return <View key={`empty-${idx}`} style={styles.dayCell} />;
+                    const formattedM = String(m + 1).padStart(2, "0");
+                    const formattedD = String(day).padStart(2, "0");
+                    const dateStr = `${y}-${formattedM}-${formattedD}`;
+                    const isSelected = activeDatePicker === "mulai" ? tanggalMulai === dateStr : tanggalSelesai === dateStr;
+
+                    return (
+                      <TouchableOpacity
+                        key={`day-${day}`}
+                        style={[styles.dayCell, isSelected && styles.dayCellSelected]}
+                        onPress={() => {
+                          if (activeDatePicker === "mulai") {
+                            setTanggalMulai(dateStr);
+                            if (!tanggalSelesai || tanggalSelesai < dateStr) setTanggalSelesai(dateStr);
+                          } else {
+                            setTanggalSelesai(dateStr);
+                          }
+                          setActiveDatePicker(null);
+                        }}
+                      >
+                        <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
+                          {day}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  });
+                })()}
+              </View>
+
+              {/* Quick Actions Footer */}
+              <View style={styles.datePickerFooter}>
+                <TouchableOpacity 
+                  style={styles.quickDateBtn}
+                  onPress={() => {
+                    const today = new Date().toISOString().substring(0, 10);
+                    if (activeDatePicker === "mulai") setTanggalMulai(today);
+                    else setTanggalSelesai(today);
+                    setActiveDatePicker(null);
+                  }}
+                >
+                  <Text style={styles.quickDateText}>Hari Ini</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.quickDateBtn, { backgroundColor: "#2563eb" }]}
+                  onPress={() => setActiveDatePicker(null)}
+                >
+                  <Text style={[styles.quickDateText, { color: "#ffffff" }]}>Tutup</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      )}
 
       {/* Floating Action Button (FAB ☰ Menu) */}
       <FabMenu onNavigateToModule={handleSelectNavTab} activeSubmenu="buat-surat-tugas" />
@@ -1260,5 +1394,105 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "900",
+  },
+
+  // DatePicker & Multiline Input Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  datePickerBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+  },
+  datePickerBtnText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+  },
+  datePickerCard: {
+    width: "88%",
+    maxWidth: 360,
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 20,
+    elevation: 20,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+  },
+  datePickerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  monthNavBtn: {
+    padding: 6,
+    borderRadius: 10,
+    backgroundColor: "#eff6ff",
+  },
+  datePickerMonthTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#1e293b",
+  },
+  weekDaysRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 8,
+  },
+  weekDayText: {
+    width: 38,
+    textAlign: "center",
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#94a3b8",
+  },
+  daysGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    marginBottom: 16,
+  },
+  dayCell: {
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 19,
+    marginVertical: 2,
+  },
+  dayCellSelected: {
+    backgroundColor: "#2563eb",
+  },
+  dayText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#334155",
+  },
+  dayTextSelected: {
+    color: "#ffffff",
+    fontWeight: "900",
+  },
+  datePickerFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 8,
+  },
+  quickDateBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: "#f1f5f9",
+  },
+  quickDateText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#475569",
   },
 });
