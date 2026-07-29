@@ -71,7 +71,7 @@ export default function STCreatePremiumPage() {
   const [sumberDanaOther, setSumberDanaOther] = useState("");
   const [templateType, setTemplateType] = useState<string | null>(null);
   const [namaKegiatan, setNamaKegiatan] = useState("");
-  const [activityPrefix, setActivityPrefix] = useState("Perjalanan Dinas");
+  const [activityPrefix, setActivityPrefix] = useState("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
@@ -433,12 +433,31 @@ export default function STCreatePremiumPage() {
       return text;
     }
 
-    let text = `${activityPrefix} dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
-    if (namaKegiatan) {
-      text += ` dalam rangka ${namaKegiatan}`;
-    }
-    if (tempatKegiatan) {
-      text += ` di ${tempatKegiatan}`;
+    let text = "";
+    if (activityPrefix.includes("Perjalanan Dinas")) {
+      text = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
+      if (namaKegiatan) {
+        text += ` dalam rangka ${namaKegiatan}`;
+      }
+      if (tempatKegiatan) {
+        text += ` di ${tempatKegiatan}`;
+      }
+    } else if (activityPrefix.includes("Melaksanakan Kegiatan")) {
+      text = `Melaksanakan Kegiatan ${namaKegiatan || "..."}`;
+      if (tempatKegiatan) {
+        text += ` pada ${tempatKegiatan}`;
+      }
+      if (kotaTujuan) {
+        text += ` di ${kotaTujuan}`;
+      }
+    } else {
+      text = `Menugaskan Staf untuk ${namaKegiatan || "..."}`;
+      if (tempatKegiatan) {
+        text += ` pada ${tempatKegiatan}`;
+      }
+      if (kotaTujuan) {
+        text += ` di ${kotaTujuan}`;
+      }
     }
     if (days > 0) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
@@ -888,25 +907,67 @@ export default function STCreatePremiumPage() {
                 <select 
                   value={activityPrefix} 
                   onChange={e => setActivityPrefix(e.target.value)} 
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none cursor-pointer text-zinc-900 dark:text-white"
                 >
-                  <option value="Perjalanan Dinas">Perjalanan Dinas</option>
-                  <option value="Melaksanakan Tugas">Melaksanakan Tugas</option>
+                  <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )</option>
+                  <option value="Melaksanakan Kegiatan ( 1 Hari )">Melaksanakan Kegiatan ( 1 Hari )</option>
                   <option value="Menugaskan Staf">Menugaskan Staf</option>
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Asal" className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-                <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Tujuan" className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-              </div>
-              <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Kegiatan..." className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
-              <input value={tempatKegiatan} onChange={e => {
-                const nextPlace = e.target.value;
-                setTempatKegiatan(nextPlace);
-                if (sumberDana === "folu") {
-                  updateFoluMenimbang(namaKegiatan, nextPlace);
-                }
-              }} placeholder="Tempat Spesifik" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+
+              {activityPrefix.includes("Perjalanan Dinas") ? (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Dari ( Kota / Lokasi Asal ) *</label>
+                      <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Ke ( Kota / Kabupaten Tujuan ) *</label>
+                      <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Kutai Barat" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">Dalam Rangka *</label>
+                    <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi..." className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">Di ( Tempat Spesifik / Opsional )</label>
+                    <input value={tempatKegiatan} onChange={e => {
+                      const nextPlace = e.target.value;
+                      setTempatKegiatan(nextPlace);
+                      if (sumberDana === "folu") {
+                        updateFoluMenimbang(namaKegiatan, nextPlace);
+                      }
+                    }} placeholder="Contoh: Suaka Margasatwa Kelian" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      {activityPrefix.includes("Melaksanakan Kegiatan") ? "Melaksanakan Kegiatan ( 1 Hari ) *" : "Menugaskan Staf *"}
+                    </label>
+                    <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={activityPrefix.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Pada ( Tempat / Unit / Lokasi )</label>
+                      <input value={tempatKegiatan} onChange={e => {
+                        const nextPlace = e.target.value;
+                        setTempatKegiatan(nextPlace);
+                        if (sumberDana === "folu") {
+                          updateFoluMenimbang(namaKegiatan, nextPlace);
+                        }
+                      }} placeholder="Contoh: Kantor Balai / tempat kegiatannya" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Di ( Kota / Kabupaten ) *</label>
+                      <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                    </div>
+                  </div>
+                </>
+              )}
               <div className={`grid grid-cols-2 gap-2 ${templateType === "beda-hari" ? "hidden" : ""}`}>
                 <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
                 <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
