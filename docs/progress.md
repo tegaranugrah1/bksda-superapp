@@ -1,7 +1,7 @@
-# Progress - Phase 180: Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile
+# Progress - Phase 195: Creation of `develop-bmn` Branch & BMN Reports Print Page 2 Margin Fix
 
 > Document updated: 2026-07-29
-> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+> Status: Aktif pada branch `develop-bmn`.
 
 ---
 
@@ -7783,5 +7783,10 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Frontend `npm run lint` passes successfully with 0 errors/warnings.
 - [x] Frontend `npm run build` generates production builds successfully.
 - [x] Backend tests `php artisan test` passes 36/36 tests successfully.
+- [x] **Phase 195 (develop-bmn Branch & BMN Reports Print Page 2 Margin & Header Number Fix)**:
+  - Restored 100% exact original layout and kop image margins (`margin: 0 -12mm`, `padding: 0 20mm 14mm`) on Page 1.
+  - Added `padding-top: 15mm` to `.usage-signature-block` & `.handover-signature-block` in `UsageAgreementDocument.tsx` and `HandoverAgreementDocument.tsx` so that when closing text and signature blocks spill onto Page 2, Chromium retains a guaranteed 15mm top margin without collapsing it at the page break.
+  - Set `isMultiPageTable = assets.length > 20` so single-page tables (1-20 items, like 16 items) never render the `1, 2, 3, 4, 5, 6, 7, 8, 9` number row on Page 1, while multi-page tables rendering > 20 items display the number row above column headers on Page 2.
+  - Executed `npx ctx7 setup` for Upstash Context7 integration.
 
 

@@ -128,7 +128,7 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
       <head>
         <title>BA Serah Terima BMN</title>
         <style>
-          @page { size: A4 portrait; margin: 10mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 20mm 0 18mm 0; }
           * { box-sizing: border-box; }
           body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
           p { margin: 0; }
@@ -146,7 +146,7 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           .handover-table td.handover-cell-center { text-align: center; }
           .handover-table thead { display: table-header-group; }
           .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .handover-signature-block { break-inside: avoid; page-break-inside: avoid; }
+          .handover-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; }
           .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 7mm; }
           .handover-signature-name { margin-top: 25mm; font-weight: 700; }
         </style>
@@ -189,6 +189,7 @@ export function HandoverAgreementDocument({
   const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
   const itemCountText = `${itemCount} (${spellNumber(itemCount).toLocaleLowerCase("id-ID")})`;
   const itemDescription = (description || (variant === "vehicle" ? "kendaraan" : "barang")).trim();
+  const isMultiPageTable = items.length > 20;
 
   return (
     <div id={documentId}>
@@ -209,15 +210,17 @@ export function HandoverAgreementDocument({
         .handover-preview .handover-table td.handover-cell-center { text-align: center; }
         .handover-preview .handover-table thead { display: table-header-group; }
         .handover-preview .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-        .handover-preview .handover-signature-block { break-inside: avoid; page-break-inside: avoid; }
+        .handover-preview .handover-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; }
         .handover-preview .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 7mm; }
         .handover-preview .handover-signature-name { margin-top: 25mm; font-weight: 700; }
         @media print {
-          @page { size: A4 portrait; margin: 10mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 20mm 0 18mm 0; }
           body * { visibility: hidden; }
           #ba-serah-terima-print-root, #ba-serah-terima-print-root * { visibility: visible; }
           #ba-serah-terima-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
-          .handover-page { box-shadow: none !important; }
+          .handover-page { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+          .handover-header { margin: 0 !important; }
+          .handover-header img { width: 100% !important; max-width: 100% !important; }
         }
       `}</style>
       <div className="handover-preview">
@@ -250,7 +253,9 @@ export function HandoverAgreementDocument({
                   <col style={{ width: "16%" }} />
                 </colgroup>
                 <thead>
-                  <tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+                  {isMultiPageTable && (
+                    <tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+                  )}
                   <tr><th>No</th><th>Jenis Kendaraan</th><th>Merk / Tipe</th><th>No. Polisi</th><th>No. Mesin</th><th>No. Rangka</th></tr>
                 </thead>
                 <tbody>
@@ -275,7 +280,9 @@ export function HandoverAgreementDocument({
                   <col style={{ width: "15%" }} />
                 </colgroup>
                 <thead>
-                  <tr><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+                  {isMultiPageTable && (
+                    <tr><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+                  )}
                   <tr><th>No</th><th>Nama Barang</th><th>Jumlah</th><th>NUP</th></tr>
                 </thead>
                 <tbody>

@@ -593,8 +593,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_models_user",
-      "community": 10,
-      "community_name": "User",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "user.php"
     },
     {
@@ -1209,7 +1209,7 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_addassets",
-      "community": 105,
+      "community": 49,
       "community_name": "AddAuctionAssetsRequest",
       "norm_label": ".addassets()"
     },
@@ -1352,7 +1352,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_dashboardcontroller_dashboardcontroller_stats",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": ".stats()"
     },
@@ -1506,8 +1506,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_index",
-      "community": 67,
-      "community_name": "HandoverAgreement",
+      "community": 13,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".index()"
     },
     {
@@ -1759,8 +1759,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "loancontroller.php"
     },
     {
@@ -1770,8 +1770,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "loancontroller"
     },
     {
@@ -1781,8 +1781,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_construct",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".__construct()"
     },
     {
@@ -1792,8 +1792,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_index",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".index()"
     },
     {
@@ -1803,8 +1803,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_store",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".store()"
     },
     {
@@ -1814,8 +1814,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_borrow",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".borrow()"
     },
     {
@@ -1825,8 +1825,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_update",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".update()"
     },
     {
@@ -1836,8 +1836,8 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_return",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".return()"
     },
     {
@@ -1847,8 +1847,8 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_destroy",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".destroy()"
     },
     {
@@ -1858,7 +1858,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": "maintenancecontroller.php"
     },
@@ -1869,7 +1869,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": "maintenancecontroller"
     },
@@ -1880,7 +1880,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller_construct",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": ".__construct()"
     },
@@ -1891,7 +1891,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller_index",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": ".index()"
     },
@@ -1902,7 +1902,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller_record",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": ".record()"
     },
@@ -1990,8 +1990,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": "usageagreementcontroller"
     },
     {
@@ -2001,8 +2001,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_index",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".index()"
     },
     {
@@ -2012,8 +2012,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_show",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".show()"
     },
     {
@@ -2023,8 +2023,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_destroy",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".destroy()"
     },
     {
@@ -2034,8 +2034,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_store",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".store()"
     },
     {
@@ -2045,8 +2045,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_resolveemployeeassets",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".resolveemployeeassets()"
     },
     {
@@ -2056,8 +2056,8 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_applyemployeeassetfilter",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".applyemployeeassetfilter()"
     },
     {
@@ -2067,8 +2067,8 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_employeesnapshot",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".employeesnapshot()"
     },
     {
@@ -2078,8 +2078,8 @@
       "source_location": "L151",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_assetsnapshot",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".assetsnapshot()"
     },
     {
@@ -2386,8 +2386,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_exports_loanexport_loanexport_collection",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".collection()"
     },
     {
@@ -3607,8 +3607,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "assetloan.php"
     },
     {
@@ -3618,8 +3618,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "assetloan"
     },
     {
@@ -3629,8 +3629,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan_asset",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".asset()"
     },
     {
@@ -3640,8 +3640,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan_borrower",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".borrower()"
     },
     {
@@ -3651,8 +3651,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan_scopeactive",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".scopeactive()"
     },
     {
@@ -3662,7 +3662,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetmaintenance",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": "assetmaintenance.php"
     },
@@ -3673,7 +3673,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetmaintenance_assetmaintenance",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": "assetmaintenance"
     },
@@ -3684,7 +3684,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetmaintenance_assetmaintenance_asset",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": ".asset()"
     },
@@ -3772,8 +3772,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_auctionbatch_auctionbatch_assetrows",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".assetrows()"
     },
     {
@@ -3783,8 +3783,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_auctionbatch_auctionbatch_events",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".events()"
     },
     {
@@ -4091,8 +4091,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": "usageagreement"
     },
     {
@@ -4102,8 +4102,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement_employee",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".employee()"
     },
     {
@@ -4113,8 +4113,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement_generator",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".generator()"
     },
     {
@@ -4124,7 +4124,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_addauctionassetsrequest",
-      "community": 105,
+      "community": 49,
       "community_name": "AddAuctionAssetsRequest",
       "norm_label": "addauctionassetsrequest.php"
     },
@@ -4135,7 +4135,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_addauctionassetsrequest_addauctionassetsrequest",
-      "community": 105,
+      "community": 49,
       "community_name": "AddAuctionAssetsRequest",
       "norm_label": "addauctionassetsrequest"
     },
@@ -4146,7 +4146,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_addauctionassetsrequest_addauctionassetsrequest_authorize",
-      "community": 105,
+      "community": 49,
       "community_name": "AddAuctionAssetsRequest",
       "norm_label": ".authorize()"
     },
@@ -4157,7 +4157,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_addauctionassetsrequest_addauctionassetsrequest_rules",
-      "community": 105,
+      "community": 49,
       "community_name": "AddAuctionAssetsRequest",
       "norm_label": ".rules()"
     },
@@ -4476,7 +4476,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetmaintenancerequest",
-      "community": 108,
+      "community": 56,
       "community_name": "StoreAssetMaintenanceRequest",
       "norm_label": "storeassetmaintenancerequest.php"
     },
@@ -4487,7 +4487,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetmaintenancerequest_storeassetmaintenancerequest",
-      "community": 108,
+      "community": 56,
       "community_name": "StoreAssetMaintenanceRequest",
       "norm_label": "storeassetmaintenancerequest"
     },
@@ -4498,7 +4498,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetmaintenancerequest_storeassetmaintenancerequest_authorize",
-      "community": 108,
+      "community": 56,
       "community_name": "StoreAssetMaintenanceRequest",
       "norm_label": ".authorize()"
     },
@@ -4509,7 +4509,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetmaintenancerequest_storeassetmaintenancerequest_rules",
-      "community": 108,
+      "community": 56,
       "community_name": "StoreAssetMaintenanceRequest",
       "norm_label": ".rules()"
     },
@@ -4619,7 +4619,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateassetrequest",
-      "community": 190,
+      "community": 65,
       "community_name": "UpdateAssetRequest",
       "norm_label": "updateassetrequest.php"
     },
@@ -4630,7 +4630,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateassetrequest_updateassetrequest",
-      "community": 190,
+      "community": 65,
       "community_name": "UpdateAssetRequest",
       "norm_label": "updateassetrequest"
     },
@@ -4641,7 +4641,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateassetrequest_updateassetrequest_authorize",
-      "community": 190,
+      "community": 65,
       "community_name": "UpdateAssetRequest",
       "norm_label": ".authorize()"
     },
@@ -4652,7 +4652,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateassetrequest_updateassetrequest_rules",
-      "community": 190,
+      "community": 65,
       "community_name": "UpdateAssetRequest",
       "norm_label": ".rules()"
     },
@@ -4751,8 +4751,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetloanresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "assetloanresource.php"
     },
     {
@@ -4762,8 +4762,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetloanresource_assetloanresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "assetloanresource"
     },
     {
@@ -4773,8 +4773,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetloanresource_assetloanresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".toarray()"
     },
     {
@@ -4784,7 +4784,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": "assetmaintenanceresource.php"
     },
@@ -4795,7 +4795,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource_assetmaintenanceresource",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": "assetmaintenanceresource"
     },
@@ -4806,7 +4806,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource_assetmaintenanceresource_toarray",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": ".toarray()"
     },
@@ -4828,8 +4828,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": "assetresource"
     },
     {
@@ -4839,8 +4839,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".toarray()"
     },
     {
@@ -4850,8 +4850,8 @@
       "source_location": "L160",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_vehicledocumentpayload",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".vehicledocumentpayload()"
     },
     {
@@ -4861,8 +4861,8 @@
       "source_location": "L189",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_vehicledocumentpreviewurls",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".vehicledocumentpreviewurls()"
     },
     {
@@ -4872,8 +4872,8 @@
       "source_location": "L212",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_documentversion",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".documentversion()"
     },
     {
@@ -4883,8 +4883,8 @@
       "source_location": "L220",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_isimagedocument",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".isimagedocument()"
     },
     {
@@ -5026,8 +5026,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_handoveragreementresource",
-      "community": 67,
-      "community_name": "HandoverAgreement",
+      "community": 13,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "handoveragreementresource.php"
     },
     {
@@ -5037,8 +5037,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_handoveragreementresource_handoveragreementresource",
-      "community": 67,
-      "community_name": "HandoverAgreement",
+      "community": 13,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "handoveragreementresource"
     },
     {
@@ -5048,8 +5048,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_handoveragreementresource_handoveragreementresource_toarray",
-      "community": 67,
-      "community_name": "HandoverAgreement",
+      "community": 13,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".toarray()"
     },
     {
@@ -5114,8 +5114,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_usageagreementresource_usageagreementresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": "usageagreementresource"
     },
     {
@@ -5125,8 +5125,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_usageagreementresource_usageagreementresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 67,
+      "community_name": "HandoverAgreement",
       "norm_label": ".toarray()"
     },
     {
@@ -5730,8 +5730,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "loanservice.php"
     },
     {
@@ -5741,8 +5741,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "loanservice"
     },
     {
@@ -5752,8 +5752,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_listloans",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".listloans()"
     },
     {
@@ -5763,8 +5763,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_createloan",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".createloan()"
     },
     {
@@ -5774,8 +5774,8 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_borrowasset",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".borrowasset()"
     },
     {
@@ -5785,8 +5785,8 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_updateloan",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".updateloan()"
     },
     {
@@ -5796,8 +5796,8 @@
       "source_location": "L140",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_returnasset",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".returnasset()"
     },
     {
@@ -5807,8 +5807,8 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_deleteloan",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": ".deleteloan()"
     },
     {
@@ -5818,7 +5818,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_maintenanceservice",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": "maintenanceservice.php"
     },
@@ -5829,7 +5829,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_maintenanceservice_maintenanceservice",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": "maintenanceservice"
     },
@@ -5840,7 +5840,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_maintenanceservice_maintenanceservice_recordmaintenance",
-      "community": 74,
+      "community": 190,
       "community_name": "MaintenanceController.php",
       "norm_label": ".recordmaintenance()"
     },
@@ -6093,8 +6093,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_admin_informasicontroller_informasicontroller",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 12,
+      "community_name": "Controller",
       "norm_label": "informasicontroller"
     },
     {
@@ -6104,8 +6104,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_admin_informasicontroller_informasicontroller_index",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 12,
+      "community_name": "Controller",
       "norm_label": ".index()"
     },
     {
@@ -6115,8 +6115,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_admin_informasicontroller_informasicontroller_store",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -6126,8 +6126,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_admin_informasicontroller_informasicontroller_togglepublish",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 12,
+      "community_name": "Controller",
       "norm_label": ".togglepublish()"
     },
     {
@@ -7963,8 +7963,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "initdataseeder"
     },
     {
@@ -7974,8 +7974,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_run",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".run()"
     },
     {
@@ -7985,8 +7985,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_userseed",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".userseed()"
     },
     {
@@ -7996,8 +7996,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_tahunseed",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".tahunseed()"
     },
     {
@@ -8007,8 +8007,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_anggaranseed",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".anggaranseed()"
     },
     {
@@ -8018,8 +8018,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_koordinatorseed",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".koordinatorseed()"
     },
     {
@@ -8029,8 +8029,8 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_jenisdataseed",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".jenisdataseed()"
     },
     {
@@ -8040,8 +8040,8 @@
       "source_location": "L170",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_jenisseed",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".jenisseed()"
     },
     {
@@ -8051,8 +8051,8 @@
       "source_location": "L190",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_bidangseed",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".bidangseed()"
     },
     {
@@ -8062,8 +8062,8 @@
       "source_location": "L203",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_database_seeders_initdataseeder_initdataseeder_kategoriseed",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".kategoriseed()"
     },
     {
@@ -8777,7 +8777,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeoperatorrequest",
-      "community": 572,
+      "community": 74,
       "community_name": "StoreOperatorRequest",
       "norm_label": "storeoperatorrequest.php"
     },
@@ -8788,7 +8788,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeoperatorrequest_storeoperatorrequest",
-      "community": 572,
+      "community": 74,
       "community_name": "StoreOperatorRequest",
       "norm_label": "storeoperatorrequest"
     },
@@ -8799,7 +8799,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeoperatorrequest_storeoperatorrequest_authorize",
-      "community": 572,
+      "community": 74,
       "community_name": "StoreOperatorRequest",
       "norm_label": ".authorize()"
     },
@@ -8810,7 +8810,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeoperatorrequest_storeoperatorrequest_rules",
-      "community": 572,
+      "community": 74,
       "community_name": "StoreOperatorRequest",
       "norm_label": ".rules()"
     },
@@ -9052,8 +9052,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_officecontroller",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "officecontroller.php"
     },
     {
@@ -9063,8 +9063,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_officecontroller_officecontroller",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "officecontroller"
     },
     {
@@ -9074,8 +9074,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_officecontroller_officecontroller_index",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".index()"
     },
     {
@@ -9085,8 +9085,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_officecontroller_officecontroller_store",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".store()"
     },
     {
@@ -9569,8 +9569,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_category_category_items",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".items()"
     },
     {
@@ -9657,8 +9657,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_item_item_stocks",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".stocks()"
     },
     {
@@ -9668,8 +9668,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_office",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "office.php"
     },
     {
@@ -9679,8 +9679,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_office_office",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "office"
     },
     {
@@ -9690,8 +9690,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_office_office_penanggungjawab",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".penanggungjawab()"
     },
     {
@@ -9701,8 +9701,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_office_office_stocks",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".stocks()"
     },
     {
@@ -9921,8 +9921,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeofficerequest",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "storeofficerequest.php"
     },
     {
@@ -9932,8 +9932,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeofficerequest_storeofficerequest",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "storeofficerequest"
     },
     {
@@ -9943,8 +9943,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeofficerequest_storeofficerequest_authorize",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".authorize()"
     },
     {
@@ -9954,8 +9954,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeofficerequest_storeofficerequest_rules",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".rules()"
     },
     {
@@ -9965,8 +9965,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_routes_api",
-      "community": 65,
-      "community_name": "StoreOfficeRequest",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "inventory/routes/api.php"
     },
     {
@@ -10229,8 +10229,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "employeeleaverequestcontroller.php"
     },
     {
@@ -10240,8 +10240,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "employeeleaverequestcontroller"
     },
     {
@@ -10251,8 +10251,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myindex",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".myindex()"
     },
     {
@@ -10262,8 +10262,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_mystore",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".mystore()"
     },
     {
@@ -10273,8 +10273,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminindex",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".adminindex()"
     },
     {
@@ -10284,8 +10284,8 @@
       "source_location": "L142",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminshow",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".adminshow()"
     },
     {
@@ -10295,8 +10295,8 @@
       "source_location": "L151",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminupdatestatus",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".adminupdatestatus()"
     },
     {
@@ -10306,8 +10306,8 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminupdate",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".adminupdate()"
     },
     {
@@ -10317,8 +10317,8 @@
       "source_location": "L287",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_admindestroy",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".admindestroy()"
     },
     {
@@ -10328,8 +10328,8 @@
       "source_location": "L315",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_getatasanlangsung",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".getatasanlangsung()"
     },
     {
@@ -10339,8 +10339,8 @@
       "source_location": "L341",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_getkepalabalai",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".getkepalabalai()"
     },
     {
@@ -10449,8 +10449,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "employeeleave"
     },
     {
@@ -10460,8 +10460,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_gethakn1diakuiattribute",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".gethakn1diakuiattribute()"
     },
     {
@@ -10471,8 +10471,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_getiseligible24daysattribute",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".getiseligible24daysattribute()"
     },
     {
@@ -10482,8 +10482,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_gethakn2diakuiattribute",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".gethakn2diakuiattribute()"
     },
     {
@@ -10493,8 +10493,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_gettotalhakcutiattribute",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".gettotalhakcutiattribute()"
     },
     {
@@ -10504,8 +10504,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_getsisacutitersediaattribute",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".getsisacutitersediaattribute()"
     },
     {
@@ -10515,8 +10515,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_employee",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".employee()"
     },
     {
@@ -10526,8 +10526,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_creator",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".creator()"
     },
     {
@@ -10537,8 +10537,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_updater",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".updater()"
     },
     {
@@ -10548,8 +10548,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleaverequest",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "employeeleaverequest.php"
     },
     {
@@ -10559,8 +10559,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleaverequest_employeeleaverequest",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "employeeleaverequest"
     },
     {
@@ -10570,8 +10570,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleaverequest_employeeleaverequest_employee",
-      "community": 56,
-      "community_name": "EmployeeLeave",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".employee()"
     },
     {
@@ -12407,8 +12407,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "backend_composer_keywords",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 574,
+      "community_name": "keywords",
       "norm_label": "keywords"
     },
     {
@@ -12418,8 +12418,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_laravel",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 574,
+      "community_name": "keywords",
       "norm_label": "laravel"
     },
     {
@@ -12429,8 +12429,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_framework",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 574,
+      "community_name": "keywords",
       "norm_label": "framework"
     },
     {
@@ -12759,7 +12759,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "backend_composer_scripts",
-      "community": 92,
+      "community": 532,
       "community_name": "scripts",
       "norm_label": "scripts"
     },
@@ -12771,7 +12771,7 @@
       "_origin": "ast",
       "id": "backend_composer_scripts_setup",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "setup"
     },
     {
@@ -12782,7 +12782,7 @@
       "_origin": "ast",
       "id": "ref_composer_install",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "composer install"
     },
     {
@@ -12793,7 +12793,7 @@
       "_origin": "ast",
       "id": "ref_php_r_file_exists_env_copy_env_example_env",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "@php -r \\\"file_exists('.env') || copy('.env.example', '.env');\\"
     },
     {
@@ -12804,7 +12804,7 @@
       "_origin": "ast",
       "id": "ref_php_artisan_key_generate",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "@php artisan key:generate"
     },
     {
@@ -12815,7 +12815,7 @@
       "_origin": "ast",
       "id": "ref_php_artisan_migrate_force",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "@php artisan migrate --force"
     },
     {
@@ -12826,7 +12826,7 @@
       "_origin": "ast",
       "id": "ref_npm_install_ignore_scripts",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "npm install --ignore-scripts"
     },
     {
@@ -12837,7 +12837,7 @@
       "_origin": "ast",
       "id": "ref_npm_run_build",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "npm run build"
     },
     {
@@ -12847,8 +12847,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_composer_scripts_dev",
-      "community": 550,
-      "community_name": "dev",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "dev"
     },
     {
@@ -12858,8 +12858,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "ref_composer_config_disableprocesstimeout",
-      "community": 550,
-      "community_name": "dev",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "composer\\\\config::disableprocesstimeout"
     },
     {
@@ -12869,8 +12869,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "ref_npx_concurrently_c_93c5fd_c4b5fd_fb7185_fdba74_php_artisan_serve_php_artisan_queue_listen_tries_1_timeout_0_php_artisan_pail_timeout_0_npm_run_dev_names_server_queue_logs_vite_kill_others",
-      "community": 550,
-      "community_name": "dev",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "npx concurrently -c \\\"#93c5fd,#c4b5fd,#fb7185,#fdba74\\\" \\\"php artisan serve\\\" \\\"php artisan queue:listen --tries=1 --timeout=0\\\" \\\"php artisan pail --timeout=0\\\" \\\"npm run dev\\\" --names=server,queue,logs,vite --kill-others"
     },
     {
@@ -12880,7 +12880,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "backend_composer_scripts_test",
-      "community": 92,
+      "community": 532,
       "community_name": "scripts",
       "norm_label": "test"
     },
@@ -12891,7 +12891,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "ref_php_artisan_config_clear_ansi_no_additional_args",
-      "community": 92,
+      "community": 532,
       "community_name": "scripts",
       "norm_label": "@php artisan config:clear --ansi @no_additional_args"
     },
@@ -12902,7 +12902,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "ref_php_artisan_test",
-      "community": 92,
+      "community": 532,
       "community_name": "scripts",
       "norm_label": "@php artisan test"
     },
@@ -12913,8 +12913,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "backend_composer_scripts_post_autoload_dump",
-      "community": 537,
-      "community_name": "post-autoload-dump",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "post-autoload-dump"
     },
     {
@@ -12924,8 +12924,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "ref_illuminate_foundation_composerscripts_postautoloaddump",
-      "community": 537,
-      "community_name": "post-autoload-dump",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "illuminate\\\\foundation\\\\composerscripts::postautoloaddump"
     },
     {
@@ -12935,8 +12935,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "ref_php_artisan_package_discover_ansi",
-      "community": 537,
-      "community_name": "post-autoload-dump",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "@php artisan package:discover --ansi"
     },
     {
@@ -12946,8 +12946,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "backend_composer_scripts_post_update_cmd",
-      "community": 194,
-      "community_name": "post-update-cmd",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "post-update-cmd"
     },
     {
@@ -12957,8 +12957,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "ref_php_artisan_vendor_publish_tag_laravel_assets_ansi_force",
-      "community": 194,
-      "community_name": "post-update-cmd",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
     },
     {
@@ -12968,8 +12968,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "ref_php_artisan_ide_helper_generate",
-      "community": 194,
-      "community_name": "post-update-cmd",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "@php artisan ide-helper:generate"
     },
     {
@@ -12979,8 +12979,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "ref_php_artisan_ide_helper_meta",
-      "community": 194,
-      "community_name": "post-update-cmd",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "@php artisan ide-helper:meta"
     },
     {
@@ -12991,7 +12991,7 @@
       "_origin": "ast",
       "id": "backend_composer_scripts_post_root_package_install",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "post-root-package-install"
     },
     {
@@ -13001,7 +13001,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "backend_composer_scripts_post_create_project_cmd",
-      "community": 532,
+      "community": 200,
       "community_name": "post-create-project-cmd",
       "norm_label": "post-create-project-cmd"
     },
@@ -13012,7 +13012,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_artisan_key_generate_ansi",
-      "community": 532,
+      "community": 200,
       "community_name": "post-create-project-cmd",
       "norm_label": "@php artisan key:generate --ansi"
     },
@@ -13023,7 +13023,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_r_file_exists_database_database_sqlite_touch_database_database_sqlite",
-      "community": 532,
+      "community": 200,
       "community_name": "post-create-project-cmd",
       "norm_label": "@php -r \\\"file_exists('database/database.sqlite') || touch('database/database.sqlite');\\"
     },
@@ -13034,7 +13034,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_artisan_migrate_graceful_ansi",
-      "community": 532,
+      "community": 200,
       "community_name": "post-create-project-cmd",
       "norm_label": "@php artisan migrate --graceful --ansi"
     },
@@ -13045,7 +13045,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "backend_composer_scripts_pre_package_uninstall",
-      "community": 92,
+      "community": 532,
       "community_name": "scripts",
       "norm_label": "pre-package-uninstall"
     },
@@ -13056,7 +13056,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "ref_illuminate_foundation_composerscripts_prepackageuninstall",
-      "community": 92,
+      "community": 532,
       "community_name": "scripts",
       "norm_label": "illuminate\\\\foundation\\\\composerscripts::prepackageuninstall"
     },
@@ -13067,8 +13067,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_composer_extra",
-      "community": 504,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "extra"
     },
     {
@@ -13078,8 +13078,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_composer_extra_laravel",
-      "community": 504,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "laravel"
     },
     {
@@ -13089,8 +13089,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_composer_laravel_dont_discover",
-      "community": 504,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "dont-discover"
     },
     {
@@ -13210,8 +13210,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_config_auth",
-      "community": 10,
-      "community_name": "User",
+      "community": 8,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "auth.php"
     },
     {
@@ -22194,7 +22194,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "[batchid]/page.tsx"
     },
@@ -22205,7 +22205,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_changedfield",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "changedfield"
     },
@@ -22216,7 +22216,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_stagingrow",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "stagingrow"
     },
@@ -22227,7 +22227,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_batchinfo",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "batchinfo"
     },
@@ -22238,7 +22238,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_selectionsummary",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "selectionsummary"
     },
@@ -22249,7 +22249,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_rowspagination",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "rowspagination"
     },
@@ -22260,7 +22260,7 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_field_labels",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "field_labels"
     },
@@ -22271,7 +22271,7 @@
       "source_location": "L117",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_importreviewdetailpage",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "importreviewdetailpage()"
     },
@@ -22282,7 +22282,7 @@
       "source_location": "L602",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_diffstatusbadge",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "diffstatusbadge()"
     },
@@ -22293,7 +22293,7 @@
       "source_location": "L627",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_difffields",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "difffields()"
     },
@@ -22304,7 +22304,7 @@
       "source_location": "L693",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_import_review_batchid_page_summarycard",
-      "community": 49,
+      "community": 105,
       "community_name": "[batchId]/page.tsx",
       "norm_label": "summarycard()"
     },
@@ -22994,7 +22994,7 @@
       "label": "PowerOfAttorneyDocument()",
       "file_type": "code",
       "source_file": "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx",
-      "source_location": "L191",
+      "source_location": "L192",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_reports_components_powerofattorneydocument_powerofattorneydocument",
       "community": 3,
@@ -31170,8 +31170,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "mobile_package_dependencies_react_navigation_native",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 558,
+      "community_name": "@react-navigation/native",
       "norm_label": "@react-navigation/native"
     },
     {
@@ -31181,8 +31181,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "react_navigation_native",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 558,
+      "community_name": "@react-navigation/native",
       "norm_label": "@react-navigation/native"
     },
     {
@@ -31214,8 +31214,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "mobile_package_dependencies_axios",
-      "community": 609,
-      "community_name": "axios",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "axios"
     },
     {
@@ -31225,8 +31225,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "mobile_package_json_axios",
-      "community": 609,
-      "community_name": "axios",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "axios"
     },
     {
@@ -67937,15 +67937,15 @@
       "norm_label": "progress.md"
     },
     {
-      "label": "Progress - Phase 180: Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile",
+      "label": "Progress - Phase 195: Creation of `develop-bmn` Branch & BMN Reports Print Page 2 Margin Fix",
       "file_type": "document",
       "source_file": "docs/progress.md",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "docs_progress_progress_phase_180_perbaikan_tampilan_ringkasan_kegiatan_sumber_dana_mobile",
-      "community": 52,
-      "community_name": "progress.md",
-      "norm_label": "progress - phase 180: perbaikan tampilan ringkasan kegiatan & sumber dana mobile"
+      "id": "docs_progress_progress_phase_195_creation_of_develop_bmn_branch_bmn_reports_print_page_2_margin_fix",
+      "community": 494,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
+      "norm_label": "progress - phase 195: creation of `develop-bmn` branch & bmn reports print page 2 margin fix"
     },
     {
       "label": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
@@ -67954,8 +67954,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_tampilan_ringkasan_kegiatan_sumber_dana_mobile_buatsurattugasscreen_tsx",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 494,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "perbaikan tampilan ringkasan kegiatan & sumber dana mobile (`buatsurattugasscreen.tsx`)"
     },
     {
@@ -67965,8 +67965,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "docs_progress_status_selesai",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 494,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "status: selesai"
     },
     {
@@ -67976,8 +67976,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 494,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -67987,8 +67987,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_179_perbaikan_presisi_layout_grid_7_kolom_datepicker_mobile",
-      "community": 549,
-      "community_name": "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 179: perbaikan presisi layout grid 7-kolom datepicker mobile"
     },
     {
@@ -67998,8 +67998,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_presisi_layout_grid_7_kolom_datepicker_mobile_buatsurattugasscreen_tsx",
-      "community": 549,
-      "community_name": "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "perbaikan presisi layout grid 7-kolom datepicker mobile (`buatsurattugasscreen.tsx`)"
     },
     {
@@ -68009,8 +68009,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_37",
-      "community": 549,
-      "community_name": "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -68020,8 +68020,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_47",
-      "community": 549,
-      "community_name": "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -68075,7 +68075,7 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_177_penyelarasan_form_buat_surat_tugas_mobile_date_picker",
-      "community": 515,
+      "community": 572,
       "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
       "norm_label": "progress - phase 177: penyelarasan form buat surat tugas mobile & date picker"
     },
@@ -68086,7 +68086,7 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "docs_progress_penyelarasan_form_buat_surat_tugas_mobile_buatsurattugasscreen_tsx_dengan_localhost",
-      "community": 515,
+      "community": 572,
       "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
       "norm_label": "penyelarasan form buat surat tugas mobile (`buatsurattugasscreen.tsx`) dengan localhost"
     },
@@ -68097,7 +68097,7 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_91",
-      "community": 515,
+      "community": 572,
       "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
       "norm_label": "status: selesai"
     },
@@ -68108,7 +68108,7 @@
       "source_location": "L109",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_109",
-      "community": 515,
+      "community": 572,
       "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
       "norm_label": "validasi & git workflow pro"
     },
@@ -68339,8 +68339,8 @@
       "source_location": "L258",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_171_deteksi_otomatis_kota_asal_berdasarkan_satker_pegawai",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 84,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "progress - phase 171: deteksi otomatis kota asal berdasarkan satker pegawai"
     },
     {
@@ -68350,8 +68350,8 @@
       "source_location": "L265",
       "_origin": "ast",
       "id": "docs_progress_deteksi_otomatis_kota_asal_default_berdasarkan_penempatan_satker_pegawai",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 84,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "deteksi otomatis kota asal default berdasarkan penempatan satker pegawai"
     },
     {
@@ -68361,8 +68361,8 @@
       "source_location": "L267",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_267",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 84,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "status: selesai"
     },
     {
@@ -68372,8 +68372,8 @@
       "source_location": "L279",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_279",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 84,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -68383,7 +68383,7 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_170_sinkronisasi_detail_kegiatan_100_dengan_kepegawaian_surat_tugas_create",
-      "community": 591,
+      "community": 406,
       "community_name": "Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`",
       "norm_label": "progress - phase 170: sinkronisasi detail kegiatan 100% dengan /kepegawaian/surat-tugas/create"
     },
@@ -68394,7 +68394,7 @@
       "source_location": "L292",
       "_origin": "ast",
       "id": "docs_progress_sinkronisasi_detail_kegiatan_100_presisi_http_localhost_3000_kepegawaian_surat_tugas_create",
-      "community": 591,
+      "community": 406,
       "community_name": "Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`",
       "norm_label": "sinkronisasi detail kegiatan 100% presisi `http://localhost:3000/kepegawaian/surat-tugas/create`"
     },
@@ -68405,7 +68405,7 @@
       "source_location": "L294",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_294",
-      "community": 591,
+      "community": 406,
       "community_name": "Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`",
       "norm_label": "status: selesai"
     },
@@ -68416,7 +68416,7 @@
       "source_location": "L313",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_313",
-      "community": 591,
+      "community": 406,
       "community_name": "Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`",
       "norm_label": "validasi & git workflow pro"
     },
@@ -68603,8 +68603,8 @@
       "source_location": "L436",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_165_sinkronisasi_data_real_time_backend_api_tanpa_fallback_dummy",
-      "community": 602,
-      "community_name": "Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 165: sinkronisasi data real-time backend api tanpa fallback dummy"
     },
     {
@@ -68614,8 +68614,8 @@
       "source_location": "L443",
       "_origin": "ast",
       "id": "docs_progress_sinkronisasi_data_real_time_backend_api_tanpa_fallback_dummy",
-      "community": 602,
-      "community_name": "Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "sinkronisasi data real-time backend api tanpa fallback dummy"
     },
     {
@@ -68625,8 +68625,8 @@
       "source_location": "L445",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_445",
-      "community": 602,
-      "community_name": "Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -68636,8 +68636,8 @@
       "source_location": "L453",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_453",
-      "community": 602,
-      "community_name": "Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -68647,8 +68647,8 @@
       "source_location": "L459",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_164_penataan_daftar_personil_di_atas_lokasi_fix_gestur_swipe_back_detail_st",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 571,
+      "community_name": "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST",
       "norm_label": "progress - phase 164: penataan daftar personil di atas lokasi & fix gestur swipe back detail st"
     },
     {
@@ -68658,8 +68658,8 @@
       "source_location": "L466",
       "_origin": "ast",
       "id": "docs_progress_penataan_daftar_personil_di_atas_lokasi_fix_gestur_swipe_back_detail_st",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 571,
+      "community_name": "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST",
       "norm_label": "penataan daftar personil di atas lokasi & fix gestur swipe back detail st"
     },
     {
@@ -68669,8 +68669,8 @@
       "source_location": "L468",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_468",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 571,
+      "community_name": "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST",
       "norm_label": "status: selesai"
     },
     {
@@ -68680,8 +68680,8 @@
       "source_location": "L478",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_478",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 571,
+      "community_name": "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -68691,7 +68691,7 @@
       "source_location": "L484",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_163_inbox_surat_tugas_alur_master_detail_mobile",
-      "community": 416,
+      "community": 515,
       "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
       "norm_label": "progress - phase 163: inbox surat tugas alur master-detail mobile"
     },
@@ -68702,7 +68702,7 @@
       "source_location": "L491",
       "_origin": "ast",
       "id": "docs_progress_inbox_surat_tugas_alur_master_detail_mobile",
-      "community": 416,
+      "community": 515,
       "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
       "norm_label": "inbox surat tugas alur master-detail mobile"
     },
@@ -68713,7 +68713,7 @@
       "source_location": "L493",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_493",
-      "community": 416,
+      "community": 515,
       "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
       "norm_label": "status: selesai"
     },
@@ -68724,7 +68724,7 @@
       "source_location": "L502",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_502",
-      "community": 416,
+      "community": 515,
       "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
       "norm_label": "validasi & git workflow pro"
     },
@@ -68735,8 +68735,8 @@
       "source_location": "L508",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_162_penghapusan_tombol_toggle_tema_header_modul",
-      "community": 501,
-      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 162: penghapusan tombol toggle tema header modul"
     },
     {
@@ -68746,8 +68746,8 @@
       "source_location": "L515",
       "_origin": "ast",
       "id": "docs_progress_penghapusan_tombol_toggle_tema_header_modul",
-      "community": 501,
-      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "penghapusan tombol toggle tema header modul"
     },
     {
@@ -68757,8 +68757,8 @@
       "source_location": "L517",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_517",
-      "community": 501,
-      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -68768,8 +68768,8 @@
       "source_location": "L525",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_525",
-      "community": 501,
-      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -68779,7 +68779,7 @@
       "source_location": "L531",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_161_opsi_resmi_lengkap_pangkat_golongan_penempatan_satker",
-      "community": 571,
+      "community": 550,
       "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "progress - phase 161: opsi resmi lengkap pangkat/golongan & penempatan satker"
     },
@@ -68790,7 +68790,7 @@
       "source_location": "L538",
       "_origin": "ast",
       "id": "docs_progress_opsi_resmi_lengkap_pangkat_golongan_penempatan_satker",
-      "community": 571,
+      "community": 550,
       "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "opsi resmi lengkap pangkat/golongan & penempatan satker"
     },
@@ -68801,7 +68801,7 @@
       "source_location": "L540",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_540",
-      "community": 571,
+      "community": 550,
       "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "status: selesai"
     },
@@ -68812,7 +68812,7 @@
       "source_location": "L561",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_561",
-      "community": 571,
+      "community": 550,
       "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "validasi & git workflow pro"
     },
@@ -68823,8 +68823,8 @@
       "source_location": "L567",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_160_screen_tambah_pegawai_baru_inbox_surat_tugas_presisi_100_web_portal",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 501,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "progress - phase 160: screen tambah pegawai baru & inbox surat tugas presisi 100% web portal"
     },
     {
@@ -68834,8 +68834,8 @@
       "source_location": "L574",
       "_origin": "ast",
       "id": "docs_progress_screen_tambah_pegawai_baru_inbox_surat_tugas_presisi_100_web_portal",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 501,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "screen tambah pegawai baru & inbox surat tugas presisi 100% web portal"
     },
     {
@@ -68845,8 +68845,8 @@
       "source_location": "L576",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_576",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 501,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "status: selesai"
     },
     {
@@ -68856,8 +68856,8 @@
       "source_location": "L596",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_596",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 501,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -68867,7 +68867,7 @@
       "source_location": "L602",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_159_fix_tombol_kembali_header_navigasi_portal_utama",
-      "community": 200,
+      "community": 504,
       "community_name": "Fix Tombol Kembali Header & Navigasi Portal Utama",
       "norm_label": "progress - phase 159: fix tombol kembali header & navigasi portal utama"
     },
@@ -68878,7 +68878,7 @@
       "source_location": "L609",
       "_origin": "ast",
       "id": "docs_progress_fix_tombol_kembali_header_navigasi_portal_utama",
-      "community": 200,
+      "community": 504,
       "community_name": "Fix Tombol Kembali Header & Navigasi Portal Utama",
       "norm_label": "fix tombol kembali header & navigasi portal utama"
     },
@@ -68889,7 +68889,7 @@
       "source_location": "L611",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_611",
-      "community": 200,
+      "community": 504,
       "community_name": "Fix Tombol Kembali Header & Navigasi Portal Utama",
       "norm_label": "status: selesai"
     },
@@ -68900,7 +68900,7 @@
       "source_location": "L622",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_622",
-      "community": 200,
+      "community": 504,
       "community_name": "Fix Tombol Kembali Header & Navigasi Portal Utama",
       "norm_label": "validasi & git workflow pro"
     },
@@ -68999,7 +68999,7 @@
       "source_location": "L695",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_156_2_item_per_row_tab_grid_layout_glassmorphic_reset_password_modal",
-      "community": 211,
+      "community": 206,
       "community_name": "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal",
       "norm_label": "progress - phase 156: 2-item per row tab grid layout & glassmorphic reset password modal"
     },
@@ -69010,7 +69010,7 @@
       "source_location": "L702",
       "_origin": "ast",
       "id": "docs_progress_2_item_per_row_tab_grid_layout_glassmorphic_reset_password_modal",
-      "community": 211,
+      "community": 206,
       "community_name": "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal",
       "norm_label": "2-item per row tab grid layout & glassmorphic reset password modal"
     },
@@ -69021,7 +69021,7 @@
       "source_location": "L704",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_704",
-      "community": 211,
+      "community": 206,
       "community_name": "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal",
       "norm_label": "status: selesai"
     },
@@ -69032,7 +69032,7 @@
       "source_location": "L717",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_717",
-      "community": 211,
+      "community": 206,
       "community_name": "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal",
       "norm_label": "validasi & git workflow pro"
     },
@@ -69043,8 +69043,8 @@
       "source_location": "L723",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_155_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 206,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 155: mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -69054,8 +69054,8 @@
       "source_location": "L730",
       "_origin": "ast",
       "id": "docs_progress_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 206,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -69065,8 +69065,8 @@
       "source_location": "L732",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_732",
-      "community": 206,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -69076,8 +69076,8 @@
       "source_location": "L747",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_747",
-      "community": 206,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -69131,7 +69131,7 @@
       "source_location": "L779",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_153_mobile_employee_detail_screen_superadmin_iam_access_management_modal",
-      "community": 488,
+      "community": 211,
       "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
       "norm_label": "progress - phase 153: mobile employee detail screen & superadmin iam access management modal"
     },
@@ -69142,7 +69142,7 @@
       "source_location": "L786",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_detail_screen_superadmin_iam_access_management_modal",
-      "community": 488,
+      "community": 211,
       "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
       "norm_label": "mobile employee detail screen & superadmin iam access management modal"
     },
@@ -69153,7 +69153,7 @@
       "source_location": "L788",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_788",
-      "community": 488,
+      "community": 211,
       "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
       "norm_label": "status: selesai"
     },
@@ -69164,7 +69164,7 @@
       "source_location": "L804",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_804",
-      "community": 488,
+      "community": 211,
       "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
       "norm_label": "validasi & git workflow pro"
     },
@@ -69175,7 +69175,7 @@
       "source_location": "L810",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_152_mobile_application_kepegawaian_sdm_module_screen",
-      "community": 335,
+      "community": 534,
       "community_name": "Mobile Application Kepegawaian & SDM Module Screen",
       "norm_label": "progress - phase 152: mobile application kepegawaian & sdm module screen"
     },
@@ -69186,7 +69186,7 @@
       "source_location": "L817",
       "_origin": "ast",
       "id": "docs_progress_mobile_application_kepegawaian_sdm_module_screen",
-      "community": 335,
+      "community": 534,
       "community_name": "Mobile Application Kepegawaian & SDM Module Screen",
       "norm_label": "mobile application kepegawaian & sdm module screen"
     },
@@ -69197,7 +69197,7 @@
       "source_location": "L819",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_819",
-      "community": 335,
+      "community": 534,
       "community_name": "Mobile Application Kepegawaian & SDM Module Screen",
       "norm_label": "status: selesai"
     },
@@ -69208,7 +69208,7 @@
       "source_location": "L835",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_835",
-      "community": 335,
+      "community": 534,
       "community_name": "Mobile Application Kepegawaian & SDM Module Screen",
       "norm_label": "validasi & git workflow pro"
     },
@@ -69307,7 +69307,7 @@
       "source_location": "L898",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_149_mobile_login_keyboard_avoiding_input_focus_fix",
-      "community": 444,
+      "community": 591,
       "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
       "norm_label": "progress - phase 149: mobile login keyboard avoiding & input focus fix"
     },
@@ -69318,7 +69318,7 @@
       "source_location": "L905",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_keyboard_avoiding_input_focus_fix",
-      "community": 444,
+      "community": 591,
       "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
       "norm_label": "mobile login keyboard avoiding & input focus fix"
     },
@@ -69329,7 +69329,7 @@
       "source_location": "L907",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_907",
-      "community": 444,
+      "community": 591,
       "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
       "norm_label": "status: selesai"
     },
@@ -69340,7 +69340,7 @@
       "source_location": "L919",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_919",
-      "community": 444,
+      "community": 591,
       "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
       "norm_label": "validasi & git workflow pro"
     },
@@ -69351,7 +69351,7 @@
       "source_location": "L925",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_148_mobile_login_screen_branding_clean_up",
-      "community": 494,
+      "community": 335,
       "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "progress - phase 148: mobile login screen branding & clean up"
     },
@@ -69362,7 +69362,7 @@
       "source_location": "L932",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_screen_branding_clean_up",
-      "community": 494,
+      "community": 335,
       "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "mobile login screen branding & clean up"
     },
@@ -69373,7 +69373,7 @@
       "source_location": "L934",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_934",
-      "community": 494,
+      "community": 335,
       "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "status: selesai"
     },
@@ -69384,7 +69384,7 @@
       "source_location": "L947",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_947",
-      "community": 494,
+      "community": 335,
       "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "validasi & git workflow pro"
     },
@@ -69439,7 +69439,7 @@
       "source_location": "L982",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_146_mobile_floating_nav_theme_toggle_ultra_compact_3x2_grid",
-      "community": 534,
+      "community": 549,
       "community_name": "Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid",
       "norm_label": "progress - phase 146: mobile floating nav, theme toggle & ultra-compact 3x2 grid"
     },
@@ -69450,7 +69450,7 @@
       "source_location": "L989",
       "_origin": "ast",
       "id": "docs_progress_mobile_floating_nav_theme_toggle_ultra_compact_3x2_grid",
-      "community": 534,
+      "community": 549,
       "community_name": "Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid",
       "norm_label": "mobile floating nav, theme toggle & ultra-compact 3x2 grid"
     },
@@ -69461,7 +69461,7 @@
       "source_location": "L991",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_991",
-      "community": 534,
+      "community": 549,
       "community_name": "Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid",
       "norm_label": "status: selesai"
     },
@@ -69472,7 +69472,7 @@
       "source_location": "L1007",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1007",
-      "community": 534,
+      "community": 549,
       "community_name": "Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid",
       "norm_label": "validasi & git workflow pro"
     },
@@ -69483,8 +69483,8 @@
       "source_location": "L1013",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_145_mobile_dashboard_compact_grid_2_row_interactive_tabs",
-      "community": 406,
-      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 145: mobile dashboard compact grid & 2-row interactive tabs"
     },
     {
@@ -69494,8 +69494,8 @@
       "source_location": "L1020",
       "_origin": "ast",
       "id": "docs_progress_mobile_dashboard_compact_grid_2_row_interactive_tabs",
-      "community": 406,
-      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "mobile dashboard compact grid & 2-row interactive tabs"
     },
     {
@@ -69505,8 +69505,8 @@
       "source_location": "L1022",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1022",
-      "community": 406,
-      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -69516,8 +69516,8 @@
       "source_location": "L1035",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1035",
-      "community": 406,
-      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -72530,8 +72530,8 @@
       "source_location": "L2673",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_97_mobile_api_readiness",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 194,
+      "community_name": "Mobile API Readiness",
       "norm_label": "progress - phase 97: mobile api readiness"
     },
     {
@@ -72541,8 +72541,8 @@
       "source_location": "L2680",
       "_origin": "ast",
       "id": "docs_progress_mobile_api_readiness",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 194,
+      "community_name": "Mobile API Readiness",
       "norm_label": "mobile api readiness"
     },
     {
@@ -72552,8 +72552,8 @@
       "source_location": "L2682",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2682",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 194,
+      "community_name": "Mobile API Readiness",
       "norm_label": "status: selesai"
     },
     {
@@ -72563,8 +72563,8 @@
       "source_location": "L2686",
       "_origin": "ast",
       "id": "docs_progress_implementasi_2686",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 194,
+      "community_name": "Mobile API Readiness",
       "norm_label": "implementasi"
     },
     {
@@ -72574,8 +72574,8 @@
       "source_location": "L2703",
       "_origin": "ast",
       "id": "docs_progress_validasi_2703",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 194,
+      "community_name": "Mobile API Readiness",
       "norm_label": "validasi"
     },
     {
@@ -72585,7 +72585,7 @@
       "source_location": "L2709",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_96_surat_kuasa_kendaraan_document_generator",
-      "community": 84,
+      "community": 488,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "progress - phase 96: surat kuasa kendaraan document generator"
     },
@@ -72596,7 +72596,7 @@
       "source_location": "L2716",
       "_origin": "ast",
       "id": "docs_progress_surat_kuasa_kendaraan_document_generator",
-      "community": 84,
+      "community": 488,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "surat kuasa kendaraan document generator"
     },
@@ -72607,7 +72607,7 @@
       "source_location": "L2718",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2718",
-      "community": 84,
+      "community": 488,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "status: selesai"
     },
@@ -72618,7 +72618,7 @@
       "source_location": "L2722",
       "_origin": "ast",
       "id": "docs_progress_implementasi_2722",
-      "community": 84,
+      "community": 488,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "implementasi"
     },
@@ -72629,7 +72629,7 @@
       "source_location": "L2736",
       "_origin": "ast",
       "id": "docs_progress_validasi_2736",
-      "community": 84,
+      "community": 488,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "validasi"
     },
@@ -79328,8 +79328,8 @@
       "source_location": "L7208",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_11_milestone_1",
-      "community": 615,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 11 (milestone 1)"
     },
     {
@@ -79339,8 +79339,8 @@
       "source_location": "L7210",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7210",
-      "community": 615,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -79350,8 +79350,8 @@
       "source_location": "L7218",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7218",
-      "community": 615,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -79361,7 +79361,7 @@
       "source_location": "L7221",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_12_milestone_1",
-      "community": 574,
+      "community": 416,
       "community_name": "[2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 12 (milestone 1)"
     },
@@ -79372,7 +79372,7 @@
       "source_location": "L7223",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7223",
-      "community": 574,
+      "community": 416,
       "community_name": "[2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
@@ -79383,7 +79383,7 @@
       "source_location": "L7231",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7231",
-      "community": 574,
+      "community": 416,
       "community_name": "[2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)",
       "norm_label": "next steps"
     },
@@ -79394,8 +79394,8 @@
       "source_location": "L7234",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_13_milestone_1",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 537,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 13 (milestone 1)"
     },
     {
@@ -79405,8 +79405,8 @@
       "source_location": "L7236",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7236",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 537,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -79416,8 +79416,8 @@
       "source_location": "L7244",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7244",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 537,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
       "norm_label": "next steps"
     },
     {
@@ -80054,7 +80054,7 @@
       "source_location": "L7498",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_33_milestone_2",
-      "community": 558,
+      "community": 444,
       "community_name": "[2026-06-19] Mobile App Implementation - Task 33 (Milestone 2)",
       "norm_label": "[2026-06-19] mobile app implementation - task 33 (milestone 2)"
     },
@@ -80065,7 +80065,7 @@
       "source_location": "L7500",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7500",
-      "community": 558,
+      "community": 444,
       "community_name": "[2026-06-19] Mobile App Implementation - Task 33 (Milestone 2)",
       "norm_label": "completed (selesai)"
     },
@@ -80076,7 +80076,7 @@
       "source_location": "L7506",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7506",
-      "community": 558,
+      "community": 444,
       "community_name": "[2026-06-19] Mobile App Implementation - Task 33 (Milestone 2)",
       "norm_label": "next steps"
     },
@@ -80318,8 +80318,8 @@
       "source_location": "L7599",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_41_milestone_2",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 602,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 41 (Milestone 2)",
       "norm_label": "[2026-06-19] mobile app implementation - task 41 (milestone 2)"
     },
     {
@@ -80329,8 +80329,8 @@
       "source_location": "L7601",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7601",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 602,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 41 (Milestone 2)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -80340,8 +80340,8 @@
       "source_location": "L7609",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7609",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 602,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 41 (Milestone 2)",
       "norm_label": "next steps"
     },
     {
@@ -82188,8 +82188,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_database_eloquent_builder",
-      "community": 20,
-      "community_name": "Asset",
+      "community": 108,
+      "community_name": "AssetLoan",
       "norm_label": "illuminate\\database\\eloquent\\builder"
     },
     {
@@ -82210,8 +82210,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_database_eloquent_relations_hasmany",
-      "community": 8,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 9,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "illuminate\\database\\eloquent\\relations\\hasmany"
     },
     {
@@ -138075,7 +138075,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx",
-      "source_location": "L302",
+      "source_location": "L309",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_handoveragreementdocument_handoveragreementdocument",
@@ -138099,7 +138099,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx",
-      "source_location": "L260",
+      "source_location": "L265",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_handoveragreementdocument_handoveragreementdocument",
@@ -138135,7 +138135,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx",
-      "source_location": "L301",
+      "source_location": "L308",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_handoveragreementdocument_handoveragreementdocument",
@@ -138281,7 +138281,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx",
-      "source_location": "L191",
+      "source_location": "L192",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_powerofattorneydocument",
@@ -138422,7 +138422,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx",
-      "source_location": "L201",
+      "source_location": "L202",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_powerofattorneydocument_powerofattorneydocument",
@@ -138458,7 +138458,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx",
-      "source_location": "L351",
+      "source_location": "L304",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_powerofattorneydocument_powerofattorneydocument",
@@ -138482,7 +138482,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx",
-      "source_location": "L349",
+      "source_location": "L302",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_powerofattorneydocument_powerofattorneydocument",
@@ -138494,7 +138494,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx",
-      "source_location": "L350",
+      "source_location": "L303",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_powerofattorneydocument_powerofattorneydocument",
@@ -138506,7 +138506,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx",
-      "source_location": "L393",
+      "source_location": "L346",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_powerofattorneydocument_powerofattorneydocument",
@@ -138543,7 +138543,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx",
-      "source_location": "L205",
+      "source_location": "L206",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_powerofattorneydocument_powerofattorneydocument",
@@ -138886,7 +138886,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx",
-      "source_location": "L276",
+      "source_location": "L277",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_usageagreementdocument_usageagreementdocument",
@@ -138910,7 +138910,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx",
-      "source_location": "L275",
+      "source_location": "L276",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_usageagreementdocument_usageagreementdocument",
@@ -138922,7 +138922,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx",
-      "source_location": "L364",
+      "source_location": "L367",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_usageagreementdocument_usageagreementdocument",
@@ -138934,7 +138934,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx",
-      "source_location": "L277",
+      "source_location": "L278",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_usageagreementdocument_usageagreementdocument",
@@ -138946,7 +138946,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx",
-      "source_location": "L347",
+      "source_location": "L350",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_bmn_reports_components_usageagreementdocument_usageagreementdocument",
@@ -204606,7 +204606,7 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_progress",
-      "target": "docs_progress_progress_phase_180_perbaikan_tampilan_ringkasan_kegiatan_sumber_dana_mobile",
+      "target": "docs_progress_progress_phase_195_creation_of_develop_bmn_branch_bmn_reports_print_page_2_margin_fix",
       "confidence_score": 1.0
     },
     {
@@ -205507,7 +205507,7 @@
       "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "docs_progress_progress_phase_180_perbaikan_tampilan_ringkasan_kegiatan_sumber_dana_mobile",
+      "source": "docs_progress_progress_phase_195_creation_of_develop_bmn_branch_bmn_reports_print_page_2_margin_fix",
       "target": "docs_progress_perbaikan_tampilan_ringkasan_kegiatan_sumber_dana_mobile_buatsurattugasscreen_tsx",
       "confidence_score": 1.0
     },
@@ -217536,5 +217536,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "2346bad305e18ca98a17fa66af741cd6e8ebab3f"
+  "built_at_commit": "0e2602b822b90c7b702d0806b7e1780387c44280"
 }

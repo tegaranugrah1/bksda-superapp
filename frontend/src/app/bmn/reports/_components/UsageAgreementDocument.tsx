@@ -158,7 +158,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
       <head>
         <title>BA Pemakaian BMN</title>
         <style>
-          @page { size: A4 portrait; margin: 10mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 20mm 0 18mm 0; }
           * { box-sizing: border-box; }
           body {
             margin: 0;
@@ -186,7 +186,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
           .usage-table thead { display: table-header-group; }
           .usage-table tfoot { display: table-footer-group; }
           .usage-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .usage-signature-block { break-inside: avoid; page-break-inside: avoid; }
+          .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; }
           .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 8mm; }
           .signature-name { margin-top: 27mm; font-weight: 700; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
@@ -210,6 +210,7 @@ export function UsageAgreementDocument({
   notes,
 }: UsageAgreementDocumentProps) {
   const { day, dateText, month, yearText } = formatSpelledDate(documentDate);
+  const isMultiPageTable = assets.length > 20;
 
   return (
     <div id={documentId}>
@@ -242,11 +243,11 @@ export function UsageAgreementDocument({
         .usage-preview .usage-table thead { display: table-header-group; }
         .usage-preview .usage-table tfoot { display: table-footer-group; }
         .usage-preview .usage-table tr { break-inside: avoid; page-break-inside: avoid; }
-        .usage-preview .usage-signature-block { break-inside: avoid; page-break-inside: avoid; }
+        .usage-preview .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; }
         .usage-preview .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 8mm; }
         .usage-preview .signature-name { margin-top: 27mm; font-weight: 700; }
         @media print {
-          @page { size: A4 portrait; margin: 10mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 20mm 0 18mm 0; }
           body * { visibility: hidden; }
           #ba-pemakaian-print-root, #ba-pemakaian-print-root * { visibility: visible; }
           #ba-pemakaian-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
@@ -310,17 +311,19 @@ export function UsageAgreementDocument({
                 <col style={{ width: "9%" }} />
               </colgroup>
               <thead>
-                <tr>
-                  <th>1</th>
-                  <th>2</th>
-                  <th>3</th>
-                  <th>4</th>
-                  <th>5</th>
-                  <th>6</th>
-                  <th>7</th>
-                  <th>8</th>
-                  <th>9</th>
-                </tr>
+                {isMultiPageTable && (
+                  <tr>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
+                    <th>6</th>
+                    <th>7</th>
+                    <th>8</th>
+                    <th>9</th>
+                  </tr>
+                )}
                 <tr>
                   <th>No</th>
                   <th>Uraian Barang</th>
