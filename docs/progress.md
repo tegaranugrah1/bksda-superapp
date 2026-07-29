@@ -1,3 +1,28 @@
+# Progress - Phase 179: Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Penyebab Masalah (Root Cause Analysis):
+  - Sebelumnya container kalender `daysGrid` dan `weekDaysRow` menggunakan `justifyContent: "space-around"` dengan lebar fixed (`width: 38`).
+  - Ketika baris terakhir hanya memiliki 1 atau 2 tanggal (contoh: tanggal 31 Juli yang jatuh pada hari Jumat/Jum), `justifyContent: "space-around"` mendistribusikan item secara merata di tengah baris sehingga tanggal 31 melayang/bergeser ke tengah, bukannya berada persis di bawah kolom Jumat (`Jum`).
+- Solusi & Perbaikan:
+  1. Mengganti `justifyContent: "space-around"` menjadi layout matematika grid 7-kolom presisi di mana setiap sel hari (`dayCell` & `weekDayText`) memiliki persentase lebar persis **`width: "14.28%"`** (`100% / 7`).
+  2. Sel hari mengelilingi elemen bulat dalam (`dayCellInner`) dengan diameter `34px`, sehingga tanggal 31 (dan tanggal berapapun di baris terakhir) akan selalu berada 100% sejajar di bawah nama hari yang sesuai.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 178: Dropdown Select Modal, Custom Notification & Validasi Ketat ST Mobile
 
 > Document updated: 2026-07-29
