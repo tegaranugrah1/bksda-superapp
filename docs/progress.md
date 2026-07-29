@@ -1,3 +1,36 @@
+# Progress - Phase 177: Penyelarasan Form Buat Surat Tugas Mobile & Date Picker
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Menghapus Pilihan Tambah Nama Manual di Pencarian Pegawai**:
+     - Tombol `Tambahkan "[query]" ke Pegawai Ditugaskan` telah dihapus total. Pencarian pegawai kini khusus memilih pegawai resmi yang terdaftar di database.
+  2. **Penyelarasan Opsi Sumber Dana 100% dengan Localhost**:
+     - Menampilkan 13 opsi sumber dana lengkap sesuai web (`DIPA Balai KSDA Kaltim`, `DIPA Instansi Lain`, `Non-DIPA / Swadaya`, `Tanpa Biaya / DL 1`, `Dana Kerjasama KJA`, `MJA`, `COP`, `PT. Tjiwi Kimia Tbk.`, `BOSF`, `CAN`, `ALeRT`, `FOLU`, `Lainnya`).
+     - Jika memilih `Lainnya`, otomatis menampilkan input `SEBUTKAN SUMBER DANA LAINNYA *`.
+  3. **Pemilihan Tanggal Menggunakan Interactive DatePicker Modal**:
+     - Tanggal Mulai & Selesai kini menggunakan tombol DatePicker interaktif yang membuka DatePicker Modal kalender lengkap (pilihan tanggal, navigasi bulan/tahun, dan opsi cepat "Hari Ini").
+  4. **Penggantian Field Lokasi dengan Keterangan Lainnya**:
+     - Field `LOKASI KEGIATAN / TUJUAN *` di bawah tanggal telah dihapus karena lokasi sudah diinput secara dinamis pada bagian atas (`kotaAsal`, `kotaTujuan`, `tempatSpesifik`).
+     - Digantikan dengan field `KETERANGAN LAINNYA` (multiline text input, placeholder: *"Catatan tambahan (opsional)"*).
+  5. **Sinkronisasi Submission ke Localhost / Backend Inbox**:
+     - Setelah form diajukan, payload yang dikirim dari mobile menyertakan `maksud_tujuan`, `nama_kegiatan`, `tempat_tujuan`, `tanggal_mulai`, `tanggal_selesai`, `sumber_dana`, `sumber_dana_other`, `keterangan`, `nama_plh`, dan `employee_ids[]`.
+     - Pengajuan langsung tersinkronisasi dan langsung muncul di Inbox Surat Tugas (`http://localhost:3000/kepegawaian/surat-tugas/inbox`) maupun di Mobile Inbox.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 176: Sinkronisasi Form Detail Kegiatan ST Builder Premium
 
 > Document updated: 2026-07-29
