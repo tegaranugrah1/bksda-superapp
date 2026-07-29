@@ -173,7 +173,7 @@ export default function SuratTugasForm() {
             } else if (jenisTugas.includes('Melaksanakan Kegiatan')) {
                 finalNamaKegiatan = `Melaksanakan Kegiatan ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
             } else {
-                finalNamaKegiatan = `Menugaskan Staf ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
+                finalNamaKegiatan = `Menugaskan Staf untuk ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
             }
 
             const calculatedTempatTujuan = tempatSpesifik.trim() || kotaTujuan.trim() || (jenisTugas.includes('Perjalanan Dinas') ? kotaAsal.trim() : '');
@@ -484,11 +484,11 @@ export default function SuratTugasForm() {
                                 📌 Pratinjau Teks Hasil Resmi
                             </span>
                             <p className="text-xs font-bold leading-relaxed">
-                                {jenisTugas === 'Perjalanan Dinas'
+                                {jenisTugas.includes('Perjalanan Dinas')
                                     ? `Melaksanakan Perjalanan Dinas dari ${kotaAsal || '...'} ke ${kotaTujuan || '...'}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ''}${tempatSpesifik ? ` di ${tempatSpesifik}` : ''}`
-                                    : jenisTugas === 'Melaksanakan Tugas'
-                                    ? `Melaksanakan Tugas ${namaKegiatanText || '...'}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ''}${kotaTujuan ? ` di ${kotaTujuan}` : ''}`
-                                    : `Menugaskan Staf ${namaKegiatanText || '...'}${tempatSpesifik ? ` di ${tempatSpesifik}` : ''}${kotaTujuan ? ` di ${kotaTujuan}` : ''}`
+                                    : jenisTugas.includes('Melaksanakan Kegiatan')
+                                    ? `Melaksanakan Kegiatan ${namaKegiatanText || '...'}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ''}${kotaTujuan ? ` di ${kotaTujuan}` : ''}`
+                                    : `Menugaskan Staf untuk ${namaKegiatanText || '...'}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ''}${kotaTujuan ? ` di ${kotaTujuan}` : ''}`
                                 }
                             </p>
                         </div>
