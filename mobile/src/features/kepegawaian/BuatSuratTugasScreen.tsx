@@ -872,7 +872,10 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 • Personil: <Text style={{ fontWeight: "800" }}>{selectedEmployees.map((e) => e.name).join(", ")}</Text>
               </Text>
               <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                • Kegiatan: <Text style={{ fontWeight: "800" }}>{maksudKegiatan || "-"}</Text>
+                • Jenis Tugas: <Text style={{ fontWeight: "800" }}>{jenisTugas}</Text>
+              </Text>
+              <Text style={[styles.summaryLine, { color: colors.textDark }]}>
+                • Kegiatan: <Text style={{ fontWeight: "800" }}>{namaKegiatanText.trim() || "-"}</Text>
               </Text>
               <Text style={[styles.summaryLine, { color: colors.textDark }]}>
                 • Lokasi: <Text style={{ fontWeight: "800" }}>{tempatSpesifik || kotaTujuan || kotaAsal}</Text>
@@ -883,7 +886,24 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 </Text>
               )}
               <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                • Sumber Dana: <Text style={{ fontWeight: "800" }}>{sumberDana}</Text>
+                • Sumber Dana:{" "}
+                <Text style={{ fontWeight: "800" }}>
+                  {[
+                    { id: "dipa", label: "DIPA Balai KSDA Kalimantan Timur" },
+                    { id: "dipa_lain", label: "DIPA Instansi Lain" },
+                    { id: "swadaya", label: "Non-DIPA / Swadaya" },
+                    { id: "dl1", label: "Tanpa Biaya / DL 1" },
+                    { id: "kja", label: "Dana Kerjasama KJA" },
+                    { id: "mja", label: "Dana Kerjasama MJA" },
+                    { id: "cop", label: "Dana Kerjasama COP" },
+                    { id: "tjiwi", label: "Dana Kerjasama PT. Tjiwi Kimia Tbk." },
+                    { id: "bosf", label: "Dana Kerjasama BOSF" },
+                    { id: "can", label: "Dana Kerjasama CAN" },
+                    { id: "alert", label: "Dana Kerjasama ALeRT" },
+                    { id: "folu", label: "Dana Kerjasama FOLU" },
+                    { id: "other", label: `Lainnya (${sumberDanaOther || "-"})` },
+                  ].find((o) => o.id === sumberDana)?.label || sumberDana}
+                </Text>
               </Text>
             </View>
 
