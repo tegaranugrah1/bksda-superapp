@@ -136,6 +136,24 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [namaPlh, setNamaPlh] = useState("");
   const [activeDatePicker, setActiveDatePicker] = useState<"mulai" | "selesai" | null>(null);
   const [currentPickerMonth, setCurrentPickerMonth] = useState(new Date());
+  const [dropdownModalType, setDropdownModalType] = useState<"jenisTugas" | "sumberDana" | null>(null);
+
+  // Custom Notification Modal State
+  const [notification, setNotification] = useState<{
+    visible: boolean;
+    type: "warning" | "error" | "success" | "info";
+    title: string;
+    message: string;
+  }>({
+    visible: false,
+    type: "warning",
+    title: "",
+    message: "",
+  });
+
+  const showNotif = (title: string, message: string, type: "warning" | "error" | "success" | "info" = "warning") => {
+    setNotification({ visible: true, title, message, type });
+  };
 
   // BUILDER STATE UNTUK DETAIL KEGIATAN (SYNCED 100% DENGAN /kepegawaian/surat-tugas/create)
   const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
@@ -293,7 +311,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
 
   const handleSubmitSuratTugas = async () => {
     if (!setujuData) {
-      Alert.alert("Perhatian", "Silakan beri centang persetujuan bahwa data pengajuan sudah benar.");
+      showNotif("Persetujuan Diperlukan", "Silakan beri centang persetujuan bahwa data pengajuan sudah benar.");
       return;
     }
 
@@ -489,7 +507,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               ]}
               onPress={() => {
                 if (selectedEmployees.length === 0) {
-                  Alert.alert("Perhatian", "Silakan pilih minimal 1 pegawai yang akan ditugaskan.");
+                  showNotif("Pegawai Diperlukan", "Silakan pilih minimal 1 pegawai yang akan ditugaskan.");
                   return;
                 }
                 setStep(2);
@@ -516,18 +534,17 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               <Text style={styles.label}>
                 JENIS TUGAS <Text style={{ color: "#ef4444" }}>*</Text>
               </Text>
-              {["Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )", "Melaksanakan Kegiatan ( 1 Hari )", "Menugaskan Staf"].map((opt) => (
-                <TouchableOpacity
-                  key={opt}
-                  style={styles.radioRow}
-                  onPress={() => setJenisTugas(opt as any)}
-                >
-                  <View style={[styles.radioCircle, jenisTugas === opt && styles.radioCircleActive]}>
-                    {jenisTugas === opt && <View style={styles.radioDot} />}
-                  </View>
-                  <Text style={[styles.radioText, { color: colors.textDark }]}>{opt}</Text>
-                </TouchableOpacity>
-              ))}
+              <TouchableOpacity
+                style={[styles.dropdownTrigger, { borderColor: colors.glassBorder }]}
+                onPress={() => setDropdownModalType("jenisTugas")}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="briefcase-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
+                <Text style={[styles.dropdownTriggerText, { color: colors.textDark }]}>
+                  {jenisTugas}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color="#94a3b8" />
+              </TouchableOpacity>
             </View>
 
             {/* Builder Inputs Presisi User Directive */}
@@ -677,7 +694,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               </View>
             </View>
 
-            {/* Input 4: Keterangan Lainnya (Gantikan Lokasi Kegiatan yang sudah ada di atas) */}
+            {/* Input 4: Keterangan Lainnya */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>KETERANGAN LAINNYA</Text>
               <TextInput
@@ -691,35 +708,34 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               />
             </View>
 
-            {/* Input 5: Sumber Dana (Synched 100% dengan Localhost) */}
+            {/* Input 5: Sumber Dana (Dropdown Select Modal) */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>SUMBER DANA *</Text>
-              {[
-                { id: "dipa", label: "DIPA Balai KSDA Kalimantan Timur" },
-                { id: "dipa_lain", label: "DIPA Instansi Lain" },
-                { id: "swadaya", label: "Non-DIPA / Swadaya" },
-                { id: "dl1", label: "Tanpa Biaya / DL 1" },
-                { id: "kja", label: "Dana Kerjasama KJA" },
-                { id: "mja", label: "Dana Kerjasama MJA" },
-                { id: "cop", label: "Dana Kerjasama COP" },
-                { id: "tjiwi", label: "Dana Kerjasama PT. Tjiwi Kimia Tbk." },
-                { id: "bosf", label: "Dana Kerjasama BOSF" },
-                { id: "can", label: "Dana Kerjasama CAN" },
-                { id: "alert", label: "Dana Kerjasama ALeRT" },
-                { id: "folu", label: "Dana Kerjasama FOLU" },
-                { id: "other", label: "Lainnya" },
-              ].map((opt) => (
-                <TouchableOpacity
-                  key={opt.id}
-                  style={styles.radioRow}
-                  onPress={() => setSumberDana(opt.id)}
-                >
-                  <View style={[styles.radioCircle, sumberDana === opt.id && styles.radioCircleActive]}>
-                    {sumberDana === opt.id && <View style={styles.radioDot} />}
-                  </View>
-                  <Text style={[styles.radioText, { color: colors.textDark }]}>{opt.label}</Text>
-                </TouchableOpacity>
-              ))}
+              <TouchableOpacity
+                style={[styles.dropdownTrigger, { borderColor: colors.glassBorder }]}
+                onPress={() => setDropdownModalType("sumberDana")}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="wallet-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
+                <Text style={[styles.dropdownTriggerText, { color: colors.textDark }]}>
+                  {[
+                    { id: "dipa", label: "DIPA Balai KSDA Kalimantan Timur" },
+                    { id: "dipa_lain", label: "DIPA Instansi Lain" },
+                    { id: "swadaya", label: "Non-DIPA / Swadaya" },
+                    { id: "dl1", label: "Tanpa Biaya / DL 1" },
+                    { id: "kja", label: "Dana Kerjasama KJA" },
+                    { id: "mja", label: "Dana Kerjasama MJA" },
+                    { id: "cop", label: "Dana Kerjasama COP" },
+                    { id: "tjiwi", label: "Dana Kerjasama PT. Tjiwi Kimia Tbk." },
+                    { id: "bosf", label: "Dana Kerjasama BOSF" },
+                    { id: "can", label: "Dana Kerjasama CAN" },
+                    { id: "alert", label: "Dana Kerjasama ALeRT" },
+                    { id: "folu", label: "Dana Kerjasama FOLU" },
+                    { id: "other", label: "Lainnya" },
+                  ].find((o) => o.id === sumberDana)?.label || "Pilih Sumber Dana"}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color="#94a3b8" />
+              </TouchableOpacity>
 
               {sumberDana === "other" && (
                 <View style={{ marginTop: 8 }}>
@@ -770,16 +786,48 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 style={styles.nextStepBtn}
                 onPress={() => {
                   if (jenisTugas.includes("Perjalanan Dinas")) {
-                    if (!kotaAsal.trim() || !kotaTujuan.trim()) {
-                      Alert.alert("Perhatian", "Silakan isi Kota Asal dan Kota/Tujuan (*).");
+                    if (!kotaAsal.trim()) {
+                      showNotif("Kota Asal Diperlukan", "Silakan isi Dari (Kota / Lokasi Asal) (*).");
+                      return;
+                    }
+                    if (!kotaTujuan.trim()) {
+                      showNotif("Kota Tujuan Diperlukan", "Silakan isi Ke (Kota / Kabupaten Tujuan) (*).");
+                      return;
+                    }
+                    if (!namaKegiatanText.trim()) {
+                      showNotif("Dalam Rangka Diperlukan", "Silakan isi Dalam Rangka (Maksud Perjalanan Dinas) (*).");
+                      return;
+                    }
+                  } else if (jenisTugas.includes("Melaksanakan Kegiatan")) {
+                    if (!namaKegiatanText.trim()) {
+                      showNotif("Nama Kegiatan Diperlukan", "Silakan isi Melaksanakan Kegiatan (1 Hari) (*).");
+                      return;
+                    }
+                    if (!kotaTujuan.trim()) {
+                      showNotif("Kota / Kabupaten Diperlukan", "Silakan isi Di (Kota / Kabupaten) (*).");
                       return;
                     }
                   } else {
                     if (!namaKegiatanText.trim()) {
-                      Alert.alert("Perhatian", "Silakan isi Nama Kegiatan (*).");
+                      showNotif("Nama Kegiatan Diperlukan", "Silakan isi Menugaskan Staf (*).");
+                      return;
+                    }
+                    if (!kotaTujuan.trim()) {
+                      showNotif("Kota / Kabupaten Diperlukan", "Silakan isi Di (Kota / Kabupaten) (*).");
                       return;
                     }
                   }
+
+                  if (!tanggalMulai || !tanggalSelesai) {
+                    showNotif("Tanggal Diperlukan", "Silakan pilih Tanggal Mulai dan Tanggal Selesai (*).");
+                    return;
+                  }
+
+                  if (sumberDana === "other" && !sumberDanaOther.trim()) {
+                    showNotif("Sumber Dana Lainnya Diperlukan", "Silakan sebutkan sumber dana lainnya (*).");
+                    return;
+                  }
+
                   setStep(3);
                 }}
                 activeOpacity={0.8}
@@ -978,6 +1026,126 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                   <Text style={[styles.quickDateText, { color: "#ffffff" }]}>Tutup</Text>
                 </TouchableOpacity>
               </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      )}
+
+      {/* Render Dropdown Select Modal */}
+      {Boolean(dropdownModalType) && (
+        <Modal visible transparent animationType="slide">
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setDropdownModalType(null)}
+          >
+            <TouchableOpacity activeOpacity={1} style={styles.dropdownModalCard}>
+              <View style={styles.dropdownModalHeader}>
+                <Text style={styles.dropdownModalTitle}>
+                  {dropdownModalType === "jenisTugas" ? "Pilih Jenis Tugas" : "Pilih Sumber Dana"}
+                </Text>
+                <TouchableOpacity onPress={() => setDropdownModalType(null)} style={{ padding: 4 }}>
+                  <Ionicons name="close" size={20} color="#64748b" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+                {(dropdownModalType === "jenisTugas"
+                  ? [
+                      { id: "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )", label: "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" },
+                      { id: "Melaksanakan Kegiatan ( 1 Hari )", label: "Melaksanakan Kegiatan ( 1 Hari )" },
+                      { id: "Menugaskan Staf", label: "Menugaskan Staf" },
+                    ]
+                  : [
+                      { id: "dipa", label: "DIPA Balai KSDA Kalimantan Timur" },
+                      { id: "dipa_lain", label: "DIPA Instansi Lain" },
+                      { id: "swadaya", label: "Non-DIPA / Swadaya" },
+                      { id: "dl1", label: "Tanpa Biaya / DL 1" },
+                      { id: "kja", label: "Dana Kerjasama KJA" },
+                      { id: "mja", label: "Dana Kerjasama MJA" },
+                      { id: "cop", label: "Dana Kerjasama COP" },
+                      { id: "tjiwi", label: "Dana Kerjasama PT. Tjiwi Kimia Tbk." },
+                      { id: "bosf", label: "Dana Kerjasama BOSF" },
+                      { id: "can", label: "Dana Kerjasama CAN" },
+                      { id: "alert", label: "Dana Kerjasama ALeRT" },
+                      { id: "folu", label: "Dana Kerjasama FOLU" },
+                      { id: "other", label: "Lainnya" },
+                    ]
+                ).map((opt) => {
+                  const isSelected = (dropdownModalType === "jenisTugas" ? jenisTugas : sumberDana) === opt.id;
+                  return (
+                    <TouchableOpacity
+                      key={opt.id}
+                      style={[styles.dropdownOptionRow, isSelected && styles.dropdownOptionRowSelected]}
+                      onPress={() => {
+                        if (dropdownModalType === "jenisTugas") {
+                          setJenisTugas(opt.id as any);
+                        } else {
+                          setSumberDana(opt.id);
+                        }
+                        setDropdownModalType(null);
+                      }}
+                    >
+                      <Text style={[styles.dropdownOptionText, isSelected && styles.dropdownOptionTextSelected]}>
+                        {opt.label}
+                      </Text>
+                      {isSelected && <Ionicons name="checkmark-circle" size={20} color="#2563eb" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      )}
+
+      {/* Render Custom Notification Modal */}
+      {notification.visible && (
+        <Modal visible transparent animationType="fade">
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setNotification((prev) => ({ ...prev, visible: false }))}
+          >
+            <TouchableOpacity activeOpacity={1} style={styles.notifCard}>
+              <View style={[styles.notifIconBox, { backgroundColor: notification.type === "error" ? "#fef2f2" : "#fffbe8" }]}>
+                <Ionicons
+                  name={
+                    notification.type === "error"
+                      ? "alert-circle"
+                      : notification.type === "success"
+                      ? "checkmark-circle"
+                      : "warning"
+                  }
+                  size={34}
+                  color={
+                    notification.type === "error"
+                      ? "#ef4444"
+                      : notification.type === "success"
+                      ? "#10b981"
+                      : "#f59e0b"
+                  }
+                />
+              </View>
+              <Text style={styles.notifTitle}>{notification.title}</Text>
+              <Text style={styles.notifMessage}>{notification.message}</Text>
+              <TouchableOpacity
+                style={[
+                  styles.notifBtn,
+                  {
+                    backgroundColor:
+                      notification.type === "error"
+                        ? "#ef4444"
+                        : notification.type === "success"
+                        ? "#10b981"
+                        : "#2563eb",
+                  },
+                ]}
+                onPress={() => setNotification((prev) => ({ ...prev, visible: false }))}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.notifBtnText}>Saya Mengerti</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
           </TouchableOpacity>
         </Modal>
@@ -1494,5 +1662,121 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800",
     color: "#475569",
+  },
+
+  // Dropdown Select & Custom Notification Styles
+  dropdownTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 12,
+    height: 44,
+    backgroundColor: "#ffffff",
+  },
+  dropdownTriggerText: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: "700",
+  },
+  dropdownModalCard: {
+    width: "90%",
+    maxWidth: 400,
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 20,
+    elevation: 25,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  dropdownModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  dropdownModalTitle: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#1e293b",
+  },
+  dropdownOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  dropdownOptionRowSelected: {
+    backgroundColor: "#eff6ff",
+  },
+  dropdownOptionText: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: "#334155",
+    flex: 1,
+    marginRight: 8,
+  },
+  dropdownOptionTextSelected: {
+    color: "#2563eb",
+    fontWeight: "800",
+  },
+
+  // Notification Modal Styles
+  notifCard: {
+    width: "84%",
+    maxWidth: 340,
+    backgroundColor: "#ffffff",
+    borderRadius: 22,
+    padding: 22,
+    alignItems: "center",
+    elevation: 25,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  notifIconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  notifTitle: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#0f172a",
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  notifMessage: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: "#64748b",
+    textAlign: "center",
+    lineHeight: 18,
+    marginBottom: 20,
+  },
+  notifBtn: {
+    width: "100%",
+    paddingVertical: 12,
+    borderRadius: RADIUS.pill,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  notifBtnText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "800",
   },
 });
