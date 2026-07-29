@@ -1,3 +1,29 @@
+# Progress - Phase 174: Penyesuaian Label Pilihan Jenis Tugas Surat Tugas
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Label Opsi Dropdown Jenis Tugas**:
+     - `Perjalanan Dinas` ➔ **`Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )`**
+     - `Melaksanakan Tugas` ➔ **`Melaksanakan Kegiatan ( 1 Hari )`**
+     - `Menugaskan Staf` ➔ **`Menugaskan Staf`**
+  2. **Validasi & Pratinjau Teks**:
+     - Pratinjau Teks otomatis menyesuaikan format kalimat resmi sesuai pilihan label jenis tugas.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 173: Dinamisasi Form Detail Kegiatan Berdasarkan Jenis Tugas
 
 > Document updated: 2026-07-28
