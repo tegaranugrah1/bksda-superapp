@@ -976,33 +976,35 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                   for (let i = 0; i < firstDay; i++) grid.push(null);
                   for (let d = 1; d <= totalDays; d++) grid.push(d);
 
-                  return grid.map((day, idx) => {
-                    if (day === null) return <View key={`empty-${idx}`} style={styles.dayCell} />;
-                    const formattedM = String(m + 1).padStart(2, "0");
-                    const formattedD = String(day).padStart(2, "0");
-                    const dateStr = `${y}-${formattedM}-${formattedD}`;
-                    const isSelected = activeDatePicker === "mulai" ? tanggalMulai === dateStr : tanggalSelesai === dateStr;
+                    return grid.map((day, idx) => {
+                      if (day === null) return <View key={`empty-${idx}`} style={styles.dayCell} />;
+                      const formattedM = String(m + 1).padStart(2, "0");
+                      const formattedD = String(day).padStart(2, "0");
+                      const dateStr = `${y}-${formattedM}-${formattedD}`;
+                      const isSelected = activeDatePicker === "mulai" ? tanggalMulai === dateStr : tanggalSelesai === dateStr;
 
-                    return (
-                      <TouchableOpacity
-                        key={`day-${day}`}
-                        style={[styles.dayCell, isSelected && styles.dayCellSelected]}
-                        onPress={() => {
-                          if (activeDatePicker === "mulai") {
-                            setTanggalMulai(dateStr);
-                            if (!tanggalSelesai || tanggalSelesai < dateStr) setTanggalSelesai(dateStr);
-                          } else {
-                            setTanggalSelesai(dateStr);
-                          }
-                          setActiveDatePicker(null);
-                        }}
-                      >
-                        <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
-                          {day}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  });
+                      return (
+                        <TouchableOpacity
+                          key={`day-${day}`}
+                          style={styles.dayCell}
+                          onPress={() => {
+                            if (activeDatePicker === "mulai") {
+                              setTanggalMulai(dateStr);
+                              if (!tanggalSelesai || tanggalSelesai < dateStr) setTanggalSelesai(dateStr);
+                            } else {
+                              setTanggalSelesai(dateStr);
+                            }
+                            setActiveDatePicker(null);
+                          }}
+                        >
+                          <View style={[styles.dayCellInner, isSelected && styles.dayCellSelected]}>
+                            <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
+                              {day}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    });
                 })()}
               </View>
 
@@ -1610,11 +1612,11 @@ const styles = StyleSheet.create({
   },
   weekDaysRow: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    alignItems: "center",
     marginBottom: 8,
   },
   weekDayText: {
-    width: 38,
+    width: `${100 / 7}%`,
     textAlign: "center",
     fontSize: 11,
     fontWeight: "800",
@@ -1623,16 +1625,22 @@ const styles = StyleSheet.create({
   daysGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
+    alignItems: "center",
     marginBottom: 16,
   },
   dayCell: {
-    width: 38,
-    height: 38,
+    width: `${100 / 7}%`,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 19,
     marginVertical: 2,
+  },
+  dayCellInner: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
   },
   dayCellSelected: {
     backgroundColor: "#2563eb",
