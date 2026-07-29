@@ -134,7 +134,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [namaPlh, setNamaPlh] = useState("");
 
   // BUILDER STATE UNTUK DETAIL KEGIATAN (SYNCED 100% DENGAN /kepegawaian/surat-tugas/create)
-  const [jenisTugas, setJenisTugas] = useState<"Perjalanan Dinas" | "Melaksanakan Tugas" | "Menugaskan Staf">("Perjalanan Dinas");
+  const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
   const [kotaTujuan, setKotaTujuan] = useState("");
   const [namaKegiatanText, setNamaKegiatanText] = useState("");
@@ -294,12 +294,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     }
 
     let finalNamaKegiatan = `${jenisTugas}`;
-    if (jenisTugas === "Perjalanan Dinas") {
-      finalNamaKegiatan = `Perjalanan Dinas dari ${kotaAsal.trim() || "..."} ke ${kotaTujuan.trim() || "..."}${namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ""}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}`;
-    } else if (jenisTugas === "Melaksanakan Tugas") {
-      finalNamaKegiatan = `Melaksanakan Tugas ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
+    if (jenisTugas.includes("Perjalanan Dinas")) {
+      finalNamaKegiatan = `Melaksanakan Perjalanan Dinas dari ${kotaAsal.trim() || "..."} ke ${kotaTujuan.trim() || "..."}${namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ""}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}`;
+    } else if (jenisTugas.includes("Melaksanakan Kegiatan")) {
+      finalNamaKegiatan = `Melaksanakan Kegiatan ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
     } else {
-      finalNamaKegiatan = `Menugaskan Staf ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
+      finalNamaKegiatan = `Menugaskan Staf ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
     }
 
     setIsSubmitting(true);
@@ -515,7 +515,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               <Text style={styles.label}>
                 JENIS TUGAS <Text style={{ color: "#ef4444" }}>*</Text>
               </Text>
-              {["Perjalanan Dinas", "Melaksanakan Tugas", "Menugaskan Staf"].map((opt) => (
+              {["Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )", "Melaksanakan Kegiatan ( 1 Hari )", "Menugaskan Staf"].map((opt) => (
                 <TouchableOpacity
                   key={opt}
                   style={styles.radioRow}
@@ -530,7 +530,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             </View>
 
             {/* Builder Inputs Presisi User Directive */}
-            {jenisTugas === "Perjalanan Dinas" ? (
+            {jenisTugas.includes("Perjalanan Dinas") ? (
               <View style={{ marginBottom: 14 }}>
                 {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
                 <View style={styles.rowTwoInputs}>
@@ -591,11 +591,11 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               <View style={{ marginBottom: 14 }}>
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>
-                    {jenisTugas === "Melaksanakan Tugas" ? "MELAKSANAKAN TUGAS / KEGIATAN" : "MENUGASKAN STAF"} <Text style={{ color: "#ef4444" }}>*</Text>
+                    {jenisTugas.includes("Melaksanakan Kegiatan") ? "MELAKSANAKAN KEGIATAN ( 1 HARI )" : "MENUGASKAN STAF"} <Text style={{ color: "#ef4444" }}>*</Text>
                   </Text>
                   <TextInput
                     style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder={jenisTugas === "Melaksanakan Tugas" ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"}
+                    placeholder={jenisTugas.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"}
                     placeholderTextColor="#94a3b8"
                     multiline
                     numberOfLines={2}
@@ -637,11 +637,11 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 <Text style={styles.plhAlertTitle}>📌 Pratinjau Teks Hasil Resmi</Text>
               </View>
               <Text style={{ fontSize: 11.5, fontWeight: "700", color: "#1e3a8a", marginTop: 2 }}>
-                {jenisTugas === "Perjalanan Dinas"
-                  ? `Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ""}${tempatSpesifik ? ` di ${tempatSpesifik}` : ""}`
-                  : jenisTugas === "Melaksanakan Tugas"
-                  ? `Melaksanakan Tugas ${namaKegiatanText || "..."}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`
-                  : `Menugaskan Staf ${namaKegiatanText || "..."}${tempatSpesifik ? ` di ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`}
+                {jenisTugas.includes("Perjalanan Dinas")
+                  ? `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ""}${tempatSpesifik ? ` di ${tempatSpesifik}` : ""}`
+                  : jenisTugas.includes("Melaksanakan Kegiatan")
+                  ? `Melaksanakan Kegiatan ${namaKegiatanText || "..."}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`
+                  : `Menugaskan Staf ${namaKegiatanText || "..."}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`}
               </Text>
             </View>
 
@@ -740,7 +740,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               <TouchableOpacity
                 style={styles.nextStepBtn}
                 onPress={() => {
-                  if (jenisTugas === "Perjalanan Dinas") {
+                  if (jenisTugas.includes("Perjalanan Dinas")) {
                     if (!kotaAsal.trim() || !kotaTujuan.trim()) {
                       Alert.alert("Perhatian", "Silakan isi Kota Asal dan Kota/Tujuan (*).");
                       return;

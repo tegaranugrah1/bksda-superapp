@@ -54,7 +54,7 @@ export default function SuratTugasForm() {
     });
 
     // Builder State untuk Detail Kegiatan (Synced 100% dengan /kepegawaian/surat-tugas/create)
-    const [jenisTugas, setJenisTugas] = useState<'Perjalanan Dinas' | 'Melaksanakan Tugas' | 'Menugaskan Staf'>('Perjalanan Dinas');
+    const [jenisTugas, setJenisTugas] = useState<'Perjalanan Dinas ( Lebih dari 1 Hari )' | 'Melaksanakan Kegiatan ( 1 Hari )' | 'Menugaskan Staf'>('Perjalanan Dinas ( Lebih dari 1 Hari )');
     const [kotaAsal, setKotaAsal] = useState('Samarinda');
     const [kotaTujuan, setKotaTujuan] = useState('');
     const [namaKegiatanText, setNamaKegiatanText] = useState('');
@@ -168,15 +168,15 @@ export default function SuratTugasForm() {
         setIsSubmitting(true);
         try {
             let finalNamaKegiatan = `${jenisTugas}`;
-            if (jenisTugas === 'Perjalanan Dinas') {
-                finalNamaKegiatan = `Perjalanan Dinas dari ${kotaAsal.trim() || '...'} ke ${kotaTujuan.trim() || '...'}${namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ''}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ''}`;
-            } else if (jenisTugas === 'Melaksanakan Tugas') {
-                finalNamaKegiatan = `Melaksanakan Tugas ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
+            if (jenisTugas.includes('Perjalanan Dinas')) {
+                finalNamaKegiatan = `Melaksanakan Perjalanan Dinas dari ${kotaAsal.trim() || '...'} ke ${kotaTujuan.trim() || '...'}${namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ''}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ''}`;
+            } else if (jenisTugas.includes('Melaksanakan Kegiatan')) {
+                finalNamaKegiatan = `Melaksanakan Kegiatan ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
             } else {
-                finalNamaKegiatan = `Menugaskan Staf ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
+                finalNamaKegiatan = `Menugaskan Staf ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
             }
 
-            const calculatedTempatTujuan = tempatSpesifik.trim() || kotaTujuan.trim() || (jenisTugas === 'Perjalanan Dinas' ? kotaAsal.trim() : '');
+            const calculatedTempatTujuan = tempatSpesifik.trim() || kotaTujuan.trim() || (jenisTugas.includes('Perjalanan Dinas') ? kotaAsal.trim() : '');
 
             const submitData = new FormData();
             submitData.append('maksud_tujuan', finalNamaKegiatan);
@@ -368,13 +368,13 @@ export default function SuratTugasForm() {
                                 onChange={(e) => setJenisTugas(e.target.value as any)}
                                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-bold text-slate-800 outline-none cursor-pointer"
                             >
-                                <option value="Perjalanan Dinas">Perjalanan Dinas</option>
-                                <option value="Melaksanakan Tugas">Melaksanakan Tugas</option>
+                                <option value="Perjalanan Dinas ( Lebih dari 1 Hari )">Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )</option>
+                                <option value="Melaksanakan Kegiatan ( 1 Hari )">Melaksanakan Kegiatan ( 1 Hari )</option>
                                 <option value="Menugaskan Staf">Menugaskan Staf</option>
                             </select>
                         </div>
 
-                        {jenisTugas === 'Perjalanan Dinas' ? (
+                        {jenisTugas.includes('Perjalanan Dinas') ? (
                             <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                                 {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -436,7 +436,7 @@ export default function SuratTugasForm() {
                             <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                                        {jenisTugas === 'Melaksanakan Tugas' ? 'Melaksanakan Tugas / Kegiatan' : 'Menugaskan Staf'} <span className="text-red-500">*</span>
+                                        {jenisTugas.includes('Melaksanakan Kegiatan') ? 'Melaksanakan Kegiatan ( 1 Hari )' : 'Menugaskan Staf'} <span className="text-red-500">*</span>
                                     </label>
                                     <textarea
                                         required
@@ -444,7 +444,7 @@ export default function SuratTugasForm() {
                                         value={namaKegiatanText}
                                         onChange={e => setNamaKegiatanText(e.target.value)}
                                         className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
-                                        placeholder={jenisTugas === 'Melaksanakan Tugas' ? 'Contoh: opname fisik (stok opname) barang persediaan' : 'Contoh: verifikasi berkas administrasi persediaan'}
+                                        placeholder={jenisTugas.includes('Melaksanakan Kegiatan') ? 'Contoh: opname fisik (stok opname) barang persediaan' : 'Contoh: verifikasi berkas administrasi persediaan'}
                                     />
                                 </div>
 
