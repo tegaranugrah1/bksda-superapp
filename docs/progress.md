@@ -1,3 +1,29 @@
+# Progress - Phase 175: Perbaikan Evaluasi Pratinjau Teks & Formulasi Menugaskan Staf
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Perbaikan Evaluasi Pratinjau Teks Hasil Resmi & Format Menugaskan Staf
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Perbaikan Evaluasi Kondisi Pratinjau Teks**:
+     - Sebelumnya ternary pratinjau teks menggunakan pengecekan string persis `jenisTugas === 'Perjalanan Dinas'`. Karena opsi label sudah diperbarui menjadi `Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )`, kondisi ternary tidak terpenuhi dan jatuh ke fallback `Menugaskan Staf`.
+     - **Solusi**: Diperbaiki menggunakan `.includes('Perjalanan Dinas')` dan `.includes('Melaksanakan Kegiatan')`.
+  2. **Formulasi Kalimat "Menugaskan Staf"**:
+     - Ditambahkan kata `"untuk"` secara presisi pada opsi penugasan staf:
+       ➔ **`Menugaskan Staf untuk [kegiatan] pada [tempat] di [kota]`**.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 174: Penyesuaian Label Pilihan Jenis Tugas Surat Tugas
 
 > Document updated: 2026-07-29
