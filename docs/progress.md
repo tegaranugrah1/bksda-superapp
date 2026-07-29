@@ -1,3 +1,32 @@
+# Progress - Phase 178: Dropdown Select Modal, Custom Notification & Validasi Ketat ST Mobile
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Penggantian Radio Button dengan Dropdown Select Modal**:
+     - Radio button list untuk `JENIS TUGAS` & `SUMBER DANA` kini diganti dengan Trigger Dropdown Select bersih dan ringkas.
+     - Saat ditekan, membuka Dropdown Select Sheet Modal yang menampilkan daftar pilihan rapi dengan checkmark indikator aktif.
+  2. **Validasi Ketat Field per Mode Tugas (Mencegah Next/Lanjutkan jika Belum Diisi)**:
+     - **Mode Perjalanan Dinas**: Wajib mengisi `Kota Asal (*)`, `Kota Tujuan (*)` DAN `Dalam Rangka / Maksud Kegiatan (*)`. Jika salah satu kosong, tidak bisa lanjut.
+     - **Mode Melaksanakan Kegiatan (1 Hari)**: Wajib mengisi `Melaksanakan Kegiatan (*)` DAN `Di (Kota/Kabupaten) (*)`. Jika salah satu kosong, tidak bisa lanjut.
+     - **Mode Menugaskan Staf**: Wajib mengisi `Menugaskan Staf (*)` DAN `Di (Kota/Kabupaten) (*)`. Jika salah satu kosong, tidak bisa lanjut.
+  3. **Pengembangan Custom Notification Banner/Alert**:
+     - Menggantikan default system `Alert.alert` dengan **Custom Notification Modal Banner** bergaya glassmorphism premium (disertai ikon status, warna aksen dinamis, dan tombol "Saya Mengerti").
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 177: Penyelarasan Form Buat Surat Tugas Mobile & Date Picker
 
 > Document updated: 2026-07-29
