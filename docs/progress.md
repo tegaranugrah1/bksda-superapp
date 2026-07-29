@@ -1,3 +1,30 @@
+# Progress - Phase 180: Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama:
+  1. **Tampilan `• Kegiatan:` pada Ringkasan Step 3**:
+     - Memperbaiki binding state dari variabel legacy `maksudKegiatan` ke `namaKegiatanText.trim()`.
+     - Sekarang secara presisi menampilkan teks nama kegiatan yang telah diisi user (contoh: *"Kegiatan Inventarisasi BMN"*).
+  2. **Tampilan `• Sumber Dana:` pada Ringkasan Step 3**:
+     - Memperbaiki tampilan ID `dipa` menjadi label resmi yang mudah dibaca (*DIPA Balai KSDA Kalimantan Timur*).
+  3. **Penambahan `• Jenis Tugas:` pada Ringkasan Step 3**:
+     - Menampilkan jenis tugas yang dipilih (*Melaksanakan Perjalanan Dinas*, *Melaksanakan Kegiatan (1 Hari)*, atau *Menugaskan Staf*).
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 179: Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile
 
 > Document updated: 2026-07-29
