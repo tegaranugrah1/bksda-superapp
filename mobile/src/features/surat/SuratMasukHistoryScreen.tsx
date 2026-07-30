@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,83 +9,66 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS, SHADOWS } from "../../theme";
+import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { SuratDisposisiPrintPreviewModal } from "./SuratDisposisiPrintPreviewModal";
+import { FabMenu } from "../../components/ui/FabMenu";
+import { apiClient } from "../../lib/api/client";
 
 interface SuratMasukHistoryScreenProps {
+  navigation?: any;
   onBack?: () => void;
   onNavigateToCreate?: () => void;
+  onNavigateToModule?: (moduleKey: string) => void;
 }
 
 export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = ({
+  navigation,
   onBack,
   onNavigateToCreate,
+  onNavigateToModule,
 }) => {
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSifatFilter, setSelectedSifatFilter] = useState("Semua Surat");
   const [previewSuratData, setPreviewSuratData] = useState<any>(null);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
 
   const filters = ["Semua Surat", "Sangat Penting", "Penting", "Biasa"];
+  const [suratHistoryList, setSuratHistoryList] = useState<any[]>([]);
 
-  const suratHistoryList = [
-    {
-      id: "1",
-      noAgenda: "1015",
-      noSurat: "SURAT/BKSDA/2026/1015",
-      tanggalSurat: "25/07/2026",
-      terimaAgenda: "25/07/2026",
-      asalSurat: "Apekli",
-      lampiran: "3 Set",
-      perihal: "Permohonan Pengadaan Obat-Obatan Translokasi Badak Sumatera",
-      sifat: "SANGAT PENTING",
-      sifatColor: COLORS.statusPending,
-      catatan: "Harap segera ditindaklanjuti dan disiapkan bahan laporannya.",
-      diteruskanList: [
-        "1. Ka Sub Bag TU",
-        "2. Urusan Kepegawaian",
-        "3. Urusan Keuangan",
-        "4. Urusan Teknis",
-      ],
-    },
-    {
-      id: "2",
-      noAgenda: "1014",
-      noSurat: "UND/DIRJEN/142/2026",
-      tanggalSurat: "24/07/2026",
-      terimaAgenda: "24/07/2026",
-      asalSurat: "Kementerian LHK",
-      lampiran: "1 Berkas",
-      perihal: "Undangan Rapat Koordinasi Mitigasi Konflik Satwa Liar Regional Kalimantan",
-      sifat: "BIASA",
-      sifatColor: COLORS.statusAvailable,
-      catatan: "Wakili dan koordinasikan dengan Urusan Teknis.",
-      diteruskanList: [
-        "1. Ka Sub Bag TU",
-        "2. Urusan Teknis",
-        "3. Urusan Perlindungan",
-      ],
-    },
-    {
-      id: "3",
-      noAgenda: "1013",
-      noSurat: "LAP/RESORT-W/089/2026",
-      tanggalSurat: "23/07/2026",
-      terimaAgenda: "24/07/2026",
-      asalSurat: "Resort Konservasi Wilayah Barat",
-      lampiran: "2 Lembar",
-      perihal: "Laporan Patroli Rutin Pencegahan Ilegal Logging Kawasan Penyangga",
-      sifat: "PENTING",
-      sifatColor: COLORS.statusInfo,
-      catatan: "Arsipkan dan masukkan dalam laporan triwulanan.",
-      diteruskanList: [
-        "1. Ka Sub Bag TU",
-        "2. Urusan Data Evlap dan Humas",
-        "3. Urusan Program",
-      ],
-    },
-  ];
+  const fetchSuratMasuk = async () => {
+    try {
+      const response = await apiClient.get<any>("/surat/surat-masuk");
+      if (response.data && Array.isArray(response.data.data)) {
+        const apiList = response.data.data.map((surat: any) => ({
+          id: String(surat.id),
+          noAgenda: surat.nomor_agenda || String(surat.id),
+          noSurat: surat.nomor_surat || "-",
+          tanggalSurat: surat.tanggal_surat || "2026",
+          terimaAgenda: surat.created_at ? new Date(surat.created_at).toLocaleDateString("id-ID") : "2026",
+          asalSurat: surat.pengirim || surat.asal_surat || "-",
+          lampiran: surat.lampiran || "-",
+          perihal: surat.perihal || "-",
+          sifat: (surat.sifat || "Biasa").toUpperCase(),
+          sifatColor: surat.sifat === "Sangat Penting" ? COLORS.statusPending : "#3b82f6",
+          catatan: surat.ringkasan || surat.catatan || "-",
+          diteruskanList: Array.isArray(surat.diteruskan_ke) ? surat.diteruskan_ke : [],
+        }));
+        setSuratHistoryList(apiList);
+      } else {
+        setSuratHistoryList([]);
+      }
+    } catch {
+      setSuratHistoryList([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuratMasuk();
+  }, []);
+
 
   const filteredList = suratHistoryList.filter((item) => {
     const matchesFilter =
@@ -108,18 +91,56 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
     setPreviewModalVisible(true);
   };
 
+  const handleGoBack = () => {
+    if (onBack) {
+      onBack();
+    } else if (navigation) {
+      navigation.navigate("Dashboard");
+    }
+  };
+
+  const handleSelectNavTab = (tabKey: string) => {
+    if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
+      if (navigation) {
+        navigation.navigate("Dashboard");
+      } else if (onBack) {
+        onBack();
+      }
+    } else if (tabKey === "bmn") {
+      if (navigation) navigation.navigate("Bmn");
+    } else if (tabKey === "surat") {
+      if (navigation) navigation.navigate("Surat");
+    } else if (tabKey === "inventory") {
+      if (navigation) navigation.navigate("Inventory");
+    } else if (tabKey === "profile") {
+      if (navigation) navigation.navigate("Profile");
+    } else if (tabKey === "kepegawaian") {
+      if (navigation) navigation.navigate("Kepegawaian");
+    } else if (onNavigateToModule) {
+      onNavigateToModule(tabKey);
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
       {/* Header */}
-      <View style={styles.header}>
-        {onBack && (
-          <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color="#0f172a" />
-          </TouchableOpacity>
-        )}
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.headerBg, borderBottomColor: colors.headerBorder },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={handleGoBack}
+          style={styles.backBtn}
+          activeOpacity={0.6}
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 35 }}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.textDark} />
+        </TouchableOpacity>
         <View style={styles.headerTitleRow}>
           <Ionicons name="document-text" size={22} color="#059669" style={{ marginRight: 8 }} />
-          <Text style={styles.headerTitle}>Riwayat Surat Masuk</Text>
+          <Text style={[styles.headerTitle, { color: colors.textDark }]}>Riwayat Surat Masuk</Text>
         </View>
         <TouchableOpacity
           style={styles.addNavBtn}
@@ -131,10 +152,10 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
-        <View style={styles.searchBarContainer}>
-          <Ionicons name="search-outline" size={18} color="#64748b" style={{ marginRight: 8 }} />
+        <View style={[styles.searchBarContainer, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+          <Ionicons name="search-outline" size={18} color={colors.textMuted} style={{ marginRight: 8 }} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.textDark }]}
             placeholder="Cari No. Agenda, No. Surat, atau Perihal..."
             placeholderTextColor="#94a3b8"
             value={searchQuery}
@@ -155,7 +176,11 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
               <TouchableOpacity
                 key={f}
                 onPress={() => setSelectedSifatFilter(f)}
-                style={[styles.filterPill, isActive && styles.filterPillActive]}
+                style={[
+                  styles.filterPill,
+                  { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
+                  isActive && styles.filterPillActive,
+                ]}
               >
                 <Text style={[styles.filterPillText, isActive && styles.filterPillTextActive]}>
                   {f}
@@ -168,7 +193,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
         {/* Ordered History Cards */}
         <View style={styles.historyList}>
           {filteredList.map((item) => (
-            <GlassCard key={item.id} style={styles.historyCard} highlighted={item.sifat === "SANGAT PENTING"}>
+            <GlassCard key={item.id} style={[styles.historyCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]} highlighted={item.sifat === "SANGAT PENTING"}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.agendaBadge}>
                   <Text style={styles.agendaBadgeText}>Agenda #{item.noAgenda}</Text>
@@ -181,9 +206,9 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
                 </View>
               </View>
 
-              <Text style={styles.noSuratText}>{item.noSurat}</Text>
-              <Text style={styles.asalSuratText}>Asal Surat: <Text style={{ color: "#0f172a", fontWeight: "700" }}>{item.asalSurat}</Text></Text>
-              <Text style={styles.perihalText} numberOfLines={2}>
+              <Text style={[styles.noSuratText, { color: colors.textDark }]}>{item.noSurat}</Text>
+              <Text style={[styles.asalSuratText, { color: colors.textMuted }]}>Asal Surat: <Text style={{ color: colors.textDark, fontWeight: "700" }}>{item.asalSurat}</Text></Text>
+              <Text style={[styles.perihalText, { color: colors.textDark }]} numberOfLines={2}>
                 {item.perihal}
               </Text>
 
@@ -206,16 +231,8 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
         </View>
       </ScrollView>
 
-      {/* FAB (+) Button */}
-      {onNavigateToCreate && (
-        <TouchableOpacity
-          style={[styles.fab, SHADOWS.glowEmerald]}
-          onPress={onNavigateToCreate}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={32} color="#ffffff" />
-        </TouchableOpacity>
-      )}
+      {/* Floating Action Button (FAB ☰ Menu) in Bottom Right Corner */}
+      <FabMenu onNavigateToModule={handleSelectNavTab} />
 
       {/* Print Preview Modal */}
       {previewSuratData && (
@@ -232,7 +249,6 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark,
   },
   header: {
     flexDirection: "row",
@@ -241,13 +257,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 48,
     paddingBottom: 16,
-    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
     marginRight: 10,
-    padding: 4,
+    padding: 6,
   },
   headerTitleRow: {
     flexDirection: "row",
@@ -255,7 +269,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: "#0f172a",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -275,14 +288,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 90,
   },
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 46,
@@ -290,7 +301,6 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "#0f172a",
     fontSize: 14,
   },
   filterScroll: {
@@ -300,9 +310,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     marginRight: 8,
   },
   filterPillActive: {
@@ -323,7 +331,6 @@ const styles = StyleSheet.create({
   },
   historyCard: {
     padding: 16,
-    backgroundColor: "#ffffff",
   },
   cardHeaderRow: {
     flexDirection: "row",
@@ -359,18 +366,15 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   noSuratText: {
-    color: "#0f172a",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 4,
   },
   asalSuratText: {
-    color: "#64748b",
     fontSize: 12,
     marginBottom: 6,
   },
   perihalText: {
-    color: "#334155",
     fontSize: 13,
     lineHeight: 18,
     marginBottom: 14,
@@ -401,16 +405,5 @@ const styles = StyleSheet.create({
     color: "#64748b",
     fontSize: 12,
     fontWeight: "600",
-  },
-  fab: {
-    position: "absolute",
-    bottom: 28,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#059669",
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

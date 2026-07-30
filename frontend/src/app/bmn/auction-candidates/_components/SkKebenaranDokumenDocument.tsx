@@ -2,12 +2,13 @@
 
 import { toast } from "sonner";
 import type { AuctionAsset } from "../_lib/auction-helpers";
-import { formatDateLong } from "../_lib/auction-helpers";
+import { formatDateLong, parseDocDate } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface SkKebenaranDokumenDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
 }
@@ -35,7 +36,8 @@ export function handlePrintSkKebenaran() {
       <head>
         <title>Surat Keterangan Kebenaran Fotokopi Dokumen Kepemilikan</title>
         <style>
-          @page { size: A4; margin: 0 0 28mm 0; }
+          @page { size: A4; margin: 20mm 0 28mm 0; }
+          @page :first { margin-top: 0; }
           * { box-sizing: border-box; }
           body {
             margin: 0; padding: 0; background: white; color: black;
@@ -58,9 +60,9 @@ export function handlePrintSkKebenaran() {
           table.kebenaran-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; }
           table.kebenaran-table th, table.kebenaran-table td { border: 1px solid #000; padding: 6px; vertical-align: middle; }
           table.kebenaran-table thead th { font-weight: bold; }
-          .signature { width: 20rem; margin-left: auto; margin-top: 1.5rem; }
+          .signature { width: 20rem; margin-left: auto; margin-top: 1.5rem; break-inside: avoid; page-break-inside: avoid; }
           .signature p { margin: 0; padding: 0; line-height: 1.3; }
-          .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; margin-top: 2rem; margin-bottom: 2rem; }
+          .ttd-placeholder { box-sizing: border-box; height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
           .doc-editable { outline: none; border-bottom: none !important; }
         </style>
       </head>
@@ -72,9 +74,9 @@ export function handlePrintSkKebenaran() {
   setTimeout(() => printWindow.print(), 500);
 }
 
-export function SkKebenaranDokumenDocument({ number, kap, assets, kepalaBalai }: SkKebenaranDokumenDocumentProps) {
-  const today = new Date();
-  const nomorText = buildNomorText(number, kap, today);
+export function SkKebenaranDokumenDocument({ number, kap, date, assets, kepalaBalai }: SkKebenaranDokumenDocumentProps) {
+  const docDate = parseDocDate(date);
+  const nomorText = buildNomorText(number, kap, docDate);
 
   return (
     <div id="sk-kebenaran-print-root" className="sk-kebenaran-print-root">
@@ -86,7 +88,8 @@ export function SkKebenaranDokumenDocument({ number, kap, assets, kepalaBalai }:
         .sk-kebenaran-print-root table.kebenaran-table th,
         .sk-kebenaran-print-root table.kebenaran-table td { border: 1px solid #000; padding: 6px; vertical-align: middle; }
         @media print {
-          @page { size: A4; margin: 0 0 28mm 0; }
+          @page { size: A4; margin: 20mm 0 28mm 0; }
+          @page :first { margin-top: 0; }
           body * { visibility: hidden; }
           .sk-kebenaran-print-root, .sk-kebenaran-print-root * { visibility: visible; }
           .sk-kebenaran-print-root {
@@ -182,17 +185,19 @@ export function SkKebenaranDokumenDocument({ number, kap, assets, kepalaBalai }:
           <p contentEditable suppressContentEditableWarning className="doc-editable">
             Adalah benar sesuai dengan aslinya.
           </p>
-          <p contentEditable suppressContentEditableWarning className="doc-editable">
-            Demikian keterangan ini kami buat dengan sebenar-benarnya dalam rangka permohonan Persetujuan Pemindahtanganan BMN dengan Penjualan.
-          </p>
-        </div>
+          <div className="break-inside-avoid" style={{ pageBreakInside: 'avoid' }}>
+            <p contentEditable suppressContentEditableWarning className="doc-editable">
+              Demikian keterangan ini kami buat dengan sebenar-benarnya dalam rangka permohonan Persetujuan Pemindahtanganan BMN dengan Penjualan.
+            </p>
 
-        <div className="signature mt-6 ml-auto w-80">
-          <p className="m-0">Samarinda, {formatDateLong(today)}</p>
+            <div className="signature mt-4 ml-auto w-80">
+          <p className="m-0">Samarinda, {formatDateLong(docDate)}</p>
           <p className="m-0">Kepala Balai,</p>
-          <div className="ttd-placeholder mt-8 box-border h-28 pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-          <p contentEditable suppressContentEditableWarning className="doc-editable m-0 mt-8">{kepalaBalai.nama}</p>
+          <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+          <p contentEditable suppressContentEditableWarning className="doc-editable m-0 mt-2">{kepalaBalai.nama}</p>
           <p contentEditable suppressContentEditableWarning className="doc-editable m-0">NIP. {kepalaBalai.nip}</p>
+            </div>
+          </div>
         </div>
       </article>
     </div>

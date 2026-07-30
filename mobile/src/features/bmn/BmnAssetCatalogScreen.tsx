@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,103 +11,146 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS, SHADOWS } from "../../theme";
+import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
+import { FabMenu } from "../../components/ui/FabMenu";
+import { apiClient } from "../../lib/api/client";
 
 interface BmnAssetCatalogScreenProps {
   onBack?: () => void;
+  onNavigateToModule?: (moduleKey: string) => void;
 }
 
-export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ onBack }) => {
+export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
+  onBack,
+  onNavigateToModule,
+}) => {
+  const { isDark, colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua Aset");
   const [loanModalVisible, setLoanModalVisible] = useState(false);
   const [selectedAssetForLoan, setSelectedAssetForLoan] = useState<any>(null);
 
-  // Form states for Loan Request
   const [loanPurpose, setLoanPurpose] = useState("");
   const [loanDurationDays, setLoanDurationDays] = useState("3");
 
   const categories = ["Semua Aset", "Kendaraan", "Elektronik", "Dipinjam"];
+  const [assets, setAssets] = useState<any[]>([]);
 
-  const assets = [
-    {
-      id: "1",
-      name: "Laptop Panasonic Toughbook",
-      nup: "00045",
-      code: "3.02.02.01.005",
-      category: "Elektronik",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "laptop-outline",
-    },
-    {
-      id: "2",
-      name: "GPS Garmin GPSMAP 66sr",
-      nup: "00112",
-      code: "3.02.02.03.012",
-      category: "Elektronik",
-      status: "Dipinjam",
-      statusColor: COLORS.statusPending,
-      borrower: "Hendra (Urusan Teknis)",
-      iconName: "navigate-outline",
-    },
-    {
-      id: "3",
-      name: "Drone DJI Mavic 3 Enterprise",
-      nup: "00088",
-      code: "3.02.02.04.001",
-      category: "Elektronik",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "airplane-outline",
-    },
-  ];
+  const fetchBmnAssets = async () => {
+    try {
+      const response = await apiClient.get<any>("/bmn/assets");
+      if (response.data && Array.isArray(response.data.data)) {
+        const apiAssets = response.data.data.map((item: any) => ({
+          id: String(item.id),
+          name: item.nama_barang || item.name,
+          nup: item.nup || "00001",
+          code: item.kode_barang || "3.02.01",
+          category: item.kategori || "Elektronik",
+          status: item.status || "Tersedia",
+          statusColor: item.status === "Dipinjam" ? COLORS.statusPending : COLORS.statusAvailable,
+          iconName: item.kategori === "Kendaraan" ? "car-outline" : "laptop-outline",
+        }));
+        setAssets(apiAssets);
+      } else {
+        setAssets([]);
+      }
+    } catch {
+      setAssets([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchBmnAssets();
+  }, []);
 
   const filteredAssets = assets.filter((asset) => {
-    const matchesCategory =
-      selectedCategory === "Semua Aset" ||
-      (selectedCategory === "Kendaraan" && asset.category === "Kendaraan") ||
-      (selectedCategory === "Elektronik" && asset.category === "Elektronik") ||
-      (selectedCategory === "Dipinjam" && asset.status === "Dipinjam");
-
     const matchesSearch =
       asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      asset.nup.includes(searchQuery);
+      asset.nup.includes(searchQuery) ||
+      asset.code.includes(searchQuery);
 
-    return matchesCategory && matchesSearch;
+    if (selectedCategory === "Semua Aset") return matchesSearch;
+    if (selectedCategory === "Dipinjam") return matchesSearch && asset.status === "Dipinjam";
+    return matchesSearch && asset.category === selectedCategory;
   });
 
   const handleOpenLoanModal = (asset?: any) => {
-    setSelectedAssetForLoan(asset || { name: "Toyota Hilux Double Cabin 4x4", nup: "00012" });
+    const target = asset || { name: "Toyota Hilux Double Cabin 4x4", nup: "00012" };
+    if (target.status === "Dipinjam") {
+      Alert.alert(
+        "Aset Sedang Dipinjam",
+        `Aset ${target.name} (NUP: ${target.nup}) saat ini sedang dipinjam oleh personil lain.`
+      );
+      return;
+    }
+    setSelectedAssetForLoan(target);
     setLoanModalVisible(true);
   };
 
   const handleSubmitLoan = () => {
     if (!loanPurpose.trim()) {
-      Alert.alert("Perhatian", "Silakan masukkan tujuan keperluan peminjaman.");
+      Alert.alert("Perhatian", "Silakan isi keperluan peminjaman aset.");
       return;
     }
-
     Alert.alert(
-      "Pengajuan Berhasil",
+      "Peminjaman Berhasil Diajukan!",
       `Permohonan peminjaman ${selectedAssetForLoan?.name} selama ${loanDurationDays} hari telah diajukan ke Subbag TU.`,
       [{ text: "OK", onPress: () => setLoanModalVisible(false) }]
     );
   };
 
+  const handleGoBack = () => {
+    if (onBack) {
+      onBack();
+    } else if (navigation) {
+      navigation.navigate("Dashboard");
+    }
+  };
+
+  const handleSelectNavTab = (tabKey: string) => {
+    if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
+      if (navigation) {
+        navigation.navigate("Dashboard");
+      } else if (onBack) {
+        onBack();
+      }
+    } else if (tabKey === "bmn") {
+      if (navigation) navigation.navigate("Bmn");
+    } else if (tabKey === "surat") {
+      if (navigation) navigation.navigate("Surat");
+    } else if (tabKey === "inventory") {
+      if (navigation) navigation.navigate("Inventory");
+    } else if (tabKey === "profile") {
+      if (navigation) navigation.navigate("Profile");
+    } else if (tabKey === "kepegawaian") {
+      if (navigation) navigation.navigate("Kepegawaian");
+    } else if (onNavigateToModule) {
+      onNavigateToModule(tabKey);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        {onBack && (
-          <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color="#0f172a" />
-          </TouchableOpacity>
-        )}
+    <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
+      {/* Header with Working Back Button */}
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.headerBg, borderBottomColor: colors.headerBorder },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={handleGoBack}
+          style={styles.backBtn}
+          activeOpacity={0.6}
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 35 }}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.textDark} />
+        </TouchableOpacity>
         <View style={styles.headerTitleRow}>
           <Ionicons name="car-sport" size={22} color="#059669" style={{ marginRight: 8 }} />
-          <Text style={styles.headerTitle}>Katalog Aset BMN</Text>
+          <Text style={[styles.headerTitle, { color: colors.textDark }]}>Katalog Aset BMN</Text>
         </View>
         <View style={styles.countBadge}>
           <Text style={styles.countText}>4 Aset</Text>
@@ -116,10 +159,10 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
-        <View style={styles.searchBarContainer}>
-          <Ionicons name="search-outline" size={18} color="#64748b" style={{ marginRight: 8 }} />
+        <View style={[styles.searchBarContainer, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+          <Ionicons name="search-outline" size={18} color={colors.textMuted} style={{ marginRight: 8 }} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.textDark }]}
             placeholder="Cari Nama Aset, NUP, atau Plat Nomor..."
             placeholderTextColor="#94a3b8"
             value={searchQuery}
@@ -140,7 +183,11 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
               <TouchableOpacity
                 key={cat}
                 onPress={() => setSelectedCategory(cat)}
-                style={[styles.filterPill, isActive && styles.filterPillActive]}
+                style={[
+                  styles.filterPill,
+                  { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
+                  isActive && styles.filterPillActive,
+                ]}
               >
                 <Text style={[styles.filterPillText, isActive && styles.filterPillTextActive]}>
                   {cat}
@@ -151,7 +198,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
         </ScrollView>
 
         {/* Featured Asset Bento Box Card */}
-        <GlassCard style={styles.featuredCard} highlighted>
+        <GlassCard style={[styles.featuredCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]} highlighted>
           <View style={styles.featuredTagRow}>
             <View style={styles.statusBadgeWarning}>
               <Ionicons name="time-outline" size={13} color={COLORS.statusPending} style={{ marginRight: 4 }} />
@@ -159,16 +206,16 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
             </View>
           </View>
 
-          <Text style={styles.featuredTitle}>Toyota Hilux Double Cabin 4x4</Text>
+          <Text style={[styles.featuredTitle, { color: colors.textDark }]}>Toyota Hilux Double Cabin 4x4</Text>
 
           <View style={styles.detailsGrid}>
             <View style={styles.detailCol}>
               <Text style={styles.detailLabel}>Kode Barang</Text>
-              <Text style={styles.detailValue}>3.02.01.01.002</Text>
+              <Text style={[styles.detailValue, { color: colors.textDark }]}>3.02.01.01.002</Text>
             </View>
             <View style={styles.detailCol}>
               <Text style={styles.detailLabel}>NUP</Text>
-              <Text style={styles.detailValue}>00012</Text>
+              <Text style={[styles.detailValue, { color: colors.textDark }]}>00012</Text>
             </View>
           </View>
 
@@ -177,10 +224,10 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
             <Text style={styles.platValue}>KT 8192 BKS</Text>
           </View>
 
-          <View style={styles.borrowerCard}>
+          <View style={[styles.borrowerCard, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.06)" : "#f8fafc" }]}>
             <Ionicons name="person-circle-outline" size={24} color="#059669" style={{ marginRight: 8 }} />
             <View style={styles.borrowerInfo}>
-              <Text style={styles.borrowerName}>Dipinjam oleh Subagja</Text>
+              <Text style={[styles.borrowerName, { color: colors.textDark }]}>Dipinjam oleh Subagja</Text>
               <Text style={styles.borrowerRole}>Ka Sub Bag TU (Operasional Patroli)</Text>
             </View>
           </View>
@@ -201,18 +248,18 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
         </GlassCard>
 
         {/* Catalog List Section */}
-        <Text style={styles.sectionTitle}>Daftar Aset BMN Lainnya</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textDark }]}>Daftar Aset BMN Lainnya</Text>
 
         <View style={styles.assetList}>
           {filteredAssets.map((asset) => (
-            <GlassCard key={asset.id} style={styles.assetCard}>
+            <GlassCard key={asset.id} style={[styles.assetCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
               <View style={styles.assetIconBg}>
                 <Ionicons name={asset.iconName as any} size={20} color="#059669" />
               </View>
 
               <View style={styles.assetMain}>
-                <Text style={styles.assetTitle}>{asset.name}</Text>
-                <Text style={styles.assetMeta}>
+                <Text style={[styles.assetTitle, { color: colors.textDark }]}>{asset.name}</Text>
+                <Text style={[styles.assetMeta, { color: colors.textMuted }]}>
                   NUP: {asset.nup} • Kode: {asset.code}
                 </Text>
                 {asset.borrower && (
@@ -240,34 +287,28 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
         </View>
       </ScrollView>
 
-      {/* FAB (+) Button */}
-      <TouchableOpacity
-        style={[styles.fab, SHADOWS.glowEmerald]}
-        onPress={() => handleOpenLoanModal()}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={32} color="#ffffff" />
-      </TouchableOpacity>
+      {/* Floating Action Button (FAB ☰ Menu) in Bottom Right Corner */}
+      <FabMenu onNavigateToModule={handleSelectNavTab} />
 
       {/* Loan Request Modal */}
       <Modal visible={loanModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <GlassCard style={styles.modalContent} highlighted>
+          <GlassCard style={[styles.modalContent, { backgroundColor: colors.cardBg }]} highlighted>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Form Peminjaman BMN</Text>
+              <Text style={[styles.modalTitle, { color: colors.textDark }]}>Form Peminjaman BMN</Text>
               <TouchableOpacity onPress={() => setLoanModalVisible(false)}>
                 <Ionicons name="close" size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
 
             <Text style={styles.modalSub}>
-              Aset: <Text style={{ color: "#0f172a", fontWeight: "700" }}>{selectedAssetForLoan?.name}</Text> (NUP: {selectedAssetForLoan?.nup})
+              Aset: <Text style={{ color: colors.textDark, fontWeight: "700" }}>{selectedAssetForLoan?.name}</Text> (NUP: {selectedAssetForLoan?.nup})
             </Text>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Keperluan / Tujuan Pemakaian</Text>
               <TextInput
-                style={[styles.input, styles.textarea]}
+                style={[styles.input, styles.textarea, { color: colors.textDark, borderColor: colors.glassBorder }]}
                 placeholder="Contoh: Operasional Patroli Kawasan Cagar Alam"
                 placeholderTextColor="#94a3b8"
                 multiline
@@ -280,7 +321,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Rencana Durasi Peminjaman (Hari)</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
                 placeholder="3"
                 keyboardType="numeric"
                 value={loanDurationDays}
@@ -303,7 +344,6 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({ on
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark,
   },
   header: {
     flexDirection: "row",
@@ -312,13 +352,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 48,
     paddingBottom: 16,
-    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
     marginRight: 10,
-    padding: 4,
+    padding: 6,
   },
   headerTitleRow: {
     flexDirection: "row",
@@ -326,7 +364,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: "#0f172a",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -346,14 +383,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 90,
   },
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 46,
@@ -361,7 +396,6 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "#0f172a",
     fontSize: 14,
   },
   filterScroll: {
@@ -371,9 +405,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     marginRight: 8,
   },
   filterPillActive: {
@@ -391,7 +423,6 @@ const styles = StyleSheet.create({
   },
   featuredCard: {
     padding: 18,
-    backgroundColor: "#ffffff",
     marginBottom: 24,
   },
   featuredTagRow: {
@@ -414,7 +445,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   featuredTitle: {
-    color: "#0f172a",
     fontSize: 19,
     fontWeight: "800",
     marginBottom: 12,
@@ -435,7 +465,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   detailValue: {
-    color: "#0f172a",
     fontSize: 13.5,
     fontWeight: "700",
   },
@@ -452,7 +481,6 @@ const styles = StyleSheet.create({
   borrowerCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#e2e8f0",
     borderRadius: RADIUS.input,
@@ -463,7 +491,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   borrowerName: {
-    color: "#0f172a",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -479,7 +506,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    color: "#0f172a",
     fontSize: 16,
     fontWeight: "800",
     marginBottom: 12,
@@ -491,7 +517,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
-    backgroundColor: "#ffffff",
   },
   assetIconBg: {
     width: 40,
@@ -506,12 +531,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   assetTitle: {
-    color: "#0f172a",
     fontSize: 14,
     fontWeight: "700",
   },
   assetMeta: {
-    color: "#64748b",
     fontSize: 11.5,
     marginTop: 2,
   },
@@ -546,17 +569,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
   },
-  fab: {
-    position: "absolute",
-    bottom: 28,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#059669",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.6)",
@@ -565,7 +577,6 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 22,
-    backgroundColor: "#ffffff",
   },
   modalHeader: {
     flexDirection: "row",
@@ -574,7 +585,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalTitle: {
-    color: "#0f172a",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -593,13 +603,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   input: {
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 12,
     height: 44,
-    color: "#0f172a",
     fontSize: 13.5,
   },
   textarea: {

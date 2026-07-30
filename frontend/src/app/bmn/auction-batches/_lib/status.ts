@@ -1,4 +1,5 @@
 import { AuctionBatchStatus } from "./api";
+export type { AuctionBatchStatus };
 
 export function getStatusLabel(status: AuctionBatchStatus): string {
   switch (status) {

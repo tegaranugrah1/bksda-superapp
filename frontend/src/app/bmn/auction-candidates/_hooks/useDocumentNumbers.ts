@@ -55,7 +55,7 @@ export interface UseDocumentNumbersResult {
 }
 
 const DEFAULT_KAP = "KAP.06.01";
-const DEFAULT_SK_KAP = "KAP.05.01";
+const DEFAULT_SK_KAP = "KAP.06.01";
 
 export function useDocumentNumbers(): UseDocumentNumbersResult {
   const [baNumber, setBaNumber] = useState("");

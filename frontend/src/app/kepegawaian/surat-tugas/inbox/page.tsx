@@ -16,6 +16,33 @@ import { formatDateIndonesian } from "@/lib/letter-utils";
 import { getStatusStyle, getStatusLabel } from "./_lib/status-helpers";
 import type { AssignmentLetter, InboxEmployee } from "./_lib/types";
 
+const getResolvedTempatTujuan = (letter: AssignmentLetter): string => {
+    if (letter.tempat_tujuan && letter.tempat_tujuan.trim()) {
+        return letter.tempat_tujuan;
+    }
+    const text = letter.maksud_tujuan || "";
+    if (text.includes(" ke ")) {
+        const keParts = text.split(" ke ")[1];
+        if (keParts) {
+            const dest = keParts.split(" dalam rangka ")[0]?.split(" di ")[0]?.trim();
+            if (dest) return dest;
+        }
+    }
+    if (text.includes(" di ")) {
+        const diParts = text.split(" di ");
+        const dest = diParts[diParts.length - 1]?.trim();
+        if (dest) return dest;
+    }
+    if (text.includes(" pada ")) {
+        const padaParts = text.split(" pada ")[1];
+        if (padaParts) {
+            const dest = padaParts.split(" di ")[0]?.trim();
+            if (dest) return dest;
+        }
+    }
+    return "-";
+};
+
 export default function SuratTugasInbox() {
     const [selectedLetter, setSelectedLetter] = useState<AssignmentLetter | null>(null);
     const [search, setSearch] = useState('');
@@ -353,7 +380,7 @@ export default function SuratTugasInbox() {
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <MapPin className="w-3 h-3 text-slate-400" />
-                                                <span className="truncate max-w-[80px]">{l.tempat_tujuan?.split(',')[0] || '-'}</span>
+                                                <span className="truncate max-w-[80px]">{getResolvedTempatTujuan(l).split(',')[0]}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -422,7 +449,7 @@ export default function SuratTugasInbox() {
                                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Lokasi</span>
                                             <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
                                                 <MapPin className="w-3.5 h-3.5 text-blue-500" />
-                                                {selectedLetter.tempat_tujuan || "-"}
+                                                {getResolvedTempatTujuan(selectedLetter)}
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800/50 space-y-1">

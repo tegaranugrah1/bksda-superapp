@@ -278,7 +278,6 @@ class SuratTugasMobileListApiTest extends TestCase
             'tanggal_surat' => '2026-06-19',
             'tempat_tujuan' => 'Sangatta',
             'status' => 'approved',
-            'created_by' => $user->id,
         ]);
         $letter->employees()->sync([$otherEmployee->id]);
 

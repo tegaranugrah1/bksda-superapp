@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Users, Search, UserPlus, X, ChevronRight, FileText, 
   Upload, CheckCircle2, ChevronLeft, Calendar as CalendarIcon, 
@@ -52,6 +52,13 @@ export default function SuratTugasForm() {
         sumber_dana_other: '',
         keterangan: ''
     });
+
+    // Builder State untuk Detail Kegiatan (Synced 100% dengan /kepegawaian/surat-tugas/create)
+    const [jenisTugas, setJenisTugas] = useState<'Perjalanan Dinas ( Lebih dari 1 Hari )' | 'Melaksanakan Kegiatan ( 1 Hari )' | 'Menugaskan Staf'>('Perjalanan Dinas ( Lebih dari 1 Hari )');
+    const [kotaAsal, setKotaAsal] = useState('Samarinda');
+    const [kotaTujuan, setKotaTujuan] = useState('');
+    const [namaKegiatanText, setNamaKegiatanText] = useState('');
+    const [tempatSpesifik, setTempatSpesifik] = useState('');
     const [namaPlh, setNamaPlh] = useState('');
     const [plhSearchQuery, setPlhSearchQuery] = useState('');
     const [showPlhDropdown, setShowPlhDropdown] = useState(false);
@@ -66,6 +73,31 @@ export default function SuratTugasForm() {
     const [tandaSetuju, setTandaSetuju] = useState<'sudah' | 'belum' | ''>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Deteksi otomatis Kota Asal berdasarkan Penempatan Satker Pegawai
+    const detectDefaultKotaAsal = useCallback((employees: Employee[]) => {
+        if (!employees || employees.length === 0) return "Samarinda";
+        const depts = employees.map(e => (e.department || "").toLowerCase());
+
+        const isAllSeksi1 = depts.every(d => d.includes("seksi i") || d.includes("seksi 1") || d.includes("wilayah i") || d.includes("berau") || d.includes("skw i"));
+        if (isAllSeksi1) return "Berau";
+
+        const isAllSeksi2 = depts.every(d => d.includes("seksi ii") || d.includes("seksi 2") || d.includes("wilayah ii") || d.includes("tenggarong") || d.includes("skw ii"));
+        if (isAllSeksi2) return "Tenggarong";
+
+        const isAllSeksi3 = depts.every(d => d.includes("seksi iii") || d.includes("seksi 3") || d.includes("wilayah iii") || d.includes("balikpapan") || d.includes("skw iii"));
+        if (isAllSeksi3) return "Balikpapan";
+
+        return "Samarinda";
+    }, []);
+
+    useEffect(() => {
+        if (selectedEmployees.length > 0) {
+            setKotaAsal(detectDefaultKotaAsal(selectedEmployees));
+        } else {
+            setKotaAsal("Samarinda");
+        }
+    }, [selectedEmployees, detectDefaultKotaAsal]);
 
     // Deteksi apakah ada pejabat struktural (Kasubag TU / Kepala Seksi) yang ikut perjalanan
     const hasPejabatStruktural = selectedEmployees.some((emp) => {
@@ -135,8 +167,21 @@ export default function SuratTugasForm() {
         
         setIsSubmitting(true);
         try {
+            let finalNamaKegiatan = `${jenisTugas}`;
+            if (jenisTugas.includes('Perjalanan Dinas')) {
+                finalNamaKegiatan = `Melaksanakan Perjalanan Dinas dari ${kotaAsal.trim() || '...'} ke ${kotaTujuan.trim() || '...'}${namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ''}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ''}`;
+            } else if (jenisTugas.includes('Melaksanakan Kegiatan')) {
+                finalNamaKegiatan = `Melaksanakan Kegiatan ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
+            } else {
+                finalNamaKegiatan = `Menugaskan Staf untuk ${namaKegiatanText.trim() || '...'}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ''}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ''}`;
+            }
+
+            const calculatedTempatTujuan = tempatSpesifik.trim() || kotaTujuan.trim() || (jenisTugas.includes('Perjalanan Dinas') ? kotaAsal.trim() : '');
+
             const submitData = new FormData();
-            submitData.append('maksud_tujuan', formData.nama_kegiatan);
+            submitData.append('maksud_tujuan', finalNamaKegiatan);
+            submitData.append('nama_kegiatan', finalNamaKegiatan);
+            submitData.append('tempat_tujuan', calculatedTempatTujuan);
             submitData.append('tanggal_mulai', formData.tanggal_mulai);
             submitData.append('tanggal_selesai', formData.tanggal_selesai);
             submitData.append('sumber_dana', formData.sumber_dana);
@@ -313,17 +358,140 @@ export default function SuratTugasForm() {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            Nama Kegiatan <span className="text-red-500">*</span>
-                        </label>
-                        <textarea 
-                            required
-                            value={formData.nama_kegiatan}
-                            onChange={e => setFormData({...formData, nama_kegiatan: e.target.value})}
-                            className="w-full min-h-[100px] p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm font-medium"
-                            placeholder="Contoh: Melaksanakan Perjalanan Dinas dari Samarinda ke Kabupaten Kutai Barat dalam rangka Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi di Suaka Margasatwa Kelian."
-                        />
+                    <div className="space-y-4 bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+                                JENIS TUGAS <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                value={jenisTugas}
+                                onChange={(e) => setJenisTugas(e.target.value as any)}
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-bold text-slate-800 outline-none cursor-pointer"
+                            >
+                                <option value="Perjalanan Dinas ( Lebih dari 1 Hari )">Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )</option>
+                                <option value="Melaksanakan Kegiatan ( 1 Hari )">Melaksanakan Kegiatan ( 1 Hari )</option>
+                                <option value="Menugaskan Staf">Menugaskan Staf</option>
+                            </select>
+                        </div>
+
+                        {jenisTugas.includes('Perjalanan Dinas') ? (
+                            <div className="space-y-4 pt-1 animate-in fade-in duration-300">
+                                {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Dari ( Kota / Lokasi Asal ) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" required
+                                            value={kotaAsal}
+                                            onChange={e => setKotaAsal(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Samarinda"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Ke ( Kota / Kabupaten Tujuan ) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" required
+                                            value={kotaTujuan}
+                                            onChange={e => setKotaTujuan(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Kabupaten Kutai Barat"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Dalam Rangka <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        required
+                                        rows={2}
+                                        value={namaKegiatanText}
+                                        onChange={e => setNamaKegiatanText(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
+                                        placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati..."
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Di ( Tempat Spesifik / Opsional )
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={tempatSpesifik}
+                                        onChange={e => setTempatSpesifik(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                        placeholder="Contoh: Suaka Margasatwa Kelian"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4 pt-1 animate-in fade-in duration-300">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        {jenisTugas.includes('Melaksanakan Kegiatan') ? 'Melaksanakan Kegiatan ( 1 Hari )' : 'Menugaskan Staf'} <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        required
+                                        rows={2}
+                                        value={namaKegiatanText}
+                                        onChange={e => setNamaKegiatanText(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
+                                        placeholder={jenisTugas.includes('Melaksanakan Kegiatan') ? 'Contoh: opname fisik (stok opname) barang persediaan' : 'Contoh: verifikasi berkas administrasi persediaan'}
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Pada ( Tempat / Unit / Lokasi Kegiatan )
+                                        </label>
+                                        <input 
+                                            type="text"
+                                            value={tempatSpesifik}
+                                            onChange={e => setTempatSpesifik(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Kantor Balai / tempat kegiatannya"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            Di ( Kota / Kabupaten ) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" required
+                                            value={kotaTujuan}
+                                            onChange={e => setKotaTujuan(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                                            placeholder="Contoh: Samarinda"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Live Generated Preview Box */}
+                        <div className="mt-3 p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-blue-900">
+                            <span className="block text-[11px] font-bold uppercase tracking-wider text-blue-600 mb-1">
+                                📌 Pratinjau Teks Hasil Resmi
+                            </span>
+                            <p className="text-xs font-bold leading-relaxed">
+                                {jenisTugas.includes('Perjalanan Dinas')
+                                    ? `Melaksanakan Perjalanan Dinas dari ${kotaAsal || '...'} ke ${kotaTujuan || '...'}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ''}${tempatSpesifik ? ` di ${tempatSpesifik}` : ''}`
+                                    : jenisTugas.includes('Melaksanakan Kegiatan')
+                                    ? `Melaksanakan Kegiatan ${namaKegiatanText || '...'}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ''}${kotaTujuan ? ` di ${kotaTujuan}` : ''}`
+                                    : `Menugaskan Staf untuk ${namaKegiatanText || '...'}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ''}${kotaTujuan ? ` di ${kotaTujuan}` : ''}`
+                                }
+                            </p>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

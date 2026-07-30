@@ -12,6 +12,7 @@ import {
   AuctionBatchAsset,
   AuctionCandidateAsset,
 } from "../../_lib/api";
+import { api } from "@/lib/api";
 import { formatRupiah } from "../../../auction-candidates/_lib/auction-helpers";
 import { toast } from "sonner";
 import {
@@ -28,6 +29,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,12 +61,55 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
   const [modalSelectedIds, setModalSelectedIds] = useState<Set<string>>(new Set());
 
   // Edit Lot State
-  const [editingLotAssetId, setEditingLotAssetId] = useState<string | null>(null);
-  const [editingLotValue, setEditingLotValue] = useState("");
+  const [lotDrafts, setLotDrafts] = useState<Record<string, string>>({});
+
+  // Quick Edit Asset State
+  const [isQuickEditOpen, setIsQuickEditOpen] = useState(false);
+  const [quickEditAsset, setQuickEditAsset] = useState<AuctionBatchAsset | null>(null);
+  const [quickEditBpkb, setQuickEditBpkb] = useState("");
+  const [quickEditPolisi, setQuickEditPolisi] = useState("");
+  const [quickEditRangka, setQuickEditRangka] = useState("");
+  const [quickEditMesin, setQuickEditMesin] = useState("");
+  const [isSavingQuickEdit, setIsSavingQuickEdit] = useState(false);
+
+  const handleOpenQuickEdit = (asset: AuctionBatchAsset) => {
+    setQuickEditAsset(asset);
+    setQuickEditBpkb(asset.no_bpkp || "");
+    setQuickEditPolisi(asset.no_polisi || "");
+    setQuickEditRangka(asset.no_rangka || "");
+    setQuickEditMesin(asset.no_mesin || "");
+    setIsQuickEditOpen(true);
+  };
+
+  const handleSaveQuickEdit = async () => {
+    if (!quickEditAsset) return;
+    setIsSavingQuickEdit(true);
+    try {
+      await api.put(`/bmn/assets/${quickEditAsset.id}`, {
+        no_bpkp: quickEditBpkb.trim() || null,
+        no_polisi: quickEditPolisi.trim() || null,
+        no_rangka: quickEditRangka.trim() || null,
+        no_mesin: quickEditMesin.trim() || null,
+      });
+      toast.success("Dokumen aset berhasil diperbarui.");
+      setIsQuickEditOpen(false);
+      onRefetch();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.error || err.message || "Gagal memperbarui dokumen aset.";
+      toast.error(errorMsg);
+    } finally {
+      setIsSavingQuickEdit(false);
+    }
+  };
 
   useEffect(() => {
     if (batch?.assets) {
       setLocalAssets(batch.assets);
+      setLotDrafts(
+        Object.fromEntries(
+          batch.assets.map((asset) => [asset.id, asset.pivot?.lot_number || ""])
+        )
+      );
     }
   }, [batch]);
 
@@ -78,12 +123,17 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
   const candidates = candidatesData?.data || [];
 
   // Mutations
+  const invalidateDocumentContext = () => {
+    queryClient.invalidateQueries({ queryKey: ["bmn-auction-document-context", batch.id] });
+  };
+
   const addAssetsMutation = useMutation({
     mutationFn: (assetIds: string[]) => addAssets(batch.id, assetIds),
     onSuccess: () => {
       toast.success("Aset berhasil ditambahkan!");
       setIsAddModalOpen(false);
       setModalSelectedIds(new Set());
+      invalidateDocumentContext();
       onRefetch();
     },
     onError: (error: any) => {
@@ -95,6 +145,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
     mutationFn: (assetId: string) => removeAsset(batch.id, assetId),
     onSuccess: () => {
       toast.success("Aset berhasil dikeluarkan dari paket.");
+      invalidateDocumentContext();
       onRefetch();
     },
     onError: (error: any) => {
@@ -105,6 +156,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
   const updateOrderMutation = useMutation({
     mutationFn: (orderedAssetIds: string[]) => updateOrder(batch.id, orderedAssetIds),
     onSuccess: () => {
+      invalidateDocumentContext();
       onRefetch();
     },
     onError: (error: any) => {
@@ -119,7 +171,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
       updateValuation(batch.id, assetId, { lot_number: lotNumber }),
     onSuccess: () => {
       toast.success("Nomor Lot berhasil diperbarui.");
-      setEditingLotAssetId(null);
+      invalidateDocumentContext();
       onRefetch();
     },
     onError: (error: any) => {
@@ -177,17 +229,10 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
     addAssetsMutation.mutate(Array.from(modalSelectedIds));
   };
 
-  // Lot Edit Handlers
-  const handleStartEditLot = (asset: AuctionBatchAsset) => {
-    if (readOnly) return;
-    setEditingLotAssetId(asset.id);
-    setEditingLotValue(asset.pivot?.lot_number || "");
-  };
-
   const handleSaveLot = (assetId: string) => {
     updateLotMutation.mutate({
       assetId,
-      lotNumber: editingLotValue.trim() || null,
+      lotNumber: lotDrafts[assetId]?.trim() || null,
     });
   };
 
@@ -220,13 +265,8 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-zinc-100 bg-zinc-50/75 dark:border-zinc-800 dark:bg-zinc-900/50">
-                {!readOnly && (
-                  <th className="w-20 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    Urutan
-                  </th>
-                )}
-                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 w-28">
-                  Nomor Lot
+                <th className="w-24 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  No. / Urutan
                 </th>
                 <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   Identitas Aset
@@ -250,7 +290,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
               {localAssets.length === 0 ? (
                 <tr>
-                  <td colSpan={readOnly ? 5 : 7} className="p-16 text-center">
+                  <td colSpan={readOnly ? 4 : 5} className="p-16 text-center">
                     <div className="flex flex-col items-center justify-center space-y-3">
                       <Package className="h-9 w-9 text-zinc-300 dark:text-zinc-750" />
                       <div>
@@ -280,74 +320,40 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                   const isExpanded = expandedAssetId === asset.id;
                   const hasWarnings = asset.requires_document_review;
                   const warnings = asset.document_readiness_warnings || [];
-                  const isEditingLot = editingLotAssetId === asset.id;
-
                   return (
                     <React.Fragment key={asset.id}>
                       <tr className="transition-colors hover:bg-zinc-50/40 dark:hover:bg-zinc-900/30">
-                        {/* Order action */}
-                        {!readOnly && (
-                          <td className="px-4 py-4 text-center">
-                            <div className="flex items-center justify-center gap-0.5">
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                disabled={index === 0}
-                                onClick={() => handleMoveUp(index)}
-                                className="rounded-lg h-7 w-7"
-                              >
-                                <ArrowUp className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                disabled={index === localAssets.length - 1}
-                                onClick={() => handleMoveDown(index)}
-                                className="rounded-lg h-7 w-7"
-                              >
-                                <ArrowDown className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </td>
-                        )}
-
-                        {/* Lot Number */}
-                        <td className="px-4 py-4">
-                          {isEditingLot ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                value={editingLotValue}
-                                onChange={(e) => setEditingLotValue(e.target.value)}
-                                className="h-8 rounded-lg text-xs w-20 border-zinc-200 dark:border-zinc-800"
-                                placeholder="LOT-XX"
-                                autoFocus
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") handleSaveLot(asset.id);
-                                  if (e.key === "Escape") setEditingLotAssetId(null);
-                                }}
-                              />
-                              <Button
-                                size="icon-sm"
-                                onClick={() => handleSaveLot(asset.id)}
-                                className="h-7 w-7 bg-emerald-650 hover:bg-emerald-700 text-white rounded-lg"
-                                disabled={updateLotMutation.isPending}
-                              >
-                                <Check className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div
-                              onClick={() => handleStartEditLot(asset)}
-                              className={`text-xs font-bold font-mono px-2 py-1 rounded-md border text-center ${
-                                asset.pivot?.lot_number
-                                  ? "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200"
-                                  : "bg-red-50 border-red-100 text-red-700 dark:bg-red-950/20 dark:border-red-900/30 cursor-pointer"
-                              } ${!readOnly ? "cursor-pointer hover:border-zinc-355" : ""}`}
-                              title={!readOnly ? "Klik untuk mengedit nomor Lot" : undefined}
-                            >
-                              {asset.pivot?.lot_number || "LOT ?"}
-                            </div>
-                          )}
+                        {/* No / Urutan */}
+                        <td className="px-4 py-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="font-mono text-xs font-bold text-zinc-600 dark:text-zinc-300 w-5 text-right">
+                              {index + 1}.
+                            </span>
+                            {!readOnly && (
+                              <div className="flex items-center gap-0.5">
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  disabled={index === 0}
+                                  onClick={() => handleMoveUp(index)}
+                                  className="rounded-lg h-7 w-7"
+                                  title="Naikkan urutan"
+                                >
+                                  <ArrowUp className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  disabled={index === localAssets.length - 1}
+                                  onClick={() => handleMoveDown(index)}
+                                  className="rounded-lg h-7 w-7"
+                                  title="Turunkan urutan"
+                                >
+                                  <ArrowDown className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </td>
 
                         {/* Identitas Aset */}
@@ -432,9 +438,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                       {/* Expandable Warnings */}
                       {isExpanded && hasWarnings && (
                         <tr className="bg-amber-50/10 dark:bg-amber-900/5 border-t border-b border-amber-100/50 dark:border-amber-900/20">
-                          {/* Pad check/order column */}
-                          {!readOnly && <td />}
-                          <td colSpan={readOnly ? 5 : 6} className="px-5 py-3.5">
+                          <td colSpan={readOnly ? 4 : 5} className="px-5 py-3.5">
                             <div className="space-y-1.5">
                               <div className="text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1">
                                 <AlertTriangle className="h-3.5 w-3.5" />
@@ -445,6 +449,17 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                                   <li key={i}>{warn}</li>
                                 ))}
                               </ul>
+                              {!readOnly && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenQuickEdit(asset)}
+                                  className="rounded-xl text-xs h-7 px-3 flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-850 dark:bg-amber-950/20 dark:text-amber-300 dark:hover:bg-amber-950/40 border-amber-200 mt-2.5"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                  Lengkapi Dokumen Aset
+                                </Button>
+                              )}
                               <p className="text-[10px] text-zinc-500 italic mt-2">
                                 * Peringatan ini bersifat imbauan dan tidak memblokir proses lelang.
                               </p>
@@ -463,33 +478,33 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
 
       {/* Add Assets Modal Dialog */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="max-w-3xl rounded-2xl flex flex-col max-h-[85vh]">
+        <DialogContent className="w-full sm:max-w-6xl max-w-[calc(100vw-2rem)] rounded-2xl flex flex-col max-h-[88vh] p-6 gap-4 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
               Tambah Aset Baru
             </DialogTitle>
-            <DialogDescription className="text-sm text-zinc-555 dark:text-zinc-400">
+            <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400">
               Pilih aset rusak berat yang tidak aktif di paket lain untuk ditambahkan ke paket lelang ini.
             </DialogDescription>
           </DialogHeader>
 
           {/* Search bar inside modal */}
-          <form onSubmit={handleModalSearchSubmit} className="flex gap-2 py-2">
+          <form onSubmit={handleModalSearchSubmit} className="flex gap-2 py-1">
             <div className="relative flex-1">
-              <Search className="absolute top-2.5 left-3 h-4 w-4 text-zinc-450" />
+              <Search className="absolute top-2.5 left-3 h-4 w-4 text-zinc-400" />
               <Input
                 type="text"
-                placeholder="Cari nama aset, kode barang..."
+                placeholder="Cari nama aset, kode barang, NUP..."
                 value={modalSearch}
                 onChange={(e) => setModalSearch(e.target.value)}
-                className="pl-9 rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-emerald-500 h-9"
+                className="pl-9 rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-emerald-500 h-9 text-xs"
               />
             </div>
             <Button
               type="submit"
               variant="outline"
               size="sm"
-              className="rounded-xl flex items-center gap-1.5 h-9"
+              className="rounded-xl flex items-center gap-1.5 h-9 text-xs px-4"
             >
               Cari
             </Button>
@@ -497,28 +512,30 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
 
           {/* Modal Table body */}
           <div className="flex-1 overflow-y-auto border border-zinc-100 dark:border-zinc-800 rounded-xl">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800">
-                <tr className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  <th className="w-12 px-4 py-2.5 text-center">Pilih</th>
-                  <th className="px-4 py-2.5">Identitas Aset</th>
-                  <th className="px-4 py-2.5">Status Dokumen</th>
-                  <th className="px-4 py-2.5 text-right">Nilai Perolehan</th>
+                <tr className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  <th className="w-12 px-4 py-3 text-center">Pilih</th>
+                  <th className="px-4 py-3">Identitas Aset</th>
+                  <th className="px-4 py-3">Merk / Tipe / Polisi</th>
+                  <th className="px-4 py-3 text-center">Kondisi</th>
+                  <th className="px-4 py-3 text-center">Status Dokumen</th>
+                  <th className="px-4 py-3 text-right">Nilai Perolehan</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60 text-xs">
                 {isLoadingCandidates ? (
                   <tr>
-                    <td colSpan={4} className="p-10 text-center">
+                    <td colSpan={6} className="p-12 text-center">
                       <Loader2 className="mx-auto h-5 w-5 animate-spin text-emerald-600" />
-                      <p className="text-xs text-zinc-400 mt-1">Memuat kandidat aset...</p>
+                      <p className="text-xs text-zinc-400 mt-2">Memuat kandidat aset...</p>
                     </td>
                   </tr>
                 ) : candidates.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-10 text-center">
+                    <td colSpan={6} className="p-12 text-center">
                       <Package className="mx-auto h-8 w-8 text-zinc-300 dark:text-zinc-700" />
-                      <p className="text-xs text-zinc-400 mt-1">Tidak ada kandidat aset tersedia.</p>
+                      <p className="text-xs text-zinc-400 mt-2">Tidak ada kandidat aset tersedia.</p>
                     </td>
                   </tr>
                 ) : (
@@ -529,8 +546,8 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                       return (
                         <tr
                           key={asset.id}
-                          className={`transition-colors hover:bg-zinc-50/50 dark:hover:bg-zinc-900/40 cursor-pointer ${
-                            isSelected ? "bg-emerald-50/10 dark:bg-emerald-950/5" : ""
+                          className={`transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-900/40 cursor-pointer ${
+                            isSelected ? "bg-emerald-50/20 dark:bg-emerald-950/20" : ""
                           }`}
                           onClick={() => toggleModalSelect(asset.id)}
                         >
@@ -544,19 +561,34 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                             <div className="font-semibold text-zinc-900 dark:text-zinc-100">
                               {asset.nama_barang}
                             </div>
-                            <div className="mt-0.5 flex items-center gap-1 font-mono text-[9px] text-zinc-500">
-                              <span className="font-bold text-red-700">{asset.kode_barang}</span>
+                            <div className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-zinc-500">
+                              <span className="font-bold text-red-700 dark:text-red-400">{asset.kode_barang}</span>
                               <span>•</span>
                               <span>NUP: {asset.nup}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3">
+                            <div className="font-medium text-zinc-800 dark:text-zinc-200">
+                              {asset.merk_tipe || "-"}
+                            </div>
+                            {asset.no_polisi && (
+                              <div className="text-[10px] font-mono text-zinc-500 mt-0.5">
+                                Polisi: {asset.no_polisi}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                              {asset.kondisi || "Rusak Berat"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
                             {asset.requires_document_review ? (
-                              <span className="inline-flex items-center gap-0.5 bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-full text-[9px] font-semibold">
+                              <span className="inline-flex items-center gap-0.5 bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-900 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
                                 Review Dokumen
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full text-[9px] font-semibold">
+                              <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
                                 Ready
                               </span>
                             )}
@@ -573,12 +605,12 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
           </div>
 
           <DialogFooter className="pt-2">
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="rounded-xl">
+            <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="rounded-xl text-xs">
               Batal
             </Button>
             <Button
               onClick={handleAddSubmit}
-              className="bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5 text-xs"
               disabled={addAssetsMutation.isPending || modalSelectedIds.size === 0}
             >
               {addAssetsMutation.isPending ? (
@@ -588,6 +620,84 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
                 </>
               ) : (
                 <>Tambah Terpilih ({modalSelectedIds.size})</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Edit Asset Modal */}
+      <Dialog open={isQuickEditOpen} onOpenChange={setIsQuickEditOpen}>
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+              Lengkapi Dokumen Aset
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500">
+              Perbarui dokumen administrasi untuk <strong>{quickEditAsset?.nama_barang}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500">Nomor BPKB</label>
+              <Input
+                value={quickEditBpkb}
+                onChange={(e) => setQuickEditBpkb(e.target.value)}
+                placeholder="Masukkan Nomor BPKB"
+                className="rounded-xl text-xs border-zinc-200 dark:border-zinc-800 h-9"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500">Nomor Polisi</label>
+              <Input
+                value={quickEditPolisi}
+                onChange={(e) => setQuickEditPolisi(e.target.value)}
+                placeholder="Masukkan Nomor Polisi (contoh: KT 1234 XX)"
+                className="rounded-xl text-xs border-zinc-200 dark:border-zinc-800 h-9"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500">Nomor Rangka</label>
+              <Input
+                value={quickEditRangka}
+                onChange={(e) => setQuickEditRangka(e.target.value)}
+                placeholder="Masukkan Nomor Rangka"
+                className="rounded-xl text-xs border-zinc-200 dark:border-zinc-800 h-9"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500">Nomor Mesin</label>
+              <Input
+                value={quickEditMesin}
+                onChange={(e) => setQuickEditMesin(e.target.value)}
+                placeholder="Masukkan Nomor Mesin"
+                className="rounded-xl text-xs border-zinc-200 dark:border-zinc-800 h-9"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsQuickEditOpen(false)}
+              className="rounded-xl text-xs"
+              disabled={isSavingQuickEdit}
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleSaveQuickEdit}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              disabled={isSavingQuickEdit}
+            >
+              {isSavingQuickEdit ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                "Simpan Perubahan"
               )}
             </Button>
           </DialogFooter>

@@ -19,7 +19,7 @@ class RegulasiController extends Controller
         $query = Regulasi::with('jenis:id,nama')->latest();
 
         if ($request->filled('search')) {
-            $query->where('judul', 'ilike', '%'.$request->search.'%');
+            $query->where('judul', 'LIKE', '%'.$request->search.'%');
         }
         if ($request->filled('tahun')) {
             $query->where('tahun', $request->tahun);

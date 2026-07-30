@@ -6,6 +6,7 @@ import {
   formatPlainRupiah,
   formatDateLong,
   getSpelledDate,
+  getAssetNilaiTaksiran,
 } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 import type { PemeriksaAnggota } from "../_lib/pemeriksa-defaults";
@@ -13,6 +14,7 @@ import type { PemeriksaAnggota } from "../_lib/pemeriksa-defaults";
 interface BaPemeriksaanDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   pemeriksaList: PemeriksaAnggota[];
   stNumber: string;
   stTanggal: string;
@@ -30,6 +32,52 @@ interface BaLampiranPage {
 function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
   return `BA.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
+}
+
+function parseDocDate(dateStr?: string | null): Date {
+  if (!dateStr) return new Date();
+  try {
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const d = new Date(year, month, day);
+      if (!isNaN(d.getTime())) return d;
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return d;
+  } catch (e) {}
+  return new Date();
+}
+
+function formatStNumberText(stNumber: string, today: Date) {
+  const raw = (stNumber || "").trim();
+  if (!raw) return "____";
+  if (raw.toUpperCase().startsWith("ST.")) return raw;
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  return `ST.${raw}/K.18/TU/KAP.06.01/B/${month}/${today.getFullYear()}`;
+}
+
+function formatStTanggalText(stTanggal: string) {
+  if (!stTanggal || stTanggal === "____") return "____";
+  try {
+    const parts = stTanggal.split("-");
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const d = new Date(year, month, day);
+      if (!isNaN(d.getTime())) {
+        return formatDateLong(d);
+      }
+    }
+    const d = new Date(stTanggal);
+    if (!isNaN(d.getTime())) {
+      return formatDateLong(d);
+    }
+  } catch (e) {}
+  return stTanggal;
 }
 
 function buildBaLampiranPages(assets: AuctionAsset[]): BaLampiranPage[] {
@@ -203,16 +251,19 @@ export function handlePrintBaPemeriksaan() {
 export function BaPemeriksaanDocument({
   number,
   kap,
+  date,
   pemeriksaList,
   stNumber,
   stTanggal,
   assets,
   kepalaBalai,
 }: BaPemeriksaanDocumentProps) {
-  const today = new Date();
-  const nomorText = buildNomorText(number, kap, today);
-  const { day, dateText, month, yearText } = getSpelledDate(today);
-  const tanggalLong = formatDateLong(today);
+  const docDate = parseDocDate(date);
+  const nomorText = buildNomorText(number, kap, docDate);
+  const formattedStNumber = formatStNumberText(stNumber, docDate);
+  const formattedStTanggal = formatStTanggalText(stTanggal);
+  const { day, dateText, month, yearText } = getSpelledDate(docDate);
+  const tanggalLong = formatDateLong(docDate);
   const lampiranPages = buildBaLampiranPages(assets);
 
   const half = Math.ceil(pemeriksaList.length / 2);
@@ -316,7 +367,7 @@ export function BaPemeriksaanDocument({
           </div>
 
           <p contentEditable suppressContentEditableWarning className="doc-editable">
-            Telah melaksanakan tugas pemeriksaan secara administrasi, teknis tentang kondisi dan nilai taksiran Barang Milik Negara berupa Alat Angkutan Bermotor yang berada pada Balai Konservasi Sumber Daya Alam Kalimantan Timur sesuai dengan Surat Tugas Nomor : {stNumber || "____"}, tanggal {stTanggal || "____"} sebagaimana terlampir.
+            Telah melaksanakan tugas pemeriksaan secara administrasi, teknis tentang kondisi dan nilai taksiran Barang Milik Negara berupa Alat Angkutan Bermotor yang berada pada Balai Konservasi Sumber Daya Alam Kalimantan Timur sesuai dengan Surat Tugas Nomor : {formattedStNumber}, tanggal {formattedStTanggal} sebagaimana terlampir.
           </p>
           <p contentEditable suppressContentEditableWarning className="doc-editable">
             Demikian Berita Acara Pemeriksaan ini dibuat dengan sebenarnya, ditandatangani oleh masing-masing pemeriksa.
@@ -416,7 +467,9 @@ export function BaPemeriksaanDocument({
                       <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.tahun_perolehan ?? ""}</td>
                       <td contentEditable suppressContentEditableWarning className="doc-editable" style={{ textAlign: "right" }}>{asset.nilai_perolehan ? formatPlainRupiah(asset.nilai_perolehan) : ""}</td>
                       <td contentEditable suppressContentEditableWarning className="doc-editable" style={{ textAlign: "center" }}>-</td>
-                      <td contentEditable suppressContentEditableWarning className="doc-editable" style={{ textAlign: "right" }}></td>
+                      <td contentEditable suppressContentEditableWarning className="doc-editable" style={{ textAlign: "right" }}>
+                        {getAssetNilaiTaksiran(asset) > 0 ? formatPlainRupiah(getAssetNilaiTaksiran(asset)) : ""}
+                      </td>
                       <td contentEditable suppressContentEditableWarning className="doc-editable">{asset.kondisi}</td>
                     </tr>
                   ))

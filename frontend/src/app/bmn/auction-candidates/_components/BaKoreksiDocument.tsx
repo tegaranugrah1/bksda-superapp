@@ -8,6 +8,7 @@ import {
   formatPlainRupiah,
   formatDateLong,
   getSpelledDate,
+  parseDocDate,
 } from "../_lib/auction-helpers";
 
 const BA_ATTACHMENT_PAGE_HEIGHT_MM = 269;
@@ -103,8 +104,8 @@ export function handlePrintBa(orderedSelectedAssets: AuctionAsset[]) {
           .attachment-signature { margin-top: 1.5rem; }
           .signature p { margin: 0; padding: 0; line-height: 1.15; }
           .signature p.ttd-spacer-top { margin-top: 2rem !important; }
-          .ttd-placeholder { box-sizing: border-box; height: 112px; padding-top: 40px; padding-left: 1.35cm; color: #94a3b8; margin-top: 2rem; margin-bottom: 2rem; }
-          .attachment-signature .ttd-placeholder { height: 92px; padding-top: 30px; margin-top: 2rem; margin-bottom: 2rem; }
+          .ttd-placeholder { box-sizing: border-box; height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+          .attachment-signature .ttd-placeholder { height: 84px; margin-top: 0.5rem; margin-bottom: 0.5rem; }
           .ba-editable { outline: none; border-bottom: none !important; }
           .ba-measurement { display: none !important; }
         </style>
@@ -224,7 +225,6 @@ function AttachmentMeta({ baNumberText, today }: { baNumberText: string; today: 
 function AttachmentSignature({ kepalaBalai }: { kepalaBalai: SkKepalaBalai }) {
   return (
     <div className="signature attachment-signature mt-6 ml-auto w-80">
-      <p className="m-0">Kepala Balai,</p>
       <div className="ttd-placeholder mt-8 h-23 box-border pt-7.5 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
       <p className="m-0 mt-8">{kepalaBalai.nama}</p>
       <p className="m-0">NIP. {kepalaBalai.nip}</p>
@@ -447,14 +447,14 @@ function buildFallbackLampiranPages(assets: AuctionAsset[]) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { assets: AuctionAsset[]; baNumber: string; baKap: string; kepalaBalai: SkKepalaBalai }) {
+export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai, date }: { assets: AuctionAsset[]; baNumber: string; baKap: string; date?: string; kepalaBalai: SkKepalaBalai }) {
   const measurementRef = useRef<HTMLDivElement>(null);
   const fallbackLampiranPages = useMemo(() => buildFallbackLampiranPages(assets), [assets]);
   const [lampiranPages, setLampiranPages] = useState<BaLampiranPage[]>(fallbackLampiranPages);
-  const today = new Date();
-  const { day, dateText, month, yearText } = getSpelledDate(today);
-  const monthNum = String(today.getMonth() + 1).padStart(2, "0");
-  const baNumberText = `BA.${baNumber.trim() || "____"}/K.18/TU/${baKap}/B/${monthNum}/${today.getFullYear()}`;
+  const docDate = parseDocDate(date);
+  const { day, dateText, month, yearText } = getSpelledDate(docDate);
+  const monthNum = String(docDate.getMonth() + 1).padStart(2, "0");
+  const baNumberText = `BA.${baNumber.trim() || "____"}/K.18/TU/${baKap}/B/${monthNum}/${docDate.getFullYear()}`;
   const datePhrase = `${dateText} bulan ${month} tahun ${yearText}`;
 
   useLayoutEffect(() => {
@@ -612,8 +612,8 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { a
           .ba-asset-table tr { break-inside: avoid; page-break-inside: avoid; }
           .ba-continuation-spacer { height: 8mm; }
           .attachment-signature { margin-top: 1.5rem !important; break-inside: avoid; page-break-inside: avoid; }
-          .attachment-signature .ttd-placeholder { height: 92px !important; padding-top: 30px !important; margin-top: 2rem !important; margin-bottom: 2rem !important; }
-          .signature .ttd-placeholder { margin-top: 2rem !important; margin-bottom: 2rem !important; }
+          .attachment-signature .ttd-placeholder { height: 84px !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+          .signature .ttd-placeholder { margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
           .ba-measurement { display: none !important; }
         }
       `}</style>
@@ -713,11 +713,11 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { a
           >
             Kepala Balai,
           </p>
-          <div className="ttd-placeholder mt-8 h-28 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
+          <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
           <p
             contentEditable="true"
             suppressContentEditableWarning
-            className="ba-editable m-0 mt-8"
+            className="ba-editable m-0 mt-2"
           >
             {kepalaBalai.nama}
           </p>
@@ -735,7 +735,7 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { a
       <div ref={measurementRef} className="ba-measurement" aria-hidden="true">
         <div data-ba-measure="page" className="ba-measure-page" />
         <div data-ba-measure="meta">
-          <AttachmentMeta baNumberText={baNumberText} today={today} />
+          <AttachmentMeta baNumberText={baNumberText} today={docDate} />
         </div>
         <div data-ba-measure="continuation-spacer">
           <div className="ba-continuation-spacer" />
@@ -771,7 +771,7 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai }: { a
               page={page}
               baNumberText={baNumberText}
               kepalaBalai={kepalaBalai}
-              today={today}
+              today={parseDocDate(date)}
             />
           </div>
         </article>

@@ -22,11 +22,10 @@ describe('config', () => {
     expect(config.isDev).toBe(false);
   });
 
-  it('throws error when EXPO_PUBLIC_API_URL is missing', () => {
+  it('uses fallback apiUrl when EXPO_PUBLIC_API_URL is missing', () => {
     delete process.env.EXPO_PUBLIC_API_URL;
 
-    expect(() => {
-      require('../config');
-    }).toThrow('EXPO_PUBLIC_API_URL tidak ditemukan');
+    const { config } = require('../config');
+    expect(config.apiUrl).toBe('http://192.168.100.176:8000/api');
   });
 });

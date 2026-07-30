@@ -23,7 +23,7 @@ class InformasiController extends Controller
         $query = Informasi::with('category:id,nama', 'author:id,name')->latest();
 
         if ($request->filled('search')) {
-            $query->where('judul', 'ilike', '%'.$request->search.'%');
+            $query->where('judul', 'LIKE', '%'.$request->search.'%');
         }
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);

@@ -37,10 +37,10 @@ class AssetController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nama_barang', 'ilike', "%{$search}%")
-                    ->orWhere('kode_barang', 'ilike', "%{$search}%")
-                    ->orWhere('merk', 'ilike', "%{$search}%")
-                    ->orWhere('no_polisi', 'ilike', "%{$search}%");
+                $q->where('nama_barang', 'LIKE', "%{$search}%")
+                    ->orWhere('kode_barang', 'LIKE', "%{$search}%")
+                    ->orWhere('merk', 'LIKE', "%{$search}%")
+                    ->orWhere('no_polisi', 'LIKE', "%{$search}%");
             });
         }
 
@@ -61,16 +61,16 @@ class AssetController extends Controller
                     $fullName = trim($employee->nama_lengkap);
                     
                     // Search full name
-                    $q->orWhere('pengguna', 'ilike', '%' . $fullName . '%')
-                      ->orWhere('nama_pengguna', 'ilike', '%' . $fullName . '%');
+                    $q->orWhere('pengguna', 'LIKE', '%' . $fullName . '%')
+                      ->orWhere('nama_pengguna', 'LIKE', '%' . $fullName . '%');
                     
                     // Search name before comma (titles)
                     if (str_contains($fullName, ',')) {
                         $nameParts = explode(',', $fullName);
                         $baseName = trim($nameParts[0]);
                         if (strlen($baseName) > 2) {
-                            $q->orWhere('pengguna', 'ilike', '%' . $baseName . '%')
-                              ->orWhere('nama_pengguna', 'ilike', '%' . $baseName . '%');
+                            $q->orWhere('pengguna', 'LIKE', '%' . $baseName . '%')
+                              ->orWhere('nama_pengguna', 'LIKE', '%' . $baseName . '%');
                         }
                     }
                     
@@ -78,7 +78,7 @@ class AssetController extends Controller
                     $words = explode(' ', $fullName);
                     if (count($words) >= 2) {
                         $twoWords = $words[0] . ' ' . $words[1];
-                        $q->orWhere('pengguna', 'ilike', '%' . $twoWords . '%');
+                        $q->orWhere('pengguna', 'LIKE', '%' . $twoWords . '%');
                     }
                 }
             });

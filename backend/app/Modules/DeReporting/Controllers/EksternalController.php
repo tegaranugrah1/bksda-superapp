@@ -32,9 +32,9 @@ class EksternalController extends Controller
         // Fitur Pencarian Cerdas untuk Operator
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('judul_laporan', 'ilike', "%{$search}%")
-                ->orWhere('nama_pelapor', 'ilike', "%{$search}%")
-                ->orWhere('instansi', 'ilike', "%{$search}%");
+            $query->where('judul_laporan', 'LIKE', "%{$search}%")
+                ->orWhere('nama_pelapor', 'LIKE', "%{$search}%")
+                ->orWhere('instansi', 'LIKE', "%{$search}%");
         }
 
         // Filter Berdasarkan Status (Cari yang 'Menunggu Tinjauan')

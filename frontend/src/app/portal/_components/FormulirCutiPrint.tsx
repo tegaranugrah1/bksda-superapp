@@ -279,9 +279,9 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
         </thead>
         <tbody>
           <tr>
-            {/* Left half: Cuti Tahunan / Penting */}
+            {/* Left half: Cuti Tahunan */}
             <td colSpan={2} className="w-1/2 align-top border-r border-black p-0">
-              <div className="px-2.5 py-0.5 font-semibold border-b border-black">1. Cuti Karena Alasan Penting / Tahunan</div>
+              <div className="px-2.5 py-0.5 font-semibold border-b border-black">1. CUTI TAHUNAN</div>
               <table className="w-full text-center border-collapse text-[9px]">
                 <thead>
                   <tr className="bg-gray-50 border-b border-black font-semibold">
@@ -315,23 +315,23 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
                 <tbody>
                   <tr className="border-b border-black">
                     <td className="px-2.5 py-0.5">2. Cuti Besar</td>
-                    <td className="w-11 border-l border-black h-4.5" />
+                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isBesar ? "✓" : ""}</td>
                   </tr>
                   <tr className="border-b border-black">
                     <td className="px-2.5 py-0.5">3. Cuti Sakit</td>
-                    <td className="w-11 border-l border-black h-4.5" />
+                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isSakit ? "✓" : ""}</td>
                   </tr>
                   <tr className="border-b border-black">
                     <td className="px-2.5 py-0.5">4. Cuti Melahirkan</td>
-                    <td className="w-11 border-l border-black h-4.5" />
+                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isMelahirkan ? "✓" : ""}</td>
                   </tr>
                   <tr className="border-b border-black">
-                    <td className="px-2.5 py-0.5">5. Cuti Tahunan</td>
-                    <td className="w-11 border-l border-black h-4.5" />
+                    <td className="px-2.5 py-0.5">5. Cuti Karena Alasan Penting</td>
+                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isPenting ? "✓" : ""}</td>
                   </tr>
                   <tr className="border-b border-black">
                     <td className="px-2.5 py-0.5">6. Cuti di Luar Tanggungan Negara</td>
-                    <td className="w-11 border-l border-black h-4.5" />
+                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isLuarTanggungan ? "✓" : ""}</td>
                   </tr>
                 </tbody>
               </table>

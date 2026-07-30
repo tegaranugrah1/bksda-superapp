@@ -122,15 +122,15 @@ class DocumentHistoryController extends Controller
         if ($search !== '') {
             $needle = '%' . $search . '%';
             $query->where(function ($q) use ($needle) {
-                $q->where('number', 'ilike', $needle)
-                    ->orWhereRaw('first_party_snapshot::text ilike ?', [$needle])
-                    ->orWhereRaw('second_party_snapshot::text ilike ?', [$needle])
-                    ->orWhereRaw('assets_snapshot::text ilike ?', [$needle])
+                $q->where('number', 'LIKE', $needle)
+                    ->orWhereRaw('CAST(first_party_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw('CAST(second_party_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw('CAST(assets_snapshot AS CHAR) LIKE ?', [$needle])
                     ->orWhereHas('employee', function ($employeeQuery) use ($needle) {
-                        $employeeQuery->where('nama_lengkap', 'ilike', $needle)
-                            ->orWhere('nip', 'ilike', $needle);
+                        $employeeQuery->where('nama_lengkap', 'LIKE', $needle)
+                            ->orWhere('nip', 'LIKE', $needle);
                     })
-                    ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'ilike', $needle));
+                    ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'LIKE', $needle));
             });
         }
 
@@ -157,13 +157,13 @@ class DocumentHistoryController extends Controller
         if ($search !== '') {
             $needle = '%' . $search . '%';
             $query->where(function ($q) use ($needle) {
-                $q->where('number', 'ilike', $needle)
-                    ->orWhere('title', 'ilike', $needle)
-                    ->orWhere('variant', 'ilike', $needle)
-                    ->orWhereRaw('first_party_snapshot::text ilike ?', [$needle])
-                    ->orWhereRaw('second_party_snapshot::text ilike ?', [$needle])
-                    ->orWhereRaw('items_snapshot::text ilike ?', [$needle])
-                    ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'ilike', $needle));
+                $q->where('number', 'LIKE', $needle)
+                    ->orWhere('title', 'LIKE', $needle)
+                    ->orWhere('variant', 'LIKE', $needle)
+                    ->orWhereRaw('CAST(first_party_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw('CAST(second_party_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw('CAST(items_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'LIKE', $needle));
             });
         }
 
@@ -187,15 +187,15 @@ class DocumentHistoryController extends Controller
         if ($search !== '') {
             $needle = '%' . $search . '%';
             $query->where(function ($q) use ($needle) {
-                $q->where('number', 'ilike', $needle)
-                    ->orWhereRaw('first_party_snapshot::text ilike ?', [$needle])
-                    ->orWhereRaw('second_party_snapshot::text ilike ?', [$needle])
-                    ->orWhereRaw('assets_snapshot::text ilike ?', [$needle])
+                $q->where('number', 'LIKE', $needle)
+                    ->orWhereRaw('CAST(first_party_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw('CAST(second_party_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw('CAST(assets_snapshot AS CHAR) LIKE ?', [$needle])
                     ->orWhereHas('employee', function ($employeeQuery) use ($needle) {
-                        $employeeQuery->where('nama_lengkap', 'ilike', $needle)
-                            ->orWhere('nip', 'ilike', $needle);
+                        $employeeQuery->where('nama_lengkap', 'LIKE', $needle)
+                            ->orWhere('nip', 'LIKE', $needle);
                     })
-                    ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'ilike', $needle));
+                    ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'LIKE', $needle));
             });
         }
 

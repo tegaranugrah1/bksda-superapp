@@ -26,8 +26,8 @@ trait AdminCrudTrait
             // Cari di kolom 'judul' atau 'nama' (keduanya umum di CMS)
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('judul', 'ilike', "%{$search}%")
-                    ->orWhere('nama', 'ilike', "%{$search}%");
+                $q->where('judul', 'LIKE', "%{$search}%")
+                    ->orWhere('nama', 'LIKE', "%{$search}%");
             });
         }
 

@@ -1,28 +1,26 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getBatch, AuctionBatch } from "../_lib/api";
-import { getStatusLabel, getStatusColorClass, isReadOnly } from "../_lib/status";
+import { getBatch, getChecklist, AuctionBatch } from "../_lib/api";
+import { getStatusLabel, getStatusColorClass, isReadOnly, AuctionBatchStatus } from "../_lib/status";
 import { formatRupiah } from "../../auction-candidates/_lib/auction-helpers";
+import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
+  ArrowRight,
   Loader2,
-  Calendar,
   Layers,
   CheckCircle2,
-  FileText,
   DollarSign,
-  Gavel,
-  History,
-  Info,
-  ShieldCheck,
   AlertCircle,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getBlockedReason, getWorkflowTabs } from "./_lib/workflow-tabs";
 
 // Lazy-loaded or imported tab components (stubbed for compile stability)
 import { AssetsLotTab } from "./_components/AssetsLotTab";
@@ -41,11 +39,16 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const batchId = resolvedParams.id;
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("assets");
 
   // Load batch data
   const { data: response, isLoading, error, refetch } = useQuery({
     queryKey: ["bmn-auction-batch", batchId],
     queryFn: () => getBatch(batchId),
+  });
+  const { data: checklist, refetch: refetchChecklist } = useQuery({
+    queryKey: ["bmn-auction-batch-checklist", batchId],
+    queryFn: () => getChecklist(batchId),
   });
 
   const batch = response?.data;
@@ -77,6 +80,19 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   }
 
   const readOnly = isReadOnly(batch.status);
+  const refetchAll = () => {
+    refetch();
+    refetchChecklist();
+    queryClient.invalidateQueries({ queryKey: ["bmn-auction-document-context", batchId] });
+  };
+  const workflowTabs = getWorkflowTabs(batch);
+  const activeTabIndex = Math.max(
+    0,
+    workflowTabs.findIndex((tab) => tab.value === activeTab)
+  );
+  const previousTab = workflowTabs[activeTabIndex - 1] ?? null;
+  const nextTab = workflowTabs[activeTabIndex + 1] ?? null;
+  const nextBlockedReason = nextTab ? getBlockedReason(nextTab.value, checklist) : null;
 
   // Status timeline definition
   const statusesOrder = ["DRAFT", "DIAJUKAN", "JADWAL_DITETAPKAN", "LELANG_ULANG", "REALISASI"];
@@ -150,55 +166,48 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
         <div className="mt-6 border-t border-zinc-100 dark:border-zinc-800/60 pt-5 overflow-x-auto">
           <div className="flex items-center min-w-175 justify-between px-2">
             {isCancelled ? (
-              <div className="flex items-center w-full justify-center gap-2 text-red-650 font-bold text-sm bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-3 rounded-xl">
+              <div className="flex items-center w-full justify-center gap-2 text-red-600 font-bold text-sm bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-3 rounded-xl">
                 <AlertCircle className="h-4 w-4" />
                 <span>Paket ini telah dibatalkan (BATAL) dan berstatus read-only.</span>
               </div>
             ) : (
               statusesOrder.map((statusKey, index) => {
                 const stepState = getStatusStepState(statusKey);
+                const isCompleted = stepState === "completed";
+                const isActive = stepState === "active";
                 const isLast = index === statusesOrder.length - 1;
-
                 return (
                   <React.Fragment key={statusKey}>
-                    {/* Step circle */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all border ${
-                          stepState === "completed"
-                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                            : stepState === "active"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-650 ring-2 ring-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400"
-                            : "bg-zinc-100 text-zinc-400 border-zinc-200 dark:bg-zinc-850 dark:border-zinc-800"
-                        }`}
-                      >
-                        {stepState === "completed" ? (
-                          <CheckCircle2 className="h-4.5 w-4.5" />
-                        ) : (
-                          index + 1
+                        className={cn(
+                          "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                          isActive && "bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950/50 shadow-xs",
+                          isCompleted && "bg-emerald-500 text-white",
+                          !isActive && !isCompleted && "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500"
                         )}
-                      </div>
-                      <span
-                        className={`text-xs font-semibold whitespace-nowrap ${
-                          stepState === "active"
-                            ? "text-emerald-700 dark:text-emerald-400 font-bold"
-                            : stepState === "completed"
-                            ? "text-zinc-800 dark:text-zinc-200"
-                            : "text-zinc-400"
-                        }`}
                       >
-                        {getStatusLabel(statusKey as any)}
-                      </span>
+                        {isCompleted ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                      </div>
+                      <div>
+                        <p
+                          className={cn(
+                            "text-xs font-bold leading-tight",
+                            isActive && "text-emerald-700 dark:text-emerald-400",
+                            isCompleted && "text-zinc-800 dark:text-zinc-200",
+                            !isActive && !isCompleted && "text-zinc-400 dark:text-zinc-500"
+                          )}
+                        >
+                          {getStatusLabel(statusKey as AuctionBatchStatus)}
+                        </p>
+                      </div>
                     </div>
-
-                    {/* Connecting line */}
                     {!isLast && (
                       <div
-                        className={`h-0.5 flex-1 mx-4 min-w-8 rounded-full transition-colors ${
-                          stepState === "completed"
-                            ? "bg-emerald-600"
-                            : "bg-zinc-200 dark:bg-zinc-800"
-                        }`}
+                        className={cn(
+                          "h-0.5 flex-1 mx-3 rounded-full transition-all",
+                          isCompleted ? "bg-emerald-500" : "bg-zinc-200 dark:bg-zinc-800"
+                        )}
                       />
                     )}
                   </React.Fragment>
@@ -207,67 +216,83 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
             )}
           </div>
         </div>
+
       </div>
 
       {/* Main Workspace Body with Tabs */}
       <div className="flex-1 p-6 md:p-10 max-w-7xl w-full mx-auto">
-        <Tabs defaultValue="assets" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="flex flex-wrap h-auto bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-1.5 gap-1 w-full justify-start overflow-x-auto">
-            <TabsTrigger value="assets" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Aset & Lot
-            </TabsTrigger>
-            <TabsTrigger value="valuation" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Nilai Taksiran
-            </TabsTrigger>
-            <TabsTrigger value="signatories" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Dokumen & Tanda Tangan
-            </TabsTrigger>
-            <TabsTrigger value="docs-center" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Pusat Dokumen
-            </TabsTrigger>
-            {batch.status !== "DRAFT" && (
-              <TabsTrigger value="schedule" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-                Jadwal Lelang
+            {workflowTabs.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                title={getBlockedReason(tab.value, checklist) || undefined}
+                className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs"
+              >
+                {tab.label}
               </TabsTrigger>
-            )}
-            {batch.status !== "DRAFT" && batch.status !== "DIAJUKAN" && (
-              <TabsTrigger value="realization" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-                Realisasi & Hasil
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="audit" className="rounded-lg text-xs py-2 px-3 font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-xs">
-              Riwayat Audit
-            </TabsTrigger>
+            ))}
           </TabsList>
 
+          <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-950 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                Langkah {activeTabIndex + 1} dari {workflowTabs.length}
+              </p>
+              <p className="mt-0.5 text-sm font-bold text-zinc-900 dark:text-zinc-50">
+                {workflowTabs[activeTabIndex]?.label}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl text-xs font-semibold"
+                disabled={!previousTab}
+                onClick={() => previousTab && setActiveTab(previousTab.value)}
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Sebelumnya
+              </Button>
+              <Button
+                size="sm"
+                className="rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
+                disabled={!nextTab || Boolean(nextBlockedReason)}
+                title={nextBlockedReason || undefined}
+                onClick={() => nextTab && setActiveTab(nextTab.value)}
+              >
+                {nextTab ? `Lanjut ke ${nextTab.label}` : "Selesai"}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+
           {/* Tab Contents */}
-          <TabsContent value="assets" className="mt-0 focus-visible:outline-none">
-            <AssetsLotTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
+          <TabsContent value="assets" className="mt-0 space-y-8 focus-visible:outline-none">
+            <AssetsLotTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <ValuationTab
+                batch={batch}
+                readOnly={readOnly}
+                onRefetch={refetchAll}
+                checklist={checklist}
+                onGoToPreDocs={() => setActiveTab("documents")}
+              />
+            </div>
           </TabsContent>
 
-          <TabsContent value="valuation" className="mt-0 focus-visible:outline-none">
-            <ValuationTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
+          <TabsContent value="documents" className="mt-0 focus-visible:outline-none">
+            <DocumentsCenterTab
+              batch={batch}
+              checklist={checklist}
+              onRefetch={refetchAll}
+            />
           </TabsContent>
 
-          <TabsContent value="signatories" className="mt-0 focus-visible:outline-none">
-            <SignatoriesDocumentsTab batch={batch} readOnly={batch.status !== "DRAFT"} onRefetch={refetch} />
+          <TabsContent value="realization" className="mt-0 focus-visible:outline-none">
+            <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
           </TabsContent>
-
-          <TabsContent value="docs-center" className="mt-0 focus-visible:outline-none">
-            <DocumentsCenterTab batch={batch} />
-          </TabsContent>
-
-          {batch.status !== "DRAFT" && (
-            <TabsContent value="schedule" className="mt-0 focus-visible:outline-none">
-              <ScheduleTab batch={batch} readOnly={batch.status !== "DIAJUKAN"} onRefetch={refetch} />
-            </TabsContent>
-          )}
-
-          {batch.status !== "DRAFT" && batch.status !== "DIAJUKAN" && (
-            <TabsContent value="realization" className="mt-0 focus-visible:outline-none">
-              <RealizationTab batch={batch} readOnly={readOnly} onRefetch={refetch} />
-            </TabsContent>
-          )}
 
           <TabsContent value="audit" className="mt-0 focus-visible:outline-none">
             <AuditTrailTab batchId={batch.id} />
