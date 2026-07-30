@@ -29,6 +29,13 @@ export interface HandoverItem {
   no_polisi?: string | null;
   no_mesin?: string | null;
   no_rangka?: string | null;
+  foto_depan_url?: string | null;
+  foto_belakang_url?: string | null;
+  foto_kiri_url?: string | null;
+  foto_kanan_url?: string | null;
+  foto_geotag_url?: string | null;
+  foto_url?: string | null;
+  photos?: string[];
 }
 
 interface HandoverAgreementDocumentProps {
@@ -113,6 +120,62 @@ function signatureName(value?: string | null) {
   return suffix.length > 0 ? `${upperMain},${suffix.join(",")}` : upperMain;
 }
 
+function convertDriveUrl(url: string): string {
+  if (!url.includes("drive.google.com") && !url.includes("docs.google.com")) {
+    return url;
+  }
+  const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+  if (fileIdMatch && fileIdMatch[1]) {
+    return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w800`;
+  }
+  return url;
+}
+
+function resolvePhotoUrl(url?: string | null): string | null {
+  if (!url || typeof url !== "string") return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  const driveConverted = convertDriveUrl(trimmed);
+  if (driveConverted !== trimmed) {
+    return driveConverted;
+  }
+
+  if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
+    return trimmed;
+  }
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
+  }
+  return trimmed;
+}
+
+function getItemPrintPhotos(item: HandoverItem): string[] {
+  const rawUrls: string[] = [];
+
+  if (item.photos && Array.isArray(item.photos)) {
+    rawUrls.push(...item.photos.filter(Boolean));
+  }
+  if (item.foto_depan_url) rawUrls.push(item.foto_depan_url);
+  if (item.foto_belakang_url) rawUrls.push(item.foto_belakang_url);
+  if (item.foto_kiri_url) rawUrls.push(item.foto_kiri_url);
+  if (item.foto_kanan_url) rawUrls.push(item.foto_kanan_url);
+  if (item.foto_geotag_url) rawUrls.push(item.foto_geotag_url);
+  if (item.foto_url) rawUrls.push(item.foto_url);
+
+  const resolved = Array.from(new Set(rawUrls.map(resolvePhotoUrl).filter(Boolean) as string[]));
+  return resolved.slice(0, 2);
+}
+
+function chunkPhotoItems<T>(array: T[], size = 3): T[][] {
+  if (array.length === 0) return [];
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print-root") {
   const printContent = document.getElementById(documentId);
   if (!printContent) {
@@ -151,14 +214,91 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           .handover-signature-name { margin-top: 22mm; font-weight: 700; }
           .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+
+          /* Lampiran Foto Styles */
+          .photo-lampiran-page {
+            page-break-before: always;
+            break-before: page;
+            width: 210mm;
+            margin: 0 auto;
+            padding: 0 20mm 10mm;
+          }
+          .photo-lampiran-title {
+            margin-top: 3mm;
+            margin-bottom: 5mm;
+            text-align: center;
+            font-weight: 700;
+            font-size: 10pt;
+          }
+          .photo-asset-block {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            margin-bottom: 8mm;
+            text-align: center;
+          }
+          .photo-asset-title {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            font-weight: 400;
+            margin-bottom: 3mm;
+            text-align: center;
+          }
+          .photo-grid-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8mm;
+          }
+          .photo-img {
+            width: 82mm;
+            height: 60mm;
+            object-fit: contain;
+            background-color: transparent;
+            border: none;
+          }
+          .photo-placeholder {
+            width: 82mm;
+            height: 60mm;
+            border: 1px dashed #ccc;
+            background: #f9fafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 8.5pt;
+          }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
     </html>
   `);
   printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+
+  const images = printWindow.document.getElementsByTagName("img");
+  let loaded = 0;
+  const total = images.length;
+  const doPrint = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
+
+  if (total === 0) {
+    setTimeout(doPrint, 300);
+  } else {
+    for (let i = 0; i < total; i++) {
+      if (images[i].complete) {
+        loaded++;
+      } else {
+        images[i].onload = images[i].onerror = () => {
+          loaded++;
+          if (loaded >= total) doPrint();
+        };
+      }
+    }
+    if (loaded >= total) {
+      setTimeout(doPrint, 300);
+    }
+  }
 }
 
 function PartyBlock({ index, party, label }: { index: number; party: HandoverParty; label: string }) {
@@ -198,6 +338,9 @@ export function HandoverAgreementDocument({
   const page1Items = isMultiPage ? items.slice(0, PAGE_1_MAX_ITEMS) : items;
   const page2Items = isMultiPage ? items.slice(PAGE_1_MAX_ITEMS) : [];
 
+  // Group items for Photo Lampiran pages (3 items per page with Kop Surat header)
+  const photoPages = chunkPhotoItems(items, 3);
+
   return (
     <div id={documentId}>
       <style jsx global>{`
@@ -221,12 +364,68 @@ export function HandoverAgreementDocument({
         .handover-preview .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 5mm; }
         .handover-preview .handover-signature-name { margin-top: 22mm; font-weight: 700; }
         .handover-preview .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
+
+        /* Lampiran Foto Styles */
+        .handover-preview .photo-lampiran-page {
+          page-break-before: always;
+          break-before: page;
+          width: 210mm;
+          max-width: 100%;
+          margin: 0 auto;
+          padding: 5mm 20mm 10mm;
+          background: white;
+        }
+        .handover-preview .photo-lampiran-title {
+          margin-top: 3mm;
+          margin-bottom: 5mm;
+          text-align: center;
+          font-weight: 700;
+          font-size: 10pt;
+        }
+        .handover-preview .photo-asset-block {
+          break-inside: avoid;
+          page-break-inside: avoid;
+          margin-bottom: 8mm;
+          text-align: center;
+        }
+        .handover-preview .photo-asset-title {
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 10pt;
+          font-weight: 400;
+          margin-bottom: 3mm;
+          text-align: center;
+        }
+        .handover-preview .photo-grid-row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8mm;
+        }
+        .handover-preview .photo-img {
+          width: 82mm;
+          height: 60mm;
+          object-fit: contain;
+          background-color: transparent;
+          border: none;
+        }
+        .handover-preview .photo-placeholder {
+          width: 82mm;
+          height: 60mm;
+          border: 1px dashed #ccc;
+          background: #f9fafb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #9ca3af;
+          font-size: 8.5pt;
+        }
         @media print {
           @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
           body * { visibility: hidden; }
           #ba-serah-terima-print-root, #ba-serah-terima-print-root * { visibility: visible; }
           #ba-serah-terima-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
           .handover-page { box-shadow: none !important; }
+          .photo-lampiran-page { box-shadow: none !important; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
         }
       `}</style>
@@ -378,6 +577,57 @@ export function HandoverAgreementDocument({
             </div>
           </div>
         </article>
+
+        {/* Halaman Baru Lampiran Dokumentasi Foto Aset BMN (3 Aset per Halaman Memenuhi Layar) */}
+        {photoPages.map((pageGroup, pageIndex) => (
+          <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
+            <div className="handover-header">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/header-terbaru.png" alt="Kop Surat" />
+            </div>
+
+            {/* Title ONLY on pageIndex === 0 */}
+            {pageIndex === 0 && (
+              <div className="photo-lampiran-title">
+                <p>LAMPIRAN DOKUMENTASI FOTO BARANG MILIK NEGARA</p>
+              </div>
+            )}
+
+            {pageGroup.map((item, index) => {
+              const photos = getItemPrintPhotos(item);
+              const itemName = item.name || item.vehicle_type || `Barang #${index + 1}`;
+              return (
+                <div key={`photo-${index}`} className="photo-asset-block avoid-break">
+                  <p className="photo-asset-title">
+                    {itemName} ( NUP {item.nup || "-"} )
+                  </p>
+                  <div className="photo-grid-row">
+                    {photos.length > 0 ? (
+                      photos.map((photoUrl, idx) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          key={idx}
+                          src={photoUrl}
+                          alt={`${itemName} ${idx + 1}`}
+                          className="photo-img"
+                        />
+                      ))
+                    ) : (
+                      <>
+                        <div className="photo-placeholder">
+                          <span>Foto 1 (Tampak Depan)</span>
+                        </div>
+                        <div className="photo-placeholder">
+                          <span>Foto 2 (Tampak Belakang)</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </article>
+        ))}
       </div>
     </div>
   );
