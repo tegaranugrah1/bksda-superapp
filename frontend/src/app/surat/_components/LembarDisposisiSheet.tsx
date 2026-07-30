@@ -77,15 +77,15 @@ export function LembarDisposisiSheet({
             </div>
           </div>
 
-          {/* Tanggal & No Agenda (Each has its own border via divide-y) */}
+          {/* Tanggal & No Agenda (Slightly smaller text as requested) */}
           <div className="divide-y divide-black whitespace-nowrap">
-            <div className="p-1 px-2 flex items-center min-h-6.75">
-              <span className="w-22 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Tanggal</span>
-              <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_agenda || "24/07/26")}</span>
+            <div className="p-0.5 px-2 flex items-center min-h-5.5">
+              <span className="w-18 shrink-0 font-normal text-[13px]" style={FONT_AGENCY}>Tanggal</span>
+              <span className="font-bold text-[15.5px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_agenda || "24/07/26")}</span>
             </div>
-            <div className="p-1 px-2 flex items-center min-h-6.75">
-              <span className="w-22 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>No Agenda</span>
-              <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_agenda || "1004"}</span>
+            <div className="p-0.5 px-2 flex items-center min-h-5.5">
+              <span className="w-18 shrink-0 font-normal text-[13px]" style={FONT_AGENCY}>No Agenda</span>
+              <span className="font-bold text-[15.5px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_agenda || "1004"}</span>
             </div>
           </div>
         </div>
@@ -129,38 +129,18 @@ export function LembarDisposisiSheet({
           <div className="h-full" />
         </div>
 
-        {/* ── 3. Metadata Surat (Label Agency FB, Value Arial Nova Cond) ── */}
-        <div className="border-b border-black grid grid-cols-[50%_50%] divide-x divide-black">
-          {/* Left Block: Separate Borders for Indek, Kode, No Surat (0% to 50%) */}
-          <div className="divide-y divide-black">
-            <div className="p-0.5 px-2 flex items-center min-h-6.5">
-              <span className="w-18 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Indek</span>
-              <span className="text-[14.5px]" style={FONT_ARIAL_NOVA_COND}>: {data.indeks || ""}</span>
-            </div>
-            <div className="p-0.5 px-2 flex items-center min-h-6.5">
-              <span className="w-18 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Kode</span>
-              <span className="text-[14.5px]" style={FONT_ARIAL_NOVA_COND}>: {data.kode || ""}</span>
-            </div>
-            <div className="p-0.5 px-2 flex items-center min-h-7">
-              <span className="w-18 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>No Surat</span>
-              <span className="break-all font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_surat || "36/APEKLI/VII/2026"}</span>
-            </div>
+        {/* ── 3. Metadata Surat (2 Equal Columns, Double Height Single Box) ── */}
+        <div className="border-b border-black grid grid-cols-2 divide-x divide-black">
+          {/* Left Block: No Surat (Single box, double height) */}
+          <div className="p-1 px-2 flex items-center min-h-13">
+            <span className="w-20 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>No Surat</span>
+            <span className="break-all font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_surat || "36/APEKLI/VII/2026"}</span>
           </div>
 
-          {/* Right Block: Combined Single Box for Referensi, Tanggal Penyelesaian, Tanggal (50% to 100%) */}
-          <div className="p-1 px-2 flex flex-col justify-between space-y-0.5">
-            <div className="flex items-center">
-              <span className="w-36 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Referensi</span>
-              <span className="text-[14.5px]" style={FONT_ARIAL_NOVA_COND}>: {data.referensi || ""}</span>
-            </div>
-            <div className="flex items-center">
-              <span className="w-36 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Tanggal Penyelesaian</span>
-              <span className="text-[14.5px]" style={FONT_ARIAL_NOVA_COND}>: {data.tanggal_penyelesaian || ""}</span>
-            </div>
-            <div className="flex items-center whitespace-nowrap">
-              <span className="w-36 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Tanggal</span>
-              <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_surat || "23/07/26")}</span>
-            </div>
+          {/* Right Block: Tanggal Surat (Single box, double height) */}
+          <div className="p-1 px-2 flex items-center whitespace-nowrap min-h-13">
+            <span className="w-20 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Tanggal</span>
+            <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_surat || "23/07/26")}</span>
           </div>
         </div>
 

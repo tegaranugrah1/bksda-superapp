@@ -54,6 +54,22 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     } catch {}
   }, []);
 
+  const [myAssetsList, setMyAssetsList] = useState<any[]>([]);
+
+  const fetchMyAssets = React.useCallback(async () => {
+    try {
+      let url = "/bmn/assets";
+      if (employee?.id) {
+        url = `/bmn/assets?employee_id=${employee.id}`;
+      }
+      const response = await apiClient.get<any>(url);
+      const list = Array.isArray(response.data?.data) ? response.data.data : response.data || [];
+      setMyAssetsList(list);
+    } catch {
+      setMyAssetsList([]);
+    }
+  }, [employee?.id]);
+
   React.useEffect(() => {
     const fetchMySt = async () => {
       try {
@@ -65,7 +81,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     };
     fetchMySt();
     fetchMyLeaveRequests();
-  }, [fetchMyLeaveRequests]);
+    fetchMyAssets();
+  }, [fetchMyLeaveRequests, fetchMyAssets]);
 
   // Dynamic user profile resolution
   const resolvedName =
@@ -137,17 +154,25 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   ];
 
   const accessibleModules = modules.filter((mod) => hasModule(user, mod.key));
-  const stBadgeCount = summary?.active_my_letters_count || summary?.pending_my_letters_count || 0;
+  const stBadgeCount = summary?.active_my_letters_count || summary?.pending_my_letters_count || myStList.length || 0;
+  const cutiBadgeCount = leaveRequests.length;
+  const assetsBadgeCount = myAssetsList.length || summary?.assigned_assets_count || 0;
 
   const tabOptions = [
-    { key: "pinjaman", label: "Pinjaman Aktif", icon: "swap-horizontal-outline" },
-    { key: "aset", label: "Aset Saya", icon: "briefcase-outline" },
+    { key: "pinjaman", label: "Pinjaman Aktif", icon: "swap-horizontal-outline", count: summary?.active_loans_count || 0 },
+    { key: "aset", label: "Aset Saya", icon: "briefcase-outline", count: assetsBadgeCount },
     {
       key: "surattugas",
-      label: stBadgeCount > 0 ? `Surat Tugas  ${stBadgeCount}` : "Surat Tugas",
+      label: "Surat Tugas",
+      count: stBadgeCount,
       icon: "document-text-outline",
     },
-    { key: "cuti", label: "Pengajuan Cuti Saya", icon: "calendar-outline" },
+    {
+      key: "cuti",
+      label: "Pengajuan Cuti Saya",
+      count: cutiBadgeCount,
+      icon: "calendar-outline",
+    },
   ];
 
   const renderTabContent = () => {
@@ -191,7 +216,62 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         );
 
       case "aset":
-        if (summary && summary.assigned_assets_count > 0) {
+        if (myAssetsList.length > 0) {
+          return (
+            <View style={{ gap: 10 }}>
+              {myAssetsList.map((assetItem, idx) => {
+                const year = assetItem.tanggal_perolehan
+                  ? new Date(assetItem.tanggal_perolehan).getFullYear()
+                  : 2022;
+                const merkType = assetItem.merk_tipe || assetItem.merk || assetItem.tipe || "-";
+                const isBaik = assetItem.kondisi === "Baik";
+                const isRusakRingan = assetItem.kondisi === "Rusak Ringan";
+                const kondisiBg = isBaik ? "#ecfdf5" : isRusakRingan ? "#fffbe8" : "#fef2f2";
+                const kondisiColor = isBaik ? "#059669" : isRusakRingan ? "#d97706" : "#dc2626";
+
+                return (
+                  <GlassCard key={assetItem.id || idx} style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
+                    <View style={styles.contentItemRow}>
+                      <View style={[styles.contentIconBg, { backgroundColor: "#ecfdf5" }]}>
+                        <Ionicons name="cube" size={20} color="#059669" />
+                      </View>
+                      <View style={styles.contentMain}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={[styles.contentTitle, { color: colors.textDark }]} numberOfLines={1}>
+                              {assetItem.nama_barang || assetItem.name || "Aset BMN"}
+                            </Text>
+                            <Text style={[styles.contentSubtitle, { color: colors.textMuted }]}>
+                              {merkType} • {year}
+                            </Text>
+                          </View>
+                          <View style={{ backgroundColor: kondisiBg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 }}>
+                            <Text style={{ color: kondisiColor, fontSize: 10, fontWeight: "700" }}>
+                              {assetItem.kondisi || "Baik"}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+                          <View style={{ backgroundColor: "#ecfdf5", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <Text style={{ color: "#059669", fontSize: 10, fontWeight: "700" }}>
+                              Kode: {assetItem.kode_barang || "3150303005"}
+                            </Text>
+                          </View>
+                          <Text style={{ color: colors.textMuted, fontSize: 10 }}>
+                            NUP: {assetItem.nup || "1"}
+                          </Text>
+                          <Text style={{ color: "#64748b", fontSize: 10, marginLeft: "auto" }}>
+                            📍 {assetItem.lokasi_ruang || "Belum berlokasi"}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </GlassCard>
+                );
+              })}
+            </View>
+          );
+        } else if (summary && summary.assigned_assets_count > 0) {
           return (
             <GlassCard style={[styles.tabContentCard, { backgroundColor: colors.cardBg }]}>
               <View style={styles.contentItemRow}>
@@ -566,6 +646,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 >
                   {tab.label}
                 </Text>
+                {tab.count > 0 && (
+                  <View style={[styles.tabBadge, isActive && styles.tabBadgeActive]}>
+                    <Text style={[styles.tabBadgeText, isActive && styles.tabBadgeTextActive]}>
+                      {tab.count}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
@@ -891,6 +978,27 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 11,
     fontWeight: "700",
+  },
+  tabBadge: {
+    marginLeft: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 8,
+    backgroundColor: "#e2e8f0",
+    minWidth: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabBadgeActive: {
+    backgroundColor: "#ffffff",
+  },
+  tabBadgeText: {
+    fontSize: 9.5,
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  tabBadgeTextActive: {
+    color: "#059669",
   },
   stCardContainer: {
     padding: 12,

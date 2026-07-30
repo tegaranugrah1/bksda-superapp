@@ -9,12 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS, SHADOWS } from "../../../theme";
 import { GlassCard } from "../../../components/ui/GlassCard";
 import { EmeraldButton } from "../../../components/ui/EmeraldButton";
+import { NotificationModal } from "../../../components/ui/NotificationModal";
 import { useAuth } from "../AuthProvider";
 
 export default function LoginScreen() {
@@ -23,27 +23,86 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [modalConfig, setModalConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    variant: "danger" | "warning" | "info" | "success";
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "danger",
+  });
 
   const usernameInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
+  const showAlert = (title: string, message: string, variant: "danger" | "warning" | "info" | "success" = "danger") => {
+    setModalConfig({
+      visible: true,
+      title,
+      message,
+      variant,
+    });
+  };
+
   const handleLogin = async () => {
+    let hasValidationErr = false;
+    let uErr: string | null = null;
+    let pErr: string | null = null;
+
     if (!username.trim()) {
-      Alert.alert("Perhatian", "Silakan masukkan NIP atau Username.");
-      return;
+      uErr = "Username wajib diisi.";
+      hasValidationErr = true;
     }
     if (!password) {
-      Alert.alert("Perhatian", "Silakan masukkan Kata Sandi.");
+      pErr = "Password wajib diisi.";
+      hasValidationErr = true;
+    }
+
+    setUsernameError(uErr);
+    setPasswordError(pErr);
+
+    if (hasValidationErr) {
+      const msg = [uErr, pErr].filter(Boolean).join(" ");
+      setErrorMessage(msg);
+      showAlert("Perhatian", "Silakan masukkan NIP / Username dan Kata Sandi Anda.", "warning");
       return;
     }
 
     setErrorMessage(null);
+    setIsSubmitting(true);
+
     try {
       await login(username.trim(), password);
     } catch (err: any) {
-      setErrorMessage(err?.message || "Gagal masuk. Periksa username & kata sandi Anda.");
+      const rawMsg = err?.message || "Login gagal. Periksa username dan password, lalu coba lagi.";
+      let displayMsg = rawMsg;
+      if (
+        rawMsg.toLowerCase().includes("sqlstate") ||
+        rawMsg.toLowerCase().includes("exception") ||
+        rawMsg.toLowerCase().includes("debug token")
+      ) {
+        displayMsg = "Login gagal. Periksa username dan password, lalu coba lagi.";
+      } else if (
+        rawMsg.toLowerCase().includes("sesi anda telah berakhir") ||
+        err?.status === 401
+      ) {
+        displayMsg = "NIP / Username atau kata sandi yang Anda masukkan salah. Silakan periksa kembali.";
+      }
+      setErrorMessage(displayMsg);
+      showAlert("Gagal Masuk", displayMsg, "danger");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const isBusy = isSubmitting || isLoading;
 
   return (
     <KeyboardAvoidingView
@@ -57,6 +116,14 @@ export default function LoginScreen() {
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
+        {/* Custom Premium Notification Modal */}
+        <NotificationModal
+          visible={modalConfig.visible}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          variant={modalConfig.variant}
+          onClose={() => setModalConfig((prev) => ({ ...prev, visible: false }))}
+        />
         {/* Top Crest Logomark */}
         <View style={styles.logoSection}>
           <Image
@@ -75,16 +142,16 @@ export default function LoginScreen() {
 
           {errorMessage && (
             <View style={styles.errorAlertBox}>
-              <Ionicons name="alert-circle" size={18} color="#ef4444" style={{ marginRight: 6 }} />
+              <Ionicons name="alert-circle" size={20} color="#ef4444" style={{ marginRight: 8 }} />
               <Text style={styles.errorAlertText}>{errorMessage}</Text>
             </View>
           )}
 
-          {/* Username Input Box (Tap anywhere to focus) */}
+          {/* Username Input Box */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>NIP / Username</Text>
             <TouchableOpacity
-              style={styles.inputWrapper}
+              style={[styles.inputWrapper, usernameError ? styles.inputErrorBorder : null]}
               activeOpacity={1}
               onPress={() => usernameInputRef.current?.focus()}
             >
@@ -94,9 +161,12 @@ export default function LoginScreen() {
                 style={styles.input}
                 placeholder="Contoh: 19850412 201012 1 002"
                 placeholderTextColor="#94a3b8"
+                accessibilityLabel="Username"
+                editable={!isBusy}
                 value={username}
                 onChangeText={(val) => {
                   setUsername(val);
+                  if (usernameError) setUsernameError(null);
                   if (errorMessage) setErrorMessage(null);
                 }}
                 autoCapitalize="none"
@@ -104,18 +174,19 @@ export default function LoginScreen() {
                 onSubmitEditing={() => passwordInputRef.current?.focus()}
               />
               {username.length > 0 && (
-                <TouchableOpacity onPress={() => setUsername("")} style={styles.clearBtn}>
+                <TouchableOpacity onPress={() => setUsername("")} style={styles.clearBtn} disabled={isBusy}>
                   <Ionicons name="close-circle" size={18} color="#94a3b8" />
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
+            {usernameError && <Text style={styles.fieldErrorText}>{usernameError}</Text>}
           </View>
 
-          {/* Password Input Box (Tap anywhere to focus) */}
+          {/* Password Input Box */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Kata Sandi</Text>
             <TouchableOpacity
-              style={styles.inputWrapper}
+              style={[styles.inputWrapper, passwordError ? styles.inputErrorBorder : null]}
               activeOpacity={1}
               onPress={() => passwordInputRef.current?.focus()}
             >
@@ -125,10 +196,13 @@ export default function LoginScreen() {
                 style={styles.input}
                 placeholder="••••••••••••"
                 placeholderTextColor="#94a3b8"
+                accessibilityLabel="Password"
+                editable={!isBusy}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(val) => {
                   setPassword(val);
+                  if (passwordError) setPasswordError(null);
                   if (errorMessage) setErrorMessage(null);
                 }}
                 returnKeyType="done"
@@ -137,6 +211,7 @@ export default function LoginScreen() {
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.clearBtn}
+                disabled={isBusy}
               >
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
@@ -145,20 +220,23 @@ export default function LoginScreen() {
                 />
               </TouchableOpacity>
             </TouchableOpacity>
+            {passwordError && <Text style={styles.fieldErrorText}>{passwordError}</Text>}
           </View>
 
           {/* Submit Login Button */}
           <EmeraldButton
-            title={isLoading ? "MEMPROSES..." : "MASUK KE SUPERAPP ➔"}
+            title={isBusy ? "MEMPROSES..." : "MASUK KE SUPERAPP ➔"}
             onPress={handleLogin}
-            loading={isLoading}
+            loading={isBusy}
+            accessibilityLabel="Masuk"
+            accessibilityState={{ disabled: isBusy, busy: isBusy }}
             style={[styles.submitBtn, SHADOWS.glowEmerald]}
           />
 
           {/* Biometric Quick Login Option */}
           <TouchableOpacity
             style={styles.biometricBtn}
-            onPress={() => Alert.alert("Login Biometrik", "Pindai Sidik Jari / FaceID untuk masuk instan.")}
+            onPress={() => showAlert("Login Biometrik", "Pindai Sidik Jari / FaceID untuk masuk instan.", "info")}
             activeOpacity={0.7}
           >
             <Ionicons name="finger-print" size={24} color="#059669" />
@@ -262,6 +340,15 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.input,
     paddingHorizontal: 12,
     height: 48,
+  },
+  inputErrorBorder: {
+    borderColor: "#ef4444",
+  },
+  fieldErrorText: {
+    color: "#ef4444",
+    fontSize: 11,
+    marginTop: 4,
+    marginLeft: 2,
   },
   inputLeftIcon: {
     marginRight: 10,

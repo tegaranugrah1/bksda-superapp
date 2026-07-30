@@ -32,7 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // 2. Mendaftarkan Global API Middleware (Berjalan otomatis di seluruh rute /api/*)
-        $middleware->api(append: [
+        $middleware->api(prepend: [
+            \App\Http\Middleware\AuthenticateQueryToken::class,
+        ], append: [
             AuditLogMiddleware::class,
         ]);
 

@@ -91,11 +91,11 @@ class AssetController extends Controller
         }
 
         if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
+            $query->where('kondisi', 'ilike', $request->kondisi);
         }
 
         if ($request->filled('jenis_bmn')) {
-            $query->where('jenis_bmn', $request->jenis_bmn);
+            $query->where('jenis_bmn', 'ilike', '%' . $request->jenis_bmn . '%');
         }
 
         if ($request->filled('lokasi_ruang')) {
