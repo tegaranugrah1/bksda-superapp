@@ -1,6 +1,7 @@
 import React from "react";
 import {
   TouchableOpacity,
+  TouchableOpacityProps,
   Text,
   StyleSheet,
   ActivityIndicator,
@@ -10,7 +11,7 @@ import {
 } from "react-native";
 import { COLORS, RADIUS } from "../../theme";
 
-interface EmeraldButtonProps {
+export interface EmeraldButtonProps extends TouchableOpacityProps {
   title: string;
   onPress: () => void;
   loading?: boolean;
@@ -28,12 +29,14 @@ export const EmeraldButton: React.FC<EmeraldButtonProps> = ({
   variant = "primary",
   style,
   textStyle,
+  ...props
 }) => {
   const isPrimary = variant === "primary";
   const isOutline = variant === "outline";
 
   return (
     <TouchableOpacity
+      {...props}
       style={[
         styles.button,
         isPrimary && styles.primaryBtn,

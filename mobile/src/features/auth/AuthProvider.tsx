@@ -46,7 +46,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password?: string) => {
-    setIsLoading(true);
+    // Note: Do NOT set global isLoading = true here.
+    // Toggling global isLoading unmounts LoginScreen in RootNavigation,
+    // which discards LoginScreen's state and prevents error banners/alerts from displaying.
     try {
       const response = await loginApi({ username, password });
       const userObj = response.data;
@@ -62,8 +64,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setEmployee(null);
       setTokenState(null);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 

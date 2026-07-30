@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
-import { openFile } from "@/lib/files/share";
+import * as FileSystem from "expo-file-system/legacy";
+import { shareFile } from "@/lib/files/share";
 
 export interface LeaveRequestPrintData {
   id?: number | string;
@@ -511,23 +512,29 @@ export const FormulirCutiPrintModal: React.FC<FormulirCutiPrintModalProps> = ({
   if (!data) return null;
 
   const nomorPengajuan = data.nomor_pengajuan || `CUTI/${new Date().getFullYear()}/001`;
+  const htmlContent = buildFormulirCutiHtml(data);
 
   const handlePrint = async () => {
     setIsPrinting(true);
     try {
-      await openFile({
-        localUri: "",
-        mimeType: "application/pdf",
-        dialogTitle: "Formulir Permohonan Cuti BKSDA",
+      const filename = `Formulir-Cuti-${nomorPengajuan.replace(/[\/\\\\:*?"<>|]/g, "_")}.html`;
+      const localUri = `${FileSystem.cacheDirectory}${filename}`;
+
+      await FileSystem.writeAsStringAsync(localUri, htmlContent, {
+        encoding: FileSystem.EncodingType.UTF8,
       });
-    } catch {
-      // Fallback
+
+      await shareFile({
+        localUri,
+        mimeType: "text/html",
+        dialogTitle: "Cetak / Bagikan Formulir Cuti Ke WA",
+      });
+    } catch (err) {
+      console.warn("Cuti share error:", err);
     } finally {
       setIsPrinting(false);
     }
   };
-
-  const htmlContent = buildFormulirCutiHtml(data);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -550,8 +557,8 @@ export const FormulirCutiPrintModal: React.FC<FormulirCutiPrintModalProps> = ({
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
                 <>
-                  <Ionicons name="print-outline" size={16} color="#ffffff" style={{ marginRight: 6 }} />
-                  <Text style={styles.printBtnText}>Cetak (A4)</Text>
+                  <Ionicons name="share-outline" size={16} color="#ffffff" style={{ marginRight: 6 }} />
+                  <Text style={styles.printBtnText}>Cetak / Share (WA)</Text>
                 </>
               )}
             </TouchableOpacity>

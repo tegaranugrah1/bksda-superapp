@@ -137,17 +137,24 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   ];
 
   const accessibleModules = modules.filter((mod) => hasModule(user, mod.key));
-  const stBadgeCount = summary?.active_my_letters_count || summary?.pending_my_letters_count || 0;
+  const stBadgeCount = summary?.active_my_letters_count || summary?.pending_my_letters_count || myStList.length || 0;
+  const cutiBadgeCount = leaveRequests.length;
 
   const tabOptions = [
-    { key: "pinjaman", label: "Pinjaman Aktif", icon: "swap-horizontal-outline" },
-    { key: "aset", label: "Aset Saya", icon: "briefcase-outline" },
+    { key: "pinjaman", label: "Pinjaman Aktif", icon: "swap-horizontal-outline", count: summary?.active_loans_count || 0 },
+    { key: "aset", label: "Aset Saya", icon: "briefcase-outline", count: summary?.assigned_assets_count || 0 },
     {
       key: "surattugas",
-      label: stBadgeCount > 0 ? `Surat Tugas  ${stBadgeCount}` : "Surat Tugas",
+      label: "Surat Tugas",
+      count: stBadgeCount,
       icon: "document-text-outline",
     },
-    { key: "cuti", label: "Pengajuan Cuti Saya", icon: "calendar-outline" },
+    {
+      key: "cuti",
+      label: "Pengajuan Cuti Saya",
+      count: cutiBadgeCount,
+      icon: "calendar-outline",
+    },
   ];
 
   const renderTabContent = () => {
@@ -566,6 +573,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 >
                   {tab.label}
                 </Text>
+                {tab.count > 0 && (
+                  <View style={[styles.tabBadge, isActive && styles.tabBadgeActive]}>
+                    <Text style={[styles.tabBadgeText, isActive && styles.tabBadgeTextActive]}>
+                      {tab.count}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
@@ -891,6 +905,27 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 11,
     fontWeight: "700",
+  },
+  tabBadge: {
+    marginLeft: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 8,
+    backgroundColor: "#e2e8f0",
+    minWidth: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabBadgeActive: {
+    backgroundColor: "#ffffff",
+  },
+  tabBadgeText: {
+    fontSize: 9.5,
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  tabBadgeTextActive: {
+    color: "#059669",
   },
   stCardContainer: {
     padding: 12,
