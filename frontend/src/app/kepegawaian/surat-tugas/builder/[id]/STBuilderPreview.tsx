@@ -115,15 +115,15 @@ export default function STBuilderPreview({
           <tr>
             <td>
               {/* === KOP SURAT (only page 1) === */}
-              <div className="kop-surat" style={{ marginTop: "-10px", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
+              <div className="kop-surat" style={{ width: "100%", marginBottom: "4mm", textAlign: "center" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/header-new.png"
                   alt="Kop Surat"
-                  style={{ width: "18.8cm", height: "auto", display: "block" }}
+                  style={{ width: "188mm", maxWidth: "188mm", height: "auto", display: "block", margin: "0 auto" }}
                 />
               </div>
-              <div className="surat-content">
+              <div className="surat-content" style={{ padding: "0 1.55cm 0 2.0cm" }}>
               {/* === JUDUL === */}
               <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "11pt", margin: "0 0 2px" }}>
                 SURAT TUGAS
