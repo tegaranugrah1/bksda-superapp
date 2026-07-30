@@ -1,27 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { getChecklist, transition, AuctionBatch } from "../../_lib/api";
+import { getChecklist, transition, updateDraftMetadata, AuctionBatch } from "../../_lib/api";
 import { toast } from "sonner";
-import {
-  Loader2,
-  Lock,
-  UserCheck,
-  FileText,
-  AlertTriangle,
-  CheckCircle,
-  HelpCircle,
-  Users,
-  ChevronRight,
-  Info,
-  ShieldCheck,
-} from "lucide-react";
+import { FileText, Loader2, Lock, ShieldCheck, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SignatoryPickerSection } from "./workflow/SignatoryPickerSection";
+import { DocumentNumberDateSection } from "./workflow/DocumentNumberDateSection";
+import { DocumentWorkflowSection } from "./workflow/DocumentWorkflowSection";
+import { FinalSubmitPanel } from "./workflow/FinalSubmitPanel";
+import type { Employee, SaveStatus, WorkflowDocuments } from "./workflow/types";
 
 interface SignatoriesDocumentsTabProps {
   batch: AuctionBatch;
@@ -37,15 +27,39 @@ interface SignatoriesDocumentsTabProps {
   onRefetch: () => void;
 }
 
-interface Employee {
-  id: string;
-  nama_lengkap: string;
-  nip: string | null;
-  jabatan: string | null;
+function SaveStatusPill({ status }: { status: SaveStatus }) {
+  const label =
+    status === "saving" ? "Menyimpan..." : status === "saved" ? "Tersimpan" : status === "error" ? "Gagal simpan" : "Draft";
+  const className =
+    status === "saving"
+      ? "bg-amber-50 text-amber-700 ring-amber-200"
+      : status === "saved"
+      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+      : status === "error"
+      ? "bg-red-50 text-red-700 ring-red-200"
+      : "bg-zinc-50 text-zinc-500 ring-zinc-200";
+
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ring-1 ${className}`}>
+      {status === "saving" && <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />}
+      {label}
+    </span>
+  );
 }
 
 export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: SignatoriesDocumentsTabProps) {
-  // Master employee data for pickers
+  const [kepalaBalaiId, setKepalaBalaiId] = useState("");
+  const [panitiaIds, setPanitiaIds] = useState<string[]>([]);
+  const [timPenilaiIds, setTimPenilaiIds] = useState<string[]>([]);
+  const [pemeriksaIds, setPemeriksaIds] = useState<string[]>([]);
+  const [documentNumbers, setDocumentNumbers] = useState<Record<string, string | null>>({});
+  const [documentDates, setDocumentDates] = useState<Record<string, string | null>>({});
+  const [workflowDocuments, setWorkflowDocuments] = useState<WorkflowDocuments>({});
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveVersion, setSaveVersion] = useState(0);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [isLockConfirmOpen, setIsLockConfirmOpen] = useState(false);
+
   const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
     queryKey: ["employees-select-auction"],
     queryFn: async () => {
@@ -54,42 +68,78 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
     },
   });
 
-  // State for DRAFT editing
-  const [kepalaBalaiId, setKepalaBalaiId] = useState<string>("");
-  const [panitiaIds, setPanitiaIds] = useState<string[]>([]);
-  const [timPenilaiIds, setTimPenilaiIds] = useState<string[]>([]);
-  const [pemeriksaIds, setPemeriksaIds] = useState<string[]>([]);
-
-  const [suratTugasNo, setSuratTugasNo] = useState("");
-  const [suratTugasDate, setSuratTugasDate] = useState("");
-
-  // Lock confirmation modal
-  const [isLockConfirmOpen, setIsLockConfirmOpen] = useState(false);
-
-  // Load checklist
-  const { data: checklist, refetch: refetchChecklist, isLoading: isLoadingChecklist } = useQuery({
+  const {
+    data: checklist,
+    refetch: refetchChecklist,
+    isLoading: isLoadingChecklist,
+  } = useQuery({
     queryKey: ["bmn-auction-batch-checklist", batch.id],
     queryFn: () => getChecklist(batch.id),
   });
 
-  // Load saved draft values from batch model
   useEffect(() => {
-    if (!readOnly && batch) {
-      setKepalaBalaiId(batch.kepala_balai_id || "");
-      // Retrieve signatory IDs from pivot or metadata if available
-      const signatories = batch.metadata?.signatories_raw || {};
-      setPanitiaIds(signatories.panitia || []);
-      setTimPenilaiIds(signatories.tim_penilai || []);
-      setPemeriksaIds(signatories.pemeriksa || []);
+    const metadata = batch.metadata || {};
+    const signatories = metadata.signatories_raw || {};
 
-      const docNos = batch.metadata?.document_numbers || {};
-      const docDates = batch.metadata?.document_dates || {};
-      setSuratTugasNo(docNos.surat_tugas || "");
-      setSuratTugasDate(docDates.surat_tugas || "");
+    setIsHydrated(false);
+    setKepalaBalaiId(batch.kepala_balai_id || "");
+    setPanitiaIds(signatories.panitia || []);
+    setTimPenilaiIds(signatories.tim_penilai || []);
+    setPemeriksaIds(signatories.pemeriksa || []);
+    setDocumentNumbers(metadata.document_numbers || {});
+    setDocumentDates(metadata.document_dates || {});
+    setWorkflowDocuments(metadata.workflow?.documents || {});
+    setSaveStatus("idle");
+    setSaveVersion(0);
+    setIsHydrated(true);
+  }, [batch.id, batch.kepala_balai_id, batch.metadata]);
+
+  const markDirty = () => setSaveVersion((version) => version + 1);
+
+  useEffect(() => {
+    if (readOnly || !isHydrated || saveVersion === 0) {
+      return;
     }
-  }, [batch, readOnly]);
 
-  // Save/Lock transition
+    const handle = window.setTimeout(async () => {
+      setSaveStatus("saving");
+      try {
+        await updateDraftMetadata(batch.id, {
+          kepala_balai_id: kepalaBalaiId || null,
+          signatories: {
+            panitia: panitiaIds,
+            tim_penilai: timPenilaiIds,
+            pemeriksa: pemeriksaIds,
+          },
+          document_numbers: documentNumbers,
+          document_dates: documentDates,
+          workflow: {
+            documents: workflowDocuments,
+          },
+        });
+        setSaveStatus("saved");
+        refetchChecklist();
+      } catch {
+        setSaveStatus("error");
+      }
+    }, 600);
+
+    return () => window.clearTimeout(handle);
+  }, [
+    batch.id,
+    documentDates,
+    documentNumbers,
+    isHydrated,
+    kepalaBalaiId,
+    panitiaIds,
+    pemeriksaIds,
+    readOnly,
+    refetchChecklist,
+    saveVersion,
+    timPenilaiIds,
+    workflowDocuments,
+  ]);
+
   const lockMutation = useMutation({
     mutationFn: (payload: any) => transition(batch.id, payload),
     onSuccess: () => {
@@ -111,132 +161,83 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
         tim_penilai: timPenilaiIds,
         pemeriksa: pemeriksaIds,
       },
-      document_numbers: {
-        surat_tugas: suratTugasNo || null,
-      },
-      document_dates: {
-        surat_tugas: suratTugasDate || null,
+      document_numbers: documentNumbers,
+      document_dates: documentDates,
+      workflow: {
+        documents: workflowDocuments,
       },
     });
   };
+  const canCompletePostValuationDocuments = checklist?.can_complete_post_valuation_documents ?? false;
 
-  // Helper: auto-update checklist whenever field changes
-  const handleFieldChange = async (fieldName: string, value: any) => {
-    // Save draft state to API silently so checklist updates
-    try {
-      await api.post(`/bmn/auction-batches/${batch.id}/transition`, {
-        status: "DRAFT",
-        kepala_balai_id: fieldName === "kepala_balai" ? value : kepalaBalaiId || null,
-        signatories: {
-          panitia: fieldName === "panitia" ? value : panitiaIds,
-          tim_penilai: fieldName === "tim_penilai" ? value : timPenilaiIds,
-          pemeriksa: fieldName === "pemeriksa" ? value : pemeriksaIds,
-        },
-        document_numbers: {
-          surat_tugas: fieldName === "surat_tugas_no" ? value : suratTugasNo || null,
-        },
-        document_dates: {
-          surat_tugas: fieldName === "surat_tugas_date" ? value : suratTugasDate || null,
-        },
-      });
-      refetchChecklist();
-    } catch {
-      // Ignore background save errors
-    }
-  };
-
-  // Render locked/frozen metadata view
   if (readOnly) {
-    const meta = batch.metadata || {};
-    const frozenKepalaBalai = meta.signatories?.kepala_balai?.nama || "-";
-    const frozenKepalaBalaiNip = meta.signatories?.kepala_balai?.nip || "";
-
-    const frozenPanitia = meta.committees?.panitia_penghapusan || [];
-    const frozenTimPenilai = meta.committees?.tim_penilai || [];
-    const frozenPemeriksa = meta.committees?.pemeriksa || [];
-
-    const frozenDocNos = meta.document_numbers || {};
-    const frozenDocDates = meta.document_dates || {};
+    const metadata = batch.metadata || {};
+    const frozenKepalaBalai = metadata.signatories?.kepala_balai?.nama || "-";
+    const frozenKepalaBalaiNip = metadata.signatories?.kepala_balai?.nip || "";
+    const frozenPanitia = metadata.committees?.panitia_penghapusan || [];
+    const frozenTimPenilai = metadata.committees?.tim_penilai || [];
+    const frozenPemeriksa = metadata.committees?.pemeriksa || [];
+    const frozenDocNos = metadata.document_numbers || {};
+    const frozenDocDates = metadata.document_dates || {};
 
     return (
       <div className="space-y-6">
-        {/* Banner locked */}
-        <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-350 border border-emerald-100 dark:border-emerald-900/30 p-4 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-emerald-800 shadow-xs dark:border-emerald-900/30 dark:bg-emerald-950/20">
           <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600" />
           <div>
-            <h3 className="font-bold text-sm">Dokumen & Tanda Tangan Terkunci</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Paket ini telah diajukan. Informasi penandatangan dan nomor dokumen di bawah ini dibekukan secara permanen dari arsip historical.
+            <h3 className="text-sm font-bold">Dokumen & Tanda Tangan Terkunci</h3>
+            <p className="mt-0.5 text-xs text-zinc-500">
+              Paket ini telah diajukan. Informasi penandatangan dan nomor dokumen dibekukan dari arsip saat penguncian.
             </p>
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Signatories Read Only */}
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-205 dark:border-zinc-800 p-5 rounded-2xl shadow-xs space-y-4">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 border-b pb-2 dark:border-zinc-800 flex items-center gap-2">
+          <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+            <h3 className="flex items-center gap-2 border-b pb-2 text-sm font-bold text-zinc-900 dark:border-zinc-800 dark:text-zinc-50">
               <Users className="h-4.5 w-4.5 text-zinc-400" />
               Daftar Penandatangan
             </h3>
 
             <div>
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">Kepala Balai</p>
-              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">{frozenKepalaBalai}</p>
-              {frozenKepalaBalaiNip && <p className="text-xs text-zinc-400 mt-0.5">NIP. {frozenKepalaBalaiNip}</p>}
+              <p className="text-[10px] font-semibold uppercase text-zinc-400">Kepala Balai</p>
+              <p className="mt-0.5 text-sm font-semibold text-zinc-800 dark:text-zinc-200">{frozenKepalaBalai}</p>
+              {frozenKepalaBalaiNip && <p className="mt-0.5 text-xs text-zinc-400">NIP. {frozenKepalaBalaiNip}</p>}
             </div>
 
-            <div>
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">Panitia Penghapusan</p>
-              <ul className="mt-1 space-y-1 text-xs text-zinc-800 dark:text-zinc-200">
-                {frozenPanitia.map((p: any, i: number) => (
-                  <li key={i} className="list-disc list-inside">
-                    {p.nama} {p.nip && <span className="text-zinc-400 font-mono">(NIP. {p.nip})</span>}
-                  </li>
-                ))}
-                {frozenPanitia.length === 0 && <li className="text-zinc-400 italic">Tidak ada</li>}
-              </ul>
-            </div>
-
-            <div>
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">Tim Penilai / Penaksir</p>
-              <ul className="mt-1 space-y-1 text-xs text-zinc-800 dark:text-zinc-200">
-                {frozenTimPenilai.map((p: any, i: number) => (
-                  <li key={i} className="list-disc list-inside">
-                    {p.nama} {p.nip && <span className="text-zinc-400 font-mono">(NIP. {p.nip})</span>}
-                  </li>
-                ))}
-                {frozenTimPenilai.length === 0 && <li className="text-zinc-400 italic">Tidak ada</li>}
-              </ul>
-            </div>
-
-            <div>
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">Tim Pemeriksa</p>
-              <ul className="mt-1 space-y-1 text-xs text-zinc-800 dark:text-zinc-200">
-                {frozenPemeriksa.map((p: any, i: number) => (
-                  <li key={i} className="list-disc list-inside">
-                    {p.nama} {p.nip && <span className="text-zinc-400 font-mono">(NIP. {p.nip})</span>}
-                  </li>
-                ))}
-                {frozenPemeriksa.length === 0 && <li className="text-zinc-400 italic">Tidak ada</li>}
-              </ul>
-            </div>
+            {[
+              ["Panitia Penghapusan", frozenPanitia],
+              ["Tim Penilai / Penaksir", frozenTimPenilai],
+              ["Tim Pemeriksa", frozenPemeriksa],
+            ].map(([label, people]) => (
+              <div key={label as string}>
+                <p className="text-[10px] font-semibold uppercase text-zinc-400">{label as string}</p>
+                <ul className="mt-1 space-y-1 text-xs text-zinc-800 dark:text-zinc-200">
+                  {(people as any[]).map((person: any, index: number) => (
+                    <li key={`${person.id || person.nip || index}`} className="list-inside list-disc">
+                      {person.nama} {person.nip && <span className="font-mono text-zinc-400">(NIP. {person.nip})</span>}
+                    </li>
+                  ))}
+                  {(people as any[]).length === 0 && <li className="italic text-zinc-400">Tidak ada</li>}
+                </ul>
+              </div>
+            ))}
           </div>
 
-          {/* Document Numbers Read Only */}
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-205 dark:border-zinc-800 p-5 rounded-2xl shadow-xs space-y-4">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 border-b pb-2 dark:border-zinc-800 flex items-center gap-2">
+          <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+            <h3 className="flex items-center gap-2 border-b pb-2 text-sm font-bold text-zinc-900 dark:border-zinc-800 dark:text-zinc-50">
               <FileText className="h-4.5 w-4.5 text-zinc-400" />
               Nomor & Tanggal Dokumen
             </h3>
-
-            <div>
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">Surat Tugas Penghapusan</p>
-              <p className="text-sm font-semibold text-zinc-850 dark:text-zinc-250 mt-1">
-                Nomor: <strong className="text-zinc-900 dark:text-zinc-50 font-mono">{frozenDocNos.surat_tugas || "-"}</strong>
-              </p>
-              <p className="text-xs text-zinc-450 mt-1">
-                Tanggal: <strong>{frozenDocDates.surat_tugas ? new Intl.DateTimeFormat("id-ID", { dateStyle: "long" }).format(new Date(frozenDocDates.surat_tugas)) : "-"}</strong>
-              </p>
+            <div className="grid gap-2">
+              {Object.entries(frozenDocNos).map(([key, number]) => (
+                <div key={key} className="rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900/40">
+                  <p className="font-mono text-[10px] text-zinc-400">{key}</p>
+                  <p className="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">Nomor: {String(number || "-")}</p>
+                  <p className="mt-0.5 text-zinc-500">Tanggal: {String(frozenDocDates[key] || "-")}</p>
+                </div>
+              ))}
+              {Object.keys(frozenDocNos).length === 0 && <p className="text-xs italic text-zinc-400">Tidak ada nomor dokumen.</p>}
             </div>
           </div>
         </div>
@@ -244,228 +245,84 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
     );
   }
 
-  // Active DRAFT edit view
-  const toggleSelectionList = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, id: string, type: string) => {
-    let nextList: string[];
-    if (list.includes(id)) {
-      nextList = list.filter((x) => x !== id);
-    } else {
-      nextList = [...list, id];
-    }
-    setList(nextList);
-    handleFieldChange(type, nextList);
-  };
-
-  const isChecklistComplete = checklist?.complete === true;
-
   return (
-    <div className="grid gap-6 md:grid-cols-[1fr_320px]">
-      {/* Forms Area */}
+    <div className="grid gap-6 md:grid-cols-[1fr_360px]">
       <div className="space-y-6">
-        {/* Signatories Forms */}
-        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-xs space-y-5">
-          <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-            Daftar Penandatangan Dokumen
-          </h2>
-
-          {/* Kepala Balai */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Kepala Balai
-            </label>
-            <select
-              value={kepalaBalaiId}
-              onChange={(e) => {
-                setKepalaBalaiId(e.target.value);
-                handleFieldChange("kepala_balai", e.target.value);
-              }}
-              className="h-9 w-full rounded-xl border border-zinc-200 bg-white px-3 text-xs outline-none focus:ring-1 focus:ring-emerald-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-            >
-              <option value="">-- Pilih Kepala Balai --</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.nama_lengkap} (NIP. {emp.nip || "-"})
-                </option>
-              ))}
-            </select>
+        <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Kunci & Ajukan</h2>
+            <p className="mt-0.5 text-xs text-zinc-500">Isi penandatangan, nomor dokumen, dan status workflow sebelum paket dikunci.</p>
           </div>
-
-          {/* Panitia */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
-              Panitia Penghapusan (Multi-pilih)
-            </label>
-            <div className="max-h-40 overflow-y-auto border border-zinc-100 dark:border-zinc-800 rounded-xl p-2.5 space-y-1.5 bg-zinc-50/20">
-              {employees.map((emp) => (
-                <div
-                  key={emp.id}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-zinc-50/70 p-1 rounded-lg"
-                  onClick={() => toggleSelectionList(panitiaIds, setPanitiaIds, emp.id, "panitia")}
-                >
-                  <Checkbox
-                    checked={panitiaIds.includes(emp.id)}
-                    onCheckedChange={() => toggleSelectionList(panitiaIds, setPanitiaIds, emp.id, "panitia")}
-                  />
-                  <span className="text-xs">
-                    {emp.nama_lengkap} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Tim Penilai */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
-              Tim Penilai / Penaksir (Multi-pilih)
-            </label>
-            <div className="max-h-40 overflow-y-auto border border-zinc-100 dark:border-zinc-800 rounded-xl p-2.5 space-y-1.5 bg-zinc-50/20">
-              {employees.map((emp) => (
-                <div
-                  key={emp.id}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-zinc-50/70 p-1 rounded-lg"
-                  onClick={() => toggleSelectionList(timPenilaiIds, setTimPenilaiIds, emp.id, "tim_penilai")}
-                >
-                  <Checkbox
-                    checked={timPenilaiIds.includes(emp.id)}
-                    onCheckedChange={() =>
-                      toggleSelectionList(timPenilaiIds, setTimPenilaiIds, emp.id, "tim_penilai")
-                    }
-                  />
-                  <span className="text-xs">
-                    {emp.nama_lengkap} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Pemeriksa */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
-              Tim Pemeriksa (Multi-pilih)
-            </label>
-            <div className="max-h-40 overflow-y-auto border border-zinc-100 dark:border-zinc-800 rounded-xl p-2.5 space-y-1.5 bg-zinc-50/20">
-              {employees.map((emp) => (
-                <div
-                  key={emp.id}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-zinc-50/70 p-1 rounded-lg"
-                  onClick={() => toggleSelectionList(pemeriksaIds, setPemeriksaIds, emp.id, "pemeriksa")}
-                >
-                  <Checkbox
-                    checked={pemeriksaIds.includes(emp.id)}
-                    onCheckedChange={() =>
-                      toggleSelectionList(pemeriksaIds, setPemeriksaIds, emp.id, "pemeriksa")
-                    }
-                  />
-                  <span className="text-xs">
-                    {emp.nama_lengkap} <span className="text-zinc-400 font-mono text-[10px]">(NIP. {emp.nip || "-"})</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SaveStatusPill status={saveStatus} />
         </div>
 
-        {/* Document Numbers Forms */}
-        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-xs space-y-4">
-          <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-            Nomor & Tanggal Surat Tugas
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Nomor Surat Tugas
-              </label>
-              <Input
-                placeholder="ST/XXX/BMN/YYYY"
-                value={suratTugasNo}
-                onChange={(e) => {
-                  setSuratTugasNo(e.target.value);
-                  handleFieldChange("surat_tugas_no", e.target.value);
-                }}
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs focus-visible:ring-emerald-500"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Tanggal Surat Tugas
-              </label>
-              <Input
-                type="date"
-                value={suratTugasDate}
-                onChange={(e) => {
-                  setSuratTugasDate(e.target.value);
-                  handleFieldChange("surat_tugas_date", e.target.value);
-                }}
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs focus-visible:ring-emerald-500"
-              />
-            </div>
-          </div>
-        </div>
+        <SignatoryPickerSection
+          employees={employees}
+          isLoadingEmployees={isLoadingEmployees}
+          kepalaBalaiId={kepalaBalaiId}
+          panitiaIds={panitiaIds}
+          timPenilaiIds={timPenilaiIds}
+          pemeriksaIds={pemeriksaIds}
+          onKepalaBalaiChange={(id) => {
+            setKepalaBalaiId(id);
+            markDirty();
+          }}
+          onPanitiaChange={(ids) => {
+            setPanitiaIds(ids);
+            markDirty();
+          }}
+          onTimPenilaiChange={(ids) => {
+            setTimPenilaiIds(ids);
+            markDirty();
+          }}
+          onPemeriksaChange={(ids) => {
+            setPemeriksaIds(ids);
+            markDirty();
+          }}
+        />
+
+        <DocumentNumberDateSection
+          documentNumbers={documentNumbers}
+          documentDates={documentDates}
+          canCompletePostValuationDocuments={canCompletePostValuationDocuments}
+          onDocumentNumbersChange={(values) => {
+            setDocumentNumbers(values);
+            markDirty();
+          }}
+          onDocumentDatesChange={(values) => {
+            setDocumentDates(values);
+            markDirty();
+          }}
+        />
+
+        <DocumentWorkflowSection
+          documents={workflowDocuments}
+          canCompletePostValuationDocuments={canCompletePostValuationDocuments}
+          onChange={(documents) => {
+            setWorkflowDocuments(documents);
+            markDirty();
+          }}
+        />
       </div>
 
-      {/* Checklist and Locking Panel Sidebar */}
       <div className="space-y-6">
-        {/* Checklist card */}
-        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl shadow-xs space-y-4">
-          <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 border-b pb-2 dark:border-zinc-800 flex items-center gap-1.5">
-            <UserCheck className="h-4.5 w-4.5 text-zinc-400" />
-            Checklist Kunci Paket
-          </h3>
-
-          {isLoadingChecklist ? (
-            <div className="flex justify-center p-6">
-              <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {checklist?.items?.map((item: any) => {
-                const isWarning = item.key === "document_readiness_reviewed";
-
-                return (
-                  <div key={item.key} className="flex gap-2 items-start text-xs">
-                    {item.passed ? (
-                      <CheckCircle className="h-4 w-4 shrink-0 text-emerald-650 mt-0.5" />
-                    ) : isWarning ? (
-                      <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
-                    ) : (
-                      <Lock className="h-4 w-4 shrink-0 text-red-500 mt-0.5" />
-                    )}
-                    <div>
-                      <p className={`font-semibold ${item.passed ? "text-zinc-800" : isWarning ? "text-amber-800" : "text-red-800"}`}>
-                        {item.label}
-                      </p>
-                      {item.message && <p className="text-[10px] text-zinc-450 mt-0.5">{item.message}</p>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Action locking button */}
-          <Button
-            onClick={() => setIsLockConfirmOpen(true)}
-            disabled={!isChecklistComplete || lockMutation.isPending}
-            className="w-full bg-red-600 hover:bg-red-700 text-white rounded-xl py-2 flex items-center justify-center gap-2 font-bold text-xs shadow-xs"
-          >
-            <Lock className="h-4 w-4" />
-            Kunci & Ajukan Paket
-          </Button>
-        </div>
+        <FinalSubmitPanel
+          checklist={checklist}
+          isLoading={isLoadingChecklist}
+          isLocking={lockMutation.isPending}
+          onLock={() => setIsLockConfirmOpen(true)}
+        />
       </div>
 
-      {/* Lock Confirmation Dialog */}
       <Dialog open={isLockConfirmOpen} onOpenChange={setIsLockConfirmOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
+        <DialogContent className="rounded-2xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
+            <DialogTitle className="flex items-center gap-1.5 text-base font-bold text-zinc-900 dark:text-zinc-50">
               <Lock className="h-5 w-5 text-red-500" />
               Kunci & Ajukan Paket Lelang?
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-555">
-              Setelah dikunci, aset dan dokumen di dalam paket ini <strong>tidak dapat diedit kembali</strong>. Aset terpilih akan dibekukan dari status operasional dinas.
+              Setelah dikunci, aset dan dokumen di dalam paket ini tidak dapat diedit kembali. Aset terpilih akan dibekukan dari status operasional dinas.
             </DialogDescription>
           </DialogHeader>
 
@@ -475,7 +332,7 @@ export function SignatoriesDocumentsTab({ batch, readOnly, onRefetch }: Signator
             </Button>
             <Button
               onClick={handleLockSubmit}
-              className="bg-red-600 hover:bg-red-750 text-white rounded-xl font-semibold text-xs"
+              className="rounded-xl bg-red-600 text-xs font-semibold text-white hover:bg-red-750"
               disabled={lockMutation.isPending}
             >
               {lockMutation.isPending ? "Mengunci..." : "Ya, Kunci & Ajukan"}

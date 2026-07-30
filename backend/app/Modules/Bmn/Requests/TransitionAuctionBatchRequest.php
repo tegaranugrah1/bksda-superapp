@@ -25,6 +25,8 @@ class TransitionAuctionBatchRequest extends FormRequest
             'signatories.tim_penilai' => ['required_if:status,DIAJUKAN', 'nullable', 'array'],
             'signatories.pemeriksa' => ['required_if:status,DIAJUKAN', 'nullable', 'array'],
             'document_numbers' => ['required_if:status,DIAJUKAN', 'nullable', 'array'],
+            'document_kaps' => ['nullable', 'array'],
+            'document_kaps.*' => ['nullable', 'string', 'max:255'],
             'document_dates' => ['required_if:status,DIAJUKAN', 'nullable', 'array'],
             'no_surat_persetujuan' => ['required_if:status,JADWAL_DITETAPKAN', 'nullable', 'string', 'max:100'],
             'tanggal_surat_persetujuan' => ['required_if:status,JADWAL_DITETAPKAN', 'nullable', 'date'],

@@ -117,20 +117,20 @@ class UsageAgreementController extends Controller
 
             $fullName = trim((string) $employee->nama_lengkap);
             if ($fullName !== '') {
-                $q->orWhere('pengguna', 'ilike', '%' . $fullName . '%')
-                    ->orWhere('nama_pengguna', 'ilike', '%' . $fullName . '%');
+                $q->orWhere('pengguna', 'LIKE', '%' . $fullName . '%')
+                    ->orWhere('nama_pengguna', 'LIKE', '%' . $fullName . '%');
 
                 if (str_contains($fullName, ',')) {
                     $baseName = trim(explode(',', $fullName)[0]);
                     if (strlen($baseName) > 2) {
-                        $q->orWhere('pengguna', 'ilike', '%' . $baseName . '%')
-                            ->orWhere('nama_pengguna', 'ilike', '%' . $baseName . '%');
+                        $q->orWhere('pengguna', 'LIKE', '%' . $baseName . '%')
+                            ->orWhere('nama_pengguna', 'LIKE', '%' . $baseName . '%');
                     }
                 }
 
                 $words = preg_split('/\s+/', $fullName) ?: [];
                 if (count($words) >= 2) {
-                    $q->orWhere('pengguna', 'ilike', '%' . $words[0] . ' ' . $words[1] . '%');
+                    $q->orWhere('pengguna', 'LIKE', '%' . $words[0] . ' ' . $words[1] . '%');
                 }
             }
         });

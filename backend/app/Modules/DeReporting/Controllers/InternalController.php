@@ -32,8 +32,8 @@ class InternalController extends Controller
         // Implementasi Fitur Pencarian Cerdas
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('judul_laporan', 'ilike', "%{$search}%")
-                ->orWhere('keterangan', 'ilike', "%{$search}%");
+            $query->where('judul_laporan', 'LIKE', "%{$search}%")
+                ->orWhere('keterangan', 'LIKE', "%{$search}%");
         }
 
         // Tembak menggunakan aturan Project Rule 3.1: Wajib Paging

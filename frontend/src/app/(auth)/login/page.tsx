@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import axios from "axios";
 import { authStore } from "@/lib/auth-store";
-import { useAuth } from "@/hooks/useAuth";
 
 // Schema Validation
 const formSchema = z.object({
@@ -26,19 +25,12 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
-  const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const redirectToPortal = () => {
     window.location.replace("/portal");
   };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      redirectToPortal();
-    }
-  }, [isAuthenticated]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

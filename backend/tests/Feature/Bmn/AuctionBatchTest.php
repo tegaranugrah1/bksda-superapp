@@ -10,6 +10,7 @@ use App\Modules\Bmn\Enums\AuctionBatchStatus;
 use App\Modules\Bmn\Enums\AuctionAssetFinalResult;
 use App\Modules\Bmn\Support\AuctionBatchEventAction;
 use App\Modules\Bmn\Services\AuctionAssetDocumentReadinessService;
+use App\Modules\Bmn\Services\AuctionBatchDocumentWorkflow;
 use App\Modules\Bmn\Services\AuctionBatchValidityService;
 use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -105,6 +106,58 @@ class AuctionBatchTest extends TestCase
         ], $overrides));
     }
 
+    private function workflowMetadata(bool $includePostValuation = true): array
+    {
+        $workflow = app(AuctionBatchDocumentWorkflow::class);
+        $documents = [];
+        $documentNumbers = [
+            'surat_tugas' => 'ST/001/BMN',
+        ];
+        $documentDates = [
+            'surat_tugas' => '2026-06-22',
+        ];
+
+        foreach ($workflow->definitions() as $definition) {
+            if ($definition['key'] === 'nilai_taksiran') {
+                continue;
+            }
+            if (!$includePostValuation && $definition['phase'] === 'post_valuation') {
+                continue;
+            }
+
+            $documents[$definition['key']] = [
+                'key' => $definition['key'],
+                'title' => $definition['title'],
+                'channel' => $definition['channel'],
+                'phase' => $definition['phase'],
+                'order' => $definition['order'],
+                'status' => 'completed',
+                'completed_at' => '2026-06-22T00:00:00+08:00',
+            ];
+
+            if (!empty($definition['number_key'])) {
+                $documentNumbers[$definition['number_key']] = 'DOC/' . $definition['order'] . '/BMN';
+            }
+            if (!empty($definition['date_key'])) {
+                $documentDates[$definition['date_key']] = '2026-06-22';
+            }
+        }
+
+        return [
+            'signatories_raw' => [
+                'panitia' => [$this->panitiaMember->id],
+                'tim_penilai' => [$this->timPenilaiMember->id],
+                'pemeriksa' => [$this->pemeriksaMember->id],
+            ],
+            'document_numbers' => $documentNumbers,
+            'document_dates' => $documentDates,
+            'workflow' => [
+                'version' => 1,
+                'documents' => $documents,
+            ],
+        ];
+    }
+
     public function test_can_create_draft_batch(): void
     {
         $response = $this->postJson('/api/bmn/auction-batches', [
@@ -127,6 +180,7 @@ class AuctionBatchTest extends TestCase
             'batch_number' => 'LE-20260622-0001',
             'name' => 'Batch I',
             'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => $this->workflowMetadata(),
         ]);
 
         $asset = $this->createAsset();
@@ -177,13 +231,17 @@ class AuctionBatchTest extends TestCase
             'batch_number' => 'LE-20260622-0001',
             'name' => 'Batch I',
             'status' => AuctionBatchStatus::DRAFT,
+            'kepala_balai_id' => $this->kepalaBalai->id,
+            'metadata' => $this->workflowMetadata(false),
         ]);
 
         $asset = $this->createAsset();
-        $batch->assets()->attach($asset->id, ['id' => \Illuminate\Support\Str::uuid()]);
+        $batch->assets()->attach($asset->id, [
+            'id' => \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-01',
+        ]);
 
         $response = $this->putJson("/api/bmn/auction-batches/{$batch->id}/assets/{$asset->id}/valuation", [
-            'lot_number' => 'LOT-01',
             'nilai_taksiran' => 5000000,
             'kertas_kerja_data' => ['bobot' => 'tinggi'],
         ]);
@@ -195,6 +253,60 @@ class AuctionBatchTest extends TestCase
             'lot_number' => 'LOT-01',
             'nilai_taksiran' => 5000000,
         ]);
+    }
+
+    public function test_can_update_nilai_taksiran_in_draft(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => $this->workflowMetadata(),
+        ]);
+
+        $asset = $this->createAsset();
+        $batch->assets()->attach($asset->id, [
+            'id' => \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-01',
+        ]);
+
+        $response = $this->putJson("/api/bmn/auction-batches/{$batch->id}/assets/{$asset->id}/valuation", [
+            'nilai_taksiran' => 5000000,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('message', 'Nilai taksiran aset berhasil diperbarui.');
+    }
+
+    public function test_checklist_blocks_and_allows_valuation_gate(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+        ]);
+
+        // When 0 assets present, valuation gate is blocked
+        $blocked = $this->getJson("/api/bmn/auction-batches/{$batch->id}/checklist");
+        $blocked->assertStatus(200);
+        $this->assertFalse($blocked->json('can_enter_valuation'));
+
+        // Attach asset
+        $asset = $this->createAsset();
+        $batch->assets()->attach($asset->id, [
+            'id' => \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-01',
+        ]);
+
+        $batch->forceFill([
+            'kepala_balai_id' => $this->kepalaBalai->id,
+            'metadata' => $this->workflowMetadata(false),
+        ])->save();
+
+        $allowed = $this->getJson("/api/bmn/auction-batches/{$batch->id}/checklist");
+        $allowed->assertStatus(200);
+        $this->assertTrue($allowed->json('can_enter_valuation'));
+        $this->assertFalse($allowed->json('can_complete_post_valuation_documents'));
     }
 
     public function test_cannot_update_lot_after_diajukan(): void
@@ -214,6 +326,132 @@ class AuctionBatchTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    public function test_document_workflow_registry_matches_srikandi_sequence(): void
+    {
+        $workflow = app(AuctionBatchDocumentWorkflow::class);
+        $keys = $workflow->keys();
+
+        $this->assertSame('sk_penghentian', $keys[0]);
+        $this->assertSame('ba_koreksi', $keys[1]);
+        $this->assertSame('sk_panitia_penaksir_harga', $keys[8]);
+        $this->assertSame('nilai_taksiran', $keys[9]);
+        $this->assertSame('nota_dinas_ksdae', $keys[11]);
+        $this->assertTrue($workflow->get('sk_panitia_penaksir_harga')['required_for_valuation']);
+        $this->assertTrue($workflow->get('nota_dinas_ksdae')['requires_valuation']);
+    }
+
+    public function test_can_update_draft_metadata_on_draft_batch(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => [
+                'custom_key' => 'keep-me',
+                'document_numbers' => [
+                    'existing' => 'EX-001',
+                ],
+                'document_kaps' => [
+                    'existing' => 'KAP.OLD',
+                ],
+                'signatories_raw' => [
+                    'panitia' => ['old-member'],
+                ],
+            ],
+        ]);
+
+        $response = $this->patchJson("/api/bmn/auction-batches/{$batch->id}/draft-metadata", [
+            'kepala_balai_id' => $this->kepalaBalai->id,
+            'signatories' => [
+                'panitia' => [$this->panitiaMember->id],
+                'tim_penilai' => [$this->timPenilaiMember->id],
+            ],
+            'document_numbers' => [
+                'nota_dinas' => 'ND-001/BMN',
+            ],
+            'document_kaps' => [
+                'nota_dinas' => 'KAP.06.01',
+            ],
+            'document_dates' => [
+                'nota_dinas' => '2026-06-24',
+            ],
+            'workflow' => [
+                'documents' => [
+                    'sk_penghentian' => [
+                        'status' => 'completed',
+                        'notes' => 'Sudah terbit di Srikandi',
+                    ],
+                    'nota_dinas_ksdae' => [
+                        'status' => 'prepared',
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200);
+
+        $batch->refresh();
+        $metadata = $batch->metadata;
+
+        $this->assertSame($this->kepalaBalai->id, $batch->kepala_balai_id);
+        $this->assertSame('keep-me', $metadata['custom_key']);
+        $this->assertSame('EX-001', $metadata['document_numbers']['existing']);
+        $this->assertSame('ND-001/BMN', $metadata['document_numbers']['nota_dinas']);
+        $this->assertSame('KAP.OLD', $metadata['document_kaps']['existing']);
+        $this->assertSame('KAP.06.01', $metadata['document_kaps']['nota_dinas']);
+        $this->assertSame([$this->panitiaMember->id], $metadata['signatories_raw']['panitia']);
+        $this->assertSame([$this->timPenilaiMember->id], $metadata['signatories_raw']['tim_penilai']);
+        $this->assertSame('completed', $metadata['workflow']['documents']['sk_penghentian']['status']);
+        $this->assertSame('Penghentian Penggunaan BMN', $metadata['workflow']['documents']['sk_penghentian']['title']);
+        $this->assertSame('prepared', $metadata['workflow']['documents']['nota_dinas_ksdae']['status']);
+
+        $this->assertDatabaseHas('bmn_auction_batch_events', [
+            'bmn_auction_batch_id' => $batch->id,
+            'action' => AuctionBatchEventAction::DRAFT_METADATA_UPDATED,
+        ]);
+    }
+
+    public function test_cannot_update_draft_metadata_after_diajukan(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DIAJUKAN,
+        ]);
+
+        $response = $this->patchJson("/api/bmn/auction-batches/{$batch->id}/draft-metadata", [
+            'document_numbers' => [
+                'nota_dinas' => 'ND-001/BMN',
+            ],
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('status');
+    }
+
+    public function test_draft_metadata_rejects_invalid_workflow_document_key(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => $this->workflowMetadata(),
+        ]);
+
+        $response = $this->patchJson("/api/bmn/auction-batches/{$batch->id}/draft-metadata", [
+            'workflow' => [
+                'documents' => [
+                    'dokumen_ngawur' => [
+                        'status' => 'completed',
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('workflow.documents');
     }
 
     public function test_cannot_lock_incomplete_batch(): void
@@ -237,6 +475,7 @@ class AuctionBatchTest extends TestCase
             'batch_number' => 'LE-20260622-0001',
             'name' => 'Batch I',
             'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => $this->workflowMetadata(),
         ]);
 
         $asset = $this->createAsset();
@@ -257,6 +496,9 @@ class AuctionBatchTest extends TestCase
             'document_numbers' => [
                 'surat_tugas' => 'ST/001/BMN',
             ],
+            'document_kaps' => [
+                'surat_tugas' => 'KAP.06.01',
+            ],
             'document_dates' => [
                 'surat_tugas' => '2026-06-22',
             ],
@@ -269,6 +511,45 @@ class AuctionBatchTest extends TestCase
         $asset->refresh();
         $this->assertTrue((bool)$asset->henti_guna);
         $this->assertEquals('Dihentikan dari Penggunaan Dinas', $asset->status_penggunaan);
+    }
+
+    public function test_cannot_lock_submit_without_post_valuation_documents(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => $this->workflowMetadata(false),
+        ]);
+
+        $asset = $this->createAsset();
+        $batch->assets()->attach($asset->id, [
+            'id' => \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-01',
+            'nilai_taksiran' => 5000000,
+        ]);
+
+        $response = $this->postJson("/api/bmn/auction-batches/{$batch->id}/transition", [
+            'status' => 'DIAJUKAN',
+            'kepala_balai_id' => $this->kepalaBalai->id,
+            'signatories' => [
+                'panitia' => [$this->panitiaMember->id],
+                'tim_penilai' => [$this->timPenilaiMember->id],
+                'pemeriksa' => [$this->pemeriksaMember->id],
+            ],
+            'document_numbers' => [
+                'surat_tugas' => 'ST/001/BMN',
+            ],
+            'document_kaps' => [
+                'surat_tugas' => 'KAP.06.01',
+            ],
+            'document_dates' => [
+                'surat_tugas' => '2026-06-22',
+            ],
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('checklist');
     }
 
     public function test_can_record_schedule_to_jadwal_ditetapkan(): void
@@ -551,6 +832,7 @@ class AuctionBatchTest extends TestCase
             'batch_number' => 'LE-20260622-0001',
             'name' => 'Batch I',
             'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => $this->workflowMetadata(),
         ]);
 
         $asset = $this->createAsset();
@@ -573,6 +855,7 @@ class AuctionBatchTest extends TestCase
             'batch_number' => 'LE-20260622-0001',
             'name' => 'Batch I',
             'status' => AuctionBatchStatus::DRAFT,
+            'metadata' => $this->workflowMetadata(),
         ]);
 
         $asset = $this->createAsset();
@@ -593,6 +876,9 @@ class AuctionBatchTest extends TestCase
             'document_numbers' => [
                 'surat_tugas' => 'ST/001/BMN',
             ],
+            'document_kaps' => [
+                'surat_tugas' => 'KAP.06.01',
+            ],
             'document_dates' => [
                 'surat_tugas' => '2026-06-22',
             ],
@@ -601,9 +887,76 @@ class AuctionBatchTest extends TestCase
         $batch->refresh();
         $metadata = $batch->metadata;
 
-        $this->assertEquals(1, $metadata['schema_version']);
+        $this->assertEquals(2, $metadata['schema_version']);
+        $this->assertTrue($metadata['workflow']['pre_valuation_complete']);
+        $this->assertTrue($metadata['workflow']['post_valuation_complete']);
         $this->assertEquals('M. Ari Wibawanto', $metadata['signatories']['kepala_balai']['nama']);
         $this->assertEquals('Panitia Satu', $metadata['committees']['panitia_penghapusan'][0]['nama']);
+        $this->assertEquals('KAP.06.01', $metadata['document_kaps']['surat_tugas']);
+    }
+
+    public function test_draft_document_context_hydrates_signatories_for_print_preview(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DRAFT,
+            'kepala_balai_id' => $this->kepalaBalai->id,
+            'metadata' => [
+                'schema_version' => 2,
+                'signatories_raw' => [
+                    'panitia' => [$this->panitiaMember->id],
+                    'tim_penilai' => [$this->timPenilaiMember->id],
+                    'pemeriksa' => [$this->pemeriksaMember->id],
+                ],
+            ],
+        ]);
+
+        $response = $this->getJson("/api/bmn/auction-batches/{$batch->id}/documents/context");
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.metadata.signatories.kepala_balai.nama', 'M. Ari Wibawanto');
+        $response->assertJsonPath('data.metadata.committees.panitia_penghapusan.0.nama', 'Panitia Satu');
+        $response->assertJsonPath('data.metadata.committees.tim_penilai.0.nama', 'Penilai Satu');
+        $response->assertJsonPath('data.metadata.committees.pemeriksa.0.nama', 'Pemeriksa Satu');
+    }
+
+    public function test_schema_version_1_document_context_remains_readable(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-20260622-0001',
+            'name' => 'Batch I',
+            'status' => AuctionBatchStatus::DIAJUKAN,
+            'metadata' => [
+                'schema_version' => 1,
+                'signatories' => [
+                    'kepala_balai' => [
+                        'nama' => 'Kepala Lama',
+                        'nip' => '123',
+                    ],
+                ],
+                'committees' => [],
+                'document_numbers' => [
+                    'surat_tugas' => 'ST/OLD',
+                ],
+                'document_dates' => [
+                    'surat_tugas' => '2026-06-22',
+                ],
+            ],
+        ]);
+
+        $asset = $this->createAsset();
+        $batch->assets()->attach($asset->id, [
+            'id' => \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-01',
+            'nilai_taksiran' => 5000000,
+        ]);
+
+        $response = $this->getJson("/api/bmn/auction-batches/{$batch->id}/documents/context");
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.metadata_schema_version', 1);
+        $response->assertJsonPath('data.metadata.signatories.kepala_balai.nama', 'Kepala Lama');
     }
 
     public function test_document_readiness_service(): void

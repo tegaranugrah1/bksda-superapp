@@ -1,5 +1,6 @@
 "use client";
 
+import { parseDocDate } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 import { buildPernyataanNomor, printPernyataan } from "../_lib/print-pernyataan";
 import { PernyataanDocument, PernyataanIdentity } from "./PernyataanDocument";
@@ -7,6 +8,7 @@ import { PernyataanDocument, PernyataanIdentity } from "./PernyataanDocument";
 interface SptjmDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   kepalaBalai: SkKepalaBalai;
 }
 
@@ -20,16 +22,16 @@ export function handlePrintSptjm() {
   });
 }
 
-export function SptjmDocument({ number, kap, kepalaBalai }: SptjmDocumentProps) {
-  const today = new Date();
-  const nomorText = buildPernyataanNomor("SPTJM", number, kap, today);
+export function SptjmDocument({ number, kap, date, kepalaBalai }: SptjmDocumentProps) {
+  const docDate = parseDocDate(date);
+  const nomorText = buildPernyataanNomor("SPTJM", number, kap, docDate);
 
   return (
     <PernyataanDocument
       rootId={ROOT_ID}
       title="SURAT PERNYATAAN TANGGUNG JAWAB MUTLAK"
       nomorText={nomorText}
-      today={today}
+      today={docDate}
       kepalaBalai={kepalaBalai}
     >
       <p contentEditable suppressContentEditableWarning className="doc-editable">

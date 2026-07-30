@@ -19,7 +19,7 @@ class BukuController extends Controller
         $query = Buku::with('jenis:id,nama')->latest();
 
         if ($request->filled('search')) {
-            $query->where('judul', 'ilike', '%'.$request->search.'%');
+            $query->where('judul', 'LIKE', '%'.$request->search.'%');
         }
 
         return response()->json($query->paginate(20));
