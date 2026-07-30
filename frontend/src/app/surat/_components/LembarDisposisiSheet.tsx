@@ -129,24 +129,18 @@ export function LembarDisposisiSheet({
           <div className="h-full" />
         </div>
 
-        {/* ── 3. Metadata Surat (2 Equal Default Columns, 2 Rows Height) ── */}
+        {/* ── 3. Metadata Surat (2 Equal Columns, Double Height Single Box) ── */}
         <div className="border-b border-black grid grid-cols-2 divide-x divide-black">
-          {/* Left Block: 2 Rows (No Surat + Empty row) */}
-          <div className="divide-y divide-black">
-            <div className="p-0.5 px-2 flex items-center min-h-6.5">
-              <span className="w-20 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>No Surat</span>
-              <span className="break-all font-bold text-[16.5px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_surat || "36/APEKLI/VII/2026"}</span>
-            </div>
-            <div className="p-0.5 px-2 flex items-center min-h-6.5" />
+          {/* Left Block: No Surat (Single box, double height) */}
+          <div className="p-1 px-2 flex items-center min-h-13">
+            <span className="w-20 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>No Surat</span>
+            <span className="break-all font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_surat || "36/APEKLI/VII/2026"}</span>
           </div>
 
-          {/* Right Block: 2 Rows (Tanggal + Empty row) */}
-          <div className="divide-y divide-black">
-            <div className="p-0.5 px-2 flex items-center whitespace-nowrap min-h-6.5">
-              <span className="w-20 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Tanggal</span>
-              <span className="font-bold text-[16.5px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_surat || "23/07/26")}</span>
-            </div>
-            <div className="p-0.5 px-2 flex items-center min-h-6.5" />
+          {/* Right Block: Tanggal Surat (Single box, double height) */}
+          <div className="p-1 px-2 flex items-center whitespace-nowrap min-h-13">
+            <span className="w-20 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Tanggal</span>
+            <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_surat || "23/07/26")}</span>
           </div>
         </div>
 
