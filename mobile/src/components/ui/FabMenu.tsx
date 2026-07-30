@@ -103,20 +103,84 @@ export const FabMenu: React.FC<FabMenuProps> = ({
     (mod) => mod.key === "home" || hasModule(user, mod.key)
   );
 
-  const canAccessKepegawaian = hasModule(user, "kepegawaian");
+  const moduleConfigs: Record<string, {
+    title: string;
+    subtitle: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    iconColor: string;
+    submenus: Array<{ key: string; title: string; icon: keyof typeof Ionicons.glyphMap }>;
+  }> = {
+    bmn: {
+      title: "BMN",
+      subtitle: "BARANG MILIK NEGARA",
+      icon: "cube",
+      iconColor: "#059669",
+      submenus: [
+        { key: "bmn", title: "Dashboard", icon: "grid-outline" },
+        { key: "data-aset", title: "Data Aset", icon: "cube-outline" },
+        { key: "bmn-loan", title: "Peminjaman", icon: "swap-horizontal-outline" },
+        { key: "bmn-maintenance", title: "Pemeliharaan", icon: "construct-outline" },
+        { key: "bmn-import-review", title: "Import Review", icon: "document-text-outline" },
+        { key: "bmn-rusak-berat", title: "Kandidat Rusak Berat", icon: "hammer-outline" },
+        { key: "bmn-lelang", title: "Paket Lelang BMN", icon: "document-outline" },
+        { key: "bmn-trash", title: "Aset Dihapus", icon: "trash-outline" },
+        { key: "bmn-laporan", title: "Laporan", icon: "document-text-outline" },
+      ],
+    },
+    kepegawaian: {
+      title: "Kepegawaian",
+      subtitle: "SDM & EMPLOYEE",
+      icon: "people",
+      iconColor: "#2563eb",
+      submenus: [
+        { key: "daftar-pegawai", title: "Daftar Pegawai", icon: "people-outline" },
+        { key: "tambah-pegawai", title: "Tambah Pegawai", icon: "person-add-outline" },
+        { key: "inbox-surat-tugas", title: "Inbox Surat Tugas", icon: "mail-unread-outline" },
+        { key: "inbox-surat-cuti", title: "Inbox Surat Cuti", icon: "calendar-outline" },
+        { key: "buat-surat-tugas", title: "Buat Surat Tugas", icon: "document-text-outline" },
+        { key: "riwayat-surat-tugas", title: "Riwayat Surat Tugas", icon: "time-outline" },
+      ],
+    },
+    inventory: {
+      title: "Inventory",
+      subtitle: "PERSEDIAAN & STOK",
+      icon: "archive",
+      iconColor: "#f97316",
+      submenus: [
+        { key: "inventory", title: "Stok Persediaan", icon: "archive-outline" },
+        { key: "inventory-distribusi", title: "Distribusi Stok", icon: "send-outline" },
+      ],
+    },
+    dereporting: {
+      title: "DeReporting",
+      subtitle: "PELAPORAN DIGITAL",
+      icon: "document-text",
+      iconColor: "#8b5cf6",
+      submenus: [
+        { key: "dereporting", title: "Laporan Internal", icon: "document-text-outline" },
+      ],
+    },
+    surat: {
+      title: "Persuratan",
+      subtitle: "SURAT & DISPOSISI",
+      icon: "mail",
+      iconColor: "#0284c7",
+      submenus: [
+        { key: "surat", title: "Surat Masuk", icon: "mail-outline" },
+      ],
+    },
+    cms: {
+      title: "CMS Panel",
+      subtitle: "MANAJEMEN KONTEN",
+      icon: "settings",
+      iconColor: "#0d9488",
+      submenus: [
+        { key: "cms", title: "Kelola Portal", icon: "grid-outline" },
+      ],
+    },
+  };
 
-  const submenus = [
-    { key: "daftar-pegawai", title: "Daftar Pegawai", icon: "people-outline", requireKepegawaian: true },
-    { key: "tambah-pegawai", title: "Tambah Pegawai", icon: "person-add-outline", requireKepegawaian: true },
-    { key: "inbox-surat-tugas", title: "Inbox Surat Tugas", icon: "mail-unread-outline", requireKepegawaian: true },
-    { key: "inbox-surat-cuti", title: "Inbox Surat Cuti", icon: "calendar-outline", requireKepegawaian: true },
-    { key: "buat-surat-tugas", title: "Buat Surat Tugas", icon: "document-text-outline", requireKepegawaian: false },
-    { key: "riwayat-surat-tugas", title: "Riwayat Surat Tugas", icon: "time-outline", requireKepegawaian: false },
-  ];
-
-  const accessibleSubmenus = submenus.filter(
-    (item) => !item.requireKepegawaian || canAccessKepegawaian
-  );
+  const currentConfig = moduleConfigs[activeModule] || moduleConfigs.kepegawaian;
 
   const handleSelectSubmenu = (key: string) => {
     setShowModulePopover(false);
@@ -131,10 +195,12 @@ export const FabMenu: React.FC<FabMenuProps> = ({
       onNavigateToModule("inbox-surat-cuti");
     } else if (key === "daftar-pegawai") {
       onNavigateToModule("kepegawaian");
-    } else if (key === "riwayat-surat-tugas") {
-      onNavigateToModule("surat");
+    } else if (key === "bmn") {
+      onNavigateToModule("bmn");
+    } else if (key === "data-aset") {
+      onNavigateToModule("data-aset");
     } else {
-      onNavigateToModule("kepegawaian");
+      onNavigateToModule(key);
     }
   };
 
@@ -154,7 +220,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
     <>
       {/* Floating Action Button (FAB ☰) in Bottom Right Corner */}
       <TouchableOpacity
-        style={styles.fabBtn}
+        style={[styles.fabBtn, { backgroundColor: currentConfig.iconColor }]}
         activeOpacity={0.8}
         onPress={() => setIsOpen(true)}
       >
@@ -177,14 +243,16 @@ export const FabMenu: React.FC<FabMenuProps> = ({
             {/* Drawer Top Header Row */}
             <View style={styles.drawerHeaderRow}>
               <View style={styles.headerLeftInfo}>
-                <View style={styles.moduleSquareIcon}>
-                  <Ionicons name="people" size={22} color="#2563eb" />
+                <View style={[styles.moduleSquareIcon, { backgroundColor: currentConfig.iconColor + "18" }]}>
+                  <Ionicons name={currentConfig.icon} size={22} color={currentConfig.iconColor} />
                 </View>
                 <View>
                   <Text style={[styles.moduleTitleText, { color: colors.textDark }]}>
-                    Kepegawaian
+                    {currentConfig.title}
                   </Text>
-                  <Text style={styles.moduleSubtext}>SDM & EMPLOYEE</Text>
+                  <Text style={[styles.moduleSubtext, { color: currentConfig.iconColor, fontWeight: "700" }]}>
+                    {currentConfig.subtitle}
+                  </Text>
                 </View>
               </View>
 
@@ -213,13 +281,13 @@ export const FabMenu: React.FC<FabMenuProps> = ({
               activeOpacity={0.8}
             >
               <View style={styles.dropdownLeft}>
-                <View style={styles.dropdownIconCircle}>
-                  <Ionicons name="people-outline" size={16} color="#2563eb" />
+                <View style={[styles.dropdownIconCircle, { backgroundColor: currentConfig.iconColor + "18" }]}>
+                  <Ionicons name={currentConfig.icon} size={16} color={currentConfig.iconColor} />
                 </View>
                 <View>
                   <Text style={styles.dropdownLabel}>MODUL AKTIF</Text>
                   <Text style={[styles.dropdownValue, { color: colors.textDark }]}>
-                    Kepegawaian
+                    {currentConfig.title === "BMN" ? "BMN & Aset" : currentConfig.title}
                   </Text>
                 </View>
               </View>
@@ -232,14 +300,14 @@ export const FabMenu: React.FC<FabMenuProps> = ({
 
             {/* Submenu Links List */}
             <ScrollView style={styles.menuScroll} showsVerticalScrollIndicator={false}>
-              {accessibleSubmenus.map((item) => {
-                const isActive = item.key === activeSubmenu;
+              {currentConfig.submenus.map((item) => {
+                const isActive = item.key === activeSubmenu || (!activeSubmenu && activeModule === "bmn" && item.key === "bmn");
                 return (
                   <TouchableOpacity
                     key={item.key}
                     style={[
                       styles.submenuRow,
-                      isActive && styles.submenuRowActive,
+                      isActive && { backgroundColor: currentConfig.iconColor + "15" },
                     ]}
                     activeOpacity={0.7}
                     onPress={() => handleSelectSubmenu(item.key)}
@@ -247,14 +315,14 @@ export const FabMenu: React.FC<FabMenuProps> = ({
                     <Ionicons
                       name={item.icon as any}
                       size={18}
-                      color={isActive ? "#2563eb" : "#475569"}
+                      color={isActive ? currentConfig.iconColor : "#475569"}
                       style={{ marginRight: 12 }}
                     />
                     <Text
                       style={[
                         styles.submenuText,
                         { color: colors.textDark },
-                        isActive && styles.submenuTextActive,
+                        isActive && { color: currentConfig.iconColor, fontWeight: "700" },
                       ]}
                     >
                       {item.title}
@@ -267,7 +335,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
             {/* Drawer Bottom User & Logout Section */}
             <View style={[styles.drawerFooter, { borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0" }]}>
               <View style={styles.userInfoRow}>
-                <View style={styles.userAvatarCircle}>
+                <View style={[styles.userAvatarCircle, { backgroundColor: currentConfig.iconColor }]}>
                   <Text style={styles.userAvatarText}>{avatarInitial}</Text>
                 </View>
                 <View style={{ flex: 1 }}>

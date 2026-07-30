@@ -11,15 +11,42 @@ export interface AssetListItem {
   is_verified?: boolean;
 }
 
+export interface VehicleDocumentPayload {
+  path?: string | null;
+  mime?: string | null;
+  original_name?: string | null;
+  preview_path?: string | null;
+  url?: string | null;
+  download_url?: string | null;
+  preview_url?: string | null;
+  preview_urls?: string[];
+}
+
 export interface AssetDetail extends AssetListItem {
+  nama?: string;
+  nup_lama?: string | number | null;
   merk?: string;
   tipe?: string;
   no_rangka?: string;
   no_mesin?: string;
   tanggal_pembelian?: string;
   nilai_perolehan?: number;
+  nilai_perolehan_pertama?: number | string | null;
+  nilai_mutasi?: number | string | null;
+  nilai_penyusutan?: number | string | null;
+  nilai_buku?: number | string | null;
+  tahun_perolehan?: number | string | null;
+  tanggal_perolehan?: string | null;
+  tanggal_buku_pertama?: string | null;
+  tanggal_ganti_plat?: string | null;
+  status_bmn?: string | null;
+  intra_extra?: string | null;
   jenis_bmn?: string;
   lokasi_ruang?: string;
+  nama_pengguna?: string | null;
+  satuan_kerja?: string | null;
+  verified_at?: string | null;
+  verified_by_name?: string | null;
   penanggung_jawab?: {
     id: number;
     nama_lengkap: string;
@@ -59,12 +86,15 @@ export interface AssetDetail extends AssetListItem {
   foto_bpkb_4_url?: string | null;
   foto_stnk_1_url?: string | null;
   foto_stnk_2_url?: string | null;
+  bpkb_document?: VehicleDocumentPayload | null;
+  stnk_document?: VehicleDocumentPayload | null;
   active_loan?: {
     id: number | string;
     borrower_name: string;
     borrower_nip?: string | null;
     loan_date?: string | null;
     due_date?: string | null;
+    purpose?: string | null;
     status: string;
   } | null;
 }

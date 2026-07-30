@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, Image, Alert, ActivityIndicator, SafeAreaView, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Image, Alert, ActivityIndicator, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useAppTheme } from '@/hooks/useAppTheme';

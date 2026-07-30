@@ -2,6 +2,9 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import DashboardScreen from "../features/dashboard/screens/DashboardScreen";
 import { BmnAssetCatalogScreen } from "../features/bmn/BmnAssetCatalogScreen";
+import BmnDetailScreen from "../features/bmn/screens/BmnDetailScreen";
+import BmnFormScreen from "../features/bmn/screens/BmnFormScreen";
+import BmnPhotoCaptureScreen from "../features/bmn/screens/BmnPhotoCaptureScreen";
 import { SuratMasukHistoryScreen } from "../features/surat/SuratMasukHistoryScreen";
 import { InventoryStockScreen } from "../features/inventory/InventoryStockScreen";
 import ProfileScreen from "../features/profile/screens/ProfileScreen";
@@ -16,6 +19,9 @@ import AssignmentDetailScreen from "../features/surat-tugas/screens/AssignmentDe
 export type AppTabParamList = {
   Dashboard: undefined;
   Bmn: undefined;
+  BmnDetail: { id: string | number };
+  BmnForm: { id?: string | number };
+  BmnPhotoCapture: { assetId: string | number; type: string };
   Surat: undefined;
   Inventory: undefined;
   Profile: undefined;
@@ -42,6 +48,9 @@ export default function AppTabs() {
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Bmn" component={BmnAssetCatalogScreen} />
+      <Tab.Screen name="BmnDetail" component={BmnDetailScreen} />
+      <Tab.Screen name="BmnForm" component={BmnFormScreen} />
+      <Tab.Screen name="BmnPhotoCapture" component={BmnPhotoCaptureScreen} />
       <Tab.Screen name="Surat" component={SuratMasukHistoryScreen} />
       <Tab.Screen name="Inventory" component={InventoryStockScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
