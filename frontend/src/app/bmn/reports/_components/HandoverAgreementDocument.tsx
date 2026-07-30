@@ -128,11 +128,11 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
       <head>
         <title>BA Serah Terima BMN</title>
         <style>
-          @page { size: A4 portrait; margin: 20mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
           * { box-sizing: border-box; }
           body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
           p { margin: 0; }
-          .handover-page { width: 210mm; margin: 0 auto; padding: 0 20mm 14mm; }
+          .handover-page { width: 210mm; margin: 0 auto; padding: 0 20mm 10mm; }
           .handover-header { margin: 0 -12mm; text-align: center; }
           .handover-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
           .handover-title { margin-top: 5mm; text-align: center; font-weight: 700; }
@@ -140,15 +140,17 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 4mm 0; }
           .handover-rows { display: grid; grid-template-columns: 26mm 5mm minmax(0, 1fr); }
           .handover-colon { text-align: center; }
-          .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 4mm 0 3mm; font-size: 8.4pt; text-align: center; }
+          .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 3mm 0 2mm; font-size: 8.4pt; text-align: center; }
           .handover-table th, .handover-table td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; overflow-wrap: anywhere; }
           .handover-table td.handover-cell-left { text-align: left; }
           .handover-table td.handover-cell-center { text-align: center; }
-          .handover-table thead { display: table-header-group; }
+          .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
           .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .handover-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; }
-          .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 7mm; }
-          .handover-signature-name { margin-top: 25mm; font-weight: 700; }
+          .handover-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; margin-top: 2mm; }
+          .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 5mm; }
+          .handover-signature-name { margin-top: 22mm; font-weight: 700; }
+          .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
+          .avoid-break { break-inside: avoid; page-break-inside: avoid; }
         </style>
       </head>
       <body>${printContent.innerHTML}</body>
@@ -189,12 +191,17 @@ export function HandoverAgreementDocument({
   const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
   const itemCountText = `${itemCount} (${spellNumber(itemCount).toLocaleLowerCase("id-ID")})`;
   const itemDescription = (description || (variant === "vehicle" ? "kendaraan" : "barang")).trim();
-  const isMultiPageTable = items.length > 20;
+
+  // Dynamic pagination threshold
+  const PAGE_1_MAX_ITEMS = 17;
+  const isMultiPage = items.length > PAGE_1_MAX_ITEMS;
+  const page1Items = isMultiPage ? items.slice(0, PAGE_1_MAX_ITEMS) : items;
+  const page2Items = isMultiPage ? items.slice(PAGE_1_MAX_ITEMS) : [];
 
   return (
     <div id={documentId}>
       <style jsx global>{`
-        .handover-preview .handover-page { width: 210mm; max-width: 100%; margin: 0 auto; padding: 7mm 20mm 14mm; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
+        .handover-preview .handover-page { width: 210mm; max-width: 100%; margin: 0 auto; padding: 5mm 20mm 10mm; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
         .handover-preview p { margin: 0; }
         .handover-preview .handover-header { margin: 0 -12mm; text-align: center; }
         .handover-preview .handover-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
@@ -203,24 +210,24 @@ export function HandoverAgreementDocument({
         .handover-preview .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 4mm 0; }
         .handover-preview .handover-rows { display: grid; grid-template-columns: 26mm 5mm minmax(0, 1fr); }
         .handover-preview .handover-colon { text-align: center; }
-        .handover-preview .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 4mm 0 3mm; font-size: 8.4pt; text-align: center; }
+        .handover-preview .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 3mm 0 2mm; font-size: 8.4pt; text-align: center; }
         .handover-preview .handover-table th,
         .handover-preview .handover-table td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; overflow-wrap: anywhere; }
         .handover-preview .handover-table td.handover-cell-left { text-align: left; }
         .handover-preview .handover-table td.handover-cell-center { text-align: center; }
-        .handover-preview .handover-table thead { display: table-header-group; }
+        .handover-preview .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
         .handover-preview .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-        .handover-preview .handover-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; }
-        .handover-preview .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 7mm; }
-        .handover-preview .handover-signature-name { margin-top: 25mm; font-weight: 700; }
+        .handover-preview .handover-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; margin-top: 2mm; }
+        .handover-preview .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 5mm; }
+        .handover-preview .handover-signature-name { margin-top: 22mm; font-weight: 700; }
+        .handover-preview .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
         @media print {
-          @page { size: A4 portrait; margin: 20mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
           body * { visibility: hidden; }
           #ba-serah-terima-print-root, #ba-serah-terima-print-root * { visibility: visible; }
           #ba-serah-terima-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
-          .handover-page { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
-          .handover-header { margin: 0 !important; }
-          .handover-header img { width: 100% !important; max-width: 100% !important; }
+          .handover-page { box-shadow: none !important; }
+          .avoid-break { break-inside: avoid; page-break-inside: avoid; }
         }
       `}</style>
       <div className="handover-preview">
@@ -242,6 +249,7 @@ export function HandoverAgreementDocument({
 
             <p><strong>PIHAK KESATU</strong> telah menyerahkan barang kepada <strong>PIHAK KEDUA</strong> berupa {itemCountText} unit {itemDescription} sebagai berikut:</p>
 
+            {/* Page 1 Table */}
             {variant === "vehicle" ? (
               <table className="handover-table">
                 <colgroup>
@@ -253,13 +261,10 @@ export function HandoverAgreementDocument({
                   <col style={{ width: "16%" }} />
                 </colgroup>
                 <thead>
-                  {isMultiPageTable && (
-                    <tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
-                  )}
                   <tr><th>No</th><th>Jenis Kendaraan</th><th>Merk / Tipe</th><th>No. Polisi</th><th>No. Mesin</th><th>No. Rangka</th></tr>
                 </thead>
                 <tbody>
-                  {items.map((item, index) => (
+                  {page1Items.map((item, index) => (
                     <tr key={`${item.vehicle_type}-${index}`}>
                       <td>{index + 1}</td>
                       {dataCell(item.vehicle_type)}
@@ -280,13 +285,10 @@ export function HandoverAgreementDocument({
                   <col style={{ width: "15%" }} />
                 </colgroup>
                 <thead>
-                  {isMultiPageTable && (
-                    <tr><th>1</th><th>2</th><th>3</th><th>4</th></tr>
-                  )}
                   <tr><th>No</th><th>Nama Barang</th><th>Jumlah</th><th>NUP</th></tr>
                 </thead>
                 <tbody>
-                  {items.map((item, index) => (
+                  {page1Items.map((item, index) => (
                     <tr key={`${item.name}-${index}`}>
                       <td>{index + 1}</td>
                       {dataCell(item.name)}
@@ -298,10 +300,69 @@ export function HandoverAgreementDocument({
               </table>
             )}
 
-            <p><strong>PIHAK KEDUA</strong> telah menerima barang tersebut dalam keadaan baik dan dapat dipergunakan dengan baik, dengan diserahkan barang tersebut dari <strong>PIHAK KESATU</strong> kepada <strong>PIHAK KEDUA</strong>, maka pengelolaan barang tersebut menjadi tanggung jawab <strong>PIHAK KEDUA</strong>.</p>
+            {/* Page 2 Table (if multi-page) */}
+            {isMultiPage && (
+              <>
+                <div className="page-continuation-spacer" />
+                {variant === "vehicle" ? (
+                  <table className="handover-table">
+                    <colgroup>
+                      <col style={{ width: "8%" }} />
+                      <col style={{ width: "24%" }} />
+                      <col style={{ width: "22%" }} />
+                      <col style={{ width: "15%" }} />
+                      <col style={{ width: "15%" }} />
+                      <col style={{ width: "16%" }} />
+                    </colgroup>
+                    <thead>
+                      <tr className="table-number-row"><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+                      <tr><th>No</th><th>Jenis Kendaraan</th><th>Merk / Tipe</th><th>No. Polisi</th><th>No. Mesin</th><th>No. Rangka</th></tr>
+                    </thead>
+                    <tbody>
+                      {page2Items.map((item, index) => (
+                        <tr key={`${item.vehicle_type}-${index}`}>
+                          <td>{PAGE_1_MAX_ITEMS + index + 1}</td>
+                          {dataCell(item.vehicle_type)}
+                          {dataCell(item.merk_tipe)}
+                          {dataCell(item.no_polisi)}
+                          {dataCell(item.no_mesin)}
+                          {dataCell(item.no_rangka)}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className="handover-table">
+                    <colgroup>
+                      <col style={{ width: "8%" }} />
+                      <col style={{ width: "62%" }} />
+                      <col style={{ width: "15%" }} />
+                      <col style={{ width: "15%" }} />
+                    </colgroup>
+                    <thead>
+                      <tr className="table-number-row"><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+                      <tr><th>No</th><th>Nama Barang</th><th>Jumlah</th><th>NUP</th></tr>
+                    </thead>
+                    <tbody>
+                      {page2Items.map((item, index) => (
+                        <tr key={`${item.name}-${index}`}>
+                          <td>{PAGE_1_MAX_ITEMS + index + 1}</td>
+                          {dataCell(item.name)}
+                          {dataCell(item.quantity)}
+                          {dataCell(item.nup)}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
+            )}
 
-            <div className="handover-signature-block">
-              <p style={{ marginTop: "5mm" }}>Demikian Berita Acara Serah Terima Barang ini dibuat dengan sebenarnya, ditandatangani masing-masing kedua belah pihak pada tanggal tersebut di atas untuk dipergunakan sebagaimana mestinya.</p>
+            <p style={{ marginTop: "3mm" }}><strong>PIHAK KEDUA</strong> telah menerima barang tersebut dalam keadaan baik dan dapat dipergunakan dengan baik, dengan diserahkan barang tersebut dari <strong>PIHAK KESATU</strong> kepada <strong>PIHAK KEDUA</strong>, maka pengelolaan barang tersebut menjadi tanggung jawab <strong>PIHAK KEDUA</strong>.</p>
+
+            {/* Signature Block (Always keeps closing text TOGETHER with signatures) */}
+            <div className="handover-signature-block avoid-break">
+              <p style={{ marginTop: "4mm" }}>Demikian Berita Acara Serah Terima Barang ini dibuat dengan sebenarnya, ditandatangani masing-masing kedua belah pihak pada tanggal tersebut di atas untuk dipergunakan sebagaimana mestinya.</p>
               <div className="handover-signatures">
                 <div>
                   <p>PIHAK KEDUA</p>

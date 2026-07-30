@@ -158,7 +158,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
       <head>
         <title>BA Pemakaian BMN</title>
         <style>
-          @page { size: A4 portrait; margin: 20mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
           * { box-sizing: border-box; }
           body {
             margin: 0;
@@ -170,25 +170,25 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
             line-height: 1.22;
           }
           p { margin: 0; }
-          .usage-page { width: 210mm; margin: 0 auto; padding: 0 20mm 14mm; }
+          .usage-page { width: 210mm; margin: 0 auto; padding: 0 20mm 10mm; }
           .usage-header { margin: 0 -12mm; text-align: center; }
           .usage-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          .usage-title { margin-top: 6mm; text-align: center; font-weight: 700; }
-          .usage-body { margin-top: 6mm; text-align: justify; }
+          .usage-title { margin-top: 5mm; text-align: center; font-weight: 700; }
+          .usage-body { margin-top: 5mm; text-align: justify; }
           .usage-party { margin: 2mm 0 3mm 14mm; }
           .usage-indent { margin-left: 14mm; }
           .usage-gap-before { margin-top: 3mm; }
           .usage-row { display: grid; grid-template-columns: 35mm 5mm minmax(0, 1fr); }
           .usage-colon { text-align: center; }
-          .usage-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 4mm 0 2mm; font-size: 8.4pt; text-align: center; }
+          .usage-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 3mm 0 2mm; font-size: 8.4pt; text-align: center; }
           .usage-table th, .usage-table td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; overflow-wrap: anywhere; }
           .usage-table th { font-weight: 400; }
-          .usage-table thead { display: table-header-group; }
-          .usage-table tfoot { display: table-footer-group; }
+          .usage-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
           .usage-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; }
-          .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 8mm; }
-          .signature-name { margin-top: 27mm; font-weight: 700; }
+          .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; margin-top: 2mm; }
+          .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 5mm; }
+          .signature-name { margin-top: 22mm; font-weight: 700; }
+          .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
         </style>
       </head>
@@ -210,7 +210,12 @@ export function UsageAgreementDocument({
   notes,
 }: UsageAgreementDocumentProps) {
   const { day, dateText, month, yearText } = formatSpelledDate(documentDate);
-  const isMultiPageTable = assets.length > 20;
+
+  // Dynamic pagination threshold
+  const PAGE_1_MAX_ITEMS = 17;
+  const isMultiPage = assets.length > PAGE_1_MAX_ITEMS;
+  const page1Assets = isMultiPage ? assets.slice(0, PAGE_1_MAX_ITEMS) : assets;
+  const page2Assets = isMultiPage ? assets.slice(PAGE_1_MAX_ITEMS) : [];
 
   return (
     <div id={documentId}>
@@ -219,7 +224,7 @@ export function UsageAgreementDocument({
           width: 210mm;
           max-width: 100%;
           margin: 0 auto;
-          padding: 7mm 20mm 14mm;
+          padding: 5mm 20mm 10mm;
           background: white;
           color: black;
           font-family: Arial, Helvetica, sans-serif;
@@ -229,25 +234,25 @@ export function UsageAgreementDocument({
         .usage-preview p { margin: 0; }
         .usage-preview .usage-header { margin: 0 -12mm; text-align: center; }
         .usage-preview .usage-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .usage-preview .usage-title { margin-top: 6mm; text-align: center; font-weight: 700; }
-        .usage-preview .usage-body { margin-top: 6mm; text-align: justify; }
+        .usage-preview .usage-title { margin-top: 5mm; text-align: center; font-weight: 700; }
+        .usage-preview .usage-body { margin-top: 5mm; text-align: justify; }
         .usage-preview .usage-party { margin: 2mm 0 3mm 14mm; }
         .usage-preview .usage-indent { margin-left: 14mm; }
         .usage-preview .usage-gap-before { margin-top: 3mm; }
         .usage-preview .usage-row { display: grid; grid-template-columns: 35mm 5mm minmax(0, 1fr); }
         .usage-preview .usage-colon { text-align: center; }
-        .usage-preview .usage-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 4mm 0 2mm; font-size: 8.4pt; text-align: center; }
+        .usage-preview .usage-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 3mm 0 2mm; font-size: 8.4pt; text-align: center; }
         .usage-preview .usage-table th,
         .usage-preview .usage-table td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; overflow-wrap: anywhere; }
         .usage-preview .usage-table th { font-weight: 400; }
-        .usage-preview .usage-table thead { display: table-header-group; }
-        .usage-preview .usage-table tfoot { display: table-footer-group; }
+        .usage-preview .usage-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
         .usage-preview .usage-table tr { break-inside: avoid; page-break-inside: avoid; }
-        .usage-preview .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; }
-        .usage-preview .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 8mm; }
-        .usage-preview .signature-name { margin-top: 27mm; font-weight: 700; }
+        .usage-preview .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; margin-top: 2mm; }
+        .usage-preview .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 5mm; }
+        .usage-preview .signature-name { margin-top: 22mm; font-weight: 700; }
+        .usage-preview .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
         @media print {
-          @page { size: A4 portrait; margin: 20mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
           body * { visibility: hidden; }
           #ba-pemakaian-print-root, #ba-pemakaian-print-root * { visibility: visible; }
           #ba-pemakaian-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
@@ -298,6 +303,7 @@ export function UsageAgreementDocument({
               Telah melaksanakan serah terima Barang Milik Negara (BMN) yang tercatat pada satuan kerja Balai KSDA Kalimantan Timur dari PIHAK PERTAMA kepada PIHAK KEDUA yang akan dipakai untuk keperluan tugas dan fungsi kedinasan sehari-hari, dengan rincian barang:
             </p>
 
+            {/* Page 1 Table (Items 1-17) */}
             <table className="usage-table">
               <colgroup>
                 <col style={{ width: "7%" }} />
@@ -311,19 +317,6 @@ export function UsageAgreementDocument({
                 <col style={{ width: "9%" }} />
               </colgroup>
               <thead>
-                {isMultiPageTable && (
-                  <tr>
-                    <th>1</th>
-                    <th>2</th>
-                    <th>3</th>
-                    <th>4</th>
-                    <th>5</th>
-                    <th>6</th>
-                    <th>7</th>
-                    <th>8</th>
-                    <th>9</th>
-                  </tr>
-                )}
                 <tr>
                   <th>No</th>
                   <th>Uraian Barang</th>
@@ -337,11 +330,11 @@ export function UsageAgreementDocument({
                 </tr>
               </thead>
               <tbody>
-                {assets.length === 0 ? (
+                {page1Assets.length === 0 ? (
                   <tr>
                     <td colSpan={9}>Belum ada aset BMN yang dipilih.</td>
                   </tr>
-                ) : assets.map((asset, index) => (
+                ) : page1Assets.map((asset, index) => (
                   <tr className="avoid-break" key={asset.id}>
                     <td>{index + 1}</td>
                     <td>{fallback(asset.nama_barang)}</td>
@@ -357,8 +350,69 @@ export function UsageAgreementDocument({
               </tbody>
             </table>
 
-            <p>{notes || "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."}</p>
-            <div className="usage-signature-block">
+            {/* Page 2 Section (if multi-page) */}
+            {isMultiPage && (
+              <>
+                <div className="page-continuation-spacer" />
+                <table className="usage-table">
+                  <colgroup>
+                    <col style={{ width: "7%" }} />
+                    <col style={{ width: "18%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "9%" }} />
+                  </colgroup>
+                  <thead>
+                    <tr className="table-number-row">
+                      <th>1</th>
+                      <th>2</th>
+                      <th>3</th>
+                      <th>4</th>
+                      <th>5</th>
+                      <th>6</th>
+                      <th>7</th>
+                      <th>8</th>
+                      <th>9</th>
+                    </tr>
+                    <tr>
+                      <th>No</th>
+                      <th>Uraian Barang</th>
+                      <th>Kode Barang</th>
+                      <th>NUP</th>
+                      <th>Merek /Tipe</th>
+                      <th>Kondisi</th>
+                      <th>Nomor Polisi</th>
+                      <th>Nomor Rangka</th>
+                      <th>Nomor Mesin</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {page2Assets.map((asset, index) => (
+                      <tr className="avoid-break" key={asset.id}>
+                        <td>{PAGE_1_MAX_ITEMS + index + 1}</td>
+                        <td>{fallback(asset.nama_barang)}</td>
+                        <td>{fallback(asset.kode_barang)}</td>
+                        <td>{fallback(asset.nup)}</td>
+                        <td>{assetMerkTipe(asset)}</td>
+                        <td>{fallback(asset.kondisi)}</td>
+                        <td>{fallback(asset.no_polisi)}</td>
+                        <td>{fallback(asset.no_rangka)}</td>
+                        <td>{fallback(asset.no_mesin)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+
+            <p className="usage-gap-before">{notes || "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."}</p>
+
+            {/* Signature Block (Always keeps "Berita Acara ini dibuat..." TOGETHER with signatures) */}
+            <div className="usage-signature-block avoid-break">
               <p className="usage-gap-before">Berita Acara ini dibuat dengan sebenar-benarnya.</p>
 
               <div className="usage-signatures">
