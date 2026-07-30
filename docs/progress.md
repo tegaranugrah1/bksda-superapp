@@ -1,3 +1,66 @@
+# Progress - Phase 196: BMN Reports Multi-Page Pagination, Dynamic Margins, Uncropped Asset Photo Documentation & Git Branch Consolidation/Deployment Setup
+
+> Document updated: 2026-07-30
+> Status: Aktif pada branch `develop-bmn` (Commit ID: `23e4bf7`), ter-push ke `origin/develop-bmn` & `origin/production`.
+
+---
+
+## 1. Pembersihan, Konsolidasi Branch & Setup Branch Deployment (`production`)
+
+### Status: SELESAI
+- **Scope**: Repositori Git (`e:\bksda-superapp`)
+- **Hasil Perbaikan**:
+  1. **Penggabungan Branch Fitur Lelang BMN**:
+     - Menggabungkan seluruh perubahan dari `develop/bmn-auction` ke `develop-bmn` dan sebaliknya.
+  2. **Pembersihan 19 Branch Usang**:
+     - Menghapus 19 branch lokal & remote usang (`codex/*`, `task/*`, `issue/*`, `develop/bmn-auction`) setelah memastikan seluruh kodenya 100% aman terintegrasi.
+  3. **Pembuatan Branch Deployment Khusus (`production`)**:
+     - Membuat branch khusus deployment live **`production`** yang terhubung ke `origin/production` untuk server web `bksdakaltim.net`.
+     - `production` berasal dari kondisi stabil `main`, sehingga merge ke `main` tidak akan mengganggu live website sebelum sengaja di-merge ke `production`.
+
+---
+
+## 2. Refactoring Cetak Laporan BMN (BA Pemakaian & BA Serah Terima)
+
+### Status: SELESAI
+- **Scope**: Frontend BMN Reports ([UsageAgreementDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx) & [HandoverAgreementDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx))
+- **Perbaikan Utama**:
+  1. **Halaman 1 Bersih & Bebas Spasi Longgar**:
+     - Baris angka nomor kolom `1, 2, 3, 4...` dan spasi kosong 12mm pada Halaman 1 **dihapus**. Margin antara paragraf dan tabel Halaman 1 dibuat rapat dan natural (3mm).
+  2. **Margin Atas Halaman 2/Continuation Page (15mm)**:
+     - Menambahkan `padding-top: 15mm` pada kontainer pemutus halaman sehingga tabel kelanjutan maupun blok TTD di Halaman 2 **dijamin memiliki margin atas 15mm** dan tidak pernah menempel di tepi atas kertas.
+  3. **Pemutus Halaman TTD & Kalimat Penutup Menyatu**:
+     - Menyambungkan kalimat penutup `"Berita Acara ini dibuat dengan sebenar-benarnya."` dengan 2 kolom TTD (*PIHAK KEDUA* & *PIHAK PERTAMA*) ke dalam 1 kontainer (`.avoid-break`). Jika area TTD terdorong ke Halaman 2, kalimat penutup **otomatis ikut turun bersama TTD** dan tidak akan terpisah sendirian di Halaman 1.
+
+---
+
+## 3. Fitur Lampiran Dokumentasi Foto Aset BMN (Sesuai Sampel Gambar 2)
+
+### Status: SELESAI
+- **Scope**: Frontend BMN Reports ([UsageAgreementDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx) & [HandoverAgreementDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx))
+- **Perbaikan Utama**:
+  1. **Kop Surat di Setiap Halaman Lampiran**:
+     - Setiap halaman lampiran foto diawali dengan Kop Surat resmi (`/header-terbaru.png`).
+  2. **Judul Lampiran Hanya di Halaman Pertama Lampiran**:
+     - Judul `"LAMPIRAN DOKUMENTASI FOTO BARANG MILIK NEGARA"` hanya muncul di halaman 1 lampiran (Halaman 3 BA). Halaman 2 lampiran (Halaman 4 BA) tetap memiliki Kop Surat tanpa judul lampiran.
+  3. **Tata Letak & Kapasitas Memenuhi Layar A4**:
+     - Judul per barang di tengah: `Nama Barang ( NUP X )`.
+     - Tepat **2 foto per baris** (*side-by-side*) per barang, muat **3 barang per halaman A4** yang terdistribusi secara vertikal mengisi layar A4.
+  4. **Tampilan Foto Utuh (Uncropped) & Tanpa Border**:
+     - Mengubah style gambar ke `object-fit: contain` dan `border: none` sehingga foto asli (portrait/landscape) tampil **100% utuh tanpa ada bagian yang terpotong** dan tanpa bingkai abu-abu.
+  5. **Dukungan Foto Google Drive & Direct Image Loader**:
+     - Menambahkan fungsi `convertDriveUrl()` untuk mengonversi link Google Drive (`/file/d/ID/view`) menjadi URL thumbnail direct-embed (`https://drive.google.com/thumbnail?id=ID&sz=w800`).
+     - Menambahkan penunggu *event* `onload` gambar pada pop-up pratinjau cetak sehingga seluruh foto dari Google Drive & URL relatif ter-load 100% sempurna sebelum dialog cetak muncul.
+
+---
+
+### Validasi & Git Status
+- **TypeScript Check**: `npx tsc --noEmit` di folder `frontend/` passed 100% (0 errors).
+- **PHPUnit Check**: Backend feature tests passed 100% (57 passed).
+- **Git Commit**: Commit ID `23e4bf7` di-push ke `origin/develop-bmn`. Working tree clean.
+
+---
+
 # Progress - Phase 195: Creation of `develop-bmn` Branch & BMN Reports Print Page 2 Margin Fix
 
 > Document updated: 2026-07-29
