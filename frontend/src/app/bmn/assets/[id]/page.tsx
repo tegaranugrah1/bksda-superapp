@@ -68,6 +68,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
       const res = await api.get(`/bmn/assets/${assetId}`);
       return res.data.data;
     },
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: employees = [] } = useQuery({

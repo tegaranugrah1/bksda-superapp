@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,16 +11,21 @@ import {
   Image,
   RefreshControl,
   Linking,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../../../theme/ThemeContext';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { EmeraldButton } from '../../../components/ui/EmeraldButton';
 import { useAssetDetail } from '../useAssetDetail';
 import { apiClient } from '../../../lib/api/client';
 import { normalizeError } from '../../../lib/api/errors';
+import { ConfirmModal } from '../../../components/ui/ConfirmModal';
+import { NotificationModal } from '../../../components/ui/NotificationModal';
 
 import { config } from '../../../lib/api/config';
 import { getToken } from '../../../lib/auth/tokenStorage';
@@ -60,6 +65,14 @@ export default function BmnDetailScreen() {
   const id = route?.params?.id;
 
   const { data, isLoading, error, refetch } = useAssetDetail(id);
+
+  // Automatically refetch fresh asset detail whenever screen gains focus (e.g. returning from edit screen)
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
   const [activeTab, setActiveTab] = useState<'identitas' | 'finansial' | 'foto' | 'lokasi' | 'riwayat'>('identitas');
   const [isDeletingPhoto, setIsDeletingPhoto] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -74,6 +87,130 @@ export default function BmnDetailScreen() {
     index: number;
     title: string;
   } | null>(null);
+
+  const [deleteConfirmState, setDeleteConfirmState] = useState<{
+    visible: boolean;
+    type: string;
+    label: string;
+  }>({
+    visible: false,
+    type: '',
+    label: '',
+  });
+
+  const [notificationState, setNotificationState] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    variant: 'success' | 'danger' | 'warning' | 'info';
+    iconName?: any;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    variant: 'success',
+  });
+
+  const [sourcePickerState, setSourcePickerState] = useState<{
+    visible: boolean;
+    type: string;
+    label: string;
+    isGeotag?: boolean;
+    currentUrl?: string;
+  }>({
+    visible: false,
+    type: '',
+    label: '',
+  });
+
+  const [geotagLinkModalState, setGeotagLinkModalState] = useState<{
+    visible: boolean;
+    url: string;
+  }>({
+    visible: false,
+    url: '',
+  });
+  const [isSubmittingGeotagLink, setIsSubmittingGeotagLink] = useState(false);
+
+  const handleSubmitGeotagLink = async () => {
+    if (!geotagLinkModalState.url.trim() || isSubmittingGeotagLink) return;
+    setIsSubmittingGeotagLink(true);
+    try {
+      await apiClient.post(`/bmn/assets/${id}/geotag`, {
+        url: geotagLinkModalState.url.trim(),
+      });
+      setGeotagLinkModalState({ visible: false, url: '' });
+      refetch();
+      setNotificationState({
+        visible: true,
+        title: 'Link Geotag Disimpan',
+        message: 'Tautan Google Drive / Foto Geotag berhasil diperbarui.',
+        variant: 'success',
+        iconName: 'checkmark-circle-outline',
+      });
+    } catch (err: any) {
+      const apiErr = normalizeError(err);
+      setNotificationState({
+        visible: true,
+        title: 'Gagal Menyimpan Link',
+        message: apiErr.message || 'Terjadi kesalahan saat menyimpan link geotag.',
+        variant: 'danger',
+        iconName: 'alert-circle-outline',
+      });
+    } finally {
+      setIsSubmittingGeotagLink(false);
+    }
+  };
+
+  const [isUploadingDoc, setIsUploadingDoc] = useState<string | null>(null);
+
+  const handleUploadPdfDocument = async (docType: 'stnk' | 'bpkb') => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/*'],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        setIsUploadingDoc(docType);
+
+        const formData = new FormData();
+        formData.append('document', {
+          uri: file.uri,
+          name: file.name || `${docType}_document.pdf`,
+          type: file.mimeType || 'application/pdf',
+        } as any);
+        formData.append('type', docType === 'stnk' ? 'stnk_1' : 'bpkb_1');
+
+        await apiClient.post(`/bmn/assets/${id}/document`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        refetch();
+        setNotificationState({
+          visible: true,
+          title: 'Dokumen Berhasil Diunggah',
+          message: `Dokumen ${docType.toUpperCase()} (${file.name}) berhasil disimpan.`,
+          variant: 'success',
+          iconName: 'checkmark-circle-outline',
+        });
+      }
+    } catch (err: any) {
+      const apiErr = normalizeError(err);
+      setNotificationState({
+        visible: true,
+        title: 'Gagal Upload Dokumen',
+        message: apiErr.message || 'Terjadi kesalahan saat mengunggah berkas PDF.',
+        variant: 'danger',
+        iconName: 'alert-circle-outline',
+      });
+    } finally {
+      setIsUploadingDoc(null);
+    }
+  };
 
   const handlePrevPage = () => {
     if (!lightboxState) return;
@@ -187,26 +324,43 @@ export default function BmnDetailScreen() {
   };
 
   const handleDeletePhoto = (type: string) => {
-    Alert.alert('Hapus Foto', `Apakah Anda yakin ingin menghapus foto ${type} ini?`, [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          setIsDeletingPhoto(type);
-          try {
-            await apiClient.delete(`/bmn/assets/${id}/photo/${type}`);
-            Alert.alert('Sukses', `Foto ${type} berhasil dihapus.`);
-            refetch();
-          } catch (err: any) {
-            const apiErr = normalizeError(err);
-            Alert.alert('Error', apiErr.message || 'Gagal menghapus foto.');
-          } finally {
-            setIsDeletingPhoto(null);
-          }
-        },
-      },
-    ]);
+    const labelMap: Record<string, string> = {
+      depan: 'Tampak Depan',
+      belakang: 'Tampak Belakang',
+      kiri: 'Tampak Kiri',
+      kanan: 'Tampak Kanan',
+    };
+    setDeleteConfirmState({
+      visible: true,
+      type,
+      label: labelMap[type] || type,
+    });
+  };
+
+  const executeDeletePhoto = async (type: string) => {
+    setIsDeletingPhoto(type);
+    try {
+      await apiClient.delete(`/bmn/assets/${id}/photo/${type}`);
+      refetch();
+      setNotificationState({
+        visible: true,
+        title: 'Foto Dihapus',
+        message: `Foto ${deleteConfirmState.label || type} berhasil dihapus.`,
+        variant: 'success',
+        iconName: 'checkmark-circle-outline',
+      });
+    } catch (err: any) {
+      const apiErr = normalizeError(err);
+      setNotificationState({
+        visible: true,
+        title: 'Gagal Menghapus',
+        message: apiErr.message || 'Gagal menghapus foto fisik.',
+        variant: 'danger',
+        iconName: 'alert-circle-outline',
+      });
+    } finally {
+      setIsDeletingPhoto(null);
+    }
   };
 
   const handleVerify = () => {
@@ -339,7 +493,13 @@ export default function BmnDetailScreen() {
         <View style={{ flex: 1 }}>
           <Text style={[styles.headerTitleText, { color: colors.textDark }]}>Detail Aset BMN</Text>
           <Text style={styles.headerSubText}>
-            Kode: {asset.kode_barang} • NUP: {asset.nup}
+            <Text style={{ fontWeight: '800', color: '#059669' }}>{asset.kode_barang}</Text>
+            <Text style={{ color: '#94a3b8' }}> • </Text>
+            <Text style={{ fontWeight: '800', color: '#6366f1' }}>{asset.nup}</Text>
+            <Text style={{ color: '#94a3b8' }}> • </Text>
+            <Text style={{ fontWeight: '800', color: kondisiColor }}>{asset.kondisi || 'Baik'}</Text>
+            <Text style={{ color: '#94a3b8' }}> • </Text>
+            <Text style={{ fontWeight: '800', color: '#059669' }}>{asset.status_bmn || 'Aktif'}</Text>
           </Text>
         </View>
         <TouchableOpacity onPress={handleRefresh} style={styles.refreshIconBtn}>
@@ -369,23 +529,21 @@ export default function BmnDetailScreen() {
             </View>
           </View>
 
-          {/* Badges Flow */}
+          {/* Badges Flow (Lega / Roomy) */}
           <View style={styles.heroBadgeRow}>
-            <View style={[styles.pillBadge, { backgroundColor: kondisiBg }]}>
-              <Text style={[styles.pillBadgeText, { color: kondisiColor }]}>{asset.kondisi || 'Baik'}</Text>
-            </View>
-
             <View style={[styles.pillBadge, { backgroundColor: '#f1f5f9' }]}>
               <Text style={[styles.pillBadgeText, { color: '#334155' }]}>
                 📅 {asset.tahun_perolehan || (asset.tanggal_perolehan ? new Date(asset.tanggal_perolehan).getFullYear() : '2023')}
               </Text>
             </View>
 
-            <View style={[styles.pillBadge, { backgroundColor: '#ecfdf5' }]}>
-              <Text style={[styles.pillBadgeText, { color: '#059669' }]}>
-                Status: {asset.status_bmn || 'Aktif'}
-              </Text>
-            </View>
+            {showPlatBadge && (
+              <View style={[styles.pillBadge, { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', borderWidth: 1 }]}>
+                <Text style={[styles.pillBadgeText, { color: '#059669', fontWeight: '800' }]}>
+                  🚘 {asset.no_polisi}
+                </Text>
+              </View>
+            )}
 
             {isVerified ? (
               <View style={[styles.pillBadge, { backgroundColor: '#ecfdf5' }]}>
@@ -410,22 +568,38 @@ export default function BmnDetailScreen() {
                 <Text style={[styles.pillBadgeText, { color: '#16a34a' }]}>Tersedia</Text>
               </View>
             )}
-
-            {showPlatBadge && (
-              <View style={[styles.pillBadge, { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', borderWidth: 1 }]}>
-                <Text style={[styles.pillBadgeText, { color: '#059669', fontWeight: '800' }]}>
-                  🚘 Plat: {asset.no_polisi}
-                </Text>
-              </View>
-            )}
           </View>
 
-          {/* Consolidated Nilai Card (1 Kolom 2 Baris) */}
+          {/* Consolidated Pengguna & Lokasi Card (Menggunakan Icon Tanpa Label Teks) */}
+          <View style={[styles.nilaiConsolidatedCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', marginBottom: 12 }]}>
+            <View style={styles.nilaiRowItem}>
+              <Ionicons name="person-circle-outline" size={20} color="#059669" style={{ marginRight: 6 }} />
+              <Text style={[styles.quickStatValueLarge, { color: colors.textDark, fontSize: 13, flex: 1, textAlign: 'right' }]} numberOfLines={1}>
+                {asset.nama_pengguna || asset.pengguna || asset.penanggung_jawab?.nama_lengkap || (asset.penanggung_jawab as any)?.nama || '-'}
+              </Text>
+            </View>
+            <View style={styles.nilaiRowDivider} />
+            <View style={styles.nilaiRowItem}>
+              <Ionicons name="location-outline" size={20} color="#0284c7" style={{ marginRight: 6 }} />
+              <Text style={[styles.quickStatValueLarge, { color: colors.textDark, fontSize: 13, flex: 1, textAlign: 'right' }]} numberOfLines={1}>
+                {asset.lokasi_ruang || '-'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Consolidated Nilai Card (1 Kolom 3 Baris: Perolehan, Penyusutan, Buku) */}
           <View style={[styles.nilaiConsolidatedCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc' }]}>
             <View style={styles.nilaiRowItem}>
               <Text style={styles.quickStatLabel}>Nilai Perolehan</Text>
               <Text style={[styles.quickStatValueLarge, { color: '#059669' }]}>
                 {formatCurrency(asset.nilai_perolehan || asset.nilai_perolehan_pertama)}
+              </Text>
+            </View>
+            <View style={styles.nilaiRowDivider} />
+            <View style={styles.nilaiRowItem}>
+              <Text style={styles.quickStatLabel}>Nilai Penyusutan</Text>
+              <Text style={[styles.quickStatValueLarge, { color: '#d97706' }]}>
+                {formatCurrency(asset.nilai_penyusutan)}
               </Text>
             </View>
             <View style={styles.nilaiRowDivider} />
@@ -566,12 +740,19 @@ export default function BmnDetailScreen() {
                       )}
                       <TouchableOpacity
                         style={styles.docUploadBtn}
-                        onPress={() => handleCapturePhoto('stnk_1' as any)}
+                        onPress={() => handleUploadPdfDocument('stnk')}
+                        disabled={isUploadingDoc === 'stnk'}
                       >
-                        <Ionicons name="cloud-upload-outline" size={12} color="#ffffff" style={{ marginRight: 4 }} />
-                        <Text style={styles.docUploadBtnText}>
-                          {asset.stnk_document?.url || asset.foto_stnk_1_url ? 'Ganti STNK' : 'Upload STNK'}
-                        </Text>
+                        {isUploadingDoc === 'stnk' ? (
+                          <ActivityIndicator size="small" color="#ffffff" />
+                        ) : (
+                          <>
+                            <Ionicons name="document-attach-outline" size={12} color="#ffffff" style={{ marginRight: 4 }} />
+                            <Text style={styles.docUploadBtnText}>
+                              {asset.stnk_document?.url || asset.foto_stnk_1_url ? 'Ganti STNK (PDF)' : 'Upload STNK (PDF)'}
+                            </Text>
+                          </>
+                        )}
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -602,12 +783,19 @@ export default function BmnDetailScreen() {
                       )}
                       <TouchableOpacity
                         style={[styles.docUploadBtn, { backgroundColor: '#059669' }]}
-                        onPress={() => handleCapturePhoto('bpkb_1' as any)}
+                        onPress={() => handleUploadPdfDocument('bpkb')}
+                        disabled={isUploadingDoc === 'bpkb'}
                       >
-                        <Ionicons name="cloud-upload-outline" size={12} color="#ffffff" style={{ marginRight: 4 }} />
-                        <Text style={styles.docUploadBtnText}>
-                          {asset.bpkb_document?.url ? 'Ganti BPKB' : 'Upload BPKB'}
-                        </Text>
+                        {isUploadingDoc === 'bpkb' ? (
+                          <ActivityIndicator size="small" color="#ffffff" />
+                        ) : (
+                          <>
+                            <Ionicons name="document-attach-outline" size={12} color="#ffffff" style={{ marginRight: 4 }} />
+                            <Text style={styles.docUploadBtnText}>
+                              {asset.bpkb_document?.url ? 'Ganti BPKB (PDF)' : 'Upload BPKB (PDF)'}
+                            </Text>
+                          </>
+                        )}
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -617,20 +805,16 @@ export default function BmnDetailScreen() {
 
             {/* Section Foto Fisik BMN */}
             <GlassCard style={[styles.sectionCard, { backgroundColor: colors.cardBg }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <View style={{ marginBottom: 14 }}>
                 <Text style={[styles.sectionTitle, { color: colors.textDark, marginBottom: 0 }]}>Foto Fisik BMN</Text>
-                <TouchableOpacity style={styles.addPhotoTopBtn} onPress={handleUploadPhoto}>
-                  <Ionicons name="camera" size={14} color="#ffffff" style={{ marginRight: 4 }} />
-                  <Text style={styles.addPhotoTopBtnText}>+ Ambil Foto</Text>
-                </TouchableOpacity>
               </View>
 
               <View style={styles.photoGrid}>
                 {photoSlots.map((slot) => {
                   const hasUrl = !!slot.url;
+                  const isGeotag = slot.key === 'geotag';
                   return (
                     <View key={slot.key} style={[styles.photoSlotCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc' }]}>
-                      <Text style={styles.photoSlotLabel}>{slot.label}</Text>
                       {hasUrl ? (
                         <TouchableOpacity activeOpacity={0.85} onPress={() => handleViewPhysicalPhoto(slot.key, photoSlots)}>
                           <Image source={{ uri: slot.url! }} style={styles.photoImg} resizeMode="cover" />
@@ -638,16 +822,34 @@ export default function BmnDetailScreen() {
                       ) : (
                         <View style={styles.photoPlaceholder}>
                           <Ionicons name="camera-outline" size={28} color="#94a3b8" />
-                          <Text style={styles.photoPlaceholderText}>Belum Tersedia</Text>
+                          <Text style={styles.photoPlaceholderText}>Belum ada</Text>
                         </View>
                       )}
+                      
+                      <Text style={styles.photoSlotLabel}>{slot.label}</Text>
+
+                      {/* Location Note Pill matching Screenshot 2 (Rendered ONLY on Tampak Depan slot) */}
+                      {slot.key === 'depan' && (
+                        <View style={[styles.locationPillCard, { backgroundColor: asset.foto_geotag_location_note ? '#f0fdf4' : '#ffffff', borderColor: asset.foto_geotag_location_note ? '#bbf7d0' : '#e2e8f0' }]}>
+                          <Text style={[styles.locationPillText, { color: asset.foto_geotag_location_note ? '#15803d' : '#64748b' }]} numberOfLines={1}>
+                            {asset.foto_geotag_location_note || 'Belum berlokasi'}
+                          </Text>
+                        </View>
+                      )}
+
                       <View style={styles.photoBtnRow}>
                         <TouchableOpacity
                           style={styles.photoActionBtn}
-                          onPress={() => handleCapturePhoto(slot.key as any)}
+                          onPress={() => setSourcePickerState({
+                            visible: true,
+                            type: slot.key,
+                            label: slot.label,
+                            isGeotag,
+                            currentUrl: slot.url || '',
+                          })}
                         >
-                          <Ionicons name="camera-outline" size={12} color="#059669" />
-                          <Text style={styles.photoActionBtnText}>{hasUrl ? 'Ganti' : 'Ambil'}</Text>
+                          <Ionicons name={isGeotag ? "link-outline" : "camera-outline"} size={12} color="#059669" />
+                          <Text style={styles.photoActionBtnText}>{hasUrl ? (isGeotag ? 'Ganti Link' : 'Ganti') : 'Ambil'}</Text>
                         </TouchableOpacity>
                         {hasUrl && (
                           <TouchableOpacity
@@ -789,6 +991,176 @@ export default function BmnDetailScreen() {
               ))}
             </View>
           )}
+        </View>
+      </Modal>
+
+      {/* Modern Confirm Delete Photo Modal */}
+      <ConfirmModal
+        visible={deleteConfirmState.visible}
+        title="Hapus Foto Fisik"
+        message={`Apakah Anda yakin ingin menghapus foto ${deleteConfirmState.label}?`}
+        confirmText="Hapus Foto"
+        cancelText="Batal"
+        iconName="trash-outline"
+        variant="danger"
+        onConfirm={() => {
+          const typeToDelete = deleteConfirmState.type;
+          setDeleteConfirmState({ visible: false, type: '', label: '' });
+          executeDeletePhoto(typeToDelete);
+        }}
+        onCancel={() => {
+          setDeleteConfirmState({ visible: false, type: '', label: '' });
+        }}
+      />
+
+      {/* Modern Notification Modal */}
+      <NotificationModal
+        visible={notificationState.visible}
+        title={notificationState.title}
+        message={notificationState.message}
+        variant={notificationState.variant}
+        iconName={notificationState.iconName}
+        buttonText="OK"
+        onClose={() => {
+          setNotificationState((prev) => ({ ...prev, visible: false }));
+        }}
+      />
+
+      {/* Modern Source Picker Modal (Camera vs Gallery vs Link) */}
+      <Modal visible={sourcePickerState.visible} transparent animationType="fade" onRequestClose={() => setSourcePickerState({ visible: false, type: '', label: '' })}>
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setSourcePickerState({ visible: false, type: '', label: '' })} />
+          <View style={[styles.sourcePickerCard, { backgroundColor: isDark ? '#0f172a' : '#ffffff', borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0' }]}>
+            <View style={styles.sourcePickerHeader}>
+              <Ionicons name={sourcePickerState.isGeotag ? "location-outline" : "camera-outline"} size={26} color="#059669" />
+              <Text style={[styles.sourcePickerTitle, { color: colors.textDark }]}>{sourcePickerState.label}</Text>
+              <Text style={styles.sourcePickerSub}>Pilih metode pengunggahan foto aset BMN</Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.sourceOptionBtn, { backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: isDark ? '#334155' : '#cbd5e1' }]}
+              onPress={() => {
+                const typeToOpen = sourcePickerState.type;
+                setSourcePickerState({ visible: false, type: '', label: '' });
+                navigation.navigate('BmnPhotoCapture', { assetId: id, type: typeToOpen });
+              }}
+            >
+              <View style={[styles.sourceOptionIconBg, { backgroundColor: '#ecfdf5' }]}>
+                <Ionicons name="camera" size={22} color="#059669" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={[styles.sourceOptionTitle, { color: colors.textDark }]}>Kamera (Ambil Langsung)</Text>
+                <Text style={styles.sourceOptionSub}>Ambil foto fisik baru menggunakan kamera HP</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.sourceOptionBtn, { marginTop: 10, backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: isDark ? '#334155' : '#cbd5e1' }]}
+              onPress={async () => {
+                const typeToOpen = sourcePickerState.type;
+                setSourcePickerState({ visible: false, type: '', label: '' });
+                try {
+                  const result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ['images'],
+                    allowsEditing: true,
+                    quality: 0.85,
+                  });
+                  if (!result.canceled && result.assets && result.assets.length > 0) {
+                    navigation.navigate('BmnPhotoCapture', {
+                      assetId: id,
+                      type: typeToOpen,
+                      initialUri: result.assets[0].uri,
+                    });
+                  }
+                } catch (e) {
+                  console.error('Gallery picker error:', e);
+                }
+              }}
+            >
+              <View style={[styles.sourceOptionIconBg, { backgroundColor: '#eff6ff' }]}>
+                <Ionicons name="images" size={22} color="#2563eb" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={[styles.sourceOptionTitle, { color: colors.textDark }]}>Pilih dari Galeri</Text>
+                <Text style={styles.sourceOptionSub}>Pilih file gambar foto dari galeri HP</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+            </TouchableOpacity>
+
+            {sourcePickerState.isGeotag && (
+              <TouchableOpacity
+                style={[styles.sourceOptionBtn, { marginTop: 10, backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: isDark ? '#334155' : '#cbd5e1' }]}
+                onPress={() => {
+                  const currentUrl = sourcePickerState.currentUrl || '';
+                  setSourcePickerState({ visible: false, type: '', label: '' });
+                  setGeotagLinkModalState({ visible: true, url: currentUrl });
+                }}
+              >
+                <View style={[styles.sourceOptionIconBg, { backgroundColor: '#fffbe8' }]}>
+                  <Ionicons name="link" size={22} color="#d97706" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.sourceOptionTitle, { color: colors.textDark }]}>Input / Edit Link Geotag</Text>
+                  <Text style={styles.sourceOptionSub}>Gunakan tautan Google Drive / Web seperti di localhost</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.sourcePickerCancelBtn}
+              onPress={() => setSourcePickerState({ visible: false, type: '', label: '' })}
+            >
+              <Text style={styles.sourcePickerCancelText}>Batal</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Geotag Drive Link Modal */}
+      <Modal visible={geotagLinkModalState.visible} transparent animationType="fade" onRequestClose={() => setGeotagLinkModalState({ visible: false, url: '' })}>
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setGeotagLinkModalState({ visible: false, url: '' })} />
+          <View style={[styles.sourcePickerCard, { backgroundColor: isDark ? '#0f172a' : '#ffffff' }]}>
+            <Text style={[styles.sourcePickerTitle, { color: colors.textDark, textAlign: 'left', marginBottom: 4 }]}>
+              📍 Tautan Foto Geotag (Google Drive)
+            </Text>
+            <Text style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>
+              Masukkan URL publik Google Drive atau link web foto lokasi aset.
+            </Text>
+
+            <TextInput
+              placeholder="https://drive.google.com/file/d/..."
+              placeholderTextColor="#94a3b8"
+              value={geotagLinkModalState.url}
+              onChangeText={(text) => setGeotagLinkModalState((prev) => ({ ...prev, url: text }))}
+              style={[styles.linkInput, { color: colors.textDark, backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: '#cbd5e1' }]}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+              <TouchableOpacity
+                style={[styles.sourcePickerCancelBtn, { flex: 1, marginTop: 0 }]}
+                onPress={() => setGeotagLinkModalState({ visible: false, url: '' })}
+              >
+                <Text style={styles.sourcePickerCancelText}>Batal</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.linkSaveBtn, { flex: 1.5 }]}
+                onPress={handleSubmitGeotagLink}
+                disabled={isSubmittingGeotagLink}
+              >
+                {isSubmittingGeotagLink ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text style={styles.linkSaveBtnText}>Simpan Link</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
     </SafeAreaView>
@@ -1146,6 +1518,54 @@ const styles = StyleSheet.create({
     color: '#059669',
     marginLeft: 2,
   },
+  heroMetaBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  heroMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  heroMetaDivider: {
+    width: 1,
+    height: 26,
+    marginHorizontal: 8,
+  },
+  heroMetaLabel: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  heroMetaValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 1,
+  },
+  locationPillCard: {
+    width: '100%',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locationPillText: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   loanActiveBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1262,5 +1682,95 @@ const styles = StyleSheet.create({
   lightboxDotInactive: {
     width: 8,
     backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFill,
+  },
+  sourcePickerCard: {
+    width: '100%',
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  sourcePickerHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sourcePickerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 6,
+  },
+  sourcePickerSub: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  sourceOptionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+  },
+  sourceOptionIconBg: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sourceOptionTitle: {
+    fontSize: 13.5,
+    fontWeight: '700',
+  },
+  sourceOptionSub: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 1,
+  },
+  sourcePickerCancelBtn: {
+    marginTop: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sourcePickerCancelText: {
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  linkInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 13,
+  },
+  linkSaveBtn: {
+    backgroundColor: '#059669',
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkSaveBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });
