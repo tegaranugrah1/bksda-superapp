@@ -25,7 +25,9 @@ class EmployeeController extends Controller
     {
         $query = Employee::query()
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
-            ->where('nama_lengkap', 'NOT LIKE', '%admin pusat%')
+            ->where('nama_lengkap', 'NOT LIKE', '%admin%')
+            ->where('nama_lengkap', 'NOT LIKE', '%magang%')
+            ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
             ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
 
         // Ambil parameter pencarian dari URL (?search=...)
@@ -292,7 +294,9 @@ class EmployeeController extends Controller
     {
         $baseQuery = Employee::query()
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
-            ->where('nama_lengkap', 'NOT LIKE', '%admin pusat%')
+            ->where('nama_lengkap', 'NOT LIKE', '%admin%')
+            ->where('nama_lengkap', 'NOT LIKE', '%magang%')
+            ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
             ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
 
         // 1. Total & Active Employees
