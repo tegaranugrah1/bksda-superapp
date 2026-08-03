@@ -1005,8 +1005,8 @@
     "semantic_hash": "3ed007573b3969cb49e5c44d634963c9"
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1785723371.077176,
-    "ast_hash": "70a7da8be1003b9b078bb4d909c59e64",
+    "mtime": 1785738206.4099805,
+    "ast_hash": "d034c570048732e2bd66ff044e005724",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
@@ -1050,9 +1050,9 @@
     "semantic_hash": "5bd4c2137164ae6a608e632a9b5d01be"
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1785131863.5430038,
-    "ast_hash": "c82eb051ba77721118cd4923a66195f1",
-    "semantic_hash": "c82eb051ba77721118cd4923a66195f1"
+    "mtime": 1785735245.7849705,
+    "ast_hash": "dacf89ec049f068dd0115423375d6777",
+    "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
     "mtime": 1785723371.0781765,
@@ -2385,14 +2385,14 @@
     "semantic_hash": "80eacd63939236705bc7aa3432249e58"
   },
   "frontend/src/app/kepegawaian/layout.tsx": {
-    "mtime": 1785131863.587993,
-    "ast_hash": "90a83f51e4d9abf974125ef8b8bf49fb",
-    "semantic_hash": "90a83f51e4d9abf974125ef8b8bf49fb"
+    "mtime": 1785726206.8752227,
+    "ast_hash": "774e134f47ad52a7c04f173a334f23d2",
+    "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/page.tsx": {
-    "mtime": 1785131863.5889945,
-    "ast_hash": "7878fe03cdc278a8dd6f9a36392b8557",
-    "semantic_hash": "7878fe03cdc278a8dd6f9a36392b8557"
+    "mtime": 1785738206.4111083,
+    "ast_hash": "bbd15696aff63bc32cff5bdcf7461054",
+    "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/EditableItemListSection.tsx": {
     "mtime": 1780033232.432041,
@@ -2465,8 +2465,8 @@
     "semantic_hash": "f1efa63787a08c9c650cb504648906a8"
   },
   "frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx": {
-    "mtime": 1785395066.9068832,
-    "ast_hash": "bd9405bff7d470a6d0824d80be5a4f1f",
+    "mtime": 1785726006.8305693,
+    "ast_hash": "95a006c7f390fada189689959ab354d2",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/create/page.tsx": {
@@ -2490,8 +2490,8 @@
     "semantic_hash": "750ce65eb50b8c03f6bc81fcdc28c117"
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx": {
-    "mtime": 1785395066.9088886,
-    "ast_hash": "2557e0167f9026765d043a61bf049c53",
+    "mtime": 1785726006.831621,
+    "ast_hash": "84cb5e300ee3f3283cb5b911e9e9848d",
     "semantic_hash": ""
   },
   "frontend/src/app/lapor/page.tsx": {
@@ -2600,9 +2600,9 @@
     "semantic_hash": "b780d97f9b6b5abe7a526cc67ac9bfec"
   },
   "frontend/src/app/surat/page.tsx": {
-    "mtime": 1785131863.612514,
-    "ast_hash": "76b3a86df3e73e1e1000034d4098ec58",
-    "semantic_hash": "76b3a86df3e73e1e1000034d4098ec58"
+    "mtime": 1785738206.4122121,
+    "ast_hash": "9446034cebca25d6f24460eae2cd769b",
+    "semantic_hash": ""
   },
   "frontend/src/components/AuthSync.tsx": {
     "mtime": 1785723371.1157405,
@@ -3575,7 +3575,7 @@
     "semantic_hash": "fd069224ca42d2e6c2bd2a943a088592"
   },
   "mobile/src/navigation/AppTabs.tsx": {
-    "mtime": 1785724585.4770193,
+    "mtime": 1785725187.3228762,
     "ast_hash": "04c34173e9f616c9f5ce8242e6dbeb73",
     "semantic_hash": ""
   },
@@ -5285,7 +5285,7 @@
     "semantic_hash": ""
   },
   "mobile/src/components/ui/FabMenu.tsx": {
-    "mtime": 1785724565.961725,
+    "mtime": 1785725187.3218749,
     "ast_hash": "faefa88454c7221e9ad670e67b47b3a7",
     "semantic_hash": ""
   },
@@ -5480,8 +5480,13 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/KepegawaianDashboardScreen.tsx": {
-    "mtime": 1785724535.741948,
-    "ast_hash": "6fd69989cc1365d9d6cb75df40adbe96",
+    "mtime": 1785735245.7896526,
+    "ast_hash": "f706d071fa83334cd043932540b2ecac",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/kepegawaian/employees/page.tsx": {
+    "mtime": 1785725187.2055914,
+    "ast_hash": "ddb2445ff5ec102ffae738387bb410bf",
     "semantic_hash": ""
   }
 }
