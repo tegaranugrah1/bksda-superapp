@@ -28,10 +28,34 @@ export const assetFormSchema = z.object({
   nilai_perolehan: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return null;
-      const num = Number(val);
+      const digitsOnly = String(val).replace(/\D/g, '');
+      if (!digitsOnly) return null;
+      const num = Number(digitsOnly);
       return isNaN(num) ? null : num;
     },
     z.number().min(0, 'Nilai perolehan tidak boleh negatif').nullable()
+  ).optional().nullable(),
+
+  nilai_penyusutan: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === '') return null;
+      const digitsOnly = String(val).replace(/\D/g, '');
+      if (!digitsOnly) return null;
+      const num = Number(digitsOnly);
+      return isNaN(num) ? null : num;
+    },
+    z.number().min(0, 'Nilai penyusutan tidak boleh negatif').nullable()
+  ).optional().nullable(),
+
+  nilai_buku: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === '') return null;
+      const digitsOnly = String(val).replace(/\D/g, '');
+      if (!digitsOnly) return null;
+      const num = Number(digitsOnly);
+      return isNaN(num) ? null : num;
+    },
+    z.number().min(0, 'Nilai buku tidak boleh negatif').nullable()
   ).optional().nullable(),
 
   jenis_bmn: z.string().optional().nullable(),
@@ -43,7 +67,10 @@ export const assetFormSchema = z.object({
   no_mesin: z.string().optional().nullable(),
   no_rangka: z.string().optional().nullable(),
   tanggal_perolehan: z.string().optional().nullable(),
+  tanggal_pajak_stnk: z.string().optional().nullable(),
+  tanggal_ganti_plat: z.string().optional().nullable(),
   lokasi_ruang: z.string().optional().nullable(),
+  pengguna: z.string().optional().nullable(),
   penanggung_jawab_id: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return null;

@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { RADIUS, SHADOWS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { useAuth } from "../../features/auth/AuthProvider";
@@ -15,7 +16,7 @@ import { hasModule } from "../../lib/permissions";
 import { ConfirmModal } from "./ConfirmModal";
 
 interface FabMenuProps {
-  onNavigateToModule: (moduleKey: string) => void;
+  onNavigateToModule?: (moduleKey: string) => void;
   activeModule?: string;
   activeSubmenu?: string;
   userProfile?: {
@@ -30,6 +31,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
   activeSubmenu = "daftar-pegawai",
   userProfile,
 }) => {
+  const navigation = useNavigation<any>();
   const [isOpen, setIsOpen] = useState(false);
   const [showModulePopover, setShowModulePopover] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -108,7 +110,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
     subtitle: string;
     icon: keyof typeof Ionicons.glyphMap;
     iconColor: string;
-    submenus: Array<{ key: string; title: string; icon: keyof typeof Ionicons.glyphMap }>;
+    submenus: Array<{ key: string; title: string; icon: keyof typeof Ionicons.glyphMap; disabled?: boolean }>;
   }> = {
     bmn: {
       title: "BMN",
@@ -120,11 +122,11 @@ export const FabMenu: React.FC<FabMenuProps> = ({
         { key: "data-aset", title: "Data Aset", icon: "cube-outline" },
         { key: "bmn-loan", title: "Peminjaman", icon: "swap-horizontal-outline" },
         { key: "bmn-maintenance", title: "Pemeliharaan", icon: "construct-outline" },
-        { key: "bmn-import-review", title: "Import Review", icon: "document-text-outline" },
-        { key: "bmn-rusak-berat", title: "Kandidat Rusak Berat", icon: "hammer-outline" },
-        { key: "bmn-lelang", title: "Paket Lelang BMN", icon: "document-outline" },
+        { key: "bmn-import-review", title: "Import Review", icon: "document-text-outline", disabled: true },
+        { key: "bmn-rusak-berat", title: "Kandidat Rusak Berat", icon: "hammer-outline", disabled: true },
+        { key: "bmn-lelang", title: "Paket Lelang BMN", icon: "document-outline", disabled: true },
         { key: "bmn-trash", title: "Aset Dihapus", icon: "trash-outline" },
-        { key: "bmn-laporan", title: "Laporan", icon: "document-text-outline" },
+        { key: "bmn-laporan", title: "Laporan", icon: "document-text-outline", disabled: true },
       ],
     },
     kepegawaian: {
@@ -182,32 +184,46 @@ export const FabMenu: React.FC<FabMenuProps> = ({
 
   const currentConfig = moduleConfigs[activeModule] || moduleConfigs.kepegawaian;
 
+  const navigateToKey = (key: string) => {
+    const routeMap: Record<string, string> = {
+      home: "Dashboard",
+      portal: "Dashboard",
+      dashboard: "Dashboard",
+      kepegawaian: "Kepegawaian",
+      "daftar-pegawai": "Kepegawaian",
+      "tambah-pegawai": "TambahPegawai",
+      "inbox-surat-tugas": "InboxSuratTugas",
+      "inbox-surat-cuti": "InboxSuratCuti",
+      "buat-surat-tugas": "BuatSuratTugas",
+      bmn: "Bmn",
+      "data-aset": "Bmn",
+      inventory: "Inventory",
+      surat: "Surat",
+      profile: "Profile",
+    };
+
+    if (onNavigateToModule) {
+      onNavigateToModule(key);
+    }
+    
+    if (navigation && typeof navigation.navigate === "function") {
+      const routeName = routeMap[key] || (key === "kepegawaian" ? "Kepegawaian" : null);
+      if (routeName) {
+        navigation.navigate(routeName);
+      }
+    }
+  };
+
   const handleSelectSubmenu = (key: string) => {
     setShowModulePopover(false);
     setIsOpen(false);
-    if (key === "buat-surat-tugas") {
-      onNavigateToModule("buat-surat-tugas");
-    } else if (key === "tambah-pegawai") {
-      onNavigateToModule("tambah-pegawai");
-    } else if (key === "inbox-surat-tugas") {
-      onNavigateToModule("inbox-surat-tugas");
-    } else if (key === "inbox-surat-cuti") {
-      onNavigateToModule("inbox-surat-cuti");
-    } else if (key === "daftar-pegawai") {
-      onNavigateToModule("kepegawaian");
-    } else if (key === "bmn") {
-      onNavigateToModule("bmn");
-    } else if (key === "data-aset") {
-      onNavigateToModule("data-aset");
-    } else {
-      onNavigateToModule(key);
-    }
+    navigateToKey(key);
   };
 
   const handleSwitchModule = (modKey: string) => {
     setShowModulePopover(false);
     setIsOpen(false);
-    onNavigateToModule(modKey);
+    navigateToKey(modKey);
   };
 
   const handleConfirmLogout = async () => {
@@ -302,27 +318,30 @@ export const FabMenu: React.FC<FabMenuProps> = ({
             <ScrollView style={styles.menuScroll} showsVerticalScrollIndicator={false}>
               {currentConfig.submenus.map((item) => {
                 const isActive = item.key === activeSubmenu || (!activeSubmenu && activeModule === "bmn" && item.key === "bmn");
+                const isDisabled = !!item.disabled;
                 return (
                   <TouchableOpacity
                     key={item.key}
                     style={[
                       styles.submenuRow,
-                      isActive && { backgroundColor: currentConfig.iconColor + "15" },
+                      isActive && !isDisabled && { backgroundColor: currentConfig.iconColor + "15" },
+                      isDisabled && { opacity: 0.4 },
                     ]}
-                    activeOpacity={0.7}
-                    onPress={() => handleSelectSubmenu(item.key)}
+                    activeOpacity={isDisabled ? 1 : 0.7}
+                    disabled={isDisabled}
+                    onPress={() => !isDisabled && handleSelectSubmenu(item.key)}
                   >
                     <Ionicons
                       name={item.icon as any}
                       size={18}
-                      color={isActive ? currentConfig.iconColor : "#475569"}
+                      color={isDisabled ? "#94a3b8" : isActive ? currentConfig.iconColor : "#475569"}
                       style={{ marginRight: 12 }}
                     />
                     <Text
                       style={[
                         styles.submenuText,
-                        { color: colors.textDark },
-                        isActive && { color: currentConfig.iconColor, fontWeight: "700" },
+                        { color: isDisabled ? "#94a3b8" : colors.textDark },
+                        isActive && !isDisabled && { color: currentConfig.iconColor, fontWeight: "700" },
                       ]}
                     >
                       {item.title}

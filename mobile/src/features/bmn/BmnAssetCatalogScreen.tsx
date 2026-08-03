@@ -12,7 +12,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS, RADIUS, SHADOWS } from "../../theme";
+import { COLORS, RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
@@ -158,13 +158,8 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
   }, [searchQuery, nupQuery, selectedCategory, selectedJenis, selectedLokasi, perPage]);
 
   useEffect(() => {
-    setCurrentPage(1);
-    fetchBmnAssets(1);
-  }, [searchQuery, nupQuery, selectedCategory, selectedJenis, selectedLokasi]);
-
-  useEffect(() => {
     fetchBmnAssets(currentPage);
-  }, [currentPage]);
+  }, [currentPage, fetchBmnAssets]);
 
   const handleOpenLoanModal = (asset?: any) => {
     const target = asset || { name: "Toyota Hilux Double Cabin 4x4", nup: "00012" };
@@ -205,13 +200,32 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
     } else if (tabKey === "data-aset") {
       setActiveSegment("katalog");
     } else if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
-      if (navigation) {
+      if (navigation && typeof navigation.navigate === "function") {
         navigation.navigate("Dashboard");
       } else if (onBack) {
         onBack();
       }
-    } else if (onNavigateToModule) {
-      onNavigateToModule(tabKey);
+    } else {
+      if (onNavigateToModule) {
+        onNavigateToModule(tabKey);
+      }
+      if (navigation && typeof navigation.navigate === "function") {
+        const routeMap: Record<string, string> = {
+          kepegawaian: "Kepegawaian",
+          "daftar-pegawai": "Kepegawaian",
+          "tambah-pegawai": "TambahPegawai",
+          "inbox-surat-tugas": "InboxSuratTugas",
+          "inbox-surat-cuti": "InboxSuratCuti",
+          "buat-surat-tugas": "BuatSuratTugas",
+          inventory: "Inventory",
+          surat: "Surat",
+          profile: "Profile",
+        };
+        const targetRoute = routeMap[tabKey];
+        if (targetRoute) {
+          navigation.navigate(targetRoute as any);
+        }
+      }
     }
   };
 
@@ -282,11 +296,6 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
           <TouchableOpacity style={styles.imporBtn}>
             <Ionicons name="cloud-upload-outline" size={14} color="#ffffff" style={{ marginRight: 4 }} />
             <Text style={styles.imporBtnText}>Impor Excel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.tambahAsetBtn}>
-            <Ionicons name="add" size={16} color="#ffffff" style={{ marginRight: 2 }} />
-            <Text style={styles.tambahAsetBtnText}>Tambah Aset</Text>
           </TouchableOpacity>
         </View>
 
@@ -431,7 +440,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
                         {showPlatBadge && (
                           <View style={{ backgroundColor: "#ecfdf5", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: "#a7f3d0" }}>
                             <Text style={{ color: "#059669", fontSize: 10, fontWeight: "700" }}>
-                              🚘 No. Plat: {asset.noPolisi}
+                              🚘 {asset.noPolisi}
                             </Text>
                           </View>
                         )}

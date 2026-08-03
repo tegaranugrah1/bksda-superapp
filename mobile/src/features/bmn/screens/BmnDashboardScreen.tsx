@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS, RADIUS, SHADOWS } from "../../../theme";
+import { RADIUS, SHADOWS } from "../../../theme";
 import { useTheme } from "../../../theme/ThemeContext";
 import { GlassCard } from "../../../components/ui/GlassCard";
 import { FabMenu } from "../../../components/ui/FabMenu";
@@ -28,16 +28,16 @@ interface BmnStatsData {
   total_asset: number;
   total_asset_value: number;
   asset_by_condition: Record<string, number>;
-  asset_by_jenis: Array<{
+  asset_by_jenis: {
     jenis_bmn: string;
     total: number;
     total_nilai: number;
-  }>;
-  asset_by_lokasi: Array<{
+  }[];
+  asset_by_lokasi: {
     lokasi_ruang: string;
     total: number;
-  }>;
-  recent_transactions: Array<{
+  }[];
+  recent_transactions: {
     type: "loan" | "maintenance";
     id: number | string;
     asset?: string;
@@ -45,11 +45,11 @@ interface BmnStatsData {
     tanggal?: string;
     status?: string;
     keterangan?: string;
-  }>;
+  }[];
   stnk_alerts: {
-    expired: Array<any>;
-    expiring_soon: Array<any>;
-    plat_expired: Array<any>;
+    expired: any[];
+    expiring_soon: any[];
+    plat_expired: any[];
   };
 }
 
@@ -83,7 +83,6 @@ export const BmnDashboardScreen: React.FC<BmnDashboardScreenProps> = ({
   const { isDark, colors } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeSegment, setActiveSegment] = useState<"dashboard" | "katalog">("dashboard");
 
   const [stats, setStats] = useState<BmnStatsData>({
     total_asset: 1613,
@@ -155,8 +154,36 @@ export const BmnDashboardScreen: React.FC<BmnDashboardScreenProps> = ({
   }, []);
 
   useEffect(() => {
-    fetchDashboardStats();
-  }, [fetchDashboardStats]);
+    let isMounted = true;
+    const load = async () => {
+      try {
+        const response = await apiClient.get<any>("/bmn/dashboard/stats");
+        if (isMounted && response.data) {
+          setStats((prev) => ({
+            ...prev,
+            total_asset: response.data.total_asset ?? prev.total_asset,
+            total_asset_value: response.data.total_asset_value ?? prev.total_asset_value,
+            asset_by_condition: response.data.asset_by_condition || prev.asset_by_condition,
+            asset_by_jenis: response.data.asset_by_jenis || prev.asset_by_jenis,
+            asset_by_lokasi: response.data.asset_by_lokasi || prev.asset_by_lokasi,
+            recent_transactions: response.data.recent_transactions || prev.recent_transactions,
+            stnk_alerts: response.data.stnk_alerts || prev.stnk_alerts,
+          }));
+        }
+      } catch {
+        // Fallback data initialized above
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    };
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -166,8 +193,10 @@ export const BmnDashboardScreen: React.FC<BmnDashboardScreenProps> = ({
   const handleSelectNavTab = (tabKey: string) => {
     if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
       if (onBack) onBack();
-    } else if (onNavigateToModule) {
-      onNavigateToModule(tabKey);
+    } else {
+      if (onNavigateToModule) {
+        onNavigateToModule(tabKey);
+      }
     }
   };
 
