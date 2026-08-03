@@ -158,7 +158,7 @@ export default function SuratHubPage() {
   ];
 
   return (
-    <div className="p-4 md:p-6 space-y-5 max-w-[1600px] mx-auto text-zinc-900 dark:text-zinc-100 font-sans">
+    <div className="w-full p-4 md:p-6 space-y-5 text-zinc-900 dark:text-zinc-100 font-sans">
       {/* 1. Ultra-Aesthetic Mesh Gradient Header Banner */}
       <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-950 p-5 md:px-7 md:py-5 border border-white/10 shadow-2xl">
         {/* Glowing Mesh Gradients */}
