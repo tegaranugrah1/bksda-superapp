@@ -70,67 +70,6 @@ export default function KepegawaianDashboardPage() {
   ];
   const stList = statsResponse?.recent_activities ?? [];
 
-  const quickLinks = [
-    {
-      title: "Daftar Pegawai",
-      description: "Pencarian NIP & Hak Akses",
-      href: "/kepegawaian/employees",
-      icon: Users,
-      badge: "Master Data",
-      gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
-      iconStyle: "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-500/20",
-    },
-    ...(canWrite
-      ? [
-          {
-            title: "Tambah Pegawai",
-            description: "Form Personil Baru",
-            href: "/kepegawaian/employees/create",
-            icon: UserPlus,
-            badge: "Form",
-            gradient: "from-emerald-500/20 via-emerald-500/10 to-transparent",
-            iconStyle: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-emerald-500/20",
-          },
-          {
-            title: "Buat Surat Tugas",
-            description: "ST Builder Premium Direct",
-            href: "/kepegawaian/surat-tugas/create",
-            icon: FileText,
-            badge: "Direct Mode",
-            gradient: "from-amber-500/20 via-amber-500/10 to-transparent",
-            iconStyle: "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-amber-500/20",
-          },
-          {
-            title: "Inbox Surat Tugas",
-            description: "Verifikasi & Edit ST",
-            href: "/kepegawaian/surat-tugas/inbox",
-            icon: Inbox,
-            badge: "Manajemen",
-            gradient: "from-sky-500/20 via-sky-500/10 to-transparent",
-            iconStyle: "bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sky-500/20",
-          },
-          {
-            title: "Inbox Surat Cuti",
-            description: "Manajemen Cuti Pegawai",
-            href: "/kepegawaian/cuti",
-            badge: "Persetujuan",
-            gradient: "from-purple-500/20 via-purple-500/10 to-transparent",
-            icon: Calendar,
-            iconStyle: "bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-purple-500/20",
-          },
-        ]
-      : []),
-    {
-      title: "Riwayat Surat Tugas",
-      description: "Arsip Naskah ST",
-      href: "/kepegawaian/surat-tugas/history",
-      icon: History,
-      badge: "Arsip",
-      gradient: "from-indigo-500/20 via-indigo-500/10 to-transparent",
-      iconStyle: "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-indigo-500/20",
-    },
-  ];
-
   return (
     <div className="w-full p-4 md:p-6 space-y-5 text-zinc-900 dark:text-zinc-100 font-sans">
       {/* 1. Ultra-Aesthetic Mesh Gradient Header Banner */}
@@ -267,38 +206,6 @@ export default function KepegawaianDashboardPage() {
         </div>
       </div>
 
-      {/* 3. Dynamic Quick Actions Grid (6 Compact Premium Cards) */}
-      <div>
-        <div className="flex items-center justify-between mb-2.5">
-          <h2 className="text-[11px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-blue-500" /> Akses Pintas Modul Kepegawaian
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {quickLinks.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.href} href={item.href}>
-                <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200/80 dark:border-zinc-800/80 p-3.5 rounded-2xl hover:border-blue-500/40 dark:hover:border-blue-500/40 transition-all duration-200 group hover:shadow-xl hover:shadow-blue-500/5 flex flex-col justify-between h-full min-h-[96px]">
-                  <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-full pointer-events-none`} />
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shadow-md ${item.iconStyle} group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-blue-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-xs text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors leading-tight truncate">
-                      {item.title}
-                    </h3>
-                    <p className="text-[9.5px] text-zinc-400 mt-0.5 truncate font-medium">{item.description}</p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
 
       {/* 4. Bottom Split Cards (Satker Distribution + Recent ST Feed) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
