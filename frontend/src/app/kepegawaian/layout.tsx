@@ -83,7 +83,13 @@ export default function KepegawaianLayout({
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {visibleItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href));
+              const isActive = item.href === "/kepegawaian"
+                ? pathname === "/kepegawaian"
+                : item.href === "/kepegawaian/surat-tugas/inbox"
+                ? pathname.startsWith("/kepegawaian/surat-tugas/inbox") || pathname.startsWith("/kepegawaian/surat-tugas/builder")
+                : item.href === "/kepegawaian/surat-tugas/create"
+                ? pathname === "/kepegawaian/surat-tugas/create"
+                : pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href + "/"));
               return (
                 <Link
                   key={item.href}

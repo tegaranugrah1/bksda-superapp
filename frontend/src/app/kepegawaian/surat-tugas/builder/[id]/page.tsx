@@ -11,6 +11,9 @@ import {
   Loader2,
   Send,
   X,
+  CheckCircle,
+  Shield,
+  Eye,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -104,6 +107,7 @@ export default function STBuilderPage() {
   const [suratStatus, setSuratStatus] = useState<string>("");
   const [draggedUntukIndex, setDraggedUntukIndex] = useState<number | null>(null);
   const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
+  const isPublished = ['diterbitkan', 'approved', 'completed', 'published'].includes((suratStatus || "").toLowerCase());
 
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder"],
@@ -866,10 +870,18 @@ export default function STBuilderPage() {
             </div>
             <h1 className="text-xl font-black text-zinc-800 dark:text-white">ST Builder <span className="text-blue-600">Premium</span></h1>
           </div>
-          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1">Approval Mode</p>
+          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mt-1">
+            {isPublished ? "MODE PRATINJAU (SUDAH DITERBITKAN)" : "APPROVAL MODE"}
+          </p>
         </header>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
+          {isPublished && (
+            <div className="p-3.5 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/80 rounded-xl text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center gap-2">
+              <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+              <span>Surat Tugas ini sudah diterbitkan dan bersifat Read Only (tidak dapat diubah).</span>
+            </div>
+          )}
           {/* === Template Card (paling atas, di atas Nomor Surat) === */}
           <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-500/30 dark:bg-orange-500/10">
             <div className="mb-2 flex items-center gap-2">
@@ -1245,11 +1257,17 @@ export default function STBuilderPage() {
         </div>
 
         <footer className="p-6 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2">
-          <Button onClick={handleSave} variant="outline" className="w-full h-10 rounded-xl font-bold text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700">
-            <FileText className="w-4 h-4 mr-2" /> Simpan Draft
-          </Button>
+          {!isPublished && (
+            <Button onClick={handleSave} variant="outline" className="w-full h-10 rounded-xl font-bold text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700">
+              <FileText className="w-4 h-4 mr-2" /> Simpan Draft
+            </Button>
+          )}
           
-          {suratStatus === 'approved' || suratStatus === 'completed' ? (
+          {isPublished ? (
+            <Button disabled className="w-full h-12 bg-emerald-600 text-white rounded-xl font-bold opacity-90 cursor-not-allowed flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 mr-2" /> Sudah Diterbitkan
+            </Button>
+          ) : suratStatus === 'approved' || suratStatus === 'completed' ? (
             <Button disabled className="w-full h-12 bg-emerald-500 text-white rounded-xl font-bold opacity-80 cursor-not-allowed">
               <Send className="w-5 h-5 mr-2" /> Sudah Disetujui
             </Button>

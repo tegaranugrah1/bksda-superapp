@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { 
   Inbox, Search, Filter, RefreshCw, 
   FileText, Download, User as UserIcon, AlertCircle, Users, Trash2, Undo2,
-  MapPin, Calendar, Briefcase, Hash, History
+  MapPin, Calendar, Briefcase, Hash, History, Eye
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -603,6 +603,14 @@ export default function SuratTugasInbox() {
                                                     >
                                                         <span className="text-[10px] font-black tracking-[0.2em] opacity-80 uppercase leading-none">Otorisasi ST</span>
                                                         <span className="text-sm font-black tracking-tight leading-none mt-1 uppercase">Proses Sekarang</span>
+                                                    </Button>
+                                                ) : ['diterbitkan', 'approved', 'completed', 'published'].includes((selectedLetter.status || "").toLowerCase()) ? (
+                                                    <Button 
+                                                        onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${selectedLetter.id}`)}
+                                                        className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs tracking-widest shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        LIHAT SURAT TUGAS
                                                     </Button>
                                                 ) : (
                                                     <Button 
