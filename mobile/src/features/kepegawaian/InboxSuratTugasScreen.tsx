@@ -366,7 +366,14 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
             <View style={styles.actionGroup}>
               <TouchableOpacity
                 style={styles.editStBtn}
-                onPress={() => Alert.alert("Edit Surat Tugas", "Membuka formulir pengeditan Surat Tugas...")}
+                onPress={() => {
+                  if (!selectedSt) return;
+                  if (navigation && typeof navigation.navigate === "function") {
+                    navigation.navigate("BuatSuratTugas", { editData: selectedSt });
+                  } else if (onNavigateToModule) {
+                    onNavigateToModule("buat-surat-tugas");
+                  }
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={styles.editStText}>EDIT SURAT TUGAS</Text>

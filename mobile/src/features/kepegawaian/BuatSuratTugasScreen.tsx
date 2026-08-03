@@ -11,6 +11,9 @@ import {
   Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRoute } from "@react-navigation/native";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
@@ -136,7 +139,11 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [namaPlh, setNamaPlh] = useState("");
   const [activeDatePicker, setActiveDatePicker] = useState<"mulai" | "selesai" | null>(null);
   const [currentPickerMonth, setCurrentPickerMonth] = useState(new Date());
-  const [dropdownModalType, setDropdownModalType] = useState<"jenisTugas" | "sumberDana" | null>(null);
+  const [dropdownModalType, setDropdownModalType] = useState<"jenisTugas" | "sumberDana" | "templateST" | null>(null);
+
+  // PREVIEW CETAK & PRINT STATE
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // Custom Notification Modal State
   const [notification, setNotification] = useState<{
@@ -161,14 +168,159 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     setNotification({ visible: true, title, message, type, onConfirm });
   };
 
-  // BUILDER STATE UNTUK DETAIL KEGIATAN (SYNCED 100% DENGAN /kepegawaian/surat-tugas/create)
+  // ST BUILDER PREMIUM STATE (Synced with Web /kepegawaian/surat-tugas/create)
+  const route = useRoute<any>();
+  const editData = route?.params?.editData;
+  const [editId, setEditId] = useState<string | null>(null);
+
+  const [selectedTemplate, setSelectedTemplate] = useState("DEFAULT (MANUAL)");
+  const [nomorUrut, setNomorUrut] = useState("001");
+  const [klasifikasi, setKlasifikasi] = useState("KSA.0X.0X");
+  const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
+  const currentYear = new Date().getFullYear().toString();
+  const [kotaDokumen, setKotaDokumen] = useState("Samarinda");
+  const [tanggalDokumen, setTanggalDokumen] = useState(new Date().toISOString().substring(0, 10));
+
+  // Sync state if opening in Edit Mode from InboxSuratTugasScreen
+  useEffect(() => {
+    if (!editData) return;
+
+    setEditId(String(editData.id));
+
+    if (editData.title || editData.maksud_tujuan) {
+      setNamaKegiatanText(editData.title || editData.maksud_tujuan || "");
+    }
+    if (editData.location || editData.tempat_tujuan) {
+      setKotaTujuan(editData.location || editData.tempat_tujuan || "");
+    }
+    if (editData.dana || editData.sumber_dana) {
+      const d = String(editData.dana || editData.sumber_dana || "dipa").toLowerCase();
+      setSumberDana(d);
+    }
+    if (editData.periode) {
+      const parts = String(editData.periode).split("s.d");
+      if (parts.length === 2) {
+        setTanggalMulai(parts[0].trim());
+        setTanggalSelesai(parts[1].trim());
+      }
+    }
+
+    if (Array.isArray(editData.personil) && editData.personil.length > 0) {
+      const emps: Employee[] = editData.personil.map((p: any, idx: number) => ({
+        id: p.id ? String(p.id) : `edit-p-${idx}`,
+        name: p.name || p.nama_lengkap || "Pegawai",
+        nip: p.nip || "",
+        position: p.position || p.jabatan || "",
+      }));
+      setSelectedEmployees(emps);
+    }
+
+    const fetchFullSt = async () => {
+      try {
+        const res = await apiClient.get(`/surat-tugas/${editData.id}`);
+        const full = res.data?.data || res.data;
+        if (full) {
+          if (full.nomor_surat || full.st_number) {
+            const numStr = full.nomor_surat || full.st_number;
+            const match = numStr.match(/ST\.\s*(\d+)/i);
+            if (match) setNomorUrut(match[1]);
+          }
+          if (full.tanggal_mulai) setTanggalMulai(full.tanggal_mulai);
+          if (full.tanggal_selesai) setTanggalSelesai(full.tanggal_selesai);
+          if (full.kota_asal) setKotaAsal(full.kota_asal);
+          if (full.tempat_spesifik) setTempatSpesifik(full.tempat_spesifik);
+          if (full.menimbang && Array.isArray(full.menimbang)) {
+            setMenimbangItems(full.menimbang.map((m: any, i: number) => ({ id: `m-${i}`, text: typeof m === "string" ? m : m.text })));
+          }
+          if (full.dasar && Array.isArray(full.dasar)) {
+            setDasarItems(full.dasar.map((d: any, i: number) => ({ id: `d-${i}`, text: typeof d === "string" ? d : d.text })));
+          }
+          if (full.untuk && Array.isArray(full.untuk)) {
+            setUntukItems(full.untuk.map((u: any, i: number) => ({ id: `u-${i}`, text: typeof u === "string" ? u : u.text })));
+          }
+          if (full.tembusan && Array.isArray(full.tembusan)) {
+            setTembusanItems(full.tembusan.map((t: any, i: number) => ({ id: `t-${i}`, text: typeof t === "string" ? t : t.text })));
+          }
+          if (full.penandatangan_nama) setPenandatanganName(full.penandatangan_nama);
+          if (full.penandatangan_nip) setPenandatanganNip(full.penandatangan_nip);
+        }
+      } catch {
+        // use local editData state fallback
+      }
+    };
+
+    fetchFullSt();
+  }, [editData]);
+
+  const [menimbangItems, setMenimbangItems] = useState<Array<{ id: string; text: string }>>([
+    { id: "m-1", text: "bahwa dalam rangka , perlu ;" },
+    { id: "m-2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
+  ]);
+
+  const [dasarItems, setDasarItems] = useState<Array<{ id: string; text: string }>>([
+    { id: "d-1", text: "2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
+    { id: "d-2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP` },
+  ]);
+
+  const [untukItems, setUntukItems] = useState<Array<{ id: string; text: string }>>([
+    { id: "u-1", text: "Melaksanakan Perjalanan Dinas dari Samarinda ke Balikpapan terhitung mulai..." },
+    { id: "u-2", text: "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut." },
+    { id: "u-3", text: "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE" },
+  ]);
+
+  const [tembusanItems, setTembusanItems] = useState<Array<{ id: string; text: string }>>([]);
+
+  const [penandatanganName, setPenandatanganName] = useState("M. Ari Wibawanto, S.Hut., M.Sc.");
+  const [penandatanganNip, setPenandatanganNip] = useState("19740514 199903 1 001");
+
+  // Dynamic List Handlers
+  const handleAddMenimbangItem = () => {
+    setMenimbangItems((prev) => [...prev, { id: `m-${Date.now()}`, text: "bahwa..." }]);
+  };
+  const handleDeleteMenimbangItem = (id: string) => {
+    setMenimbangItems((prev) => prev.filter((i) => i.id !== id));
+  };
+  const handleUpdateMenimbangItem = (id: string, text: string) => {
+    setMenimbangItems((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
+  };
+
+  const handleAddDasarItem = () => {
+    setDasarItems((prev) => [...prev, { id: `d-${Date.now()}`, text: "" }]);
+  };
+  const handleDeleteDasarItem = (id: string) => {
+    setDasarItems((prev) => prev.filter((i) => i.id !== id));
+  };
+  const handleUpdateDasarItem = (id: string, text: string) => {
+    setDasarItems((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
+  };
+
+  const handleAddUntukItem = () => {
+    setUntukItems((prev) => [...prev, { id: `u-${Date.now()}`, text: "" }]);
+  };
+  const handleDeleteUntukItem = (id: string) => {
+    setUntukItems((prev) => prev.filter((i) => i.id !== id));
+  };
+  const handleUpdateUntukItem = (id: string, text: string) => {
+    setUntukItems((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
+  };
+
+  const handleAddTembusanItem = () => {
+    setTembusanItems((prev) => [...prev, { id: `t-${Date.now()}`, text: "" }]);
+  };
+  const handleDeleteTembusanItem = (id: string) => {
+    setTembusanItems((prev) => prev.filter((i) => i.id !== id));
+  };
+  const handleUpdateTembusanItem = (id: string, text: string) => {
+    setTembusanItems((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
+  };
+
+  // BUILDER STATE UNTUK DETAIL KEGIATAN
   const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
   const [kotaTujuan, setKotaTujuan] = useState("");
   const [namaKegiatanText, setNamaKegiatanText] = useState("");
   const [tempatSpesifik, setTempatSpesifik] = useState("");
 
-  // STEP 3: KONFIRMASI & DOKUMEN
   const [setujuData, setSetujuData] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -306,12 +458,176 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       if (navigation) navigation.navigate("Surat");
     } else if (tabKey === "inventory") {
       if (navigation) navigation.navigate("Inventory");
-    } else if (tabKey === "profile") {
-      if (navigation) navigation.navigate("Profile");
     } else if (tabKey === "kepegawaian") {
       if (navigation) navigation.navigate("Kepegawaian");
     } else if (onNavigateToModule) {
       onNavigateToModule(tabKey);
+    }
+  };
+
+  const getSuratTugasHtmlContent = () => {
+    const pegawaiRows = selectedEmployees.map((p, idx) => `
+      <tr>
+        <td style="padding: 6px; border: 1px solid #333; text-align: center; font-weight: bold;">${idx + 1}</td>
+        <td style="padding: 6px; border: 1px solid #333;"><strong>${p.name}</strong><br/><span style="font-size: 11px; color: #555;">NIP. ${p.nip}</span></td>
+        <td style="padding: 6px; border: 1px solid #333;">${p.position || "Staf Balai KSDA"}</td>
+      </tr>
+    `).join("");
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8"/>
+      <title>Surat Tugas BKSDA Kaltim</title>
+      <style>
+        body { font-family: 'Times New Roman', serif; padding: 24px; color: #000; font-size: 13px; line-height: 1.5; }
+        .kop { text-align: center; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 16px; }
+        .kop h3 { margin: 0; font-size: 13px; font-weight: bold; text-transform: uppercase; }
+        .kop h2 { margin: 2px 0; font-size: 15px; font-weight: bold; text-transform: uppercase; }
+        .kop h1 { margin: 2px 0; font-size: 16px; font-weight: bold; text-transform: uppercase; }
+        .sub { font-size: 10px; margin-top: 4px; font-family: Arial, sans-serif; }
+        .title { text-align: center; margin: 16px 0; }
+        .title h2 { margin: 0; font-size: 16px; font-weight: bold; text-decoration: underline; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        td { vertical-align: top; }
+        .ttd { float: right; width: 250px; margin-top: 24px; text-align: left; }
+        .clear { clear: both; }
+      </style>
+    </head>
+    <body>
+      <div class="kop">
+        <h3>KEMENTERIAN LINGKUNGAN HIDUP DAN KEHUTANAN</h3>
+        <h2>DIREKTORAT JENDERAL KONSERVASI SUMBER DAYA ALAM DAN EKOSISTEM</h2>
+        <h1>BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</h1>
+        <div class="sub">Jl. Teuku Umar No. 1, Samarinda • Telp: (0541) 743510 • bksdakaltim.org</div>
+      </div>
+
+      <div class="title">
+        <h2>SURAT TUGAS</h2>
+        <p style="margin-top:2px;">Nomor: ST. 001/K.18/TU/KSA.0X.0X/B/08/2026</p>
+      </div>
+
+      <table>
+        <tr>
+          <td style="width: 110px; font-weight: bold;">Menimbang</td>
+          <td style="width: 15px;">:</td>
+          <td>
+            <ol type="a" style="margin: 0; padding-left: 18px;">
+              <li>bahwa dalam rangka ${namaKegiatanText || jenisTugas}, perlu menugaskan pegawai untuk melaksanakannya;</li>
+              <li>bahwa sehubungan dengan huruf a di atas, perlu diterbitkan Surat Tugas.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td colspan="3" style="height:8px;"></td></tr>
+        <tr>
+          <td style="font-weight: bold;">Dasar</td>
+          <td>:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 18px;">
+              <li>Peraturan Menteri LHK tentang Organisasi dan Tata Kerja Balai Konservasi Sumber Daya Alam;</li>
+              <li>Surat Pengesahan DIPA TA 2026 Balai Konservasi Sumber Daya Alam Kalimantan Timur.</li>
+            </ol>
+          </td>
+        </tr>
+      </table>
+
+      <div style="text-align: center; font-weight: bold; margin: 14px 0 6px 0;">MEMBERI PERINTAH:</div>
+
+      <table>
+        <tr>
+          <td style="width: 110px; font-weight: bold;">Kepada</td>
+          <td style="width: 15px;">:</td>
+          <td>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 4px;">
+              <thead>
+                <tr style="background-color: #f1f5f9;">
+                  <th style="padding: 6px; border: 1px solid #333; width: 30px;">No</th>
+                  <th style="padding: 6px; border: 1px solid #333;">Nama / NIP</th>
+                  <th style="padding: 6px; border: 1px solid #333;">Jabatan</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${pegawaiRows}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        <tr><td colspan="3" style="height:8px;"></td></tr>
+        <tr>
+          <td style="font-weight: bold;">Untuk</td>
+          <td>:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 18px;">
+              <li>Melaksanakan ${jenisTugas} dari ${kotaAsal || "Samarinda"} ke ${kotaTujuan || "Balikpapan"}${tempatSpesifik ? ` (${tempatSpesifik})` : ""} terhitung mulai tanggal <strong>${tanggalMulai}</strong> s.d. <strong>${tanggalSelesai}</strong>.</li>
+              <li>Membuat laporan tertulis paling lambat 7 hari kerja setelah kegiatan.</li>
+              <li>Segala biaya dibebankan pada DIPA Balai KSDA Kalimantan Timur.</li>
+            </ol>
+          </td>
+        </tr>
+      </table>
+
+      <div class="ttd">
+        Ditetapkan di: Samarinda<br/>
+        Pada tanggal: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}<br/><br/>
+        <strong>Kepala Balai KSDA Kaltim,</strong><br/><br/><br/><br/>
+        <strong><u>M. Ari Wibawanto, S.Hut., M.Sc.</u></strong><br/>
+        NIP. 19740514 199903 1 001
+      </div>
+      <div class="clear"></div>
+    </body>
+    </html>
+    `;
+  };
+
+  const handleSharePDF = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      const html = getSuratTugasHtmlContent();
+      const { uri } = await Print.printToFileAsync({ html });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          dialogTitle: "Bagikan Surat Tugas BKSDA",
+          mimeType: "application/pdf",
+          UTI: "com.adobe.pdf",
+        });
+      } else {
+        showNotif("Berhasil", `File PDF tersimpan di: ${uri}`, "success");
+      }
+    } catch (err: any) {
+      showNotif("Gagal Berbagi PDF", err?.message || "Terjadi kesalahan saat membagikan PDF.", "error");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleSavePDFToHP = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      const html = getSuratTugasHtmlContent();
+      const { uri } = await Print.printToFileAsync({ html });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          dialogTitle: "Simpan Surat Tugas PDF ke HP",
+          mimeType: "application/pdf",
+        });
+        showNotif("Berhasil!", "Surat Tugas PDF siap disimpan ke perangkat HP Anda.", "success");
+      } else {
+        showNotif("Berhasil Disimpan", `PDF tersimpan di: ${uri}`, "success");
+      }
+    } catch (err: any) {
+      showNotif("Gagal Menyimpan PDF", err?.message || "Terjadi kesalahan.", "error");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleDirectPrint = async () => {
+    try {
+      const html = getSuratTugasHtmlContent();
+      await Print.printAsync({ html });
+    } catch (err: any) {
+      showNotif("Gagal Mencetak", err?.message || "Terjadi kesalahan saat mencetak.", "error");
     }
   };
 
@@ -350,25 +666,47 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         })),
       };
 
-      await apiClient.post("/surat-tugas/submit", payload).catch(async () => {
-        await apiClient.post("/surat-tugas", payload);
-      });
+      if (editId) {
+        await apiClient.put(`/surat-tugas/${editId}`, payload).catch(async () => {
+          await apiClient.post(`/surat-tugas/${editId}`, payload);
+        });
 
-      showNotif(
-        "Pengajuan Surat Tugas Berhasil!",
-        `Surat Tugas untuk ${selectedEmployees.length} pegawai telah berhasil diajukan dan dikirim ke Admin untuk diproses.`,
-        "success",
-        () => {
-          setNotification((prev) => ({ ...prev, visible: false }));
-          if (onNavigateToModule) {
-            onNavigateToModule("portal");
-          } else if (onBack) {
-            onBack();
-          } else if (navigation) {
-            navigation.navigate("Dashboard");
+        showNotif(
+          "Surat Tugas Berhasil Diperbarui!",
+          `Surat Tugas #${editId} telah berhasil diperbarui.`,
+          "success",
+          () => {
+            setNotification((prev) => ({ ...prev, visible: false }));
+            if (navigation && typeof navigation.navigate === "function") {
+              navigation.navigate("InboxSuratTugas");
+            } else if (onNavigateToModule) {
+              onNavigateToModule("inbox-surat-tugas");
+            } else if (onBack) {
+              onBack();
+            }
           }
-        }
-      );
+        );
+      } else {
+        await apiClient.post("/surat-tugas/submit", payload).catch(async () => {
+          await apiClient.post("/surat-tugas", payload);
+        });
+
+        showNotif(
+          "Pengajuan Surat Tugas Berhasil!",
+          `Surat Tugas untuk ${selectedEmployees.length} pegawai telah berhasil diterbitkan.`,
+          "success",
+          () => {
+            setNotification((prev) => ({ ...prev, visible: false }));
+            if (navigation && typeof navigation.navigate === "function") {
+              navigation.navigate("InboxSuratTugas");
+            } else if (onNavigateToModule) {
+              onNavigateToModule("inbox-surat-tugas");
+            } else if (onBack) {
+              onBack();
+            }
+          }
+        );
+      }
     } catch (err: any) {
       console.error("Submit Surat Tugas Error:", err);
       const errMsg =
@@ -399,571 +737,499 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
 
         <View style={styles.headerTitleCol}>
           <View style={styles.headerBadgeRow}>
-            <Ionicons name="business" size={13} color="#2563eb" style={{ marginRight: 4 }} />
-            <Text style={styles.headerBadgeText}>BKSDA KALTIM</Text>
+            <Ionicons name="document-text" size={13} color="#2563eb" style={{ marginRight: 4 }} />
+            <Text style={styles.headerBadgeText}>
+              {editId ? "ST BUILDER PREMIUM (EDIT MODE)" : "ST BUILDER PREMIUM"}
+            </Text>
           </View>
-          <Text style={[styles.headerTitle, { color: colors.textDark }]}>Pengajuan Surat Tugas</Text>
-        </View>
-      </View>
-
-      {/* Stepper Progress Bar Presisi Web Wizard */}
-      <View style={styles.stepperContainer}>
-        <View style={styles.stepItem}>
-          <View style={[styles.stepCircle, step >= 1 && styles.stepCircleActive]}>
-            <Text style={[styles.stepNumber, step >= 1 && styles.stepNumberActive]}>1</Text>
-          </View>
-          <Text style={[styles.stepLabel, step >= 1 && styles.stepLabelActive]}>Pilih Pegawai</Text>
-        </View>
-
-        <View style={styles.stepLine} />
-
-        <View style={styles.stepItem}>
-          <View style={[styles.stepCircle, step >= 2 && styles.stepCircleActive]}>
-            <Text style={[styles.stepNumber, step >= 2 && styles.stepNumberActive]}>2</Text>
-          </View>
-          <Text style={[styles.stepLabel, step >= 2 && styles.stepLabelActive]}>Detail Kegiatan</Text>
-        </View>
-
-        <View style={styles.stepLine} />
-
-        <View style={styles.stepItem}>
-          <View style={[styles.stepCircle, step >= 3 && styles.stepCircleActive]}>
-            <Text style={[styles.stepNumber, step >= 3 && styles.stepNumberActive]}>3</Text>
-          </View>
-          <Text style={[styles.stepLabel, step >= 3 && styles.stepLabelActive]}>Dokumen & Kirim</Text>
+          <Text style={[styles.headerTitle, { color: colors.textDark }]}>
+            {editId ? "Edit Surat Tugas" : "Buat Surat Tugas"}
+          </Text>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* STEP 1: PILIH PEGAWAI Presisi Screenshot Web 1 */}
-        {step === 1 && (
-          <GlassCard style={[styles.stepCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-            <View style={styles.cardHeaderIconBox}>
-              <Ionicons name="people-outline" size={28} color="#2563eb" />
+        <GlassCard style={[styles.stepCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+          {/* Header Banner ST Builder Premium */}
+          <View style={styles.stBuilderHeaderCard}>
+            <View style={styles.builderIconBox}>
+              <Ionicons name="document-text" size={24} color="#2563eb" />
             </View>
-            <Text style={[styles.cardTitle, { color: colors.textDark }]}>Pilih Pegawai</Text>
-            <Text style={styles.cardSubTitle}>Cari dan tambahkan pegawai yang akan melaksanakan tugas.</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.builderTitleText}>
+                ST Builder <Text style={{ color: "#2563eb" }}>Premium</Text>
+              </Text>
+              <Text style={styles.builderSubtitleText}>
+                {editId ? `EDITING SURAT TUGAS #${editId}` : "DIRECT ISSUANCE MODE"}
+              </Text>
+            </View>
+          </View>
 
-            {/* DAFTAR PEGAWAI YANG DITUGASKAN */}
-            <Text style={styles.sectionLabel}>DAFTAR PEGAWAI YANG DITUGASKAN</Text>
-
-            {selectedEmployees.length === 0 ? (
-              <View style={[styles.emptyDottedBox, { borderColor: isDark ? "rgba(255,255,255,0.2)" : "#cbd5e1" }]}>
-                <Ionicons name="person-add-outline" size={24} color="#94a3b8" style={{ marginBottom: 4 }} />
-                <Text style={styles.emptyDottedText}>Belum ada pegawai dipilih</Text>
+          {/* TEMPLATE ST (Presisi Screenshot 1) */}
+          <View style={styles.templateCardContainer}>
+            <View style={styles.templateBadgeRow}>
+              <View style={styles.templateBadge}>
+                <Text style={styles.templateBadgeText}>TEMPLATE</Text>
               </View>
-            ) : (
-              <View style={styles.selectedGrid}>
-                {selectedEmployees.map((emp) => (
-                  <View key={emp.id} style={styles.employeeChip}>
-                    <View style={styles.chipAvatar}>
-                      <Ionicons name="person" size={12} color="#2563eb" />
-                    </View>
-                    <View style={{ flex: 1, marginRight: 6 }}>
-                      <Text style={styles.chipName} numberOfLines={1}>
-                        {emp.name}
-                      </Text>
-                      <Text style={styles.chipNip}>{emp.nip}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => toggleEmployee(emp)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                      <Ionicons name="close-circle" size={18} color="#94a3b8" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
+              <Text style={styles.templateLabelText}>PILIH TEMPLATE ST</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.templateSelectTrigger}
+              onPress={() => setDropdownModalType("templateST")}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.templateSelectText}>{selectedTemplate}</Text>
+              <Ionicons name="chevron-down" size={18} color="#ea580c" />
+            </TouchableOpacity>
+          </View>
 
-            {/* Search Input Box */}
-            <View style={[styles.searchBox, { borderColor: colors.glassBorder, marginTop: 14 }]}>
+          {/* NOMOR SURAT (Presisi Screenshot 1) */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>NOMOR SURAT</Text>
+            <View style={styles.nomorSuratRow}>
+              <View style={styles.nomorSuratPrefix}><Text style={styles.nomorSuratPrefixText}>ST.</Text></View>
+              <TextInput style={styles.nomorSuratInput} value={nomorUrut} onChangeText={setNomorUrut} keyboardType="numeric" placeholder="001" />
+              <View style={styles.nomorSuratFixed}><Text style={styles.nomorSuratFixedText}>/K.18/TU/</Text></View>
+              <TextInput style={[styles.nomorSuratInput, { flex: 1.5 }]} value={klasifikasi} onChangeText={setKlasifikasi} placeholder="KSA.0X.0X" />
+              <View style={styles.nomorSuratFixed}><Text style={styles.nomorSuratFixedText}>/B/{currentMonth}/{currentYear}</Text></View>
+            </View>
+          </View>
+
+          {/* PENGATURAN DOKUMEN (KOTA & TANGGAL - Presisi Screenshot 1) */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>PENGATURAN DOKUMEN</Text>
+            <View style={styles.rowTwoInputs}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.subLabel}>KOTA</Text>
+                <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaDokumen} onChangeText={setKotaDokumen} placeholder="Samarinda" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.subLabel}>TANGGAL</Text>
+                <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => setActiveDatePicker("mulai")}>
+                  <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalDokumen}</Text>
+                  <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* SUMBER DANA (Presisi Screenshot 1) */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>SUMBER DANA</Text>
+            <TouchableOpacity
+              style={[styles.dropdownTrigger, { borderColor: colors.glassBorder }]}
+              onPress={() => setDropdownModalType("sumberDana")}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="wallet-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
+              <Text style={[styles.dropdownTriggerText, { color: colors.textDark }]}>
+                {sumberDana.toUpperCase()}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color="#94a3b8" />
+            </TouchableOpacity>
+          </View>
+
+          {/* MENIMBANG (Presisi Screenshot 1 with + TAMBAH) */}
+          <View style={styles.inputGroup}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.label}>MENIMBANG</Text>
+              <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddMenimbangItem}>
+                <Ionicons name="add" size={14} color="#2563eb" />
+                <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
+              </TouchableOpacity>
+            </View>
+            {menimbangItems.map((item, idx) => (
+              <View key={item.id} style={styles.dynamicItemRow}>
+                <Text style={styles.itemIndexText}>{String.fromCharCode(97 + idx)}.</Text>
+                <TextInput
+                  style={[styles.dynamicItemInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                  value={item.text}
+                  onChangeText={(text) => handleUpdateMenimbangItem(item.id, text)}
+                  multiline
+                />
+                <TouchableOpacity onPress={() => handleDeleteMenimbangItem(item.id)} style={styles.deleteItemBtn}>
+                  <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+
+          {/* DASAR (Presisi Screenshot 2 with + TAMBAH) */}
+          <View style={styles.inputGroup}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.label}>DASAR</Text>
+              <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddDasarItem}>
+                <Ionicons name="add" size={14} color="#2563eb" />
+                <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
+              </TouchableOpacity>
+            </View>
+            {dasarItems.map((item, idx) => (
+              <View key={item.id} style={styles.dynamicItemRow}>
+                <Text style={styles.itemIndexText}>{idx + 1}.</Text>
+                <TextInput
+                  style={[styles.dynamicItemInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                  value={item.text}
+                  onChangeText={(text) => handleUpdateDasarItem(item.id, text)}
+                  multiline
+                />
+                <TouchableOpacity onPress={() => handleDeleteDasarItem(item.id)} style={styles.deleteItemBtn}>
+                  <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+
+          {/* KEPADA (PERSONIL) (Presisi Screenshot 2) */}
+          <View style={styles.inputGroup}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.label}>KEPADA (PERSONIL)</Text>
+              {selectedEmployees.length > 0 && (
+                <View style={styles.countBadge}>
+                  <Text style={styles.countBadgeText}>{selectedEmployees.length}</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={[styles.searchBox, { borderColor: colors.glassBorder }]}>
               <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 8 }} />
               <TextInput
                 style={[styles.searchInput, { color: colors.textDark }]}
-                placeholder="Ketik nama atau NIP pegawai (min. 1 karakter)..."
+                placeholder="Cari..."
                 placeholderTextColor="#94a3b8"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-              {isSearching && <ActivityIndicator size="small" color="#2563eb" />}
             </View>
 
-            {/* Autocomplete Dropdown Search Results */}
-            {searchQuery.trim().length >= 1 && (
-              <View style={[styles.dropdownResults, { backgroundColor: isDark ? "#1e293b" : "#ffffff" }]}>
-                {searchResults.map((emp) => {
-                  const isSelected = selectedEmployees.some((e) => e.id === emp.id);
-                  return (
-                    <TouchableOpacity
-                      key={emp.id}
-                      style={[styles.searchResultRow, isSelected && styles.searchResultSelected]}
-                      onPress={() => toggleEmployee(emp)}
-                    >
-                      <Ionicons
-                        name={isSelected ? "checkmark-circle" : "add-circle-outline"}
-                        size={20}
-                        color={isSelected ? "#2563eb" : "#64748b"}
-                        style={{ marginRight: 10 }}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.resultName, { color: colors.textDark }]}>{emp.name}</Text>
-                        <Text style={styles.resultNip}>NIP. {emp.nip} • {emp.position}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+            {searchQuery.trim().length > 0 && (
+              <ScrollView style={[styles.dropdownResults, { backgroundColor: isDark ? "#1e293b" : "#ffffff" }]} nestedScrollEnabled>
+                {searchResults.map((emp) => (
+                  <TouchableOpacity
+                    key={emp.id}
+                    style={styles.searchResultRow}
+                    onPress={() => toggleEmployee(emp)}
+                  >
+                    <Ionicons name="add-circle-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.resultName, { color: colors.textDark }]}>{emp.name}</Text>
+                      <Text style={styles.resultNip}>NIP. {emp.nip}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             )}
 
-            {/* Next Step Action Button */}
+            <View style={{ gap: 8, marginTop: 8 }}>
+              {selectedEmployees.map((emp, idx) => (
+                <View key={emp.id} style={styles.personilChipCard}>
+                  <View style={styles.personilBadgeNum}><Text style={styles.personilNumText}>{idx + 1}</Text></View>
+                  <Text style={[styles.personilNameText, { color: colors.textDark }]} numberOfLines={1}>{emp.name}</Text>
+                  <TouchableOpacity onPress={() => toggleEmployee(emp)} style={{ marginLeft: "auto" }}>
+                    <Ionicons name="close" size={18} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* DETAIL KEGIATAN (Presisi Screenshot 2 & 3) */}
+          <Text style={styles.sectionTitleHeader}>DETAIL KEGIATAN</Text>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.subLabel}>JENIS TUGAS</Text>
             <TouchableOpacity
-              style={[
-                styles.nextStepBtn,
-                selectedEmployees.length === 0 && { backgroundColor: "#94a3b8", opacity: 0.6 },
-              ]}
-              onPress={() => {
-                if (selectedEmployees.length === 0) {
-                  showNotif("Pegawai Diperlukan", "Silakan pilih minimal 1 pegawai yang akan ditugaskan.");
-                  return;
-                }
-                setStep(2);
-              }}
+              style={[styles.dropdownTrigger, { borderColor: colors.glassBorder }]}
+              onPress={() => setDropdownModalType("jenisTugas")}
               activeOpacity={0.8}
             >
-              <Text style={styles.nextStepText}>Lanjutkan</Text>
-              <Ionicons name="chevron-forward" size={16} color="#ffffff" />
+              <Text style={[styles.dropdownTriggerText, { color: colors.textDark }]}>
+                {jenisTugas}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color="#94a3b8" />
             </TouchableOpacity>
-          </GlassCard>
-        )}
+          </View>
 
-        {/* STEP 2: DETAIL KEGIATAN Presisi Web Step 2 */}
-        {step === 2 && (
-          <GlassCard style={[styles.stepCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-            <View style={styles.cardHeaderIconBox}>
-              <Ionicons name="document-text-outline" size={28} color="#2563eb" />
+          <View style={styles.rowTwoInputs}>
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text style={styles.subLabel}>DARI ( KOTA / LOKASI ASAL ) *</Text>
+              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaAsal} onChangeText={setKotaAsal} placeholder="Samarinda" />
             </View>
-            <Text style={[styles.cardTitle, { color: colors.textDark }]}>Detail Kegiatan</Text>
-            <Text style={styles.cardSubTitle}>Lengkapi maksud perjalanan dinas, periode, dan lokasi tujuan.</Text>
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text style={styles.subLabel}>KE ( KOTA / KABUPATEN TUJUAN ) *</Text>
+              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaTujuan} onChangeText={setKotaTujuan} placeholder="Balikpapan" />
+            </View>
+          </View>
 
-            {/* JENIS TUGAS Dropdown Select */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                JENIS TUGAS <Text style={{ color: "#ef4444" }}>*</Text>
-              </Text>
-              <TouchableOpacity
-                style={[styles.dropdownTrigger, { borderColor: colors.glassBorder }]}
-                onPress={() => setDropdownModalType("jenisTugas")}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="briefcase-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
-                <Text style={[styles.dropdownTriggerText, { color: colors.textDark }]}>
-                  {jenisTugas}
-                </Text>
-                <Ionicons name="chevron-down" size={18} color="#94a3b8" />
+          <View style={styles.inputGroup}>
+            <Text style={styles.subLabel}>DALAM RANGKA *</Text>
+            <TextInput
+              style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+              value={namaKegiatanText}
+              onChangeText={setNamaKegiatanText}
+              placeholder="Konservasi HKAN"
+              multiline
+              numberOfLines={2}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.subLabel}>DI ( TEMPAT SPESIFIK / OPSIONAL )</Text>
+            <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={tempatSpesifik} onChangeText={setTempatSpesifik} placeholder="Balikpapan" />
+          </View>
+
+          <View style={styles.rowTwoInputs}>
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text style={styles.subLabel}>TANGGAL MULAI</Text>
+              <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => setActiveDatePicker("mulai")}>
+                <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalMulai}</Text>
+                <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
               </TouchableOpacity>
             </View>
 
-            {/* Builder Inputs Presisi User Directive */}
-            {jenisTugas.includes("Perjalanan Dinas") ? (
-              <View style={{ marginBottom: 14 }}>
-                {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
-                <View style={styles.rowTwoInputs}>
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>
-                      DARI ( ASAL ) <Text style={{ color: "#ef4444" }}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                      placeholder="Samarinda"
-                      placeholderTextColor="#94a3b8"
-                      value={kotaAsal}
-                      onChangeText={setKotaAsal}
-                    />
-                  </View>
-
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>
-                      KE ( TUJUAN ) <Text style={{ color: "#ef4444" }}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                      placeholder="Kabupaten Kutai Barat"
-                      placeholderTextColor="#94a3b8"
-                      value={kotaTujuan}
-                      onChangeText={setKotaTujuan}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    DALAM RANGKA <Text style={{ color: "#ef4444" }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Kegiatan Inventarisasi dan Verifikasi Keanekaragaman..."
-                    placeholderTextColor="#94a3b8"
-                    multiline
-                    numberOfLines={2}
-                    value={namaKegiatanText}
-                    onChangeText={setNamaKegiatanText}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>DI ( TEMPAT SPESIFIK / OPSIONAL )</Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Suaka Margasatwa Kelian"
-                    placeholderTextColor="#94a3b8"
-                    value={tempatSpesifik}
-                    onChangeText={setTempatSpesifik}
-                  />
-                </View>
-              </View>
-            ) : (
-              <View style={{ marginBottom: 14 }}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    {jenisTugas.includes("Melaksanakan Kegiatan") ? "MELAKSANAKAN KEGIATAN ( 1 HARI )" : "MENUGASKAN STAF"} <Text style={{ color: "#ef4444" }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder={jenisTugas.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"}
-                    placeholderTextColor="#94a3b8"
-                    multiline
-                    numberOfLines={2}
-                    value={namaKegiatanText}
-                    onChangeText={setNamaKegiatanText}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>PADA ( TEMPAT / UNIT / LOKASI KEGIATAN )</Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Kantor Balai / tempat kegiatannya"
-                    placeholderTextColor="#94a3b8"
-                    value={tempatSpesifik}
-                    onChangeText={setTempatSpesifik}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    DI ( KOTA / KABUPATEN ) <Text style={{ color: "#ef4444" }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Samarinda"
-                    placeholderTextColor="#94a3b8"
-                    value={kotaTujuan}
-                    onChangeText={setKotaTujuan}
-                  />
-                </View>
-              </View>
-            )}
-
-            {/* Preview Box Teks Resmi */}
-            <View style={styles.plhAlertCard}>
-              <View style={styles.plhHeaderRow}>
-                <Ionicons name="document-text-outline" size={16} color="#2563eb" style={{ marginRight: 6 }} />
-                <Text style={styles.plhAlertTitle}>📌 Pratinjau Teks Hasil Resmi</Text>
-              </View>
-              <Text style={{ fontSize: 11.5, fontWeight: "700", color: "#1e3a8a", marginTop: 2 }}>
-                {jenisTugas.includes("Perjalanan Dinas")
-                  ? `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ""}${tempatSpesifik ? ` di ${tempatSpesifik}` : ""}`
-                  : jenisTugas.includes("Melaksanakan Kegiatan")
-                  ? `Melaksanakan Kegiatan ${namaKegiatanText || "..."}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`
-                  : `Menugaskan Staf untuk ${namaKegiatanText || "..."}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`}
-              </Text>
-            </View>
-
-            {/* Input 2 & 3: Periode Tanggal (Pakai DatePicker Button) */}
-            <View style={styles.rowTwoInputs}>
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>TANGGAL MULAI *</Text>
-                <TouchableOpacity
-                  style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]}
-                  onPress={() => setActiveDatePicker("mulai")}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginRight: 8 }} />
-                  <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>
-                    {tanggalMulai || "Pilih Tanggal Mulai"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>TANGGAL SELESAI *</Text>
-                <TouchableOpacity
-                  style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]}
-                  onPress={() => setActiveDatePicker("selesai")}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginRight: 8 }} />
-                  <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>
-                    {tanggalSelesai || "Pilih Tanggal Selesai"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Input 4: Keterangan Lainnya */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>KETERANGAN LAINNYA</Text>
-              <TextInput
-                style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                placeholder="Catatan tambahan (opsional)"
-                placeholderTextColor="#94a3b8"
-                multiline
-                numberOfLines={3}
-                value={keterangan}
-                onChangeText={setKeterangan}
-              />
-            </View>
-
-            {/* Input 5: Sumber Dana (Dropdown Select Modal) */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>SUMBER DANA *</Text>
-              <TouchableOpacity
-                style={[styles.dropdownTrigger, { borderColor: colors.glassBorder }]}
-                onPress={() => setDropdownModalType("sumberDana")}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="wallet-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
-                <Text style={[styles.dropdownTriggerText, { color: colors.textDark }]}>
-                  {[
-                    { id: "dipa", label: "DIPA Balai KSDA Kalimantan Timur" },
-                    { id: "dipa_lain", label: "DIPA Instansi Lain" },
-                    { id: "swadaya", label: "Non-DIPA / Swadaya" },
-                    { id: "dl1", label: "Tanpa Biaya / DL 1" },
-                    { id: "kja", label: "Dana Kerjasama KJA" },
-                    { id: "mja", label: "Dana Kerjasama MJA" },
-                    { id: "cop", label: "Dana Kerjasama COP" },
-                    { id: "tjiwi", label: "Dana Kerjasama PT. Tjiwi Kimia Tbk." },
-                    { id: "bosf", label: "Dana Kerjasama BOSF" },
-                    { id: "can", label: "Dana Kerjasama CAN" },
-                    { id: "alert", label: "Dana Kerjasama ALeRT" },
-                    { id: "folu", label: "Dana Kerjasama FOLU" },
-                    { id: "other", label: "Lainnya" },
-                  ].find((o) => o.id === sumberDana)?.label || "Pilih Sumber Dana"}
-                </Text>
-                <Ionicons name="chevron-down" size={18} color="#94a3b8" />
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text style={styles.subLabel}>TANGGAL SELESAI</Text>
+              <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => setActiveDatePicker("selesai")}>
+                <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalSelesai}</Text>
+                <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
               </TouchableOpacity>
-
-              {sumberDana === "other" && (
-                <View style={{ marginTop: 8 }}>
-                  <Text style={[styles.label, { fontSize: 10 }]}>SEBUTKAN SUMBER DANA LAINNYA *</Text>
-                  <TextInput
-                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
-                    placeholder="Sebutkan sumber dana..."
-                    placeholderTextColor="#94a3b8"
-                    value={sumberDanaOther}
-                    onChangeText={setSumberDanaOther}
-                  />
-                </View>
-              )}
             </View>
+          </View>
 
-            {/* Conditional PLH Input (If Pejabat Struktural is in team) */}
-            {hasPejabatStruktural && (
-              <View style={styles.plhAlertCard}>
-                <View style={styles.plhHeaderRow}>
-                  <Ionicons name="information-circle" size={18} color="#2563eb" style={{ marginRight: 6 }} />
-                  <Text style={styles.plhAlertTitle}>Penunjukan Pelaksana Harian (PLH)</Text>
-                </View>
-                <Text style={styles.plhAlertSub}>
-                  Terdeteksi Pejabat Struktural ikut perjalanan dinas. Silakan tentukan PLH Pengganti.
-                </Text>
+          {/* UNTUK (Presisi Screenshot 3 with + TAMBAH) */}
+          <View style={styles.inputGroup}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.label}>UNTUK</Text>
+              <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddUntukItem}>
+                <Ionicons name="add" size={14} color="#2563eb" />
+                <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
+              </TouchableOpacity>
+            </View>
+            {untukItems.map((item, idx) => (
+              <View key={item.id} style={styles.dynamicItemRow}>
+                <Text style={styles.itemIndexText}>{idx + 1}.</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: "#ffffff", borderColor: "#bfdbfe", marginTop: 8 }]}
-                  placeholder="Ketik Nama / NIP PLH Pengganti..."
-                  placeholderTextColor="#94a3b8"
-                  value={namaPlh}
-                  onChangeText={setNamaPlh}
+                  style={[styles.dynamicItemInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                  value={item.text}
+                  onChangeText={(text) => handleUpdateUntukItem(item.id, text)}
+                  multiline
                 />
+                <TouchableOpacity onPress={() => handleDeleteUntukItem(item.id)} style={styles.deleteItemBtn}>
+                  <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                </TouchableOpacity>
               </View>
+            ))}
+          </View>
+
+          {/* TEMBUSAN (Presisi Screenshot 3 with +) */}
+          <View style={styles.inputGroup}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.label}>TEMBUSAN</Text>
+              <TouchableOpacity style={styles.addBtnIconOnly} onPress={handleAddTembusanItem}>
+                <Ionicons name="add" size={18} color="#2563eb" />
+              </TouchableOpacity>
+            </View>
+            {tembusanItems.length === 0 ? (
+              <Text style={styles.emptyTembusanText}>Belum ada tembusan. Klik + untuk menambah.</Text>
+            ) : (
+              tembusanItems.map((item, idx) => (
+                <View key={item.id} style={styles.dynamicItemRow}>
+                  <Text style={styles.itemIndexText}>{idx + 1}.</Text>
+                  <TextInput
+                    style={[styles.dynamicItemInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    value={item.text}
+                    onChangeText={(text) => handleUpdateTembusanItem(item.id, text)}
+                  />
+                  <TouchableOpacity onPress={() => handleDeleteTembusanItem(item.id)} style={styles.deleteItemBtn}>
+                    <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              ))
             )}
+          </View>
 
-            {/* Step 2 Actions Row */}
-            <View style={styles.stepActionRow}>
-              <TouchableOpacity
-                style={styles.prevStepBtn}
-                onPress={() => setStep(1)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="chevron-back" size={16} color="#64748b" />
-                <Text style={styles.prevStepText}>Kembali</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.nextStepBtn}
-                onPress={() => {
-                  if (jenisTugas.includes("Perjalanan Dinas")) {
-                    if (!kotaAsal.trim()) {
-                      showNotif("Kota Asal Diperlukan", "Silakan isi Dari (Kota / Lokasi Asal) (*).");
-                      return;
-                    }
-                    if (!kotaTujuan.trim()) {
-                      showNotif("Kota Tujuan Diperlukan", "Silakan isi Ke (Kota / Kabupaten Tujuan) (*).");
-                      return;
-                    }
-                    if (!namaKegiatanText.trim()) {
-                      showNotif("Dalam Rangka Diperlukan", "Silakan isi Dalam Rangka (Maksud Perjalanan Dinas) (*).");
-                      return;
-                    }
-                  } else if (jenisTugas.includes("Melaksanakan Kegiatan")) {
-                    if (!namaKegiatanText.trim()) {
-                      showNotif("Nama Kegiatan Diperlukan", "Silakan isi Melaksanakan Kegiatan (1 Hari) (*).");
-                      return;
-                    }
-                    if (!kotaTujuan.trim()) {
-                      showNotif("Kota / Kabupaten Diperlukan", "Silakan isi Di (Kota / Kabupaten) (*).");
-                      return;
-                    }
-                  } else {
-                    if (!namaKegiatanText.trim()) {
-                      showNotif("Nama Kegiatan Diperlukan", "Silakan isi Menugaskan Staf (*).");
-                      return;
-                    }
-                    if (!kotaTujuan.trim()) {
-                      showNotif("Kota / Kabupaten Diperlukan", "Silakan isi Di (Kota / Kabupaten) (*).");
-                      return;
-                    }
-                  }
-
-                  if (!tanggalMulai || !tanggalSelesai) {
-                    showNotif("Tanggal Diperlukan", "Silakan pilih Tanggal Mulai dan Tanggal Selesai (*).");
-                    return;
-                  }
-
-                  if (sumberDana === "other" && !sumberDanaOther.trim()) {
-                    showNotif("Sumber Dana Lainnya Diperlukan", "Silakan sebutkan sumber dana lainnya (*).");
-                    return;
-                  }
-
-                  setStep(3);
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.nextStepText}>Lanjutkan ke Step 3</Text>
-                <Ionicons name="chevron-forward" size={16} color="#ffffff" />
-              </TouchableOpacity>
+          {/* PENANDATANGAN (Presisi Screenshot 3) */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>PENANDATANGAN</Text>
+            <View style={[styles.searchBox, { borderColor: colors.glassBorder, marginBottom: 8 }]}>
+              <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 8 }} />
+              <TextInput style={[styles.searchInput, { color: colors.textDark }]} placeholder="Cari pegawai penandatangan..." placeholderTextColor="#94a3b8" />
             </View>
-          </GlassCard>
-        )}
-
-        {/* STEP 3: DOKUMEN DASAR & SUBMIT Presisi Web Step 3 */}
-        {step === 3 && (
-          <GlassCard style={[styles.stepCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-            <View style={styles.cardHeaderIconBox}>
-              <Ionicons name="checkmark-circle-outline" size={28} color="#10b981" />
+            <View style={{ gap: 8 }}>
+              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={penandatanganName} onChangeText={setPenandatanganName} />
+              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={penandatanganNip} onChangeText={setPenandatanganNip} />
             </View>
-            <Text style={[styles.cardTitle, { color: colors.textDark }]}>Konfirmasi & Kirim</Text>
-            <Text style={styles.cardSubTitle}>Unggah berkas pendukung dan periksa kembali rincian pengajuan.</Text>
+          </View>
 
-            {/* Upload Document Box */}
-            <Text style={styles.sectionLabel}>UPLOAD DOKUMEN DASAR (PDF / FOTO)</Text>
-            <TouchableOpacity
-              style={[styles.uploadDottedBox, { borderColor: isDark ? "rgba(255,255,255,0.2)" : "#cbd5e1" }]}
-              onPress={() => {
-                setSelectedFileName("Dokumen_Pendukung_ST.pdf");
-                Alert.alert("Berkas Dipilih", "Dokumen_Pendukung_ST.pdf siap diunggah.");
-              }}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="cloud-upload-outline" size={32} color="#2563eb" style={{ marginBottom: 6 }} />
-              <Text style={styles.uploadDottedTitle}>
-                {selectedFileName ? selectedFileName : "PILIH BERKAS DOKUMEN"}
-              </Text>
-              <Text style={styles.uploadDottedSub}>MAX 10MB • FORMAT PDF / JPG / PNG</Text>
+          {/* ACTION BUTTONS (Presisi Screenshot 1, 2, and 3) */}
+          <View style={{ gap: 10, marginTop: 20, marginBottom: 20 }}>
+            {/* 1. Simpan Draft */}
+            <TouchableOpacity style={styles.btnSimpanDraft} onPress={() => showNotif("Draft Disimpan", "Draft Surat Tugas berhasil disimpan.", "success")} activeOpacity={0.8}>
+              <Ionicons name="document-outline" size={18} color="#334155" style={{ marginRight: 8 }} />
+              <Text style={styles.btnSimpanDraftText}>Simpan Draft</Text>
             </TouchableOpacity>
 
-            {/* Summary Preview Box */}
-            <View style={[styles.summaryBox, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc" }]}>
-              <Text style={styles.summaryTitle}>RINGKASAN PENGAJUAN SURAT TUGAS</Text>
-              <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                • Personil: <Text style={{ fontWeight: "800" }}>{selectedEmployees.map((e) => e.name).join(", ")}</Text>
+            {/* 2. Terbitkan & Cetak / Simpan Perubahan */}
+            <TouchableOpacity style={styles.btnTerbitkanCetak} onPress={handleSubmitSuratTugas} disabled={isSubmitting} activeOpacity={0.8}>
+              <Ionicons name="checkmark-circle-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+              <Text style={styles.btnTerbitkanCetakText}>
+                {isSubmitting ? "Memproses..." : editId ? "Simpan Perubahan ST" : "Terbitkan & Cetak"}
               </Text>
-              <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                • Jenis Tugas: <Text style={{ fontWeight: "800" }}>{jenisTugas}</Text>
-              </Text>
-              <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                • Kegiatan: <Text style={{ fontWeight: "800" }}>{namaKegiatanText.trim() || "-"}</Text>
-              </Text>
-              <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                • Lokasi: <Text style={{ fontWeight: "800" }}>{tempatSpesifik || kotaTujuan || kotaAsal}</Text>
-              </Text>
-              {Boolean(keterangan) && (
-                <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                  • Keterangan: <Text style={{ fontWeight: "800" }}>{keterangan}</Text>
-                </Text>
-              )}
-              <Text style={[styles.summaryLine, { color: colors.textDark }]}>
-                • Sumber Dana:{" "}
-                <Text style={{ fontWeight: "800" }}>
-                  {[
-                    { id: "dipa", label: "DIPA Balai KSDA Kalimantan Timur" },
-                    { id: "dipa_lain", label: "DIPA Instansi Lain" },
-                    { id: "swadaya", label: "Non-DIPA / Swadaya" },
-                    { id: "dl1", label: "Tanpa Biaya / DL 1" },
-                    { id: "kja", label: "Dana Kerjasama KJA" },
-                    { id: "mja", label: "Dana Kerjasama MJA" },
-                    { id: "cop", label: "Dana Kerjasama COP" },
-                    { id: "tjiwi", label: "Dana Kerjasama PT. Tjiwi Kimia Tbk." },
-                    { id: "bosf", label: "Dana Kerjasama BOSF" },
-                    { id: "can", label: "Dana Kerjasama CAN" },
-                    { id: "alert", label: "Dana Kerjasama ALeRT" },
-                    { id: "folu", label: "Dana Kerjasama FOLU" },
-                    { id: "other", label: `Lainnya (${sumberDanaOther || "-"})` },
-                  ].find((o) => o.id === sumberDana)?.label || sumberDana}
-                </Text>
-              </Text>
-            </View>
+            </TouchableOpacity>
 
-            {/* Checkbox Persetujuan */}
+            {/* 3. Preview Cetak */}
+            <TouchableOpacity style={styles.btnPreviewCetakFull} onPress={() => setPreviewModalVisible(true)} activeOpacity={0.8}>
+              <Ionicons name="print-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
+              <Text style={styles.btnPreviewCetakFullText}>Preview Cetak</Text>
+            </TouchableOpacity>
+          </View>
+        </GlassCard>
+      </ScrollView>
+
+      {/* Render Modal Preview Cetak Surat Tugas (With Download & Share) */}
+      <Modal visible={previewModalVisible} animationType="slide" transparent>
+        <View style={styles.previewModalContainer}>
+          {/* Header Bar */}
+          <View style={styles.previewModalHeader}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons name="print-outline" size={20} color="#2563eb" style={{ marginRight: 8 }} />
+              <Text style={styles.previewModalTitle}>Pratinjau Cetak Surat Tugas</Text>
+            </View>
+            <TouchableOpacity onPress={() => setPreviewModalVisible(false)} style={{ padding: 4 }}>
+              <Ionicons name="close" size={22} color="#64748b" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Printable Document Preview Content */}
+          <ScrollView style={styles.previewScroll} contentContainerStyle={{ padding: 16 }}>
+            <View style={styles.paperSheet}>
+              {/* Kop Surat Header */}
+              <View style={styles.paperKopHeader}>
+                <Text style={styles.kopKemLabel}>KEMENTERIAN LINGKUNGAN HIDUP DAN KEHUTANAN</Text>
+                <Text style={styles.kopDirLabel}>DIREKTORAT JENDERAL KONSERVASI SUMBER DAYA ALAM DAN EKOSISTEM</Text>
+                <Text style={styles.kopBalaiLabel}>BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</Text>
+                <Text style={styles.kopSubText}>
+                  Jl. Teuku Umar No. 1, Samarinda • Telp: (0541) 743510 • bksdakaltim.org
+                </Text>
+                <View style={styles.doubleBorderLine} />
+              </View>
+
+              {/* Title Surat Tugas */}
+              <View style={styles.paperTitleBox}>
+                <Text style={styles.paperMainTitle}>SURAT TUGAS</Text>
+                <Text style={styles.paperSubTitleNum}>
+                  Nomor: ST. 001/K.18/TU/KSA.0X.0X/B/08/2026
+                </Text>
+              </View>
+
+              {/* Section Menimbang & Dasar */}
+              <View style={styles.paperSection}>
+                <Text style={styles.paperSectionLabel}>MENIMBANG :</Text>
+                <Text style={styles.paperBodyText}>
+                  a. bahwa dalam rangka {namaKegiatanText || jenisTugas}, perlu menugaskan pegawai untuk melaksanakannya;
+                </Text>
+                <Text style={styles.paperBodyText}>
+                  b. bahwa sehubungan dengan huruf a di atas, perlu diterbitkan Surat Tugas.
+                </Text>
+              </View>
+
+              <View style={styles.paperSection}>
+                <Text style={styles.paperSectionLabel}>DASAR :</Text>
+                <Text style={styles.paperBodyText}>
+                  1. Peraturan Menteri LHK tentang Organisasi dan Tata Kerja Balai Konservasi Sumber Daya Alam;
+                </Text>
+                <Text style={styles.paperBodyText}>
+                  2. Surat Pengesahan DIPA TA 2026 Balai KSDA Kalimantan Timur.
+                </Text>
+              </View>
+
+              {/* Memberi Perintah Kepada */}
+              <Text style={styles.paperPerintahTitle}>MEMBERI PERINTAH:</Text>
+
+              <View style={styles.paperSection}>
+                <Text style={styles.paperSectionLabel}>KEPADA :</Text>
+                {selectedEmployees.length === 0 ? (
+                  <Text style={styles.paperBodyText}>- Belum ada pegawai terpilih -</Text>
+                ) : (
+                  selectedEmployees.map((p, idx) => (
+                    <View key={p.id} style={styles.paperEmpRow}>
+                      <Text style={styles.paperEmpNum}>{idx + 1}.</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.paperEmpName}>{p.name}</Text>
+                        <Text style={styles.paperEmpNip}>NIP. {p.nip}</Text>
+                        <Text style={styles.paperEmpPos}>{p.position || "Staf Balai KSDA Kaltim"}</Text>
+                      </View>
+                    </View>
+                  ))
+                )}
+              </View>
+
+              {/* Untuk */}
+              <View style={styles.paperSection}>
+                <Text style={styles.paperSectionLabel}>UNTUK :</Text>
+                <Text style={styles.paperBodyText}>
+                  1. Melaksanakan {jenisTugas} dari {kotaAsal || "Samarinda"} ke {kotaTujuan || "Balikpapan"}{tempatSpesifik ? ` (${tempatSpesifik})` : ""} terhitung mulai tanggal <Text style={{ fontWeight: "800" }}>{tanggalMulai}</Text> s.d. <Text style={{ fontWeight: "800" }}>{tanggalSelesai}</Text>.
+                </Text>
+                <Text style={styles.paperBodyText}>
+                  2. Membuat laporan tertulis paling lambat 7 hari kerja setelah selesainya kegiatan tersebut.
+                </Text>
+                <Text style={styles.paperBodyText}>
+                  3. Segala biaya yang timbul dibebankan pada DIPA Balai KSDA Kalimantan Timur.
+                </Text>
+              </View>
+
+              {/* Tanda Tangan Section */}
+              <View style={styles.paperTtdBox}>
+                <Text style={styles.paperTtdLoc}>Ditetapkan di: Samarinda</Text>
+                <Text style={styles.paperTtdDate}>
+                  Pada tanggal: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                </Text>
+                <Text style={styles.paperTtdJabatan}>Kepala Balai KSDA Kaltim,</Text>
+                <View style={{ height: 45 }} />
+                <Text style={styles.paperTtdName}>M. Ari Wibawanto, S.Hut., M.Sc.</Text>
+                <Text style={styles.paperTtdNip}>NIP. 19740514 199903 1 001</Text>
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* Action Toolbar Bottom Bar (Simpan ke HP & Share PDF & Print) */}
+          <View style={styles.previewToolbarBottom}>
             <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setSetujuData(!setujuData)}
+              style={[styles.toolbarActionBtn, { backgroundColor: "#059669" }]}
+              onPress={handleSavePDFToHP}
+              disabled={isGeneratingPdf}
               activeOpacity={0.8}
             >
-              <Ionicons
-                name={setujuData ? "checkbox" : "square-outline"}
-                size={22}
-                color={setujuData ? "#2563eb" : "#94a3b8"}
-                style={{ marginRight: 10 }}
-              />
-              <Text style={[styles.checkboxText, { color: colors.textDark }]}>
-                Saya menyatakan data pengajuan Surat Tugas ini sudah benar dan siap diproses.
-              </Text>
+              {isGeneratingPdf ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="download-outline" size={18} color="#ffffff" style={{ marginRight: 6 }} />
+                  <Text style={styles.toolbarActionText}>Simpan ke HP</Text>
+                </>
+              )}
             </TouchableOpacity>
 
-            {/* Final Submit Button */}
-            <View style={styles.stepActionRow}>
-              <TouchableOpacity
-                style={styles.prevStepBtn}
-                onPress={() => setStep(2)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="chevron-back" size={16} color="#64748b" />
-                <Text style={styles.prevStepText}>Kembali</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toolbarActionBtn, { backgroundColor: "#2563eb" }]}
+              onPress={handleSharePDF}
+              disabled={isGeneratingPdf}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="share-social-outline" size={18} color="#ffffff" style={{ marginRight: 6 }} />
+              <Text style={styles.toolbarActionText}>Bagikan PDF</Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.submitFinalBtn, isSubmitting && { opacity: 0.6 }]}
-                onPress={handleSubmitSuratTugas}
-                disabled={isSubmitting}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="paper-plane-outline" size={16} color="#ffffff" style={{ marginRight: 6 }} />
-                <Text style={styles.submitFinalText}>
-                  {isSubmitting ? "Mengirim..." : "Kirim Pengajuan ST"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </GlassCard>
-        )}
-      </ScrollView>
+            <TouchableOpacity
+              style={[styles.toolbarActionBtn, { backgroundColor: "#475569" }]}
+              onPress={handleDirectPrint}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="print-outline" size={18} color="#ffffff" style={{ marginRight: 4 }} />
+              <Text style={styles.toolbarActionText}>Cetak</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Render Modal DatePicker */}
       {Boolean(activeDatePicker) && (
@@ -1086,7 +1352,14 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               </View>
 
               <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-                {(dropdownModalType === "jenisTugas"
+                {(dropdownModalType === "templateST"
+                  ? [
+                      { id: "DEFAULT (MANUAL)", label: "DEFAULT (MANUAL)" },
+                      { id: "BEDA HARI PATROLI", label: "BEDA HARI PATROLI" },
+                      { id: "PATROLI FOLU NET SINK", label: "PATROLI FOLU NET SINK" },
+                      { id: "PENDAMPINGAN FOLU NET SINK", label: "PENDAMPINGAN FOLU NET SINK" },
+                    ]
+                  : dropdownModalType === "jenisTugas"
                   ? [
                       { id: "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )", label: "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" },
                       { id: "Melaksanakan Kegiatan ( 1 Hari )", label: "Melaksanakan Kegiatan ( 1 Hari )" },
@@ -1108,13 +1381,20 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                       { id: "other", label: "Lainnya" },
                     ]
                 ).map((opt) => {
-                  const isSelected = (dropdownModalType === "jenisTugas" ? jenisTugas : sumberDana) === opt.id;
+                  const isSelected =
+                    (dropdownModalType === "templateST"
+                      ? selectedTemplate
+                      : dropdownModalType === "jenisTugas"
+                      ? jenisTugas
+                      : sumberDana) === opt.id;
                   return (
                     <TouchableOpacity
                       key={opt.id}
                       style={[styles.dropdownOptionRow, isSelected && styles.dropdownOptionRowSelected]}
                       onPress={() => {
-                        if (dropdownModalType === "jenisTugas") {
+                        if (dropdownModalType === "templateST") {
+                          setSelectedTemplate(opt.id);
+                        } else if (dropdownModalType === "jenisTugas") {
                           setJenisTugas(opt.id as any);
                         } else {
                           setSumberDana(opt.id);
@@ -1315,6 +1595,293 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
     marginBottom: 18,
+  },
+
+  stBuilderHeaderCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: RADIUS.card,
+    padding: 12,
+    marginBottom: 16,
+  },
+  builderIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  builderTitleText: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#0f172a",
+  },
+  builderSubtitleText: {
+    fontSize: 9.5,
+    fontWeight: "800",
+    color: "#2563eb",
+    letterSpacing: 1,
+  },
+  templateCardContainer: {
+    backgroundColor: "#fff7ed",
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    borderRadius: RADIUS.input,
+    padding: 12,
+    marginBottom: 16,
+  },
+  templateBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  templateBadge: {
+    backgroundColor: "#ea580c",
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  templateBadgeText: {
+    color: "#ffffff",
+    fontSize: 9,
+    fontWeight: "900",
+  },
+  templateLabelText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#c2410c",
+  },
+  templateSelectTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#fdba74",
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  templateSelectText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#9a3412",
+  },
+  nomorSuratRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  nomorSuratPrefix: {
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+  nomorSuratPrefixText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#475569",
+  },
+  nomorSuratInput: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  nomorSuratFixed: {
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 6,
+    paddingVertical: 10,
+  },
+  nomorSuratFixedText: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  addBtnSmall: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  addBtnTextSmall: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#2563eb",
+    marginLeft: 2,
+  },
+  addBtnIconOnly: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dynamicItemRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginBottom: 8,
+  },
+  itemIndexText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#64748b",
+    marginTop: 8,
+    width: 16,
+  },
+  dynamicItemInput: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: RADIUS.input,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 12,
+  },
+  deleteItemBtn: {
+    padding: 8,
+    marginTop: 2,
+  },
+  countBadge: {
+    backgroundColor: "#2563eb",
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  countBadgeText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  personilChipCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: RADIUS.input,
+    padding: 8,
+  },
+  personilBadgeNum: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#2563eb",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  personilNumText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  personilNameText: {
+    fontSize: 12,
+    fontWeight: "700",
+    flex: 1,
+  },
+  emptyTembusanText: {
+    fontSize: 11,
+    color: "#94a3b8",
+    fontStyle: "italic",
+    marginVertical: 4,
+  },
+  sectionTitleHeader: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#1e293b",
+    letterSpacing: 0.5,
+    marginTop: 12,
+    marginBottom: 10,
+  },
+  btnSimpanDraft: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: RADIUS.input,
+    paddingVertical: 12,
+  },
+  btnSimpanDraftText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#334155",
+  },
+  btnTerbitkanCetak: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2563eb",
+    borderRadius: RADIUS.input,
+    paddingVertical: 13,
+    shadowColor: "#2563eb",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  btnTerbitkanCetakText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#ffffff",
+  },
+  btnPreviewCetakFull: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: RADIUS.input,
+    paddingVertical: 12,
+  },
+  btnPreviewCetakFullText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#2563eb",
+  },
+  subLabel: {
+    color: "#64748b",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+    marginBottom: 4,
   },
 
   sectionLabel: {
@@ -1825,6 +2392,224 @@ const styles = StyleSheet.create({
   notifBtnText: {
     color: "#ffffff",
     fontSize: 13,
+    fontWeight: "800",
+  },
+
+  // Preview Cetak ST Button & Modal Styles
+  previewCetakBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#eff6ff",
+    borderWidth: 1.5,
+    borderColor: "#bfdbfe",
+    borderRadius: RADIUS.pill,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    width: "100%",
+  },
+  previewCetakBtnText: {
+    color: "#2563eb",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
+  previewModalContainer: {
+    flex: 1,
+    backgroundColor: "#0f172a",
+  },
+  previewModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 48,
+    paddingBottom: 14,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  previewModalTitle: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#0f172a",
+  },
+  previewScroll: {
+    flex: 1,
+    backgroundColor: "#334155",
+  },
+  paperSheet: {
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    padding: 20,
+    minHeight: 680,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  paperKopHeader: {
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  kopKemLabel: {
+    fontSize: 10.5,
+    fontWeight: "900",
+    color: "#000000",
+    textAlign: "center",
+  },
+  kopDirLabel: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: "#000000",
+    textAlign: "center",
+    marginVertical: 1,
+  },
+  kopBalaiLabel: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#000000",
+    textAlign: "center",
+    marginBottom: 2,
+  },
+  kopSubText: {
+    fontSize: 8.5,
+    color: "#475569",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  doubleBorderLine: {
+    width: "100%",
+    height: 3,
+    backgroundColor: "#000000",
+    marginTop: 2,
+  },
+  paperTitleBox: {
+    alignItems: "center",
+    marginVertical: 12,
+  },
+  paperMainTitle: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#000000",
+    textDecorationLine: "underline",
+    letterSpacing: 1,
+  },
+  paperSubTitleNum: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#334155",
+    marginTop: 2,
+  },
+  paperSection: {
+    marginBottom: 12,
+  },
+  paperSectionLabel: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: "#0f172a",
+    marginBottom: 3,
+  },
+  paperBodyText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#334155",
+    lineHeight: 16,
+    marginBottom: 3,
+  },
+  paperPerintahTitle: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#000000",
+    textAlign: "center",
+    marginVertical: 8,
+    letterSpacing: 0.5,
+  },
+  paperEmpRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+    backgroundColor: "#f8fafc",
+    padding: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  paperEmpNum: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: "#000000",
+    marginRight: 6,
+  },
+  paperEmpName: {
+    fontSize: 11.5,
+    fontWeight: "900",
+    color: "#0f172a",
+  },
+  paperEmpNip: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  paperEmpPos: {
+    fontSize: 10,
+    color: "#475569",
+  },
+  paperTtdBox: {
+    alignSelf: "flex-end",
+    width: 220,
+    marginTop: 16,
+    paddingTop: 8,
+  },
+  paperTtdLoc: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#334155",
+  },
+  paperTtdDate: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#334155",
+  },
+  paperTtdJabatan: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: "#0f172a",
+    marginTop: 4,
+  },
+  paperTtdName: {
+    fontSize: 11.5,
+    fontWeight: "900",
+    color: "#0f172a",
+    textDecorationLine: "underline",
+  },
+  paperTtdNip: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  previewToolbarBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+  },
+  toolbarActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: RADIUS.pill,
+  },
+  toolbarActionText: {
+    color: "#ffffff",
+    fontSize: 12,
     fontWeight: "800",
   },
 });

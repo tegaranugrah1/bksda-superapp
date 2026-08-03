@@ -43,8 +43,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_authcontroller",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 21,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "authcontroller.php"
     },
     {
@@ -65,8 +65,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_authcontroller_authcontroller_login",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 21,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".login()"
     },
     {
@@ -417,7 +417,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_requests_auth_changepasswordrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "changepasswordrequest.php"
     },
@@ -428,7 +428,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_http_requests_auth_changepasswordrequest_changepasswordrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "changepasswordrequest"
     },
@@ -439,7 +439,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_http_requests_auth_changepasswordrequest_changepasswordrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -450,7 +450,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_http_requests_auth_changepasswordrequest_changepasswordrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -461,8 +461,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_requests_auth_loginrequest",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 21,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "loginrequest.php"
     },
     {
@@ -472,8 +472,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_http_requests_auth_loginrequest_loginrequest",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 21,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "loginrequest"
     },
     {
@@ -483,8 +483,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_http_requests_auth_loginrequest_loginrequest_authorize",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 21,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
     {
@@ -494,8 +494,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_http_requests_auth_loginrequest_loginrequest_rules",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 21,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
     {
@@ -726,7 +726,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "assetcontroller.php"
     },
     {
@@ -902,7 +902,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetdocumentcontroller",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "assetdocumentcontroller.php"
     },
     {
@@ -1034,7 +1034,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetphotocontroller",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "assetphotocontroller.php"
     },
     {
@@ -1144,7 +1144,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "auctionbatchcontroller.php"
     },
     {
@@ -1155,7 +1155,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "auctionbatchcontroller"
     },
     {
@@ -1166,7 +1166,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_construct",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".__construct()"
     },
     {
@@ -1177,7 +1177,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_index",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".index()"
     },
     {
@@ -1188,7 +1188,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_store",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".store()"
     },
     {
@@ -1199,7 +1199,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_show",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".show()"
     },
     {
@@ -1210,7 +1210,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_destroy",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".destroy()"
     },
     {
@@ -1232,7 +1232,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_checklist",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".checklist()"
     },
     {
@@ -1243,7 +1243,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_addassets",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".addassets()"
     },
     {
@@ -1254,7 +1254,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_removeasset",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".removeasset()"
     },
     {
@@ -1265,7 +1265,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_updateorder",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".updateorder()"
     },
     {
@@ -1276,7 +1276,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_updatevaluation",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".updatevaluation()"
     },
     {
@@ -1287,7 +1287,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_updatedraftmetadata",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".updatedraftmetadata()"
     },
     {
@@ -1298,7 +1298,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_transition",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".transition()"
     },
     {
@@ -1309,7 +1309,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_recordfirstauctionresults",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".recordfirstauctionresults()"
     },
     {
@@ -1320,7 +1320,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_recordreauctionresults",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".recordreauctionresults()"
     },
     {
@@ -1331,7 +1331,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_realize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".realize()"
     },
     {
@@ -1342,7 +1342,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_documentcontext",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".documentcontext()"
     },
     {
@@ -1353,7 +1353,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_hydratedraftdocumentmetadata",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".hydratedraftdocumentmetadata()"
     },
     {
@@ -1364,7 +1364,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_mapemployeesbyids",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".mapemployeesbyids()"
     },
     {
@@ -1375,7 +1375,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_mapemployee",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".mapemployee()"
     },
     {
@@ -1386,7 +1386,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_recordprintevent",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".recordprintevent()"
     },
     {
@@ -1672,7 +1672,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "importreviewcontroller.php"
     },
     {
@@ -3773,7 +3773,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetupdate",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "assetupdate.php"
     },
     {
@@ -4202,7 +4202,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_addauctionassetsrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "addauctionassetsrequest.php"
     },
     {
@@ -4213,7 +4213,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_addauctionassetsrequest_addauctionassetsrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "addauctionassetsrequest"
     },
     {
@@ -4224,7 +4224,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_addauctionassetsrequest_addauctionassetsrequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4235,7 +4235,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_addauctionassetsrequest_addauctionassetsrequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -4246,7 +4246,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_createauctionbatchrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "createauctionbatchrequest.php"
     },
     {
@@ -4257,7 +4257,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_createauctionbatchrequest_createauctionbatchrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "createauctionbatchrequest"
     },
     {
@@ -4268,7 +4268,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_createauctionbatchrequest_createauctionbatchrequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4279,7 +4279,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_createauctionbatchrequest_createauctionbatchrequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -4289,7 +4289,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_disposeassetrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "disposeassetrequest.php"
     },
@@ -4300,7 +4300,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_disposeassetrequest_disposeassetrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "disposeassetrequest"
     },
@@ -4311,7 +4311,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_disposeassetrequest_disposeassetrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -4322,7 +4322,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_disposeassetrequest_disposeassetrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -4333,7 +4333,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_disposeassetrequest_disposeassetrequest_messages",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".messages()"
     },
@@ -4345,7 +4345,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_firstauctionresultsrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "firstauctionresultsrequest.php"
     },
     {
@@ -4356,7 +4356,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_firstauctionresultsrequest_firstauctionresultsrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "firstauctionresultsrequest"
     },
     {
@@ -4367,7 +4367,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_firstauctionresultsrequest_firstauctionresultsrequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4378,7 +4378,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_firstauctionresultsrequest_firstauctionresultsrequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -4389,7 +4389,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_firstauctionresultsrequest_firstauctionresultsrequest_withvalidator",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".withvalidator()"
     },
     {
@@ -4400,7 +4400,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_printauctiondocumenteventrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "printauctiondocumenteventrequest.php"
     },
     {
@@ -4411,7 +4411,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_printauctiondocumenteventrequest_printauctiondocumenteventrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "printauctiondocumenteventrequest"
     },
     {
@@ -4422,7 +4422,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_printauctiondocumenteventrequest_printauctiondocumenteventrequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4433,7 +4433,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_printauctiondocumenteventrequest_printauctiondocumenteventrequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -4444,7 +4444,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_reauctionresultsrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "reauctionresultsrequest.php"
     },
     {
@@ -4455,7 +4455,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_reauctionresultsrequest_reauctionresultsrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "reauctionresultsrequest"
     },
     {
@@ -4466,7 +4466,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_reauctionresultsrequest_reauctionresultsrequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4477,7 +4477,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_reauctionresultsrequest_reauctionresultsrequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -4488,7 +4488,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_reauctionresultsrequest_reauctionresultsrequest_withvalidator",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".withvalidator()"
     },
     {
@@ -4597,7 +4597,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "storeassetrequest.php"
     },
@@ -4608,7 +4608,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetrequest_storeassetrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "storeassetrequest"
     },
@@ -4619,7 +4619,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetrequest_storeassetrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -4630,7 +4630,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetrequest_storeassetrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -4641,7 +4641,7 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_storeassetrequest_storeassetrequest_messages",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".messages()"
     },
@@ -4653,7 +4653,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_transitionauctionbatchrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "transitionauctionbatchrequest.php"
     },
     {
@@ -4664,7 +4664,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_transitionauctionbatchrequest_transitionauctionbatchrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "transitionauctionbatchrequest"
     },
     {
@@ -4675,7 +4675,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_transitionauctionbatchrequest_transitionauctionbatchrequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4686,7 +4686,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_transitionauctionbatchrequest_transitionauctionbatchrequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -4696,7 +4696,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateassetrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "updateassetrequest.php"
     },
@@ -4707,7 +4707,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateassetrequest_updateassetrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "updateassetrequest"
     },
@@ -4718,7 +4718,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateassetrequest_updateassetrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -4729,7 +4729,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateassetrequest_updateassetrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -4741,7 +4741,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionassetorderrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "updateauctionassetorderrequest.php"
     },
     {
@@ -4752,7 +4752,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionassetorderrequest_updateauctionassetorderrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "updateauctionassetorderrequest"
     },
     {
@@ -4763,7 +4763,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionassetorderrequest_updateauctionassetorderrequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4774,7 +4774,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionassetorderrequest_updateauctionassetorderrequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -4785,7 +4785,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionbatchdraftmetadatarequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "updateauctionbatchdraftmetadatarequest.php"
     },
     {
@@ -4796,7 +4796,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionbatchdraftmetadatarequest_updateauctionbatchdraftmetadatarequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "updateauctionbatchdraftmetadatarequest"
     },
     {
@@ -4807,7 +4807,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionbatchdraftmetadatarequest_updateauctionbatchdraftmetadatarequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4818,7 +4818,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionbatchdraftmetadatarequest_updateauctionbatchdraftmetadatarequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -4829,7 +4829,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionbatchdraftmetadatarequest_updateauctionbatchdraftmetadatarequest_withvalidator",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".withvalidator()"
     },
     {
@@ -4840,7 +4840,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionvaluationrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "updateauctionvaluationrequest.php"
     },
     {
@@ -4851,7 +4851,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionvaluationrequest_updateauctionvaluationrequest",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "updateauctionvaluationrequest"
     },
     {
@@ -4862,7 +4862,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionvaluationrequest_updateauctionvaluationrequest_authorize",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -4873,7 +4873,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_updateauctionvaluationrequest_updateauctionvaluationrequest_rules",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -5093,7 +5093,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatchresource",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "auctionbatchresource.php"
     },
     {
@@ -5104,7 +5104,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatchresource_auctionbatchresource",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "auctionbatchresource"
     },
     {
@@ -5269,7 +5269,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_routes_api",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "bmn/routes/api.php"
     },
     {
@@ -5632,7 +5632,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_auctionbatchdocumentworkflow",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "auctionbatchdocumentworkflow.php"
     },
     {
@@ -6391,7 +6391,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_support_auctionbatcheventaction",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "auctionbatcheventaction.php"
     },
     {
@@ -6402,7 +6402,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_support_auctionbatcheventaction_auctionbatcheventaction",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "auctionbatcheventaction"
     },
     {
@@ -6413,7 +6413,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_support_auctionbatcheventaction_auctionbatcheventaction_values",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": ".values()"
     },
     {
@@ -8095,7 +8095,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_storepublic",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".storepublic()"
     },
@@ -8282,8 +8282,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_operatorcontroller",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "operatorcontroller.php"
     },
     {
@@ -8293,8 +8293,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_operatorcontroller_operatorcontroller",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "operatorcontroller"
     },
     {
@@ -8304,8 +8304,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_operatorcontroller_operatorcontroller_index",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -8315,8 +8315,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_operatorcontroller_operatorcontroller_store",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -8326,8 +8326,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_operatorcontroller_operatorcontroller_update",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".update()"
     },
     {
@@ -8337,8 +8337,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_operatorcontroller_operatorcontroller_destroy",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".destroy()"
     },
     {
@@ -9063,7 +9063,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeeksternalrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "storeeksternalrequest.php"
     },
@@ -9074,7 +9074,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeeksternalrequest_storeeksternalrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "storeeksternalrequest"
     },
@@ -9085,7 +9085,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeeksternalrequest_storeeksternalrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -9096,7 +9096,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeeksternalrequest_storeeksternalrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -9107,7 +9107,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeeksternalrequest_storeeksternalrequest_messages",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".messages()"
     },
@@ -9173,8 +9173,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeoperatorrequest",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "storeoperatorrequest.php"
     },
     {
@@ -9184,8 +9184,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeoperatorrequest_storeoperatorrequest",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "storeoperatorrequest"
     },
     {
@@ -9195,8 +9195,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeoperatorrequest_storeoperatorrequest_authorize",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".authorize()"
     },
     {
@@ -9206,8 +9206,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_requests_storeoperatorrequest_storeoperatorrequest_rules",
-      "community": 205,
-      "community_name": "OperatorController.php",
+      "community": 23,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".rules()"
     },
     {
@@ -9338,7 +9338,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_itemcontroller",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "itemcontroller.php"
     },
@@ -9525,7 +9525,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_stockcontroller_stockcontroller_stockin",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".stockin()"
     },
@@ -9536,7 +9536,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_stockcontroller_stockcontroller_stockout",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".stockout()"
     },
@@ -10174,7 +10174,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockinrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "stockinrequest.php"
     },
@@ -10185,7 +10185,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockinrequest_stockinrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "stockinrequest"
     },
@@ -10196,7 +10196,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockinrequest_stockinrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -10207,7 +10207,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockinrequest_stockinrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -10218,7 +10218,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "stockoutrequest.php"
     },
@@ -10229,7 +10229,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest_stockoutrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "stockoutrequest"
     },
@@ -10240,7 +10240,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest_stockoutrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -10251,7 +10251,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest_stockoutrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -10262,7 +10262,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest_stockoutrequest_messages",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".messages()"
     },
@@ -10273,7 +10273,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeitemrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "storeitemrequest.php"
     },
@@ -10284,7 +10284,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeitemrequest_storeitemrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "storeitemrequest"
     },
@@ -10295,7 +10295,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeitemrequest_storeitemrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -10306,7 +10306,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeitemrequest_storeitemrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -10417,7 +10417,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeaccesscontroller",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "employeeaccesscontroller.php"
     },
     {
@@ -10461,7 +10461,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeecontroller",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "employeecontroller.php"
     },
     {
@@ -11032,7 +11032,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeeaccessrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "employeeaccessrequest.php"
     },
@@ -11043,7 +11043,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeeaccessrequest_employeeaccessrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "employeeaccessrequest"
     },
@@ -11054,7 +11054,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeeaccessrequest_employeeaccessrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -11065,7 +11065,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeeaccessrequest_employeeaccessrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -11076,7 +11076,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeeaccessrequest_employeeaccessrequest_prepareforvalidation",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".prepareforvalidation()"
     },
@@ -11087,7 +11087,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeeaccessrequest_employeeaccessrequest_messages",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".messages()"
     },
@@ -11099,7 +11099,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "employeerequest.php"
     },
     {
@@ -11110,7 +11110,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "employeerequest"
     },
     {
@@ -11121,7 +11121,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest_authorize",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
     {
@@ -11132,7 +11132,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest_rules",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
     {
@@ -11143,7 +11143,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest_messages",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".messages()"
     },
     {
@@ -11154,7 +11154,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_routes_api",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "kepegawaian/routes/api.php"
     },
     {
@@ -11879,7 +11879,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_requests_publicsurattugasrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "publicsurattugasrequest.php"
     },
@@ -11890,7 +11890,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_requests_publicsurattugasrequest_publicsurattugasrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "publicsurattugasrequest"
     },
@@ -11901,7 +11901,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_requests_publicsurattugasrequest_publicsurattugasrequest_authorize",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
@@ -11912,7 +11912,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_requests_publicsurattugasrequest_publicsurattugasrequest_rules",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
@@ -11923,7 +11923,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_requests_publicsurattugasrequest_publicsurattugasrequest_messages",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".messages()"
     },
@@ -12639,7 +12639,7 @@
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules",
       "community": 21,
-      "community_name": "AssetController.php",
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "uploadvalidationrules.php"
     },
     {
@@ -12803,8 +12803,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "backend_composer_keywords",
-      "community": 499,
-      "community_name": "keywords",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "keywords"
     },
     {
@@ -12814,8 +12814,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_laravel",
-      "community": 499,
-      "community_name": "keywords",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "laravel"
     },
     {
@@ -12825,8 +12825,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_framework",
-      "community": 499,
-      "community_name": "keywords",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "framework"
     },
     {
@@ -13342,8 +13342,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "backend_composer_scripts_post_update_cmd",
-      "community": 532,
-      "community_name": "scripts",
+      "community": 499,
+      "community_name": "post-update-cmd",
       "norm_label": "post-update-cmd"
     },
     {
@@ -13353,8 +13353,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "ref_php_artisan_vendor_publish_tag_laravel_assets_ansi_force",
-      "community": 532,
-      "community_name": "scripts",
+      "community": 499,
+      "community_name": "post-update-cmd",
       "norm_label": "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
     },
     {
@@ -13364,8 +13364,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "ref_php_artisan_ide_helper_generate",
-      "community": 532,
-      "community_name": "scripts",
+      "community": 499,
+      "community_name": "post-update-cmd",
       "norm_label": "@php artisan ide-helper:generate"
     },
     {
@@ -13375,8 +13375,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "ref_php_artisan_ide_helper_meta",
-      "community": 532,
-      "community_name": "scripts",
+      "community": 499,
+      "community_name": "post-update-cmd",
       "norm_label": "@php artisan ide-helper:meta"
     },
     {
@@ -13397,8 +13397,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "backend_composer_scripts_post_create_project_cmd",
-      "community": 416,
-      "community_name": "post-create-project-cmd",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "post-create-project-cmd"
     },
     {
@@ -13408,8 +13408,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_artisan_key_generate_ansi",
-      "community": 416,
-      "community_name": "post-create-project-cmd",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "@php artisan key:generate --ansi"
     },
     {
@@ -13419,8 +13419,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_r_file_exists_database_database_sqlite_touch_database_database_sqlite",
-      "community": 416,
-      "community_name": "post-create-project-cmd",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "@php -r \\\"file_exists('database/database.sqlite') || touch('database/database.sqlite');\\"
     },
     {
@@ -13430,8 +13430,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_artisan_migrate_graceful_ansi",
-      "community": 416,
-      "community_name": "post-create-project-cmd",
+      "community": 532,
+      "community_name": "scripts",
       "norm_label": "@php artisan migrate --graceful --ansi"
     },
     {
@@ -13463,8 +13463,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_composer_extra",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 574,
+      "community_name": "extra",
       "norm_label": "extra"
     },
     {
@@ -13474,8 +13474,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_composer_extra_laravel",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 574,
+      "community_name": "extra",
       "norm_label": "laravel"
     },
     {
@@ -13485,8 +13485,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_composer_laravel_dont_discover",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 574,
+      "community_name": "extra",
       "norm_label": "dont-discover"
     },
     {
@@ -14838,8 +14838,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_routes_api",
-      "community": 23,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 21,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "routes/api.php"
     },
     {
@@ -16254,8 +16254,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_package_dependencies_tanstack_react_query",
-      "community": 574,
-      "community_name": "@tanstack/react-query",
+      "community": 19,
+      "community_name": "dependencies",
       "norm_label": "@tanstack/react-query"
     },
     {
@@ -16265,8 +16265,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "tanstack_react_query",
-      "community": 574,
-      "community_name": "@tanstack/react-query",
+      "community": 19,
+      "community_name": "dependencies",
       "norm_label": "@tanstack/react-query"
     },
     {
@@ -16364,8 +16364,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_package_dependencies_clsx",
-      "community": 19,
-      "community_name": "dependencies",
+      "community": 205,
+      "community_name": "clsx",
       "norm_label": "clsx"
     },
     {
@@ -16375,8 +16375,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "clsx",
-      "community": 19,
-      "community_name": "dependencies",
+      "community": 205,
+      "community_name": "clsx",
       "norm_label": "clsx"
     },
     {
@@ -32578,8 +32578,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "mobile_package_dependencies_axios",
-      "community": 586,
-      "community_name": "axios",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "axios"
     },
     {
@@ -32589,8 +32589,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "mobile_package_json_axios",
-      "community": 586,
-      "community_name": "axios",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "axios"
     },
     {
@@ -32666,8 +32666,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo_file_system",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 564,
+      "community_name": "expo-file-system",
       "norm_label": "expo-file-system"
     },
     {
@@ -32677,8 +32677,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "expo_file_system",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 564,
+      "community_name": "expo-file-system",
       "norm_label": "expo-file-system"
     },
     {
@@ -36744,7 +36744,7 @@
       "label": "Employee",
       "file_type": "code",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L23",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "mobile_src_features_kepegawaian_buatsurattugasscreen_employee",
       "community": 31,
@@ -36755,7 +36755,7 @@
       "label": "BuatSuratTugasScreenProps",
       "file_type": "code",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L31",
+      "source_location": "L30",
       "_origin": "ast",
       "id": "mobile_src_features_kepegawaian_buatsurattugasscreen_buatsurattugasscreenprops",
       "community": 31,
@@ -36766,7 +36766,7 @@
       "label": "masterEmployeeList",
       "file_type": "code",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L38",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "mobile_src_features_kepegawaian_buatsurattugasscreen_masteremployeelist",
       "community": 31,
@@ -36777,7 +36777,7 @@
       "label": "BuatSuratTugasScreen()",
       "file_type": "code",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L118",
+      "source_location": "L117",
       "_origin": "ast",
       "id": "mobile_src_features_kepegawaian_buatsurattugasscreen_buatsurattugasscreen",
       "community": 31,
@@ -36788,7 +36788,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L1482",
+      "source_location": "L1378",
       "_origin": "ast",
       "id": "mobile_src_features_kepegawaian_buatsurattugasscreen_styles",
       "community": 31,
@@ -36931,7 +36931,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx",
-      "source_location": "L410",
+      "source_location": "L403",
       "_origin": "ast",
       "id": "mobile_src_features_kepegawaian_inboxsurattugasscreen_styles",
       "community": 31,
@@ -70495,8 +70495,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_195_creation_of_develop_bmn_branch_bmn_reports_print_page_2_margin_fix",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 494,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "progress - phase 195: creation of `develop-bmn` branch & bmn reports print page 2 margin fix"
     },
     {
@@ -70506,8 +70506,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_tampilan_ringkasan_kegiatan_sumber_dana_mobile_buatsurattugasscreen_tsx",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 494,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "perbaikan tampilan ringkasan kegiatan & sumber dana mobile (`buatsurattugasscreen.tsx`)"
     },
     {
@@ -70517,8 +70517,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_73",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 494,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "status: selesai"
     },
     {
@@ -70528,8 +70528,8 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 494,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -71595,8 +71595,8 @@
       "source_location": "L786",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_155_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 524,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "progress - phase 155: mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -71606,8 +71606,8 @@
       "source_location": "L793",
       "_origin": "ast",
       "id": "docs_progress_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 524,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -71617,8 +71617,8 @@
       "source_location": "L795",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_795",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 524,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "status: selesai"
     },
     {
@@ -71628,8 +71628,8 @@
       "source_location": "L810",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_810",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 524,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -71771,8 +71771,8 @@
       "source_location": "L904",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_151_mobile_app_empty_states_100_sync_with_web_portal",
-      "community": 444,
-      "community_name": "Mobile App Empty States 100% Sync with Web Portal",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 151: mobile app empty states 100% sync with web portal"
     },
     {
@@ -71782,8 +71782,8 @@
       "source_location": "L911",
       "_origin": "ast",
       "id": "docs_progress_mobile_app_empty_states_100_sync_with_web_portal",
-      "community": 444,
-      "community_name": "Mobile App Empty States 100% Sync with Web Portal",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "mobile app empty states 100% sync with web portal"
     },
     {
@@ -71793,8 +71793,8 @@
       "source_location": "L913",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_913",
-      "community": 444,
-      "community_name": "Mobile App Empty States 100% Sync with Web Portal",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -71804,8 +71804,8 @@
       "source_location": "L928",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_928",
-      "community": 444,
-      "community_name": "Mobile App Empty States 100% Sync with Web Portal",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -71859,8 +71859,8 @@
       "source_location": "L961",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_149_mobile_login_keyboard_avoiding_input_focus_fix",
-      "community": 494,
-      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 149: mobile login keyboard avoiding & input focus fix"
     },
     {
@@ -71870,8 +71870,8 @@
       "source_location": "L968",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_keyboard_avoiding_input_focus_fix",
-      "community": 494,
-      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "mobile login keyboard avoiding & input focus fix"
     },
     {
@@ -71881,8 +71881,8 @@
       "source_location": "L970",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_970",
-      "community": 494,
-      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -71892,8 +71892,8 @@
       "source_location": "L982",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_982",
-      "community": 494,
-      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -81847,8 +81847,8 @@
       "source_location": "L7257",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_10_milestone_1",
-      "community": 524,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 10 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 10 (milestone 1)"
     },
     {
@@ -81858,8 +81858,8 @@
       "source_location": "L7259",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7259",
-      "community": 524,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 10 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -81869,8 +81869,8 @@
       "source_location": "L7268",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7268",
-      "community": 524,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 10 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -81913,8 +81913,8 @@
       "source_location": "L7284",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_12_milestone_1",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 416,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 12 (milestone 1)"
     },
     {
@@ -81924,8 +81924,8 @@
       "source_location": "L7286",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7286",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 416,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -81935,8 +81935,8 @@
       "source_location": "L7294",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7294",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 416,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)",
       "norm_label": "next steps"
     },
     {
@@ -81946,8 +81946,8 @@
       "source_location": "L7297",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_13_milestone_1",
-      "community": 564,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 13 (milestone 1)"
     },
     {
@@ -81957,8 +81957,8 @@
       "source_location": "L7299",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7299",
-      "community": 564,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -81968,8 +81968,8 @@
       "source_location": "L7307",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7307",
-      "community": 564,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -82606,8 +82606,8 @@
       "source_location": "L7561",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_33_milestone_2",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 444,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 33 (Milestone 2)",
       "norm_label": "[2026-06-19] mobile app implementation - task 33 (milestone 2)"
     },
     {
@@ -82617,8 +82617,8 @@
       "source_location": "L7563",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7563",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 444,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 33 (Milestone 2)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -82628,8 +82628,8 @@
       "source_location": "L7569",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7569",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 444,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 33 (Milestone 2)",
       "norm_label": "next steps"
     },
     {
@@ -84520,7 +84520,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_foundation_http_formrequest",
-      "community": 47,
+      "community": 21,
       "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "illuminate\\foundation\\http\\formrequest"
     },
@@ -84774,7 +84774,7 @@
       "_origin": "ast",
       "id": "illuminate_validation_validator",
       "community": 47,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community_name": "AuctionBatchController",
       "norm_label": "illuminate\\validation\\validator"
     },
     {
@@ -167861,7 +167861,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L20",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -168005,7 +168005,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L20",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -168311,7 +168311,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L19",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -168503,7 +168503,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L19",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175417,7 +175417,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L118",
+      "source_location": "L117",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175428,7 +175428,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L31",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175439,7 +175439,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L23",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175450,7 +175450,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L38",
+      "source_location": "L37",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175461,7 +175461,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L1482",
+      "source_location": "L1378",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175473,7 +175473,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L21",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175485,7 +175485,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L21",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175497,7 +175497,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L17",
+      "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175509,7 +175509,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L17",
+      "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175521,7 +175521,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L18",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175533,7 +175533,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L18",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -175558,7 +175558,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L123",
+      "source_location": "L122",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen_buatsurattugasscreen",
@@ -175908,7 +175908,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx",
-      "source_location": "L410",
+      "source_location": "L403",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_inboxsurattugasscreen",
