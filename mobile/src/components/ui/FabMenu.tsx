@@ -135,6 +135,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
       icon: "people",
       iconColor: "#2563eb",
       submenus: [
+        { key: "dashboard-kepegawaian", title: "Dashboard Kepegawaian", icon: "grid-outline" },
         { key: "daftar-pegawai", title: "Daftar Pegawai", icon: "people-outline" },
         { key: "tambah-pegawai", title: "Tambah Pegawai", icon: "person-add-outline" },
         { key: "inbox-surat-tugas", title: "Inbox Surat Tugas", icon: "mail-unread-outline" },
@@ -189,7 +190,8 @@ export const FabMenu: React.FC<FabMenuProps> = ({
       home: "Dashboard",
       portal: "Dashboard",
       dashboard: "Dashboard",
-      kepegawaian: "Kepegawaian",
+      kepegawaian: "KepegawaianDashboard",
+      "dashboard-kepegawaian": "KepegawaianDashboard",
       "daftar-pegawai": "Kepegawaian",
       "tambah-pegawai": "TambahPegawai",
       "inbox-surat-tugas": "InboxSuratTugas",
