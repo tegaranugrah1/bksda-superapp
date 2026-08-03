@@ -38,69 +38,56 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
     activeRate: "98.5%",
   });
 
-  const [satkerDistribution] = useState([
-    { name: "Kantor Balai (Samarinda)", count: 45, percentage: 32, color: "#2563eb" },
-    { name: "Seksi KSDA Wilayah I Berau", count: 38, percentage: 27, color: "#0284c7" },
-    { name: "Seksi KSDA Wilayah II Tenggarong", count: 34, percentage: 24, color: "#10b981" },
-    { name: "Seksi KSDA Wilayah III Balikpapan", count: 25, percentage: 17, color: "#f59e0b" },
+  const [satkerDistribution, setSatkerDistribution] = useState([
+    { name: "Kantor Balai (Samarinda)", count: 0, percentage: 0, color: "#2563eb" },
+    { name: "Seksi KSDA Wilayah I Berau", count: 0, percentage: 0, color: "#0284c7" },
+    { name: "Seksi KSDA Wilayah II Tenggarong", count: 0, percentage: 0, color: "#10b981" },
+    { name: "Seksi KSDA Wilayah III Balikpapan", count: 0, percentage: 0, color: "#f59e0b" },
   ]);
 
-  const [recentActivities] = useState([
-    {
-      id: "act-1",
-      icon: "document-text",
-      iconBg: "#eff6ff",
-      iconColor: "#2563eb",
-      title: "Surat Tugas Diterbitkan",
-      subtitle: "ST.001/K.18/TU/KSA.0X.0X/B/08/2026 • 3 Personil",
-      time: "10 menit yang lalu",
-    },
-    {
-      id: "act-2",
-      icon: "calendar",
-      iconBg: "#fef9c3",
-      iconColor: "#ca8a04",
-      title: "Pengajuan Cuti Baru",
-      subtitle: "A. Aliah Indah Fitriah (Cuti Tahunan 3 Hari)",
-      time: "1 jam yang lalu",
-    },
-    {
-      id: "act-3",
-      icon: "person-add",
-      iconBg: "#ecfdf5",
-      iconColor: "#10b981",
-      title: "Pegawai Baru Ditambahkan",
-      subtitle: "Afrizal Maula Alfarisi, S.Hut. (Polhut Pemula)",
-      time: "Yesterday, 14:30",
-    },
-  ]);
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [empRes, stRes] = await Promise.allSettled([
-        apiClient.get("/kepegawaian/employees"),
-        apiClient.get("/surat-tugas?mobile=true"),
-      ]);
+      const res = await apiClient.get("/kepegawaian/dashboard-stats");
+      const d = res.data?.data;
+      if (d) {
+        setStats({
+          totalEmployees: d.total_employees ?? 0,
+          activeSuratTugas: d.active_surat_tugas ?? 0,
+          pendingCuti: d.pending_cuti ?? 0,
+          activeRate: d.active_rate ?? "100%",
+        });
 
-      let empTotal = 142;
-      if (empRes.status === "fulfilled" && empRes.value.data) {
-        empTotal = empRes.value.data.meta?.total || empRes.value.data.data?.length || 142;
+        if (Array.isArray(d.satker_breakdown) && d.satker_breakdown.length > 0) {
+          const colors = ["#2563eb", "#0284c7", "#10b981", "#f59e0b"];
+          setSatkerDistribution(
+            d.satker_breakdown.map((item: any, idx: number) => ({
+              name: item.name,
+              count: item.count,
+              percentage: item.percentage,
+              color: colors[idx % colors.length],
+            }))
+          );
+        }
+
+        if (Array.isArray(d.recent_activities) && d.recent_activities.length > 0) {
+          setRecentActivities(
+            d.recent_activities.map((item: any) => ({
+              id: item.id,
+              icon: "document-text",
+              iconBg: "#eff6ff",
+              iconColor: "#2563eb",
+              title: item.title,
+              subtitle: `Tujuan: ${item.tempat_tujuan || "Kaltim"} • ${item.status}`,
+              time: item.tanggal_surat || "Terbaru",
+            }))
+          );
+        }
       }
-
-      let stCount = 18;
-      if (stRes.status === "fulfilled" && stRes.value.data) {
-        const arr = stRes.value.data.data || [];
-        stCount = arr.filter((s: any) => (s.status || "").toUpperCase() === "DITERBITKAN").length || arr.length || 18;
-      }
-
-      setStats((prev) => ({
-        ...prev,
-        totalEmployees: empTotal,
-        activeSuratTugas: stCount,
-      }));
     } catch {
-      // fallback to mock stats
+      // fallback
     } finally {
       setLoading(false);
       setRefreshing(false);

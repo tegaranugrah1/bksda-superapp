@@ -13,6 +13,7 @@ Route::get('/employees/select', [EmployeeController::class, 'select'])
 Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
 
     // --- MANAJEMEN DATA PEGAWAI (CRUD) ---
+    Route::get('/dashboard-stats', [EmployeeController::class, 'dashboardStats']);
     Route::get('/employees', [EmployeeController::class, 'index']);
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
     Route::get('/employees/{employee}/assignment-letters', [EmployeeController::class, 'assignmentLetters']);

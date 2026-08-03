@@ -31,52 +31,52 @@ interface Employee {
   is_active: boolean;
 }
 
-interface ApiResponse {
-  data: Employee[];
-  meta: {
-    total: number;
-  };
+interface KepegawaianDashboardStats {
+  total_employees: number;
+  active_employees: number;
+  active_rate: string;
+  active_surat_tugas: number;
+  pending_cuti: number;
+  satker_breakdown: Array<{
+    name: string;
+    count: number;
+    percentage: number;
+    gradient: string;
+    dot: string;
+  }>;
+  recent_activities: Array<{
+    id: string;
+    title: string;
+    tempat_tujuan: string;
+    status: string;
+    tanggal_surat: string;
+  }>;
 }
 
 export default function KepegawaianDashboardPage() {
   const { canWrite } = useRole();
 
-  // Fetch employees total
-  const { data: employeesData } = useQuery({
-    queryKey: ["kepegawaian-dashboard-employees"],
+  // Fetch real-time dashboard stats from backend DB
+  const { data: statsResponse } = useQuery({
+    queryKey: ["kepegawaian-dashboard-stats"],
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse>("/kepegawaian/employees", {
-        params: { per_page: 10 },
-      });
-      return data;
+      const { data } = await api.get<{ data: KepegawaianDashboardStats }>("/kepegawaian/dashboard-stats");
+      return data.data;
     },
-    staleTime: 30000,
+    staleTime: 15000,
   });
 
-  // Fetch surat tugas list for metrics & recent feed
-  const { data: stData } = useQuery({
-    queryKey: ["kepegawaian-dashboard-st"],
-    queryFn: async () => {
-      const { data } = await api.get<{ data: any[] }>("/surat-tugas", {
-        params: { per_page: 10 },
-      });
-      return data;
-    },
-    staleTime: 30000,
-  });
-
-  const totalEmployees = employeesData?.meta?.total || employeesData?.data?.length || 152;
-  const stList = stData?.data || [];
-  const activeStCount = stList.filter(
-    (s) => (s.status || "").toUpperCase() === "DITERBITKAN" || (s.status || "").toUpperCase() === "APPROVED"
-  ).length || 18;
-
-  const satkerBreakdown = [
-    { name: "Kantor Balai (Samarinda)", count: 45, percentage: 32, gradient: "from-blue-600 to-indigo-600", dot: "bg-blue-500" },
-    { name: "Seksi KSDA Wilayah I Berau", count: 38, percentage: 27, gradient: "from-sky-500 to-cyan-500", dot: "bg-sky-400" },
-    { name: "Seksi KSDA Wilayah II Tenggarong", count: 34, percentage: 24, gradient: "from-emerald-500 to-teal-500", dot: "bg-emerald-400" },
-    { name: "Seksi KSDA Wilayah III Balikpapan", count: 25, percentage: 17, gradient: "from-amber-500 to-orange-500", dot: "bg-amber-400" },
+  const totalEmployees = statsResponse?.total_employees ?? 0;
+  const activeStCount = statsResponse?.active_surat_tugas ?? 0;
+  const pendingCutiCount = statsResponse?.pending_cuti ?? 0;
+  const activeRate = statsResponse?.active_rate ?? "100%";
+  const satkerBreakdown = statsResponse?.satker_breakdown ?? [
+    { name: "Kantor Balai (Samarinda)", count: 0, percentage: 0, gradient: "from-blue-600 to-indigo-600", dot: "bg-blue-500" },
+    { name: "Seksi KSDA Wilayah I Berau", count: 0, percentage: 0, gradient: "from-sky-500 to-cyan-500", dot: "bg-sky-400" },
+    { name: "Seksi KSDA Wilayah II Tenggarong", count: 0, percentage: 0, gradient: "from-emerald-500 to-teal-500", dot: "bg-emerald-400" },
+    { name: "Seksi KSDA Wilayah III Balikpapan", count: 0, percentage: 0, gradient: "from-amber-500 to-orange-500", dot: "bg-amber-400" },
   ];
+  const stList = statsResponse?.recent_activities ?? [];
 
   const quickLinks = [
     {
@@ -247,7 +247,7 @@ export default function KepegawaianDashboardPage() {
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">5</p>
+              <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{pendingCutiCount}</p>
               <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-1.5 py-0.5 rounded-md">Pending</span>
             </div>
             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">Permohonan Cuti Menunggu</p>
@@ -267,7 +267,7 @@ export default function KepegawaianDashboardPage() {
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">98.5%</p>
+              <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{activeRate}</p>
               <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-1.5 py-0.5 rounded-md">Normal</span>
             </div>
             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">Status Keaktifan Personil SDM</p>
@@ -381,7 +381,7 @@ export default function KepegawaianDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-bold text-zinc-900 dark:text-white truncate group-hover:text-blue-600 transition-colors">
-                    {st.maksud_tujuan || st.nama_kegiatan || "Melaksanakan Perjalanan Dinas"}
+                    {st.title || "Melaksanakan Perjalanan Dinas"}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="px-2 py-0.2 rounded-full text-[8.5px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50">
