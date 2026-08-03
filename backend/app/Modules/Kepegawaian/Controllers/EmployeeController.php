@@ -23,7 +23,10 @@ class EmployeeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Employee::query();
+        $query = Employee::query()
+            ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
+            ->where('nama_lengkap', 'NOT LIKE', '%admin pusat%')
+            ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
 
         // Ambil parameter pencarian dari URL (?search=...)
         $searchTerm = $request->input('search');
@@ -287,9 +290,14 @@ class EmployeeController extends Controller
      */
     public function dashboardStats(): JsonResponse
     {
+        $baseQuery = Employee::query()
+            ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
+            ->where('nama_lengkap', 'NOT LIKE', '%admin pusat%')
+            ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
+
         // 1. Total & Active Employees
-        $totalEmployees = Employee::count();
-        $activeEmployees = Employee::where('is_active', true)->count();
+        $totalEmployees = (clone $baseQuery)->count();
+        $activeEmployees = (clone $baseQuery)->where('is_active', true)->count();
         $activeRate = $totalEmployees > 0 
             ? number_format(($activeEmployees / $totalEmployees) * 100, 1) . '%' 
             : '100%';
@@ -301,7 +309,8 @@ class EmployeeController extends Controller
         $pendingCutiCount = EmployeeLeaveRequest::whereIn('status', ['PENDING', 'pending'])->count();
 
         // 4. Sebaran Satuan Kerja
-        $satkerRaw = Employee::select('satuan_kerja', DB::raw('count(*) as count'))
+        $satkerRaw = (clone $baseQuery)
+            ->select('satuan_kerja', DB::raw('count(*) as count'))
             ->groupBy('satuan_kerja')
             ->get();
 
@@ -312,24 +321,17 @@ class EmployeeController extends Controller
 
         foreach ($satkerRaw as $item) {
             $name = strtolower($item->satuan_kerja ?? '');
-            if (str_contains($name, 'samarinda') || str_contains($name, 'pusat') || str_contains($name, 'balai')) {
-                $samarindaCount += $item->count;
-            } elseif (str_contains($name, 'berau') || str_contains($name, 'wilayah i') || str_contains($name, 'wilayah 1')) {
-                $berauCount += $item->count;
-            } elseif (str_contains($name, 'tenggarong') || str_contains($name, 'wilayah ii') || str_contains($name, 'wilayah 2') || str_contains($name, 'paser')) {
-                $tenggarongCount += $item->count;
-            } elseif (str_contains($name, 'balikpapan') || str_contains($name, 'wilayah iii') || str_contains($name, 'wilayah 3')) {
+            if (str_contains($name, 'wilayah iii') || str_contains($name, 'wilayah 3') || str_contains($name, 'balikpapan')) {
                 $balikpapanCount += $item->count;
+            } elseif (str_contains($name, 'wilayah ii') || str_contains($name, 'wilayah 2') || str_contains($name, 'tenggarong') || str_contains($name, 'paser')) {
+                $tenggarongCount += $item->count;
+            } elseif (str_contains($name, 'wilayah i') || str_contains($name, 'wilayah 1') || str_contains($name, 'berau')) {
+                $berauCount += $item->count;
+            } elseif (str_contains($name, 'balai') || str_contains($name, 'samarinda') || str_contains($name, 'tata usaha')) {
+                $samarindaCount += $item->count;
             } else {
                 $samarindaCount += $item->count;
             }
-        }
-
-        if ($totalEmployees > 0 && ($samarindaCount + $berauCount + $tenggarongCount + $balikpapanCount) === 0) {
-            $samarindaCount = (int) round($totalEmployees * 0.35);
-            $berauCount = (int) round($totalEmployees * 0.25);
-            $tenggarongCount = (int) round($totalEmployees * 0.25);
-            $balikpapanCount = max(0, $totalEmployees - ($samarindaCount + $berauCount + $tenggarongCount));
         }
 
         $denom = max(1, $totalEmployees);
