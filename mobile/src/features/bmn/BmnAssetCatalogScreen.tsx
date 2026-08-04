@@ -27,6 +27,26 @@ interface BmnAssetCatalogScreenProps {
   navigation?: any;
 }
 
+const JENIS_OPTIONS = [
+  "Semua Jenis BMN",
+  "Alat Angkutan Bermotor",
+  "Alat Besar",
+  "Alat Persenjataan",
+  "Bangunan Air",
+  "Bangunan dan Gedung",
+  "Mesin Peralatan TIK",
+  "Mesin Peralatan Non TIK",
+  "Rumah Negara",
+  "Tanah",
+];
+
+const LOKASI_OPTIONS = [
+  "Semua Lokasi",
+  "Belum berlokasi",
+  "1 - Omsetan",
+  "Gudang BMN",
+];
+
 export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
   onBack,
   onNavigateToModule,
@@ -62,25 +82,8 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const jenisOptions = [
-    "Semua Jenis BMN",
-    "Alat Angkutan Bermotor",
-    "Alat Besar",
-    "Alat Persenjataan",
-    "Bangunan Air",
-    "Bangunan dan Gedung",
-    "Mesin Peralatan TIK",
-    "Mesin Peralatan Non TIK",
-    "Rumah Negara",
-    "Tanah",
-  ];
-
-  const lokasiOptions = [
-    "Semua Lokasi",
-    "Belum berlokasi",
-    "1 - Omsetan",
-    "Gudang BMN",
-  ];
+  const jenisOptions = JENIS_OPTIONS;
+  const lokasiOptions = LOKASI_OPTIONS;
 
   const fetchBmnAssets = useCallback(async (page: number = 1, isPullRefresh: boolean = false) => {
     if (isPullRefresh) {
