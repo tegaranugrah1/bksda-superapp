@@ -1,3 +1,1237 @@
+# Progress - Phase 199: Audit & Refactoring Kerapihan Modul Kepegawaian, BMN, Portal ST, dan Persuratan
+
+> Document updated: 2026-08-04
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error).
+
+---
+
+## 1. Modul Kepegawaian (`frontend/src/app/kepegawaian`)
+- **Pembersihan Import & Memory Optimization**: Membuang 13 ikon tidak terpakai dari `lucide-react` dan meng-ekstrak `DEFAULT_SATKER_BREAKDOWN` ke top-level scope.
+- **Isolasi Komponen**: Penggunaan TanStack React Query (`useQuery`) terintegrasi rapi dengan komponen modular `KepegawaianDashboardComponents.tsx`.
+
+---
+
+## 2. Modul BMN / Barang Milik Negara (`frontend/src/app/bmn`)
+- **Struktur Modular & Utilitas Terpusat**: Komponen dashboard (`StatCard`, `LegendItem`, `QuickLink`) diisolasi di `BmnDashboardComponents.tsx`, dan penanganan format Rupiah dipisah di `_lib/asset-utils.ts`.
+- **Zero Dead Code**: Semua 9 ikon `lucide-react` dipanggil secara efektif tanpa ada import menganggur.
+
+---
+
+## 3. Modul Portal Surat Tugas (`frontend/src/app/surat-tugas`)
+- **Wizard 3-Langkah Modular**: Terbagi menjadi `EmployeeSelectionStep.tsx`, `SuratTugasDetailStep.tsx`, dan `SuratTugasSuccessStep.tsx`.
+- **Logika Cerdas & Validasi**: Deteksi otomatis kota asal berdasarkan penempatan Seksi Wilayah pegawai (Samarinda, Berau, Tenggarong, Balikpapan) dan penanganan berkas lampiran PDF max 10MB.
+
+---
+
+## 4. Modul Persuratan (`frontend/src/app/surat`)
+- **Optimasi Alokasi Memori**: Meng-ekstrak konstanta `QUICK_LINKS` ke top-level scope pada `surat/page.tsx` untuk mencegah re-alokasi memori pada siklus re-render.
+- **Komponentisasi Dashboard**: Sub-komponen `HeaderBanner`, `BentoStatCards`, dan `RecentSuratWidget` diisolasi dengan rapi di `SuratHubComponents.tsx`.
+
+---
+
+# Progress - Phase 198: Refactoring & Clean Code Modul Portal
+
+> Document updated: 2026-08-04
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error).
+
+---
+
+## 1. Pembersihan Import & Ikon Modul Portal
+- **Web (`frontend/src/app/portal/page.tsx`)**:
+  - Menggabungkan import ganda dari `lucide-react` menjadi 1 baris bersih.
+  - Membuang 18+ import ikon yang tidak terpakai (`Boxes`, `LayoutGrid`, `Fingerprint`, dll.) yang sudah dipindah ke sub-komponen terpisah.
+
+## 2. Penyederhanaan Formatter Merk & Tipe Aset
+- **Web (`frontend/src/app/portal/_components/MyAssetsTab.tsx`)**:
+  - Meringkas fungsi `formatMerkTipe` menjadi ekspresi JavaScript modern 1 baris yang aman dan bersih dari kata duplikat.
+
+## 3. Verifikasi & Build Status
+- `npx tsc --noEmit` pada paket `frontend` berjalan sukses dengan **0 error**.
+
+---
+
+# Progress - Phase 197: Fix Preservasi Tembusan ST, DatePicker Kalender Bulanan, Success Screen Portal & Unduh PDF Mobile Inbox
+
+> Document updated: 2026-08-04
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error).
+
+---
+
+## 1. Fix Preservasi & Sinkronisasi Data `tembusan` Surat Tugas
+- **Mobile (`BuatSuratTugasScreen.tsx`)**:
+  - Mengupdate pembuatan payload pada fungsi `handleSimpan` (publish/update) dan `handleSaveDraft` (draf) agar menyertakan `tembusan: tembusanItems`.
+- **Backend (`AssignmentLetterController.php`)**:
+  - Mengupdate transformer `toMobileDetailItem` agar mengembalikan properti `tembusan`, `menimbang`, `dasar`, `penandatangan_nama`, dan `penandatangan_nip`.
+- **Hasil**: Data tembusan yang diisi dari aplikasi Mobile kini tersimpan sempurna di database dan dapat dibaca kembali di Web localhost maupun Mobile.
+
+---
+
+## 2. Modal Date Picker Kalender Bulanan Interaktif (Mobile Portal ST)
+- **Mobile (`AssignmentFormScreen.tsx`)**:
+  - Mengganti input manual angka/teks tanggal dengan **Monthly Calendar Grid Modal** interaktif (`calYear`, `calMonth`).
+  - Fitur: Navigasi antar bulan (`<` / `>`), highlight hari ini (*today*), pemilihan tanggal 1-tap, dan penulisan format Bahasa Indonesia baku (`24 Agustus 2026`).
+
+---
+
+## 3. Alur Navigasi & Success Screen Form Portal Surat Tugas
+- **Mobile (`AssignmentFormScreen.tsx`)**:
+  - Mengubah tampilan Step 3 (Laporan Berhasil Dibuat) menjadi dialog pemberitahuan dengan tombol **"Oke, Saya Mengerti"**.
+  - Menekan tombol akan mengarahkan user kembali ke **Portal Dashboard**, menyesuaikan dengan akses pegawai yang tidak memiliki role modul Kepegawaian.
+
+---
+
+## 4. Integrasi Unduh & Share Berkas PDF (Mobile Inbox ST)
+- **Mobile (`InboxSuratTugasScreen.tsx`)**:
+  - Menambahkan tombol hijau interaktif **`[ 📥 UNDUH / LIHAT LAMPIRAN PDF ]`** ketika data surat tugas memiliki berkas `file_surat_path`.
+  - Mengintegrasikan `downloadAssignmentFile` dengan `expo-sharing` untuk membuka/mengunduh PDF.
+  - Penamaan file unduhan disamakan dengan format Web: `${dasarSurat}-${namaPersonel}-${dateTag}.pdf`.
+
+---
+
+## 5. Audit Kerapihan Kode & Resolusi Warning Linter
+- **React Effect Cleanups**: Mengeliminasi warning `Avoid calling setState() directly within an effect` di `BuatSuratTugasScreen.tsx` dengan me-guard pencarian `editData`.
+- **Tailwind CSS v4 Modernization**: Mengganti kelas deprecated `bg-gradient-to-*` menjadi `bg-linear-to-*` di `frontend/src/app/surat/page.tsx` & `frontend/src/app/kepegawaian/page.tsx`.
+- **TypeScript Strict Compilation**: Menjalankan verification `npx tsc --noEmit` pada paket `mobile` dengan status **Clean / 0 Error (Exit Code 0)**.
+
+---
+
+# Progress - Phase 196: BMN Reports Multi-Page Pagination, Dynamic Margins, Uncropped Asset Photo Documentation & Git Branch Consolidation/Deployment Setup
+
+> Document updated: 2026-07-30
+> Status: Aktif pada branch `develop-bmn` (Commit ID: `23e4bf7`), ter-push ke `origin/develop-bmn` & `origin/production`.
+
+---
+
+## 1. Pembersihan, Konsolidasi Branch & Setup Branch Deployment (`production`)
+
+### Status: SELESAI
+- **Scope**: Repositori Git (`e:\bksda-superapp`)
+- **Hasil Perbaikan**:
+  1. **Penggabungan Branch Fitur Lelang BMN**:
+     - Menggabungkan seluruh perubahan dari `develop/bmn-auction` ke `develop-bmn` dan sebaliknya.
+  2. **Pembersihan 19 Branch Usang**:
+     - Menghapus 19 branch lokal & remote usang (`codex/*`, `task/*`, `issue/*`, `develop/bmn-auction`) setelah memastikan seluruh kodenya 100% aman terintegrasi.
+  3. **Pembuatan Branch Deployment Khusus (`production`)**:
+     - Membuat branch khusus deployment live **`production`** yang terhubung ke `origin/production` untuk server web `bksdakaltim.net`.
+     - `production` berasal dari kondisi stabil `main`, sehingga merge ke `main` tidak akan mengganggu live website sebelum sengaja di-merge ke `production`.
+
+---
+
+## 2. Refactoring Cetak Laporan BMN (BA Pemakaian & BA Serah Terima)
+
+### Status: SELESAI
+- **Scope**: Frontend BMN Reports ([UsageAgreementDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx) & [HandoverAgreementDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx))
+- **Perbaikan Utama**:
+  1. **Halaman 1 Bersih & Bebas Spasi Longgar**:
+     - Baris angka nomor kolom `1, 2, 3, 4...` dan spasi kosong 12mm pada Halaman 1 **dihapus**. Margin antara paragraf dan tabel Halaman 1 dibuat rapat dan natural (3mm).
+  2. **Margin Atas Halaman 2/Continuation Page (15mm)**:
+     - Menambahkan `padding-top: 15mm` pada kontainer pemutus halaman sehingga tabel kelanjutan maupun blok TTD di Halaman 2 **dijamin memiliki margin atas 15mm** dan tidak pernah menempel di tepi atas kertas.
+  3. **Pemutus Halaman TTD & Kalimat Penutup Menyatu**:
+     - Menyambungkan kalimat penutup `"Berita Acara ini dibuat dengan sebenar-benarnya."` dengan 2 kolom TTD (*PIHAK KEDUA* & *PIHAK PERTAMA*) ke dalam 1 kontainer (`.avoid-break`). Jika area TTD terdorong ke Halaman 2, kalimat penutup **otomatis ikut turun bersama TTD** dan tidak akan terpisah sendirian di Halaman 1.
+
+---
+
+## 3. Fitur Lampiran Dokumentasi Foto Aset BMN (Sesuai Sampel Gambar 2)
+
+### Status: SELESAI
+- **Scope**: Frontend BMN Reports ([UsageAgreementDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx) & [HandoverAgreementDocument.tsx](file:///e:/bksda-superapp/frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx))
+- **Perbaikan Utama**:
+  1. **Kop Surat di Setiap Halaman Lampiran**:
+     - Setiap halaman lampiran foto diawali dengan Kop Surat resmi (`/header-terbaru.png`).
+  2. **Judul Lampiran Hanya di Halaman Pertama Lampiran**:
+     - Judul `"LAMPIRAN DOKUMENTASI FOTO BARANG MILIK NEGARA"` hanya muncul di halaman 1 lampiran (Halaman 3 BA). Halaman 2 lampiran (Halaman 4 BA) tetap memiliki Kop Surat tanpa judul lampiran.
+  3. **Tata Letak & Kapasitas Memenuhi Layar A4**:
+     - Judul per barang di tengah: `Nama Barang ( NUP X )`.
+     - Tepat **2 foto per baris** (*side-by-side*) per barang, muat **3 barang per halaman A4** yang terdistribusi secara vertikal mengisi layar A4.
+  4. **Tampilan Foto Utuh (Uncropped) & Tanpa Border**:
+     - Mengubah style gambar ke `object-fit: contain` dan `border: none` sehingga foto asli (portrait/landscape) tampil **100% utuh tanpa ada bagian yang terpotong** dan tanpa bingkai abu-abu.
+  5. **Dukungan Foto Google Drive & Direct Image Loader**:
+     - Menambahkan fungsi `convertDriveUrl()` untuk mengonversi link Google Drive (`/file/d/ID/view`) menjadi URL thumbnail direct-embed (`https://drive.google.com/thumbnail?id=ID&sz=w800`).
+     - Menambahkan penunggu *event* `onload` gambar pada pop-up pratinjau cetak sehingga seluruh foto dari Google Drive & URL relatif ter-load 100% sempurna sebelum dialog cetak muncul.
+
+---
+
+### Validasi & Git Status
+- **TypeScript Check**: `npx tsc --noEmit` di folder `frontend/` passed 100% (0 errors).
+- **PHPUnit Check**: Backend feature tests passed 100% (57 passed).
+- **Git Commit**: Commit ID `23e4bf7` di-push ke `origin/develop-bmn`. Working tree clean.
+
+---
+
+# Progress - Phase 195: Creation of `develop-bmn` Branch & BMN Reports Print Page 2 Margin Fix
+
+> Document updated: 2026-07-29
+> Status: Aktif pada branch `develop-bmn`.
+
+---
+
+## Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama:
+  1. **Tampilan `• Kegiatan:` pada Ringkasan Step 3**:
+     - Memperbaiki binding state dari variabel legacy `maksudKegiatan` ke `namaKegiatanText.trim()`.
+     - Sekarang secara presisi menampilkan teks nama kegiatan yang telah diisi user (contoh: *"Kegiatan Inventarisasi BMN"*).
+  2. **Tampilan `• Sumber Dana:` pada Ringkasan Step 3**:
+     - Memperbaiki tampilan ID `dipa` menjadi label resmi yang mudah dibaca (*DIPA Balai KSDA Kalimantan Timur*).
+  3. **Penambahan `• Jenis Tugas:` pada Ringkasan Step 3**:
+     - Menampilkan jenis tugas yang dipilih (*Melaksanakan Perjalanan Dinas*, *Melaksanakan Kegiatan (1 Hari)*, atau *Menugaskan Staf*).
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 179: Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Penyebab Masalah (Root Cause Analysis):
+  - Sebelumnya container kalender `daysGrid` dan `weekDaysRow` menggunakan `justifyContent: "space-around"` dengan lebar fixed (`width: 38`).
+  - Ketika baris terakhir hanya memiliki 1 atau 2 tanggal (contoh: tanggal 31 Juli yang jatuh pada hari Jumat/Jum), `justifyContent: "space-around"` mendistribusikan item secara merata di tengah baris sehingga tanggal 31 melayang/bergeser ke tengah, bukannya berada persis di bawah kolom Jumat (`Jum`).
+- Solusi & Perbaikan:
+  1. Mengganti `justifyContent: "space-around"` menjadi layout matematika grid 7-kolom presisi di mana setiap sel hari (`dayCell` & `weekDayText`) memiliki persentase lebar persis **`width: "14.28%"`** (`100% / 7`).
+  2. Sel hari mengelilingi elemen bulat dalam (`dayCellInner`) dengan diameter `34px`, sehingga tanggal 31 (dan tanggal berapapun di baris terakhir) akan selalu berada 100% sejajar di bawah nama hari yang sesuai.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 178: Dropdown Select Modal, Custom Notification & Validasi Ketat ST Mobile
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Penggantian Radio Button dengan Dropdown Select Modal**:
+     - Radio button list untuk `JENIS TUGAS` & `SUMBER DANA` kini diganti dengan Trigger Dropdown Select bersih dan ringkas.
+     - Saat ditekan, membuka Dropdown Select Sheet Modal yang menampilkan daftar pilihan rapi dengan checkmark indikator aktif.
+  2. **Validasi Ketat Field per Mode Tugas (Mencegah Next/Lanjutkan jika Belum Diisi)**:
+     - **Mode Perjalanan Dinas**: Wajib mengisi `Kota Asal (*)`, `Kota Tujuan (*)` DAN `Dalam Rangka / Maksud Kegiatan (*)`. Jika salah satu kosong, tidak bisa lanjut.
+     - **Mode Melaksanakan Kegiatan (1 Hari)**: Wajib mengisi `Melaksanakan Kegiatan (*)` DAN `Di (Kota/Kabupaten) (*)`. Jika salah satu kosong, tidak bisa lanjut.
+     - **Mode Menugaskan Staf**: Wajib mengisi `Menugaskan Staf (*)` DAN `Di (Kota/Kabupaten) (*)`. Jika salah satu kosong, tidak bisa lanjut.
+  3. **Pengembangan Custom Notification Banner/Alert**:
+     - Menggantikan default system `Alert.alert` dengan **Custom Notification Modal Banner** bergaya glassmorphism premium (disertai ikon status, warna aksen dinamis, dan tombol "Saya Mengerti").
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 177: Penyelarasan Form Buat Surat Tugas Mobile & Date Picker
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Menghapus Pilihan Tambah Nama Manual di Pencarian Pegawai**:
+     - Tombol `Tambahkan "[query]" ke Pegawai Ditugaskan` telah dihapus total. Pencarian pegawai kini khusus memilih pegawai resmi yang terdaftar di database.
+  2. **Penyelarasan Opsi Sumber Dana 100% dengan Localhost**:
+     - Menampilkan 13 opsi sumber dana lengkap sesuai web (`DIPA Balai KSDA Kaltim`, `DIPA Instansi Lain`, `Non-DIPA / Swadaya`, `Tanpa Biaya / DL 1`, `Dana Kerjasama KJA`, `MJA`, `COP`, `PT. Tjiwi Kimia Tbk.`, `BOSF`, `CAN`, `ALeRT`, `FOLU`, `Lainnya`).
+     - Jika memilih `Lainnya`, otomatis menampilkan input `SEBUTKAN SUMBER DANA LAINNYA *`.
+  3. **Pemilihan Tanggal Menggunakan Interactive DatePicker Modal**:
+     - Tanggal Mulai & Selesai kini menggunakan tombol DatePicker interaktif yang membuka DatePicker Modal kalender lengkap (pilihan tanggal, navigasi bulan/tahun, dan opsi cepat "Hari Ini").
+  4. **Penggantian Field Lokasi dengan Keterangan Lainnya**:
+     - Field `LOKASI KEGIATAN / TUJUAN *` di bawah tanggal telah dihapus karena lokasi sudah diinput secara dinamis pada bagian atas (`kotaAsal`, `kotaTujuan`, `tempatSpesifik`).
+     - Digantikan dengan field `KETERANGAN LAINNYA` (multiline text input, placeholder: *"Catatan tambahan (opsional)"*).
+  5. **Sinkronisasi Submission ke Localhost / Backend Inbox**:
+     - Setelah form diajukan, payload yang dikirim dari mobile menyertakan `maksud_tujuan`, `nama_kegiatan`, `tempat_tujuan`, `tanggal_mulai`, `tanggal_selesai`, `sumber_dana`, `sumber_dana_other`, `keterangan`, `nama_plh`, dan `employee_ids[]`.
+     - Pengajuan langsung tersinkronisasi dan langsung muncul di Inbox Surat Tugas (`http://localhost:3000/kepegawaian/surat-tugas/inbox`) maupun di Mobile Inbox.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 176: Sinkronisasi Form Detail Kegiatan ST Builder Premium
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`
+
+### Status: SELESAI
+- Scope: ST Builder Create (`frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`) & Builder Edit (`frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Diselaraskan Opsi Jenis Tugas**:
+     - `Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )`
+     - `Melaksanakan Kegiatan ( 1 Hari )`
+     - `Menugaskan Staf`
+  2. **Diselaraskan Kolom Input Dinamis pada Section Detail Kegiatan**:
+     - Mode Perjalanan Dinas: Kolom `Dari (Asal)`, `Ke (Tujuan)`, `Dalam Rangka`, `Di (Tempat Spesifik / Opsional)`.
+     - Mode Melaksanakan Kegiatan / Menugaskan Staf: Kolom `Kegiatan *`, `Pada (Tempat/Unit)`, `Di (Kota/Kabupaten)`.
+  3. **Diselaraskan Penulisan Teks Resmi**:
+     - Opsi `Menugaskan Staf` kini menggunakan kata kunci `"Menugaskan Staf untuk [kegiatan] pada [tempat] di [kota]"`.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 175: Perbaikan Evaluasi Pratinjau Teks & Formulasi Menugaskan Staf
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Perbaikan Evaluasi Pratinjau Teks Hasil Resmi & Format Menugaskan Staf
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Perbaikan Evaluasi Kondisi Pratinjau Teks**:
+     - Sebelumnya ternary pratinjau teks menggunakan pengecekan string persis `jenisTugas === 'Perjalanan Dinas'`. Karena opsi label sudah diperbarui menjadi `Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )`, kondisi ternary tidak terpenuhi dan jatuh ke fallback `Menugaskan Staf`.
+     - **Solusi**: Diperbaiki menggunakan `.includes('Perjalanan Dinas')` dan `.includes('Melaksanakan Kegiatan')`.
+  2. **Formulasi Kalimat "Menugaskan Staf"**:
+     - Ditambahkan kata `"untuk"` secara presisi pada opsi penugasan staf:
+       ➔ **`Menugaskan Staf untuk [kegiatan] pada [tempat] di [kota]`**.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 174: Penyesuaian Label Pilihan Jenis Tugas Surat Tugas
+
+> Document updated: 2026-07-29
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Label Opsi Dropdown Jenis Tugas**:
+     - `Perjalanan Dinas` ➔ **`Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )`**
+     - `Melaksanakan Tugas` ➔ **`Melaksanakan Kegiatan ( 1 Hari )`**
+     - `Menugaskan Staf` ➔ **`Menugaskan Staf`**
+  2. **Validasi & Pratinjau Teks**:
+     - Pratinjau Teks otomatis menyesuaikan format kalimat resmi sesuai pilihan label jenis tugas.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 173: Dinamisasi Form Detail Kegiatan Berdasarkan Jenis Tugas
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Tampilan Formulir Beradaptasi Secara Dinamis**:
+     - **Mode 1: `Perjalanan Dinas`**:
+       - Kolom `Dari ( Kota / Lokasi Asal ) *`
+       - Kolom `Ke ( Kota / Kabupaten Tujuan ) *`
+       - Kolom `Dalam Rangka *` (placeholder: *"Kegiatan Inventarisasi..."*)
+       - Kolom `Di ( Tempat Spesifik / Opsional )` (placeholder: *"Suaka Margasatwa Kelian"*)
+       - *Preview*: `"Melaksanakan Perjalanan Dinas dari [Dari] ke [Ke] dalam rangka [Dalam Rangka] di [Di]"`
+     - **Mode 2: `Melaksanakan Tugas / Melaksanakan Kegiatan`**:
+       - Kolom `Melaksanakan Tugas / Kegiatan *` (placeholder: *"opname fisik (stok opname) barang persediaan"*)
+       - Kolom `Pada ( Tempat / Unit / Lokasi Kegiatan )` (placeholder: *"Kantor Balai / tempat kegiatannya"*)
+       - Kolom `Di ( Kota / Kabupaten ) *` (placeholder: *"Samarinda"*)
+       - *Preview*: `"Melaksanakan Tugas [Kegiatan] pada [Pada] di [Kota]"`
+     - **Mode 3: `Menugaskan Staf`**:
+       - Kolom `Menugaskan Staf *` (placeholder: *"verifikasi berkas persediaan..."*)
+       - Kolom `Pada ( Tempat / Unit / Lokasi )`
+       - Kolom `Di ( Kota / Kabupaten ) *`
+       - *Preview*: `"Menugaskan Staf [Kegiatan] pada [Pada] di [Kota]"`
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 172: Perbaikan Tampilan Lokasi di Inbox Surat Tugas
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)
+
+### Status: SELESAI
+- Scope: Form Submit Pengajuan (`frontend/src/app/surat-tugas/page.tsx`) & Inbox Page (`frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Pengiriman Field `tempat_tujuan` pada Submit Form Pengajuan**:
+     - Sebelumnya field `tempat_tujuan` belum dimasukkan ke `FormData` saat `handleSubmit`. Sekarang `tempat_tujuan` diisi dengan lokasi spesifik / kota tujuan (`tempatSpesifik || kotaTujuan || kotaAsal`).
+  2. **Smart Fallback Parser Lokasi di Inbox**:
+     - Ditambahkan fungsi `getResolvedTempatTujuan` yang mengekstrak lokasi dari `maksud_tujuan` (kata kunci `" ke "`, `" di "`, atau `" pada "`) jika data lama di Inbox belum memiliki field `tempat_tujuan`.
+     - Hasilnya, data lama seperti *"Perjalanan Dinas dari Berau ke Pulau Semama..."* langsung menampilkan **Lokasi: Pulau Semama** di Inbox!
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 171: Deteksi Otomatis Kota Asal Berdasarkan Satker Pegawai
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`), ST Builder Premium (`frontend/src/app/kepegawaian/surat-tugas/create/page.tsx`), & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Logika Otomatisasi `Kota Asal` Berdasarkan Satker Pegawai yang Dipilih**:
+     - Jika **semua pegawai Balai / TU**: Default `Kota Asal` = **`Samarinda`**
+     - Jika **semua pegawai Seksi 1 (SKW I)**: Default `Kota Asal` = **`Berau`**
+     - Jika **semua pegawai Seksi 2 (SKW II)**: Default `Kota Asal` = **`Tenggarong`**
+     - Jika **semua pegawai Seksi 3 (SKW III)**: Default `Kota Asal` = **`Balikpapan`**
+  2. **Reaktivitas Real-Time**:
+     - Setiap kali daftar pegawai yang dipilih berubah di form Surat Tugas, `Kota Asal` secara otomatis ter-update mengikuti aturan lokasi penempatan satker pegawai tersebut.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 170: Sinkronisasi Detail Kegiatan 100% dengan /kepegawaian/surat-tugas/create
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Harmonisasi Kolom `Detail Kegiatan` dengan ST Builder Premium**:
+     - **Dropdown `JENIS TUGAS`**:
+       - `Perjalanan Dinas`
+       - `Melaksanakan Tugas`
+       - `Menugaskan Staf`
+     - **Grid 2 Kolom Lokasi**:
+       - `Kota Asal` (default: *"Samarinda"*)
+       - `Kota / Kabupaten Tujuan` (placeholder: *"Tujuan"*)
+     - **Input `Nama Kegiatan`**: Textarea / Input (`Kegiatan...`)
+     - **Input `Tempat Spesifik / Pada`**: Input tempat rincian lokasi / unit
+  2. **Format Pratinjau Teks Resmi Terintegrasi**:
+     - *Perjalanan Dinas*: `"Perjalanan Dinas dari [Kota Asal] ke [Kota Tujuan] dalam rangka [Nama Kegiatan] di [Tempat Spesifik]"`
+     - *Melaksanakan Tugas*: `"Melaksanakan Tugas [Nama Kegiatan] pada [Tempat Spesifik] di [Kota Tujuan]"`
+     - *Menugaskan Staf*: `"Menugaskan Staf [Nama Kegiatan] di [Tempat Spesifik] di [Kota Tujuan]"`
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 169: Pemisahan Rute Perjalanan (Dari/Ke) & Kolom Pada Kegiatan
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Split 2 Kolom Rute Perjalanan (`Dari` & `Ke`)**:
+     - Kolom `Dari ( Kota / Lokasi Asal )` (placeholder: *"Samarinda"*)
+     - Kolom `Ke ( Kota / Kabupaten Tujuan )` (placeholder: *"Kabupaten Kutai Barat"*)
+     - Pengguna tidak perlu lagi menghapus teks awal secara manual (semua input diawali string kosong `""` dengan placeholder pembimbing).
+  2. **Penambahan Kolom `Pada` pada Mode Melaksanakan Kegiatan (1 Hari)**:
+     - Kolom 1: `Melaksanakan Kegiatan` (placeholder: *"opname fisik (stok opname) barang persediaan"*)
+     - Kolom 2: `Pada ( Tempat / Unit / Lokasi Kegiatan )` (placeholder: *"Kantor Balai KSDA Kalimantan Timur / tempat kegiatannya"*)
+     - Kolom 3: `Di ( Kota / Kabupaten )` (placeholder: *"Samarinda"*)
+  3. **Format Pratinjau Teks Resmi Real-Time**:
+     - Mode 1: `"Melaksanakan Perjalanan Dinas dari [Dari] ke [Ke] dalam rangka [Dalam Rangka] di [Di]"`
+     - Mode 2: `"Melaksanakan Kegiatan [Kegiatan] pada [Pada] di [Kota]"`
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 168: Form Builder Jenis Perjalanan & Kegiatan Surat Tugas
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Form Builder Structured Jenis Perjalanan Dinas vs Kegiatan (1 Hari) Presisi Directive User
+
+### Status: SELESAI
+- Scope: Web Portal (`frontend/src/app/surat-tugas/page.tsx`) & Mobile App (`mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Pilihan Radio Jenis Perjalanan / Kegiatan**:
+     - Opsi 1: `Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )`
+     - Opsi 2: `Melaksanakan Kegiatan ( 1 Hari )`
+  2. **Form Builder Input Dinamis**:
+     - **Jika memilih Perjalanan Dinas (> 1 Hari)**:
+       - Kolom `Rute Perjalanan ( Asal ke Tujuan )` (contoh: *"Samarinda ke Kabupaten Kutai Barat"*)
+       - Kolom `Dalam Rangka` (contoh: *"Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati Tinggi"*)
+       - Kolom `Di ( Tempat Spesifik / Opsional )` (contoh: *"Suaka Margasatwa Kelian"*)
+       - *Output Teks Otomatis*: `"Melaksanakan Perjalanan Dinas dari [Rute] dalam rangka [Dalam Rangka] di [Di]"`
+     - **Jika memilih Melaksanakan Kegiatan (1 Hari)**:
+       - Kolom `Di ( Rincian Kegiatan / Tempat )` (contoh: *"opname fisik (stok opname) barang persediaan pada tempat kegiatannya"*)
+       - Kolom `Di Kota / Kabupaten` (contoh: *"Samarinda"*)
+       - *Output Teks Otomatis*: `"Melaksanakan Kegiatan [Di] di [Kota]"`
+  3. **Live Preview Box**:
+     - Menampilkan pratinjau teks resmi hasil gabungan otomatis sebelum disubmit.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 167: Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Dukungan Pencarian Lengkap (Master List Fallback + API Merge)**:
+     - Memperbarui mekanisme pencarian pegawai pada [BuatSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx) dengan menggabungkan respons API `/kepegawaian/employees/select` dan master list pegawai resmi (termasuk `Tegar Anugrah, A.Md.Kom. (199907072025061006)`, `Rido, S.Hut.`, `Witono, S.Hut.`, `Ahmad Ripai, S.Hut.`, `Budi Santoso, S.Hut.`, `Ari Susanto`, dll.).
+  2. **Fitur `+ Tambah Pegawai Manual`**:
+     - Ketika pengguna mengetikkan nama pegawai di kolom pencarian, opsi **`➕ Tambahkan "[Nama]" ke Pegawai Ditugaskan`** selalu muncul di dalam dropdown. Pengguna dapat mengeklik opsi tersebut untuk langsung menambahkan nama yang diketik ke dalam daftar personil ditugaskan tanpa terhalang "Pegawai tidak ditemukan".
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 166: Pengajuan Surat Tugas Baru 3-Step Wizard Mobile
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Layar Wizard 3-Langkah Presisi Web Portal (`BuatSuratTugasScreen.tsx`)**:
+     - Membangun komponen layar wizard 3 langkah [BuatSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx) yang mengadopsi alur penuh Web Portal `http://localhost:3000/surat-tugas`.
+     - **Step 1 (Pilih Pegawai)**: Card header `👥 Pilih Pegawai`, pencarian instan NIP/Nama pegawai dari API kepegawaian backend, chip kartu pegawai terpilih dengan tombol hapus `✖`, serta tombol **`Lanjutkan >`**.
+     - **Step 2 (Detail Perjalanan Dinas)**: Input `Maksud / Nama Kegiatan *`, `Tanggal Mulai & Tanggal Selesai *`, `Lokasi Kegiatan / Tujuan *`, pilihan `Sumber Dana *` (`DIPA Balai KSDA Kaltim`, `DIPA Instansi Lain`, `Non-DIPA`, `Tanpa Biaya`), dan deteksi otomatis penunjukan PLH untuk Pejabat Struktural.
+     - **Step 3 (Upload Dokumen Dasar & Kirim)**: Upload dotted box dokumen pendukung (PDF/Foto), checkbox persetujuan pengajuan, ringkasan pengajuan, dan tombol **`🚀 Kirim Pengajuan ST`** (`POST /api/kepegawaian/surat-tugas`).
+  2. **Akses Langsung untuk Seluruh Pegawai dari Portal Dashboard**:
+     - Menambahkan tombol aksi cepat **`📝 Buat ST Baru`** pada Banner Portal Dashboard (`PortalDashboardScreen.tsx`) dan FAB Drawer Menu (`Buat Surat Tugas`), sehingga setiap pegawai dapat mengajukan Surat Tugas secara mandiri dari HP, bahkan jika pengguna tidak memiliki modul akses admin kepegawaian penuh.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 165: Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Sinkronisasi 100% Real-Time dengan Database Backend**:
+     - Memperbarui mekanisme pengambilan data API di seluruh modul mobile (`KepegawaianScreen`, `InboxSuratTugasScreen`, `BmnAssetCatalogScreen`, `InventoryStockScreen`, `SuratMasukHistoryScreen`).
+     - **Dukungan Penghapusan Data Lokal Backend**: Ketika user menghapus seluruh data pada database lokal backend (0 data), aplikasi mobile secara presisi menampilkan **0 data / list kosong (`[]`)**, dan tidak lagi memaksa (force) penampilan data dummy tiruan hardcoded.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 164: Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Penataan Ulang Urutan Tampilan Detail Surat Tugas**:
+     - Mengubah posisi seksion **`DAFTAR PERSONIL`** pada [InboxSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx) agar berada tepat **di atas kartu metrik `LOKASI` & `PERIODE`**.
+  2. **Penanganan Gestur Swipe Back / Hardware Back Press pada HP**:
+     - Menambahkan listener `BackHandler` ketika `selectedSt !== null` (sedang membuka detail Surat Tugas).
+     - Saat pengguna melakukan **swipe back pada layar HP** atau mengeklik tombol `←`, aplikasi secara mulus **kembali ke Daftar Inbox Surat Tugas (List View)** dan tidak langsung melompat keluar ke Portal Dashboard.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 163: Inbox Surat Tugas Alur Master-Detail Mobile
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Inbox Surat Tugas Alur Master-Detail Mobile
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Alur Navigasi Master-Detail Resmi (Native Mobile Flow)**:
+     - Mengubah alur pada [InboxSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx) agar pengguna melihat **Daftar Kartu Surat Tugas Vertikal (List Mode)** terlebih dahulu.
+     - **Tampilan Daftar (List Mode)**: Menampilkan kartu-kartu Surat Tugas penuh selebar layar (`100% width`) dengan status badge (`DRAFT`, `DITERBITKAN`), tanggal, perihal, lokasi, dan indikator panah `Detail >`.
+     - **Tampilan Detail (Detail Mode)**: Saat kartu diketuk, aplikasi membuka tampilan detail utuh Surat Tugas dengan deskripsi lengkap, 3 kartu bento metrik (`PERIODE`, `LOKASI`, `DANA`), `DAFTAR PERSONIL`, dokumen pendukung PDF, serta tombol **`Kembali ke Daftar Inbox`** di bagian atas.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 162: Penghapusan Tombol Toggle Tema Header Modul
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Penghapusan Tombol Toggle Tema Header Modul
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Pembersihan Tombol Toggle Tema Header Bar (`🌙`)**:
+     - Menghapus tombol toggle tema light/dark pada header bar di `KepegawaianScreen.tsx`, `TambahPegawaiScreen.tsx`, dan `InboxSuratTugasScreen.tsx`.
+     - Tombol toggle tema kini terpusat secara rapi di dalam **Header Drawer Navigasi (`FAB ☰`)**, sehingga tampilan header modul atas menjadi lebih bersih, simpel, dan konsisten.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 161: Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Tangkapan Layar User:
+  1. **Daftar Opsi Lengkap Pangkat / Golongan Presisi Screenshot 1**:
+     - Memperbarui modal pemilih Pangkat/Golongan pada [TambahPegawaiScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/TambahPegawaiScreen.tsx) dengan daftar resmi lengkap:
+       - `- (Tidak ada pangkat)`
+       - Golongan I: `Juru Muda (I/a)`, `Juru Muda Tingkat I (I/b)`, `Juru (I/c)`, `Juru Tingkat I (I/d)`
+       - Golongan II: `Pengatur Muda (II/a)`, `Pengatur Muda Tingkat I (II/b)`, `Pengatur (II/c)`, `Pengatur Tingkat I (II/d)`
+       - Golongan III: `Penata Muda (III/a)`, `Penata Muda Tingkat I (III/b)`, `Penata (III/c)`, `Penata Tingkat I (III/d)`
+       - Golongan IV: `Pembina (IV/a)`, `Pembina Tingkat I (IV/b)`, `Pembina Utama Muda (IV/c)`, `Pembina Utama Madya (IV/d)`, `Pembina Utama (IV/e)`
+       - PPPK: `PPPK Golongan I` hingga `PPPK Golongan XVII`
+  2. **Daftar Opsi Lengkap Penempatan Satker & Resor Presisi Screenshot 2**:
+     - Memperbarui modal pemilih Penempatan Satker dengan daftar hierarki lengkap:
+       - `Kantor Balai KSDA Kalimantan Timur`
+       - `Seksi KSDA Wilayah I Berau` & Resor 01-04 (Berau, Semama/Sangalaki, Tanjung Selor, Tarakan)
+       - `Seksi KSDA Wilayah II Tenggarong` & Resor 05-09 (Samarinda, Padang Luway, Muara Kaman, Sangatta, Suaka Badak Kelian)
+       - `Seksi KSDA Wilayah III Balikpapan` & Resor 10-14 (Balikpapan, Teluk Adang, Teluk Apar, Paser, Ibu Kota Nusantara)
+  3. **Pencarian Cepat dalam Modal**:
+     - Menyediakan kolom input pencarian instan dalam modal pemilih agar pengguna dapat mencari pangkat atau resor dengan sangat cepat.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 160: Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Tangkapan Layar User:
+  1. **Layar Tambah Pegawai Baru (`TambahPegawaiScreen.tsx`) Presisi Screenshot 1**:
+     - Membangun layar penuh [TambahPegawaiScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/TambahPegawaiScreen.tsx).
+     - **Komponen Pas Foto**: Kotak unggah pas foto bertanda garis putus-putus (`MAX 10MB • RASIO 3:4`, `📷 PILIH FOTO`).
+     - **Formulir Input Data**: `NIP INDUK *`, `NAMA LENGKAP *`, `JABATAN`, `PANGKAT/GOLONGAN`, `PENEMPATAN SATKER`, dan `STATUS KEPEGAWAIAN (🟢 Pegawai Aktif)`.
+     - **Tombol Simpan**: Tombol **`💾 Simpan Pegawai`** yang mengirimkan data ke API backend `/api/kepegawaian/employees`.
+  2. **Layar Inbox Surat Tugas (`InboxSuratTugasScreen.tsx`) Presisi Screenshot 2**:
+     - Membangun layar penuh [InboxSuratTugasScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx).
+     - **Search & Status Filter Bar**: *"Cari kegiatan atau nama..."* dan filter status (`Semua Status`, `DRAFT`, `DITERBITKAN`).
+     - **Karusel Kartu Surat Tugas**: Menampilkan daftar pengajuan Surat Tugas dengan status badge (`DRAFT`, `DITERBITKAN`), tanggal, perihal, dan lokasi.
+     - **Tampilan Detail Surat Tugas**:
+       - Deskripsi lengkap kegiatan perjalanan dinas.
+       - 3 Kartu Bento Metrik: `PERIODE` (`22 Juni 2026 — 24 Juni 2026`), `LOKASI` (`Kecamatan Marangkayu...`), `DANA` (`🔵 DIPA`).
+       - `DAFTAR PERSONIL (3)`: Kartu personil yang ditugaskan (`Rido, S.Hut.`, `Witono, S.Hut.`, `Ahmad Ripai, S.Hut.`).
+       - `📄 Dokumen Dasar Surat`: Kartu dokumen pendukung PDF / Status lampiran.
+       - Group Tombol Aksi: **`EDIT SURAT TUGAS`** (Tombol Ungu), **`TOLAK`** (Teks Merah), dan **`ARSIPKAN`** (Teks Abu-abu).
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 159: Fix Tombol Kembali Header & Navigasi Portal Utama
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Fix Tombol Kembali Header & Navigasi Portal Utama
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Navigasi Langsung ke Portal Utama (`Dashboard`)**:
+     - Mengubah handler navigasi di `KepegawaianScreen`, `BmnAssetCatalogScreen`, `SuratMasukHistoryScreen`, dan `InventoryStockScreen`.
+     - Saat mengeklik pilihan **Portal Utama** / **Beranda** dari drawer maupun kartu popover melayang, aplikasi secara otomatis memanggil `navigation.navigate('Dashboard')` untuk langsung membuka Portal Utama.
+  2. **Responsif Tombol Kembali Header (`←`)**:
+     - Memperluas area sentuh (`hitSlop: { top: 25, bottom: 25, left: 25, right: 35 }`) dan menambahkan fallback langsung ke `navigation.navigate('Dashboard')`.
+     - Menjamin tombol **Kembali (`←`)** di pojok kiri atas semua modul 100% responsif ketika diketuk.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 158: Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User & Screenshot:
+  1. **Kartu Popover Melayang (Floating Popover Overlay Card) Modul Aktif Presisi Screenshot**:
+     - Mengubah dropdown **MODUL AKTIF** pada [FabMenu.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/FabMenu.tsx) agar saat diklik mengeluarkan **kartu popover melayang (floating overlay)** langsung di atas drawer.
+     - **Kartu Popover**: Elevasi bayangan `elevation: 14`, `borderRadius: 18`, border aksen biru.
+     - **Daftar Modul Melayang (7 Modul)**:
+       1. `Portal Utama` (Badge abu-abu)
+       2. `Kepegawaian` (Badge biru `#eff6ff`, indikator titik hijau `🟢`)
+       3. `BMN & Aset` (Badge emerald `#ecfdf5`)
+       4. `Inventory` (Badge orange `#fff7ed`)
+       5. `D-Reporting` (Badge ungu `#faf5ff`)
+       6. `CMS Panel` (Badge teal `#f0fdfa`)
+       7. `Persuratan` (Badge cyan `#ecfeff`)
+  2. **Perbaikan Peringatan Ionicons (`tray-outline` WARN Fix)**:
+     - Mengganti nama ikon `"tray-outline"` yang tidak valid pada keluarga Ionicons dengan ikon valid `"mail-unread-outline"`.
+     - Peringatan console Expo kini **100% hilang (0 warnings)**.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 157: FabMenu Drawer Sidebar Presisi 100% Kepegawaian Web Portal
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## FabMenu Drawer Sidebar Presisi 100% Kepegawaian Web Portal
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Tangkapan Layar User:
+  1. **Tampilan Drawer Sidebar Navigasi Presisi 100% Tangkapan Layar**:
+     - Mengubah komponen drawer pada [FabMenu.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/FabMenu.tsx) menjadi panel sidebar slide dari sebelah kiri layar.
+     - **Header Drawer**: Ikon persegi biru `👥 Kepegawaian` (`SDM & EMPLOYEE`) + Tombol Switcher Tema `☀️`.
+     - **Dropdown Switcher Modul Aktif**: Card `MODUL AKTIF` **Kepegawaian** `v` yang dapat mengekspansi pilihan perpindahan modul secara langsung (Kepegawaian, BMN, Inventory, DeReporting, CMS, Persuratan).
+     - **Submenu Links Kepegawaian**:
+       - `👥 Daftar Pegawai` (Active state dengan background soft blue `#eff6ff` & teks biru `#2563eb`).
+       - `👤+ Tambah Pegawai`
+       - `📥 Inbox Surat Tugas`
+       - `📅 Inbox Surat Cuti`
+       - `📄 Buat Surat Tugas`
+       - `🕒 Riwayat Surat Tugas`
+     - **Footer Profile & Logout**:
+       - Avatar inisial `S`, Nama `Super Admin System` (dinamis), badge role `super_admin`, serta tombol **`Keluar Sistem`** berikon power merah.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 156: 2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## 2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Tab Grid Layout 1 Baris 2 Item (Anti Overflow Ke Samping)**:
+     - Mengubah susunan bilah navigasi tab pada [EmployeeDetailModal.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/EmployeeDetailModal.tsx) menjadi `flexWrap: "wrap"` dengan 2 item per baris (`width: "48%"`).
+     - **Baris 1**: `Riwayat Penugasan` | `Biodata`.
+     - **Baris 2**: `Cuti Pegawai (PNS)` di bawahnya.
+     - **100% Bebas dari Potongan / Overflow Horizontal** pada semua ukuran layar mobile.
+  2. **Notifikasi Modal Kustom Reset Password (Glassmorphic ConfirmModal)**:
+     - Menggantikan `Alert.alert` bawaan HP yang standar dengan komponen modal kustom glassmorphic [ConfirmModal.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/ConfirmModal.tsx).
+     - Dilengkapi ikon kunci ambar (`🔑 key-outline`), judul **Reset Password Pegawai**, pesan konfirmasi yang jelas, serta tombol **`Batal`** & **`Ya, Reset Password`**.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 155: Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User & Tangkapan Layar:
+  1. **Pagination Tabel Daftar Pegawai Presisi Web Portal**:
+     - Menambahkan baris kontrol pagination di bagian bawah tabel [KepegawaianScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/KepegawaianScreen.tsx).
+     - Format: `HALAMAN X DARI Y` dengan tombol **`[ Sebelumnya ]`** dan **`[ Berikutnya ]`**.
+     - Menampilkan 10 pegawai per halaman sehingga pengguna tidak perlu melakukan scroll panjang ke bawah.
+  2. **Fitur Edit Identitas Pegawai Khusus SuperAdmin (`EmployeeDetailModal.tsx`)**:
+     - Menambahkan tombol **`✏️ Edit`** pada tab **Identitas Kepegawaian (Biodata)** yang presisi sesuai Screenshot Web Portal 2.
+     - Mengubah Nama, NIP, Jabatan, Unit Kerja/Seksi, dan Pangkat/Golongan pegawai dengan mengirimkan permohonan ke API backend `/api/kepegawaian/employees/{id}`.
+  3. **Penataan Layout Tab Tanpa Overflow (No-Overflow Responsive Layout)**:
+     - Mengubah bilah navigasi tab (`Riwayat Penugasan`, `Biodata`, `Cuti Pegawai (PNS)`) menjadi `ScrollView` horizontal tanpa scroller bar.
+     - Menata bento grid pada **Biodata** (NIP, Nama Lengkap, Jabatan, Pangkat/Golongan, Unit Kerja, Masa Kerja, Status) agar tampil rapi dan responsif 100% tanpa potongan horizontal.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 154: Mobile Employee Full Search Sync & Single-Line NIP Layout
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Employee Full Search Sync & Single-Line NIP Layout
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Sinkronisasi Pencarian Seluruh Pegawai (`per_page=500`) (Tegar Anugrah, A.Md.Kom.)**:
+     - Mengubah permohonan API backend pada [KepegawaianScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/kepegawaian/KepegawaianScreen.tsx) menjadi `GET /api/kepegawaian/employees?per_page=500`.
+     - Seluruh pegawai di database web (termasuk **Tegar Anugrah, A.Md.Kom.** NIP: `199907072025061006`) kini **100% muncul dan dapat dicari secara instan** pada aplikasi mobile.
+  2. **Tata Letak NIP 1 Baris Rapi Tanpa Terpotong (Single-Line NIP Layout)**:
+     - Memindahkan tombol `🛡️ Kelola Akses` secara eksklusif ke dalam **Layar Detail Pegawai** (`EmployeeDetailModal.tsx`).
+     - Mengubah proporsi lebar kolom NIP menjadi `flex: 1.5`, sehingga NIP 18 digit (`199907072025061006`) muat sempurna dalam **1 baris tanpa tertekuk/turun ke bawah**.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 153: Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Fitur & Layout Utama Berdasarkan 3 Tangkapan Layar Web Portal:
+  1. **Layar Detail Pegawai Interaktif (`EmployeeDetailModal.tsx`) (Presisi Screenshot 2)**:
+     - Mengklik baris pegawai mana saja di tabel kini **membuka Layar Detail Pegawai**.
+     - **Header Profile Card**: Avatar, Nama, Status (`Aktif`), NIP.
+     - **Tombol Aksi Atas**: `🔑 Reset Password` & `🛡️ Kelola Akses`.
+     - **4 Bento Stat Cards Grid**: Jabatan, Unit Kerja, Pangkat/Gol (`PPPK Golongan IX`), Sisa Cuti (`12 Hari Kerja`).
+     - **Tab Interaktif**: `Riwayat Penugasan` (dengan tombol `+ Buat Surat Tugas`), `Biodata`, dan `Cuti Pegawai (PNS)`.
+  2. **Modal Manajemen Hak Akses IAM (`EmployeeAccessModal.tsx`) (Presisi Screenshot 3)**:
+     - Khusus untuk pengguna `super_admin`, mengklik ikon `🛡️` di tabel atau tombol `🛡️ Kelola Akses` di detail pegawai membuka **Modal Manajemen Hak Akses**.
+     - Pilihan **Peran Sistem (Role)**: Admin (Pengelola Modul), Super Admin, User (Pegawai Biasa).
+     - Checkbox **Akses Modul** 6 Modul: Kepegawaian, BMN & Aset, Inventory, D-Reporting, CMS Panel, Persuratan & Disposisi.
+     - Mengirim permohonan pembaruan ke API backend `/api/kepegawaian/employees/{id}/access`.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 152: Mobile Application Kepegawaian & SDM Module Screen
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Application Kepegawaian & SDM Module Screen
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Fitur & Layout Utama Berdasarkan screenshot User:
+  1. **Header Modul Kepegawaian & SDM**:
+     - Header top bar dengan ikon badge biru `👥 KEPEGAWAIAN & SDM`, judul **"Daftar Pegawai"**, serta deskripsi *"Kelola informasi personil dan hak akses sistem."*.
+  2. **Baris Kontrol Akses Cepat**:
+     - Input pencarian pegawai `[ 🔍 Cari N... ]`.
+     - Tombol pill soft blue `[ 📥 Inbox Surat Cuti ]`.
+     - Tombol solid hitam `[ + Tambah Pegawai ]` yang membuka Modal Form Tambah Pegawai Baru.
+  3. **Tabel Daftar Pegawai (Presisi Screenshot 1)**:
+     - Header Kolom: `PROFIL PEGAWAI` | `NIP`.
+     - Menampilkan daftar personil resmi (A. Aliah Indah Fitriah, S.Hut., Abdul Farij, Abdurrahman, Achmad Syafey N, Administrator Pusat BKSDA) tersinkronisasi dari API backend `/api/kepegawaian/employees`.
+  4. **Floating Action Button (`FabMenu` ☰)**:
+     - Tombol FAB bundar di pojok kanan bawah yang terhubung langsung ke navigasi modul Kepegawaian & SDM.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 151: Mobile App Empty States 100% Sync with Web Portal
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile App Empty States 100% Sync with Web Portal
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Perbaikan Utama Berdasarkan Penemuan User (Foto Tangkapan Layar Web Portal):
+  1. **Sinkronisasi Tampilan Kosong (Empty States) Presisi 100% dengan Web Portal**:
+     - Mengubah logika render [PortalDashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx) pada 4 tab interaktif agar menampilkan state persis sesuai respon backend localhost web portal.
+     - **Tab Aset Saya**: Saat user `superadmin` tidak memiliki kendaraan/barang terpegang, mobile menampilkan empty state presisi:
+       - Ikon Tas/Koper + Teks *"Tidak ada aset di bawah tanggung jawab Anda."*
+     - **Tab Surat Tugas**: Saat belum ada surat tugas aktif, mobile menampilkan empty state presisi:
+       - Ikon Clipboard + Teks *"Belum ada surat tugas yang diterbitkan"*
+     - **Tab Pengajuan Cuti Saya**: Menampilkan header *"Daftar Pengajuan Cuti Saya"* + Tombol `+ Ajukan Cuti Baru` + Empty state presisi:
+       - Ikon Kalender + Teks *"Belum ada pengajuan cuti"*
+     - **Tab Pinjaman Aktif**: Menampilkan empty state presisi:
+       - Ikon Swap/Cube + Teks *"Tidak ada pinjaman aktif saat ini"* + Tombol `+ Ajukan Peminjaman BMN`
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 150: Dynamic Logged-In User Profile & Web Backend Data Sync
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Dynamic Logged-In User Profile & Web Backend Data Sync
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Pembaruan Utama Berdasarkan Permintaan User:
+  1. **Profil Pengguna Dinamis Sesuai Akun Login**:
+     - Mengubah resolver nama & NIP di [DashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/screens/DashboardScreen.tsx) & [PortalDashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx) sehingga membaca langsung dari data autentikasi `useAuth()`.
+     - Saat masuk sebagai `superadmin`, greeting otomatis menampilkan *"Selamat Siang, Super Admin System! ☀️"* dengan avatar initial `"S"`.
+     - Saat masuk sebagai pegawai (misal Ahmad Subagja), greeting otomatis menampilkan *"Selamat Siang, Drs. Ahmad Subagja, M.Si.! ☀️"* dengan avatar initial `"A"`.
+  2. **Sinkronisasi Data Tab Interaktif dengan Web Portal Backend**:
+     - Menghubungkan 4 tab interaktif (`Pinjaman Aktif`, `Aset Saya`, `Surat Tugas`, `Pengajuan Cuti Saya`) dengan API backend `/api/mobile/dashboard` & `/api/me`.
+     - Jumlah pinjaman aktif, aset terpegang, surat tugas aktif, dan hak cuti pegawai kini **100% tersinkronisasi secara real-time** dengan database web portal BKSDA.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 149: Mobile Login Keyboard Avoiding & Input Focus Fix
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Login Keyboard Avoiding & Input Focus Fix
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Pembaruan & Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Kemudahan Fokus Input NIP & Kata Sandi**:
+     - Menambahkan `TextInput` `useRef` dan pembungkus `TouchableOpacity` interaktif. Mengetuk area manapun pada kotak input NIP / Kata Sandi langsung memunculkan keyboard HP secara instan.
+  2. **Penyesuaian Responsif Keyboard Android (`KeyboardAvoidingView`)**:
+     - Mengatur perilaku `KeyboardAvoidingView` menjadi `Platform.OS === 'ios' ? 'padding' : undefined` dengan `keyboardShouldPersistTaps="handled"` dan `keyboardDismissMode="on-drag"`.
+     - Layout formulir kini bergeser dengan mulus tanpa menutupi bidang NIP dan Kata Sandi saat keyboard muncul di Android.
+  3. **Pengaturan Tata Letak Terpusat (Proprsional)**:
+     - Menyesuaikan ukuran header & logo agar form login tampil seimbang di tengah layar (`flexGrow: 1`, `justifyContent: 'center'`) tanpa terdorong terlalu atas.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 148: Mobile Login Screen Branding & Clean Up
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Login Screen Branding & Clean Up
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Pembaruan Utama Berdasarkan Permintaan User:
+  1. **Penggunaan Logo Resmi BKSDA Kaltim**:
+     - Menggantikan logo gambar di [LoginScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/auth/screens/LoginScreen.tsx) dengan aset resmi BKSDA Kaltim (`logo_bksda.png`).
+  2. **Penghapusan Badge SIMONDOK**:
+     - Menghapus badge `"SIMONDOK MOBILE PORTAL"` di bagian header di bawah nama balai.
+  3. **Pembaruan Teks Hak Cipta Footer**:
+     - Mengubah teks footer dari *"Kementerian Lingkungan Hidup dan Kehutanan © 2026"* menjadi **`"Kementerian Kehutanan © 2026"`**.
+  4. **Penghapusan Tombol Isi Akun Test Super Admin**:
+     - Menghapus tombol shortcut *"⚡ Isi Akun Test Super Admin"* agar tampilan form login bersih, profesional, dan siap produksi.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 147: Custom Premium Logout Confirmation Modal & FAB Menu
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Custom Premium Logout Confirmation Modal & FAB Menu
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Fitur & Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Custom Confirmation Modal (`ConfirmModal.tsx`)**:
+     - Menggantikan dialog alert bawaan OS (`Alert.alert`) yang polos/standar dengan **Modal Konfirmasi Kustom Berpenampilan Mewah & Glassmorphic**.
+     - Dilengkapi dengan badge ikon merah melingkar (`log-out-outline`), pesan yang jelas, serta dua tombol aksi responsif (`Batal` & `Ya, Keluar`).
+  2. **Integrasi Logout di Profil & FAB Drawer Menu**:
+     - Menekan tombol *"Keluar dari Aplikasi"* di Profil Pengguna maupun *"Keluar Sistem"* di FAB Drawer Menu kini membuka `ConfirmModal` yang elegan.
+  3. **Tombol Kembali (`← Kembali`) 100% Aktif & Clickable**:
+     - Menambahkan navigasi kembali ke `Dashboard` dengan hit area tombol yang besar dan responsif.
+  4. **Clean Portal Hub & Floating FAB (`☰`)**:
+     - Menghapus bottom nav pada portal utama hub dan menghadirkan **Floating Action Button (`☰`)** di pojok kanan bawah khusus layar modul.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 146: Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Fitur & Perbaikan Utama Berdasarkan Permintaan User:
+  1. **Floating Pill Navigation Bar (`FloatingNav.tsx`)**:
+     - Menghapus bottom tab bar standar yang menempel di bawah (`AppTabs.tsx`), digantikan dengan **Floating Glassmorphic Pill Navigation Bar** melayang yang elegan (`Beranda`, `Aset BMN`, `Surat`, `Inventaris`, `Profil`).
+  2. **Aktifkan Mode Terang & Gelap (Light/Dark Theme Toggle)**:
+     - Membuat `ThemeContext.tsx` dengan fungsionalitas penuh. Menekan tombol ☀️ / 🌙 di header langsung mengubah tema aplikasi secara dinamis antara **Clean Light Emerald** (`#f8fafc` / `#ffffff`) dan **Dark Forest Emerald** (`#061a12` / `#092318`).
+  3. **Modul Akses Ultra-Compact (3 Kolom x 2 Baris)**:
+     - Mengubah Grid Modul Akses menjadi **3 Kolom x 2 Baris (3x2)** dengan ukuran badge 32x32px dan padding ultra-ringkas, sehingga hemat ruang dan tidak menghabiskan tinggi layar HP.
+  4. **Kartu Statistik Sisa Cuti di Banner Greeting**:
+     - Menambahkan kotak/chip statistik di bawah greeting *"Selamat datang di portal BKSDA Kalimantan Timur"*:
+       - `📅 Sisa Cuti (2026): 12 Hari Kerja`.
+  5. **Tombol Kembali (`← Kembali`) pada Profil Pengguna**:
+     - Menambahkan tombol **Back (`← Kembali`)** yang jelas dan aktif di header [ProfileScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/ProfileScreen.tsx) agar pengguna dapat dengan mudah kembali ke Dashboard utama.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 145: Mobile Dashboard Compact Grid & 2-Row Interactive Tabs
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Dashboard Compact Grid & 2-Row Interactive Tabs
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Penyesuaian Berdasarkan Umpan Balik User:
+  1. **Modul Akses Ringkas (Ukuran Lebih Kecil)**: Mengompres ukuran padding, tinggi kartu, dan ikon badge modul (36x36px) agar 6 modul akses dapat tampil ringkas dan efisien tanpa memenuhi layar HP.
+  2. **Tab Controller 2 Baris x 2 Kolom (Grid)**: Mengubah tab controller (`Pinjaman Aktif`, `Aset Saya`, `Surat Tugas`, `Pengajuan Cuti Saya`) dari 1 baris scroll horizontal menjadi **Grid 2 Baris x 2 Kolom** agar seluruh tab dapat terlihat penuh dan mudah ditekan di layar HP.
+  3. **Tab Interaktif saat Ditekan**: Saat tab ditekan, konten di bawahnya langsung berganti sesuai konteks:
+     - `Pinjaman Aktif`: Menampilkan info/empty state pinjaman aktif.
+     - `Aset Saya`: Menampilkan aset kendaraan dinas yang sedang dipegang (`Toyota Hilux Double Cabin 4x4 - KT 8192 BKS`).
+     - `Surat Tugas`: Menampilkan Surat Tugas Patroli Kawasan `#1015`.
+     - `Pengajuan Cuti Saya`: Menampilkan sisa hak cuti tahunan (12 Hari).
+  4. **Official Logo Asset**: Mengintegrasikan logo resmi BKSDA Kaltim dari `frontend/public/logo_bksda.png` ke `mobile/assets/logo_bksda.png` untuk header dashboard.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
+# Progress - Phase 144: Mobile Application Web Portal Light Emerald Alignment
+
+> Document updated: 2026-07-28
+> Status: Selesai di-merge ke branch `mobile-development` (via Git Workflow Pro Squash Merge) dan di-push ke `origin mobile-development`.
+
+---
+
+## Mobile Application Web Portal Light Emerald Alignment
+
+### Status: SELESAI
+- Scope: Mobile App (`mobile/`)
+- Branch Target: `mobile-development`
+- Tujuan: Menyelaraskan 100% desain UI/UX aplikasi mobile (`mobile/`) dengan desain Web Portal BKSDA Kaltim (Clean White Surface, Primary Emerald Green, Soft Pastel Badge Icons, dan Emerald Hero Banner).
+
+### Implementasi Presisi Screenshot Web Portal
+- **Theme System (`theme/index.ts`)**:
+  - Mengubah background menjadi Light Slate (`#f8fafc` / `#ffffff`).
+  - Mengubah brand primary menjadi Web Portal Emerald Green (`#059669`).
+  - Memasang palet soft pastel badge background untuk ikon modul (Blue, Emerald, Orange, Purple, Teal, Mint).
+- **GlassCard & EmeraldButton Component**:
+  - Memperbarui [GlassCard.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/GlassCard.tsx) dan [EmeraldButton.tsx](file:///e:/bksda-superapp/mobile/src/components/ui/EmeraldButton.tsx) dengan gaya permukaan kartu putih bersih, border soft grey (`#e2e8f0`), dan bayangan halus.
+- **Screen 1 (Portal Dashboard Mobile - Screenshot 1 Alignment)**:
+  - Memperbarui [PortalDashboardScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx) dengan header BKSDA Kaltim logo + `SUPERAPP PORTAL`, tombol Sun ☀️, Bell 🔔, Circle Initial Avatar `S`, Emerald Hero Greeting Banner *"Selamat Siang, Super! ☀️"*, Modul Akses Grid 2 kolom dengan badge soft pastel, Segmented Tab Controller (`Pinjaman Aktif`, `Aset Saya`, `Surat Tugas`, `Pengajuan Cuti Saya`), dan kartu empty state.
+- **Screen 5 (Profil Pengguna - Screenshot 2 & 3 Alignment)**:
+  - Memperbarui [ProfileScreen.tsx](file:///e:/bksda-superapp/mobile/src/features/profile/ProfileScreen.tsx) dengan avatar lingkaran `S` besar, badge `● AKTIF`, NIP superadmin, badge `Super Admin`, daftar detail (Jabatan, Unit Kerja, Sisa Cuti 12 Hari Kerja, Email, Telepon), tombol `🔑 Ganti Password`, dan tombol `🚪 Keluar dari Aplikasi`.
+- **Screen 0 (Login), Screen 2 (BMN), Screen 3 (Surat), Screen 4 (Inventory)**:
+  - Memperbarui seluruh screen pendukung ke dalam skema Clean Light Emerald Theme.
+
+### Validasi & Git Workflow Pro
+- `npm run typecheck` di folder `mobile/`: 0 ERROR (100% lulus).
+- Di-squash merge ke branch `mobile-development` dan di-push ke `origin mobile-development`.
+
+---
+
 # Progress - Phase 143: Mobile Application UI/UX Polishing & Single Navigation Fix
 
 > Document updated: 2026-07-28
@@ -6632,8 +7866,62 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] **Task 55 & 56 (Loan Form Screen & Borrow Submission)**: Developed `BmnLoanScreen.tsx` containing an autocomplete NIP search-dropdown for Kepegawaian BKSDA employees, borrow date validation, and multiline purpose notes. Handled Laravel 422 validation mapping to form fields and wired submission to `POST /api/bmn/assets/{id}/loans`.
 - [x] **Unit Testing**: Developed and updated comprehensive unit tests for detail screen verification actions, return action, loan form input renders, NIP search selections, Zod validations, and API post submissions, passing 201 Jest unit tests with 100% type safety and 0 warnings.
 
-### Next Steps
-- Milestone 2 BMN Alpha has been fully completed on the mobile application! Let's check for future milestones or database migration tasks.
+---
+
+## [2026-07-29] Mobile Surat Tugas - Submission Endpoint Fix & Notification Modal Flow (Phase 181)
+
+### Completed (Selesai)
+- [x] **Submission Endpoint & Payload Fix**: Fixed mobile `BuatSuratTugasScreen.tsx` submission payload from `employee_ids` array to `employees: [{ id: number }]` object list, and fixed endpoint path from non-existent `/surat-tugas/public-submit` / `/kepegawaian/surat-tugas` to `/surat-tugas/submit` (with fallback to `/surat-tugas`).
+- [x] **Backend Auth Support for Public Submit**: Updated `created_by` calculation in `AssignmentLetterController.php` `store()` method to resolve Sanctum user (`auth('sanctum')->user() ?: $request->user()`), associating logged-in mobile employee user IDs with submitted tasks even via `/submit`.
+- [x] **Inbox Surat Tugas Data Sync**: Updated `InboxSuratTugasScreen.tsx` endpoint from non-existent `/kepegawaian/surat-tugas` (404) to `/surat-tugas?mobile=true`. Mapped fields gracefully (`tanggal_surat`, `maksud_tujuan`, `sumber_dana`, `personel_summary` / `employees`), ensuring all submitted tasks automatically sync and appear in Admin / SuperAdmin Inbox.
+- [x] **Custom Notification & Navigation Flow**:
+  - Replaced native `Alert.alert` with custom modern glassmorphism `NotificationModal`.
+  - Replaced "Lihat Inbox Surat Tugas" button text with **"Saya Mengerti"**.
+  - Programmed button click action to navigate back to **Portal / Dashboard** (since standard employees do not have access to Kepegawaian module).
+  - Handled errors gracefully with custom error notifications.
+- [x] Milestone 2 BMN Alpha has been fully completed on the mobile application! Let's check for future milestones or database migration tasks.
+
+---
+
+## [2026-07-29] Mobile Access Control & Surat Tugas Sync Fixes (Phase 182)
+
+### Completed (Selesai)
+- [x] **Strict Module Access Control on Mobile**:
+  - Updated `PortalDashboardScreen.tsx` to filter `modules` array via `hasModule(user, mod.key)`. Users without module permissions (such as standard employee Tegar with `access_modules: []`) no longer see active module cards in "Modul Akses", perfectly matching web portal behavior.
+  - Updated `FabMenu.tsx` floating drawer menu to filter `floatingModules` and `submenus` according to `hasModule(user, mod.key)`.
+- [x] **Backend Query Fix for Active Letters Count**:
+  - Fixed SQL query in `MobileDashboardController.php`: corrected invalid `employee_id` column reference to `kpg_employees.id` in `whereHas('employees')`.
+  - Added support for multiple active statuses (`approved`, `completed`, `published`, `diterbitkan`) in `MobileDashboardController.php` and `AssignmentLetterController.php` (`myLetters` & `myDownload`).
+  - Mobile dashboard under Surat Tugas tab now correctly displays the badge count `1` ("Surat Tugas 1").
+- [x] **Interactive Mobile Surat Tugas Card & PDF Preview**:
+  - Wrapped `1 Surat Tugas Aktif` card in `PortalDashboardScreen.tsx` with `<TouchableOpacity>` so tapping it triggers navigation to personal Surat Tugas list/detail.
+  - Updated `toMobileDetailItem` in `AssignmentLetterController.php` so `file.available` and `can_download` are set to `true`, providing immediate download/preview links for mobile.
+  - Added fallback text/PDF stream generation in `AssignmentLetterController.php@myDownload` for letters without an uploaded physical attachment.
+- [x] **Official Mobile Surat Tugas Print Preview Modal (`PratinjauSuratTugasModal`)**:
+  - Built `PratinjauSuratTugasModal.tsx` using `react-native-webview` rendering the **exact HTML/CSS document template** from the web portal ST Builder & Preview (`SuratTugasLetterPreview.tsx`).
+  - Rendered official Kop Surat image (`HEADER_NEW_BASE64`) featuring the **Pohon Hayati Kementerian Kehutanan Logo** on the left with double black line underline (`header-new.png`), matching localhost web preview 100%.
+  - Synced "Menimbang" (`a. bahwa dalam rangka {kegiatan}, perlu ;`), "Dasar", "Memberi Tugas", "Kepada" (Personnel list with NIP & Jabatan), "Untuk" (Activity, location, dates, days count in words, DIPA funding source), "Penutup" (`Demikian untuk dilaksanakan dengan penuh tanggung jawab.`), and signature block (`Samarinda, {tanggal}`, `Kepala Balai,`, `M. Ari Wibawanto, S.Hut., M.Sc.`, `NIP. 19740514 199903 1 001`).
+  - Configured scaled viewport (`initial-scale=0.42, user-scalable=yes`) so text font size (`11pt`), margins, and alignments do not reflow into narrow columns, maintaining identical web proportions with **pinch-to-zoom** support.
+  - Integrated `PratinjauSuratTugasModal` in `PortalDashboardScreen.tsx` and `SuratTugasListScreen.tsx`, opening the scaled A4 document modal when tapping any item or eye `👁` button.
+- [x] **Mobile Kepegawaian Inbox Surat Cuti & Mobile Portal Pengajuan Cuti Workspace**:
+  - Built `FormulirCutiPrintModal.tsx` rendering the official 8-section BKSDA Formulir Permintaan dan Pemberian Cuti table document using `react-native-webview` with `🖨 Cetak (A4)` print/download action and pinch-to-zoom support.
+  - Built `FormulirCutiModal.tsx` allowing employees to submit new leave applications (`jenis_cuti`, `alasan_cuti`, `tanggal_mulai`, `tanggal_selesai`, `alamat_menjalankan_cuti`, `telepon`) to `POST /api/me/leave-requests`.
+  - Updated `PortalDashboardScreen.tsx` under `cuti` tab to display personal leave requests list, status badges (`PENGAJUAN`, `DISETUJUI`, `DITOLAK`), `+ Ajukan Cuti Baru` button, and A4 print preview.
+  - Created `InboxSuratCutiScreen.tsx` for Kepegawaian module managers to manage employee leave requests (`GET /api/kepegawaian/leave-requests`) with search, filter chips (`Semua`, `Pengajuan`, `Disetujui`, `Ditolak`), quick approval/rejection (`PUT /api/kepegawaian/leave-requests/{id}/status`), and Formulir Cuti A4 preview modal.
+  - Registered `InboxSuratCutiScreen` in `AppTabs.tsx`, `DashboardScreen.tsx`, `FabMenu.tsx`, and `KepegawaianScreen.tsx` with `handleSelectNavTab` routing handler for seamless opening.
+  - Replaced `SafeAreaView` from `react-native` with `react-native-safe-area-context` to eliminate deprecation warning.
+  - Added `useFocusEffect` and immediate state refetching in `InboxSuratCutiScreen.tsx` so leave request state updates instantly without manual app restart.
+  - Refined `FormulirCutiPrintModal.tsx` document layout: removed top right status badge, removed PARAF column in Catatan Cuti (Section V), removed text underlines from signature names, and expanded signature block width to prevent name line-wrapping (`BAMBANG HARI TRIMARSITO, S.Si., M.P.`).
+  - Added `EditCutiModal.tsx` for admin/superadmin to edit leave request details (`PUT /api/kepegawaian/leave-requests/{id}`) and **Hapus** action (`DELETE /api/kepegawaian/leave-requests/{id}`).
+  - Added pagination controls (`Sebelumnya`, `Berikutnya`, `Hal X dari Y`) to `InboxSuratCutiScreen.tsx`.
+  - Achieved 100% exact visual parity between Mobile and Web Formulir Cuti document (`FormulirCutiPrintModal.tsx`): dynamic header city (`Balikpapan`, `Tenggarong`, `Tanjung Redeb`, or `Samarinda`) based on `satuan_kerja`, exact 6-cell table layout in Section IV (`SELAMA | 1 HARI | MULAI TANGGAL | date | S.D | date`), 2-column split table in Section V (`CATATAN CUTI ***`), exact headers in Section VII/VIII (`PERUBAHAN****`, `DITANGGUHKAN****`, `TIDAK DISETUJUI****`), and full footer notes table.
+  - Built custom styled confirmation modal (`ConfirmStatusModal`) in `InboxSuratCutiScreen.tsx` with color-coded status icons for approval, rejection, and status resets.
+  - Enabled status resetting back to `PENGAJUAN` for any approved or rejected request in mobile.
+  - Added distinct top border (`border-top: 1px solid #000000`) between `Alamat` and `TELPON` in Section VI.
+  - Cleared approval check-box cells in Section VII & VIII so checkmarks remain empty for manual entry upon printing.
+  - Dynamically populated checkmarks `✓` in Section V (Catatan Cuti) right-side list table matching selected `jenis_cuti` (Cuti Besar, Cuti Sakit, Cuti Melahirkan, Cuti Karena Alasan Penting, Cuti di Luar Tanggungan Negara) across both Web (`FormulirCutiPrint.tsx`) and Mobile (`FormulirCutiPrintModal.tsx`).
+  - Fixed Section V left box header to `1. CUTI TAHUNAN` and right table item 5 to `5. Cuti Karena Alasan Penting` (checked `✓` strictly only when `Cuti Karena Alasan Penting` is selected).
+
 
 ---
 
@@ -6655,5 +7943,10 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] Frontend `npm run lint` passes successfully with 0 errors/warnings.
 - [x] Frontend `npm run build` generates production builds successfully.
 - [x] Backend tests `php artisan test` passes 36/36 tests successfully.
+- [x] **Phase 195 (develop-bmn Branch & BMN Reports Print Page 2 Margin & Header Number Fix)**:
+  - Restored 100% exact original layout and kop image margins (`margin: 0 -12mm`, `padding: 0 20mm 14mm`) on Page 1.
+  - Added `padding-top: 15mm` to `.usage-signature-block` & `.handover-signature-block` in `UsageAgreementDocument.tsx` and `HandoverAgreementDocument.tsx` so that when closing text and signature blocks spill onto Page 2, Chromium retains a guaranteed 15mm top margin without collapsing it at the page break.
+  - Set `isMultiPageTable = assets.length > 20` so single-page tables (1-20 items, like 16 items) never render the `1, 2, 3, 4, 5, 6, 7, 8, 9` number row on Page 1, while multi-page tables rendering > 20 items display the number row above column headers on Page 2.
+  - Executed `npx ctx7 setup` for Upstash Context7 integration.
 
 

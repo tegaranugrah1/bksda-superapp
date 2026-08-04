@@ -15,6 +15,10 @@ class AssignmentLetterRequest extends FormRequest
     public function rules(): array
     {
         $letterId = $this->route('id');
+        if ($letterId) {
+            $letterId = preg_replace('/^st-/', '', (string) $letterId);
+        }
+        $isDraft = strtolower((string) $this->input('status')) === 'draft';
 
         $rules = [
             'nomor_surat' => [
@@ -24,12 +28,12 @@ class AssignmentLetterRequest extends FormRequest
             ],
             'kode_surat' => 'nullable|string',
             'tanggal_surat' => 'nullable|date',
-            'maksud_tujuan' => 'required|string|min:10',
+            'maksud_tujuan' => $isDraft ? 'nullable|string' : 'required|string|min:5',
             'dasar_hukum' => 'nullable|string',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'tanggal_mulai' => $isDraft ? 'nullable|date' : 'required|date',
+            'tanggal_selesai' => $isDraft ? 'nullable|date' : 'required|date|after_or_equal:tanggal_mulai',
             'tempat_tujuan' => 'nullable|string|max:255',
-            'sumber_dana' => 'required|string',
+            'sumber_dana' => $isDraft ? 'nullable|string' : 'required|string',
             'sumber_dana_other' => 'nullable|string',
             'template_type' => 'nullable|string|max:50',
             'menimbang' => 'nullable|array',
@@ -37,8 +41,8 @@ class AssignmentLetterRequest extends FormRequest
             'tembusan' => 'nullable|array',
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
-            'employees' => 'required|array|min:1',
-            'employees.*.id' => 'required|exists:kpg_employees,id',
+            'employees' => $isDraft ? 'nullable|array' : 'required|array|min:1',
+            'employees.*.id' => 'required_with:employees|exists:kpg_employees,id',
             'employees.*.peran' => 'nullable|string|max:100',
         ];
 

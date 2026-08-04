@@ -127,7 +127,8 @@ export function handlePrintPowerOfAttorney(documentId = "power-of-attorney-print
       <head>
         <title>Surat Kuasa Kendaraan</title>
         <style>
-          @page { size: A4 portrait; margin: 10mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 18mm 0 18mm 0; }
+          @page:first { margin-top: 10mm; }
           * { box-sizing: border-box; }
           body {
             margin: 0;
@@ -207,8 +208,7 @@ export function PowerOfAttorneyDocument({
   return (
     <div id={documentId}>
       <style jsx global>{`
-        .poa-preview .poa-page,
-        .poa-preview .poa-ktp-page {
+        .poa-preview .poa-page {
           width: 210mm;
           max-width: 100%;
           margin: 0 auto;
@@ -218,22 +218,6 @@ export function PowerOfAttorneyDocument({
           font-family: "Bookman Old Style", Georgia, Garamond, serif;
           font-size: 11pt;
           line-height: 1.25;
-        }
-        .poa-preview .poa-ktp-page {
-          margin-top: 8mm;
-          text-align: center;
-        }
-        .poa-preview .poa-stnk-page {
-          width: 297mm;
-          max-width: 100%;
-          margin: 8mm auto 0;
-          padding: 7mm 20mm 14mm;
-          background: white;
-          color: black;
-          font-family: "Bookman Old Style", Georgia, Garamond, serif;
-          font-size: 11pt;
-          line-height: 1.25;
-          text-align: center;
         }
         .poa-preview p { margin: 0; }
         .poa-preview .poa-header { margin: 0 -12mm; text-align: center; }
@@ -266,53 +250,22 @@ export function PowerOfAttorneyDocument({
         .poa-preview .poa-date-line { margin-bottom: 4mm; }
         .poa-preview .poa-date-spacer { margin-bottom: 4mm; }
         .poa-preview .signature-name { margin-top: 30mm; }
-        .poa-preview .poa-ktp-page {
-          page-break-before: always;
-          break-before: page;
-          margin-top: 15mm;
-          text-align: center;
-          border-top: 1px dashed #ccc;
-          padding-top: 10mm;
-        }
-        .poa-preview .poa-ktp-container {
-          display: block;
-          width: 138mm;
-          max-width: 100%;
-          border: 1px dashed #ccc;
-          padding: 4mm;
-          margin: 0 auto;
-          background: white;
-        }
-        .poa-preview .poa-ktp-container img {
-          width: 100%;
-          height: auto;
-          display: block;
-        }
-        .poa-preview .poa-stnk-container {
-          display: block;
-          width: 100%;
-          margin: 0 auto;
-        }
-        .poa-preview .poa-stnk-container img {
-          width: 100%;
-          max-width: 100%;
-          height: auto;
-          display: block;
-          margin: 0 auto;
-        }
+        .poa-preview .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+        .poa-preview .poa-ktp-page { page-break-before: always; break-before: page; margin-top: 10mm; text-align: center; }
+        .poa-preview .poa-ktp-container { display: block; width: 138mm; max-width: 100%; border: 1px dashed #ccc; padding: 4mm; margin: 0 auto; background: white; }
+        .poa-preview .poa-ktp-container img { display: block; width: 100%; height: auto; }
+        .poa-preview .poa-stnk-page { page: landscape-page; margin: 0; text-align: center; }
+        .poa-preview .poa-stnk-page + .poa-stnk-page { page-break-before: always; break-before: page; }
+        .poa-preview .poa-stnk-container { display: block; width: 100%; margin: 0 auto; }
+        .poa-preview .poa-stnk-container img { display: block; width: 100%; max-width: 270mm; max-height: 170mm; height: auto; object-fit: contain; margin: 0 auto; }
         @media print {
-          @page { size: A4 portrait; margin: 10mm 0 18mm 0; }
+          @page { size: A4 portrait; margin: 18mm 0 18mm 0; }
+          @page:first { margin-top: 10mm; }
           @page landscape-page { size: A4 landscape; margin: 10mm; }
           body * { visibility: hidden; }
           #power-of-attorney-print-root, #power-of-attorney-print-root * { visibility: visible; }
           #power-of-attorney-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
-          .poa-page, .poa-ktp-page, .poa-stnk-page { box-shadow: none !important; border: none !important; background: transparent !important; }
-          .avoid-break { break-inside: avoid; page-break-inside: avoid; }
-          .poa-preview .poa-ktp-page {
-            page-break-before: always;
-            break-before: page;
-            margin-top: 10mm;
-          }
+          .poa-page { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; border: none !important; background: transparent !important; }
           .poa-preview .poa-stnk-page {
             page: landscape-page;
             width: 100% !important;

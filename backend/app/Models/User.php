@@ -84,14 +84,17 @@ class User extends Authenticatable
         if (is_null($this->permissions)) {
             if (str_starts_with($permission, 'bmn.')) {
                 if (str_starts_with($permission, 'bmn.auction.')) {
-                    return $permission === 'bmn.auction.view' && in_array('bmn', $this->access_modules ?? []);
+                    if ($permission === 'bmn.auction.view') {
+                        return in_array('bmn', $this->access_modules ?? []);
+                    }
+                    return in_array($this->role, ['admin', 'super_admin']) && in_array('bmn', $this->access_modules ?? []);
                 }
 
                 $isReadPermission = in_array($permission, ['bmn.view', 'bmn.document.history.view']);
                 if ($isReadPermission) {
                     return in_array('bmn', $this->access_modules ?? []);
                 }
-                return $this->role === 'admin' && in_array('bmn', $this->access_modules ?? []);
+                return in_array($this->role, ['admin', 'super_admin']) && in_array('bmn', $this->access_modules ?? []);
             }
 
             if (str_starts_with($permission, 'kepegawaian.')) {

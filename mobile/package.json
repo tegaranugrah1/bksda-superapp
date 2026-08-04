@@ -11,8 +11,11 @@
     "axios": "^1.18.0",
     "expo": "~56.0.12",
     "expo-camera": "~56.0.8",
+    "expo-document-picker": "~56.0.4",
     "expo-file-system": "^56.0.8",
+    "expo-image-picker": "~56.0.22",
     "expo-location": "~56.0.18",
+    "expo-print": "~56.0.4",
     "expo-secure-store": "~56.0.4",
     "expo-sharing": "^56.0.18",
     "expo-status-bar": "~56.0.4",
@@ -21,6 +24,7 @@
     "react-native": "0.85.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "^4.25.2",
+    "react-native-webview": "13.16.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {

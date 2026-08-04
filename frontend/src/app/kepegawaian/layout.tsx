@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, UserPlus, Inbox, FileText, History, Menu, Calendar } from "lucide-react";
+import { Users, UserPlus, Inbox, FileText, History, Menu, Calendar, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
@@ -13,7 +13,8 @@ import { ModuleSwitcher } from "@/components/module-switcher";
 import { RouteGuard } from "@/components/RouteGuard";
 
 const SIDEBAR_ITEMS = [
-  { href: "/kepegawaian", label: "Daftar Pegawai", icon: Users, minRole: "user" as const },
+  { href: "/kepegawaian", label: "Dashboard", icon: LayoutDashboard, minRole: "user" as const },
+  { href: "/kepegawaian/employees", label: "Daftar Pegawai", icon: Users, minRole: "user" as const },
   { href: "/kepegawaian/employees/create", label: "Tambah Pegawai", icon: UserPlus, minRole: "admin" as const },
   { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox, minRole: "admin" as const },
   { href: "/kepegawaian/cuti", label: "Inbox Surat Cuti", icon: Calendar, minRole: "admin" as const },
@@ -82,7 +83,11 @@ export default function KepegawaianLayout({
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {visibleItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href));
+              const isActive = item.href === "/kepegawaian"
+                ? pathname === "/kepegawaian"
+                : item.href === "/kepegawaian/surat-tugas/create"
+                ? pathname === "/kepegawaian/surat-tugas/create" || pathname.startsWith("/kepegawaian/surat-tugas/builder")
+                : pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href + "/"));
               return (
                 <Link
                   key={item.href}

@@ -20,6 +20,16 @@ class CheckPermission
     {
         $user = $request->user();
 
+        if (! $user && $request->filled('token')) {
+            $rawToken = urldecode((string) $request->query('token'));
+            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($rawToken)
+                ?: \Laravel\Sanctum\PersonalAccessToken::findToken((string) $request->query('token'));
+            if ($tokenObj) {
+                $user = $tokenObj->tokenable;
+                $request->setUserResolver(fn () => $user);
+            }
+        }
+
         // 1. EARLY RETURN: Pastikan user terautentikasi
         if (! $user) {
             return response()->json([

@@ -1,28 +1,69 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, Image, Alert, ActivityIndicator, SafeAreaView, TouchableOpacity, TextInput, ScrollView } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StyleSheet, View, Text, Image, ActivityIndicator, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Location from 'expo-location';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { BmnStackParamList } from '../navigation/BmnNavigator';
 import { AppButton } from '@/components/AppButton';
 import { IconButton } from '@/components/IconButton';
 import { getCurrentLocation } from '@/lib/devicePermissions';
 import { apiClient } from '@/lib/api/client';
 import { normalizeError } from '@/lib/api/errors';
+import { NotificationModal } from '@/components/ui/NotificationModal';
 
 export default function BmnPhotoCaptureScreen() {
   const { colors, spacing, radius, typography } = useAppTheme();
   const navigation = useNavigation();
-  const route = useRoute<RouteProp<BmnStackParamList, 'BmnPhotoCapture'>>();
-  const { assetId, type } = route.params;
+  const route = useRoute<any>();
+  const { assetId, type, initialUri } = route.params || {};
 
   const [permission, requestPermission] = useCameraPermissions();
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(initialUri || null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [addressLines, setAddressLines] = useState<string[]>([]);
   const [locationNote, setLocationNote] = useState('');
+  const [captureTime] = useState<string>(() => {
+    const now = new Date();
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const day = now.getDate();
+    const monthStr = months[now.getMonth()];
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    return `${day} ${monthStr} ${year} ${hours}.${mins}.${secs}`;
+  });
   const cameraRef = useRef<any>(null);
+
+  const [notificationState, setNotificationState] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    variant: 'success' | 'danger' | 'warning' | 'info';
+    iconName?: any;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    variant: 'success',
+  });
+
+  const handleNavigateBackToDetail = () => {
+    if (assetId) {
+      (navigation as any).navigate('BmnDetail', { id: assetId });
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  useEffect(() => {
+    if (initialUri) {
+      setPhotoUri(initialUri);
+    }
+  }, [initialUri]);
 
   // Request location permission and get coords on mount
   useEffect(() => {
@@ -35,7 +76,55 @@ export default function BmnPhotoCaptureScreen() {
     fetchLocation();
   }, []);
 
-  if (!permission) {
+  // Reverse geocode coords to full address lines (Matching Timestamp Camera app)
+  useEffect(() => {
+    async function reverseGeocode() {
+      if (!coords) return;
+      try {
+        const results = await Location.reverseGeocodeAsync({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        });
+        if (results && results.length > 0) {
+          const item = results[0];
+          const lines: string[] = [];
+          const street = item.street || item.name;
+          const streetNum = item.streetNumber;
+          if (street) {
+            lines.push(streetNum ? `${streetNum} ${street}` : street);
+          }
+          if (item.district) {
+            lines.push(item.district);
+          }
+          if (item.subregion) {
+            const sub = item.subregion;
+            if (!sub.toLowerCase().startsWith('kecamatan') && !sub.toLowerCase().startsWith('kota') && !sub.toLowerCase().startsWith('kabupaten')) {
+              lines.push(`Kecamatan ${sub}`);
+            } else {
+              lines.push(sub);
+            }
+          }
+          if (item.city) {
+            const city = item.city;
+            if (!city.toLowerCase().startsWith('kota') && !city.toLowerCase().startsWith('kabupaten') && !city.toLowerCase().startsWith('kecamatan')) {
+              lines.push(`Kota ${city}`);
+            } else {
+              lines.push(city);
+            }
+          }
+          if (item.region) {
+            lines.push(item.region);
+          }
+          setAddressLines(lines);
+        }
+      } catch (e) {
+        console.warn('Reverse geocode error:', e);
+      }
+    }
+    reverseGeocode();
+  }, [coords]);
+
+  if (!permission && !photoUri) {
     return (
       <View style={[styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -44,7 +133,7 @@ export default function BmnPhotoCaptureScreen() {
     );
   }
 
-  if (!permission.granted) {
+  if (permission && !permission.granted && !photoUri) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', padding: spacing.lg }]}>
         <View style={styles.centered}>
@@ -56,7 +145,7 @@ export default function BmnPhotoCaptureScreen() {
           </Text>
           <AppButton title="Beri Izin Kamera" onPress={requestPermission} />
           <View style={{ marginTop: spacing.md, width: '100%' }}>
-            <AppButton title="Kembali" variant="ghost" onPress={() => navigation.goBack()} />
+            <AppButton title="Kembali" variant="ghost" onPress={handleNavigateBackToDetail} />
           </View>
         </View>
       </SafeAreaView>
@@ -77,7 +166,13 @@ export default function BmnPhotoCaptureScreen() {
       }
     } catch (error) {
       console.error('Error capturing photo:', error);
-      Alert.alert('Error', 'Gagal mengambil foto dari kamera.');
+      setNotificationState({
+        visible: true,
+        title: 'Gagal Mengambil Foto',
+        message: 'Terjadi kesalahan saat mengambil foto dari kamera.',
+        variant: 'danger',
+        iconName: 'alert-circle-outline',
+      });
     } finally {
       setIsCapturing(false);
     }
@@ -105,7 +200,7 @@ export default function BmnPhotoCaptureScreen() {
         formData.append('longitude', String(coords.longitude));
       }
 
-      if (locationNote.trim()) {
+      if (type === 'depan' && locationNote.trim()) {
         formData.append('location_note', locationNote.trim());
       }
 
@@ -115,17 +210,22 @@ export default function BmnPhotoCaptureScreen() {
         },
       });
 
-      Alert.alert('Sukses', 'Foto fisik dan geotag berhasil diunggah.', [
-        {
-          text: 'OK',
-          onPress: () => {
-            navigation.goBack();
-          },
-        },
-      ]);
+      setNotificationState({
+        visible: true,
+        title: 'Sukses Diunggah',
+        message: 'Foto fisik aset BMN berhasil disimpan dan diperbarui.',
+        variant: 'success',
+        iconName: 'checkmark-circle-outline',
+      });
     } catch (err: any) {
       const apiErr = normalizeError(err);
-      Alert.alert('Gagal Mengunggah', apiErr.message || 'Terjadi kesalahan saat mengunggah foto.');
+      setNotificationState({
+        visible: true,
+        title: 'Gagal Mengunggah',
+        message: apiErr.message || 'Terjadi kesalahan saat mengunggah foto.',
+        variant: 'danger',
+        iconName: 'alert-circle-outline',
+      });
     } finally {
       setIsUploading(false);
     }
@@ -136,11 +236,14 @@ export default function BmnPhotoCaptureScreen() {
     belakang: 'Tampak Belakang',
     kiri: 'Tampak Kiri',
     kanan: 'Tampak Kanan',
+    geotag: 'Foto Geotag',
+    stnk_1: 'Dokumen STNK',
+    bpkb_1: 'Dokumen BPKB',
   };
 
   const titleText = `Ambil Foto ${labelMap[type] || type}`;
 
-  // If photo is already captured, show preview & upload screen
+  // If photo is already captured/selected, show preview & upload screen
   if (photoUri) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -151,13 +254,29 @@ export default function BmnPhotoCaptureScreen() {
             accessibilityLabel="Kembali ke Kamera"
           />
           <Text style={[styles.headerTitle, { color: colors.foreground, fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.lg, fontWeight: typography.fontWeights.bold, marginLeft: spacing.sm }]}>
-            Preview Foto
+            Preview Foto & Geotag
           </Text>
         </View>
 
         <ScrollView contentContainerStyle={{ padding: spacing.lg }} style={{ flex: 1 }}>
-          <View style={[styles.previewCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radius.lg }]}>
-            <Image source={{ uri: photoUri }} style={[styles.previewImage, { borderRadius: radius.md }]} resizeMode="contain" testID="photo-preview-image" />
+          {/* Photo Preview Container with Timestamp Camera Style Watermark Overlay (Matching Screenshot 1) */}
+          <View style={[styles.previewCardContainer, { backgroundColor: '#0f172a', borderRadius: radius.lg, overflow: 'hidden', minHeight: 320 }]}>
+            <Image source={{ uri: photoUri }} style={styles.previewImageFill} resizeMode="contain" testID="photo-preview-image" />
+
+            {/* Timestamp & Geocoded Address Watermark Overlay anchored at bottom-right */}
+            <View style={styles.timestampWatermarkBoxRight}>
+              <Text style={styles.timestampWatermarkText}>{captureTime}</Text>
+              {coords ? (
+                <Text style={styles.timestampWatermarkText}>
+                  Lat: {coords.latitude.toFixed(6)} Long: {coords.longitude.toFixed(6)}
+                </Text>
+              ) : null}
+              {addressLines.map((line, idx) => (
+                <Text key={idx} style={styles.timestampWatermarkText}>
+                  {line}
+                </Text>
+              ))}
+            </View>
           </View>
 
           {coords ? (
@@ -183,61 +302,96 @@ export default function BmnPhotoCaptureScreen() {
             </View>
           )}
 
-          <Text style={{ marginTop: spacing.md, color: colors.foreground, fontWeight: 'bold', fontSize: typography.fontSizes.sm, marginBottom: spacing.xs }}>
-            Catatan Lokasi (Optional)
-          </Text>
-          <TextInput
-            placeholder="Masukkan keterangan detail lokasi pengambilan..."
-            placeholderTextColor={colors.mutedForeground}
-            value={locationNote}
-            onChangeText={setLocationNote}
-            style={[styles.input, { borderColor: colors.border, borderRadius: radius.md, color: colors.foreground, backgroundColor: colors.card, padding: spacing.md }]}
-            multiline
-            numberOfLines={3}
-            testID="location-note-input"
-          />
+          {/* Optional Location Note Input ONLY for Tampak Depan */}
+          {type === 'depan' && (
+            <>
+              <Text style={{ marginTop: spacing.md, color: colors.foreground, fontWeight: 'bold', fontSize: typography.fontSizes.sm, marginBottom: spacing.xs }}>
+                Catatan Lokasi (Optional)
+              </Text>
+              <TextInput
+                placeholder="Masukkan keterangan detail lokasi pengambilan..."
+                placeholderTextColor={colors.mutedForeground}
+                value={locationNote}
+                onChangeText={setLocationNote}
+                style={[styles.input, { borderColor: colors.border, borderRadius: radius.md, color: colors.foreground, backgroundColor: colors.card, padding: spacing.md }]}
+                multiline
+                numberOfLines={3}
+                testID="location-note-input"
+              />
+            </>
+          )}
 
           <View style={{ marginTop: spacing.lg, gap: spacing.md }}>
             <AppButton title="Simpan & Upload" onPress={handleUpload} loading={isUploading} disabled={isUploading} />
             <AppButton title="Ambil Ulang" variant="secondary" onPress={() => setPhotoUri(null)} disabled={isUploading} />
           </View>
         </ScrollView>
+
+        <NotificationModal
+          visible={notificationState.visible}
+          title={notificationState.title}
+          message={notificationState.message}
+          variant={notificationState.variant}
+          iconName={notificationState.iconName}
+          buttonText="OK"
+          onClose={() => {
+            setNotificationState((prev) => ({ ...prev, visible: false }));
+            if (notificationState.variant === 'success') {
+              handleNavigateBackToDetail();
+            }
+          }}
+        />
       </SafeAreaView>
     );
   }
 
   return (
     <View style={[styles.container, { backgroundColor: '#000000' }]}>
-      <CameraView style={StyleSheet.absoluteFill} ref={cameraRef} facing="back">
-        <SafeAreaView style={styles.cameraOverlay}>
-          {/* Top Header */}
-          <View style={styles.cameraHeader}>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} accessibilityLabel="Batal">
-              <Text style={{ color: '#ffffff', fontSize: 18 }}>✕</Text>
-            </TouchableOpacity>
-            <Text style={[styles.cameraTitle, { fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.md }]}>
-              {titleText}
-            </Text>
-            <View style={{ width: 40 }} />
-          </View>
+      <CameraView style={StyleSheet.absoluteFill} ref={cameraRef} facing="back" />
 
-          {/* Shutter Button */}
-          <View style={styles.shutterContainer}>
-            {isCapturing ? (
-              <ActivityIndicator size="large" color="#ffffff" />
-            ) : (
-              <TouchableOpacity
-                style={styles.shutterBtn}
-                onPress={handleCapture}
-                accessibilityLabel="Ambil Foto"
-                testID="shutter-button"
-              >
-                <View style={styles.shutterInner} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </SafeAreaView>
-      </CameraView>
+      <SafeAreaView style={styles.cameraOverlay} pointerEvents="box-none">
+        {/* Top Header */}
+        <View style={styles.cameraHeader}>
+          <TouchableOpacity style={styles.closeBtn} onPress={handleNavigateBackToDetail} accessibilityLabel="Batal">
+            <Text style={{ color: '#ffffff', fontSize: 18 }}>✕</Text>
+          </TouchableOpacity>
+          <Text style={[styles.cameraTitle, { fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.md }]}>
+            {titleText}
+          </Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        {/* Shutter Button */}
+        <View style={styles.shutterContainer}>
+          {isCapturing ? (
+            <ActivityIndicator size="large" color="#ffffff" />
+          ) : (
+            <TouchableOpacity
+              style={styles.shutterBtn}
+              onPress={handleCapture}
+              accessibilityLabel="Ambil Foto"
+              testID="shutter-button"
+            >
+              <View style={styles.shutterInner} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
+
+      <NotificationModal
+        visible={notificationState.visible}
+        title={notificationState.title}
+        message={notificationState.message}
+        variant={notificationState.variant}
+        iconName={notificationState.iconName}
+        buttonText="OK"
+        onClose={() => {
+          setNotificationState((prev) => ({ ...prev, visible: false }));
+          if (notificationState.variant === 'success') {
+            handleNavigateBackToDetail();
+          }
+        }}
+      />
     </View>
   );
 }
@@ -266,16 +420,33 @@ const styles = StyleSheet.create({
   headerTitle: {
     letterSpacing: -0.5,
   },
-  previewCard: {
-    borderWidth: 1,
-    height: 250,
-    overflow: 'hidden',
+  previewCardContainer: {
+    width: '100%',
+    height: 320,
+    position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  previewImage: {
+  previewImageFill: {
     width: '100%',
     height: '100%',
+  },
+  timestampWatermarkBoxRight: {
+    position: 'absolute',
+    bottom: 14,
+    right: 14,
+    alignItems: 'flex-end',
+    maxWidth: '85%',
+  },
+  timestampWatermarkText: {
+    color: '#ffffff',
+    fontSize: 12.5,
+    fontWeight: '700',
+    textAlign: 'right',
+    textShadowColor: 'rgba(0, 0, 0, 0.95)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+    lineHeight: 17,
   },
   geotagCard: {
     width: '100%',

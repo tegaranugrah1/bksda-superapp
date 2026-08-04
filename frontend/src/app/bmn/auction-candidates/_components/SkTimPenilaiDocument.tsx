@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { formatDateLong } from "../_lib/auction-helpers";
+import { formatDateLong, parseDocDate } from "../_lib/auction-helpers";
 import { runSkPagination } from "../_lib/sk-print";
 import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 import type {
@@ -12,6 +12,7 @@ import type {
 interface SkTimPenilaiDocumentProps {
   skNumber: string;
   skKap: string;
+  date?: string;
   menimbang: SkBuilderItem[];
   mengingat: SkBuilderItem[];
   memutuskan: SkTimPenilaiMemutuskan;
@@ -155,7 +156,7 @@ export function handlePrintSkTimPenilai() {
           .sktp-ttd-meta span { font-weight: normal !important; text-align: left !important; }
           .sktp-keempat-group { break-inside: avoid !important; page-break-inside: avoid !important; }
           .sktp-signature-name { font-weight: normal !important; }
-          .sktp-ttd-placeholder { height: 86px; padding-top: 28px; padding-left: 1.35cm; color: #94a3b8; font-weight: normal !important; text-align: left !important; margin-top: 0.75rem; margin-bottom: 0.75rem; }
+          .sktp-ttd-placeholder { height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
           .sktp-continuation-word { position: absolute; right: 23mm; bottom: 31mm; width: 163mm; height: 0; line-height: 11pt; overflow: visible; white-space: nowrap; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 20; }
           .sktp-tembusan { margin-top: 1rem; }
           .sktp-tembusan, .sktp-tembusan p { font-weight: normal !important; text-align: left !important; }
@@ -208,6 +209,7 @@ export function handlePrintSkTimPenilai() {
 export function SkTimPenilaiDocument({
   skNumber,
   skKap,
+  date,
   menimbang,
   mengingat,
   memutuskan,
@@ -215,9 +217,9 @@ export function SkTimPenilaiDocument({
   tembusan,
   susunanTimPenilai,
 }: SkTimPenilaiDocumentProps) {
-  const today = new Date();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
+  const docDate = parseDocDate(date);
+  const month = String(docDate.getMonth() + 1).padStart(2, "0");
+  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.06.01"}/B/${month}/${docDate.getFullYear()}`;
   const mengingatTexts = mengingat.map((m) => m.text);
 
   const pageStyle: React.CSSProperties = {
@@ -317,14 +319,16 @@ export function SkTimPenilaiDocument({
         .sktp-print-root .sktp-signature-name { font-weight: normal !important; }
         .sktp-print-root .sktp-ttd-placeholder {
           box-sizing: border-box;
-          height: 86px;
-          padding-top: 28px;
-          padding-left: 1.35cm;
+          height: 84px;
           color: #94a3b8;
           font-weight: normal !important;
           text-align: left !important;
-          margin-top: 0.75rem;
-          margin-bottom: 0.75rem;
+          display: flex !important;
+          align-items: center !important;
+          padding-top: 0px !important;
+          padding-left: 1.1cm !important;
+          margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
         }
         .sktp-print-root .sktp-tembusan { margin-top: 1rem; }
         .sktp-print-root .sktp-tembusan p { line-height: 1.3; }
@@ -483,11 +487,11 @@ export function SkTimPenilaiDocument({
                 <span>Samarinda</span>
                 <span>Pada tanggal</span>
                 <span>:</span>
-                <span>{formatDateLong(today)}</span>
+                <span>{formatDateLong(docDate)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
-              <div className="sktp-ttd-placeholder mt-3 h-20 box-border pt-7 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-              <p className="sktp-signature-name m-0 mt-4">{kepalaBalai.nama}</p>
+              <div className="sktp-ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+              <p className="sktp-signature-name m-0 mt-2">{kepalaBalai.nama}</p>
               <p className="m-0">NIP. {kepalaBalai.nip}</p>
             </div>
 
@@ -523,7 +527,7 @@ export function SkTimPenilaiDocument({
               <span>Nomor</span><span>:</span><span>{skNumberText}</span>
             </div>
             <div className="meta-row grid grid-cols-[24mm_5mm_minmax(0,1fr)]">
-              <span>Tanggal</span><span>:</span><span>{formatDateLong(today)}</span>
+              <span>Tanggal</span><span>:</span><span>{formatDateLong(docDate)}</span>
             </div>
           </div>
 
@@ -561,8 +565,8 @@ export function SkTimPenilaiDocument({
           {/* TTD */}
           <div className="sktp-ttd signature mt-16 ml-auto w-80">
             <p className="m-0">Kepala Balai,</p>
-            <div className="sktp-ttd-placeholder mt-4 h-24 box-border pt-10 pl-[1.35cm] text-zinc-400">${"{ttd_pengirim}"}</div>
-            <p className="sktp-signature-name m-0 mt-4">{kepalaBalai.nama}</p>
+            <div className="sktp-ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+            <p className="sktp-signature-name m-0 mt-2">{kepalaBalai.nama}</p>
             <p className="m-0">NIP. {kepalaBalai.nip}</p>
           </div>
         </div>

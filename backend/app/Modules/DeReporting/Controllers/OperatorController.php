@@ -26,8 +26,8 @@ class OperatorController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('name', 'ilike', "%{$search}%")
-                ->orWhere('username', 'ilike', "%{$search}%");
+            $query->where('name', 'LIKE', "%{$search}%")
+                ->orWhere('username', 'LIKE', "%{$search}%");
         }
 
         // Project Rule 3.1: Wajib Paging

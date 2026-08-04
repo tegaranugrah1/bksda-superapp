@@ -12,6 +12,7 @@ use App\Modules\Bmn\Requests\CreateAuctionBatchRequest;
 use App\Modules\Bmn\Requests\AddAuctionAssetsRequest;
 use App\Modules\Bmn\Requests\UpdateAuctionAssetOrderRequest;
 use App\Modules\Bmn\Requests\UpdateAuctionValuationRequest;
+use App\Modules\Bmn\Requests\UpdateAuctionBatchDraftMetadataRequest;
 use App\Modules\Bmn\Requests\TransitionAuctionBatchRequest;
 use App\Modules\Bmn\Requests\FirstAuctionResultsRequest;
 use App\Modules\Bmn\Requests\ReauctionResultsRequest;
@@ -20,6 +21,7 @@ use App\Modules\Bmn\Resources\AuctionBatchResource;
 use App\Modules\Bmn\Resources\AuctionBatchAssetResource;
 use App\Modules\Bmn\Resources\AuctionBatchEventResource;
 use App\Modules\Bmn\Resources\AuctionCandidateAssetResource;
+use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +41,9 @@ class AuctionBatchController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AuctionBatch::query()->withCount('assets');
+        $query = AuctionBatch::query()->withCount(['assets' => function ($q) {
+            $q->withTrashed();
+        }]);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -47,8 +51,8 @@ class AuctionBatchController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('batch_number', 'ilike', "%{$search}%");
+            $query->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('batch_number', 'LIKE', "%{$search}%");
         }
 
         $query->latest();
@@ -80,7 +84,7 @@ class AuctionBatchController extends Controller
     public function show(string $id): AuctionBatchResource
     {
         $batch = AuctionBatch::with(['assets' => function ($q) {
-            $q->orderBy('bmn_asset_auction_batch.sort_order');
+            $q->withTrashed()->orderBy('bmn_asset_auction_batch.sort_order');
         }])->findOrFail($id);
 
         return new AuctionBatchResource($batch);
@@ -198,6 +202,20 @@ class AuctionBatchController extends Controller
     }
 
     /**
+     * Update draft metadata without transitioning status.
+     *
+     * @param string $id
+     * @param UpdateAuctionBatchDraftMetadataRequest $request
+     * @return AuctionBatchResource
+     */
+    public function updateDraftMetadata(string $id, UpdateAuctionBatchDraftMetadataRequest $request): AuctionBatchResource
+    {
+        $batch = $this->service->updateDraftMetadata($id, $request->validated(), Auth::id());
+
+        return new AuctionBatchResource($batch);
+    }
+
+    /**
      * Transition batch status (Task 35).
      *
      * @param string $id
@@ -278,13 +296,16 @@ class AuctionBatchController extends Controller
         $batch = AuctionBatch::with(['assets' => function ($q) {
             $q->orderBy('bmn_asset_auction_batch.sort_order');
         }])->findOrFail($id);
+        $metadata = is_array($batch->metadata) ? $batch->metadata : [];
+        $metadata = $this->hydrateDraftDocumentMetadata($metadata, $batch);
 
         $context = [
-            'metadata_schema_version' => $batch->metadata['schema_version'] ?? 1,
+            'metadata_schema_version' => $metadata['schema_version'] ?? 1,
             'batch_id' => $batch->id,
             'batch_number' => $batch->batch_number,
             'name' => $batch->name,
             'status' => $batch->status instanceof AuctionBatchStatus ? $batch->status->value : $batch->status,
+            'kepala_balai_id' => $batch->kepala_balai_id,
             'no_surat_persetujuan' => $batch->no_surat_persetujuan,
             'tanggal_surat_persetujuan' => $batch->tanggal_surat_persetujuan ? $batch->tanggal_surat_persetujuan->toDateString() : null,
             'no_surat_penetapan' => $batch->no_surat_penetapan,
@@ -292,13 +313,97 @@ class AuctionBatchController extends Controller
             'no_surat_jadwal_ulang' => $batch->no_surat_jadwal_ulang,
             'tanggal_lelang_ulang' => $batch->tanggal_lelang_ulang ? $batch->tanggal_lelang_ulang->toDateString() : null,
             'reauction_count' => $batch->reauction_count,
-            'metadata' => $batch->metadata,
+            'metadata' => $metadata,
             'assets' => AuctionBatchAssetResource::collection($batch->assets),
         ];
 
         return response()->json([
             'data' => $context,
         ]);
+    }
+
+    /**
+     * Draft metadata stores selected employee ids, while frozen printable
+     * metadata is only built when the batch is locked. Hydrate the printable
+     * shape here so draft previews still show signatures and committees.
+     *
+     * @param array<string, mixed> $metadata
+     * @return array<string, mixed>
+     */
+    private function hydrateDraftDocumentMetadata(array $metadata, AuctionBatch $batch): array
+    {
+        if (!$batch->isDraft()) {
+            return $metadata;
+        }
+
+        $signatories = isset($metadata['signatories']) && is_array($metadata['signatories'])
+            ? $metadata['signatories']
+            : [];
+
+        if (empty($signatories['kepala_balai']) && $batch->kepala_balai_id) {
+            $signatories['kepala_balai'] = $this->mapEmployee(Employee::find($batch->kepala_balai_id));
+        }
+
+        if (!empty($signatories)) {
+            $metadata['signatories'] = $signatories;
+        }
+
+        $raw = isset($metadata['signatories_raw']) && is_array($metadata['signatories_raw'])
+            ? $metadata['signatories_raw']
+            : [];
+
+        if (!empty($raw)) {
+            $metadata['committees'] = array_replace($metadata['committees'] ?? [], [
+                'panitia_penghapusan' => $this->mapEmployeesByIds($raw['panitia'] ?? []),
+                'tim_penilai' => $this->mapEmployeesByIds($raw['tim_penilai'] ?? []),
+                'pemeriksa' => $this->mapEmployeesByIds($raw['pemeriksa'] ?? []),
+            ]);
+        }
+
+        return $metadata;
+    }
+
+    /**
+     * @param array<int, mixed> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapEmployeesByIds(array $ids): array
+    {
+        $ids = array_values(array_filter($ids, fn($id) => $id !== null && $id !== ''));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $employees = Employee::whereIn('id', $ids)
+            ->get()
+            ->keyBy(fn(Employee $employee) => (string) $employee->id);
+
+        return collect($ids)
+            ->map(fn($id) => $this->mapEmployee($employees->get((string) $id)))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function mapEmployee(?Employee $employee): ?array
+    {
+        if (!$employee) {
+            return null;
+        }
+
+        return [
+            'id' => $employee->id,
+            'nama' => $employee->nama_lengkap,
+            'nip' => $employee->nip,
+            'golongan' => $employee->pangkat_golongan,
+            'jabatan' => $employee->jabatan,
+            'unit_kerja' => $employee->satuan_kerja,
+            'source' => 'employees',
+        ];
     }
 
     /**

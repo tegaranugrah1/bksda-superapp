@@ -97,8 +97,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       <head>
         <title>Surat Tugas - ${data.nomor_surat || 'Draft'}</title>
         <style>
-          @page { size: A4 portrait; margin: 10mm 15mm; }
-          body { margin: 0; padding: 0; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
+          @page { size: A4 portrait; margin: 0; }
+          html, body { margin: 0; padding: 0; background: #ffffff; }
+          body { padding: 4mm 20mm 15mm 20mm; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
           img { max-width: 100%; height: auto; }
           table { border-collapse: collapse; width: 100%; table-layout: fixed; }
         </style>
@@ -115,7 +116,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
 
   const menimbangItems = parseItems(data.menimbang);
   const dasarItems = parseItems(data.dasar);
-  const tembusanItems = data.tembusan || [];
+  const tembusanItems = (data.tembusan || [])
+    .map((t: any) => (typeof t === 'string' ? t.trim() : (t?.text || '').trim()))
+    .filter(Boolean);
 
   const employees: Employee[] = data.employees || [];
 
@@ -368,7 +371,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                 <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
                 <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                   <tbody>
-                    {tembusanItems.filter(t => typeof t === "string" && t.trim()).map((item, idx) => (
+                    {tembusanItems.map((item, idx) => (
                       <tr key={idx}>
                         <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
                         <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>

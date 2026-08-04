@@ -1,5 +1,6 @@
 "use client";
 
+import { parseDocDate } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 import { buildPernyataanNomor, printPernyataan } from "../_lib/print-pernyataan";
 import { PernyataanDocument, PernyataanIdentity } from "./PernyataanDocument";
@@ -7,6 +8,7 @@ import { PernyataanDocument, PernyataanIdentity } from "./PernyataanDocument";
 interface SpTugasDocumentProps {
   number: string;
   kap: string;
+  date?: string;
   kepalaBalai: SkKepalaBalai;
 }
 
@@ -20,16 +22,16 @@ export function handlePrintSpTugas() {
   });
 }
 
-export function SpTugasDocument({ number, kap, kepalaBalai }: SpTugasDocumentProps) {
-  const today = new Date();
-  const nomorText = buildPernyataanNomor("SM", number, kap, today);
+export function SpTugasDocument({ number, kap, date, kepalaBalai }: SpTugasDocumentProps) {
+  const docDate = parseDocDate(date);
+  const nomorText = buildPernyataanNomor("SM", number, kap, docDate);
 
   return (
     <PernyataanDocument
       rootId={ROOT_ID}
       title="SURAT PERNYATAAN"
       nomorText={nomorText}
-      today={today}
+      today={docDate}
       kepalaBalai={kepalaBalai}
     >
       <p contentEditable suppressContentEditableWarning className="doc-editable">

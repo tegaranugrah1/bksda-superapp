@@ -11,6 +11,7 @@ interface EditableItemListSectionProps {
   onChange: (items: DasarItem[]) => void;
   /** Penanda penomoran: huruf (a, b, c) untuk Menimbang, angka (1, 2, 3) untuk Dasar. */
   marker: "letter" | "number";
+  disabled?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ export function EditableItemListSection({
   items,
   onChange,
   marker,
+  disabled = false,
 }: EditableItemListSectionProps) {
   const addItem = () =>
     onChange([...items, { id: Math.random().toString(), text: "" }]);
@@ -38,12 +40,14 @@ export function EditableItemListSection({
     <FormSection
       title={title}
       action={
-        <button
-          onClick={addItem}
-          className="text-[10px] text-blue-600 font-bold uppercase"
-        >
-          <Plus className="w-3 h-3" /> Tambah
-        </button>
+        !disabled ? (
+          <button
+            onClick={addItem}
+            className="text-[10px] text-blue-600 font-bold uppercase"
+          >
+            <Plus className="w-3 h-3" /> Tambah
+          </button>
+        ) : undefined
       }
     >
       <div className="space-y-3">
@@ -54,15 +58,18 @@ export function EditableItemListSection({
             </span>
             <textarea
               value={item.text}
+              disabled={disabled}
               onChange={(e) => updateItem(idx, e.target.value)}
-              className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white"
+              className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
             />
-            <button
-              onClick={() => removeItem(item.id)}
-              className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            {!disabled && (
+              <button
+                onClick={() => removeItem(item.id)}
+                className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         ))}
       </div>

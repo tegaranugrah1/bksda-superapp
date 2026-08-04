@@ -24,13 +24,13 @@ return new class extends Migration
             $table->date('tanggal_lelang_ulang')->nullable();
             $table->text('reauction_notes')->nullable();
 
-            $table->uuid('kepala_balai_id')->nullable();
+            $table->unsignedBigInteger('kepala_balai_id')->nullable();
             $table->jsonb('metadata')->nullable();
 
             $table->timestamp('realized_at')->nullable();
             $table->timestamp('canceled_at')->nullable();
-            $table->uuid('created_by')->nullable();
-            $table->uuid('updated_by')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

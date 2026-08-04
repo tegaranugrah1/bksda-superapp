@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { 
   Inbox, Search, Filter, RefreshCw, 
   FileText, Download, User as UserIcon, AlertCircle, Users, Trash2, Undo2,
-  MapPin, Calendar, Briefcase, Hash, History
+  MapPin, Calendar, Briefcase, Hash, History, Eye
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,9 @@ import { cn } from '@/lib/utils';
 import api from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateIndonesian } from "@/lib/letter-utils";
-import { getStatusStyle, getStatusLabel } from "./_lib/status-helpers";
+import { getStatusStyle, getStatusLabel, getResolvedTempatTujuan } from "./_lib/status-helpers";
 import type { AssignmentLetter, InboxEmployee } from "./_lib/types";
+import { ConfirmActionModal } from "./_components/ConfirmActionModal";
 
 export default function SuratTugasInbox() {
     const [selectedLetter, setSelectedLetter] = useState<AssignmentLetter | null>(null);
@@ -50,10 +51,21 @@ export default function SuratTugasInbox() {
             return resp.data.data as AssignmentLetter[];
         },
         staleTime: 0,
+        refetchInterval: 3000,
         refetchOnWindowFocus: true,
     });
 
     const letters: AssignmentLetter[] = React.useMemo(() => data || [], [data]);
+
+    // Keep selectedLetter in sync with fresh data from query polling
+    React.useEffect(() => {
+        if (selectedLetter && letters.length > 0) {
+            const updated = letters.find(l => l.id === selectedLetter.id);
+            if (updated && (updated.nomor_surat !== selectedLetter.nomor_surat || updated.status !== selectedLetter.status || updated.maksud_tujuan !== selectedLetter.maksud_tujuan)) {
+                setSelectedLetter(updated);
+            }
+        }
+    }, [letters, selectedLetter]);
 
     const findExistingPlhDraft = React.useCallback(
         (parentLetter: AssignmentLetter) => {
@@ -353,7 +365,7 @@ export default function SuratTugasInbox() {
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <MapPin className="w-3 h-3 text-slate-400" />
-                                                <span className="truncate max-w-[80px]">{l.tempat_tujuan?.split(',')[0] || '-'}</span>
+                                                <span className="truncate max-w-[80px]">{getResolvedTempatTujuan(l).split(',')[0]}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -422,7 +434,7 @@ export default function SuratTugasInbox() {
                                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Lokasi</span>
                                             <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
                                                 <MapPin className="w-3.5 h-3.5 text-blue-500" />
-                                                {selectedLetter.tempat_tujuan || "-"}
+                                                {getResolvedTempatTujuan(selectedLetter)}
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800/50 space-y-1">
@@ -577,6 +589,14 @@ export default function SuratTugasInbox() {
                                                         <span className="text-[10px] font-black tracking-[0.2em] opacity-80 uppercase leading-none">Otorisasi ST</span>
                                                         <span className="text-sm font-black tracking-tight leading-none mt-1 uppercase">Proses Sekarang</span>
                                                     </Button>
+                                                ) : ['diterbitkan', 'approved', 'completed', 'published'].includes((selectedLetter.status || "").toLowerCase()) ? (
+                                                    <Button 
+                                                        onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${selectedLetter.id}`)}
+                                                        className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs tracking-widest shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        LIHAT SURAT TUGAS
+                                                    </Button>
                                                 ) : (
                                                     <Button 
                                                         onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${selectedLetter.id}`)}
@@ -624,49 +644,14 @@ export default function SuratTugasInbox() {
             </div>
 
             {/* Confirm Modal */}
-            {confirmModal.open && (
-                <div className="fixed inset-0 z-100 flex items-center justify-center p-6">
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setConfirmModal({ ...confirmModal, open: false })} />
-                    <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-10 shadow-2xl border border-slate-100 dark:border-zinc-800 w-full max-w-sm relative z-10 animate-in zoom-in-95 duration-300">
-                        <div className={cn(
-                            "w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-xl",
-                            confirmModal.variant === 'danger' ? "bg-red-50 dark:bg-red-500/10 text-red-600 shadow-red-500/10" :
-                            confirmModal.variant === 'success' ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10" :
-                            "bg-amber-50 dark:bg-amber-500/10 text-amber-600 shadow-amber-500/10"
-                        )}>
-                            {confirmModal.variant === 'danger' ? <Trash2 className="w-8 h-8" /> :
-                             confirmModal.variant === 'success' ? <Undo2 className="w-8 h-8" /> :
-                             <AlertCircle className="w-8 h-8" />}
-                        </div>
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white text-center mb-2 tracking-tight">{confirmModal.title}</h3>
-                        <p className="text-slate-500 dark:text-zinc-400 text-center text-[11px] font-bold leading-relaxed mb-10">
-                            {confirmModal.message}
-                        </p>
-                        <div className="flex gap-3">
-                            <button 
-                                onClick={() => setConfirmModal({ ...confirmModal, open: false })}
-                                className="flex-1 py-3.5 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 font-black text-[10px] tracking-widest uppercase hover:bg-slate-200 dark:hover:bg-zinc-700 transition-all"
-                            >
-                                Batal
-                            </button>
-                            <button 
-                                onClick={async () => {
-                                    await confirmModal.action();
-                                    setConfirmModal({ ...confirmModal, open: false });
-                                }}
-                                className={cn(
-                                    "flex-1 py-3.5 rounded-xl text-white font-black text-[10px] tracking-widest uppercase shadow-xl transition-all active:scale-95",
-                                    confirmModal.variant === 'danger' ? "bg-red-600 shadow-red-500/30" :
-                                    confirmModal.variant === 'success' ? "bg-emerald-600 shadow-emerald-500/30" :
-                                    "bg-blue-600 shadow-blue-500/30"
-                                )}
-                            >
-                                Ya
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmActionModal
+                open={confirmModal.open}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                variant={confirmModal.variant}
+                action={confirmModal.action}
+                onClose={() => setConfirmModal({ ...confirmModal, open: false })}
+            />
 
             <style jsx global>{`
                 .custom-scrollbar::-webkit-scrollbar {

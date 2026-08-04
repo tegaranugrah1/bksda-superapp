@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, FlatList, SafeAreaView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, FlatList, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
 import { useAssets } from '../useAssets';

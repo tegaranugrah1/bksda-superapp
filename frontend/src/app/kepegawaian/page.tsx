@@ -1,171 +1,206 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, UserCog, Trash2, Users, Inbox } from "lucide-react";
+import { Users, FileText, Calendar, CheckCircle2, Shield } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { EmployeeAccessSheet } from "./_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
+import {
+  RecentActivitiesFeedCard,
+  SatkerDistributionCard,
+} from "./_components/KepegawaianDashboardComponents";
 
-interface Employee {
-  id: string;
-  nip: string;
-  nama_lengkap: string;
-  jabatan: string | null;
-  satuan_kerja: string | null;
-  is_active: boolean;
+interface KepegawaianDashboardStats {
+  total_employees: number;
+  active_employees: number;
+  active_rate: string;
+  active_surat_tugas: number;
+  pending_cuti: number;
+  satker_breakdown: Array<{
+    name: string;
+    count: number;
+    percentage: number;
+    gradient: string;
+    dot: string;
+  }>;
+  recent_activities: Array<{
+    id: string;
+    title: string;
+    tempat_tujuan: string;
+    status: string;
+    tanggal_surat: string;
+  }>;
 }
 
-interface ApiResponse {
-  data: Employee[];
-  meta: {
-    current_page: number;
-    last_page: number;
-    total: number;
-  };
-}
+const DEFAULT_SATKER_BREAKDOWN = [
+  { name: "Kantor Balai (Samarinda)", count: 0, percentage: 0, gradient: "from-blue-600 to-indigo-600", dot: "bg-blue-500" },
+  { name: "Seksi KSDA Wilayah I Berau", count: 0, percentage: 0, gradient: "from-sky-500 to-cyan-500", dot: "bg-sky-400" },
+  { name: "Seksi KSDA Wilayah II Tenggarong", count: 0, percentage: 0, gradient: "from-emerald-500 to-teal-500", dot: "bg-emerald-400" },
+  { name: "Seksi KSDA Wilayah III Balikpapan", count: 0, percentage: 0, gradient: "from-amber-500 to-orange-500", dot: "bg-amber-400" },
+];
 
-export default function EmployeeListPage() {
-  const { canWrite, canManageAccess } = useRole();
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; nip: string; nama_lengkap: string } | null>(null);
-  const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+export default function KepegawaianDashboardPage() {
+  const { canWrite } = useRole();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-      setPage(1);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['employees', page, debouncedSearch],
+  // Fetch real-time dashboard stats from backend DB
+  const { data: statsResponse } = useQuery({
+    queryKey: ["kepegawaian-dashboard-stats"],
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse>(`/kepegawaian/employees`, {
-        params: { page, search: debouncedSearch }
-      });
-      return data;
+      const { data } = await api.get<{ data: KepegawaianDashboardStats }>("/kepegawaian/dashboard-stats");
+      return data.data;
     },
-    staleTime: 30000,
+    staleTime: 15000,
   });
 
-  return (
-    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-                <Users className="w-5 h-5" />
-            </div>
-            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">Kepegawaian & SDM</h2>
-          </div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Daftar Pegawai</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">Kelola informasi personil dan hak akses sistem.</p>
-        </div>
+  const totalEmployees = statsResponse?.total_employees ?? 0;
+  const activeStCount = statsResponse?.active_surat_tugas ?? 0;
+  const pendingCutiCount = statsResponse?.pending_cuti ?? 0;
+  const activeRate = statsResponse?.active_rate ?? "100%";
+  const satkerBreakdown = statsResponse?.satker_breakdown ?? DEFAULT_SATKER_BREAKDOWN;
+  const stList = statsResponse?.recent_activities ?? [];
 
-        <div className="flex items-center gap-3">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Cari NIP / Nama..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all md:w-65 shadow-sm"
-            />
+  return (
+    <div className="w-full p-4 md:p-6 space-y-5 text-zinc-900 dark:text-zinc-100 font-sans">
+      {/* 1. Ultra-Aesthetic Mesh Gradient Header Banner */}
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-950 p-5 md:px-7 md:py-5 border border-white/10 shadow-2xl">
+        {/* Glowing Mesh Gradients */}
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-96 h-96 bg-linear-to-br from-blue-600/40 via-indigo-600/30 to-purple-600/0 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-10 w-72 h-72 bg-linear-to-tr from-emerald-500/20 via-cyan-500/20 to-transparent rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 backdrop-blur-md">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-300">
+                SDM & KEPEGAWAIAN BALAI KSDA KALIMANTAN TIMUR
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+                Dashboard Kepegawaian
+              </h1>
+              <span className="hidden lg:inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                <Shield className="w-3 h-3" /> Live System
+              </span>
+            </div>
+
+            <p className="text-slate-300 text-xs max-w-2xl leading-relaxed hidden md:block">
+              Pusat monitoring dan pengelolaan terpadu personil SDM, penerbitan Surat Tugas, serta permohonan Cuti pegawai secara otomatis.
+            </p>
           </div>
-          <Link href="/kepegawaian/cuti">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-2xl text-sm font-bold transition-all shadow-sm border border-blue-200/50">
-              <Inbox className="w-4 h-4" />
-              <span>Inbox Surat Cuti</span>
-            </button>
-          </Link>
-          {canWrite && (
-            <Link href="/kepegawaian/employees/create">
-              <button className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl">
-                <Plus className="w-4 h-4" />
-                <span>Tambah Pegawai</span>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Link href="/kepegawaian/employees">
+              <button className="group flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 font-bold text-xs rounded-xl transition-all shadow-lg hover:shadow-blue-500/10 active:scale-95">
+                <Users className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                <span>Daftar Pegawai</span>
               </button>
             </Link>
-          )}
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
-              <tr>
-                <th className="px-6 py-4">Profil Pegawai</th>
-                <th className="px-6 py-4">NIP</th>
-                <th className="px-6 py-4">Jabatan</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-              {isLoading ? (
-                [...Array(5)].map((_, i) => (
-                  <tr key={i} className="animate-pulse"><td colSpan={5} className="px-6 py-4"><div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl" /></td></tr>
-                ))
-              ) : isError ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-red-500">Gagal memuat data pegawai.</td></tr>
-              ) : data?.data.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-zinc-500">Tidak ada pegawai ditemukan.</td></tr>
-              ) : (
-                data?.data.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-all group">
-                    <td className="px-6 py-4">
-                      <Link href={`/kepegawaian/employees/${emp.id}`}>
-                        <p className="font-bold text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors cursor-pointer">{emp.nama_lengkap}</p>
-                      </Link>
-                      <p className="text-[11px] text-zinc-500">{emp.satuan_kerja || "Satuan Kerja Belum Diatur"}</p>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">{emp.nip?.startsWith("MMP-") ? "-" : emp.nip}</td>
-                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">{emp.jabatan || "-"}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        emp.is_active ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
-                      }`}>
-                        {emp.is_active ? "Aktif" : "Non-Aktif"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link href={`/kepegawaian/employees/${emp.id}`} className="p-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl text-blue-600"><Search className="w-4 h-4" /></Link>
-                        {canManageAccess && (
-                          <button onClick={() => { setSelectedEmployee(emp); setAccessSheetOpen(true); }} className="p-2 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl text-amber-600"><UserCog className="w-4 h-4" /></button>
-                        )}
-                        {canWrite && (
-                          <button className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-600"><Trash2 className="w-4 h-4" /></button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {data && (
-          <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/20">
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Halaman {page} dari {data.meta.last_page}</p>
-            <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-zinc-50 transition-colors shadow-sm">Sebelumnya</button>
-              <button onClick={() => setPage(p => Math.min(data.meta.last_page, p + 1))} disabled={page === data.meta.last_page} className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-zinc-50 transition-colors shadow-sm">Berikutnya</button>
-            </div>
+            {canWrite && (
+              <Link href="/kepegawaian/surat-tugas/create">
+                <button className="group flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-xl shadow-blue-600/30 hover:scale-[1.02] active:scale-95 border border-blue-400/30">
+                  <FileText className="w-4 h-4 text-white group-hover:rotate-6 transition-transform" />
+                  <span>Buat Surat Tugas</span>
+                </button>
+              </Link>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      {canManageAccess && (
-        <EmployeeAccessSheet employee={selectedEmployee} open={accessSheetOpen} onOpenChange={setAccessSheetOpen} />
-      )}
+      {/* 2. Glassmorphism Bento Stat Cards (4 Cards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* Card 1: Total Pegawai */}
+        <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-blue-500/40 transition-all group flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-blue-500/10 transition-all" />
+          <div className="flex items-center justify-between">
+            <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+              <Users className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+              SDM Total
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{totalEmployees}</p>
+              <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-1.5 py-0.5 rounded-md">Terdaftar</span>
+            </div>
+            <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">Personil Active (PNS, PPPK, MMP)</p>
+          </div>
+        </div>
+
+        {/* Card 2: ST Diterbitkan */}
+        <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-sky-500/40 transition-all group flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-sky-500/10 transition-all" />
+          <div className="flex items-center justify-between">
+            <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-110 transition-transform">
+              <FileText className="w-4.5 h-4.5" />
+            </div>
+            <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/60">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" /> ST Aktif
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{activeStCount}</p>
+              <span className="text-[10px] font-extrabold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950 px-1.5 py-0.5 rounded-md">Berlangsung</span>
+            </div>
+            <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">Surat Tugas Resmi Balai</p>
+          </div>
+        </div>
+
+        {/* Card 3: Cuti Pending */}
+        <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-amber-500/40 transition-all group flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/10 transition-all" />
+          <div className="flex items-center justify-between">
+            <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-amber-400 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
+              <Calendar className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+              Review Cuti
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{pendingCutiCount}</p>
+              <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-1.5 py-0.5 rounded-md">Pending</span>
+            </div>
+            <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">Permohonan Cuti Menunggu</p>
+          </div>
+        </div>
+
+        {/* Card 4: Keaktifan SDM */}
+        <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-emerald-500/10 transition-all" />
+          <div className="flex items-center justify-between">
+            <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-emerald-400 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+              <CheckCircle2 className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+              Sangat Baik
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{activeRate}</p>
+              <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-1.5 py-0.5 rounded-md">Normal</span>
+            </div>
+            <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">Status Keaktifan Personil SDM</p>
+          </div>
+        </div>
+      </div>
+
+
+      {/* 4. Bottom Split Cards (Recent ST Feed + Satker Distribution) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <RecentActivitiesFeedCard activities={stList} />
+        <SatkerDistributionCard satkerBreakdown={satkerBreakdown} />
+      </div>
     </div>
   );
 }

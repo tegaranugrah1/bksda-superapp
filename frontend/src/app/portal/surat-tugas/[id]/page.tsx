@@ -83,9 +83,6 @@ export default function SuratTugasPreviewPage() {
     );
   }
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-
   return (
     <RouteGuard>
       <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-8 px-4">
@@ -151,7 +148,7 @@ export default function SuratTugasPreviewPage() {
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Tanggal</p>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {formatDate(data.tanggal_mulai)} — {formatDate(data.tanggal_selesai)}
+                    {new Date(data.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} — {new Date(data.tanggal_selesai).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                   </p>
                 </div>
               </div>

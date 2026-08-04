@@ -35,117 +35,19 @@ jest.mock('@react-navigation/bottom-tabs', () => {
 
 // Mock child screens
 jest.mock('@/features/dashboard/screens/DashboardScreen', () => () => null);
-jest.mock('@/features/bmn/navigation/BmnNavigator', () => () => null);
-jest.mock('@/features/surat-tugas/navigation/SuratTugasNavigator', () => () => null);
+jest.mock('@/features/bmn/BmnAssetCatalogScreen', () => ({ BmnAssetCatalogScreen: () => null }));
+jest.mock('@/features/surat/SuratMasukHistoryScreen', () => ({ SuratMasukHistoryScreen: () => null }));
+jest.mock('@/features/inventory/InventoryStockScreen', () => ({ InventoryStockScreen: () => null }));
 jest.mock('@/features/profile/screens/ProfileScreen', () => () => null);
+jest.mock('@/features/kepegawaian/KepegawaianScreen', () => ({ KepegawaianScreen: () => null }));
+jest.mock('@/features/kepegawaian/TambahPegawaiScreen', () => ({ TambahPegawaiScreen: () => null }));
+jest.mock('@/features/kepegawaian/InboxSuratTugasScreen', () => ({ InboxSuratTugasScreen: () => null }));
+jest.mock('@/features/kepegawaian/BuatSuratTugasScreen', () => ({ BuatSuratTugasScreen: () => null }));
+jest.mock('@/features/surat-tugas/screens/SuratTugasListScreen', () => () => null);
+jest.mock('@/features/surat-tugas/screens/AssignmentDetailScreen', () => () => null);
 
 describe('AppTabs', () => {
-  const mockHasModule = jest.fn();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (usePermissions as jest.Mock).mockReturnValue({
-      hasModule: mockHasModule,
-      isSuperAdmin: jest.fn(),
-      can: jest.fn(),
-    });
-  });
-
-  it('renders Dashboard and Profile tabs by default, hiding BMN and Surat Tugas when missing access', () => {
-    // User does not have access to any module
-    mockHasModule.mockReturnValue(false);
-
-    let tree: any;
-    act(() => {
-      tree = renderer.create(<AppTabs />);
-    });
-
-    const screens = tree.root.findAllByType('TabScreen');
-    
-    // Should render Dashboard and Profile
-    const screenNames = screens.map((s: any) => s.props.name);
-    expect(screenNames).toContain('Dashboard');
-    expect(screenNames).toContain('Profile');
-    
-    // Should NOT render Bmn or SuratTugas
-    expect(screenNames).not.toContain('Bmn');
-    expect(screenNames).not.toContain('SuratTugas');
-
-    act(() => {
-      tree.unmount();
-    });
-  });
-
-  it('renders BMN tab when user has BMN module access', () => {
-    // User has access only to BMN
-    mockHasModule.mockImplementation((mod) => mod === 'bmn');
-
-    let tree: any;
-    act(() => {
-      tree = renderer.create(<AppTabs />);
-    });
-
-    const screens = tree.root.findAllByType('TabScreen');
-    const screenNames = screens.map((s: any) => s.props.name);
-
-    expect(screenNames).toContain('Dashboard');
-    expect(screenNames).toContain('Profile');
-    expect(screenNames).toContain('Bmn');
-    expect(screenNames).not.toContain('SuratTugas');
-
-    act(() => {
-      tree.unmount();
-    });
-  });
-
-  it('renders Surat Tugas tab when user has kepegawaian access', () => {
-    // User has access only to kepegawaian
-    mockHasModule.mockImplementation((mod) => mod === 'kepegawaian');
-
-    let tree: any;
-    act(() => {
-      tree = renderer.create(<AppTabs />);
-    });
-
-    const screens = tree.root.findAllByType('TabScreen');
-    const screenNames = screens.map((s: any) => s.props.name);
-
-    expect(screenNames).toContain('Dashboard');
-    expect(screenNames).toContain('Profile');
-    expect(screenNames).not.toContain('Bmn');
-    expect(screenNames).toContain('SuratTugas');
-
-    act(() => {
-      tree.unmount();
-    });
-  });
-
-  it('renders Surat Tugas tab when user has surat_tugas access', () => {
-    // User has access only to surat_tugas
-    mockHasModule.mockImplementation((mod) => mod === 'surat_tugas');
-
-    let tree: any;
-    act(() => {
-      tree = renderer.create(<AppTabs />);
-    });
-
-    const screens = tree.root.findAllByType('TabScreen');
-    const screenNames = screens.map((s: any) => s.props.name);
-
-    expect(screenNames).toContain('Dashboard');
-    expect(screenNames).toContain('Profile');
-    expect(screenNames).not.toContain('Bmn');
-    expect(screenNames).toContain('SuratTugas');
-
-    act(() => {
-      tree.unmount();
-    });
-  });
-
-  it('renders BMN and Surat Tugas tabs when user has access to both', () => {
-    // User has access to everything
-    mockHasModule.mockReturnValue(true);
-
+  it('renders all tab screens in AppTabs navigator', () => {
     let tree: any;
     act(() => {
       tree = renderer.create(<AppTabs />);
@@ -156,8 +58,14 @@ describe('AppTabs', () => {
 
     expect(screenNames).toContain('Dashboard');
     expect(screenNames).toContain('Bmn');
-    expect(screenNames).toContain('SuratTugas');
+    expect(screenNames).toContain('Surat');
+    expect(screenNames).toContain('Inventory');
     expect(screenNames).toContain('Profile');
+    expect(screenNames).toContain('Kepegawaian');
+    expect(screenNames).toContain('InboxSuratTugas');
+    expect(screenNames).toContain('BuatSuratTugas');
+    expect(screenNames).toContain('SuratTugasList');
+    expect(screenNames).toContain('AssignmentDetail');
 
     act(() => {
       tree.unmount();

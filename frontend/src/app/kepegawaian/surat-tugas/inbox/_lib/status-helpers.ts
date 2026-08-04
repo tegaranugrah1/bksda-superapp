@@ -35,3 +35,30 @@ export function getStatusLabel(status: string) {
       return status;
   }
 }
+
+export function getResolvedTempatTujuan(letter: { tempat_tujuan?: string | null; maksud_tujuan?: string | null }): string {
+  if (letter.tempat_tujuan && letter.tempat_tujuan.trim()) {
+    return letter.tempat_tujuan;
+  }
+  const text = letter.maksud_tujuan || "";
+  if (text.includes(" ke ")) {
+    const keParts = text.split(" ke ")[1];
+    if (keParts) {
+      const dest = keParts.split(" dalam rangka ")[0]?.split(" di ")[0]?.trim();
+      if (dest) return dest;
+    }
+  }
+  if (text.includes(" di ")) {
+    const diParts = text.split(" di ");
+    const dest = diParts[diParts.length - 1]?.trim();
+    if (dest) return dest;
+  }
+  if (text.includes(" pada ")) {
+    const padaParts = text.split(" pada ")[1];
+    if (padaParts) {
+      const dest = padaParts.split(" di ")[0]?.trim();
+      if (dest) return dest;
+    }
+  }
+  return "-";
+}

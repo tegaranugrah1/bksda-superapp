@@ -4,37 +4,85 @@
  */
 
 const PRINT_STYLE = `
-  @page { size: A4; margin: 3cm 1cm 1.9cm 1.55cm; }
-  @page :first { margin: 0.7cm 1cm 1.9cm 1.55cm; }
-  @page st-lampiran-beda-hari { size: A4; margin: 2cm 1cm 1.9cm 1.55cm; }
+  @page { size: A4 portrait; margin: 0; }
+  @page :first { margin: 0; }
+  @page st-lampiran-beda-hari { size: A4 portrait; margin: 0; }
+  
+  * { box-sizing: border-box; }
+  
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
   body {
     font-family: 'Bookman Old Style', 'Georgia', serif;
     font-size: 11pt;
     line-height: 1.25;
     color: #000;
-    margin: 0;
-    padding: 0;
     text-align: justify;
   }
+  
   table { width: 100%; border-collapse: collapse; }
   td { vertical-align: top; padding: 2px 0; font-size: 11pt; }
   tr { page-break-inside: avoid; break-inside: avoid; }
-  img { max-width: none !important; }
-  .ttd-placeholder { height: 80px; }
-  .kop-surat { margin-left: 0 !important; margin-right: -0.95cm !important; margin-top: -0.25cm !important; margin-bottom: 2px !important; overflow: visible !important; }
-  .kop-surat img { width: 18.8cm !important; height: auto !important; }
-  .surat-content { margin-left: 1.25cm !important; width: calc(100% - 2.2cm) !important; margin-right: 0.95cm !important; }
+  
+  .kop-surat {
+    width: 210mm !important;
+    margin: 0.3cm auto 4mm auto !important;
+    text-align: center !important;
+  }
+  
+  .kop-surat img {
+    width: 188mm !important;
+    max-width: 188mm !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+  }
+  
+  .surat-content {
+    width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 1.55cm 1.5cm 2.0cm !important;
+    box-sizing: border-box !important;
+  }
+  
   .field-section, .kepada-section, .kepada-list, .untuk-section, .untuk-list { break-inside: auto !important; page-break-inside: auto !important; }
   .employee-entry, .untuk-entry, .penutup-ttd-group { break-inside: avoid !important; page-break-inside: avoid !important; }
   div[style*="page-break-inside"] { page-break-inside: avoid; }
-  .st-lampiran-page-wrapper { page: st-lampiran-beda-hari; padding-top: 0 !important; break-before: page !important; page-break-before: always !important; }
-  .st-lampiran-page { margin-left: 1.25cm !important; width: calc(100% - 2.2cm) !important; box-sizing: border-box !important; line-height: 1.25 !important; }
+  
+  .st-lampiran-page-wrapper {
+    page: st-lampiran-beda-hari;
+    padding-top: 0 !important;
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+  
+  .st-lampiran-page {
+    width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 1.55cm 0 2.0cm !important;
+    box-sizing: border-box !important;
+    line-height: 1.25 !important;
+  }
+  
   .lampiran-meta { margin-left: 7.3cm !important; margin-bottom: 0.8rem !important; }
   .lampiran-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
   .lampiran-table th, .lampiran-table td { border: 1px solid #000 !important; padding: 4px 6px !important; font-size: 10.5pt !important; line-height: 1.2 !important; vertical-align: middle !important; }
   .lampiran-ttd { margin-left: 9.2cm !important; margin-top: 1.6rem !important; text-align: left !important; }
   thead.page-spacer td { height: 0; padding: 0; line-height: 0; font-size: 0; }
 `;
+
+function resolveImageUrl(url: string): string {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url) || url.startsWith("data:")) return url;
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}`;
+  }
+  return url;
+}
 
 /**
  * Cetak Surat Tugas dari elemen preview `#surat-preview-doc`.
@@ -49,16 +97,51 @@ export function printSuratTugas(stNumber: string, namaKegiatan: string) {
 
   const safeKegiatan = (namaKegiatan || "ST").replace(/[/\\?%*:|"<>]/g, "-");
 
+  // Clone content and resolve relative image URLs to absolute URLs
+  const container = document.createElement("div");
+  container.innerHTML = printContent.innerHTML;
+  const imgs = container.getElementsByTagName("img");
+  for (let i = 0; i < imgs.length; i++) {
+    const src = imgs[i].getAttribute("src");
+    if (src) {
+      imgs[i].setAttribute("src", resolveImageUrl(src));
+    }
+  }
+
   printWindow.document.write(`
     <html>
     <head>
       <title>ST.${stNumber}-${safeKegiatan}</title>
       <style>${PRINT_STYLE}</style>
     </head>
-    <body>${printContent.innerHTML}</body>
+    <body>${container.innerHTML}</body>
     </html>
   `);
   printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+
+  const printImages = printWindow.document.getElementsByTagName("img");
+  let loaded = 0;
+  const total = printImages.length;
+  const triggerPrint = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
+
+  if (total === 0) {
+    setTimeout(triggerPrint, 300);
+  } else {
+    for (let i = 0; i < total; i++) {
+      if (printImages[i].complete) {
+        loaded++;
+      } else {
+        printImages[i].onload = printImages[i].onerror = () => {
+          loaded++;
+          if (loaded >= total) triggerPrint();
+        };
+      }
+    }
+    if (loaded >= total) {
+      setTimeout(triggerPrint, 300);
+    }
+  }
 }

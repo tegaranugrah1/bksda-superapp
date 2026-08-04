@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,24 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
+import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
+import { FabMenu } from "../../components/ui/FabMenu";
+import { apiClient } from "../../lib/api/client";
 
 interface InventoryStockScreenProps {
+  navigation?: any;
   onBack?: () => void;
+  onNavigateToModule?: (moduleKey: string) => void;
 }
 
-export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBack }) => {
+export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({
+  navigation,
+  onBack,
+  onNavigateToModule,
+}) => {
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua Stok");
   const [transModalVisible, setTransModalVisible] = useState(false);
@@ -28,53 +38,35 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
   const [notesInput, setNotesInput] = useState("");
 
   const categories = ["Semua Stok", "Perlengkapan Lapangan", "ATK", "Obat Satwa"];
+  const [stockItems, setStockItems] = useState<any[]>([]);
 
-  const stockItems = [
-    {
-      id: "1",
-      name: "Kantung Tidur / Sleeping Bag Patroli",
-      code: "INV-PL-001",
-      category: "Perlengkapan Lapangan",
-      stock: 24,
-      unit: "Unit",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "bonfire-outline",
-    },
-    {
-      id: "2",
-      name: "Obat Translokasi & Anestesi Satwa",
-      code: "INV-MED-004",
-      category: "Obat Satwa",
-      stock: 5,
-      unit: "Paket",
-      status: "Stok Tipis",
-      statusColor: COLORS.statusPending,
-      iconName: "medical-outline",
-    },
-    {
-      id: "3",
-      name: "Kertas HVS A4 80gr Sidu",
-      code: "INV-ATK-012",
-      category: "ATK",
-      stock: 42,
-      unit: "Rim",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "document-text-outline",
-    },
-    {
-      id: "4",
-      name: "Tenda Lapangan Waterproof 4P",
-      code: "INV-PL-008",
-      category: "Perlengkapan Lapangan",
-      stock: 12,
-      unit: "Unit",
-      status: "Tersedia",
-      statusColor: COLORS.statusAvailable,
-      iconName: "compass-outline",
-    },
-  ];
+  const fetchInventoryStocks = async () => {
+    try {
+      const response = await apiClient.get<any>("/inventory/stocks");
+      if (response.data && Array.isArray(response.data.data)) {
+        const apiItems = response.data.data.map((item: any) => ({
+          id: String(item.id),
+          name: item.nama_barang || item.name,
+          code: item.kode_barang || "INV-001",
+          category: item.kategori || "Perlengkapan Lapangan",
+          stock: item.stok ?? item.stock ?? 0,
+          unit: item.satuan || "Unit",
+          status: (item.stok ?? item.stock ?? 0) < 10 ? "Stok Tipis" : "Tersedia",
+          statusColor: (item.stok ?? item.stock ?? 0) < 10 ? COLORS.statusPending : COLORS.statusAvailable,
+          iconName: "cube-outline",
+        }));
+        setStockItems(apiItems);
+      } else {
+        setStockItems([]);
+      }
+    } catch {
+      setStockItems([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventoryStocks();
+  }, []);
 
   const filteredItems = stockItems.filter((item) => {
     const matchesCat =
@@ -110,18 +102,56 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
     );
   };
 
+  const handleGoBack = () => {
+    if (onBack) {
+      onBack();
+    } else if (navigation) {
+      navigation.navigate("Dashboard");
+    }
+  };
+
+  const handleSelectNavTab = (tabKey: string) => {
+    if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
+      if (navigation) {
+        navigation.navigate("Dashboard");
+      } else if (onBack) {
+        onBack();
+      }
+    } else if (tabKey === "bmn") {
+      if (navigation) navigation.navigate("Bmn");
+    } else if (tabKey === "surat") {
+      if (navigation) navigation.navigate("Surat");
+    } else if (tabKey === "inventory") {
+      if (navigation) navigation.navigate("Inventory");
+    } else if (tabKey === "profile") {
+      if (navigation) navigation.navigate("Profile");
+    } else if (tabKey === "kepegawaian") {
+      if (navigation) navigation.navigate("Kepegawaian");
+    } else if (onNavigateToModule) {
+      onNavigateToModule(tabKey);
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
       {/* Header */}
-      <View style={styles.header}>
-        {onBack && (
-          <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color="#0f172a" />
-          </TouchableOpacity>
-        )}
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.headerBg, borderBottomColor: colors.headerBorder },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={handleGoBack}
+          style={styles.backBtn}
+          activeOpacity={0.6}
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 35 }}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.textDark} />
+        </TouchableOpacity>
         <View style={styles.headerTitleRow}>
           <Ionicons name="cube" size={22} color="#059669" style={{ marginRight: 8 }} />
-          <Text style={styles.headerTitle}>Stok Inventaris</Text>
+          <Text style={[styles.headerTitle, { color: colors.textDark }]}>Stok Inventaris</Text>
         </View>
         <View style={styles.countBadge}>
           <Text style={styles.countText}>{stockItems.length} Item</Text>
@@ -130,10 +160,10 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
-        <View style={styles.searchBarContainer}>
-          <Ionicons name="search-outline" size={18} color="#64748b" style={{ marginRight: 8 }} />
+        <View style={[styles.searchBarContainer, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+          <Ionicons name="search-outline" size={18} color={colors.textMuted} style={{ marginRight: 8 }} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.textDark }]}
             placeholder="Cari Nama Barang, Kode, atau Kategori..."
             placeholderTextColor="#94a3b8"
             value={searchQuery}
@@ -154,7 +184,11 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
               <TouchableOpacity
                 key={cat}
                 onPress={() => setSelectedCategory(cat)}
-                style={[styles.filterPill, isActive && styles.filterPillActive]}
+                style={[
+                  styles.filterPill,
+                  { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
+                  isActive && styles.filterPillActive,
+                ]}
               >
                 <Text style={[styles.filterPillText, isActive && styles.filterPillTextActive]}>
                   {cat}
@@ -167,14 +201,14 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
         {/* Stock Items Grid / List */}
         <View style={styles.itemList}>
           {filteredItems.map((item) => (
-            <GlassCard key={item.id} style={styles.itemCard} highlighted={item.status === "Stok Tipis"}>
+            <GlassCard key={item.id} style={[styles.itemCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]} highlighted={item.status === "Stok Tipis"}>
               <View style={styles.itemIconBg}>
                 <Ionicons name={item.iconName as any} size={22} color="#059669" />
               </View>
 
               <View style={styles.itemMain}>
-                <Text style={styles.itemTitle}>{item.name}</Text>
-                <Text style={styles.itemCode}>
+                <Text style={[styles.itemTitle, { color: colors.textDark }]}>{item.name}</Text>
+                <Text style={[styles.itemCode, { color: colors.textMuted }]}>
                   Kode: {item.code} • {item.category}
                 </Text>
                 <View style={styles.stockQtyRow}>
@@ -205,12 +239,15 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
         </View>
       </ScrollView>
 
+      {/* Floating Action Button (FAB ☰ Menu) in Bottom Right Corner */}
+      <FabMenu onNavigateToModule={handleSelectNavTab} />
+
       {/* Transaction Modal */}
       <Modal visible={transModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <GlassCard style={styles.modalContent} highlighted>
+          <GlassCard style={[styles.modalContent, { backgroundColor: colors.cardBg }]} highlighted>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <Text style={[styles.modalTitle, { color: colors.textDark }]}>
                 {transType === "out" ? "Catat Stok Keluar" : "Tambah Stok Masuk"}
               </Text>
               <TouchableOpacity onPress={() => setTransModalVisible(false)}>
@@ -219,13 +256,13 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
             </View>
 
             <Text style={styles.modalSub}>
-              Barang: <Text style={{ color: "#0f172a", fontWeight: "700" }}>{selectedItem?.name}</Text>
+              Barang: <Text style={{ color: colors.textDark, fontWeight: "700" }}>{selectedItem?.name}</Text>
             </Text>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Jumlah ({selectedItem?.unit})</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
                 placeholder="1"
                 keyboardType="numeric"
                 value={qtyInput}
@@ -236,7 +273,7 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Keterangan / Tujuan Penggunaan</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
                 placeholder="Contoh: Digunakan untuk Patroli Lapangan"
                 placeholderTextColor="#94a3b8"
                 value={notesInput}
@@ -259,7 +296,6 @@ export const InventoryStockScreen: React.FC<InventoryStockScreenProps> = ({ onBa
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark,
   },
   header: {
     flexDirection: "row",
@@ -268,13 +304,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 48,
     paddingBottom: 16,
-    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
   },
   backBtn: {
     marginRight: 10,
-    padding: 4,
+    padding: 6,
   },
   headerTitleRow: {
     flexDirection: "row",
@@ -282,7 +316,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: "#0f172a",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -302,14 +335,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 90,
   },
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 14,
     height: 46,
@@ -317,7 +348,6 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "#0f172a",
     fontSize: 14,
   },
   filterScroll: {
@@ -327,9 +357,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 16,
     borderRadius: RADIUS.pill,
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
     marginRight: 8,
   },
   filterPillActive: {
@@ -352,7 +380,6 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
   },
   itemIconBg: {
     width: 44,
@@ -368,12 +395,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   itemTitle: {
-    color: "#0f172a",
     fontSize: 14,
     fontWeight: "700",
   },
   itemCode: {
-    color: "#64748b",
     fontSize: 11.5,
     marginTop: 2,
   },
@@ -430,7 +455,6 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 22,
-    backgroundColor: "#ffffff",
   },
   modalHeader: {
     flexDirection: "row",
@@ -439,7 +463,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalTitle: {
-    color: "#0f172a",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -458,13 +481,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   input: {
-    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingHorizontal: 12,
     height: 44,
-    color: "#0f172a",
     fontSize: 13.5,
   },
 });

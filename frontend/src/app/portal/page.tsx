@@ -5,21 +5,13 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Boxes, LayoutGrid, Package, FileText, LogOut,
-  Fingerprint, KeyRound, Loader2, BadgeCheck, Mail, Phone, Briefcase,
-  HandHelping, Sun, Sunset, Moon, Pencil, Sparkles, Bell,
-  Eye, Users, ClipboardList, Building2, List, Camera, Calendar,
+  Sun, Sunset, Moon, Loader2, LogOut, Users, Package,
+  Boxes, FileText, LayoutGrid, Mail, Sparkles, Bell,
+  HandHelping, Briefcase, ClipboardList, Calendar,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle, DialogTrigger, DialogClose,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -27,7 +19,11 @@ import { authStore } from "@/lib/auth-store";
 import SuratTugasLetterPreview from "@/components/SuratTugasLetterPreview";
 import { LeaveRequestDialog } from "./_components/LeaveRequestDialog";
 import { FormulirCutiPrint, LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
-import { Printer, Plus } from "lucide-react";
+import { ProfileSidebar } from "./_components/ProfileSidebar";
+import { SuratTugasTab } from "./_components/SuratTugasTab";
+import { MyAssetsTab, AssetItem } from "./_components/MyAssetsTab";
+import { MyLeaveTab } from "./_components/MyLeaveTab";
+import { ActiveLoansTab, BorrowedAssetItem } from "./_components/ActiveLoansTab";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -91,35 +87,6 @@ function formatDate(): string {
   return new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
-function formatMerkTipe(merk?: string | null, tipe?: string | null, merkTipe?: string | null): string | null {
-  const combined = [merk, tipe, merkTipe].filter(Boolean).join(" ");
-  if (!combined) return null;
-  const parts = combined.split(/[\s,]+/);
-  return [...new Set(parts)].join(" ");
-}
-
-interface AssetItem {
-  id: string;
-  nama_barang: string;
-  kode_barang: string;
-  nup: string;
-  nup_lama?: string | null;
-  merk?: string | null;
-  tipe?: string | null;
-  merk_tipe?: string | null;
-  kondisi?: string | null;
-  no_polisi?: string | null;
-  jenis_bmn?: string | null;
-  foto_geotag_url?: string | null;
-  foto_geotag_path?: string | null;
-}
-
-function driveToThumbnail(url: string): string | null {
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (!match) return null;
-  return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
-}
-
 export default function PersonalDashboard() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -141,19 +108,11 @@ export default function PersonalDashboard() {
   const [stDetail, setStDetail] = useState<SuratTugasDetail | null>(null);
   const [stDetailLoading, setStDetailLoading] = useState(false);
 
-  const [pwDialogOpen, setPwDialogOpen] = useState(false);
-  const [pwData, setPwData] = useState({ current_password: "", new_password: "", new_password_confirmation: "" });
-  const [pwLoading, setPwLoading] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editData, setEditData] = useState({ email: "", phone: "" });
-  const [editLoading, setEditLoading] = useState(false);
-
-  const borrowedAssets = data?.my_assets;
   const filteredMyAssets = useMemo(() => {
-    if (!borrowedAssets) return myAssets;
-    const borrowedIds = new Set(borrowedAssets.map(a => String(a.id)));
+    if (!data?.my_assets) return myAssets;
+    const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
     return myAssets.filter(a => !borrowedIds.has(a.id));
-  }, [myAssets, borrowedAssets]);
+  }, [myAssets, data?.my_assets]);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -251,41 +210,11 @@ export default function PersonalDashboard() {
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (data?.employee?.id) {
-      api.get(`/kepegawaian/employees/${data.employee.id}/leaves?year=${currentYear}`)
-        .then((res) => setMyLeaveBalance(res.data.data))
-        .catch(() => {});
-    }
-  }, [data, currentYear]);
-
-  useEffect(() => {
     fetchMyLeaveRequests();
   }, [fetchMyLeaveRequests]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleLogout = () => { authStore.logout(); router.push("/login"); };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pwData.new_password !== pwData.new_password_confirmation) { toast.error("Konfirmasi password tidak cocok."); return; }
-    setPwLoading(true);
-    try { await api.post("/me/change-password", pwData); toast.success("Password berhasil diperbarui!"); setPwDialogOpen(false); setPwData({ current_password: "", new_password: "", new_password_confirmation: "" }); }
-    catch (error: unknown) { const err = error as { response?: { data?: { message?: string } } }; toast.error(err.response?.data?.message || "Gagal mengubah password."); }
-    finally { setPwLoading(false); }
-  };
-
-  const openEditDialog = useCallback(() => {
-    if (!data) return;
-    setEditData({ email: data.employee?.email || data.user.email || "", phone: data.employee?.phone || "" });
-    setEditDialogOpen(true);
-  }, [data]);
-
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault(); setEditLoading(true);
-    try { await api.post("/me/update-profile", editData); toast.success("Profil berhasil diperbarui!"); setEditDialogOpen(false); fetchDashboard(); }
-    catch (error: unknown) { const err = error as { response?: { data?: { message?: string } } }; toast.error(err.response?.data?.message || "Gagal memperbarui profil."); }
-    finally { setEditLoading(false); }
-  };
 
   const modules = useMemo(() => {
     if (!data) return [];
@@ -381,100 +310,16 @@ export default function PersonalDashboard() {
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col lg:flex-row gap-6 sm:gap-8">
-          {/* Mobile Profile Backdrop */}
-          {mobileProfileOpen && (
-            <div 
-              className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden backdrop-blur-sm transition-opacity" 
-              onClick={() => setMobileProfileOpen(false)}
-            />
-          )}
-
           {/* Sidebar Profile */}
-          <aside className={cn(
-            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-70 sm:w-[320px] lg:w-70 bg-slate-50 dark:bg-slate-900/50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
-            mobileProfileOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-          )}>
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-6 text-center relative">
-              <button onClick={openEditDialog} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-emerald-600 transition-colors" title="Edit Profil">
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-              <div className="w-20 h-20 rounded-full bg-emerald-600 mx-auto flex items-center justify-center text-white text-2xl font-black mb-3 relative group overflow-hidden">
-                {data.employee?.photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={data.employee.photo} alt="Foto Profil" className="w-full h-full object-cover" />
-                ) : (
-                  data.user.name.charAt(0)
-                )}
-                <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                  <Pencil className="w-5 h-5 text-white" />
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (file.size > 10 * 1024 * 1024) { toast.error("Maksimal 10MB"); return; }
-                      const fd = new FormData();
-                      fd.append("foto", file);
-                      try {
-                        await api.post("/me/update-photo", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                        toast.success("Foto profil berhasil diperbarui!");
-                        fetchDashboard();
-                      } catch { toast.error("Gagal mengupload foto."); }
-                    }}
-                  />
-                </label>
-              </div>
-              <div className={cn("inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full mb-2", isActive ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600" : "bg-slate-100 text-slate-500 dark:text-slate-400")}>
-                <BadgeCheck className="w-3 h-3" /> {isActive ? "Aktif" : "Nonaktif"}
-              </div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{data.employee?.name || data.user.name}</h2>
-              <p className="text-xs text-slate-400 mb-1">NIP {data.employee?.nip || data.user.username}</p>
-              <Badge className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-none">
-                {data.user.role === "super_admin" ? "Super Admin" : data.user.role === "admin" ? "Administrator" : "Pegawai"}
-              </Badge>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-4 space-y-2">
-              {[
-                { icon: <Fingerprint className="w-4 h-4" />, label: "Jabatan", value: data.employee?.position || "-", color: "text-emerald-500" },
-                { icon: <Building2 className="w-4 h-4" />, label: "Unit Kerja", value: data.employee?.department || "-", color: "text-blue-500" },
-                { icon: <Calendar className="w-4 h-4" />, label: `Sisa Cuti (${currentYear})`, value: myLeaveBalance ? `${myLeaveBalance.sisa_cuti_tersedia} Hari Kerja` : "12 Hari Kerja", color: "text-amber-500" },
-                { icon: <Mail className="w-4 h-4" />, label: "Email", value: data.employee?.email || data.user.email || "-", color: "text-rose-500" },
-                { icon: <Phone className="w-4 h-4" />, label: "Telepon", value: data.employee?.phone || "-", color: "text-teal-500" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50 transition-colors">
-                  <div className={cn("shrink-0", item.color)}>{item.icon}</div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{item.label}</p>
-                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-2">
-              <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full rounded-xl text-xs h-10 font-semibold">
-                    <KeyRound className="w-4 h-4 mr-2 text-emerald-500" /> Ganti Password
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-100 w-[90vw] mx-auto rounded-2xl">
-                  <form onSubmit={handleChangePassword}>
-                    <DialogHeader><DialogTitle>Ubah Password</DialogTitle><DialogDescription>Password baru minimal 8 karakter.</DialogDescription></DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2"><Label htmlFor="current_password">Password Saat Ini</Label><Input id="current_password" type="password" value={pwData.current_password} onChange={(e) => setPwData({ ...pwData, current_password: e.target.value })} required /></div>
-                      <div className="grid gap-2"><Label htmlFor="new_password">Password Baru</Label><Input id="new_password" type="password" value={pwData.new_password} onChange={(e) => setPwData({ ...pwData, new_password: e.target.value })} required minLength={8} /></div>
-                      <div className="grid gap-2"><Label htmlFor="new_password_confirmation">Konfirmasi</Label><Input id="new_password_confirmation" type="password" value={pwData.new_password_confirmation} onChange={(e) => setPwData({ ...pwData, new_password_confirmation: e.target.value })} required minLength={8} /></div>
-                    </div>
-                    <DialogFooter><DialogClose asChild><Button type="button" variant="outline" className="w-full sm:w-auto">Batal</Button></DialogClose><Button type="submit" disabled={pwLoading} className="w-full sm:w-auto">{pwLoading && <Loader2 className="w-4 h-4 animate-spin mr-1" />}Simpan</Button></DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </aside>
+          <ProfileSidebar
+            data={data}
+            isActive={isActive}
+            currentYear={currentYear}
+            myLeaveBalance={myLeaveBalance}
+            mobileProfileOpen={mobileProfileOpen}
+            setMobileProfileOpen={setMobileProfileOpen}
+            fetchDashboard={fetchDashboard}
+          />
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 space-y-6 order-1 lg:order-2">
@@ -537,319 +382,45 @@ export default function PersonalDashboard() {
               {/* Tab: Pinjaman Aktif */}
               {activeTab === "pinjaman" && (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  {data.my_assets.length === 0 ? (
-                    <div className="p-12 text-center">
-                      <Package className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Tidak ada pinjaman aktif</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-zinc-800">
-                      {data.my_assets.map((asset) => (
-                        <div key={asset.id} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
-                            <Package className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
-                            {formatMerkTipe(asset.merk) && (
-                              <p className="text-xs text-slate-500 mb-0.5 truncate">{formatMerkTipe(asset.merk)}</p>
-                            )}
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
-                              <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
-                              {asset.nup_lama && (
-                                <span className="text-xs text-slate-400">• NUP Lama: {asset.nup_lama}</span>
-                              )}
-                              {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
-                                  {asset.no_polisi}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <Badge variant={new Date(asset.due_date) < new Date() ? "destructive" : "secondary"} className="shrink-0">
-                            {new Date(asset.due_date) < new Date() ? "Terlambat" : asset.status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
                 </div>
               )}
 
               {/* Tab: Aset Saya */}
               {activeTab === "aset" && (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  {assetsLoading ? (
-                    <div className="p-12 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
-                      <p className="text-sm text-slate-400">Memuat aset Anda...</p>
-                    </div>
-                  ) : filteredMyAssets.length === 0 ? (
-                    <div className="p-12 text-center">
-                      <Briefcase className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Tidak ada aset di bawah tanggung jawab Anda.</p>
-                    </div>
-                  ) : (
-                    <>
-                      {/* View Switcher Header */}
-                      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-slate-900/50">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                          Daftar Aset
-                        </span>
-                        <div className="flex items-center bg-slate-100 dark:bg-zinc-850 p-0.5 rounded-lg border border-slate-200/40 dark:border-zinc-700/40">
-                          <button
-                            onClick={() => setAssetViewMode("list")}
-                            className={cn(
-                              "p-1.5 rounded-md transition-all",
-                              assetViewMode === "list"
-                                ? "bg-white dark:bg-zinc-700 text-slate-800 dark:text-white shadow-sm"
-                                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                            )}
-                            title="Tampilan List"
-                          >
-                            <List className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setAssetViewMode("grid")}
-                            className={cn(
-                              "p-1.5 rounded-md transition-all",
-                              assetViewMode === "grid"
-                                ? "bg-white dark:bg-zinc-700 text-slate-800 dark:text-white shadow-sm"
-                                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                            )}
-                            title="Tampilan Grid"
-                          >
-                            <LayoutGrid className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {assetViewMode === "list" ? (
-                        /* List View (Without Eye Button) */
-                        <div className="divide-y divide-slate-100 dark:divide-zinc-800">
-                          {filteredMyAssets.map((asset) => (
-                            <div key={`my-${asset.id}`} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                                <Package className="w-5 h-5" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
-                                {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe) && (
-                                  <p className="text-xs text-slate-500 mb-0.5 truncate">{formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe)}</p>
-                                )}
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
-                                  <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
-                                  {asset.nup_lama && (
-                                    <span className="text-xs text-slate-400">• NUP Lama: {asset.nup_lama}</span>
-                                  )}
-                                  {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
-                                      {asset.no_polisi}
-                                    </span>
-                                  )}
-                                  {asset.kondisi && (
-                                    <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium ml-1", 
-                                      asset.kondisi === "Baik" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" :
-                                      asset.kondisi === "Rusak Ringan" ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400" :
-                                      "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400"
-                                    )}>{asset.kondisi}</span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        /* Grid View with Geotag Image */
-                        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {filteredMyAssets.map((asset) => {
-                            const thumbUrl = asset.foto_geotag_path
-                              ? asset.foto_geotag_path
-                              : (asset.foto_geotag_url ? driveToThumbnail(asset.foto_geotag_url) : null);
-
-                            return (
-                              <div
-                                key={`my-grid-${asset.id}`}
-                                className="bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
-                              >
-                                {/* Photo Container */}
-                                <div className="aspect-video relative bg-slate-200/50 dark:bg-slate-800/50 border-b border-slate-200/40 dark:border-slate-800/40 flex items-center justify-center overflow-hidden shrink-0">
-                                  {thumbUrl ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
-                                      src={thumbUrl}
-                                      alt={asset.nama_barang}
-                                      className="w-full h-full object-cover"
-                                      referrerPolicy="no-referrer"
-                                    />
-                                  ) : (
-                                    <div className="flex flex-col items-center gap-1.5 p-3 text-center text-slate-400 dark:text-slate-600">
-                                      <Camera className="w-6 h-6 text-slate-300 dark:text-slate-700" />
-                                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-450 dark:text-slate-500">Belum ada foto</p>
-                                    </div>
-                                  )}
-                                  {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
-                                    <span className="absolute top-2.5 right-2.5 text-[9px] px-2.5 py-0.5 rounded-full font-black bg-indigo-600 text-white shadow-sm border border-indigo-500/25 uppercase">
-                                      {asset.no_polisi}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Card Details */}
-                                <div className="p-4 flex-1 flex flex-col justify-between">
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                                      {asset.nama_barang}
-                                    </p>
-                                    {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe) && (
-                                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                                        {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe)}
-                                      </p>
-                                    )}
-                                  </div>
-
-                                  <div className="mt-4 pt-3 border-t border-slate-155 dark:border-zinc-800/60 flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                      <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500">
-                                        {asset.kode_barang}
-                                      </span>
-                                      <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">
-                                        NUP: {asset.nup}
-                                      </span>
-                                    </div>
-
-                                    {asset.kondisi && (
-                                      <span
-                                        className={cn(
-                                          "text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider",
-                                          asset.kondisi === "Baik"
-                                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"
-                                            : asset.kondisi === "Rusak Ringan"
-                                            ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20"
-                                            : "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-500/20"
-                                        )}
-                                      >
-                                        {asset.kondisi}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </>
-                  )}
+                  <MyAssetsTab
+                    assetsLoading={assetsLoading}
+                    filteredMyAssets={filteredMyAssets as AssetItem[]}
+                    assetViewMode={assetViewMode}
+                    setAssetViewMode={setAssetViewMode}
+                  />
                 </div>
               )}
 
               {/* Tab: Surat Tugas */}
               {activeTab === "surat_tugas" && (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  {stLoading ? (
-                    <div className="p-12 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
-                      <p className="text-sm text-slate-400">Memuat surat tugas...</p>
-                    </div>
-                  ) : suratTugas.length === 0 ? (
-                    <div className="p-12 text-center">
-                      <ClipboardList className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada surat tugas yang diterbitkan</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-zinc-800">
-                      {suratTugas.map((st) => (
-                        <div key={st.id} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                            <FileText className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{st.maksud_tujuan}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              {st.nomor_surat && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">{st.nomor_surat}</span>}
-                              <span className="text-xs text-slate-400">
-                                {new Date(st.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button onClick={() => fetchSTDetail(st.id)} disabled={stDetailLoading} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors disabled:opacity-50" title="Lihat">
-                              {stDetailLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <SuratTugasTab
+                    stLoading={stLoading}
+                    suratTugas={suratTugas}
+                    fetchSTDetail={fetchSTDetail}
+                    stDetailLoading={stDetailLoading}
+                  />
                 </div>
               )}
-              {activeTab === "cuti" && (
-                <div className="p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Daftar Pengajuan Cuti Saya</h3>
-                      <p className="text-xs text-slate-500">Ajukan permohonan cuti dan cetak formulir resmi BKSDA.</p>
-                    </div>
-                    <Button
-                      onClick={() => setLeaveDialogOpen(true)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl shadow-sm gap-1.5"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Ajukan Cuti Baru
-                    </Button>
-                  </div>
 
-                  {myLeaveRequests.length === 0 ? (
-                    <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/30 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl space-y-3">
-                      <Calendar className="w-10 h-10 text-slate-300 mx-auto" />
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Belum Ada Pengajuan Cuti</p>
-                      <p className="text-xs text-slate-400">Klik tombol "Ajukan Cuti Baru" untuk mengisi formulir permohonan cuti.</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {myLeaveRequests.map((item) => (
-                        <div key={item.id} className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-4 space-y-3 shadow-sm">
-                          <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{item.jenis_cuti}</span>
-                              <span className={cn(
-                                "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
-                                (item.status === "DISETUJUI" || item.status_pertimbangan_atasan === "DISETUJUI")
-                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                                  : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                              )}>
-                                {(item.status === "DISETUJUI" || item.status_pertimbangan_atasan === "DISETUJUI") ? "Disetujui" : "Pengajuan"}
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-                              {item.jumlah_hari} Hari ({item.tanggal_mulai} s/d {item.tanggal_selesai})
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">Alasan: </span>
-                            {item.alasan_cuti}
-                          </p>
-                          <div className="flex items-center justify-between pt-2">
-                            <span className="text-[11px] text-slate-400">Pengajuan: {item.tanggal_pengajuan}</span>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setPrintLeaveData(item);
-                                setTimeout(() => window.print(), 300);
-                              }}
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                              Cetak Formulir Cuti
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              {/* Tab: Cuti Saya */}
+              {activeTab === "cuti" && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                  <MyLeaveTab
+                    myLeaveRequests={myLeaveRequests}
+                    onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
+                    onPrintLeave={(item) => {
+                      setPrintLeaveData(item);
+                      setTimeout(() => window.print(), 300);
+                    }}
+                  />
                 </div>
               )}
             </div>
@@ -901,20 +472,6 @@ export default function PersonalDashboard() {
             onClose={() => setStPreviewOpen(false)}
           />
         )}
-
-        {/* Edit Profile Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="sm:max-w-100">
-            <form onSubmit={handleSaveProfile}>
-              <DialogHeader><DialogTitle>Edit Profil</DialogTitle><DialogDescription>Perbarui informasi profil Anda.</DialogDescription></DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} /></div>
-                <div className="grid gap-2"><Label htmlFor="phone">Telepon</Label><Input id="phone" type="tel" value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} /></div>
-              </div>
-              <DialogFooter><DialogClose asChild><Button type="button" variant="outline">Batal</Button></DialogClose><Button type="submit" disabled={editLoading}>{editLoading && <Loader2 className="w-4 h-4 animate-spin mr-1" />}Simpan</Button></DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
     </RouteGuard>
   );
