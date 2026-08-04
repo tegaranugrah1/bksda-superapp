@@ -116,7 +116,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
 
   const menimbangItems = parseItems(data.menimbang);
   const dasarItems = parseItems(data.dasar);
-  const tembusanItems = data.tembusan || [];
+  const tembusanItems = (data.tembusan || [])
+    .map((t: any) => (typeof t === 'string' ? t.trim() : (t?.text || '').trim()))
+    .filter(Boolean);
 
   const employees: Employee[] = data.employees || [];
 
@@ -369,7 +371,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                 <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
                 <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                   <tbody>
-                    {tembusanItems.filter(t => typeof t === "string" && t.trim()).map((item, idx) => (
+                    {tembusanItems.map((item, idx) => (
                       <tr key={idx}>
                         <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
                         <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>

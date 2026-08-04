@@ -8,8 +8,8 @@ export default function DashboardScreen({ navigation }: any) {
   const { data: dashboardApiData } = useMobileDashboard();
 
   const handleNavigate = (moduleKey: string) => {
-    if (moduleKey === 'buat-surat-tugas') {
-      navigation.navigate('BuatSuratTugas');
+    if (moduleKey === 'buat-surat-tugas' || moduleKey === 'surat-tugas-baru') {
+      navigation.navigate('AssignmentForm');
     } else if (moduleKey === 'inbox-surat-tugas') {
       navigation.navigate('InboxSuratTugas');
     } else if (moduleKey === 'inbox-surat-cuti') {

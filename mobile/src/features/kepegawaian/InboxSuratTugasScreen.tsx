@@ -9,6 +9,7 @@ import {
   Alert,
   BackHandler,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +18,8 @@ import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { FabMenu } from "../../components/ui/FabMenu";
 import { apiClient } from "../../lib/api/client";
+import { downloadAssignmentFile } from "@/lib/files/download";
+import { shareFile } from "@/lib/files/share";
 
 interface InboxSuratTugasScreenProps {
   navigation?: any;
@@ -50,6 +53,30 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
   const [selectedSt, setSelectedSt] = useState<SuratTugasItem | null>(null);
   const [stList, setStList] = useState<SuratTugasItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDownloadingDoc, setIsDownloadingDoc] = useState(false);
+
+  const handleDownloadDoc = async () => {
+    if (!selectedSt?.id) return;
+    setIsDownloadingDoc(true);
+    try {
+      const dasarSurat = (selectedSt.title || "Surat-Tugas").replace(/[^a-zA-Z0-9\s]/g, "").substring(0, 40).trim();
+      const namaPersonel = selectedSt.personil[0]?.name || "Pegawai";
+      const dateTag = selectedSt.date ? selectedSt.date.replace(/[\/\s]/g, "-") : "2026";
+      const cleanFilename = `${dasarSurat}-${namaPersonel}-${dateTag}.pdf`.replace(/[\/\\:*?"<>|]/g, "_");
+
+      const downloaded = await downloadAssignmentFile({
+        assignmentId: selectedSt.id,
+        mode: "management",
+        filename: cleanFilename,
+      });
+      await shareFile({ localUri: downloaded.localUri, dialogTitle: cleanFilename });
+    } catch (err: any) {
+      console.error("Download doc error:", err);
+      Alert.alert("Unduh Gagal", err?.message || "Gagal mengunduh dokumen dasar surat.");
+    } finally {
+      setIsDownloadingDoc(false);
+    }
+  };
 
   const fetchSuratTugas = async () => {
     try {
@@ -398,12 +425,30 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
             <View style={styles.dokumenCard}>
               <View style={styles.dokumenHeaderRow}>
                 <Ionicons name="document-text-outline" size={20} color="#60a5fa" style={{ marginRight: 10 }} />
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.dokumenTitle}>Dokumen Dasar Surat</Text>
                   <Text style={styles.dokumenSub}>PDF DOKUMEN PENDUKUNG</Text>
                 </View>
               </View>
-              <Text style={styles.dokumenStatusText}>TIDAK ADA LAMPIRAN</Text>
+              {selectedSt.rawItem?.file_surat_path || selectedSt.rawItem?.has_file || selectedSt.rawItem?.file?.available ? (
+                <TouchableOpacity
+                  style={styles.downloadDocBtn}
+                  onPress={handleDownloadDoc}
+                  disabled={isDownloadingDoc}
+                  activeOpacity={0.8}
+                >
+                  {isDownloadingDoc ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <>
+                      <Ionicons name="cloud-download-outline" size={18} color="#ffffff" style={{ marginRight: 6 }} />
+                      <Text style={styles.downloadDocBtnText}>UNDUH / LIHAT LAMPIRAN PDF</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.dokumenStatusText}>TIDAK ADA LAMPIRAN</Text>
+              )}
             </View>
 
             {/* Action Button Group */}
@@ -864,5 +909,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.5,
+  },
+  downloadDocBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#10b981",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginTop: 12,
+  },
+  downloadDocBtnText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
   },
 });

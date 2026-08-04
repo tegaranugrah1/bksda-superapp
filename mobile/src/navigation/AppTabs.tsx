@@ -15,6 +15,7 @@ import { InboxSuratCutiScreen } from "../features/kepegawaian/screens/InboxSurat
 import { BuatSuratTugasScreen } from "../features/kepegawaian/BuatSuratTugasScreen";
 import SuratTugasListScreen from "../features/surat-tugas/screens/SuratTugasListScreen";
 import AssignmentDetailScreen from "../features/surat-tugas/screens/AssignmentDetailScreen";
+import AssignmentFormScreen from "../features/surat-tugas/screens/AssignmentFormScreen";
 import { KepegawaianDashboardScreen } from "../features/kepegawaian/KepegawaianDashboardScreen";
 
 export type AppTabParamList = {
@@ -34,6 +35,7 @@ export type AppTabParamList = {
   BuatSuratTugas: undefined;
   SuratTugasList: { initialMode?: "personal" | "management"; initialStatus?: any } | undefined;
   AssignmentDetail: { id: string | number; mode?: "personal" | "management" };
+  AssignmentForm: { id?: string | number } | undefined;
 };
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
@@ -64,6 +66,7 @@ export default function AppTabs() {
       <Tab.Screen name="BuatSuratTugas" component={BuatSuratTugasScreen} />
       <Tab.Screen name="SuratTugasList" component={SuratTugasListScreen} />
       <Tab.Screen name="AssignmentDetail" component={AssignmentDetailScreen} />
+      <Tab.Screen name="AssignmentForm" component={AssignmentFormScreen} />
     </Tab.Navigator>
   );
 }

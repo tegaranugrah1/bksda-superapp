@@ -542,7 +542,12 @@ export default function STBuilderPage() {
           setDasarItems(data.dasar);
         }
         if (data.tembusan && Array.isArray(data.tembusan) && data.tembusan.length > 0) {
-          setTembusanItems(data.tembusan.filter((t: unknown): t is string => typeof t === 'string'));
+          const parsedTembusan = data.tembusan.map((t: unknown) => {
+            if (typeof t === 'string') return t.trim();
+            if (t && typeof t === 'object' && 'text' in t && typeof (t as any).text === 'string') return (t as any).text.trim();
+            return '';
+          }).filter(Boolean);
+          setTembusanItems(parsedTembusan);
         }
 
         const storedUntukLines = splitStoredUntukItems(data.maksud_tujuan);

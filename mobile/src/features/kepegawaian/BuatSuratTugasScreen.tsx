@@ -1024,6 +1024,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     menimbangItems?: Array<{ id: string; text: string }>;
     dasarItems?: Array<{ id: string; text: string }>;
     untukItems?: Array<{ id: string; text: string }>;
+    tembusanItems?: Array<{ id: string; text: string }> | string[];
   }): string => {
     const nomorSurat = `ST. ${params.nomorUrut || nomorUrut || "001"}/K.18/TU/${klasifikasi || "KSA.0X.0X"}/B/${currentMonth}/${currentYear}`;
     const ttdNama = params.penandatanganName || "M. Ari Wibawanto, S.Hut., M.Sc.";
@@ -1099,6 +1100,36 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         <td style="vertical-align: top; padding: ${idx === 0 ? '1px 0' : '2px 0 1px 0'}; text-align: justify; line-height: 1.22;">${u.text || '...'}</td>
       </tr>
     `).join('');
+
+    const rawTembusanList = (params.tembusanItems && params.tembusanItems.length > 0)
+      ? params.tembusanItems
+      : tembusanItems;
+
+    const listTembusan = rawTembusanList
+      .map((t: any) => (typeof t === 'string' ? t : (t.text || ''))?.trim())
+      .filter((t: string) => t.length > 0);
+
+    const shouldNumberTembusan = listTembusan.length > 1;
+
+    const tembusanRowsHtml = listTembusan.map((t: string, idx: number) => `
+      <tr>
+        ${shouldNumberTembusan ? `<td style="width: 20px; vertical-align: top; padding: 1px 0;">${idx + 1}.</td>` : ''}
+        <td style="vertical-align: top; padding: 1px 0; white-space: nowrap;">${t}</td>
+      </tr>
+    `).join('');
+
+    const tembusanHtml = (listTembusan.length > 0)
+      ? `
+        <div style="margin-top: -22px; max-width: 9.4cm; font-size: 10pt; font-weight: normal; color: #000000;">
+          <p style="margin: 0 0 4px; font-weight: normal; font-size: 10pt; color: #000000;">Tembusan:</p>
+          <table style="border-collapse: collapse;">
+            <tbody>
+              ${tembusanRowsHtml}
+            </tbody>
+          </table>
+        </div>
+      `
+      : '';
 
     return `
       <!DOCTYPE html>
@@ -1273,6 +1304,9 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 <div class="sig-nip">NIP. ${ttdNip}</div>
               </div>
             </div>
+
+            <!-- TEMBUSAN -->
+            ${tembusanHtml}
           </div>
         </div>
       </body>
@@ -1292,6 +1326,10 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       penandatanganName,
       penandatanganNip,
       selectedEmployees,
+      menimbangItems,
+      dasarItems,
+      untukItems,
+      tembusanItems,
     });
   };
 
@@ -1376,6 +1414,10 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         ...untukItems
       ];
       const fullMaksudTujuan = fullUntukArray.map((u) => u.text).filter(Boolean).join("\n");
+      const cleanTembusanArray = tembusanItems
+        .map((t) => (typeof t === "string" ? t : t.text || "").trim())
+        .filter(Boolean);
+
       const payload: any = {
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
@@ -1389,6 +1431,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         menimbang: menimbangItems,
         dasar: dasarItems,
         untuk: fullUntukArray,
+        tembusan: cleanTembusanArray.length > 0 ? cleanTembusanArray : null,
         penandatangan_nama: penandatanganName,
         penandatangan_nip: penandatanganNip,
         keterangan: keterangan || undefined,
@@ -1471,6 +1514,10 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         ...untukItems
       ];
       const fullMaksudTujuan = fullUntukArray.map((u) => u.text).filter(Boolean).join("\n");
+      const cleanTembusanArray = tembusanItems
+        .map((t) => (typeof t === "string" ? t : t.text || "").trim())
+        .filter(Boolean);
+
       const payload: any = {
         status: "draft",
         nomor_surat: fullNomorSurat,
@@ -1485,6 +1532,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         menimbang: menimbangItems,
         dasar: dasarItems,
         untuk: fullUntukArray,
+        tembusan: cleanTembusanArray.length > 0 ? cleanTembusanArray : null,
         penandatangan_nama: penandatanganName,
         penandatangan_nip: penandatanganNip,
         keterangan: keterangan || undefined,

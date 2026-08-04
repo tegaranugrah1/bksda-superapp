@@ -749,6 +749,18 @@ export default function PersonalDashboard() {
               {/* Tab: Surat Tugas */}
               {activeTab === "surat_tugas" && (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                  <div className="p-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Surat Tugas Saya</h3>
+                      <p className="text-xs text-slate-500">Ajukan permohonan surat tugas pegawai.</p>
+                    </div>
+                    <Link href="/surat-tugas">
+                      <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl shadow-sm gap-1.5">
+                        <Plus className="w-4 h-4" />
+                        Ajukan Surat Tugas Baru
+                      </Button>
+                    </Link>
+                  </div>
                   {stLoading ? (
                     <div className="p-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
