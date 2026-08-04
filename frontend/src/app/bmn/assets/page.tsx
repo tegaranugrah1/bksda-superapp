@@ -13,9 +13,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-
-const formatRupiah = (angka: number) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
+import { formatRupiah, deduplicateMerkTipe, shortenLokasi } from "@/app/bmn/_lib/asset-utils";
 
 interface IAsset {
   id: string;
@@ -41,29 +39,6 @@ interface IAsset {
 interface IResponse { data: IAsset[]; last_page: number; total?: number }
 
 const KONDISI_OPTIONS = ["Semua", "Baik", "Rusak Ringan", "Rusak Berat"];
-
-/** Remove duplicate words in merk_tipe (e.g. "Sanyo Sanyo" → "Sanyo") */
-function deduplicateMerkTipe(value?: string): string {
-  if (!value) return "-";
-  const words = value.trim().split(/\s+/);
-  if (words.length === 2 && words[0].toLowerCase() === words[1].toLowerCase()) {
-    return words[0];
-  }
-  return value;
-}
-
-/** Shorten lokasi names for display */
-function shortenLokasi(lokasi: string): string {
-  if (!lokasi || lokasi === "-") return "-";
-  return lokasi
-    .replace("Kantor Balai KSDA Kalimantan Timur", "Kantor Balai")
-    .replace("Seksi KSDA Wilayah I (Berau)", "Seksi Wil. I Berau")
-    .replace("Seksi KSDA Wilayah II (Tenggarong)", "Seksi Wil. II Tenggarong")
-    .replace("Seksi KSDA Wilayah III (Balikpapan)", "Seksi Wil. III Balikpapan")
-    .replace("Urusan Umum dan Perlengkapan", "Urusan Umum")
-    .replace("Urusan Program dan Perencanaan", "Urusan Program")
-    .replace("Resor ", "R.");
-}
 
 export default function BmnAssetsPage() {
   const searchParams = useSearchParams();
