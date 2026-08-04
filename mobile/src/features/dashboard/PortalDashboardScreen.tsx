@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
@@ -29,6 +28,57 @@ interface PortalDashboardScreenProps {
   };
   dashboardData?: DashboardData;
 }
+
+const MODULES = [
+  {
+    key: "kepegawaian",
+    title: "Kepegawaian",
+    subtitle: "Surat Tugas & SDM",
+    iconName: "people-outline",
+    badgeBg: COLORS.badgeBlueBg,
+    iconColor: COLORS.badgeBlueIcon,
+  },
+  {
+    key: "bmn",
+    title: "BMN",
+    subtitle: "Barang Milik Negara",
+    iconName: "cube-outline",
+    badgeBg: COLORS.badgeEmeraldBg,
+    iconColor: COLORS.badgeEmeraldIcon,
+  },
+  {
+    key: "inventory",
+    title: "Persediaan",
+    subtitle: "Stok & Distribusi",
+    iconName: "apps-outline",
+    badgeBg: COLORS.badgeOrangeBg,
+    iconColor: COLORS.badgeOrangeIcon,
+  },
+  {
+    key: "dereporting",
+    title: "DeReporting",
+    subtitle: "Pelaporan Digital",
+    iconName: "document-text-outline",
+    badgeBg: COLORS.badgePurpleBg,
+    iconColor: COLORS.badgePurpleIcon,
+  },
+  {
+    key: "cms",
+    title: "CMS Portal",
+    subtitle: "Manajemen Konten",
+    iconName: "grid-outline",
+    badgeBg: COLORS.badgeTealBg,
+    iconColor: COLORS.badgeTealIcon,
+  },
+  {
+    key: "surat",
+    title: "Persuratan",
+    subtitle: "Surat & Disposisi",
+    iconName: "mail-outline",
+    badgeBg: COLORS.badgeMintBg,
+    iconColor: COLORS.badgeMintIcon,
+  },
+];
 
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
@@ -102,58 +152,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const avatarInitial = (resolvedName.charAt(0) || "S").toUpperCase();
   const summary = dashboardData?.summary;
 
-  const modules = [
-    {
-      key: "kepegawaian",
-      title: "Kepegawaian",
-      subtitle: "Surat Tugas & SDM",
-      iconName: "people-outline",
-      badgeBg: COLORS.badgeBlueBg,
-      iconColor: COLORS.badgeBlueIcon,
-    },
-    {
-      key: "bmn",
-      title: "BMN",
-      subtitle: "Barang Milik Negara",
-      iconName: "cube-outline",
-      badgeBg: COLORS.badgeEmeraldBg,
-      iconColor: COLORS.badgeEmeraldIcon,
-    },
-    {
-      key: "inventory",
-      title: "Persediaan",
-      subtitle: "Stok & Distribusi",
-      iconName: "apps-outline",
-      badgeBg: COLORS.badgeOrangeBg,
-      iconColor: COLORS.badgeOrangeIcon,
-    },
-    {
-      key: "dereporting",
-      title: "DeReporting",
-      subtitle: "Pelaporan Digital",
-      iconName: "document-text-outline",
-      badgeBg: COLORS.badgePurpleBg,
-      iconColor: COLORS.badgePurpleIcon,
-    },
-    {
-      key: "cms",
-      title: "CMS Portal",
-      subtitle: "Manajemen Konten",
-      iconName: "grid-outline",
-      badgeBg: COLORS.badgeTealBg,
-      iconColor: COLORS.badgeTealIcon,
-    },
-    {
-      key: "surat",
-      title: "Persuratan",
-      subtitle: "Surat & Disposisi",
-      iconName: "mail-outline",
-      badgeBg: COLORS.badgeMintBg,
-      iconColor: COLORS.badgeMintIcon,
-    },
-  ];
-
-  const accessibleModules = modules.filter((mod) => hasModule(user, mod.key));
+  const accessibleModules = MODULES.filter((mod) => hasModule(user, mod.key));
   const stBadgeCount = summary?.active_my_letters_count || summary?.pending_my_letters_count || myStList.length || 0;
   const cutiBadgeCount = leaveRequests.length;
   const assetsBadgeCount = myAssetsList.length || summary?.assigned_assets_count || 0;
