@@ -1,3 +1,21 @@
+# Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth
+
+> Document updated: 2026-08-04
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error).
+
+---
+
+## 1. Pembersihan File Duplikat (Dead Code Deletion)
+- **File Hapus**: `mobile/src/features/auth/LoginScreen.tsx` (337 baris file usang/duplikat dihapus total via `git rm`). Navigasi utama terarah bersih ke `mobile/src/features/auth/screens/LoginScreen.tsx`.
+
+## 2. Penyederhanaan State Management Error Validasi Login
+- **Optimasi State (`LoginScreen.tsx`)**: Menghapus 2 state redundant (`usernameError` dan `passwordError`), mengkonsolidasikan pesan kesalahan validasi secara dinamis ke 1 state `errorMessage` tunggal, serta mempertahankan modal `NotificationModal` dan border error visual pada TextInput.
+
+## 3. Streamline Error Catching (`AuthProvider.tsx`)
+- **Pembersihan Logika (`AuthProvider.tsx`)**: Menghapus blok try-catch redundant pada method `login()` yang mereset state null berulang saat gagal masuk, membiarkan exception ditangkap secara transparan oleh form login.
+
+---
+
 # Progress - Phase 199: Audit & Refactoring Kerapihan Modul Kepegawaian, BMN, Portal ST, dan Persuratan
 
 > Document updated: 2026-08-04

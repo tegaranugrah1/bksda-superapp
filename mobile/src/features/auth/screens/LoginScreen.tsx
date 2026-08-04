@@ -23,8 +23,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [modalConfig, setModalConfig] = useState<{
@@ -52,26 +50,14 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    let hasValidationErr = false;
-    let uErr: string | null = null;
-    let pErr: string | null = null;
-
-    if (!username.trim()) {
-      uErr = "Username wajib diisi.";
-      hasValidationErr = true;
-    }
-    if (!password) {
-      pErr = "Password wajib diisi.";
-      hasValidationErr = true;
-    }
-
-    setUsernameError(uErr);
-    setPasswordError(pErr);
-
-    if (hasValidationErr) {
-      const msg = [uErr, pErr].filter(Boolean).join(" ");
+    if (!username.trim() || !password) {
+      const msg = !username.trim() && !password
+        ? "Username dan Password wajib diisi."
+        : !username.trim()
+        ? "Username wajib diisi."
+        : "Password wajib diisi.";
       setErrorMessage(msg);
-      showAlert("Perhatian", "Silakan masukkan NIP / Username dan Kata Sandi Anda.", "warning");
+      showAlert("Perhatian", msg, "warning");
       return;
     }
 
@@ -81,20 +67,11 @@ export default function LoginScreen() {
     try {
       await login(username.trim(), password);
     } catch (err: any) {
-      const rawMsg = err?.message || "Login gagal. Periksa username dan password, lalu coba lagi.";
-      let displayMsg = rawMsg;
-      if (
-        rawMsg.toLowerCase().includes("sqlstate") ||
-        rawMsg.toLowerCase().includes("exception") ||
-        rawMsg.toLowerCase().includes("debug token")
-      ) {
-        displayMsg = "Login gagal. Periksa username dan password, lalu coba lagi.";
-      } else if (
-        rawMsg.toLowerCase().includes("sesi anda telah berakhir") ||
-        err?.status === 401
-      ) {
-        displayMsg = "NIP / Username atau kata sandi yang Anda masukkan salah. Silakan periksa kembali.";
-      }
+      const rawMsg = err?.message || "";
+      const displayMsg =
+        rawMsg.toLowerCase().includes("sesi anda telah berakhir") || err?.status === 401
+          ? "NIP / Username atau kata sandi yang Anda masukkan salah. Silakan periksa kembali."
+          : "Login gagal. Periksa username dan password, lalu coba lagi.";
       setErrorMessage(displayMsg);
       showAlert("Gagal Masuk", displayMsg, "danger");
     } finally {
@@ -151,7 +128,7 @@ export default function LoginScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>NIP / Username</Text>
             <TouchableOpacity
-              style={[styles.inputWrapper, usernameError ? styles.inputErrorBorder : null]}
+              style={[styles.inputWrapper, errorMessage && !username.trim() ? styles.inputErrorBorder : null]}
               activeOpacity={1}
               onPress={() => usernameInputRef.current?.focus()}
             >
@@ -166,7 +143,6 @@ export default function LoginScreen() {
                 value={username}
                 onChangeText={(val) => {
                   setUsername(val);
-                  if (usernameError) setUsernameError(null);
                   if (errorMessage) setErrorMessage(null);
                 }}
                 autoCapitalize="none"
@@ -179,14 +155,13 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
-            {usernameError && <Text style={styles.fieldErrorText}>{usernameError}</Text>}
           </View>
 
           {/* Password Input Box */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Kata Sandi</Text>
             <TouchableOpacity
-              style={[styles.inputWrapper, passwordError ? styles.inputErrorBorder : null]}
+              style={[styles.inputWrapper, errorMessage && !password ? styles.inputErrorBorder : null]}
               activeOpacity={1}
               onPress={() => passwordInputRef.current?.focus()}
             >
@@ -202,7 +177,6 @@ export default function LoginScreen() {
                 value={password}
                 onChangeText={(val) => {
                   setPassword(val);
-                  if (passwordError) setPasswordError(null);
                   if (errorMessage) setErrorMessage(null);
                 }}
                 returnKeyType="done"
@@ -220,7 +194,6 @@ export default function LoginScreen() {
                 />
               </TouchableOpacity>
             </TouchableOpacity>
-            {passwordError && <Text style={styles.fieldErrorText}>{passwordError}</Text>}
           </View>
 
           {/* Submit Login Button */}
