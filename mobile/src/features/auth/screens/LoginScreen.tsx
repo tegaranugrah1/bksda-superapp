@@ -317,12 +317,6 @@ const styles = StyleSheet.create({
   inputErrorBorder: {
     borderColor: "#ef4444",
   },
-  fieldErrorText: {
-    color: "#ef4444",
-    fontSize: 11,
-    marginTop: 4,
-    marginLeft: 2,
-  },
   inputLeftIcon: {
     marginRight: 10,
   },
