@@ -46,25 +46,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password?: string) => {
-    // Note: Do NOT set global isLoading = true here.
-    // Toggling global isLoading unmounts LoginScreen in RootNavigation,
-    // which discards LoginScreen's state and prevents error banners/alerts from displaying.
-    try {
-      const response = await loginApi({ username, password });
-      const userObj = response.data;
-      const responseToken = response.token;
-
-      await setToken(responseToken);
-      setTokenState(responseToken);
-      setUser(userObj);
-      setEmployee(userObj.employee);
-    } catch (error) {
-      // Safe cleanup on login failures
-      setUser(null);
-      setEmployee(null);
-      setTokenState(null);
-      throw error;
-    }
+    const response = await loginApi({ username, password });
+    await setToken(response.token);
+    setTokenState(response.token);
+    setUser(response.data);
+    setEmployee(response.data.employee);
   };
 
   const logout = async () => {
