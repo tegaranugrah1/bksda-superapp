@@ -18,6 +18,7 @@ import { Plus, Pencil, Trash2, Loader2, RotateCcw, Package, AlertTriangle, Calen
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ReturnLoanModal } from "./_components/ReturnLoanModal";
 
 interface Loan {
     id: string;
@@ -345,35 +346,16 @@ export default function LoansPage() {
             </div>
 
             {/* Return Modal */}
-            <Dialog open={isReturnModalOpen} onOpenChange={setIsReturnModalOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2"><RotateCcw className="w-5 h-5 text-emerald-600" /> Kembalikan Aset?</DialogTitle>
-                        <DialogDescription>
-                            Konfirmasi pengembalian aset <strong>{returningRecord?.asset?.nama_barang}</strong> dari <strong>{returningRecord?.borrower?.name}</strong>.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="space-y-2">
-                            <Label>Kondisi Setelah Kembali *</Label>
-                            <Select value={returnCondition} onValueChange={setReturnCondition}>
-                                <SelectTrigger><SelectValue placeholder="Pilih kondisi..." /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Baik">✅ Baik</SelectItem>
-                                    <SelectItem value="Rusak Ringan">⚠️ Rusak Ringan</SelectItem>
-                                    <SelectItem value="Rusak Berat">❌ Rusak Berat</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsReturnModalOpen(false)}>Batal</Button>
-                        <Button onClick={handleReturn} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Kembalikan
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <ReturnLoanModal
+                open={isReturnModalOpen}
+                onOpenChange={setIsReturnModalOpen}
+                assetName={returningRecord?.asset?.nama_barang || undefined}
+                borrowerName={returningRecord?.borrower?.name || undefined}
+                returnCondition={returnCondition}
+                setReturnCondition={setReturnCondition}
+                handleReturn={handleReturn}
+                saving={saving}
+            />
 
             {/* Edit Modal */}
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
