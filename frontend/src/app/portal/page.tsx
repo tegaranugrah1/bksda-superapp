@@ -27,6 +27,8 @@ import { authStore } from "@/lib/auth-store";
 import SuratTugasLetterPreview from "@/components/SuratTugasLetterPreview";
 import { LeaveRequestDialog } from "./_components/LeaveRequestDialog";
 import { FormulirCutiPrint, LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
+import { ProfileSidebar } from "./_components/ProfileSidebar";
+import { SuratTugasTab } from "./_components/SuratTugasTab";
 import { Printer, Plus } from "lucide-react";
 
 interface DashboardData {
@@ -251,14 +253,6 @@ export default function PersonalDashboard() {
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (data?.employee?.id) {
-      api.get(`/kepegawaian/employees/${data.employee.id}/leaves?year=${currentYear}`)
-        .then((res) => setMyLeaveBalance(res.data.data))
-        .catch(() => {});
-    }
-  }, [data, currentYear]);
-
-  useEffect(() => {
     fetchMyLeaveRequests();
   }, [fetchMyLeaveRequests]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -381,100 +375,23 @@ export default function PersonalDashboard() {
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col lg:flex-row gap-6 sm:gap-8">
-          {/* Mobile Profile Backdrop */}
-          {mobileProfileOpen && (
-            <div 
-              className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden backdrop-blur-sm transition-opacity" 
-              onClick={() => setMobileProfileOpen(false)}
-            />
-          )}
-
           {/* Sidebar Profile */}
-          <aside className={cn(
-            "fixed lg:static top-0 right-0 h-dvh lg:h-auto w-70 sm:w-[320px] lg:w-70 bg-slate-50 dark:bg-slate-900/50 lg:bg-transparent shadow-2xl lg:shadow-none z-50 lg:z-auto transition-transform duration-300 overflow-y-auto lg:overflow-visible p-6 lg:p-0 space-y-4",
-            mobileProfileOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-          )}>
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-6 text-center relative">
-              <button onClick={openEditDialog} className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-emerald-600 transition-colors" title="Edit Profil">
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-              <div className="w-20 h-20 rounded-full bg-emerald-600 mx-auto flex items-center justify-center text-white text-2xl font-black mb-3 relative group overflow-hidden">
-                {data.employee?.photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={data.employee.photo} alt="Foto Profil" className="w-full h-full object-cover" />
-                ) : (
-                  data.user.name.charAt(0)
-                )}
-                <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                  <Pencil className="w-5 h-5 text-white" />
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (file.size > 10 * 1024 * 1024) { toast.error("Maksimal 10MB"); return; }
-                      const fd = new FormData();
-                      fd.append("foto", file);
-                      try {
-                        await api.post("/me/update-photo", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                        toast.success("Foto profil berhasil diperbarui!");
-                        fetchDashboard();
-                      } catch { toast.error("Gagal mengupload foto."); }
-                    }}
-                  />
-                </label>
-              </div>
-              <div className={cn("inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full mb-2", isActive ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600" : "bg-slate-100 text-slate-500 dark:text-slate-400")}>
-                <BadgeCheck className="w-3 h-3" /> {isActive ? "Aktif" : "Nonaktif"}
-              </div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{data.employee?.name || data.user.name}</h2>
-              <p className="text-xs text-slate-400 mb-1">NIP {data.employee?.nip || data.user.username}</p>
-              <Badge className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-none">
-                {data.user.role === "super_admin" ? "Super Admin" : data.user.role === "admin" ? "Administrator" : "Pegawai"}
-              </Badge>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-4 space-y-2">
-              {[
-                { icon: <Fingerprint className="w-4 h-4" />, label: "Jabatan", value: data.employee?.position || "-", color: "text-emerald-500" },
-                { icon: <Building2 className="w-4 h-4" />, label: "Unit Kerja", value: data.employee?.department || "-", color: "text-blue-500" },
-                { icon: <Calendar className="w-4 h-4" />, label: `Sisa Cuti (${currentYear})`, value: myLeaveBalance ? `${myLeaveBalance.sisa_cuti_tersedia} Hari Kerja` : "12 Hari Kerja", color: "text-amber-500" },
-                { icon: <Mail className="w-4 h-4" />, label: "Email", value: data.employee?.email || data.user.email || "-", color: "text-rose-500" },
-                { icon: <Phone className="w-4 h-4" />, label: "Telepon", value: data.employee?.phone || "-", color: "text-teal-500" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50 transition-colors">
-                  <div className={cn("shrink-0", item.color)}>{item.icon}</div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{item.label}</p>
-                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{item.value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-2">
-              <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full rounded-xl text-xs h-10 font-semibold">
-                    <KeyRound className="w-4 h-4 mr-2 text-emerald-500" /> Ganti Password
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-100 w-[90vw] mx-auto rounded-2xl">
-                  <form onSubmit={handleChangePassword}>
-                    <DialogHeader><DialogTitle>Ubah Password</DialogTitle><DialogDescription>Password baru minimal 8 karakter.</DialogDescription></DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2"><Label htmlFor="current_password">Password Saat Ini</Label><Input id="current_password" type="password" value={pwData.current_password} onChange={(e) => setPwData({ ...pwData, current_password: e.target.value })} required /></div>
-                      <div className="grid gap-2"><Label htmlFor="new_password">Password Baru</Label><Input id="new_password" type="password" value={pwData.new_password} onChange={(e) => setPwData({ ...pwData, new_password: e.target.value })} required minLength={8} /></div>
-                      <div className="grid gap-2"><Label htmlFor="new_password_confirmation">Konfirmasi</Label><Input id="new_password_confirmation" type="password" value={pwData.new_password_confirmation} onChange={(e) => setPwData({ ...pwData, new_password_confirmation: e.target.value })} required minLength={8} /></div>
-                    </div>
-                    <DialogFooter><DialogClose asChild><Button type="button" variant="outline" className="w-full sm:w-auto">Batal</Button></DialogClose><Button type="submit" disabled={pwLoading} className="w-full sm:w-auto">{pwLoading && <Loader2 className="w-4 h-4 animate-spin mr-1" />}Simpan</Button></DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </aside>
+          <ProfileSidebar
+            data={data}
+            isActive={isActive}
+            currentYear={currentYear}
+            myLeaveBalance={myLeaveBalance}
+            mobileProfileOpen={mobileProfileOpen}
+            setMobileProfileOpen={setMobileProfileOpen}
+            openEditDialog={openEditDialog}
+            fetchDashboard={fetchDashboard}
+            pwDialogOpen={pwDialogOpen}
+            setPwDialogOpen={setPwDialogOpen}
+            pwData={pwData}
+            setPwData={setPwData}
+            pwLoading={pwLoading}
+            handleChangePassword={handleChangePassword}
+          />
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 space-y-6 order-1 lg:order-2">
@@ -749,53 +666,12 @@ export default function PersonalDashboard() {
               {/* Tab: Surat Tugas */}
               {activeTab === "surat_tugas" && (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <div className="p-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Surat Tugas Saya</h3>
-                      <p className="text-xs text-slate-500">Ajukan permohonan surat tugas pegawai.</p>
-                    </div>
-                    <Link href="/surat-tugas">
-                      <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl shadow-sm gap-1.5">
-                        <Plus className="w-4 h-4" />
-                        Ajukan Surat Tugas Baru
-                      </Button>
-                    </Link>
-                  </div>
-                  {stLoading ? (
-                    <div className="p-12 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
-                      <p className="text-sm text-slate-400">Memuat surat tugas...</p>
-                    </div>
-                  ) : suratTugas.length === 0 ? (
-                    <div className="p-12 text-center">
-                      <ClipboardList className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada surat tugas yang diterbitkan</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-zinc-800">
-                      {suratTugas.map((st) => (
-                        <div key={st.id} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                            <FileText className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{st.maksud_tujuan}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              {st.nomor_surat && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">{st.nomor_surat}</span>}
-                              <span className="text-xs text-slate-400">
-                                {new Date(st.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button onClick={() => fetchSTDetail(st.id)} disabled={stDetailLoading} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors disabled:opacity-50" title="Lihat">
-                              {stDetailLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <SuratTugasTab
+                    stLoading={stLoading}
+                    suratTugas={suratTugas}
+                    fetchSTDetail={fetchSTDetail}
+                    stDetailLoading={stDetailLoading}
+                  />
                 </div>
               )}
               {activeTab === "cuti" && (

@@ -1055,7 +1055,7 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1785821418.031001,
+    "mtime": 1785823546.1273198,
     "ast_hash": "ed555b8f405b07c233f21fd1a9938aec",
     "semantic_hash": ""
   },
@@ -1120,7 +1120,7 @@
     "semantic_hash": "f2cda7c59edcb41daccde2b3cf1c7b46"
   },
   "backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php": {
-    "mtime": 1785810870.5273156,
+    "mtime": 1785823546.1278696,
     "ast_hash": "0f1e6fda73ce40a8b1e0acab1149fa93",
     "semantic_hash": ""
   },
@@ -2390,12 +2390,12 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/page.tsx": {
-    "mtime": 1785742131.7336636,
+    "mtime": 1785823546.12895,
     "ast_hash": "d7b58bb3e67637b0c7938fdbaa3c9f58",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/EditableItemListSection.tsx": {
-    "mtime": 1785808073.301498,
+    "mtime": 1785823546.1300075,
     "ast_hash": "da6f86acf2c6e5dc08350f09cccb57fd",
     "semantic_hash": ""
   },
@@ -2405,12 +2405,12 @@
     "semantic_hash": "c2c0d39af9df11f97ced47e08f712aa7"
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/PenandatanganSection.tsx": {
-    "mtime": 1785808086.3091052,
+    "mtime": 1785823546.1300075,
     "ast_hash": "6592e784f3b2cd0f9dd3c3a19cb1fab4",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/TembusanSection.tsx": {
-    "mtime": 1785808078.887513,
+    "mtime": 1785823546.1310062,
     "ast_hash": "504759780be4c2b22f3778745bcba3af",
     "semantic_hash": ""
   },
@@ -2435,7 +2435,7 @@
     "semantic_hash": "9d5271f8dec0dfaf848658f1b77921df"
   },
   "frontend/src/app/kepegawaian/surat-tugas/_lib/print-st.ts": {
-    "mtime": 1785743385.1170747,
+    "mtime": 1785823546.1321676,
     "ast_hash": "3d6ac375d29480047cf6978b7d5426b0",
     "semantic_hash": ""
   },
@@ -2465,7 +2465,7 @@
     "semantic_hash": "f1efa63787a08c9c650cb504648906a8"
   },
   "frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx": {
-    "mtime": 1785823223.0315166,
+    "mtime": 1785823546.133768,
     "ast_hash": "16562767d79822d65b11282857ad15a7",
     "semantic_hash": ""
   },
@@ -2490,7 +2490,7 @@
     "semantic_hash": "750ce65eb50b8c03f6bc81fcdc28c117"
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx": {
-    "mtime": 1785811294.2933989,
+    "mtime": 1785823546.134768,
     "ast_hash": "464f036adf026e06f6c98060f6556d06",
     "semantic_hash": ""
   },
@@ -2530,14 +2530,14 @@
     "semantic_hash": "5880ee6fc926c2a72608e9f9aca63e37"
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1785813339.479912,
-    "ast_hash": "79ecc40e4b91a7f97dcc701be45228b5",
+    "mtime": 1785824192.4797702,
+    "ast_hash": "3ee08a5ec8461039df76b270b53ba178",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
-    "mtime": 1779418859.1424088,
-    "ast_hash": "30fee9476b9614f8619c0abfed79e5aa",
-    "semantic_hash": "30fee9476b9614f8619c0abfed79e5aa"
+    "mtime": 1785824164.5077817,
+    "ast_hash": "6cd51339ce5b31176d0792f4bef33a8e",
+    "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/layout.tsx": {
     "mtime": 1778491320.4138527,
@@ -2615,7 +2615,7 @@
     "semantic_hash": "0892ed7d11f2ca88fcc612d836642281"
   },
   "frontend/src/components/SuratTugasLetterPreview.tsx": {
-    "mtime": 1785823241.3528657,
+    "mtime": 1785823546.1367674,
     "ast_hash": "f18dc9260d14163104376fc465197e60",
     "semantic_hash": ""
   },
@@ -3240,7 +3240,7 @@
     "semantic_hash": "f48d60887d0c870505b5bfe94d3930c7"
   },
   "mobile/src/features/dashboard/screens/DashboardScreen.tsx": {
-    "mtime": 1785813349.0877297,
+    "mtime": 1785823546.2846918,
     "ast_hash": "85c23bb20e70b2a123a4da96eb622be0",
     "semantic_hash": ""
   },
@@ -3410,8 +3410,8 @@
     "semantic_hash": "884ba488af090edad1d092438d120b72"
   },
   "mobile/src/features/surat-tugas/screens/AssignmentFormScreen.tsx": {
-    "mtime": 1785820862.8162487,
-    "ast_hash": "3b1ee64ab191a1b23fa5a6c7df071a9e",
+    "mtime": 1785823546.2947404,
+    "ast_hash": "cf54e4a72ea246c6f0dc54d3a5ac52fd",
     "semantic_hash": ""
   },
   "mobile/src/features/surat-tugas/screens/SuratTugasListScreen.tsx": {
@@ -3575,7 +3575,7 @@
     "semantic_hash": "fd069224ca42d2e6c2bd2a943a088592"
   },
   "mobile/src/navigation/AppTabs.tsx": {
-    "mtime": 1785813464.0933087,
+    "mtime": 1785823546.2957375,
     "ast_hash": "a37c2d74bc548834550134b7df4f98c5",
     "semantic_hash": ""
   },
@@ -5285,7 +5285,7 @@
     "semantic_hash": ""
   },
   "mobile/src/components/ui/FabMenu.tsx": {
-    "mtime": 1785741835.9199789,
+    "mtime": 1785823546.28369,
     "ast_hash": "8a73ffff4f0184c5e9f12b2b0b3599c1",
     "semantic_hash": ""
   },
@@ -5295,7 +5295,7 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx": {
-    "mtime": 1785823301.3552437,
+    "mtime": 1785823546.2897332,
     "ast_hash": "16bcec03e3fc82523b40318578bea1b2",
     "semantic_hash": ""
   },
@@ -5310,7 +5310,7 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx": {
-    "mtime": 1785821228.1921368,
+    "mtime": 1785823546.2917366,
     "ast_hash": "ea9bede123b2e704ce5a57181c12f24d",
     "semantic_hash": ""
   },
@@ -5340,7 +5340,7 @@
     "semantic_hash": ""
   },
   "mobile/src/components/PratinjauSuratTugasModal.tsx": {
-    "mtime": 1785742526.8647618,
+    "mtime": 1785823546.2816906,
     "ast_hash": "e9d292e18b1c2f03052ffd445a07fe22",
     "semantic_hash": ""
   },
@@ -5480,13 +5480,48 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/KepegawaianDashboardScreen.tsx": {
-    "mtime": 1785745418.298432,
-    "ast_hash": "8b760a3c8c6669c2d9f10098667ba1af",
+    "mtime": 1785823546.2927358,
+    "ast_hash": "3398f24e0326c5bd1d7c75bd956df8ed",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/page.tsx": {
     "mtime": 1785725187.2055914,
     "ast_hash": "ddb2445ff5ec102ffae738387bb410bf",
+    "semantic_hash": ""
+  },
+  ".agents/AGENTS.md": {
+    "mtime": 1785823724.6948137,
+    "ast_hash": "2d922daa034b7081de0bcd1a1fd01040",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ponytail-audit/SKILL.md": {
+    "mtime": 1785823693.065611,
+    "ast_hash": "741076540e91247a0bace7b89c27ac6b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ponytail-debt/SKILL.md": {
+    "mtime": 1785823693.0666103,
+    "ast_hash": "19c1eef33c9b109abb5805a762a545c8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ponytail-gain/SKILL.md": {
+    "mtime": 1785823693.0666103,
+    "ast_hash": "8f9cd980326238785d2fc23a9cfddc96",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ponytail-help/SKILL.md": {
+    "mtime": 1785823693.067614,
+    "ast_hash": "25b3214341fdc2f0805d2f8a5da6fefd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ponytail-review/SKILL.md": {
+    "mtime": 1785823693.067614,
+    "ast_hash": "52f93e973047baa9a906c6dc5879a4a6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ponytail/SKILL.md": {
+    "mtime": 1785823693.0686107,
+    "ast_hash": "33f013ce03c8c66a6002ef941a433b81",
     "semantic_hash": ""
   }
 }
