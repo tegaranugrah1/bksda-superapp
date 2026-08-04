@@ -543,25 +543,32 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [kotaDokumen, setKotaDokumen] = useState("Samarinda");
   const [tanggalDokumen, setTanggalDokumen] = useState(new Date().toISOString().substring(0, 10));
 
-  const [menimbangItems, setMenimbangItems] = useState<Array<{ id: string; text: string }>>([
+  const [menimbangItems, setMenimbangItems] = useState<{ id: string; text: string }[]>([
     { id: "m-1", text: "bahwa dalam rangka , perlu ;" },
     { id: "m-2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
   ]);
 
-  const [dasarItems, setDasarItems] = useState<Array<{ id: string; text: string }>>([
+  const [dasarItems, setDasarItems] = useState<{ id: string; text: string }[]>([
     { id: "d-1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
     { id: "d-2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.` },
   ]);
 
-  const [untukItems, setUntukItems] = useState<Array<{ id: string; text: string }>>([
+  const [untukItems, setUntukItems] = useState<{ id: string; text: string }[]>([
     { id: "u-2", text: "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut." },
     { id: "u-3", text: `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran ${currentYear};` },
   ]);
 
-  const [tembusanItems, setTembusanItems] = useState<Array<{ id: string; text: string }>>([]);
+  const [tembusanItems, setTembusanItems] = useState<{ id: string; text: string }[]>([]);
 
   const [penandatanganName, setPenandatanganName] = useState("M. Ari Wibawanto, S.Hut., M.Sc.");
   const [penandatanganNip, setPenandatanganNip] = useState("19740514 199903 1 001");
+
+  // BUILDER STATE UNTUK DETAIL KEGIATAN
+  const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+  const [kotaAsal, setKotaAsal] = useState("Samarinda");
+  const [kotaTujuan, setKotaTujuan] = useState("");
+  const [namaKegiatanText, setNamaKegiatanText] = useState("");
+  const [tempatSpesifik, setTempatSpesifik] = useState("");
 
   // Sync state if opening in Edit Mode from InboxSuratTugasScreen or reset if Create Mode
   useEffect(() => {
@@ -823,12 +830,6 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     }
   };
 
-  // BUILDER STATE UNTUK DETAIL KEGIATAN
-  const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
-  const [kotaAsal, setKotaAsal] = useState("Samarinda");
-  const [kotaTujuan, setKotaTujuan] = useState("");
-  const [namaKegiatanText, setNamaKegiatanText] = useState("");
-  const [tempatSpesifik, setTempatSpesifik] = useState("");
 
   // Helper to build Untuk item 1 from Detail Kegiatan
   const buildUntukText = (): string => {
