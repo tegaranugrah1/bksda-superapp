@@ -1,3 +1,100 @@
+# Progress - Phase 199: Audit & Refactoring Kerapihan Modul Kepegawaian, BMN, Portal ST, dan Persuratan
+
+> Document updated: 2026-08-04
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error).
+
+---
+
+## 1. Modul Kepegawaian (`frontend/src/app/kepegawaian`)
+- **Pembersihan Import & Memory Optimization**: Membuang 13 ikon tidak terpakai dari `lucide-react` dan meng-ekstrak `DEFAULT_SATKER_BREAKDOWN` ke top-level scope.
+- **Isolasi Komponen**: Penggunaan TanStack React Query (`useQuery`) terintegrasi rapi dengan komponen modular `KepegawaianDashboardComponents.tsx`.
+
+---
+
+## 2. Modul BMN / Barang Milik Negara (`frontend/src/app/bmn`)
+- **Struktur Modular & Utilitas Terpusat**: Komponen dashboard (`StatCard`, `LegendItem`, `QuickLink`) diisolasi di `BmnDashboardComponents.tsx`, dan penanganan format Rupiah dipisah di `_lib/asset-utils.ts`.
+- **Zero Dead Code**: Semua 9 ikon `lucide-react` dipanggil secara efektif tanpa ada import menganggur.
+
+---
+
+## 3. Modul Portal Surat Tugas (`frontend/src/app/surat-tugas`)
+- **Wizard 3-Langkah Modular**: Terbagi menjadi `EmployeeSelectionStep.tsx`, `SuratTugasDetailStep.tsx`, dan `SuratTugasSuccessStep.tsx`.
+- **Logika Cerdas & Validasi**: Deteksi otomatis kota asal berdasarkan penempatan Seksi Wilayah pegawai (Samarinda, Berau, Tenggarong, Balikpapan) dan penanganan berkas lampiran PDF max 10MB.
+
+---
+
+## 4. Modul Persuratan (`frontend/src/app/surat`)
+- **Optimasi Alokasi Memori**: Meng-ekstrak konstanta `QUICK_LINKS` ke top-level scope pada `surat/page.tsx` untuk mencegah re-alokasi memori pada siklus re-render.
+- **Komponentisasi Dashboard**: Sub-komponen `HeaderBanner`, `BentoStatCards`, dan `RecentSuratWidget` diisolasi dengan rapi di `SuratHubComponents.tsx`.
+
+---
+
+# Progress - Phase 198: Refactoring & Clean Code Modul Portal
+
+> Document updated: 2026-08-04
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error).
+
+---
+
+## 1. Pembersihan Import & Ikon Modul Portal
+- **Web (`frontend/src/app/portal/page.tsx`)**:
+  - Menggabungkan import ganda dari `lucide-react` menjadi 1 baris bersih.
+  - Membuang 18+ import ikon yang tidak terpakai (`Boxes`, `LayoutGrid`, `Fingerprint`, dll.) yang sudah dipindah ke sub-komponen terpisah.
+
+## 2. Penyederhanaan Formatter Merk & Tipe Aset
+- **Web (`frontend/src/app/portal/_components/MyAssetsTab.tsx`)**:
+  - Meringkas fungsi `formatMerkTipe` menjadi ekspresi JavaScript modern 1 baris yang aman dan bersih dari kata duplikat.
+
+## 3. Verifikasi & Build Status
+- `npx tsc --noEmit` pada paket `frontend` berjalan sukses dengan **0 error**.
+
+---
+
+# Progress - Phase 197: Fix Preservasi Tembusan ST, DatePicker Kalender Bulanan, Success Screen Portal & Unduh PDF Mobile Inbox
+
+> Document updated: 2026-08-04
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error).
+
+---
+
+## 1. Fix Preservasi & Sinkronisasi Data `tembusan` Surat Tugas
+- **Mobile (`BuatSuratTugasScreen.tsx`)**:
+  - Mengupdate pembuatan payload pada fungsi `handleSimpan` (publish/update) dan `handleSaveDraft` (draf) agar menyertakan `tembusan: tembusanItems`.
+- **Backend (`AssignmentLetterController.php`)**:
+  - Mengupdate transformer `toMobileDetailItem` agar mengembalikan properti `tembusan`, `menimbang`, `dasar`, `penandatangan_nama`, dan `penandatangan_nip`.
+- **Hasil**: Data tembusan yang diisi dari aplikasi Mobile kini tersimpan sempurna di database dan dapat dibaca kembali di Web localhost maupun Mobile.
+
+---
+
+## 2. Modal Date Picker Kalender Bulanan Interaktif (Mobile Portal ST)
+- **Mobile (`AssignmentFormScreen.tsx`)**:
+  - Mengganti input manual angka/teks tanggal dengan **Monthly Calendar Grid Modal** interaktif (`calYear`, `calMonth`).
+  - Fitur: Navigasi antar bulan (`<` / `>`), highlight hari ini (*today*), pemilihan tanggal 1-tap, dan penulisan format Bahasa Indonesia baku (`24 Agustus 2026`).
+
+---
+
+## 3. Alur Navigasi & Success Screen Form Portal Surat Tugas
+- **Mobile (`AssignmentFormScreen.tsx`)**:
+  - Mengubah tampilan Step 3 (Laporan Berhasil Dibuat) menjadi dialog pemberitahuan dengan tombol **"Oke, Saya Mengerti"**.
+  - Menekan tombol akan mengarahkan user kembali ke **Portal Dashboard**, menyesuaikan dengan akses pegawai yang tidak memiliki role modul Kepegawaian.
+
+---
+
+## 4. Integrasi Unduh & Share Berkas PDF (Mobile Inbox ST)
+- **Mobile (`InboxSuratTugasScreen.tsx`)**:
+  - Menambahkan tombol hijau interaktif **`[ 📥 UNDUH / LIHAT LAMPIRAN PDF ]`** ketika data surat tugas memiliki berkas `file_surat_path`.
+  - Mengintegrasikan `downloadAssignmentFile` dengan `expo-sharing` untuk membuka/mengunduh PDF.
+  - Penamaan file unduhan disamakan dengan format Web: `${dasarSurat}-${namaPersonel}-${dateTag}.pdf`.
+
+---
+
+## 5. Audit Kerapihan Kode & Resolusi Warning Linter
+- **React Effect Cleanups**: Mengeliminasi warning `Avoid calling setState() directly within an effect` di `BuatSuratTugasScreen.tsx` dengan me-guard pencarian `editData`.
+- **Tailwind CSS v4 Modernization**: Mengganti kelas deprecated `bg-gradient-to-*` menjadi `bg-linear-to-*` di `frontend/src/app/surat/page.tsx` & `frontend/src/app/kepegawaian/page.tsx`.
+- **TypeScript Strict Compilation**: Menjalankan verification `npx tsc --noEmit` pada paket `mobile` dengan status **Clean / 0 Error (Exit Code 0)**.
+
+---
+
 # Progress - Phase 196: BMN Reports Multi-Page Pagination, Dynamic Margins, Uncropped Asset Photo Documentation & Git Branch Consolidation/Deployment Setup
 
 > Document updated: 2026-07-30

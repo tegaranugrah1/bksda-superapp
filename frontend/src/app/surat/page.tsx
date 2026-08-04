@@ -36,6 +36,63 @@ interface SuratKeluarItem {
   status?: string;
 }
 
+const QUICK_LINKS = [
+  {
+    title: "Daftar Surat Masuk",
+    description: "Penatausahaan & Disposisi",
+    href: "/surat/masuk",
+    icon: Inbox,
+    gradient: "from-emerald-500/20 via-emerald-500/10 to-transparent",
+    iconStyle:
+      "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-emerald-500/20",
+  },
+  {
+    title: "Input Surat Masuk",
+    description: "Register Agenda & Disposisi",
+    href: "/surat/masuk/create",
+    icon: Plus,
+    gradient: "from-teal-500/20 via-teal-500/10 to-transparent",
+    iconStyle:
+      "bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-teal-500/20",
+  },
+  {
+    title: "Disposisi Pimpinan",
+    description: "Lembar Disposisi 2-Up",
+    href: "/surat/masuk",
+    icon: FileText,
+    gradient: "from-amber-500/20 via-amber-500/10 to-transparent",
+    iconStyle:
+      "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-amber-500/20",
+  },
+  {
+    title: "Daftar Surat Keluar",
+    description: "Pengagendaan Naskah Keluar",
+    href: "/surat/keluar",
+    icon: Send,
+    gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
+    iconStyle:
+      "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-500/20",
+  },
+  {
+    title: "Input Surat Keluar",
+    description: "Form Penomoran Surat Keluar",
+    href: "/surat/keluar/create",
+    icon: Plus,
+    gradient: "from-sky-500/20 via-sky-500/10 to-transparent",
+    iconStyle:
+      "bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sky-500/20",
+  },
+  {
+    title: "Arsip Digital",
+    description: "Penyimpanan Berkas Resmi",
+    href: "/surat/keluar",
+    icon: Layers,
+    gradient: "from-purple-500/20 via-purple-500/10 to-transparent",
+    iconStyle:
+      "bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-purple-500/20",
+  },
+];
+
 export default function SuratHubPage() {
   const [totalSuratMasuk, setTotalSuratMasuk] = useState<number>(0);
   const [totalSuratKeluar, setTotalSuratKeluar] = useState<number>(0);
@@ -96,63 +153,6 @@ export default function SuratHubPage() {
     loadData();
   }, []);
 
-  const quickLinks = [
-    {
-      title: "Daftar Surat Masuk",
-      description: "Penatausahaan & Disposisi",
-      href: "/surat/masuk",
-      icon: Inbox,
-      gradient: "from-emerald-500/20 via-emerald-500/10 to-transparent",
-      iconStyle:
-        "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-emerald-500/20",
-    },
-    {
-      title: "Input Surat Masuk",
-      description: "Register Agenda & Disposisi",
-      href: "/surat/masuk/create",
-      icon: Plus,
-      gradient: "from-teal-500/20 via-teal-500/10 to-transparent",
-      iconStyle:
-        "bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-teal-500/20",
-    },
-    {
-      title: "Disposisi Pimpinan",
-      description: "Lembar Disposisi 2-Up",
-      href: "/surat/masuk",
-      icon: FileText,
-      gradient: "from-amber-500/20 via-amber-500/10 to-transparent",
-      iconStyle:
-        "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-amber-500/20",
-    },
-    {
-      title: "Daftar Surat Keluar",
-      description: "Pengagendaan Naskah Keluar",
-      href: "/surat/keluar",
-      icon: Send,
-      gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
-      iconStyle:
-        "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-500/20",
-    },
-    {
-      title: "Input Surat Keluar",
-      description: "Form Penomoran Surat Keluar",
-      href: "/surat/keluar/create",
-      icon: Plus,
-      gradient: "from-sky-500/20 via-sky-500/10 to-transparent",
-      iconStyle:
-        "bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-sky-500/20",
-    },
-    {
-      title: "Arsip Digital",
-      description: "Penyimpanan Berkas Resmi",
-      href: "/surat/keluar",
-      icon: Layers,
-      gradient: "from-purple-500/20 via-purple-500/10 to-transparent",
-      iconStyle:
-        "bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-purple-500/20",
-    },
-  ];
-
   return (
     <div className="w-full p-4 md:p-6 space-y-5 text-zinc-900 dark:text-zinc-100 font-sans">
       {/* 1. Ultra-Aesthetic Mesh Gradient Header Banner */}
@@ -172,13 +172,13 @@ export default function SuratHubPage() {
           </h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {quickLinks.map((item) => {
+          {QUICK_LINKS.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.href + item.title} href={item.href}>
-                <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200/80 dark:border-zinc-800/80 p-3.5 rounded-2xl hover:border-emerald-500/40 dark:hover:border-emerald-500/40 transition-all duration-200 group hover:shadow-xl hover:shadow-emerald-500/5 flex flex-col justify-between h-full min-h-[96px]">
+                <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200/80 dark:border-zinc-800/80 p-3.5 rounded-2xl hover:border-emerald-500/40 dark:hover:border-emerald-500/40 transition-all duration-200 group hover:shadow-xl hover:shadow-emerald-500/5 flex flex-col justify-between h-full min-h-24">
                   <div
-                    className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-full pointer-events-none`}
+                    className={`absolute top-0 right-0 w-16 h-16 bg-linear-to-bl ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-full pointer-events-none`}
                   />
                   <div className="flex items-center justify-between mb-2">
                     <div

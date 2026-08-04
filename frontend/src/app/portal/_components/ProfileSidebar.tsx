@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useCallback } from "react";
 import {
   Pencil, BadgeCheck, Fingerprint, Building2, Calendar, Mail, Phone,
   KeyRound, Loader2,
@@ -30,14 +30,7 @@ interface ProfileSidebarProps {
   myLeaveBalance: { sisa_cuti_tersedia: number; total_hak_cuti: number } | null;
   mobileProfileOpen: boolean;
   setMobileProfileOpen: (open: boolean) => void;
-  openEditDialog: () => void;
   fetchDashboard: () => void;
-  pwDialogOpen: boolean;
-  setPwDialogOpen: (open: boolean) => void;
-  pwData: { current_password: string; new_password: string; new_password_confirmation: string };
-  setPwData: React.Dispatch<React.SetStateAction<{ current_password: string; new_password: string; new_password_confirmation: string }>>;
-  pwLoading: boolean;
-  handleChangePassword: (e: React.FormEvent) => void;
 }
 
 export function ProfileSidebar({
@@ -47,15 +40,59 @@ export function ProfileSidebar({
   myLeaveBalance,
   mobileProfileOpen,
   setMobileProfileOpen,
-  openEditDialog,
   fetchDashboard,
-  pwDialogOpen,
-  setPwDialogOpen,
-  pwData,
-  setPwData,
-  pwLoading,
-  handleChangePassword,
 }: ProfileSidebarProps) {
+  // Password Dialog state
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
+  const [pwData, setPwData] = useState({ current_password: "", new_password: "", new_password_confirmation: "" });
+  const [pwLoading, setPwLoading] = useState(false);
+
+  // Edit Profile Dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editData, setEditData] = useState({ email: "", phone: "" });
+  const [editLoading, setEditLoading] = useState(false);
+
+  const openEditDialog = useCallback(() => {
+    setEditData({ email: data.employee?.email || data.user.email || "", phone: data.employee?.phone || "" });
+    setEditDialogOpen(true);
+  }, [data]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditLoading(true);
+    try {
+      await api.post("/me/update-profile", editData);
+      toast.success("Profil berhasil diperbarui!");
+      setEditDialogOpen(false);
+      fetchDashboard();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Gagal memperbarui profil.");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pwData.new_password !== pwData.new_password_confirmation) {
+      toast.error("Konfirmasi password tidak cocok.");
+      return;
+    }
+    setPwLoading(true);
+    try {
+      await api.post("/me/change-password", pwData);
+      toast.success("Password berhasil diperbarui!");
+      setPwDialogOpen(false);
+      setPwData({ current_password: "", new_password: "", new_password_confirmation: "" });
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Gagal mengubah password.");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
   return (
     <>
       {/* Mobile Profile Backdrop */}
@@ -151,6 +188,20 @@ export function ProfileSidebar({
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Edit Profile Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-100 w-[90vw] mx-auto rounded-2xl">
+            <form onSubmit={handleSaveProfile}>
+              <DialogHeader><DialogTitle>Edit Profil</DialogTitle><DialogDescription>Perbarui informasi profil Anda.</DialogDescription></DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} /></div>
+                <div className="grid gap-2"><Label htmlFor="phone">Telepon</Label><Input id="phone" type="tel" value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} /></div>
+              </div>
+              <DialogFooter><DialogClose asChild><Button type="button" variant="outline">Batal</Button></DialogClose><Button type="submit" disabled={editLoading}>{editLoading && <Loader2 className="w-4 h-4 animate-spin mr-1" />}Simpan</Button></DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </aside>
     </>
   );

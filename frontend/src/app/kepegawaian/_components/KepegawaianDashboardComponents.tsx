@@ -25,7 +25,7 @@ export function RecentActivitiesFeedCard({ activities }: { activities: RecentAct
     <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-xs flex flex-col">
       <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80 mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8.5 h-8.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+          <div className="w-8.5 h-8.5 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
             <TrendingUp className="w-4.5 h-4.5" />
           </div>
           <div>
@@ -50,21 +50,23 @@ export function RecentActivitiesFeedCard({ activities }: { activities: RecentAct
             key={st.id || idx}
             className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 border border-zinc-200/60 dark:border-zinc-800/80 transition-all group"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
               <FileText className="w-4.5 h-4.5" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[11.5px] font-extrabold text-zinc-900 dark:text-white truncate group-hover:text-blue-600 transition-colors">
-                {st.title || "Melaksanakan Perjalanan Dinas"}
+                {st.title}
               </p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50">
-                  {st.status || "DITERBITKAN"}
+                  {st.status}
                 </span>
-                <span className="text-[10px] text-zinc-400 flex items-center gap-1 truncate font-medium">
-                  <MapPin className="w-3 h-3 text-blue-500" />
-                  {st.tempat_tujuan || "Kalimantan Timur"}
-                </span>
+                {st.tempat_tujuan && (
+                  <span className="text-[10px] text-zinc-400 flex items-center gap-1 truncate font-medium">
+                    <MapPin className="w-3 h-3 text-blue-500" />
+                    {st.tempat_tujuan}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -84,7 +86,7 @@ export function SatkerDistributionCard({ satkerBreakdown }: { satkerBreakdown: S
     <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-xs flex flex-col">
       <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80 mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8.5 h-8.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+          <div className="w-8.5 h-8.5 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
             <Building2 className="w-4.5 h-4.5" />
           </div>
           <div>
@@ -116,7 +118,7 @@ export function SatkerDistributionCard({ satkerBreakdown }: { satkerBreakdown: S
             </div>
             <div className="w-full h-2.5 bg-zinc-200/70 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5">
               <div
-                className={`h-full bg-gradient-to-r ${satker.gradient} rounded-full transition-all duration-700 shadow-xs`}
+                className={`h-full bg-linear-to-r ${satker.gradient} rounded-full transition-all duration-700 shadow-xs`}
                 style={{ width: `${Math.max(5, satker.percentage)}%` }}
               />
             </div>
