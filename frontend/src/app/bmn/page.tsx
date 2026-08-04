@@ -5,6 +5,8 @@ import { Package, Wrench, HandCoins, ShieldAlert, TrendingUp, PieChart, BarChart
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { formatRupiah } from "@/app/bmn/_lib/asset-utils";
+import { StatCard, LegendItem, QuickLink } from "@/app/bmn/_components/BmnDashboardComponents";
 
 interface JenisData { jenis_bmn: string; total: number; total_nilai: number }
 interface LokasiData { lokasi_ruang: string; total: number }
@@ -22,9 +24,6 @@ interface DashboardData {
     plat_expired: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_ganti_plat: string }[];
   };
 }
-
-const formatCurrency = (val: number) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", notation: "compact", maximumFractionDigits: 1 }).format(val);
 
 const JENIS_COLORS: Record<string, string> = {
   "ALAT ANGKUTAN BERMOTOR": "bg-blue-500",
@@ -77,7 +76,7 @@ export default function BmnDashboardPage() {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={<Package className="w-4 h-4" />} label="Total Aset" value={totalAssets.toLocaleString("id-ID")} color="blue" sub={`${baik} kondisi baik`} />
-        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Nilai Perolehan" value={formatCurrency(data?.total_asset_value || 0)} color="emerald" sub="Total akumulasi" />
+        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Nilai Perolehan" value={formatRupiah(data?.total_asset_value || 0)} color="emerald" sub="Total akumulasi" />
         <StatCard icon={<HandCoins className="w-4 h-4" />} label="Sedang Dipinjam" value="-" color="amber" sub="Lihat peminjaman" />
         <StatCard icon={<ShieldAlert className="w-4 h-4" />} label="Rusak Berat" value={rusakBerat.toString()} color="red" sub="Perlu perhatian" />
       </div>
@@ -185,7 +184,7 @@ export default function BmnDashboardPage() {
                     <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
                       <div className={cn("h-full rounded-full", color)} style={{ width: `${pct}%` }} />
                     </div>
-                    <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 shrink-0 w-20 text-right">{item.total} <span className="text-zinc-400 font-normal">{formatCurrency(item.total_nilai)}</span></span>
+                    <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 shrink-0 w-20 text-right">{item.total} <span className="text-zinc-400 font-normal">{formatRupiah(item.total_nilai)}</span></span>
                   </div>
                 );
               })}
@@ -249,45 +248,5 @@ export default function BmnDashboardPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function StatCard({ icon, label, value, color, sub }: { icon: React.ReactNode; label: string; value: string; color: string; sub: string }) {
-  const colors: Record<string, { iconBg: string; text: string }> = {
-    blue: { iconBg: "bg-blue-100 dark:bg-blue-500/10", text: "text-blue-600" },
-    emerald: { iconBg: "bg-emerald-100 dark:bg-emerald-500/10", text: "text-emerald-600" },
-    amber: { iconBg: "bg-amber-100 dark:bg-amber-500/10", text: "text-amber-600" },
-    red: { iconBg: "bg-red-100 dark:bg-red-500/10", text: "text-red-600" },
-  };
-  const c = colors[color] || colors.blue;
-  return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:shadow-sm transition-shadow">
-      <div className="flex items-center gap-2 mb-2">
-        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", c.iconBg, c.text)}>{icon}</div>
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">{label}</span>
-      </div>
-      <p className="text-xl font-bold text-zinc-900 dark:text-white">{value}</p>
-      <p className="text-[10px] text-zinc-400 mt-0.5">{sub}</p>
-    </div>
-  );
-}
-
-function LegendItem({ color, label, count, pct }: { color: string; label: string; count: number; pct: number }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className={cn("w-3 h-3 rounded-full shrink-0", color)} />
-      <span className="text-xs text-zinc-600 dark:text-zinc-400 flex-1">{label}</span>
-      <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{count}</span>
-      <span className="text-[10px] text-zinc-400 w-8 text-right">{pct}%</span>
-    </div>
-  );
-}
-
-function QuickLink({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
-  return (
-    <Link href={href} className="flex items-center gap-2 p-2.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700 rounded-lg hover:border-emerald-300 dark:hover:border-emerald-500/30 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all group">
-      <div className="text-zinc-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{icon}</div>
-      <span className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{label}</span>
-    </Link>
   );
 }
