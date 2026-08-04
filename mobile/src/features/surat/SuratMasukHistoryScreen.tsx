@@ -23,6 +23,8 @@ interface SuratMasukHistoryScreenProps {
   onNavigateToModule?: (moduleKey: string) => void;
 }
 
+const SURAT_FILTERS = ["Semua Surat", "Sangat Penting", "Penting", "Biasa"];
+
 export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = ({
   navigation,
   onBack,
@@ -35,7 +37,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
   const [previewSuratData, setPreviewSuratData] = useState<any>(null);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
 
-  const filters = ["Semua Surat", "Sangat Penting", "Penting", "Biasa"];
+  const filters = SURAT_FILTERS;
   const [suratHistoryList, setSuratHistoryList] = useState<any[]>([]);
 
   const fetchSuratMasuk = async () => {
