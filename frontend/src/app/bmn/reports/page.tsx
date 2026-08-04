@@ -32,15 +32,6 @@ import {
 } from "./_components/PowerOfAttorneyDocument";
 import { useRole } from "@/hooks/useRole";
 
-interface EmployeeOption {
-  id: number;
-  nama_lengkap: string;
-  nip: string;
-  jabatan?: string | null;
-  pangkat_golongan?: string | null;
-  satuan_kerja?: string | null;
-}
-
 interface UsageAgreementHistory {
   id: string;
   document_type?: "usage_agreement";
@@ -135,46 +126,17 @@ const DEFAULT_POA_FIRST_PARTY: PowerOfAttorneyParty = {
   address: "Jln. Teuku Umar Samarinda",
 };
 
-function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function monthNumber(value: string) {
-  const date = value ? new Date(`${value}T00:00:00`) : new Date();
-  return String((Number.isNaN(date.getTime()) ? new Date() : date).getMonth() + 1).padStart(2, "0");
-}
-
-function yearNumber(value: string) {
-  const date = value ? new Date(`${value}T00:00:00`) : new Date();
-  return (Number.isNaN(date.getTime()) ? new Date() : date).getFullYear();
-}
-
-function buildBaNumber(sequence: string, kap: string, documentDate: string) {
-  return `BA.${sequence.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.03.02"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
-}
-
-function buildPoaNumber(sequence: string, kap: string, documentDate: string) {
-  return `KS.${sequence.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.03.02"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
-}
-
-function formatDate(value?: string) {
-  if (!value) return "-";
-  return new Date(value).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function employeeToHandoverParty(employee?: EmployeeOption | null): HandoverParty {
-  return {
-    name: employee?.nama_lengkap || "",
-    nip: employee?.nip || "",
-    rank: employee?.pangkat_golongan || "",
-    position: employee?.jabatan || "",
-    address: "Jl. Teuku Umar Samarinda.",
-  };
-}
-
-function emptyGeneralItem(): HandoverItem {
-  return { name: "", quantity: 1, nup: "" };
-}
+import {
+  todayInputValue,
+  monthNumber,
+  yearNumber,
+  buildBaNumber,
+  buildPoaNumber,
+  formatDate,
+  employeeToHandoverParty,
+  emptyGeneralItem,
+  type EmployeeOption,
+} from "./_lib/report-utils";
 
 const DEFAULT_HANDOVER_FIRST_PARTY: HandoverParty = {
   name: "Dheny Mardiono, S.Hut., M.Sc.",

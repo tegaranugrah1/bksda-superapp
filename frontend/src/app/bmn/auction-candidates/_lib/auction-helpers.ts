@@ -48,12 +48,9 @@ export interface AttachmentPage {
   includeSignature: boolean;
 }
 
-export const formatRupiah = (value: number | null | undefined) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(value || 0);
+import { formatRupiah, shortenLokasi } from "@/app/bmn/_lib/asset-utils";
+
+export { formatRupiah, shortenLokasi };
 
 export const formatPlainRupiah = (value: number | null | undefined) =>
   new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(value || 0);
@@ -134,15 +131,6 @@ export function getBaNumberSuffix(date = new Date()) {
 export function getSkNumberSuffix(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   return `K.18/TU/KAP.05/${month}/${date.getFullYear()}`;
-}
-
-export function shortenLokasi(value?: string | null) {
-  if (!value) return "-";
-  return value
-    .replace("Kantor Balai KSDA Kalimantan Timur", "Kantor Balai")
-    .replace("Seksi KSDA Wilayah I (Berau)", "Seksi Wil. I Berau")
-    .replace("Seksi KSDA Wilayah II (Tenggarong)", "Seksi Wil. II Tenggarong")
-    .replace("Seksi KSDA Wilayah III (Balikpapan)", "Seksi Wil. III Balikpapan");
 }
 
 export function getAssetNilaiTaksiran(asset: any): number {
