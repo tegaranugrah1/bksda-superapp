@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   Modal,
 } from "react-native";
@@ -497,6 +496,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
   const [namaPlh, setNamaPlh] = useState("");
+  const [setujuData, setSetujuData] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState("");
   const [activeDatePicker, setActiveDatePicker] = useState<"mulai" | "selesai" | null>(null);
   const [currentPickerMonth, setCurrentPickerMonth] = useState(new Date());
   const [dropdownModalType, setDropdownModalType] = useState<"jenisTugas" | "sumberDana" | "templateST" | null>(null);
@@ -543,25 +544,32 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [kotaDokumen, setKotaDokumen] = useState("Samarinda");
   const [tanggalDokumen, setTanggalDokumen] = useState(new Date().toISOString().substring(0, 10));
 
-  const [menimbangItems, setMenimbangItems] = useState<Array<{ id: string; text: string }>>([
+  const [menimbangItems, setMenimbangItems] = useState<{ id: string; text: string }[]>([
     { id: "m-1", text: "bahwa dalam rangka , perlu ;" },
     { id: "m-2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
   ]);
 
-  const [dasarItems, setDasarItems] = useState<Array<{ id: string; text: string }>>([
+  const [dasarItems, setDasarItems] = useState<{ id: string; text: string }[]>([
     { id: "d-1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
     { id: "d-2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.` },
   ]);
 
-  const [untukItems, setUntukItems] = useState<Array<{ id: string; text: string }>>([
+  const [untukItems, setUntukItems] = useState<{ id: string; text: string }[]>([
     { id: "u-2", text: "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut." },
     { id: "u-3", text: `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran ${currentYear};` },
   ]);
 
-  const [tembusanItems, setTembusanItems] = useState<Array<{ id: string; text: string }>>([]);
+  const [tembusanItems, setTembusanItems] = useState<{ id: string; text: string }[]>([]);
 
   const [penandatanganName, setPenandatanganName] = useState("M. Ari Wibawanto, S.Hut., M.Sc.");
   const [penandatanganNip, setPenandatanganNip] = useState("19740514 199903 1 001");
+
+  // BUILDER STATE UNTUK DETAIL KEGIATAN
+  const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+  const [kotaAsal, setKotaAsal] = useState("Samarinda");
+  const [kotaTujuan, setKotaTujuan] = useState("");
+  const [namaKegiatanText, setNamaKegiatanText] = useState("");
+  const [tempatSpesifik, setTempatSpesifik] = useState("");
 
   // Sync state if opening in Edit Mode from InboxSuratTugasScreen or reset if Create Mode
   useEffect(() => {
@@ -579,28 +587,6 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     ];
 
     if (!editData) {
-      setEditId(null);
-      setSuratStatus("draft");
-      setSelectedTemplate("DEFAULT (MANUAL)");
-      setNomorUrut("");
-      setKlasifikasi("KSA.0X.0X");
-      setKotaDokumen("Samarinda");
-      setTanggalDokumen(new Date().toISOString().substring(0, 10));
-      setJenisTugas("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
-      setKotaAsal("Samarinda");
-      setKotaTujuan("");
-      setNamaKegiatanText("");
-      setTempatSpesifik("");
-      setTanggalMulai("");
-      setTanggalSelesai("");
-      setSumberDana("dipa");
-      setSelectedEmployees([]);
-      setMenimbangItems(defaultMenimbang);
-      setDasarItems(defaultDasar);
-      setUntukItems(defaultUntuk);
-      setTembusanItems([]);
-      setPenandatanganName("M. Ari Wibawanto, S.Hut., M.Sc.");
-      setPenandatanganNip("19740514 199903 1 001");
       return;
     }
 
@@ -823,12 +809,6 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     }
   };
 
-  // BUILDER STATE UNTUK DETAIL KEGIATAN
-  const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
-  const [kotaAsal, setKotaAsal] = useState("Samarinda");
-  const [kotaTujuan, setKotaTujuan] = useState("");
-  const [namaKegiatanText, setNamaKegiatanText] = useState("");
-  const [tempatSpesifik, setTempatSpesifik] = useState("");
 
   // Helper to build Untuk item 1 from Detail Kegiatan
   const buildUntukText = (): string => {
@@ -862,43 +842,23 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
 
 
 
-  const [setujuData, setSetujuData] = useState(false);
-  const [selectedFileName, setSelectedFileName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Deteksi otomatis jika ada Pejabat Struktural (Kasubag TU / Kepala Seksi)
-  const hasPejabatStruktural = selectedEmployees.some((emp) => {
-    const pos = (emp.position || "").toLowerCase();
-    return pos.includes("kepala seksi") || pos.includes("kepala subbagian") || pos.includes("kasubag");
-  });
 
   // Deteksi otomatis Kota Asal berdasarkan Penempatan Satker Pegawai
   useEffect(() => {
-    if (!selectedEmployees || selectedEmployees.length === 0) {
-      setKotaAsal("Samarinda");
-      return;
-    }
+    if (!selectedEmployees || selectedEmployees.length === 0) return;
     const depts = selectedEmployees.map((e) => ((e as any).department || (e as any).satuan_kerja || "").toLowerCase());
 
-    const isAllSeksi1 = depts.every((d) => d.includes("seksi i") || d.includes("seksi 1") || d.includes("wilayah i") || d.includes("berau") || d.includes("skw i"));
-    if (isAllSeksi1) {
-      setKotaAsal("Berau");
-      return;
+    let target = "Samarinda";
+    if (depts.every((d) => d.includes("seksi i") || d.includes("seksi 1") || d.includes("wilayah i") || d.includes("berau") || d.includes("skw i"))) {
+      target = "Berau";
+    } else if (depts.every((d) => d.includes("seksi ii") || d.includes("seksi 2") || d.includes("wilayah ii") || d.includes("tenggarong") || d.includes("skw ii"))) {
+      target = "Tenggarong";
+    } else if (depts.every((d) => d.includes("seksi iii") || d.includes("seksi 3") || d.includes("wilayah iii") || d.includes("balikpapan") || d.includes("skw iii"))) {
+      target = "Balikpapan";
     }
 
-    const isAllSeksi2 = depts.every((d) => d.includes("seksi ii") || d.includes("seksi 2") || d.includes("wilayah ii") || d.includes("tenggarong") || d.includes("skw ii"));
-    if (isAllSeksi2) {
-      setKotaAsal("Tenggarong");
-      return;
-    }
-
-    const isAllSeksi3 = depts.every((d) => d.includes("seksi iii") || d.includes("seksi 3") || d.includes("wilayah iii") || d.includes("balikpapan") || d.includes("skw iii"));
-    if (isAllSeksi3) {
-      setKotaAsal("Balikpapan");
-      return;
-    }
-
-    setKotaAsal("Samarinda");
+    setKotaAsal((prev) => (prev !== target ? target : prev));
   }, [selectedEmployees]);
 
   // Fetch employees from API and merge with master list
@@ -1021,10 +981,10 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     penandatanganName?: string;
     penandatanganNip?: string;
     selectedEmployees?: Employee[];
-    menimbangItems?: Array<{ id: string; text: string }>;
-    dasarItems?: Array<{ id: string; text: string }>;
-    untukItems?: Array<{ id: string; text: string }>;
-    tembusanItems?: Array<{ id: string; text: string }> | string[];
+    menimbangItems?: { id: string; text: string }[];
+    dasarItems?: { id: string; text: string }[];
+    untukItems?: { id: string; text: string }[];
+    tembusanItems?: { id: string; text: string }[] | string[];
   }): string => {
     const nomorSurat = `ST. ${params.nomorUrut || nomorUrut || "001"}/K.18/TU/${klasifikasi || "KSA.0X.0X"}/B/${currentMonth}/${currentYear}`;
     const ttdNama = params.penandatanganName || "M. Ari Wibawanto, S.Hut., M.Sc.";

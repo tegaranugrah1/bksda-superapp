@@ -21,17 +21,11 @@ export interface AssetItem {
 }
 
 export function formatMerkTipe(merk?: string | null, tipe?: string | null, merkTipe?: string | null): string | null {
-  const combined = [merk, tipe, merkTipe].filter(Boolean).join(" ");
-  if (!combined) return null;
-  const parts = combined.split(/[\s,]+/);
-  return [...new Set(parts)].join(" ");
+  const parts = [merk, tipe, merkTipe].filter(Boolean).join(" ").split(/[\s,]+/).filter(Boolean);
+  return parts.length ? Array.from(new Set(parts)).join(" ") : null;
 }
 
-function driveToThumbnail(url: string): string | null {
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (!match) return null;
-  return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
-}
+
 
 interface MyAssetsTabProps {
   assetsLoading: boolean;
@@ -141,9 +135,7 @@ export function MyAssetsTab({
         /* Grid View with Geotag Image */
         <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredMyAssets.map((asset) => {
-            const thumbUrl = asset.foto_geotag_path
-              ? asset.foto_geotag_path
-              : (asset.foto_geotag_url ? driveToThumbnail(asset.foto_geotag_url) : null);
+            const thumbUrl = asset.foto_geotag_path || asset.foto_geotag_url || null;
 
             return (
               <div

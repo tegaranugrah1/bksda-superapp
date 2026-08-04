@@ -5,21 +5,13 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Boxes, LayoutGrid, Package, FileText, LogOut,
-  Fingerprint, KeyRound, Loader2, BadgeCheck, Mail, Phone, Briefcase,
-  HandHelping, Sun, Sunset, Moon, Pencil, Sparkles, Bell,
-  Eye, Users, ClipboardList, Building2, List, Camera, Calendar,
+  Sun, Sunset, Moon, Loader2, LogOut, Users, Package,
+  Boxes, FileText, LayoutGrid, Mail, Sparkles, Bell,
+  HandHelping, Briefcase, ClipboardList, Calendar,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle, DialogTrigger, DialogClose,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -29,9 +21,9 @@ import { LeaveRequestDialog } from "./_components/LeaveRequestDialog";
 import { FormulirCutiPrint, LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
 import { ProfileSidebar } from "./_components/ProfileSidebar";
 import { SuratTugasTab } from "./_components/SuratTugasTab";
-import { MyAssetsTab, AssetItem, formatMerkTipe } from "./_components/MyAssetsTab";
+import { MyAssetsTab, AssetItem } from "./_components/MyAssetsTab";
 import { MyLeaveTab } from "./_components/MyLeaveTab";
-import { Printer, Plus } from "lucide-react";
+import { ActiveLoansTab, BorrowedAssetItem } from "./_components/ActiveLoansTab";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -95,8 +87,6 @@ function formatDate(): string {
   return new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
-
-
 export default function PersonalDashboard() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -118,19 +108,11 @@ export default function PersonalDashboard() {
   const [stDetail, setStDetail] = useState<SuratTugasDetail | null>(null);
   const [stDetailLoading, setStDetailLoading] = useState(false);
 
-  const [pwDialogOpen, setPwDialogOpen] = useState(false);
-  const [pwData, setPwData] = useState({ current_password: "", new_password: "", new_password_confirmation: "" });
-  const [pwLoading, setPwLoading] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editData, setEditData] = useState({ email: "", phone: "" });
-  const [editLoading, setEditLoading] = useState(false);
-
-  const borrowedAssets = data?.my_assets;
   const filteredMyAssets = useMemo(() => {
-    if (!borrowedAssets) return myAssets;
-    const borrowedIds = new Set(borrowedAssets.map(a => String(a.id)));
+    if (!data?.my_assets) return myAssets;
+    const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
     return myAssets.filter(a => !borrowedIds.has(a.id));
-  }, [myAssets, borrowedAssets]);
+  }, [myAssets, data?.my_assets]);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -234,28 +216,6 @@ export default function PersonalDashboard() {
 
   const handleLogout = () => { authStore.logout(); router.push("/login"); };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pwData.new_password !== pwData.new_password_confirmation) { toast.error("Konfirmasi password tidak cocok."); return; }
-    setPwLoading(true);
-    try { await api.post("/me/change-password", pwData); toast.success("Password berhasil diperbarui!"); setPwDialogOpen(false); setPwData({ current_password: "", new_password: "", new_password_confirmation: "" }); }
-    catch (error: unknown) { const err = error as { response?: { data?: { message?: string } } }; toast.error(err.response?.data?.message || "Gagal mengubah password."); }
-    finally { setPwLoading(false); }
-  };
-
-  const openEditDialog = useCallback(() => {
-    if (!data) return;
-    setEditData({ email: data.employee?.email || data.user.email || "", phone: data.employee?.phone || "" });
-    setEditDialogOpen(true);
-  }, [data]);
-
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault(); setEditLoading(true);
-    try { await api.post("/me/update-profile", editData); toast.success("Profil berhasil diperbarui!"); setEditDialogOpen(false); fetchDashboard(); }
-    catch (error: unknown) { const err = error as { response?: { data?: { message?: string } } }; toast.error(err.response?.data?.message || "Gagal memperbarui profil."); }
-    finally { setEditLoading(false); }
-  };
-
   const modules = useMemo(() => {
     if (!data) return [];
     return data.user.role === "super_admin" || (data.user.access_modules?.includes("*"))
@@ -358,14 +318,7 @@ export default function PersonalDashboard() {
             myLeaveBalance={myLeaveBalance}
             mobileProfileOpen={mobileProfileOpen}
             setMobileProfileOpen={setMobileProfileOpen}
-            openEditDialog={openEditDialog}
             fetchDashboard={fetchDashboard}
-            pwDialogOpen={pwDialogOpen}
-            setPwDialogOpen={setPwDialogOpen}
-            pwData={pwData}
-            setPwData={setPwData}
-            pwLoading={pwLoading}
-            handleChangePassword={handleChangePassword}
           />
 
           {/* Main Content */}
@@ -429,43 +382,7 @@ export default function PersonalDashboard() {
               {/* Tab: Pinjaman Aktif */}
               {activeTab === "pinjaman" && (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  {data.my_assets.length === 0 ? (
-                    <div className="p-12 text-center">
-                      <Package className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Tidak ada pinjaman aktif</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-zinc-800">
-                      {data.my_assets.map((asset) => (
-                        <div key={asset.id} className="p-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
-                            <Package className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{asset.nama_barang}</p>
-                            {formatMerkTipe(asset.merk) && (
-                              <p className="text-xs text-slate-500 mb-0.5 truncate">{formatMerkTipe(asset.merk)}</p>
-                            )}
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
-                              <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
-                              {asset.nup_lama && (
-                                <span className="text-xs text-slate-400">• NUP Lama: {asset.nup_lama}</span>
-                              )}
-                              {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
-                                  {asset.no_polisi}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <Badge variant={new Date(asset.due_date) < new Date() ? "destructive" : "secondary"} className="shrink-0">
-                            {new Date(asset.due_date) < new Date() ? "Terlambat" : asset.status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
                 </div>
               )}
 
@@ -555,20 +472,6 @@ export default function PersonalDashboard() {
             onClose={() => setStPreviewOpen(false)}
           />
         )}
-
-        {/* Edit Profile Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="sm:max-w-100">
-            <form onSubmit={handleSaveProfile}>
-              <DialogHeader><DialogTitle>Edit Profil</DialogTitle><DialogDescription>Perbarui informasi profil Anda.</DialogDescription></DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} /></div>
-                <div className="grid gap-2"><Label htmlFor="phone">Telepon</Label><Input id="phone" type="tel" value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} /></div>
-              </div>
-              <DialogFooter><DialogClose asChild><Button type="button" variant="outline">Batal</Button></DialogClose><Button type="submit" disabled={editLoading}>{editLoading && <Loader2 className="w-4 h-4 animate-spin mr-1" />}Simpan</Button></DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
     </RouteGuard>
   );
