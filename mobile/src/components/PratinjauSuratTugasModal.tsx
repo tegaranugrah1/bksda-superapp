@@ -361,7 +361,7 @@ export const PratinjauSuratTugasModal: React.FC<PratinjauSuratTugasModalProps> =
         {/* Sticky Header Bar Presisi Web Modal */}
         <View style={styles.toolbar}>
           <View style={styles.toolbarTitleCol}>
-            <Text style={styles.toolbarTag}>PRATINJAU SURAT TUGAS</Text>
+            <Text style={styles.toolbarTag}>CETAK / DOWNLOAD SURAT TUGAS</Text>
             <Text style={styles.toolbarNomor} numberOfLines={1}>{nomorSurat}</Text>
           </View>
 

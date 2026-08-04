@@ -77,10 +77,21 @@ export default function SuratTugasInbox() {
             return resp.data.data as AssignmentLetter[];
         },
         staleTime: 0,
+        refetchInterval: 3000,
         refetchOnWindowFocus: true,
     });
 
     const letters: AssignmentLetter[] = React.useMemo(() => data || [], [data]);
+
+    // Keep selectedLetter in sync with fresh data from query polling
+    React.useEffect(() => {
+        if (selectedLetter && letters.length > 0) {
+            const updated = letters.find(l => l.id === selectedLetter.id);
+            if (updated && (updated.nomor_surat !== selectedLetter.nomor_surat || updated.status !== selectedLetter.status || updated.maksud_tujuan !== selectedLetter.maksud_tujuan)) {
+                setSelectedLetter(updated);
+            }
+        }
+    }, [letters, selectedLetter]);
 
     const findExistingPlhDraft = React.useCallback(
         (parentLetter: AssignmentLetter) => {

@@ -212,6 +212,7 @@ class AssignmentLetterController extends Controller
         return [
             'id' => $letter->id,
             'nomor' => $letter->nomor_surat,
+            'nomor_surat' => $letter->nomor_surat,
             'kode_surat' => $letter->kode_surat,
             'kegiatan' => $letter->maksud_tujuan,
             'dasar_hukum' => $letter->dasar_hukum,
@@ -358,7 +359,8 @@ class AssignmentLetterController extends Controller
 
     public function show(Request $request, string $id)
     {
-        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])->findOrFail($id);
+        $cleanId = preg_replace('/^st-/', '', $id);
+        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])->findOrFail($cleanId);
 
         return response()->json([
             'data' => $this->isMobileRequest($request)
@@ -369,21 +371,39 @@ class AssignmentLetterController extends Controller
 
     public function update(AssignmentLetterRequest $request, string $id)
     {
+        $cleanId = preg_replace('/^st-/', '', $id);
         $validated = $request->validated();
-        $surat = AssignmentLetter::findOrFail($id);
+        $surat = AssignmentLetter::findOrFail($cleanId);
 
         DB::beginTransaction();
         try {
-            $surat->update([
+            $updateData = [
                 'maksud_tujuan' => $validated['maksud_tujuan'],
                 'dasar_hukum' => $validated['dasar_hukum'] ?? null,
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
-                'tempat_tujuan' => $validated['tempat_tujuan'],
+                'tempat_tujuan' => $validated['tempat_tujuan'] ?? null,
+                'sumber_dana' => $request->input('sumber_dana', $surat->sumber_dana),
+                'sumber_dana_other' => $request->input('sumber_dana_other', $surat->sumber_dana_other),
                 'template_type' => $validated['template_type'] ?? null,
+                'menimbang' => $request->input('menimbang', $surat->menimbang),
+                'dasar' => $request->input('dasar', $surat->dasar),
+                'tembusan' => $request->input('tembusan', $surat->tembusan),
                 'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
                 'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
-            ]);
+            ];
+
+            if ($request->has('nomor_surat')) {
+                $updateData['nomor_surat'] = $request->input('nomor_surat');
+            }
+            if ($request->has('kode_surat')) {
+                $updateData['kode_surat'] = $request->input('kode_surat');
+            }
+            if ($request->has('status')) {
+                $updateData['status'] = $request->input('status');
+            }
+
+            $surat->update($updateData);
 
             $pivotData = [];
             foreach ($validated['employees'] as $emp) {

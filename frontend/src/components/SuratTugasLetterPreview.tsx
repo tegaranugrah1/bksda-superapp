@@ -97,8 +97,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       <head>
         <title>Surat Tugas - ${data.nomor_surat || 'Draft'}</title>
         <style>
-          @page { size: A4 portrait; margin: 10mm 15mm; }
-          body { margin: 0; padding: 0; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
+          @page { size: A4 portrait; margin: 0; }
+          html, body { margin: 0; padding: 0; background: #ffffff; }
+          body { padding: 4mm 20mm 15mm 20mm; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
           img { max-width: 100%; height: auto; }
           table { border-collapse: collapse; width: 100%; table-layout: fixed; }
         </style>

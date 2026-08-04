@@ -8,7 +8,9 @@ import {
   StyleSheet,
   Alert,
   BackHandler,
+  RefreshControl,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
@@ -26,12 +28,14 @@ interface SuratTugasItem {
   id: string;
   status: "DRAFT" | "DITERBITKAN" | "DITOLAK";
   statusColor: string;
+  nomor_surat?: string;
   date: string;
   periode: string;
   title: string;
   location: string;
   dana: string;
   personil: Array<{ name: string; nip: string }>;
+  rawItem?: any;
 }
 
 export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
@@ -39,6 +43,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
   onBack,
   onNavigateToModule,
 }) => {
+  const isFocused = useIsFocused();
   const { isDark, colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("Semua Status");
@@ -70,16 +75,19 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
             ? st.personil
             : [];
 
+          const titleStr = st.nama_kegiatan || (st.maksud_tujuan ? st.maksud_tujuan.split("\n")[0] : (st.kegiatan || st.perihal || st.title || "-"));
           return {
             id: String(st.id),
             status: rawStatus,
             statusColor,
+            nomor_surat: st.nomor_surat || st.st_number || "",
             date: dateStr,
             periode: st.periode || "2026",
-            title: st.maksud_tujuan || st.kegiatan || st.perihal || st.title || "-",
+            title: titleStr,
             location: st.tempat_tujuan || st.tujuan || st.location || "Kalimantan Timur",
             dana: (st.sumber_dana || "DIPA").toUpperCase(),
             personil: personilArr,
+            rawItem: st,
           };
         });
         setStList(apiList);
@@ -95,7 +103,21 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
 
   useEffect(() => {
     fetchSuratTugas();
-  }, []);
+    if (!isFocused) return;
+    const interval = setInterval(() => {
+      fetchSuratTugas();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isFocused]);
+
+  useEffect(() => {
+    if (selectedSt && stList.length > 0) {
+      const updated = stList.find((item) => item.id === selectedSt.id);
+      if (updated && (updated.nomor_surat !== selectedSt.nomor_surat || updated.status !== selectedSt.status || updated.title !== selectedSt.title)) {
+        setSelectedSt(updated);
+      }
+    }
+  }, [stList, selectedSt]);
 
   // Handle hardware back press & back gesture: return to Inbox list view first
   useEffect(() => {
@@ -117,7 +139,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     } else if (onBack) {
       onBack();
     } else if (navigation) {
-      navigation.navigate("Kepegawaian");
+      navigation.navigate("KepegawaianDashboard");
     }
   };
 
@@ -143,6 +165,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       item.title.toLowerCase().includes(q) ||
+      (item.nomor_surat && item.nomor_surat.toLowerCase().includes(q)) ||
       item.location.toLowerCase().includes(q) ||
       item.personil.some((p) => p.name.toLowerCase().includes(q));
 
@@ -191,7 +214,13 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={fetchSuratTugas} tintColor="#2563eb" colors={["#2563eb"]} />
+        }
+      >
         {/* VIEW 1: LIST MODE (Default List View) */}
         {!selectedSt ? (
           <>
@@ -248,6 +277,12 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
                     <Text style={styles.cardDateText}>{item.date}</Text>
                   </View>
 
+                  {item.nomor_surat ? (
+                    <Text style={{ fontSize: 11, fontWeight: "700", color: "#2563eb", marginBottom: 4 }} numberOfLines={1}>
+                      {item.nomor_surat}
+                    </Text>
+                  ) : null}
+
                   <Text style={[styles.cardTitleText, { color: colors.textDark }]} numberOfLines={2}>
                     {item.title}
                   </Text>
@@ -281,6 +316,15 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
               <Ionicons name="arrow-back" size={16} color="#2563eb" style={{ marginRight: 4 }} />
               <Text style={styles.backToListText}>Kembali ke Daftar Inbox</Text>
             </TouchableOpacity>
+
+            {selectedSt.nomor_surat ? (
+              <View style={{ backgroundColor: "#eff6ff", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginBottom: 10, alignSelf: "flex-start", flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="document-text-outline" size={14} color="#2563eb" style={{ marginRight: 6 }} />
+                <Text style={{ fontSize: 12, fontWeight: "800", color: "#1d4ed8" }}>
+                  {selectedSt.nomor_surat}
+                </Text>
+              </View>
+            ) : null}
 
             {/* Full Title / Activity Description */}
             <Text style={[styles.detailFullTitle, { color: colors.textDark }]}>
@@ -364,33 +408,119 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
 
             {/* Action Button Group */}
             <View style={styles.actionGroup}>
-              <TouchableOpacity
-                style={styles.editStBtn}
-                onPress={() => {
-                  if (!selectedSt) return;
-                  if (navigation && typeof navigation.navigate === "function") {
-                    navigation.navigate("BuatSuratTugas", { editData: selectedSt });
-                  } else if (onNavigateToModule) {
-                    onNavigateToModule("buat-surat-tugas");
-                  }
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.editStText}>EDIT SURAT TUGAS</Text>
-              </TouchableOpacity>
-
-              <View style={styles.secondaryActionRow}>
+              {["DITERBITKAN", "APPROVED", "COMPLETED", "PUBLISHED"].includes((selectedSt.status || "").toUpperCase()) ? (
                 <TouchableOpacity
-                  style={styles.tolakBtn}
-                  onPress={() => Alert.alert("Tolak Surat Tugas", "Permohonan Surat Tugas ini telah ditolak.")}
+                  style={[styles.editStBtn, { backgroundColor: "#2563eb", flexDirection: "row", alignItems: "center", justifyContent: "center" }]}
+                  onPress={() => {
+                    if (!selectedSt) return;
+                    const itemData = selectedSt.rawItem || selectedSt;
+                    if (navigation && typeof navigation.navigate === "function") {
+                      navigation.navigate("BuatSuratTugas", { editData: itemData, readOnly: true });
+                    } else if (onNavigateToModule) {
+                      onNavigateToModule("buat-surat-tugas");
+                    }
+                  }}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.tolakText}>TOLAK</Text>
+                  <Ionicons name="eye-outline" size={18} color="#ffffff" style={{ marginRight: 6 }} />
+                  <Text style={styles.editStText}>LIHAT SURAT TUGAS</Text>
                 </TouchableOpacity>
+              ) : ["PENDING", "DIAJUKAN", "PROSES"].includes((selectedSt.status || "").toUpperCase()) ? (
+                <TouchableOpacity
+                  style={[styles.editStBtn, { backgroundColor: "#2563eb", flexDirection: "row", alignItems: "center", justifyContent: "center" }]}
+                  onPress={() => {
+                    if (!selectedSt) return;
+                    const itemData = selectedSt.rawItem || selectedSt;
+                    if (navigation && typeof navigation.navigate === "function") {
+                      navigation.navigate("BuatSuratTugas", { editData: itemData });
+                    } else if (onNavigateToModule) {
+                      onNavigateToModule("buat-surat-tugas");
+                    }
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="checkmark-done-circle-outline" size={18} color="#ffffff" style={{ marginRight: 6 }} />
+                  <Text style={styles.editStText}>PROSES SEKARANG</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.editStBtn, { backgroundColor: "#4f46e5", flexDirection: "row", alignItems: "center", justifyContent: "center" }]}
+                  onPress={() => {
+                    if (!selectedSt) return;
+                    const itemData = selectedSt.rawItem || selectedSt;
+                    if (navigation && typeof navigation.navigate === "function") {
+                      navigation.navigate("BuatSuratTugas", { editData: itemData });
+                    } else if (onNavigateToModule) {
+                      onNavigateToModule("buat-surat-tugas");
+                    }
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="create-outline" size={18} color="#ffffff" style={{ marginRight: 6 }} />
+                  <Text style={styles.editStText}>EDIT SURAT TUGAS</Text>
+                </TouchableOpacity>
+              )}
+
+              <View style={styles.secondaryActionRow}>
+                {!["DITERBITKAN", "APPROVED", "COMPLETED", "PUBLISHED"].includes((selectedSt.status || "").toUpperCase()) && (
+                  <TouchableOpacity
+                    style={styles.tolakBtn}
+                    onPress={() => {
+                      Alert.alert(
+                        "Tolak Surat Tugas",
+                        "Apakah Anda yakin ingin menolak permohonan Surat Tugas ini?",
+                        [
+                          { text: "Batal", style: "cancel" },
+                          {
+                            text: "Tolak",
+                            style: "destructive",
+                            onPress: async () => {
+                              try {
+                                await apiClient.put(`/surat-tugas/${selectedSt.id}/status`, { status: "rejected" });
+                                Alert.alert("Berhasil", "Surat Tugas telah ditolak.");
+                                fetchSuratTugas();
+                                setSelectedSt(null);
+                              } catch {
+                                Alert.alert("Gagal", "Gagal memperbarui status.");
+                              }
+                            },
+                          },
+                        ]
+                      );
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.tolakText}>TOLAK</Text>
+                  </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
-                  style={styles.arsipkanBtn}
-                  onPress={() => Alert.alert("Arsipkan Surat Tugas", "Surat Tugas ini berhasil diarsipkan.")}
+                  style={[
+                    styles.arsipkanBtn,
+                    ["DITERBITKAN", "APPROVED", "COMPLETED", "PUBLISHED"].includes((selectedSt.status || "").toUpperCase()) && { flex: 1 },
+                  ]}
+                  onPress={() => {
+                    Alert.alert(
+                      "Arsipkan Surat Tugas",
+                      "Surat Tugas ini akan dipindahkan ke arsip sampah. Lanjutkan?",
+                      [
+                        { text: "Batal", style: "cancel" },
+                        {
+                          text: "Arsipkan",
+                          onPress: async () => {
+                            try {
+                              await apiClient.delete(`/surat-tugas/${selectedSt.id}`);
+                              Alert.alert("Berhasil", "Surat Tugas telah diarsipkan.");
+                              fetchSuratTugas();
+                              setSelectedSt(null);
+                            } catch {
+                              Alert.alert("Gagal", "Gagal mengarsipkan Surat Tugas.");
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.arsipkanText}>ARSIPKAN</Text>

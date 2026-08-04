@@ -479,21 +479,16 @@ export default function STBuilderPage() {
 
         // Parse nomor surat: "ST.001/K.18/TU/KSA.03.01/B/05/2026"
         if (data.nomor_surat) {
-          // Extract number: ST.{number}/K.18/TU/{klasifikasi}/B/{mm}/{yyyy}
-          const nomorMatch = data.nomor_surat.match(/^ST\.(.+?)\/K\.18\/TU\/(.+?)\/B\/(\d{2})\/(\d{4})$/);
-          if (nomorMatch) {
-            setStNumber(nomorMatch[1]);
-            setKlasifikasi(nomorMatch[2]);
+          const match = data.nomor_surat.match(/ST\.\s*(.+?)\/K\.18\/TU\/(.+?)\/B/i);
+          if (match) {
+            setStNumber(match[1].trim());
+            setKlasifikasi(match[2].trim());
           } else {
-            // Legacy fallback: ST.{number}/{code}/{mm}/{yyyy}
-            const legacyMatch = data.nomor_surat.match(/^ST\.(.+?)\/(.+)\/(\d{2})\/(\d{4})$/);
-            if (legacyMatch) {
-              setStNumber(legacyMatch[1]);
-              // Try to extract klasifikasi from code like "K.18/TU/KSA.03.01/B"
-              const codeMatch = legacyMatch[2].match(/K\.18\/TU\/(.+?)\/B/);
-              setKlasifikasi(codeMatch ? codeMatch[1] : legacyMatch[2]);
+            const simpleMatch = data.nomor_surat.match(/ST\.\s*(\d+)/i);
+            if (simpleMatch) {
+              setStNumber(simpleMatch[1].trim());
             } else {
-              setStNumber(data.nomor_surat.replace(/^ST\./, ""));
+              setStNumber(data.nomor_surat.replace(/^ST\./, "").trim());
             }
           }
         }
@@ -725,12 +720,14 @@ export default function STBuilderPage() {
   const handleSave = async () => {
     try {
       const stCode = `K.18/TU/${klasifikasi}/B`;
-      const fullNomorSurat = stNumber && klasifikasi 
-        ? `ST.${stNumber}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}` 
-        : "";
+      const fullNomorSurat = stNumber && stNumber.trim()
+        ? `ST.${stNumber.trim()}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}` 
+        : null;
       const payload = {
-        nomor_surat: fullNomorSurat || null,
+        status: "draft",
+        nomor_surat: fullNomorSurat,
         kode_surat: stCode || null,
+        maksud_tujuan: buildMaksudTujuanText(),
         nama_kegiatan: buildMaksudTujuanText(),
         tempat_tujuan: getTempatTujuanForPayload() || null,
         tanggal_surat: tanggalSurat || null,
@@ -742,12 +739,15 @@ export default function STBuilderPage() {
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
-        employee_ids: selectedEmployees.map(e => e.id),
+        employees: selectedEmployees.map(e => ({ id: e.id })),
         tanggal_mulai: tanggalMulai || null,
         tanggal_selesai: tanggalSelesai || null,
       };
-      await api.put(`/surat-tugas/${id}/approve`, payload);
+
+      await api.put(`/surat-tugas/${id}`, payload);
       toast.success("Draft berhasil disimpan!");
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-detail", id] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
     } catch (err: unknown) {
       console.error(err);
       let errorMessage = "Gagal menyimpan draft.";
@@ -758,7 +758,26 @@ export default function STBuilderPage() {
     }
   };
 
-  // Ajukan persetujuan â€” ubah status ke "pending" (menunggu persetujuan kasubag)
+  const handleUpdateNomorSurat = async () => {
+    if (!stNumber) return toast.error("Nomor surat harus diisi.");
+    if (!klasifikasi) return toast.error("Klasifikasi harus diisi.");
+
+    try {
+      const stCode = `K.18/TU/${klasifikasi}/B`;
+      const fullNomorSurat = `ST.${stNumber}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`;
+      await api.put(`/surat-tugas/${id}`, {
+        nomor_surat: fullNomorSurat,
+        kode_surat: stCode,
+      });
+      toast.success("Nomor Surat berhasil diperbarui!");
+      queryClient.invalidateQueries({ queryKey: ["surat-tugas-detail", id] });
+    } catch (err: unknown) {
+      console.error(err);
+      toast.error("Gagal memperbarui Nomor Surat.");
+    }
+  };
+
+  // Ajukan persetujuan — ubah status ke "pending" (menunggu persetujuan kasubag)
   const handleSubmitForApproval = async () => {
     if (!stNumber) return toast.error("Nomor surat harus diisi.");
     if (!klasifikasi) return toast.error("Klasifikasi harus diisi.");
@@ -892,8 +911,9 @@ export default function STBuilderPage() {
             </div>
             <select
               value={templateType ?? ""}
+              disabled={isPublished}
               onChange={(e) => handleTemplateChange(e.target.value)}
-              className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 outline-none transition focus:ring-2 focus:ring-orange-500/20 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300"
+              className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 outline-none transition focus:ring-2 focus:ring-orange-500/20 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="">Default (Manual)</option>
               <option value="bmn-pemeriksaan">Penghapusan BMN</option>
@@ -931,20 +951,21 @@ export default function STBuilderPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-zinc-400 uppercase">Kota</label>
-                <input value={kotaSurat} onChange={e => setKotaSurat(e.target.value)} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 text-zinc-900 dark:text-white" />
+                <input value={kotaSurat} disabled={isPublished} onChange={e => setKotaSurat(e.target.value)} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-zinc-400 uppercase">Tanggal</label>
                 <input 
                   type="date" 
                   value={tanggalSurat} 
+                  disabled={isPublished}
                   onChange={e => {
                     const newDate = e.target.value;
                     setTanggalSurat(newDate);
                     updateDasarFromFunding(sumberDana, newDate);
                     syncBiayaUntukItem(buildBiayaTextFor(sumberDana, sumberDanaOther, newDate, templateType));
                   }} 
-                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 text-zinc-900 dark:text-white" 
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" 
                 />
               </div>
             </div>
@@ -954,17 +975,19 @@ export default function STBuilderPage() {
             <div className="space-y-2">
               <select 
                 value={sumberDana} 
+                disabled={isPublished}
                 onChange={e => handleSumberDanaChange(e.target.value)}
-                className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
+                className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {SUMBER_DANA_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
               </select>
               {sumberDana === 'other' && (
                 <input 
                   value={sumberDanaOther} 
+                  disabled={isPublished}
                   onChange={e => handleSumberDanaOtherChange(e.target.value)} 
                   placeholder="Sebutkan sumber dana..." 
-                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 animate-in slide-in-from-top-1 text-zinc-900 dark:text-white" 
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:bg-white dark:focus:bg-zinc-700 animate-in slide-in-from-top-1 text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" 
                 />
               )}
             </div>
@@ -975,6 +998,7 @@ export default function STBuilderPage() {
             items={menimbangItems}
             onChange={setMenimbangItems}
             marker="letter"
+            disabled={isPublished}
           />
 
           <EditableItemListSection
@@ -982,46 +1006,49 @@ export default function STBuilderPage() {
             items={dasarItems}
             onChange={setDasarItems}
             marker="number"
+            disabled={isPublished}
           />
 
           <FormSection title="Kepada (Personil)" action={<span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-600 dark:text-zinc-400">{selectedEmployees.length}</span>}>
-            <div className="relative" ref={dropdownRef}>
-              <div className="relative">
-                {isSearching ? (
-                  <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 animate-spin" />
-                ) : (
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                )}
-                <input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setShowDropdown(true); }} onFocus={() => setShowDropdown(true)} className="w-full pl-9 pr-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" placeholder="Cari..." />
+            {!isPublished && (
+              <div className="relative" ref={dropdownRef}>
+                <div className="relative">
+                  {isSearching ? (
+                    <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 animate-spin" />
+                  ) : (
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                  )}
+                  <input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setShowDropdown(true); }} onFocus={() => setShowDropdown(true)} className="w-full pl-9 pr-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" placeholder="Cari..." />
+                </div>
+                <AnimatePresence>
+                  {showDropdown && searchQuery && (
+                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
+                      {searchResults.map((emp: Employee) => {
+                        const isSelected = selectedEmployees.some(e => e.id === emp.id);
+                        return (
+                        <button key={emp.id} disabled={isSelected} onClick={() => { 
+                          if (isSelected) return;
+                          const normalized = { ...emp, nama_lengkap: emp.nama_lengkap || emp.name || "", jabatan: emp.jabatan || emp.position || "" };
+                          setSelectedEmployees([...selectedEmployees, normalized]);
+                          if (templateType === "beda-hari") {
+                            setEmployeeDates((prev) => ({
+                              ...prev,
+                              [normalized.id]: prev[normalized.id] || { mulai: tanggalMulai || "", selesai: tanggalSelesai || "" },
+                            }));
+                          }
+                          setSearchQuery(""); 
+                          setShowDropdown(false); 
+                        }} className={`w-full px-4 py-2 text-left border-b border-zinc-100 dark:border-zinc-700 last:border-0 ${isSelected ? "opacity-40 cursor-not-allowed bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"}`}>
+                          <p className={`text-sm font-bold ${isSelected ? "text-zinc-400" : "text-zinc-800 dark:text-zinc-200"}`}>{emp.nama_lengkap || emp.name} {isSelected ? "✓" : ""}</p>
+                          <p className="text-[10px] text-zinc-400">{emp.nip}</p>
+                        </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <AnimatePresence>
-                {showDropdown && searchQuery && (
-                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
-                    {searchResults.map((emp: Employee) => {
-                      const isSelected = selectedEmployees.some(e => e.id === emp.id);
-                      return (
-                      <button key={emp.id} disabled={isSelected} onClick={() => { 
-                        if (isSelected) return;
-                        const normalized = { ...emp, nama_lengkap: emp.nama_lengkap || emp.name || "", jabatan: emp.jabatan || emp.position || "" };
-                        setSelectedEmployees([...selectedEmployees, normalized]);
-                        if (templateType === "beda-hari") {
-                          setEmployeeDates((prev) => ({
-                            ...prev,
-                            [normalized.id]: prev[normalized.id] || { mulai: tanggalMulai || "", selesai: tanggalSelesai || "" },
-                          }));
-                        }
-                        setSearchQuery(""); 
-                        setShowDropdown(false); 
-                      }} className={`w-full px-4 py-2 text-left border-b border-zinc-100 dark:border-zinc-700 last:border-0 ${isSelected ? "opacity-40 cursor-not-allowed bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"}`}>
-                        <p className={`text-sm font-bold ${isSelected ? "text-zinc-400" : "text-zinc-800 dark:text-zinc-200"}`}>{emp.nama_lengkap || emp.name} {isSelected ? "âœ“" : ""}</p>
-                        <p className="text-[10px] text-zinc-400">{emp.nip}</p>
-                      </button>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            )}
             <div className="space-y-2 mt-3">
               {selectedEmployees.map((emp, idx) => {
                 const dateRange = employeeDates[emp.id] || { mulai: "", selesai: "" };
@@ -1030,14 +1057,16 @@ export default function STBuilderPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold text-zinc-400">{idx + 1}</span>
                       <div className="flex-1 truncate text-xs font-bold text-zinc-800 dark:text-zinc-200">{emp.nama_lengkap || emp.name}</div>
-                      <button onClick={() => {
-                        setSelectedEmployees(selectedEmployees.filter(e => e.id !== emp.id));
-                        setEmployeeDates((prev) => {
-                          const next = { ...prev };
-                          delete next[emp.id];
-                          return next;
-                        });
-                      }} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><X className="w-4 h-4" /></button>
+                      {!isPublished && (
+                        <button onClick={() => {
+                          setSelectedEmployees(selectedEmployees.filter(e => e.id !== emp.id));
+                          setEmployeeDates((prev) => {
+                            const next = { ...prev };
+                            delete next[emp.id];
+                            return next;
+                          });
+                        }} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><X className="w-4 h-4" /></button>
+                      )}
                     </div>
                     {templateType === "beda-hari" && (
                       <div className="mt-2 grid grid-cols-2 gap-2">
@@ -1046,13 +1075,14 @@ export default function STBuilderPage() {
                           <input
                             type="date"
                             value={dateRange.mulai}
+                            disabled={isPublished}
                             onChange={(e) =>
                               setEmployeeDates((prev) => ({
                                 ...prev,
                                 [emp.id]: { ...dateRange, mulai: e.target.value },
                               }))
                             }
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[11px] outline-none dark:border-zinc-600 dark:bg-zinc-900 dark:text-white"
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[11px] outline-none dark:border-zinc-600 dark:bg-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                           />
                         </div>
                         <div>
@@ -1060,13 +1090,14 @@ export default function STBuilderPage() {
                           <input
                             type="date"
                             value={dateRange.selesai}
+                            disabled={isPublished}
                             onChange={(e) =>
                               setEmployeeDates((prev) => ({
                                 ...prev,
                                 [emp.id]: { ...dateRange, selesai: e.target.value },
                               }))
                             }
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[11px] outline-none dark:border-zinc-600 dark:bg-zinc-900 dark:text-white"
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[11px] outline-none dark:border-zinc-600 dark:bg-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                           />
                         </div>
                       </div>
@@ -1083,8 +1114,9 @@ export default function STBuilderPage() {
                 <input
                   type="text"
                   value={judulLampiranBedaHari}
+                  disabled={isPublished}
                   onChange={(e) => setJudulLampiranBedaHari(e.target.value)}
-                  className="w-full rounded-lg border border-orange-300 bg-white px-2 py-1 text-xs outline-none dark:border-orange-500/30 dark:bg-zinc-900 dark:text-white"
+                  className="w-full rounded-lg border border-orange-300 bg-white px-2 py-1 text-xs outline-none dark:border-orange-500/30 dark:bg-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
             )}
@@ -1098,18 +1130,20 @@ export default function STBuilderPage() {
                     <label className="text-[10px] font-bold text-blue-700 uppercase dark:text-blue-300">Wilayah Kepala Seksi</label>
                     <input
                       value={plhWilayah}
+                      disabled={isPublished}
                       onChange={(e) => setPlhWilayah(e.target.value)}
                       placeholder="Contoh: Wilayah II Tenggarong"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm outline-none text-zinc-900 dark:text-white"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-blue-700 uppercase dark:text-blue-300">Kegiatan Kepala Seksi</label>
                     <textarea
                       value={plhKegiatanKasi}
+                      disabled={isPublished}
                       onChange={(e) => setPlhKegiatanKasi(e.target.value)}
                       placeholder="Kegiatan Kepala Seksi yang menjadi dasar PLH"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm min-h-[72px] outline-none text-zinc-900 dark:text-white"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm min-h-[72px] outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -1118,8 +1152,9 @@ export default function STBuilderPage() {
                 <label className="text-[10px] font-bold text-zinc-400 uppercase">Jenis Tugas</label>
                 <select 
                   value={activityPrefix} 
+                  disabled={isPublished}
                   onChange={e => handleActivityPrefixChange(e.target.value)} 
-                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none cursor-pointer text-zinc-900 dark:text-white"
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none cursor-pointer text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )</option>
                   <option value="Melaksanakan Kegiatan ( 1 Hari )">Melaksanakan Kegiatan ( 1 Hari )</option>
@@ -1132,26 +1167,26 @@ export default function STBuilderPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-zinc-400 uppercase">Dari ( Kota / Lokasi Asal ) *</label>
-                      <input value={kotaAsal} onChange={e => setKotaAsal(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                      <input value={kotaAsal} disabled={isPublished} onChange={e => setKotaAsal(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-zinc-400 uppercase">Ke ( Kota / Kabupaten Tujuan ) *</label>
-                      <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Kutai Barat" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                      <input value={kotaTujuan} disabled={isPublished} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Kutai Barat" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                     </div>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-zinc-400 uppercase">Dalam Rangka *</label>
-                    <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi..." className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+                    <textarea value={namaKegiatan} disabled={isPublished} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi..." className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-zinc-400 uppercase">Di ( Tempat Spesifik / Opsional )</label>
-                    <input value={tempatKegiatan} onChange={e => {
+                    <input value={tempatKegiatan} disabled={isPublished} onChange={e => {
                       const nextPlace = e.target.value;
                       setTempatKegiatan(nextPlace);
                       if (sumberDana === "folu") {
                         updateFoluMenimbang(namaKegiatan, nextPlace);
                       }
-                    }} placeholder="Contoh: Suaka Margasatwa Kelian" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                    }} placeholder="Contoh: Suaka Margasatwa Kelian" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                   </div>
                 </>
               ) : (
@@ -1160,22 +1195,22 @@ export default function STBuilderPage() {
                     <label className="text-[9px] font-bold text-zinc-400 uppercase">
                       {activityPrefix.includes("Melaksanakan Kegiatan") ? "Melaksanakan Kegiatan ( 1 Hari ) *" : "Menugaskan Staf *"}
                     </label>
-                    <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={activityPrefix.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+                    <textarea value={namaKegiatan} disabled={isPublished} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={activityPrefix.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-zinc-400 uppercase">Pada ( Tempat / Unit / Lokasi )</label>
-                      <input value={tempatKegiatan} onChange={e => {
+                      <input value={tempatKegiatan} disabled={isPublished} onChange={e => {
                         const nextPlace = e.target.value;
                         setTempatKegiatan(nextPlace);
                         if (sumberDana === "folu") {
                           updateFoluMenimbang(namaKegiatan, nextPlace);
                         }
-                      }} placeholder="Contoh: Kantor Balai / tempat kegiatannya" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                      }} placeholder="Contoh: Kantor Balai / tempat kegiatannya" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-zinc-400 uppercase">Di ( Kota / Kabupaten ) *</label>
-                      <input value={kotaTujuan} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                      <input value={kotaTujuan} disabled={isPublished} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                     </div>
                   </div>
                 </>
@@ -1184,16 +1219,17 @@ export default function STBuilderPage() {
                 <input
                   type="date"
                   value={tanggalMulai}
+                  disabled={isPublished}
                   onChange={e => {
                     setTanggalMulai(e.target.value);
                     setTanggalSelesai(e.target.value);
                   }}
-                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white"
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               ) : (
                 <div className={`grid grid-cols-2 gap-2 ${templateType === "beda-hari" ? "hidden" : ""}`}>
-                  <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
-                  <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
+                  <input type="date" value={tanggalMulai} disabled={isPublished} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                  <input type="date" value={tanggalSelesai} disabled={isPublished} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                 </div>
               )}
               {templateType === "beda-hari" && (
@@ -1205,19 +1241,21 @@ export default function STBuilderPage() {
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Untuk</h3>
-                  <button onClick={() => setUntukItems([...untukItems, { id: Math.random().toString(), text: "" }])} className="inline-flex items-center gap-1 text-[10px] text-blue-600 font-bold uppercase">
-                    <Plus className="w-3 h-3" /> Tambah
-                  </button>
+                  {!isPublished && (
+                    <button onClick={() => setUntukItems([...untukItems, { id: Math.random().toString(), text: "" }])} className="inline-flex items-center gap-1 text-[10px] text-blue-600 font-bold uppercase">
+                      <Plus className="w-3 h-3" /> Tambah
+                    </button>
+                  )}
                 </div>
                 <div className="space-y-3">
                   {untukItems.map((item, idx) => (
                     <div
                       key={item.id}
-                      draggable
-                      onDragStart={() => setDraggedUntukIndex(idx)}
-                      onDragOver={(e) => e.preventDefault()}
+                      draggable={!isPublished}
+                      onDragStart={() => !isPublished && setDraggedUntukIndex(idx)}
+                      onDragOver={(e) => !isPublished && e.preventDefault()}
                       onDrop={() => {
-                        if (draggedUntukIndex !== null) {
+                        if (!isPublished && draggedUntukIndex !== null) {
                           moveUntukItem(draggedUntukIndex, idx);
                         }
                         setDraggedUntukIndex(null);
@@ -1226,19 +1264,24 @@ export default function STBuilderPage() {
                       className={`flex gap-2 rounded-xl ${draggedUntukIndex === idx ? "opacity-50" : ""}`}
                     >
                       <span className="text-xs font-bold text-zinc-400 mt-2">{idx + 2}.</span>
-                      <span className="mt-2 cursor-grab text-zinc-300 active:cursor-grabbing dark:text-zinc-600" title="Geser untuk mengubah urutan">
-                        <GripVertical className="w-3.5 h-3.5" />
-                      </span>
+                      {!isPublished && (
+                        <span className="mt-2 cursor-grab text-zinc-300 active:cursor-grabbing dark:text-zinc-600" title="Geser untuk mengubah urutan">
+                          <GripVertical className="w-3.5 h-3.5" />
+                        </span>
+                      )}
                       <textarea
                         value={item.text}
+                        disabled={isPublished}
                         onChange={e => {
                           const nextItems = [...untukItems];
                           nextItems[idx].text = e.target.value;
                           setUntukItems(nextItems);
                         }}
-                        className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white"
+                        className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                       />
-                      <button onClick={() => setUntukItems(untukItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                      {!isPublished && (
+                        <button onClick={() => setUntukItems(untukItems.filter(i => i.id !== item.id))} className="text-zinc-300 dark:text-zinc-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1246,20 +1289,25 @@ export default function STBuilderPage() {
             </div>
           </FormSection>
 
-          <TembusanSection items={tembusanItems} onChange={setTembusanItems} />
+          <TembusanSection items={tembusanItems} onChange={setTembusanItems} disabled={isPublished} />
 
           <PenandatanganSection
             kepalaBalai={kepalaBalai}
             setKepalaBalai={setKepalaBalai}
             allEmployees={allEmployees}
             isLoading={isSearching}
+            disabled={isPublished}
           />
         </div>
 
         <footer className="p-6 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2">
-          {!isPublished && (
+          {!isPublished ? (
             <Button onClick={handleSave} variant="outline" className="w-full h-10 rounded-xl font-bold text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700">
               <FileText className="w-4 h-4 mr-2" /> Simpan Draft
+            </Button>
+          ) : (
+            <Button onClick={handleUpdateNomorSurat} variant="outline" className="w-full h-10 rounded-xl font-bold text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40">
+              <FileText className="w-4 h-4 mr-2" /> Simpan Nomor Surat
             </Button>
           )}
           

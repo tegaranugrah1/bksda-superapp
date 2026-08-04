@@ -4,21 +4,24 @@
  */
 
 const PRINT_STYLE = `
-  @page { size: A4 portrait; margin: 1.5cm 0 1.9cm 0; }
-  @page :first { margin: 1.4cm 0 1.9cm 0; }
-  @page st-lampiran-beda-hari { size: A4 portrait; margin: 1.5cm 0 1.9cm 0; }
+  @page { size: A4 portrait; margin: 0; }
+  @page :first { margin: 0; }
+  @page st-lampiran-beda-hari { size: A4 portrait; margin: 0; }
   
   * { box-sizing: border-box; }
   
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
   body {
     font-family: 'Bookman Old Style', 'Georgia', serif;
     font-size: 11pt;
     line-height: 1.25;
     color: #000;
-    margin: 0;
-    padding: 0;
     text-align: justify;
-    background: white;
   }
   
   table { width: 100%; border-collapse: collapse; }
@@ -27,7 +30,7 @@ const PRINT_STYLE = `
   
   .kop-surat {
     width: 210mm !important;
-    margin: 0 auto 4mm auto !important;
+    margin: 0.3cm auto 4mm auto !important;
     text-align: center !important;
   }
   
@@ -42,7 +45,7 @@ const PRINT_STYLE = `
   .surat-content {
     width: 210mm !important;
     margin: 0 auto !important;
-    padding: 0 1.55cm 0 2.0cm !important;
+    padding: 0 1.55cm 1.5cm 2.0cm !important;
     box-sizing: border-box !important;
   }
   

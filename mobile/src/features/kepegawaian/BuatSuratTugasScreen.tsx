@@ -14,6 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import { WebView } from "react-native-webview";
+import { HEADER_NEW_BASE64 } from "../../assets/headerNewBase64";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
@@ -32,6 +34,258 @@ interface BuatSuratTugasScreenProps {
   navigation?: any;
   onBack?: () => void;
   onNavigateToModule?: (moduleKey: string) => void;
+}
+
+function formatDateIndo(dateStr: string | null | undefined): string {
+  if (!dateStr) return "...";
+  try {
+    const months = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  } catch {
+    return dateStr || "...";
+  }
+}
+
+function formatNipIndo(nip: string | null | undefined): string {
+  if (!nip) return "19740514 199903 1 001";
+  const cleaned = nip.replace(/\s/g, "");
+  if (cleaned.length !== 18) return nip;
+  return `${cleaned.substring(0, 8)} ${cleaned.substring(8, 14)} ${cleaned.substring(14, 15)} ${cleaned.substring(15)}`;
+}
+
+function numberToWordsIndo(n: number): string {
+  const words = ["nol", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+  if (n >= 0 && n <= 11) return words[n];
+  if (n < 20) return `${words[n - 10]} belas`;
+  if (n < 100) {
+    const tens = Math.floor(n / 10);
+    const rem = n % 10;
+    return `${words[tens]} puluh${rem > 0 ? " " + words[rem] : ""}`;
+  }
+  return String(n);
+}
+
+function calculateDaysBetween(startStr: string, endStr: string): number {
+  try {
+    const d1 = new Date(startStr);
+    const d2 = new Date(endStr);
+    const diffTime = Math.abs(d2.getTime() - d1.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  } catch {
+    return 1;
+  }
+}
+
+function parsePersonnelData(raw: any, availableEmployees: Employee[]): Employee[] {
+  if (!raw) return [];
+
+  // Case 1: Array of objects or strings
+  if (Array.isArray(raw)) {
+    const result: Employee[] = [];
+    raw.forEach((p: any, idx: number) => {
+      if (typeof p === "object" && p !== null) {
+        const pName = p.nama_lengkap || p.name || "";
+        const matched = availableEmployees.filter(emp => 
+          emp.name && pName.toLowerCase().includes(emp.name.toLowerCase())
+        );
+        if (matched.length > 1) {
+          result.push(...matched);
+        } else if (matched.length === 1) {
+          result.push(matched[0]);
+        } else {
+          result.push({
+            id: p.id ? String(p.id) : `edit-p-${idx}`,
+            name: pName || "Pegawai",
+            nip: p.nip || "",
+            position: p.position || p.jabatan || "",
+            department: p.department || p.satker || "",
+          });
+        }
+      } else if (typeof p === "string") {
+        const matched = availableEmployees.filter(emp => 
+          emp.name && p.toLowerCase().includes(emp.name.toLowerCase())
+        );
+        if (matched.length > 0) {
+          result.push(...matched);
+        } else {
+          result.push({
+            id: `edit-p-${idx}`,
+            name: p,
+            nip: "",
+            position: "Staf Balai KSDA",
+          });
+        }
+      }
+    });
+    const uniqueMap = new Map<string, Employee>();
+    result.forEach(emp => uniqueMap.set(emp.id || emp.name, emp));
+    return Array.from(uniqueMap.values());
+  }
+
+  // Case 2: String (e.g. "Carica Deffa Yullinda, S.Kom., Tegar Anugrah, A.Md.Kom.")
+  if (typeof raw === "string") {
+    const matched = availableEmployees.filter(emp => 
+      emp.name && raw.toLowerCase().includes(emp.name.toLowerCase())
+    );
+    if (matched.length > 0) {
+      return matched;
+    }
+    const parts = raw.split(/;|\n/).map(s => s.trim()).filter(Boolean);
+    return parts.map((nameStr, idx) => ({
+      id: `edit-p-str-${idx}`,
+      name: nameStr,
+      nip: "",
+      position: "Staf Balai KSDA",
+    }));
+  }
+
+  return [];
+}
+
+function parseMaksudTujuanData(maksudTujuanRaw: string) {
+  if (!maksudTujuanRaw) {
+    return {
+      line1: "",
+      additionalLines: [],
+      namaKegiatan: "",
+      kotaAsal: "Samarinda",
+      kotaTujuan: "",
+      tempatSpesifik: "",
+      jenisTugas: "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" as const,
+    };
+  }
+
+  const lines = maksudTujuanRaw.split("\n").map((l) => l.trim()).filter(Boolean);
+  const line1 = lines[0] || "";
+  const additionalLines = lines.slice(1);
+
+  const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*$/i;
+  const cleanedActivity = line1.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
+
+  // Pattern 1: Perjalanan Dinas dari X ke Y dalam rangka Z [di W]
+  const pdRegex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+  const pdMatch = cleanedActivity.match(pdRegex);
+
+  if (pdMatch) {
+    const kotaAsal = pdMatch[2].trim();
+    const kotaTujuan = pdMatch[3].trim();
+    const rest = pdMatch[4].trim();
+    const diRegex = /(.*)\s+di\s+([^,;]+)$/i;
+    const diMatch = rest.match(diRegex);
+
+    let namaKegiatan = rest.replace(/[;,.]$/, "").trim();
+    let tempatSpesifik = "";
+    if (diMatch) {
+      namaKegiatan = diMatch[1].trim();
+      tempatSpesifik = diMatch[2].trim();
+    }
+
+    return {
+      line1,
+      additionalLines,
+      namaKegiatan,
+      kotaAsal,
+      kotaTujuan,
+      tempatSpesifik,
+      jenisTugas: "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" as const,
+    };
+  }
+
+  // Pattern 2: Melaksanakan Kegiatan Z [pada W] [di Y]
+  const mkRegex = /^Melaksanakan\s+Kegiatan\s+(.*)/i;
+  const mkMatch = cleanedActivity.match(mkRegex);
+  if (mkMatch) {
+    let rest = mkMatch[1].trim();
+    let kotaTujuan = "";
+    let tempatSpesifik = "";
+
+    const diMatch = rest.match(/(.*)\s+di\s+([^,;]+)$/i);
+    if (diMatch) {
+      rest = diMatch[1].trim();
+      kotaTujuan = diMatch[2].trim();
+    }
+
+    const padaMatch = rest.match(/(.*)\s+pada\s+([^,;]+)$/i);
+    if (padaMatch) {
+      rest = padaMatch[1].trim();
+      tempatSpesifik = padaMatch[2].trim();
+    }
+
+    return {
+      line1,
+      additionalLines,
+      namaKegiatan: rest.replace(/[;,.]$/, "").trim(),
+      kotaAsal: "Samarinda",
+      kotaTujuan,
+      tempatSpesifik,
+      jenisTugas: "Melaksanakan Kegiatan ( 1 Hari )" as const,
+    };
+  }
+
+  // Pattern 3: Menugaskan Staf untuk Z [pada W] [di Y]
+  const msRegex = /^Menugaskan\s+Staf\s+(?:untuk\s+)?(.*)/i;
+  const msMatch = cleanedActivity.match(msRegex);
+  if (msMatch) {
+    let rest = msMatch[1].trim();
+    let kotaTujuan = "";
+    let tempatSpesifik = "";
+
+    const diMatch = rest.match(/(.*)\s+di\s+([^,;]+)$/i);
+    if (diMatch) {
+      rest = diMatch[1].trim();
+      kotaTujuan = diMatch[2].trim();
+    }
+
+    const padaMatch = rest.match(/(.*)\s+pada\s+([^,;]+)$/i);
+    if (padaMatch) {
+      rest = padaMatch[1].trim();
+      tempatSpesifik = padaMatch[2].trim();
+    }
+
+    return {
+      line1,
+      additionalLines,
+      namaKegiatan: rest.replace(/[;,.]$/, "").trim(),
+      kotaAsal: "Samarinda",
+      kotaTujuan,
+      tempatSpesifik,
+      jenisTugas: "Menugaskan Staf" as const,
+    };
+  }
+
+  return {
+    line1,
+    additionalLines,
+    namaKegiatan: cleanedActivity,
+    kotaAsal: "Samarinda",
+    kotaTujuan: "",
+    tempatSpesifik: "",
+    jenisTugas: "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" as const,
+  };
+}
+
+function parseNomorSuratParts(numStr?: string) {
+  if (!numStr) return null;
+  const match = numStr.match(/ST\.\s*(.+?)\/K\.18\/TU\/(.+?)\/B/i);
+  if (match) {
+    return {
+      nomorUrut: match[1].trim(),
+      klasifikasi: match[2].trim(),
+    };
+  }
+  const simpleMatch = numStr.match(/ST\.\s*(\d+)/i);
+  if (simpleMatch) {
+    return {
+      nomorUrut: simpleMatch[1].trim(),
+      klasifikasi: null,
+    };
+  }
+  return null;
 }
 
 // Master Employee List Fallback
@@ -115,6 +369,112 @@ const masterEmployeeList: Employee[] = [
   },
 ];
 
+const SUMBER_DANA_OPTIONS = [
+  {
+    id: "dipa",
+    label: "DIPA",
+    dasarText:
+      "Surat Pengesahan DIPA Tahun Anggaran {tahun} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/{tahun} tanggal 24 April 2026.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran {tahun};",
+  },
+  {
+    id: "kja",
+    label: "Dana Kerjasama KJA",
+    dasarText:
+      "Perjanjian kerjasama antara Balai KSDA Kalimantan Timur dan PT Kideco Jaya Agung Nomor : PKS.140/K.18/TU /Teknis/08/2023 dan Nomor : 213/KJA/LGL/CON/VIII/2023 tanggal 08 Agustus 2023.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan PT Kideco Jaya Agung;",
+  },
+  {
+    id: "mja",
+    label: "Dana Kerjasama MJA",
+    dasarText:
+      "Perjanjian Kerjasama antara Kepala Balai KSDA Kalimantan Timur dengan Direktur PT Multi Jayantara Abadi Nomor : PKS.36/K.18/TU/Teknis/02/2023 dan Nomor : 001/MJA-Dir/ TPG/II /2023 tanggal 01 Februari 2023.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan PT Multi Jayantara Abadi;",
+  },
+  {
+    id: "cop",
+    label: "Dana Kerjasama COP",
+    dasarText:
+      "Perjanjian Kerja Sama Antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dan Centre for Orangutan Protection (COP) Nomor: PKS.191/K.18/TU/Teknis/10/2023 dan Nomor 17/HQ10/COP/2023.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Biaya Kerjasama BKSDA Kalimantan Timur dan Centre for Orangutan Protection (COP);",
+  },
+  {
+    id: "tjiwi_kimia",
+    label: "Dana Kerjasama PT. Tjiwi Kimia Tbk.",
+    dasarText:
+      "Perjanjian kerjasama antara Balai KSDA Kalimantan Timur dan PT. Pabrik Kertas Tjiwi Kimia Tbk., Nomor PKS.205/K.18/ TU/PK/12/ 2022 dan Nomor: 76/SSE JKT/APP/PKS/12/ 2022 tentang penguatan fungsi Kawasan Cagar Alam Muara Kaman Sedulang dan Pelestarian Keanekaragaman Hayati yang Dilindungi di Wilayah Kerja Balai KSDA Kalimantan Timur.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Anggaran Perjanjian Kerja Sama antara Balai KSDA Kalimantan Timur dan PT Pabrik Kertas Tjiwi Kimia Tbk;",
+  },
+  {
+    id: "tjiwi",
+    label: "Dana Kerjasama PT. Tjiwi Kimia Tbk.",
+    dasarText:
+      "Perjanjian kerjasama antara Balai KSDA Kalimantan Timur dan PT. Pabrik Kertas Tjiwi Kimia Tbk., Nomor PKS.205/K.18/ TU/PK/12/ 2022 dan Nomor: 76/SSE JKT/APP/PKS/12/ 2022 tentang penguatan fungsi Kawasan Cagar Alam Muara Kaman Sedulang dan Pelestarian Keanekaragaman Hayati yang Dilindungi di Wilayah Kerja Balai KSDA Kalimantan Timur.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Anggaran Perjanjian Kerja Sama antara Balai KSDA Kalimantan Timur dan PT Pabrik Kertas Tjiwi Kimia Tbk;",
+  },
+  {
+    id: "bosf",
+    label: "Dana Kerjasama BOSF",
+    dasarText:
+      "Perjanjian Kerjasama antara Kepala Balai KSDA Kalimantan Timur dengan Ketua Pengurus Yayasan Penyelamatan Orangutan Borneo Nomor : PKS.184/K.18/TU/PK12/2021 dan Nomor 176/YBOS /XII/2021 tanggal 6 Desember 2021.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan Yayasan Penyelamatan Orangutan Borneo (BOSF);",
+  },
+  {
+    id: "can",
+    label: "Dana Kerjasama CAN",
+    dasarText:
+      "Perjanjian Kerja Sama antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dengan Conservation Action Network (CAN) Nomor : PKS.45/K.18/TU/KSA.2.5/03/2025 dan 007/K-JAK/PKS/III/2025 tanggal 14 Maret 2025.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Biaya Kerjasama BKSDA Kalimantan Timur dan Conservation Action Network (CAN);",
+  },
+  {
+    id: "alert",
+    label: "Dana Kerjasama ALeRT",
+    dasarText:
+      "Perjanjian Kerjasama Antara Kepala Balai KSDA Kalimantan Timur dengan Direktur Aliansi Lestrai Rimba Terpadu (AleRT) Nomor: PKS.192/K.18/TU/Teknis/10/2023 dan Nomor: 51/PKS-ALeRT/ X/2023.",
+    biayaText:
+      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Rencana Kerja Tahunan (RKT) Kegiatan Kerja Sama antara Balai KSDA Kalimantan Timur dengan ALeRT (Aliansi Lestari Rimba Terpadu);",
+  },
+  {
+    id: "folu",
+    label: "Dana Kerjasama FOLU",
+    dasarText: "",
+    biayaText:
+      "Sumber dana dibebankan pada anggaran Proyek FOLU Net Sink 2030 RBC Norwegia Tahap II dan III (FOLU NC 2&3) pada AWP KSDAE - Tahun Anggaran {tahun};",
+  },
+  {
+    id: "dipa_lain",
+    label: "DIPA Instansi Lain",
+    dasarText: "",
+    biayaText: "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Instansi Lain;",
+  },
+  {
+    id: "swadaya",
+    label: "Non-DIPA / Swadaya",
+    dasarText: "",
+    biayaText: "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada non-DIPA / swadaya;",
+  },
+  {
+    id: "dl1",
+    label: "Tanpa Biaya / DL 1",
+    dasarText: "",
+    biayaText: "Segala biaya yang timbul akibat Surat Tugas ini tidak dibebankan pada anggaran manapun (DL 1 / tanpa biaya).",
+  },
+  {
+    id: "other",
+    label: "Lainnya",
+    dasarText: "",
+    biayaText: "",
+  },
+];
+
 export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   navigation,
   onBack,
@@ -172,23 +532,113 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const route = useRoute<any>();
   const editData = route?.params?.editData;
   const [editId, setEditId] = useState<string | null>(null);
+  const [suratStatus, setSuratStatus] = useState<string>("draft");
+  const isPublished = ["diterbitkan", "approved", "completed", "published"].includes(suratStatus.toLowerCase());
 
   const [selectedTemplate, setSelectedTemplate] = useState("DEFAULT (MANUAL)");
-  const [nomorUrut, setNomorUrut] = useState("001");
+  const [nomorUrut, setNomorUrut] = useState("");
   const [klasifikasi, setKlasifikasi] = useState("KSA.0X.0X");
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const currentYear = new Date().getFullYear().toString();
   const [kotaDokumen, setKotaDokumen] = useState("Samarinda");
   const [tanggalDokumen, setTanggalDokumen] = useState(new Date().toISOString().substring(0, 10));
 
-  // Sync state if opening in Edit Mode from InboxSuratTugasScreen
+  const [menimbangItems, setMenimbangItems] = useState<Array<{ id: string; text: string }>>([
+    { id: "m-1", text: "bahwa dalam rangka , perlu ;" },
+    { id: "m-2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
+  ]);
+
+  const [dasarItems, setDasarItems] = useState<Array<{ id: string; text: string }>>([
+    { id: "d-1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
+    { id: "d-2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.` },
+  ]);
+
+  const [untukItems, setUntukItems] = useState<Array<{ id: string; text: string }>>([
+    { id: "u-2", text: "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut." },
+    { id: "u-3", text: `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran ${currentYear};` },
+  ]);
+
+  const [tembusanItems, setTembusanItems] = useState<Array<{ id: string; text: string }>>([]);
+
+  const [penandatanganName, setPenandatanganName] = useState("M. Ari Wibawanto, S.Hut., M.Sc.");
+  const [penandatanganNip, setPenandatanganNip] = useState("19740514 199903 1 001");
+
+  // Sync state if opening in Edit Mode from InboxSuratTugasScreen or reset if Create Mode
   useEffect(() => {
-    if (!editData) return;
+    const defaultMenimbang = [
+      { id: "m-1", text: "bahwa dalam rangka , perlu ;" },
+      { id: "m-2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
+    ];
+    const defaultDasar = [
+      { id: "d-1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
+      { id: "d-2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.` },
+    ];
+    const defaultUntuk = [
+      { id: "u-2", text: "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut." },
+      { id: "u-3", text: `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran ${currentYear};` },
+    ];
+
+    if (!editData) {
+      setEditId(null);
+      setSuratStatus("draft");
+      setSelectedTemplate("DEFAULT (MANUAL)");
+      setNomorUrut("");
+      setKlasifikasi("KSA.0X.0X");
+      setKotaDokumen("Samarinda");
+      setTanggalDokumen(new Date().toISOString().substring(0, 10));
+      setJenisTugas("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+      setKotaAsal("Samarinda");
+      setKotaTujuan("");
+      setNamaKegiatanText("");
+      setTempatSpesifik("");
+      setTanggalMulai("");
+      setTanggalSelesai("");
+      setSumberDana("dipa");
+      setSelectedEmployees([]);
+      setMenimbangItems(defaultMenimbang);
+      setDasarItems(defaultDasar);
+      setUntukItems(defaultUntuk);
+      setTembusanItems([]);
+      setPenandatanganName("M. Ari Wibawanto, S.Hut., M.Sc.");
+      setPenandatanganNip("19740514 199903 1 001");
+      return;
+    }
 
     setEditId(String(editData.id));
+    if (editData.status) {
+      setSuratStatus(String(editData.status).toLowerCase());
+    } else {
+      setSuratStatus("draft");
+    }
 
-    if (editData.title || editData.maksud_tujuan) {
-      setNamaKegiatanText(editData.title || editData.maksud_tujuan || "");
+    if (editData.nomor_surat || editData.st_number) {
+      const parsedNomorEdit = parseNomorSuratParts(editData.nomor_surat || editData.st_number);
+      if (parsedNomorEdit) {
+        if (parsedNomorEdit.nomorUrut) setNomorUrut(parsedNomorEdit.nomorUrut);
+        if (parsedNomorEdit.klasifikasi) setKlasifikasi(parsedNomorEdit.klasifikasi);
+      } else {
+        setNomorUrut("");
+        setKlasifikasi("KSA.0X.0X");
+      }
+    } else {
+      setNomorUrut("");
+      setKlasifikasi("KSA.0X.0X");
+    }
+
+    if (editData.maksud_tujuan || editData.title) {
+      const parsedMT = parseMaksudTujuanData(editData.maksud_tujuan || editData.title);
+      if (parsedMT.namaKegiatan) setNamaKegiatanText(parsedMT.namaKegiatan);
+      if (parsedMT.kotaAsal) setKotaAsal(parsedMT.kotaAsal);
+      if (parsedMT.kotaTujuan) setKotaTujuan(parsedMT.kotaTujuan);
+      if (parsedMT.tempatSpesifik) setTempatSpesifik(parsedMT.tempatSpesifik);
+      if (parsedMT.jenisTugas) setJenisTugas(parsedMT.jenisTugas);
+      if (parsedMT.additionalLines.length > 0) {
+        setUntukItems(parsedMT.additionalLines.map((l, i) => ({ id: `u-${i + 2}`, text: l })));
+      } else {
+        setUntukItems(defaultUntuk);
+      }
+    } else {
+      setUntukItems(defaultUntuk);
     }
     if (editData.location || editData.tempat_tujuan) {
       setKotaTujuan(editData.location || editData.tempat_tujuan || "");
@@ -205,14 +655,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       }
     }
 
-    if (Array.isArray(editData.personil) && editData.personil.length > 0) {
-      const emps: Employee[] = editData.personil.map((p: any, idx: number) => ({
-        id: p.id ? String(p.id) : `edit-p-${idx}`,
-        name: p.name || p.nama_lengkap || "Pegawai",
-        nip: p.nip || "",
-        position: p.position || p.jabatan || "",
-      }));
-      setSelectedEmployees(emps);
+    const rawPersonel = editData.personil || editData.personel || editData.employees;
+    if (rawPersonel) {
+      const parsedEmps = parsePersonnelData(rawPersonel, allEmployees.length > 0 ? allEmployees : masterEmployeeList);
+      setSelectedEmployees(parsedEmps);
+    } else {
+      setSelectedEmployees([]);
     }
 
     const fetchFullSt = async () => {
@@ -220,29 +668,71 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         const res = await apiClient.get(`/surat-tugas/${editData.id}`);
         const full = res.data?.data || res.data;
         if (full) {
+          if (full.status) {
+            setSuratStatus(String(full.status).toLowerCase());
+          }
+          if (full.maksud_tujuan) {
+            const parsedMT = parseMaksudTujuanData(full.maksud_tujuan);
+            if (parsedMT.namaKegiatan) setNamaKegiatanText(parsedMT.namaKegiatan);
+            if (parsedMT.kotaAsal) setKotaAsal(parsedMT.kotaAsal);
+            if (parsedMT.kotaTujuan) setKotaTujuan(parsedMT.kotaTujuan);
+            if (parsedMT.tempatSpesifik) setTempatSpesifik(parsedMT.tempatSpesifik);
+            if (parsedMT.jenisTugas) setJenisTugas(parsedMT.jenisTugas);
+            if (parsedMT.additionalLines.length > 0 && (!full.untuk || !Array.isArray(full.untuk))) {
+              setUntukItems(parsedMT.additionalLines.map((l, i) => ({ id: `u-${i + 2}`, text: l })));
+            }
+          }
           if (full.nomor_surat || full.st_number) {
-            const numStr = full.nomor_surat || full.st_number;
-            const match = numStr.match(/ST\.\s*(\d+)/i);
-            if (match) setNomorUrut(match[1]);
+            const parsedNomor = parseNomorSuratParts(full.nomor_surat || full.st_number);
+            if (parsedNomor) {
+              if (parsedNomor.nomorUrut) setNomorUrut(parsedNomor.nomorUrut);
+              if (parsedNomor.klasifikasi) setKlasifikasi(parsedNomor.klasifikasi);
+            }
+          }
+          if (full.kode_surat) {
+            const codeMatch = full.kode_surat.match(/K\.18\/TU\/(.+?)\/B/i);
+            if (codeMatch) {
+              setKlasifikasi(codeMatch[1]);
+            }
+          }
+          if (full.sumber_dana) {
+            setSumberDana(full.sumber_dana.toLowerCase());
           }
           if (full.tanggal_mulai) setTanggalMulai(full.tanggal_mulai);
           if (full.tanggal_selesai) setTanggalSelesai(full.tanggal_selesai);
           if (full.kota_asal) setKotaAsal(full.kota_asal);
           if (full.tempat_spesifik) setTempatSpesifik(full.tempat_spesifik);
-          if (full.menimbang && Array.isArray(full.menimbang)) {
+          if (full.menimbang && Array.isArray(full.menimbang) && full.menimbang.length > 0) {
             setMenimbangItems(full.menimbang.map((m: any, i: number) => ({ id: `m-${i}`, text: typeof m === "string" ? m : m.text })));
+          } else {
+            setMenimbangItems(defaultMenimbang);
           }
-          if (full.dasar && Array.isArray(full.dasar)) {
+          if (full.dasar && Array.isArray(full.dasar) && full.dasar.length > 0) {
             setDasarItems(full.dasar.map((d: any, i: number) => ({ id: `d-${i}`, text: typeof d === "string" ? d : d.text })));
+          } else {
+            setDasarItems(defaultDasar);
           }
-          if (full.untuk && Array.isArray(full.untuk)) {
-            setUntukItems(full.untuk.map((u: any, i: number) => ({ id: `u-${i}`, text: typeof u === "string" ? u : u.text })));
+          if (full.untuk && Array.isArray(full.untuk) && full.untuk.length > 0) {
+            const parsedUntuk = full.untuk.map((u: any, i: number) => ({ id: `u-${i}`, text: typeof u === "string" ? u : u.text }));
+            if (parsedUntuk.length > 1 && (parsedUntuk[0].text.includes("Melaksanakan Perjalanan Dinas") || parsedUntuk[0].text.includes("Melaksanakan Kegiatan") || parsedUntuk[0].text.includes("Menugaskan Staf"))) {
+              setUntukItems(parsedUntuk.slice(1));
+            } else {
+              setUntukItems(parsedUntuk);
+            }
           }
-          if (full.tembusan && Array.isArray(full.tembusan)) {
+          if (full.tembusan && Array.isArray(full.tembusan) && full.tembusan.length > 0) {
             setTembusanItems(full.tembusan.map((t: any, i: number) => ({ id: `t-${i}`, text: typeof t === "string" ? t : t.text })));
+          } else {
+            setTembusanItems([]);
           }
           if (full.penandatangan_nama) setPenandatanganName(full.penandatangan_nama);
           if (full.penandatangan_nip) setPenandatanganNip(full.penandatangan_nip);
+
+          const fullPersonel = full.personil || full.personel || full.employees;
+          if (fullPersonel) {
+            const parsedEmps = parsePersonnelData(fullPersonel, allEmployees.length > 0 ? allEmployees : masterEmployeeList);
+            setSelectedEmployees(parsedEmps);
+          }
         }
       } catch {
         // use local editData state fallback
@@ -250,28 +740,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     };
 
     fetchFullSt();
-  }, [editData]);
-
-  const [menimbangItems, setMenimbangItems] = useState<Array<{ id: string; text: string }>>([
-    { id: "m-1", text: "bahwa dalam rangka , perlu ;" },
-    { id: "m-2", text: "bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud." },
-  ]);
-
-  const [dasarItems, setDasarItems] = useState<Array<{ id: string; text: string }>>([
-    { id: "d-1", text: "2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
-    { id: "d-2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP` },
-  ]);
-
-  const [untukItems, setUntukItems] = useState<Array<{ id: string; text: string }>>([
-    { id: "u-1", text: "Melaksanakan Perjalanan Dinas dari Samarinda ke Balikpapan terhitung mulai..." },
-    { id: "u-2", text: "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut." },
-    { id: "u-3", text: "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE" },
-  ]);
-
-  const [tembusanItems, setTembusanItems] = useState<Array<{ id: string; text: string }>>([]);
-
-  const [penandatanganName, setPenandatanganName] = useState("M. Ari Wibawanto, S.Hut., M.Sc.");
-  const [penandatanganNip, setPenandatanganNip] = useState("19740514 199903 1 001");
+  }, [editData, allEmployees]);
 
   // Dynamic List Handlers
   const handleAddMenimbangItem = () => {
@@ -314,12 +783,84 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     setTembusanItems((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
   };
 
+  const updateDasarFromFunding = (fundingId: string, date: string) => {
+    const opt = SUMBER_DANA_OPTIONS.find((o) => o.id === fundingId);
+    if (opt && opt.dasarText) {
+      const tahun = date ? new Date(date).getFullYear().toString() : currentYear;
+      const text = opt.dasarText.replace(/{tahun}/g, tahun);
+
+      setDasarItems((prev) => {
+        const newItems = [...prev];
+        if (newItems.length >= 2) {
+          newItems[1] = { ...newItems[1], text };
+        } else if (newItems.length === 1) {
+          newItems.push({ id: `d-${Date.now()}`, text });
+        }
+        return newItems;
+      });
+    }
+  };
+
+  const handleSumberDanaChange = (newFunding: string) => {
+    setSumberDana(newFunding);
+    updateDasarFromFunding(newFunding, tanggalDokumen || currentYear);
+
+    const opt = SUMBER_DANA_OPTIONS.find((o) => o.id === newFunding);
+    let newBiayaText = opt?.biayaText || "";
+    if (newBiayaText) {
+      newBiayaText = newBiayaText.replace(/{tahun}/g, currentYear);
+      setUntukItems((prev) => {
+        if (prev.length >= 2) {
+          const next = [...prev];
+          next[1] = { ...next[1], text: newBiayaText };
+          return next;
+        }
+        if (prev.length === 1) {
+          return [...prev, { id: `u-${Date.now()}`, text: newBiayaText }];
+        }
+        return prev;
+      });
+    }
+  };
+
   // BUILDER STATE UNTUK DETAIL KEGIATAN
   const [jenisTugas, setJenisTugas] = useState<"Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf">("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
   const [kotaTujuan, setKotaTujuan] = useState("");
   const [namaKegiatanText, setNamaKegiatanText] = useState("");
   const [tempatSpesifik, setTempatSpesifik] = useState("");
+
+  // Helper to build Untuk item 1 from Detail Kegiatan
+  const buildUntukText = (): string => {
+    const days = calculateDaysBetween(tanggalMulai, tanggalSelesai);
+    const daysWord = numberToWordsIndo(days);
+    const tglMulaiFormatted = formatDateIndo(tanggalMulai);
+    const tglSelesaiFormatted = formatDateIndo(tanggalSelesai);
+
+    let text = "";
+    if (jenisTugas.includes("Perjalanan Dinas")) {
+      text = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "Samarinda"} ke ${kotaTujuan || "Balikpapan"}`;
+      if (namaKegiatanText) text += ` dalam rangka ${namaKegiatanText}`;
+      if (tempatSpesifik) text += ` di ${tempatSpesifik}`;
+    } else if (jenisTugas.includes("Kegiatan")) {
+      text = `Melaksanakan Kegiatan ${namaKegiatanText || "..."}`;
+      if (tempatSpesifik) text += ` pada ${tempatSpesifik}`;
+      if (kotaTujuan) text += ` di ${kotaTujuan}`;
+    } else {
+      text = `Menugaskan Staf untuk ${namaKegiatanText || "..."}`;
+      if (tempatSpesifik) text += ` pada ${tempatSpesifik}`;
+      if (kotaTujuan) text += ` di ${kotaTujuan}`;
+    }
+
+    if (days > 0) {
+      text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${tglMulaiFormatted} sampai dengan ${tglSelesaiFormatted};`;
+    } else {
+      text += ";";
+    }
+    return text;
+  };
+
+
 
   const [setujuData, setSetujuData] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
@@ -445,7 +986,11 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     } else if (onBack) {
       onBack();
     } else if (navigation) {
-      navigation.navigate("Dashboard");
+      if (editId || editData) {
+        navigation.navigate("InboxSuratTugas");
+      } else {
+        navigation.navigate("KepegawaianDashboard");
+      }
     }
   };
 
@@ -465,119 +1010,289 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     }
   };
 
-  const getSuratTugasHtmlContent = () => {
-    const pegawaiRows = selectedEmployees.map((p, idx) => `
+  const buildOfficialBksdaSuratTugasHtml = (params: {
+    nomorUrut?: string;
+    kotaAsal?: string;
+    kotaTujuan?: string;
+    namaKegiatanText?: string;
+    tempatSpesifik?: string;
+    tanggalMulai?: string;
+    tanggalSelesai?: string;
+    penandatanganName?: string;
+    penandatanganNip?: string;
+    selectedEmployees?: Employee[];
+    menimbangItems?: Array<{ id: string; text: string }>;
+    dasarItems?: Array<{ id: string; text: string }>;
+    untukItems?: Array<{ id: string; text: string }>;
+  }): string => {
+    const nomorSurat = `ST. ${params.nomorUrut || nomorUrut || "001"}/K.18/TU/${klasifikasi || "KSA.0X.0X"}/B/${currentMonth}/${currentYear}`;
+    const ttdNama = params.penandatanganName || "M. Ari Wibawanto, S.Hut., M.Sc.";
+    const ttdNip = formatNipIndo(params.penandatanganNip || "19740514 199903 1 001");
+
+    const listEmp = (params.selectedEmployees && params.selectedEmployees.length > 0)
+      ? params.selectedEmployees
+      : [
+          { name: "Carica Deffa Yullinda, S.Kom.", nip: "200207312025062007", position: "Pranata Komputer Ahli Pertama" },
+          { name: "Tegar Anugrah, A.Md.Kom.", nip: "199907072025061006", position: "Pranata Komputer Terampil" },
+        ];
+
+    const personnelRowsHtml = listEmp.map((p, idx) => `
       <tr>
-        <td style="padding: 6px; border: 1px solid #333; text-align: center; font-weight: bold;">${idx + 1}</td>
-        <td style="padding: 6px; border: 1px solid #333;"><strong>${p.name}</strong><br/><span style="font-size: 11px; color: #555;">NIP. ${p.nip}</span></td>
-        <td style="padding: 6px; border: 1px solid #333;">${p.position || "Staf Balai KSDA"}</td>
+        <td style="width: 24px; vertical-align: top; padding: 2px 0;">${idx + 1}.</td>
+        <td style="vertical-align: top; padding: 2px 0;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="width: 75px; padding: 1px 0;">Nama</td>
+              <td style="width: 12px; padding: 1px 0;">:</td>
+              <td style="font-weight: bold; padding: 1px 0;">${p.name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 1px 0;">NIP</td>
+              <td style="padding: 1px 0;">:</td>
+              <td style="padding: 1px 0;">${formatNipIndo(p.nip)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 1px 0;">Jabatan</td>
+              <td style="padding: 1px 0;">:</td>
+              <td style="padding: 1px 0;">${p.position || 'Pranata Komputer'}</td>
+            </tr>
+          </table>
+        </td>
       </tr>
-    `).join("");
+    `).join('');
+
+    const listMenimbang = (params.menimbangItems && params.menimbangItems.length > 0)
+      ? params.menimbangItems
+      : menimbangItems;
+
+    const menimbangRowsHtml = listMenimbang.map((m, idx) => `
+      <tr>
+        <td style="width: 24px; vertical-align: top; padding: ${idx === 0 ? '1px 0' : '2px 0 1px 0'};">${String.fromCharCode(97 + idx)}.</td>
+        <td style="vertical-align: top; padding: ${idx === 0 ? '1px 0' : '2px 0 1px 0'}; text-align: justify; line-height: 1.22;">${m.text || '...'}</td>
+      </tr>
+    `).join('');
+
+    const listDasar = (params.dasarItems && params.dasarItems.length > 0)
+      ? params.dasarItems
+      : dasarItems;
+
+    const dasarRowsHtml = listDasar.map((d, idx) => `
+      <tr>
+        <td style="width: 24px; vertical-align: top; padding: ${idx === 0 ? '1px 0' : '2px 0 1px 0'};">${idx + 1}.</td>
+        <td style="vertical-align: top; padding: ${idx === 0 ? '1px 0' : '2px 0 1px 0'}; text-align: justify; line-height: 1.22;">${d.text || '...'}</td>
+      </tr>
+    `).join('');
+
+    const item1Text = buildUntukText();
+    const listUntuk = (params.untukItems && params.untukItems.length > 0)
+      ? params.untukItems
+      : untukItems;
+
+    const fullUntukList = [
+      { id: "u-1", text: item1Text },
+      ...listUntuk,
+    ];
+
+    const untukRowsHtml = fullUntukList.map((u, idx) => `
+      <tr>
+        <td style="width: 24px; vertical-align: top; padding: ${idx === 0 ? '1px 0' : '2px 0 1px 0'};">${idx + 1}.</td>
+        <td style="vertical-align: top; padding: ${idx === 0 ? '1px 0' : '2px 0 1px 0'}; text-align: justify; line-height: 1.22;">${u.text || '...'}</td>
+      </tr>
+    `).join('');
 
     return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8"/>
-      <title>Surat Tugas BKSDA Kaltim</title>
-      <style>
-        body { font-family: 'Times New Roman', serif; padding: 24px; color: #000; font-size: 13px; line-height: 1.5; }
-        .kop { text-align: center; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 16px; }
-        .kop h3 { margin: 0; font-size: 13px; font-weight: bold; text-transform: uppercase; }
-        .kop h2 { margin: 2px 0; font-size: 15px; font-weight: bold; text-transform: uppercase; }
-        .kop h1 { margin: 2px 0; font-size: 16px; font-weight: bold; text-transform: uppercase; }
-        .sub { font-size: 10px; margin-top: 4px; font-family: Arial, sans-serif; }
-        .title { text-align: center; margin: 16px 0; }
-        .title h2 { margin: 0; font-size: 16px; font-weight: bold; text-decoration: underline; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-        td { vertical-align: top; }
-        .ttd { float: right; width: 250px; margin-top: 24px; text-align: left; }
-        .clear { clear: both; }
-      </style>
-    </head>
-    <body>
-      <div class="kop">
-        <h3>KEMENTERIAN LINGKUNGAN HIDUP DAN KEHUTANAN</h3>
-        <h2>DIREKTORAT JENDERAL KONSERVASI SUMBER DAYA ALAM DAN EKOSISTEM</h2>
-        <h1>BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</h1>
-        <div class="sub">Jl. Teuku Umar No. 1, Samarinda • Telp: (0541) 743510 • bksdakaltim.org</div>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=210mm, initial-scale=0.42, minimum-scale=0.2, maximum-scale=3.0, user-scalable=yes">
+        <style>
+          * { box-sizing: border-box; }
+          html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f172a;
+            width: 100%;
+            min-height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            font-family: 'Bookman Old Style', 'Georgia', serif;
+          }
+          .page-wrapper {
+            padding: 16px 8px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+          }
+          .page-card {
+            width: 210mm;
+            min-height: 297mm;
+            background: #ffffff;
+            padding: 22mm 15.5mm 22mm 20mm;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            color: #000000;
+            font-size: 11pt;
+            line-height: 1.22;
+            text-align: justify;
+            position: relative;
+          }
+          .kop-container {
+            text-align: left;
+            margin-top: -16mm;
+            margin-bottom: 4px;
+            margin-left: -1.0cm;
+            margin-right: -0.45cm;
+            width: calc(100% + 1.45cm);
+          }
+          .doc-header { text-align: center; margin: 12px 0; }
+          .doc-title { font-size: 11pt; font-weight: bold; margin: 0 0 2px; text-transform: uppercase; letter-spacing: 1px; }
+          .doc-number { font-size: 11pt; margin: 0; }
+          .section-center { text-align: center; font-weight: bold; margin: 12px 0 4px; }
+          table.main-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; table-layout: fixed; }
+          td.col-label { width: 110px; vertical-align: top; padding: 1px 0; font-size: 11pt; }
+          td.col-colon { width: 12px; vertical-align: top; padding: 1px 0; font-size: 11pt; }
+          td.col-content { vertical-align: top; padding: 1px 0; font-size: 11pt; }
+          p.penutup-text { margin: 16px 0 0; text-align: justify; font-size: 11pt; }
+          .sig-box {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+          }
+          .sig-inner {
+            margin-left: auto;
+            text-align: left;
+            width: 280px;
+          }
+          .sig-text { font-size: 11pt; margin: 0; }
+          .ttd-placeholder {
+            margin: 14px 0 0;
+            height: 105px;
+            display: flex;
+            align-items: flex-start;
+            padding-top: 34px;
+            padding-left: 1.35cm;
+            box-sizing: border-box;
+            color: #94a3b8;
+            font-size: 9pt;
+            font-family: system-ui, -apple-system, sans-serif;
+          }
+          .sig-name { font-weight: bold; font-size: 11pt; margin: 0; }
+          .sig-nip { font-size: 10pt; margin: 2px 0 0; }
+        </style>
+      </head>
+      <body>
+        <div class="page-wrapper">
+          <div class="page-card">
+            <!-- KOP SURAT MATCHING LOCALHOST -->
+            <div data-kop class="kop-container">
+              <img
+                src="${HEADER_NEW_BASE64}"
+                alt="Kop Surat"
+                style="width: 18.8cm; max-width: 18.8cm; height: auto; display: block; margin-left: 0;"
+              />
+            </div>
 
-      <div class="title">
-        <h2>SURAT TUGAS</h2>
-        <p style="margin-top:2px;">Nomor: ST. 001/K.18/TU/KSA.0X.0X/B/08/2026</p>
-      </div>
+            <!-- JUDUL & NOMOR -->
+            <div class="doc-header">
+              <div class="doc-title">SURAT TUGAS</div>
+              <div class="doc-number">Nomor : ${nomorSurat}</div>
+            </div>
 
-      <table>
-        <tr>
-          <td style="width: 110px; font-weight: bold;">Menimbang</td>
-          <td style="width: 15px;">:</td>
-          <td>
-            <ol type="a" style="margin: 0; padding-left: 18px;">
-              <li>bahwa dalam rangka ${namaKegiatanText || jenisTugas}, perlu menugaskan pegawai untuk melaksanakannya;</li>
-              <li>bahwa sehubungan dengan huruf a di atas, perlu diterbitkan Surat Tugas.</li>
-            </ol>
-          </td>
-        </tr>
-        <tr><td colspan="3" style="height:8px;"></td></tr>
-        <tr>
-          <td style="font-weight: bold;">Dasar</td>
-          <td>:</td>
-          <td>
-            <ol style="margin: 0; padding-left: 18px;">
-              <li>Peraturan Menteri LHK tentang Organisasi dan Tata Kerja Balai Konservasi Sumber Daya Alam;</li>
-              <li>Surat Pengesahan DIPA TA 2026 Balai Konservasi Sumber Daya Alam Kalimantan Timur.</li>
-            </ol>
-          </td>
-        </tr>
-      </table>
+            <!-- KEPALA BALAI -->
+            <div class="section-center">KEPALA BALAI,</div>
 
-      <div style="text-align: center; font-weight: bold; margin: 14px 0 6px 0;">MEMBERI PERINTAH:</div>
-
-      <table>
-        <tr>
-          <td style="width: 110px; font-weight: bold;">Kepada</td>
-          <td style="width: 15px;">:</td>
-          <td>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 4px;">
-              <thead>
-                <tr style="background-color: #f1f5f9;">
-                  <th style="padding: 6px; border: 1px solid #333; width: 30px;">No</th>
-                  <th style="padding: 6px; border: 1px solid #333;">Nama / NIP</th>
-                  <th style="padding: 6px; border: 1px solid #333;">Jabatan</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${pegawaiRows}
-              </tbody>
+            <!-- MENIMBANG -->
+            <table class="main-table">
+              <tr>
+                <td class="col-label">Menimbang</td>
+                <td class="col-colon">:</td>
+                <td class="col-content">
+                  <table style="width: 100%; border-collapse: collapse;">
+                    ${menimbangRowsHtml}
+                  </table>
+                </td>
+              </tr>
             </table>
-          </td>
-        </tr>
-        <tr><td colspan="3" style="height:8px;"></td></tr>
-        <tr>
-          <td style="font-weight: bold;">Untuk</td>
-          <td>:</td>
-          <td>
-            <ol style="margin: 0; padding-left: 18px;">
-              <li>Melaksanakan ${jenisTugas} dari ${kotaAsal || "Samarinda"} ke ${kotaTujuan || "Balikpapan"}${tempatSpesifik ? ` (${tempatSpesifik})` : ""} terhitung mulai tanggal <strong>${tanggalMulai}</strong> s.d. <strong>${tanggalSelesai}</strong>.</li>
-              <li>Membuat laporan tertulis paling lambat 7 hari kerja setelah kegiatan.</li>
-              <li>Segala biaya dibebankan pada DIPA Balai KSDA Kalimantan Timur.</li>
-            </ol>
-          </td>
-        </tr>
-      </table>
 
-      <div class="ttd">
-        Ditetapkan di: Samarinda<br/>
-        Pada tanggal: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}<br/><br/>
-        <strong>Kepala Balai KSDA Kaltim,</strong><br/><br/><br/><br/>
-        <strong><u>M. Ari Wibawanto, S.Hut., M.Sc.</u></strong><br/>
-        NIP. 19740514 199903 1 001
-      </div>
-      <div class="clear"></div>
-    </body>
-    </html>
+            <!-- DASAR -->
+            <table class="main-table">
+              <tr>
+                <td class="col-label">Dasar</td>
+                <td class="col-colon">:</td>
+                <td class="col-content">
+                  <table style="width: 100%; border-collapse: collapse;">
+                    ${dasarRowsHtml}
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- MEMBERI TUGAS -->
+            <div class="section-center">MEMBERI TUGAS,</div>
+
+            <!-- KEPADA -->
+            <table class="main-table">
+              <tr>
+                <td class="col-label">Kepada</td>
+                <td class="col-colon">:</td>
+                <td class="col-content">
+                  <table style="width: 100%; border-collapse: collapse;">
+                    ${personnelRowsHtml}
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- UNTUK -->
+            <table class="main-table">
+              <tr>
+                <td class="col-label">Untuk</td>
+                <td class="col-colon">:</td>
+                <td class="col-content">
+                  <table style="width: 100%; border-collapse: collapse;">
+                    ${untukRowsHtml}
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- PENUTUP -->
+            <p class="penutup-text">Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
+
+            <!-- TANDA TANGAN -->
+            <div class="sig-box">
+              <div class="sig-inner">
+                <div class="sig-text">${params.kotaAsal || "Samarinda"}, 4 Agustus 2026</div>
+                <div class="sig-text">Kepala Balai,</div>
+                <div class="ttd-placeholder">
+                  \${ttd_pengirim}
+                </div>
+                <div class="sig-name">${ttdNama}</div>
+                <div class="sig-nip">NIP. ${ttdNip}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
     `;
+  };
+
+  const getSuratTugasHtmlContent = () => {
+    return buildOfficialBksdaSuratTugasHtml({
+      nomorUrut,
+      kotaAsal,
+      kotaTujuan,
+      namaKegiatanText,
+      tempatSpesifik,
+      tanggalMulai,
+      tanggalSelesai,
+      penandatanganName,
+      penandatanganNip,
+      selectedEmployees,
+    });
   };
 
   const handleSharePDF = async () => {
@@ -650,30 +1365,46 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
 
     setIsSubmitting(true);
     try {
-      const payload = {
-        maksud_tujuan: finalNamaKegiatan,
-        nama_kegiatan: finalNamaKegiatan,
+      const stCode = `K.18/TU/${klasifikasi}/B`;
+      const fullNomorSurat = nomorUrut && nomorUrut.trim()
+        ? `ST.${nomorUrut.trim()}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`
+        : undefined;
+
+      const item1Text = buildUntukText();
+      const fullUntukArray = [
+        { id: "u-1", text: item1Text },
+        ...untukItems
+      ];
+      const fullMaksudTujuan = fullUntukArray.map((u) => u.text).filter(Boolean).join("\n");
+      const payload: any = {
+        nomor_surat: fullNomorSurat,
+        kode_surat: stCode,
+        maksud_tujuan: fullMaksudTujuan,
+        nama_kegiatan: namaKegiatanText.trim() || finalNamaKegiatan,
         tempat_tujuan: calculatedTempatTujuan,
         tanggal_mulai: tanggalMulai,
         tanggal_selesai: tanggalSelesai,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDana === "other" ? sumberDanaOther : undefined,
+        menimbang: menimbangItems,
+        dasar: dasarItems,
+        untuk: fullUntukArray,
+        penandatangan_nama: penandatanganName,
+        penandatangan_nip: penandatanganNip,
         keterangan: keterangan || undefined,
         nama_plh: namaPlh || undefined,
         employees: selectedEmployees.map((e) => ({
-          id: Number(e.id),
+          id: isNaN(Number(e.id)) ? e.id : Number(e.id),
           peran: undefined,
         })),
       };
 
       if (editId) {
-        await apiClient.put(`/surat-tugas/${editId}`, payload).catch(async () => {
-          await apiClient.post(`/surat-tugas/${editId}`, payload);
-        });
+        await apiClient.put(`/surat-tugas/${editId}`, payload);
 
         showNotif(
           "Surat Tugas Berhasil Diperbarui!",
-          `Surat Tugas #${editId} telah berhasil diperbarui.`,
+          `Surat Tugas telah berhasil diperbarui.`,
           "success",
           () => {
             setNotification((prev) => ({ ...prev, visible: false }));
@@ -687,9 +1418,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           }
         );
       } else {
-        await apiClient.post("/surat-tugas/submit", payload).catch(async () => {
-          await apiClient.post("/surat-tugas", payload);
-        });
+        await apiClient.post("/surat-tugas", payload);
 
         showNotif(
           "Pengajuan Surat Tugas Berhasil!",
@@ -712,6 +1441,103 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       const errMsg =
         err?.response?.data?.message || err?.message || "Terjadi kesalahan saat menyimpan data pengajuan.";
       showNotif("Gagal Mengajukan Surat Tugas", errMsg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveDraftMobile = async () => {
+    let finalNamaKegiatan = `${jenisTugas}`;
+    if (jenisTugas.includes("Perjalanan Dinas")) {
+      finalNamaKegiatan = `Melaksanakan Perjalanan Dinas dari ${kotaAsal.trim() || "..."} ke ${kotaTujuan.trim() || "..."}${namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ""}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}`;
+    } else if (jenisTugas.includes("Melaksanakan Kegiatan")) {
+      finalNamaKegiatan = `Melaksanakan Kegiatan ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
+    } else {
+      finalNamaKegiatan = `Menugaskan Staf untuk ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
+    }
+
+    const calculatedTempatTujuan = tempatSpesifik.trim() || kotaTujuan.trim() || (jenisTugas.includes("Perjalanan Dinas") ? kotaAsal.trim() : "");
+
+    setIsSubmitting(true);
+    try {
+      const stCode = `K.18/TU/${klasifikasi}/B`;
+      const fullNomorSurat = nomorUrut && nomorUrut.trim()
+        ? `ST.${nomorUrut.trim()}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`
+        : undefined;
+
+      const item1Text = buildUntukText();
+      const fullUntukArray = [
+        { id: "u-1", text: item1Text },
+        ...untukItems
+      ];
+      const fullMaksudTujuan = fullUntukArray.map((u) => u.text).filter(Boolean).join("\n");
+      const payload: any = {
+        status: "draft",
+        nomor_surat: fullNomorSurat,
+        kode_surat: stCode,
+        maksud_tujuan: fullMaksudTujuan,
+        nama_kegiatan: namaKegiatanText.trim() || finalNamaKegiatan,
+        tempat_tujuan: calculatedTempatTujuan,
+        tanggal_mulai: tanggalMulai || undefined,
+        tanggal_selesai: tanggalSelesai || undefined,
+        sumber_dana: sumberDana,
+        sumber_dana_other: sumberDana === "other" ? sumberDanaOther : undefined,
+        menimbang: menimbangItems,
+        dasar: dasarItems,
+        untuk: fullUntukArray,
+        penandatangan_nama: penandatanganName,
+        penandatangan_nip: penandatanganNip,
+        keterangan: keterangan || undefined,
+        nama_plh: namaPlh || undefined,
+        employees: selectedEmployees.map((e) => ({
+          id: isNaN(Number(e.id)) ? e.id : Number(e.id),
+          peran: undefined,
+        })),
+      };
+
+      if (editId) {
+        await apiClient.put(`/surat-tugas/${editId}`, payload);
+      } else {
+        await apiClient.post("/surat-tugas", payload);
+      }
+
+      showNotif(
+        "Draft Disimpan!",
+        "Draft Surat Tugas berhasil disimpan.",
+        "success",
+        () => {
+          setNotification((prev) => ({ ...prev, visible: false }));
+          if (navigation && typeof navigation.navigate === "function") {
+            navigation.navigate("InboxSuratTugas");
+          } else if (onNavigateToModule) {
+            onNavigateToModule("inbox-surat-tugas");
+          } else if (onBack) {
+            onBack();
+          }
+        }
+      );
+    } catch (err: any) {
+      console.error("Save draft error:", err);
+      const errMsg = err?.response?.data?.message || err?.message || "Gagal menyimpan draft Surat Tugas.";
+      showNotif("Gagal Menyimpan Draft", errMsg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateNomorSuratMobile = async () => {
+    if (!editId) return;
+    try {
+      setIsSubmitting(true);
+      const stCode = `K.18/TU/${klasifikasi}/B`;
+      const fullNomorSurat = `ST.${nomorUrut}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`;
+      await apiClient.put(`/surat-tugas/${editId}`, {
+        nomor_surat: fullNomorSurat,
+        kode_surat: stCode,
+      });
+      showNotif("Berhasil", "Nomor Surat berhasil diperbarui.", "success");
+    } catch (err: any) {
+      showNotif("Gagal", err?.response?.data?.message || "Gagal memperbarui Nomor Surat.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -775,7 +1601,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             </View>
             <TouchableOpacity
               style={styles.templateSelectTrigger}
-              onPress={() => setDropdownModalType("templateST")}
+              onPress={() => !isPublished && setDropdownModalType("templateST")}
+              disabled={isPublished}
               activeOpacity={0.8}
             >
               <Text style={styles.templateSelectText}>{selectedTemplate}</Text>
@@ -783,7 +1610,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* NOMOR SURAT (Presisi Screenshot 1) */}
+          {/* NOMOR SURAT (Presisi Screenshot 1 - Always Editable) */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>NOMOR SURAT</Text>
             <View style={styles.nomorSuratRow}>
@@ -801,11 +1628,11 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             <View style={styles.rowTwoInputs}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.subLabel}>KOTA</Text>
-                <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaDokumen} onChangeText={setKotaDokumen} placeholder="Samarinda" />
+                <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaDokumen} onChangeText={setKotaDokumen} editable={!isPublished} placeholder="Samarinda" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.subLabel}>TANGGAL</Text>
-                <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => setActiveDatePicker("mulai")}>
+                <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => !isPublished && setActiveDatePicker("mulai")} disabled={isPublished}>
                   <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalDokumen}</Text>
                   <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
                 </TouchableOpacity>
@@ -818,12 +1645,13 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             <Text style={styles.label}>SUMBER DANA</Text>
             <TouchableOpacity
               style={[styles.dropdownTrigger, { borderColor: colors.glassBorder }]}
-              onPress={() => setDropdownModalType("sumberDana")}
+              onPress={() => !isPublished && setDropdownModalType("sumberDana")}
+              disabled={isPublished}
               activeOpacity={0.8}
             >
               <Ionicons name="wallet-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
               <Text style={[styles.dropdownTriggerText, { color: colors.textDark }]}>
-                {sumberDana.toUpperCase()}
+                {SUMBER_DANA_OPTIONS.find((o) => o.id === sumberDana)?.label || sumberDana.toUpperCase()}
               </Text>
               <Ionicons name="chevron-down" size={18} color="#94a3b8" />
             </TouchableOpacity>
@@ -833,10 +1661,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           <View style={styles.inputGroup}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.label}>MENIMBANG</Text>
-              <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddMenimbangItem}>
-                <Ionicons name="add" size={14} color="#2563eb" />
-                <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
-              </TouchableOpacity>
+              {!isPublished && (
+                <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddMenimbangItem}>
+                  <Ionicons name="add" size={14} color="#2563eb" />
+                  <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
+                </TouchableOpacity>
+              )}
             </View>
             {menimbangItems.map((item, idx) => (
               <View key={item.id} style={styles.dynamicItemRow}>
@@ -844,12 +1674,15 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 <TextInput
                   style={[styles.dynamicItemInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
                   value={item.text}
+                  editable={!isPublished}
                   onChangeText={(text) => handleUpdateMenimbangItem(item.id, text)}
                   multiline
                 />
-                <TouchableOpacity onPress={() => handleDeleteMenimbangItem(item.id)} style={styles.deleteItemBtn}>
-                  <Ionicons name="trash-outline" size={16} color="#94a3b8" />
-                </TouchableOpacity>
+                {!isPublished && (
+                  <TouchableOpacity onPress={() => handleDeleteMenimbangItem(item.id)} style={styles.deleteItemBtn}>
+                    <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
           </View>
@@ -858,10 +1691,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           <View style={styles.inputGroup}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.label}>DASAR</Text>
-              <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddDasarItem}>
-                <Ionicons name="add" size={14} color="#2563eb" />
-                <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
-              </TouchableOpacity>
+              {!isPublished && (
+                <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddDasarItem}>
+                  <Ionicons name="add" size={14} color="#2563eb" />
+                  <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
+                </TouchableOpacity>
+              )}
             </View>
             {dasarItems.map((item, idx) => (
               <View key={item.id} style={styles.dynamicItemRow}>
@@ -869,12 +1704,15 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 <TextInput
                   style={[styles.dynamicItemInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
                   value={item.text}
+                  editable={!isPublished}
                   onChangeText={(text) => handleUpdateDasarItem(item.id, text)}
                   multiline
                 />
-                <TouchableOpacity onPress={() => handleDeleteDasarItem(item.id)} style={styles.deleteItemBtn}>
-                  <Ionicons name="trash-outline" size={16} color="#94a3b8" />
-                </TouchableOpacity>
+                {!isPublished && (
+                  <TouchableOpacity onPress={() => handleDeleteDasarItem(item.id)} style={styles.deleteItemBtn}>
+                    <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
           </View>
@@ -890,18 +1728,20 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               )}
             </View>
 
-            <View style={[styles.searchBox, { borderColor: colors.glassBorder }]}>
-              <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 8 }} />
-              <TextInput
-                style={[styles.searchInput, { color: colors.textDark }]}
-                placeholder="Cari..."
-                placeholderTextColor="#94a3b8"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
+            {!isPublished && (
+              <View style={[styles.searchBox, { borderColor: colors.glassBorder }]}>
+                <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 8 }} />
+                <TextInput
+                  style={[styles.searchInput, { color: colors.textDark }]}
+                  placeholder="Cari..."
+                  placeholderTextColor="#94a3b8"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
+            )}
 
-            {searchQuery.trim().length > 0 && (
+            {!isPublished && searchQuery.trim().length > 0 && (
               <ScrollView style={[styles.dropdownResults, { backgroundColor: isDark ? "#1e293b" : "#ffffff" }]} nestedScrollEnabled>
                 {searchResults.map((emp) => (
                   <TouchableOpacity
@@ -924,9 +1764,11 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 <View key={emp.id} style={styles.personilChipCard}>
                   <View style={styles.personilBadgeNum}><Text style={styles.personilNumText}>{idx + 1}</Text></View>
                   <Text style={[styles.personilNameText, { color: colors.textDark }]} numberOfLines={1}>{emp.name}</Text>
-                  <TouchableOpacity onPress={() => toggleEmployee(emp)} style={{ marginLeft: "auto" }}>
-                    <Ionicons name="close" size={18} color="#94a3b8" />
-                  </TouchableOpacity>
+                  {!isPublished && (
+                    <TouchableOpacity onPress={() => toggleEmployee(emp)} style={{ marginLeft: "auto" }}>
+                      <Ionicons name="close" size={18} color="#94a3b8" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))}
             </View>
@@ -939,7 +1781,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             <Text style={styles.subLabel}>JENIS TUGAS</Text>
             <TouchableOpacity
               style={[styles.dropdownTrigger, { borderColor: colors.glassBorder }]}
-              onPress={() => setDropdownModalType("jenisTugas")}
+              onPress={() => !isPublished && setDropdownModalType("jenisTugas")}
+              disabled={isPublished}
               activeOpacity={0.8}
             >
               <Text style={[styles.dropdownTriggerText, { color: colors.textDark }]}>
@@ -949,38 +1792,89 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             </TouchableOpacity>
           </View>
 
-          <View style={styles.rowTwoInputs}>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.subLabel}>DARI ( KOTA / LOKASI ASAL ) *</Text>
-              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaAsal} onChangeText={setKotaAsal} placeholder="Samarinda" />
-            </View>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.subLabel}>KE ( KOTA / KABUPATEN TUJUAN ) *</Text>
-              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaTujuan} onChangeText={setKotaTujuan} placeholder="Balikpapan" />
-            </View>
-          </View>
+          {jenisTugas.includes("Perjalanan Dinas") ? (
+            <>
+              <View style={styles.rowTwoInputs}>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.subLabel}>DARI ( KOTA / LOKASI ASAL ) *</Text>
+                  <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaAsal} onChangeText={setKotaAsal} editable={!isPublished} placeholder="Samarinda" />
+                </View>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.subLabel}>KE ( KOTA / KABUPATEN TUJUAN ) *</Text>
+                  <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={kotaTujuan} onChangeText={setKotaTujuan} editable={!isPublished} placeholder="Balikpapan" />
+                </View>
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.subLabel}>DALAM RANGKA *</Text>
-            <TextInput
-              style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
-              value={namaKegiatanText}
-              onChangeText={setNamaKegiatanText}
-              placeholder="Konservasi HKAN"
-              multiline
-              numberOfLines={2}
-            />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.subLabel}>DALAM RANGKA *</Text>
+                <TextInput
+                  style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                  value={namaKegiatanText}
+                  onChangeText={setNamaKegiatanText}
+                  editable={!isPublished}
+                  placeholder="Kegiatan Inventarisasi BMN"
+                  multiline
+                  numberOfLines={2}
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.subLabel}>DI ( TEMPAT SPESIFIK / OPSIONAL )</Text>
-            <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={tempatSpesifik} onChangeText={setTempatSpesifik} placeholder="Balikpapan" />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.subLabel}>DI ( TEMPAT SPESIFIK / OPSIONAL )</Text>
+                <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={tempatSpesifik} onChangeText={setTempatSpesifik} editable={!isPublished} placeholder="Balikpapan" />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.inputGroup}>
+                <Text style={styles.subLabel}>
+                  {jenisTugas.includes("Melaksanakan Kegiatan")
+                    ? "MELAKSANAKAN KEGIATAN ( 1 HARI ) *"
+                    : "MENUGASKAN STAF *"}
+                </Text>
+                <TextInput
+                  style={[styles.multilineInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                  value={namaKegiatanText}
+                  onChangeText={setNamaKegiatanText}
+                  editable={!isPublished}
+                  placeholder={
+                    jenisTugas.includes("Melaksanakan Kegiatan")
+                      ? "opname fisik (stok opname) barang persediaan"
+                      : "verifikasi berkas administrasi persediaan"
+                  }
+                  multiline
+                  numberOfLines={2}
+                />
+              </View>
+
+              <View style={styles.rowTwoInputs}>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.subLabel}>PADA ( TEMPAT / UNIT / LOKASI )</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    value={tempatSpesifik}
+                    onChangeText={setTempatSpesifik}
+                    editable={!isPublished}
+                    placeholder="Paser"
+                  />
+                </View>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.subLabel}>DI ( KOTA / KABUPATEN ) *</Text>
+                  <TextInput
+                    style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
+                    value={kotaTujuan}
+                    onChangeText={setKotaTujuan}
+                    editable={!isPublished}
+                    placeholder="Balikpapan"
+                  />
+                </View>
+              </View>
+            </>
+          )}
 
           <View style={styles.rowTwoInputs}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
               <Text style={styles.subLabel}>TANGGAL MULAI</Text>
-              <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => setActiveDatePicker("mulai")}>
+              <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => !isPublished && setActiveDatePicker("mulai")} disabled={isPublished}>
                 <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalMulai}</Text>
                 <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
               </TouchableOpacity>
@@ -988,7 +1882,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
 
             <View style={[styles.inputGroup, { flex: 1 }]}>
               <Text style={styles.subLabel}>TANGGAL SELESAI</Text>
-              <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => setActiveDatePicker("selesai")}>
+              <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => !isPublished && setActiveDatePicker("selesai")} disabled={isPublished}>
                 <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalSelesai}</Text>
                 <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
               </TouchableOpacity>
@@ -999,23 +1893,28 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           <View style={styles.inputGroup}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.label}>UNTUK</Text>
-              <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddUntukItem}>
-                <Ionicons name="add" size={14} color="#2563eb" />
-                <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
-              </TouchableOpacity>
+              {!isPublished && (
+                <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddUntukItem}>
+                  <Ionicons name="add" size={14} color="#2563eb" />
+                  <Text style={styles.addBtnTextSmall}>TAMBAH</Text>
+                </TouchableOpacity>
+              )}
             </View>
             {untukItems.map((item, idx) => (
               <View key={item.id} style={styles.dynamicItemRow}>
-                <Text style={styles.itemIndexText}>{idx + 1}.</Text>
+                <Text style={styles.itemIndexText}>{idx + 2}.</Text>
                 <TextInput
                   style={[styles.dynamicItemInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
                   value={item.text}
+                  editable={!isPublished}
                   onChangeText={(text) => handleUpdateUntukItem(item.id, text)}
                   multiline
                 />
-                <TouchableOpacity onPress={() => handleDeleteUntukItem(item.id)} style={styles.deleteItemBtn}>
-                  <Ionicons name="trash-outline" size={16} color="#94a3b8" />
-                </TouchableOpacity>
+                {!isPublished && (
+                  <TouchableOpacity onPress={() => handleDeleteUntukItem(item.id)} style={styles.deleteItemBtn}>
+                    <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
           </View>
@@ -1024,12 +1923,14 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           <View style={styles.inputGroup}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.label}>TEMBUSAN</Text>
-              <TouchableOpacity style={styles.addBtnIconOnly} onPress={handleAddTembusanItem}>
-                <Ionicons name="add" size={18} color="#2563eb" />
-              </TouchableOpacity>
+              {!isPublished && (
+                <TouchableOpacity style={styles.addBtnIconOnly} onPress={handleAddTembusanItem}>
+                  <Ionicons name="add" size={18} color="#2563eb" />
+                </TouchableOpacity>
+              )}
             </View>
             {tembusanItems.length === 0 ? (
-              <Text style={styles.emptyTembusanText}>Belum ada tembusan. Klik + untuk menambah.</Text>
+              <Text style={styles.emptyTembusanText}>Belum ada tembusan.</Text>
             ) : (
               tembusanItems.map((item, idx) => (
                 <View key={item.id} style={styles.dynamicItemRow}>
@@ -1037,11 +1938,14 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                   <TextInput
                     style={[styles.dynamicItemInput, { color: colors.textDark, borderColor: colors.glassBorder }]}
                     value={item.text}
+                    editable={!isPublished}
                     onChangeText={(text) => handleUpdateTembusanItem(item.id, text)}
                   />
-                  <TouchableOpacity onPress={() => handleDeleteTembusanItem(item.id)} style={styles.deleteItemBtn}>
-                    <Ionicons name="trash-outline" size={16} color="#94a3b8" />
-                  </TouchableOpacity>
+                  {!isPublished && (
+                    <TouchableOpacity onPress={() => handleDeleteTembusanItem(item.id)} style={styles.deleteItemBtn}>
+                      <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))
             )}
@@ -1050,146 +1954,138 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           {/* PENANDATANGAN (Presisi Screenshot 3) */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>PENANDATANGAN</Text>
-            <View style={[styles.searchBox, { borderColor: colors.glassBorder, marginBottom: 8 }]}>
-              <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 8 }} />
-              <TextInput style={[styles.searchInput, { color: colors.textDark }]} placeholder="Cari pegawai penandatangan..." placeholderTextColor="#94a3b8" />
-            </View>
+            {!isPublished && (
+              <View style={[styles.searchBox, { borderColor: colors.glassBorder, marginBottom: 8 }]}>
+                <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 8 }} />
+                <TextInput style={[styles.searchInput, { color: colors.textDark }]} placeholder="Cari pegawai penandatangan..." placeholderTextColor="#94a3b8" />
+              </View>
+            )}
             <View style={{ gap: 8 }}>
-              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={penandatanganName} onChangeText={setPenandatanganName} />
-              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={penandatanganNip} onChangeText={setPenandatanganNip} />
+              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={penandatanganName} onChangeText={setPenandatanganName} editable={!isPublished} />
+              <TextInput style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]} value={penandatanganNip} onChangeText={setPenandatanganNip} editable={!isPublished} />
             </View>
           </View>
 
-          {/* ACTION BUTTONS (Presisi Screenshot 1, 2, and 3) */}
+          {/* ACTION BUTTONS (Presisi Localhost Screenshots 1, 2, and 3) */}
           <View style={{ gap: 10, marginTop: 20, marginBottom: 20 }}>
-            {/* 1. Simpan Draft */}
-            <TouchableOpacity style={styles.btnSimpanDraft} onPress={() => showNotif("Draft Disimpan", "Draft Surat Tugas berhasil disimpan.", "success")} activeOpacity={0.8}>
-              <Ionicons name="document-outline" size={18} color="#334155" style={{ marginRight: 8 }} />
-              <Text style={styles.btnSimpanDraftText}>Simpan Draft</Text>
-            </TouchableOpacity>
+            {/* 1. Simpan Draft / Simpan Nomor Surat */}
+            {!isPublished ? (
+              <TouchableOpacity
+                style={styles.btnSimpanDraft}
+                onPress={handleSaveDraftMobile}
+                disabled={isSubmitting}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="document-text-outline" size={18} color="#334155" style={{ marginRight: 8 }} />
+                <Text style={styles.btnSimpanDraftText}>
+                  {isSubmitting ? "Memproses..." : "Simpan Draft"}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.btnSimpanDraft, { borderColor: "#2563eb" }]}
+                onPress={handleUpdateNomorSuratMobile}
+                disabled={isSubmitting}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="key-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
+                <Text style={[styles.btnSimpanDraftText, { color: "#2563eb" }]}>
+                  {isSubmitting ? "Memproses..." : "Simpan Nomor Surat"}
+                </Text>
+              </TouchableOpacity>
+            )}
 
-            {/* 2. Terbitkan & Cetak / Simpan Perubahan */}
-            <TouchableOpacity style={styles.btnTerbitkanCetak} onPress={handleSubmitSuratTugas} disabled={isSubmitting} activeOpacity={0.8}>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#ffffff" style={{ marginRight: 8 }} />
-              <Text style={styles.btnTerbitkanCetakText}>
-                {isSubmitting ? "Memproses..." : editId ? "Simpan Perubahan ST" : "Terbitkan & Cetak"}
-              </Text>
-            </TouchableOpacity>
+            {/* 2. Main Middle Button (Ajukan Persetujuan / Perbarui & Ajukan / Sudah Disetujui / Sudah Diterbitkan) */}
+            {isPublished ? (
+              <View
+                style={[
+                  styles.btnTerbitkanCetak,
+                  { backgroundColor: "#10b981", opacity: 0.95 },
+                ]}
+              >
+                <Ionicons name="checkmark-circle-outline" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+                <Text style={[styles.btnTerbitkanCetakText, { fontSize: 15, fontWeight: "700" }]}>
+                  Sudah Diterbitkan
+                </Text>
+              </View>
+            ) : ["approved", "completed"].includes(suratStatus.toLowerCase()) ? (
+              <View
+                style={[
+                  styles.btnTerbitkanCetak,
+                  { backgroundColor: "#10b981", opacity: 0.85 },
+                ]}
+              >
+                <Ionicons name="checkmark-circle-outline" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+                <Text style={[styles.btnTerbitkanCetakText, { fontSize: 15, fontWeight: "700" }]}>
+                  Sudah Disetujui
+                </Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[
+                  styles.btnTerbitkanCetak,
+                  { backgroundColor: "#ea580c" },
+                ]}
+                onPress={handleSubmitSuratTugas}
+                disabled={isSubmitting}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="paper-plane-outline"
+                  size={18}
+                  color="#ffffff"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.btnTerbitkanCetakText}>
+                  {isSubmitting
+                    ? "Memproses..."
+                    : suratStatus === "pending" || suratStatus === "proses"
+                    ? "Perbarui & Ajukan"
+                    : "Ajukan Persetujuan"}
+                </Text>
+              </TouchableOpacity>
+            )}
 
-            {/* 3. Preview Cetak */}
-            <TouchableOpacity style={styles.btnPreviewCetakFull} onPress={() => setPreviewModalVisible(true)} activeOpacity={0.8}>
-              <Ionicons name="print-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
-              <Text style={styles.btnPreviewCetakFullText}>Preview Cetak</Text>
+            {/* 3. Cetak / Download */}
+            <TouchableOpacity
+              style={styles.btnPreviewCetakFull}
+              onPress={() => setPreviewModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="print-outline" size={18} color="#334155" style={{ marginRight: 8 }} />
+              <Text style={styles.btnPreviewCetakFullText}>Cetak / Download</Text>
             </TouchableOpacity>
           </View>
         </GlassCard>
       </ScrollView>
 
-      {/* Render Modal Preview Cetak Surat Tugas (With Download & Share) */}
+      {/* Render Modal Cetak / Download Surat Tugas (Presisi Web Localhost Screenshots 3 & 4) */}
       <Modal visible={previewModalVisible} animationType="slide" transparent>
         <View style={styles.previewModalContainer}>
           {/* Header Bar */}
           <View style={styles.previewModalHeader}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Ionicons name="print-outline" size={20} color="#2563eb" style={{ marginRight: 8 }} />
-              <Text style={styles.previewModalTitle}>Pratinjau Cetak Surat Tugas</Text>
+              <Text style={styles.previewModalTitle}>Cetak / Download Surat Tugas</Text>
             </View>
             <TouchableOpacity onPress={() => setPreviewModalVisible(false)} style={{ padding: 4 }}>
               <Ionicons name="close" size={22} color="#64748b" />
             </TouchableOpacity>
           </View>
 
-          {/* Printable Document Preview Content */}
-          <ScrollView style={styles.previewScroll} contentContainerStyle={{ padding: 16 }}>
-            <View style={styles.paperSheet}>
-              {/* Kop Surat Header */}
-              <View style={styles.paperKopHeader}>
-                <Text style={styles.kopKemLabel}>KEMENTERIAN LINGKUNGAN HIDUP DAN KEHUTANAN</Text>
-                <Text style={styles.kopDirLabel}>DIREKTORAT JENDERAL KONSERVASI SUMBER DAYA ALAM DAN EKOSISTEM</Text>
-                <Text style={styles.kopBalaiLabel}>BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR</Text>
-                <Text style={styles.kopSubText}>
-                  Jl. Teuku Umar No. 1, Samarinda • Telp: (0541) 743510 • bksdakaltim.org
-                </Text>
-                <View style={styles.doubleBorderLine} />
-              </View>
-
-              {/* Title Surat Tugas */}
-              <View style={styles.paperTitleBox}>
-                <Text style={styles.paperMainTitle}>SURAT TUGAS</Text>
-                <Text style={styles.paperSubTitleNum}>
-                  Nomor: ST. 001/K.18/TU/KSA.0X.0X/B/08/2026
-                </Text>
-              </View>
-
-              {/* Section Menimbang & Dasar */}
-              <View style={styles.paperSection}>
-                <Text style={styles.paperSectionLabel}>MENIMBANG :</Text>
-                <Text style={styles.paperBodyText}>
-                  a. bahwa dalam rangka {namaKegiatanText || jenisTugas}, perlu menugaskan pegawai untuk melaksanakannya;
-                </Text>
-                <Text style={styles.paperBodyText}>
-                  b. bahwa sehubungan dengan huruf a di atas, perlu diterbitkan Surat Tugas.
-                </Text>
-              </View>
-
-              <View style={styles.paperSection}>
-                <Text style={styles.paperSectionLabel}>DASAR :</Text>
-                <Text style={styles.paperBodyText}>
-                  1. Peraturan Menteri LHK tentang Organisasi dan Tata Kerja Balai Konservasi Sumber Daya Alam;
-                </Text>
-                <Text style={styles.paperBodyText}>
-                  2. Surat Pengesahan DIPA TA 2026 Balai KSDA Kalimantan Timur.
-                </Text>
-              </View>
-
-              {/* Memberi Perintah Kepada */}
-              <Text style={styles.paperPerintahTitle}>MEMBERI PERINTAH:</Text>
-
-              <View style={styles.paperSection}>
-                <Text style={styles.paperSectionLabel}>KEPADA :</Text>
-                {selectedEmployees.length === 0 ? (
-                  <Text style={styles.paperBodyText}>- Belum ada pegawai terpilih -</Text>
-                ) : (
-                  selectedEmployees.map((p, idx) => (
-                    <View key={p.id} style={styles.paperEmpRow}>
-                      <Text style={styles.paperEmpNum}>{idx + 1}.</Text>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.paperEmpName}>{p.name}</Text>
-                        <Text style={styles.paperEmpNip}>NIP. {p.nip}</Text>
-                        <Text style={styles.paperEmpPos}>{p.position || "Staf Balai KSDA Kaltim"}</Text>
-                      </View>
-                    </View>
-                  ))
-                )}
-              </View>
-
-              {/* Untuk */}
-              <View style={styles.paperSection}>
-                <Text style={styles.paperSectionLabel}>UNTUK :</Text>
-                <Text style={styles.paperBodyText}>
-                  1. Melaksanakan {jenisTugas} dari {kotaAsal || "Samarinda"} ke {kotaTujuan || "Balikpapan"}{tempatSpesifik ? ` (${tempatSpesifik})` : ""} terhitung mulai tanggal <Text style={{ fontWeight: "800" }}>{tanggalMulai}</Text> s.d. <Text style={{ fontWeight: "800" }}>{tanggalSelesai}</Text>.
-                </Text>
-                <Text style={styles.paperBodyText}>
-                  2. Membuat laporan tertulis paling lambat 7 hari kerja setelah selesainya kegiatan tersebut.
-                </Text>
-                <Text style={styles.paperBodyText}>
-                  3. Segala biaya yang timbul dibebankan pada DIPA Balai KSDA Kalimantan Timur.
-                </Text>
-              </View>
-
-              {/* Tanda Tangan Section */}
-              <View style={styles.paperTtdBox}>
-                <Text style={styles.paperTtdLoc}>Ditetapkan di: Samarinda</Text>
-                <Text style={styles.paperTtdDate}>
-                  Pada tanggal: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                </Text>
-                <Text style={styles.paperTtdJabatan}>Kepala Balai KSDA Kaltim,</Text>
-                <View style={{ height: 45 }} />
-                <Text style={styles.paperTtdName}>M. Ari Wibawanto, S.Hut., M.Sc.</Text>
-                <Text style={styles.paperTtdNip}>NIP. 19740514 199903 1 001</Text>
-              </View>
-            </View>
-          </ScrollView>
+          {/* Printable Document Preview WebView (Presisi Web Localhost Screenshots 2, 3 & 4) */}
+          <View style={{ flex: 1, backgroundColor: "#0f172a" }}>
+            <WebView
+              originWhitelist={["*"]}
+              source={{
+                html: getSuratTugasHtmlContent(),
+              }}
+              style={{ flex: 1, backgroundColor: "#0f172a" }}
+              scalesPageToFit={true}
+              showsVerticalScrollIndicator={true}
+              showsHorizontalScrollIndicator={true}
+            />
+          </View>
 
           {/* Action Toolbar Bottom Bar (Simpan ke HP & Share PDF & Print) */}
           <View style={styles.previewToolbarBottom}>
@@ -1397,7 +2293,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                         } else if (dropdownModalType === "jenisTugas") {
                           setJenisTugas(opt.id as any);
                         } else {
-                          setSumberDana(opt.id);
+                          handleSumberDanaChange(opt.id);
                         }
                         setDropdownModalType(null);
                       }}
@@ -1865,16 +2761,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#bfdbfe",
+    borderColor: "#cbd5e1",
     borderRadius: RADIUS.input,
     paddingVertical: 12,
   },
   btnPreviewCetakFullText: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#2563eb",
+    color: "#334155",
   },
   subLabel: {
     color: "#64748b",
