@@ -6,8 +6,38 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BKSDA SuperApp",
-  description: "Sistem Administrasi Terpadu BKSDA",
+  metadataBase: new URL("https://bksdakaltim.net"),
+  title: "BKSDA KALTIM | Kementerian Kehutanan",
+  description: "Portal Resmi dan Sistem Informasi Administrasi Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur, Kementerian Kehutanan Republik Indonesia.",
+  keywords: ["BKSDA KALTIM", "Kementerian Kehutanan", "KSDAE", "Konservasi Kalimantan Timur", "BKSDA SuperApp"],
+  authors: [{ name: "BKSDA Kalimantan Timur" }],
+  icons: {
+    icon: "/logo_bksda.png",
+    shortcut: "/logo_bksda.png",
+    apple: "/logo_bksda.png",
+  },
+  openGraph: {
+    title: "BKSDA KALTIM | Kementerian Kehutanan",
+    description: "Portal Resmi dan Sistem Informasi Administrasi Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur, Kementerian Kehutanan Republik Indonesia.",
+    url: "https://bksdakaltim.net",
+    siteName: "BKSDA KALTIM | Kementerian Kehutanan",
+    images: [
+      {
+        url: "https://bksdakaltim.net/logo_bksda.png",
+        width: 1200,
+        height: 630,
+        alt: "BKSDA KALTIM | Kementerian Kehutanan",
+      },
+    ],
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BKSDA KALTIM | Kementerian Kehutanan",
+    description: "Portal Resmi dan Sistem Informasi Administrasi Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur, Kementerian Kehutanan Republik Indonesia.",
+    images: ["https://bksdakaltim.net/logo_bksda.png"],
+  },
 };
 
 export default function RootLayout({

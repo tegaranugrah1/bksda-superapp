@@ -190,7 +190,7 @@ export default function PublicLayout({
                         )}
                       >
                         <Image
-                          src="/assets/images/logo.png"
+                          src="/logo_bksda.png"
                           alt="BKSDA"
                           fill
                           style={{
@@ -328,7 +328,7 @@ export default function PublicLayout({
             >
               <div className="flex justify-center items-center mb-6 mt-2 pb-4 border-b border-gray-100 relative">
                 <Image
-                  src="/assets/images/logo.png"
+                  src="/logo_bksda.png"
                   alt="Logo BKSDA"
                   width={140}
                   height={40}
@@ -426,7 +426,7 @@ export default function PublicLayout({
                 <div className="mb-6 flex items-center gap-4">
                   <div className="relative w-64 h-18 shrink-0">
                     <Image
-                      src="/assets/images/logo.png"
+                      src="/logo_bksda.png"
                       alt="BKSDA"
                       fill
                       style={{
