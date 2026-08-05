@@ -1,0 +1,6 @@
+# Ignore root workspace directories from EAS build archive
+backend
+frontend
+docs
+node_modules
+.expo
