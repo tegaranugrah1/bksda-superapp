@@ -35,12 +35,12 @@ class AssetController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = mb_strtolower(trim((string) $request->search));
             $query->where(function ($q) use ($search) {
-                $q->where('nama_barang', 'LIKE', "%{$search}%")
-                    ->orWhere('kode_barang', 'LIKE', "%{$search}%")
-                    ->orWhere('merk', 'LIKE', "%{$search}%")
-                    ->orWhere('no_polisi', 'LIKE', "%{$search}%");
+                $q->whereRaw('LOWER(nama_barang) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(kode_barang) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(merk) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(no_polisi) LIKE ?', ["%{$search}%"]);
             });
         }
 
@@ -59,26 +59,27 @@ class AssetController extends Controller
                 $q->where('employee_id', $employeeId);
                 if ($employee && $employee->nama_lengkap) {
                     $fullName = trim($employee->nama_lengkap);
+                    $fullNameLower = mb_strtolower($fullName);
                     
                     // Search full name
-                    $q->orWhere('pengguna', 'LIKE', '%' . $fullName . '%')
-                      ->orWhere('nama_pengguna', 'LIKE', '%' . $fullName . '%');
+                    $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $fullNameLower . '%'])
+                      ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $fullNameLower . '%']);
                     
                     // Search name before comma (titles)
                     if (str_contains($fullName, ',')) {
                         $nameParts = explode(',', $fullName);
-                        $baseName = trim($nameParts[0]);
+                        $baseName = mb_strtolower(trim($nameParts[0]));
                         if (strlen($baseName) > 2) {
-                            $q->orWhere('pengguna', 'LIKE', '%' . $baseName . '%')
-                              ->orWhere('nama_pengguna', 'LIKE', '%' . $baseName . '%');
+                            $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $baseName . '%'])
+                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $baseName . '%']);
                         }
                     }
                     
                     // Search first two words for better fuzzy match
-                    $words = explode(' ', $fullName);
+                    $words = explode(' ', $fullNameLower);
                     if (count($words) >= 2) {
                         $twoWords = $words[0] . ' ' . $words[1];
-                        $q->orWhere('pengguna', 'LIKE', '%' . $twoWords . '%');
+                        $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $twoWords . '%']);
                     }
                 }
             });
@@ -91,15 +92,18 @@ class AssetController extends Controller
         }
 
         if ($request->filled('kondisi')) {
-            $query->where('kondisi', 'ilike', $request->kondisi);
+            $kondisi = mb_strtolower(trim((string) $request->kondisi));
+            $query->whereRaw('LOWER(kondisi) LIKE ?', ["%{$kondisi}%"]);
         }
 
         if ($request->filled('jenis_bmn')) {
-            $query->where('jenis_bmn', 'ilike', '%' . $request->jenis_bmn . '%');
+            $jenisBmn = mb_strtolower(trim((string) $request->jenis_bmn));
+            $query->whereRaw('LOWER(jenis_bmn) LIKE ?', ["%{$jenisBmn}%"]);
         }
 
         if ($request->filled('lokasi_ruang')) {
-            $query->where('lokasi_ruang', 'ilike', '%' . $request->lokasi_ruang . '%');
+            $lokasiRuang = mb_strtolower(trim((string) $request->lokasi_ruang));
+            $query->whereRaw('LOWER(lokasi_ruang) LIKE ?', ["%{$lokasiRuang}%"]);
         }
 
         $perPage = $this->resolvePerPage($request, default: 10, mobileMax: 100, webMax: 2000);

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -91,6 +92,19 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [myStList, setMyStList] = useState<PratinjauSuratTugasItem[]>([]);
   const [selectedPreviewSt, setSelectedPreviewSt] = useState<PratinjauSuratTugasItem | null>(null);
 
+  const handleOpenStPreview = React.useCallback(async (stItem: any) => {
+    setSelectedPreviewSt(stItem);
+    if (stItem?.id) {
+      try {
+        const response = await apiClient.get<any>(`/surat-tugas/my/${stItem.id}`);
+        const detail = response.data?.data || response.data;
+        if (detail) {
+          setSelectedPreviewSt(detail);
+        }
+      } catch {}
+    }
+  }, []);
+
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequestPrintData[]>([]);
   const [cutiModalVisible, setCutiModalVisible] = useState(false);
   const [cutiPreviewItem, setCutiPreviewItem] = useState<LeaveRequestPrintData | null>(null);
@@ -120,19 +134,31 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     }
   }, [employee?.id]);
 
-  React.useEffect(() => {
-    const fetchMySt = async () => {
-      try {
-        const response = await apiClient.get<any>("/surat-tugas/my");
-        if (response.data && Array.isArray(response.data.data)) {
-          setMyStList(response.data.data);
-        }
-      } catch {}
-    };
+  const fetchMySt = React.useCallback(async () => {
+    try {
+      const response = await apiClient.get<any>("/surat-tugas/my");
+      if (response.data && Array.isArray(response.data.data)) {
+        setMyStList(response.data.data);
+      }
+    } catch {}
+  }, []);
+
+  const refreshAllPortalData = React.useCallback(() => {
     fetchMySt();
     fetchMyLeaveRequests();
     fetchMyAssets();
-  }, [fetchMyLeaveRequests, fetchMyAssets]);
+  }, [fetchMySt, fetchMyLeaveRequests, fetchMyAssets]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshAllPortalData();
+      const interval = setInterval(() => {
+        refreshAllPortalData();
+      }, 15000);
+
+      return () => clearInterval(interval);
+    }, [refreshAllPortalData])
+  );
 
   // Dynamic user profile resolution
   const resolvedName =
@@ -311,7 +337,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   <TouchableOpacity
                     style={styles.contentItemRow}
                     activeOpacity={0.7}
-                    onPress={() => setSelectedPreviewSt(stItem)}
+                    onPress={() => handleOpenStPreview(stItem)}
                   >
                     <View style={[styles.contentIconBg, { backgroundColor: "#ecfdf5" }]}>
                       <Ionicons name="document-text" size={20} color="#10b981" />
@@ -335,7 +361,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     {/* Eye Preview Icon Button Matching Screenshot 2 */}
                     <TouchableOpacity
                       style={{ padding: 8, borderRadius: 8, backgroundColor: "#eff6ff" }}
-                      onPress={() => setSelectedPreviewSt(stItem)}
+                      onPress={() => handleOpenStPreview(stItem)}
                     >
                       <Ionicons name="eye-outline" size={18} color="#2563eb" />
                     </TouchableOpacity>

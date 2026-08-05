@@ -7967,4 +7967,33 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
   - Set `isMultiPageTable = assets.length > 20` so single-page tables (1-20 items, like 16 items) never render the `1, 2, 3, 4, 5, 6, 7, 8, 9` number row on Page 1, while multi-page tables rendering > 20 items display the number row above column headers on Page 2.
   - Executed `npx ctx7 setup` for Upstash Context7 integration.
 
+---
+
+## [2026-08-05] Hak Akses BMN User, Case-Insensitive Search, Auto-Refresh & Surat Tugas Sync Fixes (Phase 196)
+
+### Completed (Selesai)
+- [x] **Perbaikan Hak Akses Modul BMN untuk User Regular**:
+  - Mengupdate middleware `CheckPermission.php` dan `User.php` agar user dengan role `user` yang memiliki hak akses modul `bmn` dapat mengakses **Dashboard BMN** (`/api/bmn/dashboard/stats`) dan **Katalog Aset BMN** (`/api/bmn/assets`, `/api/bmn/assets/{id}`).
+  - Membatasi hak penulisan (tambah/edit aset, hapus aset, upload foto): Tombol aksi write disembunyikan dan endpoint write memberikan HTTP 403 Forbidden untuk role `user`.
+  - User regular dapat melihat detail aset dan mendownload berkas/foto aset secara penuh.
+
+- [x] **Pencarian Aset Case-Insensitive**:
+  - Mengubah pencarian nama/kode aset BMN di `AssetController.php` agar menggunakan pencarian `LOWER()` yang case-insensitive.
+  - Kata kunci seperti `"lap top"`, `"Lap Top"`, atau `"LAP TOP"` kini dapat menemukan data aset yang sama tanpa membedakan huruf besar/kecil.
+  - Menambahkan unit test `AssetSearchTest.php` untuk memverifikasi fungsionalitas pencarian case-insensitive.
+
+- [x] **Pembaruan Otomatis Data Portal Mobile (Auto-Refresh & Revalidation)**:
+  - Mengintegrasikan revalidasi otomatis pada `PortalDashboardScreen.tsx` menggunakan `useFocusEffect` dan interval polling ringan saat layar aktif (15 detik).
+  - Saat admin mengubah data Aset BMN, Surat Tugas, atau Pengajuan Cuti di web localhost/perangkat lain, layar mobile pegawai langsung ter-update secara otomatis tanpa membebani daya baterai atau performa device.
+
+- [x] **Sinkronisasi Dokumen Preview Surat Tugas Mobile Portal dengan Localhost**:
+  - Memperbarui `AssignmentLetterController.php` (`myLetters` & `toMobileListItem`) untuk menyertakan eager loading `employees:id,nama_lengkap,nip,jabatan,satuan_kerja` serta kolom `menimbang`, `dasar`, `tembusan`, `penandatangan_nama`, `penandatangan_nip`, `kode_surat`, dan `template_type`.
+  - Mengubah `PratinjauSuratTugasModal.tsx` pada mobile app agar merender poin **Menimbang**, **Dasar**, **Tembusan**, dan **Penandatangan (Nama & NIP)** secara dinamis dari database, menggantikan nilai statis/hardcoded sebelumnya.
+  - Mengupdate `PortalDashboardScreen.tsx` agar memanggil endpoint `/api/surat-tugas/my/{id}` saat kartu Surat Tugas diklik, sehingga tampilan preview dokumen A4 di mobile 100% presisi dan identik dengan web portal localhost.
+
+### Validation
+- [x] Backend tests: `php artisan test` (59 passed, 0 failed).
+- [x] Mobile tests: `npm test` (62 test suites passed, 298 tests passed).
+
+
 

@@ -28,7 +28,7 @@ class AssignmentLetterController extends Controller
             ]);
         }
 
-        $query = AssignmentLetter::with(['employees:id,nama_lengkap,nip'])
+        $query = AssignmentLetter::with(['employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
             ->whereHas('employees', function ($q) use ($employee) {
                 $q->where('kpg_employees.id', $employee->id);
             })
@@ -175,8 +175,10 @@ class AssignmentLetterController extends Controller
             'id' => $letter->id,
             'nomor' => $letter->nomor_surat,
             'nomor_surat' => $letter->nomor_surat,
+            'kode_surat' => $letter->kode_surat,
             'kegiatan' => $letter->maksud_tujuan,
             'maksud_tujuan' => $letter->maksud_tujuan,
+            'dasar_hukum' => $letter->dasar_hukum,
             'tujuan' => $letter->tempat_tujuan,
             'tempat_tujuan' => $letter->tempat_tujuan,
             'tanggal_mulai' => $letter->tanggal_mulai?->toDateString(),
@@ -184,9 +186,13 @@ class AssignmentLetterController extends Controller
             'tanggal_surat' => $letter->tanggal_surat?->toDateString(),
             'status' => $letter->status,
             'sumber_dana' => $letter->sumber_dana,
+            'template_type' => $letter->template_type,
             'nama_plh' => $letter->nama_plh,
             'menimbang' => $letter->menimbang,
             'dasar' => $letter->dasar,
+            'tembusan' => $letter->tembusan,
+            'penandatangan_nama' => $letter->penandatangan_nama,
+            'penandatangan_nip' => $letter->penandatangan_nip,
             'personel_summary' => $personelSummary ?: null,
             'personel_count' => $employees->count(),
             'employees' => $employees->map(fn ($e) => [
@@ -195,6 +201,15 @@ class AssignmentLetterController extends Controller
                 'name' => $e->nama_lengkap,
                 'nip' => $e->nip,
                 'jabatan' => $e->jabatan,
+                'unit_kerja' => $e->satuan_kerja,
+            ])->values(),
+            'personel' => $employees->map(fn ($e) => [
+                'id' => $e->id,
+                'nama_lengkap' => $e->nama_lengkap,
+                'name' => $e->nama_lengkap,
+                'nip' => $e->nip,
+                'jabatan' => $e->jabatan,
+                'unit_kerja' => $e->satuan_kerja,
             ])->values(),
             'has_file' => !empty($letter->file_surat_path),
             'file_surat_path' => $letter->file_surat_path,

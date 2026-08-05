@@ -74,6 +74,50 @@ function formatNIP(nip: string | null | undefined): string {
   return `${cleaned.substring(0, 8)} ${cleaned.substring(8, 14)} ${cleaned.substring(14, 15)} ${cleaned.substring(15)}`;
 }
 
+function indexToLetter(index: number): string {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  if (index < letters.length) return `${letters[index]}.`;
+  return `${index + 1}.`;
+}
+
+function parseItems(value: any): Array<{ id: string; text: string }> {
+  if (!value) return [];
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item, idx) => {
+          if (typeof item === "string") return { id: String(idx), text: item };
+          return { id: item.id || String(idx), text: item.text || String(item) };
+        });
+      }
+    } catch {
+      return value.split(";").filter((s) => s.trim()).map((s, idx) => ({ id: String(idx), text: s.trim() }));
+    }
+  }
+  if (Array.isArray(value)) {
+    return value.map((item, idx) => {
+      if (typeof item === "string") return { id: String(idx), text: item };
+      return { id: item.id || String(idx), text: item.text || String(item) };
+    });
+  }
+  return [];
+}
+
+function parseTembusan(value: any): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(v => typeof v === 'string' ? v : (v.text || String(v))).filter(Boolean);
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.map(v => typeof v === 'string' ? v : (v.text || String(v))).filter(Boolean);
+    } catch {
+      return value.split("\n").map(s => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
 function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
   const nomorSurat = data.nomor_surat || data.nomor || "ST.1/K.18/TU/KSA.05.06/B/07/2026";
   const kegiatanText = data.maksud_tujuan || data.kegiatan || "Melaksanakan Perjalanan Dinas...";
@@ -84,7 +128,67 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
   const danaText = data.sumber_dana
     ? `DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran 2026`
     : `DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran 2026`;
-  const kepalaBalaiNama = data.nama_plh || "M. Ari Wibawanto, S.Hut., M.Sc.";
+  
+  const menimbangItems = parseItems(data.menimbang);
+  const dasarItems = parseItems(data.dasar);
+  const tembusanItems = parseTembusan(data.tembusan);
+
+  const penandatanganNama = (data as any).penandatangan_nama || (data as any).approver?.name || data.nama_plh || "M. Ari Wibawanto, S.Hut., M.Sc.";
+  const penandatanganNip = (data as any).penandatangan_nip || (data as any).approver?.nip || "197405141999031001";
+
+  const menimbangRowsHtml = menimbangItems.length > 0
+    ? menimbangItems.map((m, idx) => `
+        <tr>
+          <td style="width: 24px; vertical-align: top; padding: ${idx === 0 ? '0' : '4px 0 0'};">${indexToLetter(idx)}</td>
+          <td style="vertical-align: top; padding: ${idx === 0 ? '0' : '4px 0 0'}; text-align: justify;">${m.text || '...'}</td>
+        </tr>
+      `).join('')
+    : `
+        <tr>
+          <td style="width: 24px; vertical-align: top;">a.</td>
+          <td style="vertical-align: top; text-align: justify;">bahwa dalam rangka , perlu ;</td>
+        </tr>
+        <tr>
+          <td style="vertical-align: top; padding-top: 4px;">b.</td>
+          <td style="vertical-align: top; padding-top: 4px; text-align: justify;">bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud.</td>
+        </tr>
+      `;
+
+  const dasarRowsHtml = dasarItems.length > 0
+    ? dasarItems.map((d, idx) => `
+        <tr>
+          <td style="width: 24px; vertical-align: top; padding: ${idx === 0 ? '0' : '4px 0 0'};">${idx + 1}.</td>
+          <td style="vertical-align: top; padding: ${idx === 0 ? '0' : '4px 0 0'}; text-align: justify;">${d.text || '...'}</td>
+        </tr>
+      `).join('')
+    : `
+        <tr>
+          <td style="width: 24px; vertical-align: top;">1.</td>
+          <td style="vertical-align: top; text-align: justify;">Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;</td>
+        </tr>
+        <tr>
+          <td style="vertical-align: top; padding-top: 4px;">2.</td>
+          <td style="vertical-align: top; padding-top: 4px; text-align: justify;">Surat Pengesahan DIPA Tahun Anggaran 2026 Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/2026 tanggal 24 April 2026.</td>
+        </tr>
+      `;
+
+  const tembusanSectionHtml = tembusanItems.length > 0
+    ? `
+      <div style="margin-top: 24px;">
+        <p style="margin: 0 0 4px; font-weight: bold; font-size: 10pt;">Tembusan:</p>
+        <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+          <tbody>
+            ${tembusanItems.map((t, idx) => `
+              <tr>
+                <td style="width: 20px; vertical-align: top; padding: 1px 0; font-size: 10pt;">${idx + 1}.</td>
+                <td style="vertical-align: top; padding: 1px 0; font-size: 10pt;">${t}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `
+    : '';
 
   // Extract employees list
   const personnelList = data.employees && data.employees.length > 0
@@ -96,7 +200,7 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
         { name: "Tegar Anugrah, A.Md.Kom.", nip: "199907072025061006", jabatan: "Pranata Komputer Terampil" },
       ];
 
-  const personnelRowsHtml = personnelList.map((p, idx) => `
+  const personnelRowsHtml = personnelList.map((p: any, idx) => `
     <tr>
       <td style="width: 24px; vertical-align: top; padding: 2px 0;">${idx + 1}.</td>
       <td style="vertical-align: top; padding: 2px 0;">
@@ -114,7 +218,7 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
           <tr>
             <td style="padding: 1px 0;">Jabatan</td>
             <td style="padding: 1px 0;">:</td>
-            <td style="padding: 1px 0;">${p.jabatan || 'Pranata Komputer'}</td>
+            <td style="padding: 1px 0;">${p.jabatan || p.pivot?.peran || 'Pranata Komputer'}</td>
           </tr>
         </table>
       </td>
@@ -227,14 +331,7 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
               <td class="col-colon">:</td>
               <td class="col-content">
                 <table style="width: 100%; border-collapse: collapse;">
-                  <tr>
-                    <td style="width: 24px; vertical-align: top;">a.</td>
-                    <td style="vertical-align: top; text-align: justify;">bahwa dalam rangka , perlu ;</td>
-                  </tr>
-                  <tr>
-                    <td style="vertical-align: top; padding-top: 4px;">b.</td>
-                    <td style="vertical-align: top; padding-top: 4px; text-align: justify;">bahwa sehubungan butir a di atas perlu untuk menugaskan staf tersebut di bawah ini untuk melaksanakan kegiatan dimaksud.</td>
-                  </tr>
+                  ${menimbangRowsHtml}
                 </table>
               </td>
             </tr>
@@ -247,14 +344,7 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
               <td class="col-colon">:</td>
               <td class="col-content">
                 <table style="width: 100%; border-collapse: collapse;">
-                  <tr>
-                    <td style="width: 24px; vertical-align: top;">1.</td>
-                    <td style="vertical-align: top; text-align: justify;">Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;</td>
-                  </tr>
-                  <tr>
-                    <td style="vertical-align: top; padding-top: 4px;">2.</td>
-                    <td style="vertical-align: top; padding-top: 4px; text-align: justify;">Surat Pengesahan DIPA Tahun Anggaran 2026 Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/2026 tanggal 24 April 2026.</td>
-                  </tr>
+                  ${dasarRowsHtml}
                 </table>
               </td>
             </tr>
@@ -309,10 +399,13 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
               <div class="sig-text">Samarinda, ${formatDateIndonesian(tglSurat)}</div>
               <div class="sig-text">Kepala Balai,</div>
               <div class="sig-space"></div>
-              <div class="sig-name">${kepalaBalaiNama}</div>
-              <div class="sig-nip">NIP. 19740514 199903 1 001</div>
+              <div class="sig-name">${penandatanganNama}</div>
+              <div class="sig-nip">NIP. ${formatNIP(penandatanganNip)}</div>
             </div>
           </div>
+
+          <!-- TEMBUSAN -->
+          ${tembusanSectionHtml}
         </div>
       </div>
     </body>

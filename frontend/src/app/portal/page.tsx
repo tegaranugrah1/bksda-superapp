@@ -185,8 +185,8 @@ export default function PersonalDashboard() {
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { 
-    if (activeTab === "aset") fetchAssets();
-  }, [activeTab, fetchAssets]);
+    if (data?.employee?.id) fetchAssets();
+  }, [data?.employee?.id, activeTab, fetchAssets]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Fetch leave balance for logged-in employee
@@ -213,6 +213,36 @@ export default function PersonalDashboard() {
     fetchMyLeaveRequests();
   }, [fetchMyLeaveRequests]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const fetchAllPortalData = useCallback(() => {
+    fetchDashboard();
+    fetchSuratTugas();
+    fetchAssets();
+    fetchMyLeaveRequests();
+  }, [fetchDashboard, fetchSuratTugas, fetchAssets, fetchMyLeaveRequests]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchAllPortalData();
+      }
+    }, 15000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        fetchAllPortalData();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [fetchAllPortalData]);
 
   const handleLogout = () => { authStore.logout(); router.push("/login"); };
 
