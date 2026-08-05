@@ -69,7 +69,10 @@ class MasterDataController extends Controller
         }
 
         // Output Default Wajib Paging sesuai Project Rule 3.1
-        return response()->json($query->latest()->paginate(15));
+        $requestedPerPage = (int) $request->query('per_page', 15);
+        $perPage = min(max(1, $requestedPerPage), 100);
+
+        return response()->json($query->latest()->paginate($perPage));
     }
 
     /**

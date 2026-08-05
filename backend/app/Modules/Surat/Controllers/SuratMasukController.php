@@ -32,16 +32,8 @@ class SuratMasukController extends Controller
             $query->whereJsonContains('sifat_json', $sifat);
         }
 
-        $rawPerPage = $request->input('per_page', 10);
-        if ($rawPerPage === 'all' || (is_numeric($rawPerPage) && (int) $rawPerPage <= 0)) {
-            $count = (clone $query)->count();
-            $perPage = max(1, $count);
-        } else {
-            $perPage = (int) $rawPerPage;
-            if ($perPage <= 0) {
-                $perPage = 10;
-            }
-        }
+        $requestedPerPage = (int) $request->input('per_page', 10);
+        $perPage = min(max(1, $requestedPerPage), 100);
         $paginated = $query->paginate($perPage);
 
         return response()->json([
@@ -49,7 +41,7 @@ class SuratMasukController extends Controller
             'meta' => [
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
-                'per_page' => $rawPerPage === 'all' ? 'all' : $paginated->perPage(),
+                'per_page' => $paginated->perPage(),
                 'total' => $paginated->total(),
             ],
         ]);
@@ -63,7 +55,8 @@ class SuratMasukController extends Controller
         try {
             if ($request->hasFile('file_surat')) {
                 $file = $request->file('file_surat');
-                $filename = uniqid('surat_masuk_') . '.' . $file->getClientOriginalExtension();
+                $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
+                $filename = uniqid('surat_masuk_') . '.' . $ext;
                 $validated['file_path'] = $file->storeAs('surat/masuk', $filename, 'private');
             }
 
@@ -123,7 +116,8 @@ class SuratMasukController extends Controller
                     Storage::disk('private')->delete($suratMasuk->file_path);
                 }
                 $file = $request->file('file_surat');
-                $filename = uniqid('surat_masuk_') . '.' . $file->getClientOriginalExtension();
+                $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
+                $filename = uniqid('surat_masuk_') . '.' . $ext;
                 $validated['file_path'] = $file->storeAs('surat/masuk', $filename, 'private');
             }
 

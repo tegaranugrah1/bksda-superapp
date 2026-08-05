@@ -25,7 +25,8 @@ class SuratKeluarController extends Controller
             });
         }
 
-        $perPage = (int) $request->input('per_page', 15);
+        $requestedPerPage = (int) $request->input('per_page', 15);
+        $perPage = min(max(1, $requestedPerPage), 100);
         $paginated = $query->paginate($perPage);
 
         return response()->json([
@@ -45,7 +46,8 @@ class SuratKeluarController extends Controller
 
         if ($request->hasFile('file_surat')) {
             $file = $request->file('file_surat');
-            $filename = uniqid('surat_keluar_') . '.' . $file->getClientOriginalExtension();
+            $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
+            $filename = uniqid('surat_keluar_') . '.' . $ext;
             $validated['file_path'] = $file->storeAs('surat/keluar', $filename, 'private');
         }
 
@@ -79,7 +81,8 @@ class SuratKeluarController extends Controller
                 Storage::disk('private')->delete($suratKeluar->file_path);
             }
             $file = $request->file('file_surat');
-            $filename = uniqid('surat_keluar_') . '.' . $file->getClientOriginalExtension();
+            $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
+            $filename = uniqid('surat_keluar_') . '.' . $ext;
             $validated['file_path'] = $file->storeAs('surat/keluar', $filename, 'private');
         }
 
