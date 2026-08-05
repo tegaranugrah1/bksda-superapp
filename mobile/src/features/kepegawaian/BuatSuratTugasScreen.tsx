@@ -590,6 +590,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEditId(String(editData.id));
     if (editData.status) {
       setSuratStatus(String(editData.status).toLowerCase());
