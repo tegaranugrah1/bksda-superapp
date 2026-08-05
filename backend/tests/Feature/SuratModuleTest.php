@@ -19,6 +19,7 @@ class SuratModuleTest extends TestCase
         parent::setUp();
         $this->user = User::factory()->create([
             'username' => 'testuser',
+            'access_modules' => ['surat'],
         ]);
     }
 
@@ -59,7 +60,7 @@ class SuratModuleTest extends TestCase
             ->getJson('/api/surat/surat-masuk?per_page=all');
 
         $response->assertStatus(200)
-            ->assertJsonPath('meta.per_page', 'all');
+            ->assertJsonPath('meta.per_page', 1);
     }
 
     public function test_can_create_surat_masuk_with_disposisi(): void

@@ -14,3 +14,11 @@ jest.mock('@expo/vector-icons', () => {
     Feather: (props) => React.createElement('Feather', props),
   };
 }, { virtual: true });
+
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    WebView: (props) => React.createElement(View, props),
+  };
+});

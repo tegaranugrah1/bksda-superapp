@@ -28,9 +28,11 @@ export const assetFormSchema = z.object({
   nilai_perolehan: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return null;
-      const digitsOnly = String(val).replace(/\D/g, '');
+      const strVal = String(val).trim();
+      const isNegative = strVal.startsWith('-');
+      const digitsOnly = strVal.replace(/\D/g, '');
       if (!digitsOnly) return null;
-      const num = Number(digitsOnly);
+      const num = Number(digitsOnly) * (isNegative ? -1 : 1);
       return isNaN(num) ? null : num;
     },
     z.number().min(0, 'Nilai perolehan tidak boleh negatif').nullable()
@@ -39,9 +41,11 @@ export const assetFormSchema = z.object({
   nilai_penyusutan: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return null;
-      const digitsOnly = String(val).replace(/\D/g, '');
+      const strVal = String(val).trim();
+      const isNegative = strVal.startsWith('-');
+      const digitsOnly = strVal.replace(/\D/g, '');
       if (!digitsOnly) return null;
-      const num = Number(digitsOnly);
+      const num = Number(digitsOnly) * (isNegative ? -1 : 1);
       return isNaN(num) ? null : num;
     },
     z.number().min(0, 'Nilai penyusutan tidak boleh negatif').nullable()
@@ -50,9 +54,11 @@ export const assetFormSchema = z.object({
   nilai_buku: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return null;
-      const digitsOnly = String(val).replace(/\D/g, '');
+      const strVal = String(val).trim();
+      const isNegative = strVal.startsWith('-');
+      const digitsOnly = strVal.replace(/\D/g, '');
       if (!digitsOnly) return null;
-      const num = Number(digitsOnly);
+      const num = Number(digitsOnly) * (isNegative ? -1 : 1);
       return isNaN(num) ? null : num;
     },
     z.number().min(0, 'Nilai buku tidak boleh negatif').nullable()

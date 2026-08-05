@@ -83,8 +83,7 @@ describe('LoginScreen', () => {
     });
 
     expect(login).not.toHaveBeenCalled();
-    expect(tree.root.findByProps({ children: 'Username wajib diisi.' })).toBeTruthy();
-    expect(tree.root.findByProps({ children: 'Password wajib diisi.' })).toBeTruthy();
+    expect(tree.root.findByProps({ message: 'Username dan Password wajib diisi.' })).toBeTruthy();
   });
 
   it('submits trimmed username and password to auth context', async () => {

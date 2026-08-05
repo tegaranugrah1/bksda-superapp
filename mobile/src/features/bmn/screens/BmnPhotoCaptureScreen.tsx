@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, Image, ActivityIndicator, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { Alert, StyleSheet, View, Text, Image, ActivityIndicator, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -209,6 +209,12 @@ export default function BmnPhotoCaptureScreen() {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      Alert.alert(
+        'Sukses',
+        'Foto fisik dan geotag berhasil diunggah.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
 
       setNotificationState({
         visible: true,

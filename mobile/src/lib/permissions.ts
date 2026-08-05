@@ -7,7 +7,15 @@ import { useAuth } from '@/features/auth/AuthProvider';
  */
 export function isSuperAdmin(user: User | null): boolean {
   if (!user) return false;
-  return user.role === 'superadmin';
+  return user.role === 'superadmin' || user.role === 'super_admin';
+}
+
+/**
+ * Checks if the user is an admin or superadmin.
+ */
+export function isAdmin(user: User | null): boolean {
+  if (!user) return false;
+  return isSuperAdmin(user) || user.role === 'admin';
 }
 
 /**
@@ -40,7 +48,9 @@ export function usePermissions() {
 
   return {
     isSuperAdmin: () => isSuperAdmin(user),
+    isAdmin: () => isAdmin(user),
     hasModule: (module: string) => hasModule(user, module),
     can: (permission: string) => can(user, permission),
+    user,
   };
 }

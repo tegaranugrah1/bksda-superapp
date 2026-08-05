@@ -61,7 +61,7 @@ describe('Permission Helpers', () => {
     });
 
     it('does not grant admin access for similar but non-exact roles', () => {
-      expect(isSuperAdmin({ ...normalUser, role: 'super_admin' })).toBe(false);
+      expect(isSuperAdmin({ ...normalUser, role: 'super_admin_fake' })).toBe(false);
       expect(isSuperAdmin({ ...normalUser, role: 'admin' })).toBe(false);
     });
 

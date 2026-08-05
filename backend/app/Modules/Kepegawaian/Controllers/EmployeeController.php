@@ -34,9 +34,10 @@ class EmployeeController extends Controller
         $searchTerm = $request->input('search');
 
         if (! empty($searchTerm)) {
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('nama_lengkap', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('nip', 'LIKE', "%{$searchTerm}%");
+            $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($searchTerm, $likeOp) {
+                $q->where('nama_lengkap', $likeOp, "%{$searchTerm}%")
+                    ->orWhere('nip', $likeOp, "%{$searchTerm}%");
             });
         }
 
@@ -214,9 +215,10 @@ class EmployeeController extends Controller
         $query = Employee::query()->where('is_active', true);
 
         if (! empty($searchTerm)) {
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('nama_lengkap', 'ilike', "%{$searchTerm}%")
-                    ->orWhere('nip', 'ilike', "%{$searchTerm}%");
+            $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($searchTerm, $likeOp) {
+                $q->where('nama_lengkap', $likeOp, "%{$searchTerm}%")
+                    ->orWhere('nip', $likeOp, "%{$searchTerm}%");
             });
         }
 
