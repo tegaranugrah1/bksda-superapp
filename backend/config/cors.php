@@ -16,10 +16,10 @@ return [
     // Izinkan semua HTTP method (GET, POST, PUT, DELETE, dll.)
     'allowed_methods' => ['*'],
 
-    // Izinkan origin publik dan sub-domain produksi
-    'allowed_origins' => ['*'],
+    // Izinkan origin terverifikasi (Frontend Next.js, Mobile Expo, dsb)
+    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081,http://localhost:19006,http://localhost:8000')))),
 
-    'allowed_origins_patterns' => ['#^https?://.*$#'],
+    'allowed_origins_patterns' => [],
 
     // Izinkan semua header (termasuk Authorization untuk token Sanctum)
     'allowed_headers' => ['*'],
