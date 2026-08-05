@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, FlatList, ActivityIndicator } from 'react-native';
+import { Alert, StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
@@ -67,8 +67,11 @@ export default function BmnFormScreen() {
   const id = route.params?.id;
   const isEdit = id !== undefined;
 
-  const { can, hasModule, isSuperAdmin } = usePermissions();
   const { data: asset, isLoading, error, refetch } = useAssetDetail(id);
+  const { can, isSuperAdmin, isAdmin, user } = usePermissions();
+  const canCreate = isSuperAdmin() || isAdmin() || can('bmn.create') || can('bmn.asset.create');
+  const canEdit = isSuperAdmin() || isAdmin() || can('bmn.edit') || can('bmn.asset.update') || asset?.allowed_actions?.can_edit === true;
+  const isAdminUser = isEdit ? canEdit : canCreate;
 
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeSelectorItem | null>(null);
   const [isEmployeeSheetOpen, setIsEmployeeSheetOpen] = useState(false);
@@ -238,6 +241,12 @@ export default function BmnFormScreen() {
         await apiClient.post('/bmn/assets', payload);
       }
 
+      Alert.alert(
+        isEdit ? 'Ubah Aset' : 'Tambah Aset',
+        isEdit ? 'Data aset BMN berhasil diubah.' : 'Data aset BMN berhasil ditambahkan.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+
       setNotificationState({
         visible: true,
         title: isEdit ? 'Ubah Aset Berhasil' : 'Tambah Aset Berhasil',
@@ -269,9 +278,6 @@ export default function BmnFormScreen() {
       }
     }
   };
-
-  const canCreate = isSuperAdmin() || hasModule('bmn') || can('bmn.asset.create');
-  const canEdit = isSuperAdmin() || hasModule('bmn') || can('bmn.asset.update') || asset?.allowed_actions?.can_edit === true;
 
   if (!isEdit && !canCreate) {
     return (
@@ -789,15 +795,34 @@ export default function BmnFormScreen() {
           </View>
         </SectionCard>
 
-        {/* Save Button */}
+        {/* Save Button or Read Only Warning Card */}
         <View style={{ marginTop: spacing.md }}>
-          <AppButton
-            title={isEdit ? 'Simpan Perubahan' : 'Tambah Aset'}
-            variant="primary"
-            onPress={handleSubmit(onSubmit)}
-            loading={isSubmitting}
-            accessibilityLabel={isEdit ? 'Simpan Perubahan Aset BMN' : 'Tambah Aset BMN'}
-          />
+          {isAdminUser ? (
+            <AppButton
+              title={isEdit ? 'Simpan Perubahan' : 'Tambah Aset'}
+              variant="primary"
+              onPress={handleSubmit(onSubmit)}
+              loading={isSubmitting}
+              accessibilityLabel={isEdit ? 'Simpan Perubahan Aset BMN' : 'Tambah Aset BMN'}
+            />
+          ) : (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                borderWidth: 1,
+                borderColor: 'rgba(239, 68, 68, 0.3)',
+                borderRadius: 12,
+                padding: 14,
+              }}
+            >
+              <Ionicons name="lock-closed-outline" size={24} color="#ef4444" style={{ marginRight: 10 }} />
+              <Text style={{ flex: 1, fontSize: 13, color: '#ef4444', lineHeight: 18, fontWeight: '600' }}>
+                Mode Hanya Lihat (Read-Only). Akun Anda ({user?.role || 'user'}) tidak memiliki akses admin untuk menambah atau mengubah data aset BMN.
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 

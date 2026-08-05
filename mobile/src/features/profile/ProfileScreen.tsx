@@ -14,6 +14,7 @@ import { GlassCard } from "../../components/ui/GlassCard";
 import { useAuth } from "../auth/AuthProvider";
 import { FabMenu } from "../../components/ui/FabMenu";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import { ChangePasswordModal } from "./ChangePasswordModal";
 
 interface ProfileScreenProps {
   onBack?: () => void;
@@ -29,10 +30,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const { isDark, colors } = useTheme();
   const { user, logout } = useAuth();
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
 
   const officerName = user?.name || user?.employee?.name || "Super Admin System";
   const officerNip = user?.username || user?.employee?.nip || "superadmin";
   const officerEmail = user?.email || "superadmin@bksdakaltim.net";
+  const avatarInitial = (officerName.charAt(0) || "U").toUpperCase();
+  const resolvedRole = user?.role === "super_admin" ? "Super Admin" : (user?.role === "admin" ? "Admin" : "Pegawai / User");
 
   const profileDetails = [
     { label: "JABATAN", value: user?.employee?.position || "-", icon: "finger-print-outline", color: "#10b981" },
@@ -96,7 +100,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <GlassCard style={[styles.profileCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
           {/* Avatar Circle */}
           <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitial}>S</Text>
+            <Text style={styles.avatarInitial}>{avatarInitial}</Text>
           </View>
 
           {/* Status Badge */}
@@ -109,7 +113,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <Text style={[styles.profileNip, { color: colors.textMuted }]}>NIP {officerNip}</Text>
 
           <View style={styles.roleBadge}>
-            <Text style={styles.roleBadgeText}>Super Admin</Text>
+            <Text style={styles.roleBadgeText}>{resolvedRole}</Text>
           </View>
         </GlassCard>
 
@@ -137,7 +141,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Action Buttons */}
         <TouchableOpacity
           style={[styles.changePasswordBtn, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}
-          onPress={() => Alert.alert("Ganti Password", "Formulir ubah kata sandi akun.")}
+          onPress={() => setChangePasswordModalVisible(true)}
           activeOpacity={0.8}
         >
           <Ionicons name="key-outline" size={18} color="#059669" style={{ marginRight: 8 }} />
@@ -156,6 +160,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
       {/* Floating Action Button (FAB ☰ Menu) */}
       <FabMenu onNavigateToModule={handleSelectNavTab} />
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        visible={changePasswordModalVisible}
+        onClose={() => setChangePasswordModalVisible(false)}
+        onSuccessLogout={handleConfirmLogout}
+      />
 
       {/* Custom Premium Logout Confirm Modal */}
       <ConfirmModal

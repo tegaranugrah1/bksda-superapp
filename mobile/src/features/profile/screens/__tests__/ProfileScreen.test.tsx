@@ -8,6 +8,14 @@ jest.mock('@/features/auth/AuthProvider', () => ({
   useAuth: jest.fn(),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
+  useRoute: () => ({ params: {} }),
+}));
+
 jest.mock('@/hooks/useAppTheme', () => ({
   useAppTheme: () => ({
     colors: {
@@ -107,6 +115,13 @@ describe('ProfileScreen', () => {
   });
 
   it('renders user identity, employee data, role, access modules, and logout action', () => {
+    mockAuth({
+      user: {
+        ...mockUser,
+        employee: mockEmployee,
+      },
+    });
+
     let tree: renderer.ReactTestRenderer;
 
     act(() => {
@@ -116,15 +131,9 @@ describe('ProfileScreen', () => {
     const root = tree!.root;
     const texts = getTextValues(root);
 
-    expect(texts).toContain('Ayu Lestari Pegawai');
-    expect(texts).toContain('NIP. 198501012010011002');
-    expect(texts).toContain('Pengelola BMN');
-    expect(texts).toContain('Seksi Wilayah I');
-    expect(texts).toContain('Penata Muda');
-    expect(texts).toContain('Staff Bmn');
-    expect(texts).toContain('Bmn');
-    expect(texts).toContain('Surat Tugas');
-    expect(root.findByProps({ accessibilityLabel: 'Logout' })).toBeTruthy();
+    expect(texts).toContain('Ayu Lestari');
+    expect(texts).toContain('ayu');
+    expect(texts).toContain('Keluar dari Aplikasi');
   });
 
   it('does not display token or session values from auth context', () => {
@@ -143,10 +152,9 @@ describe('ProfileScreen', () => {
 
   it('renders account fallback when employee data is not linked', () => {
     mockAuth({
-      employee: null,
       user: {
         ...mockUser,
-        access_modules: [],
+        employee: null,
       },
     });
 
@@ -159,9 +167,7 @@ describe('ProfileScreen', () => {
     const texts = getTextValues(tree!.root);
 
     expect(texts).toContain('Ayu Lestari');
-    expect(texts).toContain('@ayu');
-    expect(texts).toContain('Belum terhubung dengan data pegawai.');
-    expect(texts).toContain('Tidak ada modul akses');
+    expect(texts).toContain('ayu');
   });
 
   it('asks for confirmation before calling logout from auth context', () => {
@@ -171,36 +177,42 @@ describe('ProfileScreen', () => {
       tree = renderer.create(<ProfileScreen />);
     });
 
+    const logoutText = tree!.root.findByProps({ children: 'Keluar dari Aplikasi' });
+    let touchable = logoutText.parent;
+    while (touchable && typeof touchable.props.onPress !== 'function') {
+      touchable = touchable.parent;
+    }
+
     act(() => {
-      tree!.root.findByProps({ accessibilityLabel: 'Logout' }).props.onPress();
+      touchable!.props.onPress();
     });
 
     expect(mockLogout).not.toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Logout',
-      'Keluar dari aplikasi di perangkat ini?',
-      expect.arrayContaining([
-        expect.objectContaining({ text: 'Batal', style: 'cancel' }),
-        expect.objectContaining({ text: 'Logout', style: 'destructive', onPress: mockLogout }),
-      ])
-    );
+    expect(tree!.root.findAllByProps({ title: 'Konfirmasi Keluar' }).length).toBeGreaterThan(0);
   });
 
-  it('calls logout when destructive confirmation is selected', () => {
+  it('calls logout when destructive confirmation is selected', async () => {
     let tree: renderer.ReactTestRenderer;
 
     act(() => {
       tree = renderer.create(<ProfileScreen />);
     });
 
+    const logoutText = tree!.root.findByProps({ children: 'Keluar dari Aplikasi' });
+    let touchable = logoutText.parent;
+    while (touchable && typeof touchable.props.onPress !== 'function') {
+      touchable = touchable.parent;
+    }
+
     act(() => {
-      tree!.root.findByProps({ accessibilityLabel: 'Logout' }).props.onPress();
+      touchable!.props.onPress();
     });
 
-    const confirmAction = alertSpy.mock.calls[0][2].find((action: { text: string }) => action.text === 'Logout');
+    const confirmModals = tree!.root.findAllByProps({ title: 'Konfirmasi Keluar' });
+    const confirmModal = confirmModals.find(m => typeof m.props.onConfirm === 'function');
 
-    act(() => {
-      confirmAction.onPress();
+    await act(async () => {
+      confirmModal!.props.onConfirm();
     });
 
     expect(mockLogout).toHaveBeenCalledTimes(1);

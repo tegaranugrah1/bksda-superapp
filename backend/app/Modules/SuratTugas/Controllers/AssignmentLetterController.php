@@ -121,10 +121,15 @@ class AssignmentLetterController extends Controller
         $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
 
         if ($search = $request->query('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('tempat_tujuan', 'LIKE', "%{$search}%")
-                    ->orWhere('maksud_tujuan', 'LIKE', "%{$search}%")
-                    ->orWhere('nomor_surat', 'LIKE', "%{$search}%");
+            $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($search, $likeOp) {
+                $q->where('tempat_tujuan', $likeOp, "%{$search}%")
+                    ->orWhere('maksud_tujuan', $likeOp, "%{$search}%")
+                    ->orWhere('nomor_surat', $likeOp, "%{$search}%")
+                    ->orWhereHas('employees', function ($eq) use ($search, $likeOp) {
+                        $eq->where('nama_lengkap', $likeOp, "%{$search}%")
+                            ->orWhere('nip', $likeOp, "%{$search}%");
+                    });
             });
         }
 

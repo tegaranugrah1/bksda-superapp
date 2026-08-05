@@ -4,6 +4,7 @@ import renderer, { act } from 'react-test-renderer';
 import SuratTugasListScreen from '../SuratTugasListScreen';
 import { useAssignments } from '../../useAssignments';
 import { useForegroundRefresh } from '@/hooks/useForegroundRefresh';
+import { PratinjauSuratTugasModal } from '@/components/PratinjauSuratTugasModal';
 
 const mockNavigate = jest.fn();
 const mockCan = jest.fn();
@@ -107,7 +108,9 @@ describe('SuratTugasListScreen', () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
   });
 
@@ -311,7 +314,7 @@ describe('SuratTugasListScreen', () => {
     });
   });
 
-  it('opens assignment detail when a card is pressed', () => {
+  it('opens assignment preview modal when a card is pressed', () => {
     let tree: renderer.ReactTestRenderer;
     act(() => {
       tree = renderer.create(<SuratTugasListScreen />);
@@ -325,10 +328,8 @@ describe('SuratTugasListScreen', () => {
       card.props.onPress();
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith('AssignmentDetail', {
-      id: 'st-1',
-      mode: 'personal',
-    });
+    const modal = tree!.root.findByType(PratinjauSuratTugasModal);
+    expect(modal.props.visible).toBe(true);
 
     act(() => {
       tree!.unmount();
