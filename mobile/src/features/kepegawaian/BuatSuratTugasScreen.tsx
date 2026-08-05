@@ -859,6 +859,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       target = "Balikpapan";
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setKotaAsal((prev) => (prev !== target ? target : prev));
   }, [selectedEmployees]);
 
