@@ -29,6 +29,9 @@
         "projectId": "0da429da-741c-48ed-a9c2-82431ef3d450"
       }
     },
-    "owner": "sh1yu"
+    "owner": "sh1yu",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

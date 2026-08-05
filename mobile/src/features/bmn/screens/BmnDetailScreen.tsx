@@ -26,6 +26,7 @@ import { apiClient } from '../../../lib/api/client';
 import { normalizeError } from '../../../lib/api/errors';
 import { ConfirmModal } from '../../../components/ui/ConfirmModal';
 import { NotificationModal } from '../../../components/ui/NotificationModal';
+import { usePermissions } from '../../../lib/permissions';
 
 import { config } from '../../../lib/api/config';
 import { getToken } from '../../../lib/auth/tokenStorage';
@@ -60,6 +61,8 @@ function resolvePhotoUrl(url?: string | null): string | null {
 
 export default function BmnDetailScreen() {
   const { colors, isDark } = useTheme();
+  const { can, isSuperAdmin, isAdmin, user } = usePermissions();
+  const isAdminUser = isSuperAdmin() || isAdmin() || can('bmn.edit') || can('bmn.asset.update') || user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'super_admin';
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const id = route?.params?.id;
@@ -302,7 +305,7 @@ export default function BmnDetailScreen() {
   };
 
   const handleBack = () => {
-    navigation.navigate('Bmn');
+    navigation.goBack();
   };
 
   const handleEdit = () => {
@@ -487,7 +490,7 @@ export default function BmnDetailScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? "#0f172a" : "#f8fafc" }]}>
       {/* Header Bar */}
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.7} accessibilityLabel="Kembali">
           <Ionicons name="arrow-back" size={22} color={colors.textDark} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
@@ -909,10 +912,19 @@ export default function BmnDetailScreen() {
 
       {/* Floating Action Bar */}
       <View style={[styles.floatingBar, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-        <TouchableOpacity style={styles.actionBtnSecondary} onPress={handleEdit}>
-          <Ionicons name="create-outline" size={16} color={colors.textDark} style={{ marginRight: 4 }} />
-          <Text style={[styles.actionBtnSecondaryText, { color: colors.textDark }]}>Edit</Text>
-        </TouchableOpacity>
+        {(asset.allowed_actions?.can_verify || (!asset.is_verified && isAdminUser)) && (
+          <TouchableOpacity style={styles.actionBtnSecondary} onPress={handleVerify} accessibilityLabel="Verifikasi Aset BMN">
+            <Ionicons name="checkmark-circle-outline" size={16} color="#059669" style={{ marginRight: 4 }} />
+            <Text style={[styles.actionBtnSecondaryText, { color: '#059669' }]}>Verifikasi</Text>
+          </TouchableOpacity>
+        )}
+
+        {isAdminUser && (
+          <TouchableOpacity style={styles.actionBtnSecondary} onPress={handleEdit} accessibilityLabel="Ubah Data Aset BMN">
+            <Ionicons name="create-outline" size={16} color={colors.textDark} style={{ marginRight: 4 }} />
+            <Text style={[styles.actionBtnSecondaryText, { color: colors.textDark }]}>Edit</Text>
+          </TouchableOpacity>
+        )}
 
         {asset.active_loan ? (
           <EmeraldButton
@@ -920,12 +932,14 @@ export default function BmnDetailScreen() {
             onPress={handleReturn}
             loading={isReturning}
             style={{ flex: 1 }}
+            accessibilityLabel="Kembalikan Aset BMN"
           />
         ) : (
           <EmeraldButton
             title="+ PINJAM BMN"
             onPress={handleLoan}
             style={{ flex: 1 }}
+            accessibilityLabel="Ajukan Peminjaman Aset BMN"
           />
         )}
       </View>

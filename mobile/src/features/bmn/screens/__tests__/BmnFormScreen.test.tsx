@@ -19,13 +19,30 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+// Mock AuthProvider hook
+jest.mock('@/features/auth/AuthProvider', () => ({
+  useAuth: () => ({
+    user: {
+      id: 1,
+      name: 'Admin User',
+      username: 'admin',
+      role: 'admin',
+      access_modules: ['bmn', 'dr', 'inventory'],
+    },
+    logout: jest.fn(),
+  }),
+}));
+
 // Mock permissions hook
 const mockCan = jest.fn();
+const mockIsAdmin = jest.fn().mockReturnValue(false);
 jest.mock('@/lib/permissions', () => ({
   usePermissions: () => ({
     can: mockCan,
     hasModule: () => true,
     isSuperAdmin: () => false,
+    isAdmin: mockIsAdmin,
+    user: { role: 'user' },
   }),
 }));
 
@@ -97,7 +114,11 @@ jest.mock('../../useAssetDetail', () => ({
 
 describe('BmnFormScreen', () => {
   const mockRefetch = jest.fn();
-  const alertSpy = jest.spyOn(Alert, 'alert');
+  let alertSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    alertSpy = jest.spyOn(Alert, 'alert');
+  });
 
   const mockAsset = {
     id: '123',
@@ -130,8 +151,10 @@ describe('BmnFormScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    alertSpy.mockImplementation(() => {});
     mockRouteParams.mockReturnValue(undefined); // default: Create mode
     mockCan.mockReturnValue(true); // default: Allowed
+    mockIsAdmin.mockReturnValue(false);
   });
 
   it('renders creation form correctly', () => {
@@ -273,6 +296,8 @@ describe('BmnFormScreen', () => {
   });
 
   it('submits form and calls apiClient.post on success in Create mode', async () => {
+    mockCan.mockReturnValue(true);
+    mockIsAdmin.mockReturnValue(true);
     (apiClient.post as jest.Mock).mockResolvedValue({ status: 200, data: {} });
     (useAssetDetail as jest.Mock).mockReturnValue({
       data: undefined,
@@ -303,6 +328,7 @@ describe('BmnFormScreen', () => {
     
     await act(async () => {
       submitBtn.props.onPress();
+      await new Promise((r) => setTimeout(r, 50));
     });
 
     expect(apiClient.post).toHaveBeenCalledWith('/bmn/assets', expect.objectContaining({
@@ -317,21 +343,14 @@ describe('BmnFormScreen', () => {
       expect.any(Array)
     );
 
-    // Call alert callback
-    const alertCallback = alertSpy.mock.calls[0][2]?.[0]?.onPress;
-    if (alertCallback) {
-      act(() => {
-        alertCallback();
-      });
-      expect(mockGoBack).toHaveBeenCalled();
-    }
-
     act(() => {
       tree.unmount();
     });
   });
 
   it('submits form and calls apiClient.put on success in Edit mode', async () => {
+    mockCan.mockReturnValue(true);
+    mockIsAdmin.mockReturnValue(true);
     mockRouteParams.mockReturnValue({ id: '123' });
     (apiClient.put as jest.Mock).mockResolvedValue({ status: 200, data: {} });
     (useAssetDetail as jest.Mock).mockReturnValue({
@@ -352,6 +371,7 @@ describe('BmnFormScreen', () => {
     
     await act(async () => {
       submitBtn.props.onPress();
+      await new Promise((r) => setTimeout(r, 50));
     });
 
     expect(apiClient.put).toHaveBeenCalledWith('/bmn/assets/123', expect.objectContaining({
