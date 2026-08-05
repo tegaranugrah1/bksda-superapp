@@ -372,6 +372,10 @@ class AssignmentLetterController extends Controller
         $cleanId = preg_replace('/^st-/', '', $id);
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])->findOrFail($cleanId);
 
+        if (! $this->authorizeAccess($surat, $request)) {
+            return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk melihat Surat Tugas ini.'], 403);
+        }
+
         return response()->json([
             'data' => $this->isMobileRequest($request)
                 ? $this->toMobileDetailItem($surat)
@@ -384,6 +388,10 @@ class AssignmentLetterController extends Controller
         $cleanId = preg_replace('/^st-/', '', $id);
         $validated = $request->validated();
         $surat = AssignmentLetter::findOrFail($cleanId);
+
+        if (! $this->authorizeAccess($surat, $request)) {
+            return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk merubah Surat Tugas ini.'], 403);
+        }
 
         DB::beginTransaction();
         try {
@@ -505,9 +513,33 @@ class AssignmentLetterController extends Controller
         return response()->json(['message' => 'Dokumen dihapus permanen dari arsip.']);
     }
 
-    public function downloadPdf(string $id)
+    private function authorizeAccess(AssignmentLetter $surat, Request $request): bool
+    {
+        $user = $request->user();
+        if (!$user) {
+            return false;
+        }
+
+        if (in_array($user->role, ['admin', 'super_admin'], true)) {
+            return true;
+        }
+
+        $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+        $isAssignedEmployee = $employee && $surat->employees->contains(fn ($item) => (int) $item->id === (int) $employee->id);
+        $isCreator = (int) $surat->created_by === (int) $user->id;
+
+        return $isAssignedEmployee || $isCreator;
+    }
+
+    public function downloadPdf(Request $request, string $id)
     {
         $surat = AssignmentLetter::withTrashed()->with('employees')->findOrFail($id);
+
+        if (! $this->authorizeAccess($surat, $request)) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki otorisasi untuk mengunduh Surat Tugas ini.',
+            ], 403);
+        }
 
         if (! $surat->file_surat_path || ! Storage::exists($surat->file_surat_path)) {
             return response()->json(['message' => 'Berkas tidak ditemukan di server.'], 404);
