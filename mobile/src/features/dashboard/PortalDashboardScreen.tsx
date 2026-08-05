@@ -107,12 +107,12 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [myAssetsList, setMyAssetsList] = useState<any[]>([]);
 
   const fetchMyAssets = React.useCallback(async () => {
+    if (!employee?.id) {
+      setMyAssetsList([]);
+      return;
+    }
     try {
-      let url = "/bmn/assets";
-      if (employee?.id) {
-        url = `/bmn/assets?employee_id=${employee.id}`;
-      }
-      const response = await apiClient.get<any>(url);
+      const response = await apiClient.get<any>(`/bmn/assets?employee_id=${employee.id}`);
       const list = Array.isArray(response.data?.data) ? response.data.data : response.data || [];
       setMyAssetsList(list);
     } catch {
