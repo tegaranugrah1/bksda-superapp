@@ -28,22 +28,25 @@ export interface PratinjauSuratTugasItem {
   sumber_dana?: string | null;
   status?: string | null;
   nama_plh?: string | null;
+  penandatangan_nama?: string | null;
+  penandatangan_nip?: string | null;
   menimbang?: any;
   dasar?: any;
-  employees?: Array<{
+  tembusan?: any;
+  employees?: {
     id?: string | number;
     nama_lengkap?: string;
     name?: string;
     nip?: string;
     jabatan?: string;
-  }>;
-  personel?: Array<{
+  }[];
+  personel?: {
     id?: string | number;
     nama_lengkap?: string;
     name?: string;
     nip?: string;
     jabatan?: string;
-  }>;
+  }[];
 }
 
 interface PratinjauSuratTugasModalProps {
@@ -174,14 +177,14 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
 
   const tembusanSectionHtml = tembusanItems.length > 0
     ? `
-      <div style="margin-top: 24px;">
-        <p style="margin: 0 0 4px; font-weight: bold; font-size: 10pt;">Tembusan:</p>
-        <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+      <div style="margin-top: -22px; max-width: 9.4cm; font-size: 10pt; font-weight: normal; color: #000000;">
+        <p style="margin: 0 0 4px; font-weight: normal; font-size: 10pt; color: #000000;">Tembusan:</p>
+        <table style="border-collapse: collapse;">
           <tbody>
             ${tembusanItems.map((t, idx) => `
               <tr>
-                <td style="width: 20px; vertical-align: top; padding: 1px 0; font-size: 10pt;">${idx + 1}.</td>
-                <td style="vertical-align: top; padding: 1px 0; font-size: 10pt;">${t}</td>
+                ${tembusanItems.length > 1 ? `<td style="width: 20px; vertical-align: top; padding: 1px 0; font-size: 10pt;">${idx + 1}.</td>` : ''}
+                <td style="vertical-align: top; padding: 1px 0; font-size: 10pt; white-space: nowrap;">${t}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -375,7 +378,7 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
                 <table style="width: 100%; border-collapse: collapse;">
                   <tr>
                     <td style="width: 24px; vertical-align: top;">1.</td>
-                    <td style="vertical-align: top; text-align: justify;">${kegiatanText}, selama 2 (dua) hari terhitung mulai tanggal ${formatDateIndonesian(tglMulai)} sampai dengan ${formatDateIndonesian(tglSelesai)};</td>
+                    <td style="vertical-align: top; text-align: justify;">${kegiatanText}${tempatText ? `, dari Samarinda ke ${tempatText}` : ''}, terhitung mulai tanggal ${formatDateIndonesian(tglMulai)} sampai dengan ${formatDateIndonesian(tglSelesai)};</td>
                   </tr>
                   <tr>
                     <td style="vertical-align: top; padding-top: 4px;">2.</td>

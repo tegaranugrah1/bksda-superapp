@@ -367,14 +367,16 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
 
             {/* TEMBUSAN */}
             {tembusanItems.length > 0 && (
-              <div style={{ marginTop: "24px" }}>
-                <p style={{ margin: "0 0 4px", fontWeight: "bold", fontSize: "10pt" }}>Tembusan:</p>
-                <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+              <div className="tembusan-block" style={{ marginTop: "-22px", maxWidth: "9.4cm", fontSize: "10pt", fontWeight: "normal", color: "#000000" }}>
+                <p style={{ margin: "0 0 4px", fontWeight: "normal", fontSize: "10pt", color: "#000000" }}>Tembusan:</p>
+                <table style={{ borderCollapse: "collapse" }}>
                   <tbody>
                     {tembusanItems.map((item, idx) => (
                       <tr key={idx}>
-                        <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
-                        <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
+                        {tembusanItems.length > 1 && (
+                          <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
+                        )}
+                        <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt", whiteSpace: "nowrap" }}>{item}</td>
                       </tr>
                     ))}
                   </tbody>
