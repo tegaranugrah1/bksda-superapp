@@ -13,13 +13,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://bksdakaltim.net/api",
+        "EXPO_PUBLIC_API_URL": "https://api.bksdakaltim.net/api",
         "EXPO_PUBLIC_APP_ENV": "production"
       }
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://bksdakaltim.net/api",
+        "EXPO_PUBLIC_API_URL": "https://api.bksdakaltim.net/api",
         "EXPO_PUBLIC_APP_ENV": "production"
       }
     }
