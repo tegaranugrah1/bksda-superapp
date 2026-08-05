@@ -486,18 +486,21 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [allEmployees, setAllEmployees] = useState<Employee[]>(masterEmployeeList);
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_isSearching, setIsSearching] = useState(false);
 
   // STEP 2: DETAIL PERJALANAN DINAS
-  const [maksudKegiatan, setMaksudKegiatan] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_maksudKegiatan, _setMaksudKegiatan] = useState("");
   const [tanggalMulai, setTanggalMulai] = useState(new Date().toISOString().substring(0, 10));
   const [tanggalSelesai, setTanggalSelesai] = useState(new Date().toISOString().substring(0, 10));
-  const [keterangan, setKeterangan] = useState("");
+  const [keterangan, _setKeterangan] = useState("");
   const [sumberDana, setSumberDana] = useState("dipa");
-  const [sumberDanaOther, setSumberDanaOther] = useState("");
-  const [namaPlh, setNamaPlh] = useState("");
-  const [setujuData, setSetujuData] = useState(false);
-  const [selectedFileName, setSelectedFileName] = useState("");
+  const [sumberDanaOther, _setSumberDanaOther] = useState("");
+  const [namaPlh, _setNamaPlh] = useState("");
+  const [setujuData, _setSetujuData] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_selectedFileName, _setSelectedFileName] = useState("");
   const [activeDatePicker, setActiveDatePicker] = useState<"mulai" | "selesai" | null>(null);
   const [currentPickerMonth, setCurrentPickerMonth] = useState(new Date());
   const [dropdownModalType, setDropdownModalType] = useState<"jenisTugas" | "sumberDana" | "templateST" | null>(null);
@@ -542,7 +545,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const currentYear = new Date().getFullYear().toString();
   const [kotaDokumen, setKotaDokumen] = useState("Samarinda");
-  const [tanggalDokumen, setTanggalDokumen] = useState(new Date().toISOString().substring(0, 10));
+  const [tanggalDokumen, _setTanggalDokumen] = useState(new Date().toISOString().substring(0, 10));
 
   const [menimbangItems, setMenimbangItems] = useState<{ id: string; text: string }[]>([
     { id: "m-1", text: "bahwa dalam rangka , perlu ;" },
@@ -727,7 +730,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     };
 
     fetchFullSt();
-  }, [editData, allEmployees]);
+  }, [editData, allEmployees, currentYear]);
 
   // Dynamic List Handlers
   const handleAddMenimbangItem = () => {
@@ -929,6 +932,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddManualEmployee = () => {
     if (!searchQuery.trim()) return;
     const manualEmp: Employee = {
