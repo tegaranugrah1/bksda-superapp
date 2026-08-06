@@ -11,7 +11,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
@@ -174,14 +174,16 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     }
   }, []);
 
-  useEffect(() => {
-    fetchSuratTugas();
-    if (!isFocused) return;
-    const interval = setInterval(() => {
+  useFocusEffect(
+    React.useCallback(() => {
       fetchSuratTugas();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isFocused, fetchSuratTugas]);
+      const interval = setInterval(() => {
+        fetchSuratTugas();
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }, [fetchSuratTugas])
+  );
 
   // Handle hardware back press & back gesture: return to Inbox list view first
   useEffect(() => {
