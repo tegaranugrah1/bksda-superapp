@@ -8,7 +8,16 @@ import { SUMBER_DANA_OPTIONS } from "./constants";
  * (mis. "Melaksanakan Kegiatan" di lokasi tertentu, bukan perjalanan dinas).
  */
 export function isSingleDayActivityPrefix(prefix: string) {
-  return prefix === "Melaksanakan Kegiatan";
+  return prefix.includes("Melaksanakan Kegiatan");
+}
+
+export function cleanMelaksanakanKegiatanPrefix(text: string): string {
+  if (!text) return "";
+  let trimmed = text.trim();
+  if (/^melaksanakan\s+kegiatan/i.test(trimmed)) {
+    trimmed = trimmed.replace(/^melaksanakan\s+kegiatan\s*/i, "").trim();
+  }
+  return trimmed;
 }
 
 /**

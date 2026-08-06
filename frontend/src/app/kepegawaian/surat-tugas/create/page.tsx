@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAxiosError } from "axios";
 import STBuilderPreview from "../builder/[id]/STBuilderPreview";
+import { cleanMelaksanakanKegiatanPrefix } from "../_lib/activity-helpers";
 import {
   formatDateIndonesian,
   formatNIP,
@@ -437,13 +438,14 @@ export default function STCreatePremiumPage() {
     if (activityPrefix.includes("Perjalanan Dinas")) {
       text = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
       if (namaKegiatan) {
-        text += ` dalam rangka ${namaKegiatan}`;
+        text += ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatan)}`;
       }
       if (tempatKegiatan) {
         text += ` di ${tempatKegiatan}`;
       }
     } else if (activityPrefix.includes("Melaksanakan Kegiatan")) {
-      text = `Melaksanakan Kegiatan ${namaKegiatan || "..."}`;
+      const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
+      text = `Melaksanakan Kegiatan ${cleanNama || "..."}`;
       if (tempatKegiatan) {
         text += ` pada ${tempatKegiatan}`;
       }
@@ -451,7 +453,7 @@ export default function STCreatePremiumPage() {
         text += ` di ${kotaTujuan}`;
       }
     } else {
-      text = `Menugaskan Staf untuk ${namaKegiatan || "..."}`;
+      text = `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatan) || "..."}`;
       if (tempatKegiatan) {
         text += ` pada ${tempatKegiatan}`;
       }
