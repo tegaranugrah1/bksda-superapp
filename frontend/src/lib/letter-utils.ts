@@ -9,8 +9,18 @@ export function formatDateIndonesian(dateStr: string | null | undefined): string
             'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
         ];
+        const cleaned = String(dateStr).split("T")[0].trim();
+        const parts = cleaned.split("-");
+        if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const monthIdx = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            if (!isNaN(year) && !isNaN(monthIdx) && !isNaN(day) && monthIdx >= 0 && monthIdx < 12) {
+                return `${day} ${months[monthIdx]} ${year}`;
+            }
+        }
         const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
+        if (isNaN(d.getTime())) return String(dateStr);
         return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
     } catch {
         return '...';

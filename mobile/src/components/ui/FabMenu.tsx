@@ -197,6 +197,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
       "inbox-surat-tugas": "InboxSuratTugas",
       "inbox-surat-cuti": "InboxSuratCuti",
       "buat-surat-tugas": "BuatSuratTugas",
+      "riwayat-surat-tugas": "RiwayatSuratTugas",
       bmn: "Bmn",
       "data-aset": "Bmn",
       inventory: "Inventory",

@@ -1,3 +1,157 @@
+# Progress - Phase 209: Refactoring Linter Warning & Optimalisasi React Effect (`KepegawaianScreen.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Optimalisasi React Effect & Penyelesaian Warning Linter (`KepegawaianScreen.tsx`)
+- **Penyelesaian Cascading Render Error**: Mengganti panggilan `setState` langsung dalam `useEffect` dengan `useFocusEffect` dan `useCallback` dari `@react-navigation/native` agar tidak memicu cascading re-render yang mempengaruhi performa.
+- **Pembersihan Kode Mati (Dead Code)**: Menghapus variabel tak terpakai `toggleTheme` dan array mock `defaultEmployeeList`.
+- **Integrasi Tombol Hak Akses (Key Action)**: Menghubungkan fungsi `handleOpenAccess` pada tombol aksi ikon kunci (`key-outline`) untuk pengguna bertipe `super_admin`.
+
+---
+
+# Progress - Phase 208: Penyembunyian Akun Administrator Pusat dari Daftar & Statistik Pegawai
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Penyembunyian Akun System Admin (`Administrator Pusat BKSDA`) dari Daftar Pegawai
+- **Global Scope Model (`Employee.php`)**: Menambahkan global scope `excludeAdminPusat` pada `Employee` model agar record `Administrator Pusat BKSDA` (NIP `198001012005011001`) tidak dipanggil di seluruh query daftar pegawai (`Employee::query()`, `index`, `select`, dan `dashboardStats`).
+- **Pembersihan Database & Seeder**: Menghapus entry `Employee` untuk NIP `198001012005011001` dari tabel `kpg_employees` (tanpa menghapus akun `User` untuk hak akses login `super_admin`) dan memperbarui `SuperAdminSeeder.php`. Total Personil Aktif di Dashboard kini mencerminkan 149 pegawai BKSDA riil.
+- **Pembersihan Mobile Client (`KepegawaianScreen.tsx`)**: Menghapus data mock dan menambahkan filter client-side pada `fetchEmployeeData()` untuk memastikan `Administrator Pusat` tidak tampil pada daftar pegawai di Mobile.
+
+---
+
+# Progress - Phase 207: Pembersihan Suffix Durasi (`, selama ...`) pada Riwayat Surat Tugas (Web Localhost & Mobile)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Pembersihan Teks Redundan Durasi (`cleanMaksudTujuan`)
+- **Implementasi Helper Cleaner**: Menambahkan helper `cleanMaksudTujuan` pada Web Localhost (`AssignmentHistoryTab.tsx`) dan Mobile (`RiwayatSuratTugasScreen.tsx` & `KepegawaianDashboardScreen.tsx`).
+- **Eliminasi Redundansi Teks**: Mengeliminasi suffix durasi tanggal `, selama 1 (satu) hari pada...` atau `, selama 2 (dua) hari terhitung mulai...` dari judul/maksud kegiatan saat ditampilkan di daftar Riwayat Surat Tugas dan Aktivitas Terkini Dashboard.
+- **Tampilan Bersih & Rapi**: Informasi periode tanggal tetap tersedia dengan jelas di kolom/badge tanggal terpisah, sehingga teks maksud kegiatan menjadi lebih bersih, tidak terpotong (truncated), dan ringkas.
+
+---
+
+# Progress - Phase 206: Auto-Update Dashboard Kepegawaian & Eliminasi Portal Refetch Spinner (`KepegawaianDashboardScreen.tsx` & `SuratTugasTab.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Auto Focus Sync Dashboard Kepegawaian Mobile (`KepegawaianDashboardScreen.tsx`)
+- **Implementasi `useFocusEffect`**: Mengganti `useEffect([])` statis dengan `useFocusEffect` dari `@react-navigation/native` agar saat pengguna kembali ke layar Dashboard dari *Riwayat Surat Tugas* / *Edit ST*, data statistik dan status kegiatan (*Aktivitas Terkini*) **langsung terbarui otomatis** tanpa perlu tekan tombol refresh manual.
+- **Silent Background Sync**: Mengkonfigurasi `fetchDashboardData(true)` agar pembaruan di latar belakang berjalan senyap tanpa menampilkan loading spinner berulang.
+
+## 2. Eliminasi Loading Spinner Portal Web Localhost (`SuratTugasTab.tsx` & `portal/page.tsx`)
+- **Pembersihan Layout Shift**: Memperbarui `SuratTugasTab.tsx` dan `fetchSuratTugas()` di `portal/page.tsx` agar spinner `Loader2` *"Memuat surat tugas..."* **hanya muncul jika daftar surat tugas masih kosong**.
+- **Hasil**: Saat data di-refetch di latar belakang, daftar surat tugas pada Web Portal tetap tampil utuh dan mulus tanpa menghilang atau mengalami kelipan UI.
+
+---
+
+# Progress - Phase 205: Best Practices Silent Background Sync (Eliminasi Layout Shift & Refresh Flicker)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Silent Background Polling Mobile (`RiwayatSuratTugasScreen.tsx`)
+- **Eliminasi Visual Flicker**: Mengubah `fetchHistory(silent = false)` agar `setIsLoading(true)` hanya dipanggil pada **initial load pertama kali** (saat daftar kartu masih kosong).
+- **Background Update Mulus**: Pengambilan data berkala di latar belakang (`setInterval(..., 5000)`) tidak lagi meng-unmount daftar kartu atau menampilkan spinner `ActivityIndicator` raksasa, sehingga UI tidak mengalami kelipan/layout shift yang mengganggu.
+
+## 2. Optimalisasi Refetch Interval Web Localhost (`AssignmentHistoryTab.tsx`, `AssignmentInboxTab.tsx`, `inbox/page.tsx`)
+- **Polite Polling Interval**: Menyesuaikan `refetchInterval` menjadi 5000ms dengan `refetchOnWindowFocus: true` untuk memastikan sinkronisasi data antar platform tetap cepat tanpa membebani memori browser.
+
+---
+
+# Progress - Phase 204: Real-Time Auto Sync Cross-Platform (Mobile ↔ Web Localhost) Surat Tugas
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Auto Refetch & Polling Real-Time Web Localhost (`AssignmentHistoryTab.tsx` & `AssignmentInboxTab.tsx`)
+- **Real-Time Synchronisation**: Menambahkan `staleTime: 0`, `refetchInterval: 2000`, dan `refetchOnWindowFocus: true` pada `useQuery` di `AssignmentHistoryTab.tsx` dan `AssignmentInboxTab.tsx`.
+- **Pengalaman Tanpa Manual Refresh**: Saat terjadi penghapusan (soft-delete), pemulihan (restore), pengajuan (submit), atau otorisasi (approve) pada Mobile, tampilan Web Localhost kini langsung terbarui otomatis dalam 2 detik tanpa perlu menekan tombol refresh browser (F5).
+
+## 2. Auto Refetch Interval Mobile (`RiwayatSuratTugasScreen.tsx`)
+- **Mobile Polling Sync**: Menambahkan timer interval 3 detik pada `useFocusEffect` di `RiwayatSuratTugasScreen.tsx` agar tampilan Mobile juga langsung tersinkronkan dengan perubahan yang dilakukan di Web Localhost.
+
+---
+
+# Progress - Phase 203: Refactoring Dialog Notifikasi & Konfirmasi Custom UI Mobile (`RiwayatSuratTugasScreen.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Migrasi Dialog Native `Alert.alert` ke Custom Component UI (`ConfirmModal` & `NotificationModal`)
+- **Penghapusan Native Dialog**: Mengganti seluruh dialog bawaan OS/Android `Alert.alert` pada layar `RiwayatSuratTugasScreen.tsx` dengan komponen modal custom Superapp (`ConfirmModal` & `NotificationModal`).
+- **Desain Glassmorphic & Konsisten**:
+  - **Konfirmasi Hapus ke Sampah**: Menggunakan `ConfirmModal` (variant `danger`, icon `trash-outline`, tombol *"Hapus ke Sampah"* & *"Batal"*).
+  - **Konfirmasi Pulihkan Surat**: Menggunakan `ConfirmModal` (variant `info`, icon `refresh-outline`, tombol *"Pulihkan Surat"* & *"Batal"*).
+  - **Konfirmasi Terbitkan Surat**: Menggunakan `ConfirmModal` (variant `info`, icon `checkmark-circle-outline`, tombol *"Terbitkan Sekarang"* & *"Batal"*).
+  - **Notifikasi Status & Error**: Menggunakan `NotificationModal` (variant `success` / `danger`) dengan pesan instruktif dan tombol *"Saya Mengerti"*.
+
+---
+
+# Progress - Phase 202: Dedicated Screen Riwayat Surat Tugas Mobile & Integrasi Navigasi (Issue #562)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Layar Dedicated Riwayat Surat Tugas (`RiwayatSuratTugasScreen.tsx`)
+- **Fitur Filter Status**: Filter chips horisontal (Semua Status, Draft, Menunggu Persetujuan, Diterbitkan, Ditolak, Selesai) untuk menyaring riwayat surat tugas.
+- **Mode Sampah / Trash (`isTrashMode`)**: Toggle sampah untuk menampilkan data yang di-soft delete (`trashed=true`) dengan tombol aksi **Pulihkan (Restore)** via `POST /api/surat-tugas/{id}/restore`.
+- **UI Responsif Mobile**: Menggunakan `GlassCard` dengan badge warna status, periode tanggal (`formatPeriodeIndo`), nomor surat, maksud kegiatan, lokasi tujuan, dan daftar personil.
+- **Aksi Lengkap Kartu**:
+  - **Edit / Detail**: Navigasi ke `BuatSuratTugasScreen` dalam mode edit.
+  - **Cetak / Share PDF**: Integrasi `downloadAssignmentFile` & `shareFile` untuk pratinjau dan pengunduhan berkas PDF instan.
+  - **Soft Delete**: Menghapus sementara ke Sampah via `DELETE /api/surat-tugas/{id}`.
+  - **Direct Approve**: Menerbitkan surat tugas via `PUT /api/surat-tugas/{id}/approve` (hanya muncul jika status `pending`, disamakan dengan Web Localhost).
+
+## 2. Integrasi Navigasi & FabMenu
+- **AppTabs Navigation**: Mendaftarkan `RiwayatSuratTugas` pada `AppTabParamList` & `AppTabs.tsx`.
+- **Dashboard Kepegawaian (`KepegawaianDashboardScreen.tsx`)**: Menghubungkan rute `"riwayat-surat-tugas"` langsung ke layar `RiwayatSuratTugasScreen`.
+- **FabMenu**: Menyesuaikan pemetaan tombol menu floating ke `RiwayatSuratTugas`.
+
+---
+
+# Progress - Phase 201: Fix Edit Mode Parsing, Database Nomor Surat Unique Constraint & Mobile Ajukan Persetujuan Alignment
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Presisi Parsing Mode Edit Teks Single-Day Activity (`builder/[id]/page.tsx` & `BuatSuratTugasScreen.tsx`)
+- **Web & Mobile Parser**: Memperbarui pembersihan suffix durasi tanggal `, selama ...` secara sempurna dari string `maksud_tujuan` sebelum memisahkan nama kegiatan, tempat/unit lokasi, dan kota tujuan.
+- **Eliminasi Spillage & Reduplikasi**: Mencegah teks tanggal tumpah ke field form input `PADA ( TEMPAT / UNIT / LOKASI )` dan menghapus total duplikasi ganda suffix tanggal pada pratinjau dokumen PDF/HTML.
+
+## 2. Penghapusan Constraint Unique `nomor_surat` di Database & PHP Validation
+- **Pembersihan Validation Rule (`AssignmentLetterRequest.php` & `AssignmentLetterController.php`)**: Menghapus aturan `unique:st_assignment_letters,nomor_surat` pada form request PHP Laravel agar pengguna dapat menyimpan draft / memperbarui Surat Tugas tanpa gagal validasi (Status 422).
+- **Migration PostgreSQL (`2026_08_06_000001_drop_unique_from_st_assignment_letters_nomor_surat.php`)**: Membuat dan menjalankan migration `php artisan migrate` untuk mencabut database-level unique constraint `st_assignment_letters_nomor_surat_unique` di PostgreSQL, menyelesaikan error *SQLSTATE[23505]* (Status 500) saat memperbarui nomor surat.
+- **Robust Manual Employee Handlers**: Menyelaraskan rule validation `employees.*.id` agar menerima string ID pegawai manual (contoh `manual-12345`) dan menambahkan pengecekan `isset() && is_array()` untuk mencegah *Internal Server Error* saat menyimpan draft.
+
+## 3. Penyelarasan Tombol "Ajukan Persetujuan" Mobile dengan Web Localhost (`BuatSuratTugasScreen.tsx`)
+- **Pembersihan Blocking Modal**: Menghapus syarat `setujuData` pada alur mobile sehingga pengguna dapat langsung menekan tombol **Ajukan Persetujuan** persis seperti pada Web Localhost.
+- **Status Payload Pending**: Pengajuan Surat Tugas dari Mobile kini mengirimkan `status: "pending"` dan menampilkan notifikasi sukses *"Surat Tugas Berhasil Diajukan!"* sebelum mengarahkan user kembali ke Inbox.
+
+---
+
 # Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth
 
 > Document updated: 2026-08-04
@@ -7966,5 +8120,34 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
   - Added `padding-top: 15mm` to `.usage-signature-block` & `.handover-signature-block` in `UsageAgreementDocument.tsx` and `HandoverAgreementDocument.tsx` so that when closing text and signature blocks spill onto Page 2, Chromium retains a guaranteed 15mm top margin without collapsing it at the page break.
   - Set `isMultiPageTable = assets.length > 20` so single-page tables (1-20 items, like 16 items) never render the `1, 2, 3, 4, 5, 6, 7, 8, 9` number row on Page 1, while multi-page tables rendering > 20 items display the number row above column headers on Page 2.
   - Executed `npx ctx7 setup` for Upstash Context7 integration.
+
+---
+
+## [2026-08-05] Hak Akses BMN User, Case-Insensitive Search, Auto-Refresh & Surat Tugas Sync Fixes (Phase 196)
+
+### Completed (Selesai)
+- [x] **Perbaikan Hak Akses Modul BMN untuk User Regular**:
+  - Mengupdate middleware `CheckPermission.php` dan `User.php` agar user dengan role `user` yang memiliki hak akses modul `bmn` dapat mengakses **Dashboard BMN** (`/api/bmn/dashboard/stats`) dan **Katalog Aset BMN** (`/api/bmn/assets`, `/api/bmn/assets/{id}`).
+  - Membatasi hak penulisan (tambah/edit aset, hapus aset, upload foto): Tombol aksi write disembunyikan dan endpoint write memberikan HTTP 403 Forbidden untuk role `user`.
+  - User regular dapat melihat detail aset dan mendownload berkas/foto aset secara penuh.
+
+- [x] **Pencarian Aset Case-Insensitive**:
+  - Mengubah pencarian nama/kode aset BMN di `AssetController.php` agar menggunakan pencarian `LOWER()` yang case-insensitive.
+  - Kata kunci seperti `"lap top"`, `"Lap Top"`, atau `"LAP TOP"` kini dapat menemukan data aset yang sama tanpa membedakan huruf besar/kecil.
+  - Menambahkan unit test `AssetSearchTest.php` untuk memverifikasi fungsionalitas pencarian case-insensitive.
+
+- [x] **Pembaruan Otomatis Data Portal Mobile (Auto-Refresh & Revalidation)**:
+  - Mengintegrasikan revalidasi otomatis pada `PortalDashboardScreen.tsx` menggunakan `useFocusEffect` dan interval polling ringan saat layar aktif (15 detik).
+  - Saat admin mengubah data Aset BMN, Surat Tugas, atau Pengajuan Cuti di web localhost/perangkat lain, layar mobile pegawai langsung ter-update secara otomatis tanpa membebani daya baterai atau performa device.
+
+- [x] **Sinkronisasi Dokumen Preview Surat Tugas Mobile Portal dengan Localhost**:
+  - Memperbarui `AssignmentLetterController.php` (`myLetters` & `toMobileListItem`) untuk menyertakan eager loading `employees:id,nama_lengkap,nip,jabatan,satuan_kerja` serta kolom `menimbang`, `dasar`, `tembusan`, `penandatangan_nama`, `penandatangan_nip`, `kode_surat`, dan `template_type`.
+  - Mengubah `PratinjauSuratTugasModal.tsx` pada mobile app agar merender poin **Menimbang**, **Dasar**, **Tembusan**, dan **Penandatangan (Nama & NIP)** secara dinamis dari database, menggantikan nilai statis/hardcoded sebelumnya.
+  - Mengupdate `PortalDashboardScreen.tsx` agar memanggil endpoint `/api/surat-tugas/my/{id}` saat kartu Surat Tugas diklik, sehingga tampilan preview dokumen A4 di mobile 100% presisi dan identik dengan web portal localhost.
+
+### Validation
+- [x] Backend tests: `php artisan test` (59 passed, 0 failed).
+- [x] Mobile tests: `npm test` (62 test suites passed, 298 tests passed).
+
 
 

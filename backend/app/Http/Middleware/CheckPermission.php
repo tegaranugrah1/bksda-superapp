@@ -60,22 +60,6 @@ class CheckPermission
                 }
             }
 
-            // Special exception for BMN asset update: Allow asset owners to upload photos/geotags
-            if ($permission === 'bmn.asset.update') {
-                $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
-                if ($employee) {
-                    $assetId = $request->route('asset');
-                    if ($assetId) {
-                        $asset = \App\Modules\Bmn\Models\Asset::find($assetId);
-                        if ($asset && $this->isAssetOwner($asset, $employee)) {
-                            $actionName = $request->route()->getActionMethod();
-                            if (in_array($actionName, ['upload', 'updateGeotag', 'delete'])) {
-                                return $next($request);
-                            }
-                        }
-                    }
-                }
-            }
 
             return response()->json([
                 'error' => 'Forbidden',

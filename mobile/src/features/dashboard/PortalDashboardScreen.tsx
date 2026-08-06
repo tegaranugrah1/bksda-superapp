@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -80,6 +81,22 @@ const MODULES = [
   },
 ];
 
+function formatDateIndo(dateStr?: string | null): string {
+  if (!dateStr) return "-";
+  const cleaned = String(dateStr).split("T")[0].trim();
+  const parts = cleaned.split("-");
+  if (parts.length === 3) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    const year = parseInt(parts[0], 10);
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    if (!isNaN(year) && !isNaN(monthIdx) && !isNaN(day) && monthIdx >= 0 && monthIdx < 12) {
+      return `${day} ${months[monthIdx]} ${year}`;
+    }
+  }
+  return dateStr;
+}
+
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
   userProfile,
@@ -90,6 +107,19 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [activeTab, setActiveTab] = useState<string>("pinjaman");
   const [myStList, setMyStList] = useState<PratinjauSuratTugasItem[]>([]);
   const [selectedPreviewSt, setSelectedPreviewSt] = useState<PratinjauSuratTugasItem | null>(null);
+
+  const handleOpenStPreview = React.useCallback(async (stItem: any) => {
+    setSelectedPreviewSt(stItem);
+    if (stItem?.id) {
+      try {
+        const response = await apiClient.get<any>(`/surat-tugas/my/${stItem.id}`);
+        const detail = response.data?.data || response.data;
+        if (detail) {
+          setSelectedPreviewSt(detail);
+        }
+      } catch {}
+    }
+  }, []);
 
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequestPrintData[]>([]);
   const [cutiModalVisible, setCutiModalVisible] = useState(false);
@@ -118,21 +148,33 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     } catch {
       setMyAssetsList([]);
     }
-  }, [employee?.id]);
+  }, [employee]);
 
-  React.useEffect(() => {
-    const fetchMySt = async () => {
-      try {
-        const response = await apiClient.get<any>("/surat-tugas/my");
-        if (response.data && Array.isArray(response.data.data)) {
-          setMyStList(response.data.data);
-        }
-      } catch {}
-    };
+  const fetchMySt = React.useCallback(async () => {
+    try {
+      const response = await apiClient.get<any>("/surat-tugas/my");
+      if (response.data && Array.isArray(response.data.data)) {
+        setMyStList(response.data.data);
+      }
+    } catch {}
+  }, []);
+
+  const refreshAllPortalData = React.useCallback(() => {
     fetchMySt();
     fetchMyLeaveRequests();
     fetchMyAssets();
-  }, [fetchMyLeaveRequests, fetchMyAssets]);
+  }, [fetchMySt, fetchMyLeaveRequests, fetchMyAssets]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshAllPortalData();
+      const interval = setInterval(() => {
+        refreshAllPortalData();
+      }, 15000);
+
+      return () => clearInterval(interval);
+    }, [refreshAllPortalData])
+  );
 
   // Dynamic user profile resolution
   const resolvedName =
@@ -311,7 +353,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   <TouchableOpacity
                     style={styles.contentItemRow}
                     activeOpacity={0.7}
-                    onPress={() => setSelectedPreviewSt(stItem)}
+                    onPress={() => handleOpenStPreview(stItem)}
                   >
                     <View style={[styles.contentIconBg, { backgroundColor: "#ecfdf5" }]}>
                       <Ionicons name="document-text" size={20} color="#10b981" />
@@ -327,7 +369,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                           </Text>
                         </View>
                         <Text style={{ color: colors.textMuted, fontSize: 10 }}>
-                          {stItem.tanggal_mulai || "28 Jul 2026"}
+                          {stItem.tanggal_mulai && stItem.tanggal_selesai && stItem.tanggal_mulai.split('T')[0] === stItem.tanggal_selesai.split('T')[0]
+                            ? formatDateIndo(stItem.tanggal_mulai)
+                            : stItem.tanggal_mulai && stItem.tanggal_selesai
+                            ? `${formatDateIndo(stItem.tanggal_mulai)} - ${formatDateIndo(stItem.tanggal_selesai)}`
+                            : formatDateIndo(stItem.tanggal_mulai || "2026-07-28")}
                         </Text>
                       </View>
                     </View>
@@ -335,7 +381,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     {/* Eye Preview Icon Button Matching Screenshot 2 */}
                     <TouchableOpacity
                       style={{ padding: 8, borderRadius: 8, backgroundColor: "#eff6ff" }}
-                      onPress={() => setSelectedPreviewSt(stItem)}
+                      onPress={() => handleOpenStPreview(stItem)}
                     >
                       <Ionicons name="eye-outline" size={18} color="#2563eb" />
                     </TouchableOpacity>
@@ -555,7 +601,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         <View style={styles.heroBanner}>
           <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
           <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
-          <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur.</Text>
+          <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur ({resolvedNip}).</Text>
 
           {/* Quick Actions Row for Employees (Sisa Cuti & Buat Surat Tugas) */}
           <View style={styles.employeeQuickActionsRow}>

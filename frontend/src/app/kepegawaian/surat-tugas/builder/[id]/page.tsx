@@ -23,6 +23,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAxiosError } from "axios";
 import STBuilderPreview from "./STBuilderPreview";
+import { cleanMelaksanakanKegiatanPrefix } from "../../_lib/activity-helpers";
 import {
   formatDateIndonesian,
   formatNIP,
@@ -193,7 +194,9 @@ export default function STBuilderPage() {
     // PLH template: durasi tampil di bagian Untuk, bukan di kegiatan Kepala Seksi.
     if (isPlhTemplate) {
       text = replacePlhPlaceholders(namaKegiatan || "...");
-      if (days > 0) {
+      if (days === 1 || effectiveMulai === effectiveSelesai) {
+        text += ` selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+      } else if (days > 1) {
         text += ` selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
       } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
         text += ".";
@@ -204,13 +207,14 @@ export default function STBuilderPage() {
     if (activityPrefix.includes("Perjalanan Dinas")) {
       text = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
       if (namaKegiatan) {
-        text += ` dalam rangka ${namaKegiatan}`;
+        text += ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatan)}`;
       }
       if (tempatKegiatan) {
         text += ` di ${tempatKegiatan}`;
       }
     } else if (activityPrefix.includes("Melaksanakan Kegiatan")) {
-      text = `Melaksanakan Kegiatan ${namaKegiatan || "..."}`;
+      const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
+      text = `Melaksanakan Kegiatan ${cleanNama || "..."}`;
       if (tempatKegiatan) {
         text += ` pada ${tempatKegiatan}`;
       }
@@ -218,7 +222,7 @@ export default function STBuilderPage() {
         text += ` di ${kotaTujuan}`;
       }
     } else {
-      text = `Menugaskan Staf untuk ${namaKegiatan || "..."}`;
+      text = `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatan) || "..."}`;
       if (tempatKegiatan) {
         text += ` pada ${tempatKegiatan}`;
       }
@@ -227,7 +231,9 @@ export default function STBuilderPage() {
       }
     }
 
-    if (days > 0) {
+    if (days === 1 || effectiveMulai === effectiveSelesai) {
+      text += `, selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+    } else if (days > 1) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
     } else {
       text += ";";
@@ -560,14 +566,12 @@ export default function STBuilderPage() {
         );
 
         const activityStr = storedUntukLines[0] || data.maksud_tujuan || "";
-        // Strip "selama X hari terhitung..." suffix that buildUntukText appends
-        const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*$/i;
-        const cleanedActivity = activityStr.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
+        const cleanedActivity = activityStr.replace(/,?\s*selama\s+.*$/i, "").replace(/[;,.]$/, "").trim();
         
         // Try to parse structured activity text: "[Melaksanakan] Perjalanan Dinas dari X ke Y [dalam rangka Z] [di W]"
         const regex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
-        const singleDayActivity = cleanedActivity.replace(/\s+pada\s+tanggal\s+.+$/i, "").replace(/[;,.]$/, "").trim();
-        const isParsedSingleDayActivity = /^Melaksanakan\s+/i.test(singleDayActivity) && /\s+pada\s+tanggal\s+/i.test(cleanedActivity);
+        const singleDayActivity = cleanedActivity;
+        const isParsedSingleDayActivity = /^Melaksanakan\s+Kegiatan/i.test(singleDayActivity);
         const isOneDayFromSubmittedForm =
           loadedTanggalMulai &&
           loadedTanggalSelesai &&
@@ -577,11 +581,30 @@ export default function STBuilderPage() {
         const match = cleanedActivity.match(regex);
 
         if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match)) {
-          setActivityPrefix("Melaksanakan Kegiatan");
+          setActivityPrefix("Melaksanakan Kegiatan ( 1 Hari )");
           setKotaAsal("");
-          setKotaTujuan("");
-          setTempatKegiatan("");
-          setNamaKegiatan(singleDayActivity);
+          
+          let rest = singleDayActivity.replace(/^Melaksanakan\s+Kegiatan\s*/i, "").trim();
+          let parsedKota = "";
+          let parsedTempat = "";
+          let parsedNama = rest;
+
+          const diMatch = rest.match(/(.*?)\s+di\s+([^,;]+)$/i);
+          if (diMatch) {
+            parsedKota = diMatch[2].trim();
+            rest = diMatch[1].trim();
+          }
+          const padaMatch = rest.match(/(.*?)\s+pada\s+(.+)$/i);
+          if (padaMatch) {
+            parsedNama = padaMatch[1].trim();
+            parsedTempat = padaMatch[2].trim();
+          } else {
+            parsedNama = rest.trim();
+          }
+
+          setKotaTujuan(parsedKota);
+          setTempatKegiatan(parsedTempat);
+          setNamaKegiatan(cleanMelaksanakanKegiatanPrefix(parsedNama));
         } else if (match) {
           setActivityPrefix(match[1]);
           setKotaAsal(match[2].trim());

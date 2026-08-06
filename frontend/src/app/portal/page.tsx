@@ -131,31 +131,38 @@ export default function PersonalDashboard() {
       setSuratTugas([]);
       return;
     }
-    setStLoading(true);
+    if (suratTugas.length === 0) {
+      setStLoading(true);
+    }
     try {
       const resp = await api.get("/surat-tugas/my", { 
         params: { per_page: 20 } 
       });
       setSuratTugas(resp.data.data || []);
-    } catch { setSuratTugas([]); }
-    finally { setStLoading(false); }
-  }, [data]);
+    } catch {
+      // Keep existing list on background error
+    } finally {
+      setStLoading(false);
+    }
+  }, [data, suratTugas.length]);
 
   const fetchAssets = useCallback(async () => {
     if (!data?.employee?.id) {
       setMyAssets([]);
       return;
     }
-    setAssetsLoading(true);
+    if (myAssets.length === 0) {
+      setAssetsLoading(true);
+    }
     try {
       const respMy = await api.get("/bmn/assets", { params: { employee_id: data.employee.id, per_page: 50 } });
       setMyAssets(respMy.data.data || []);
     } catch {
-      setMyAssets([]);
+      // Keep existing list on background error
     } finally {
       setAssetsLoading(false);
     }
-  }, [data]);
+  }, [data, myAssets.length]);
 
   const fetchSTDetail = useCallback(async (id: string) => {
     setStDetailLoading(true);
@@ -185,8 +192,8 @@ export default function PersonalDashboard() {
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { 
-    if (activeTab === "aset") fetchAssets();
-  }, [activeTab, fetchAssets]);
+    if (data?.employee?.id) fetchAssets();
+  }, [data?.employee?.id, activeTab, fetchAssets]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Fetch leave balance for logged-in employee
@@ -213,6 +220,36 @@ export default function PersonalDashboard() {
     fetchMyLeaveRequests();
   }, [fetchMyLeaveRequests]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const fetchAllPortalData = useCallback(() => {
+    fetchDashboard();
+    fetchSuratTugas();
+    fetchAssets();
+    fetchMyLeaveRequests();
+  }, [fetchDashboard, fetchSuratTugas, fetchAssets, fetchMyLeaveRequests]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchAllPortalData();
+      }
+    }, 15000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        fetchAllPortalData();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [fetchAllPortalData]);
 
   const handleLogout = () => { authStore.logout(); router.push("/login"); };
 
