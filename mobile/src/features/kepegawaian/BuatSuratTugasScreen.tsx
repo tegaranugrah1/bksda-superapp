@@ -1352,8 +1352,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   };
 
   const handleSubmitSuratTugas = async () => {
-    if (!setujuData) {
-      showNotif("Persetujuan Diperlukan", "Silakan beri centang persetujuan bahwa data pengajuan sudah benar.");
+    if (selectedEmployees.length === 0) {
+      showNotif("Personil Diperlukan", "Silakan pilih minimal 1 pegawai personil.");
+      return;
+    }
+    if (!tanggalMulai || !tanggalSelesai) {
+      showNotif("Tanggal Diperlukan", "Silakan tentukan tanggal pelaksanaan kegiatan.");
       return;
     }
 
@@ -1386,6 +1390,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         .filter(Boolean);
 
       const payload: any = {
+        status: "pending",
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
         maksud_tujuan: fullMaksudTujuan,
@@ -1413,8 +1418,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         await apiClient.put(`/surat-tugas/${editId}`, payload);
 
         showNotif(
-          "Surat Tugas Berhasil Diperbarui!",
-          `Surat Tugas telah berhasil diperbarui.`,
+          "Surat Tugas Berhasil Diajukan!",
+          `Surat Tugas telah diajukan. Menunggu persetujuan Kasubag.`,
           "success",
           () => {
             setNotification((prev) => ({ ...prev, visible: false }));
