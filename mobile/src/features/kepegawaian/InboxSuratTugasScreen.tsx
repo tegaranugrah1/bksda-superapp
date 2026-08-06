@@ -96,9 +96,25 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
 
   const fetchSuratTugas = async () => {
     try {
-      const response = await apiClient.get<any>("/surat-tugas/my");
-      if (response.data && Array.isArray(response.data.data)) {
-        const apiList = response.data.data.map((st: any) => {
+      let rawList: any[] = [];
+      try {
+        const response = await apiClient.get<any>("/surat-tugas?mobile=true");
+        if (response.data && Array.isArray(response.data.data)) {
+          rawList = response.data.data;
+        }
+      } catch {}
+
+      if (rawList.length === 0) {
+        try {
+          const myRes = await apiClient.get<any>("/surat-tugas/my");
+          if (myRes.data && Array.isArray(myRes.data.data)) {
+            rawList = myRes.data.data;
+          }
+        } catch {}
+      }
+
+      if (rawList.length > 0) {
+        const apiList = rawList.map((st: any) => {
           const rawStatus = (st.status || "DRAFT").toUpperCase();
           const statusColor =
             rawStatus === "DITERBITKAN" || rawStatus === "APPROVED"
