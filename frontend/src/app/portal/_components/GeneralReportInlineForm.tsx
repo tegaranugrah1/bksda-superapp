@@ -1,0 +1,721 @@
+"use client";
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  FileText,
+  Plus,
+  Trash2,
+  Printer,
+  Sparkles,
+  CheckCircle2,
+  ArrowLeft,
+  Image as ImageIcon,
+  Loader2,
+  Layers,
+} from "lucide-react";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { GeneralReportPrint, GeneralReportData } from "./GeneralReportPrint";
+
+interface GeneralReportInlineFormProps {
+  onBack: () => void;
+}
+
+interface MySuratTugasOption {
+  id: string;
+  nomor_surat: string | null;
+  maksud_tujuan: string;
+  tempat_tujuan: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  status: string;
+}
+
+function formatDateIndo(dateStr?: string | null): string {
+  if (!dateStr) return "-";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch (e) {
+    return dateStr || "-";
+  }
+}
+
+function getDurationInDays(startStr: string, endStr: string): number {
+  try {
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
+  } catch {
+    return 1;
+  }
+}
+
+function numberToTerbilang(num: number): string {
+  const terbilangMap: Record<number, string> = {
+    1: "satu",
+    2: "dua",
+    3: "tiga",
+    4: "empat",
+    5: "lima",
+    6: "enam",
+    7: "tujuh",
+    8: "delapan",
+    9: "sembilan",
+    10: "sepuluh",
+  };
+  return terbilangMap[num] || String(num);
+}
+
+export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps) {
+  // State for Surat Tugas Options
+  const [stOptions, setStOptions] = useState<MySuratTugasOption[]>([]);
+  const [loadingSTOptions, setLoadingSTOptions] = useState(false);
+  const [selectedSTId, setSelectedSTId] = useState<string>("");
+
+  // Report Form States
+  const [judulLaporan, setJudulLaporan] = useState("");
+  const [kotaLaporan, setKotaLaporan] = useState("Samarinda");
+  const [tanggalLaporan, setTanggalLaporan] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+
+  const [agendaPelaksanaan, setAgendaPelaksanaan] = useState("");
+  const [dasarPelaksanaan, setDasarPelaksanaan] = useState<string[]>([
+    "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam Kalimantan Timur.",
+    "Pengesahan DIPA Tahun Anggaran 2026 Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: DIPA-143.04.2.693614/2026 tanggal 08 Juli 2026.",
+  ]);
+
+  const [maksudText, setMaksudText] = useState("");
+  const [tujuanText, setTujuanText] = useState("");
+
+  const [pelaksana, setPelaksana] = useState<
+    Array<{ no: number; nama_lengkap: string; nip: string; jabatan: string }>
+  >([]);
+
+  const [waktuTempat, setWaktuTempat] = useState("");
+
+  const [hasilPelaksanaan, setHasilPelaksanaan] = useState<string[]>([
+    "Pada hari pertama, mendatangi lokasi penugasan resmi untuk berkoordinasi dan memverifikasi berkas.",
+    "Pada hari kedua, menghadiri serta memantau penutupan pelaksanaan lelang/kegiatan secara tertib.",
+  ]);
+
+  const [dokumentasiFoto, setDokumentasiFoto] = useState<
+    Array<{ url: string; caption?: string }>
+  >([]);
+
+  // Print Mode State
+  const [isPrintMode, setIsPrintMode] = useState(false);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const fetchMySuratTugas = useCallback(async () => {
+    setLoadingSTOptions(true);
+    try {
+      const resp = await api.get("/surat-tugas/my", { params: { per_page: 50 } });
+      const dataArray = resp.data?.data || resp.data || [];
+      setStOptions(Array.isArray(dataArray) ? dataArray : []);
+    } catch {
+      toast.error("Gagal memuat daftar Surat Tugas.");
+    } finally {
+      setLoadingSTOptions(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMySuratTugas();
+  }, [fetchMySuratTugas]);
+
+  // Auto-populate when selecting a Surat Tugas
+  const handleSelectSuratTugas = async (stId: string) => {
+    setSelectedSTId(stId);
+    if (!stId) return;
+
+    try {
+      const resp = await api.get(`/surat-tugas/my/${stId}`);
+      const st = resp.data?.data || resp.data;
+      if (!st) return;
+
+      // 1. Judul Laporan Auto
+      const cleanTitle = (st.maksud_tujuan || "")
+        .replace(/[,;]?\s*selama\s+\d+.*$/i, "")
+        .trim();
+      setJudulLaporan(`LAPORAN PELAKSANAAN ${cleanTitle.toUpperCase()}`);
+
+      // 2. Agenda Pelaksanaan Auto
+      setAgendaPelaksanaan(cleanTitle);
+
+      // 3. Dasar Pelaksanaan Auto (+ Item #3)
+      const baseDasar = [
+        "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam Kalimantan Timur.",
+        "Pengesahan DIPA Tahun Anggaran 2026 Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: DIPA-143.04.2.693614/2026 tanggal 08 Juli 2026.",
+      ];
+      if (st.nomor_surat) {
+        const stDateStr = formatDateIndo(st.tanggal_surat || st.tanggal_mulai);
+        baseDasar.push(
+          `Surat Tugas Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor : ${st.nomor_surat} tanggal ${stDateStr}.`
+        );
+      }
+      setDasarPelaksanaan(baseDasar);
+
+      // 4. Maksud & Tujuan Auto
+      setMaksudText(cleanTitle);
+      setTujuanText(
+        `memverifikasi pelaksanaan ${cleanTitle} dan memastikan koordinasi teknis berjalan lancar.`
+      );
+
+      // 5. Pelaksana Auto
+      if (Array.isArray(st.employees) && st.employees.length > 0) {
+        setPelaksana(
+          st.employees.map((e: any, idx: number) => ({
+            no: idx + 1,
+            nama_lengkap: e.nama_lengkap || e.name || "Pegawai",
+            nip: e.nip || "-",
+            jabatan: e.jabatan || "Pelaksana",
+          }))
+        );
+      }
+
+      // 6. Waktu & Tempat Auto
+      const daysCount = getDurationInDays(st.tanggal_mulai, st.tanggal_selesai);
+      const daysTerbilang = numberToTerbilang(daysCount);
+      const tglMulaiStr = formatDateIndo(st.tanggal_mulai);
+      const tglSelesaiStr = formatDateIndo(st.tanggal_selesai);
+      const tempatStr = st.tempat_tujuan || "Kalimantan Timur";
+
+      setWaktuTempat(
+        `Kegiatan ${cleanTitle} ini dilaksanakan selama ${daysCount} (${daysTerbilang}) hari terhitung mulai tanggal ${tglMulaiStr} sampai dengan ${tglSelesaiStr} di ${tempatStr}.`
+      );
+
+      toast.success("Data laporan berhasil diisi otomatis dari Surat Tugas!");
+    } catch {
+      toast.error("Gagal mengambil detail Surat Tugas.");
+    }
+  };
+
+  // Handler for Photo Upload
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        const resultUrl = uploadEvent.target?.result as string;
+        if (resultUrl) {
+          setDokumentasiFoto((prev) => [
+            ...prev,
+            { url: resultUrl, caption: file.name.split(".")[0] },
+          ]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removePhoto = (index: number) => {
+    setDokumentasiFoto((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updatePhotoCaption = (index: number, caption: string) => {
+    setDokumentasiFoto((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, caption } : p))
+    );
+  };
+
+  // Consolidated Report Data Object
+  const reportData: GeneralReportData = {
+    judul_laporan: judulLaporan,
+    kota_laporan: kotaLaporan,
+    tanggal_laporan: tanggalLaporan,
+    agenda_pelaksanaan: agendaPelaksanaan,
+    dasar_pelaksanaan: dasarPelaksanaan,
+    maksud_tujuan: `Maksud kegiatan ini adalah ${maksudText} dan dengan tujuan untuk ${tujuanText}.`,
+    pelaksana: pelaksana,
+    waktu_tempat_pelaksanaan: waktuTempat,
+    hasil_pelaksanaan: hasilPelaksanaan,
+    dokumentasi_foto: dokumentasiFoto,
+  };
+
+  return (
+    <div className="w-full bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+      {/* Header Bar */}
+      <div className="p-5 sm:p-6 bg-slate-900 text-white border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onBack}
+            className="text-slate-300 hover:text-white hover:bg-slate-800 h-10 px-3 rounded-xl gap-2 text-xs font-bold transition-all"
+          >
+            <ArrowLeft className="w-4 h-4 text-emerald-400" />
+            Kembali ke Portal
+          </Button>
+          <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+          <div>
+            <h2 className="text-base font-black tracking-tight text-white flex items-center gap-2">
+              <FileText className="w-4 h-4 text-emerald-400" />
+              Formulir Laporan Pelaksanaan Surat Tugas
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              Isi formulir secara interaktif atau pilih Surat Tugas acuan untuk pengisian otomatis.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <Button
+            type="button"
+            onClick={() => setIsPrintMode(!isPrintMode)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl gap-1.5 shadow-sm"
+          >
+            {isPrintMode ? (
+              <>
+                <Layers className="w-4 h-4" />
+                Mode Form Edit
+              </>
+            ) : (
+              <>
+                <Printer className="w-4 h-4" />
+                Pratinjau CETAK PDF
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {isPrintMode ? (
+        /* PRINT PREVIEW MODE */
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 p-4 rounded-2xl">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
+              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                Pratinjau Format Resmi Laporan BKSDA Kaltim
+              </span>
+            </div>
+            <Button
+              onClick={handlePrint}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 rounded-xl shadow-md gap-1.5"
+            >
+              <Printer className="w-4 h-4" />
+              Cetak Dokumen Sekarang
+            </Button>
+          </div>
+
+          <div className="border rounded-2xl p-6 bg-gray-50 overflow-x-auto shadow-inner">
+            <GeneralReportPrint data={reportData} />
+          </div>
+        </div>
+      ) : (
+        /* FORM EDIT MODE */
+        <div className="p-6 space-y-6">
+          {/* 1. PICK SURAT TUGAS ACUAN */}
+          <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/70 dark:border-emerald-800/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                Pilih Surat Tugas Acuan (Opsional)
+              </Label>
+              {loadingSTOptions && (
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+              )}
+            </div>
+            <select
+              value={selectedSTId}
+              onChange={(e) => handleSelectSuratTugas(e.target.value)}
+              className="w-full p-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-emerald-300 dark:border-emerald-700 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+            >
+              <option value="">[ Tanpa Surat Tugas / Input Manual ]</option>
+              {stOptions.map((st) => (
+                <option key={st.id} value={st.id}>
+                  {st.nomor_surat ? `${st.nomor_surat} - ` : ""}
+                  {st.maksud_tujuan.substring(0, 60)}... ({formatDateIndo(st.tanggal_mulai)})
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Memilih Surat Tugas akan otomatis mengisi Agenda, Dasar, Pelaksana, dan Waktu Pelaksanaan. Pilih &quot;Tanpa Surat Tugas&quot; jika ingin mengisi manual.
+            </p>
+          </div>
+
+          {/* 2. JUDUL & TANGGAL LAPORAN */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2 space-y-1.5">
+              <Label className="text-xs font-bold">Judul Laporan</Label>
+              <Input
+                value={judulLaporan}
+                onChange={(e) => setJudulLaporan(e.target.value)}
+                placeholder="Contoh: LAPORAN PELAKSANAAN LELANG BMN BALAI KSDA KALIMANTAN TIMUR"
+                className="rounded-xl text-xs font-semibold"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Tanggal Laporan</Label>
+              <Input
+                type="date"
+                value={tanggalLaporan}
+                onChange={(e) => setTanggalLaporan(e.target.value)}
+                className="rounded-xl text-xs font-semibold"
+              />
+            </div>
+          </div>
+
+          {/* SECTION A: AGENDA PELAKSANAAN */}
+          <div className="space-y-1.5 border-t border-slate-100 dark:border-zinc-800 pt-4">
+            <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              A. Agenda Pelaksanaan
+            </Label>
+            <Textarea
+              rows={2}
+              value={agendaPelaksanaan}
+              onChange={(e) => setAgendaPelaksanaan(e.target.value)}
+              placeholder="Melaksanakan Perjalanan Dinas dari Samarinda ke..."
+              className="rounded-xl text-xs font-medium"
+            />
+          </div>
+
+          {/* SECTION B: DASAR PELAKSANAAN */}
+          <div className="space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                B. Dasar Pelaksanaan
+              </Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  setDasarPelaksanaan((prev) => [...prev, "Poin dasar baru..."])
+                }
+                className="text-xs text-blue-600 h-7 gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Tambah Dasar
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {dasarPelaksanaan.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-400 w-5">
+                    {idx + 1}.
+                  </span>
+                  <Input
+                    value={item}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setDasarPelaksanaan((prev) =>
+                        prev.map((d, i) => (i === idx ? val : d))
+                      );
+                    }}
+                    className="rounded-xl text-xs font-medium flex-1"
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() =>
+                      setDasarPelaksanaan((prev) => prev.filter((_, i) => i !== idx))
+                    }
+                    className="h-8 w-8 text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SECTION C: MAKSUD DAN TUJUAN */}
+          <div className="space-y-3 border-t border-slate-100 dark:border-zinc-800 pt-4">
+            <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              C. Maksud dan Tujuan
+            </Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-slate-500 font-semibold">
+                  Maksud Kegiatan:
+                </Label>
+                <Textarea
+                  rows={2}
+                  value={maksudText}
+                  onChange={(e) => setMaksudText(e.target.value)}
+                  placeholder="Melaksanakan Perjalanan Dinas dari..."
+                  className="rounded-xl text-xs font-medium"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-slate-500 font-semibold">
+                  Tujuan Spesifik Kegiatan:
+                </Label>
+                <Textarea
+                  rows={2}
+                  value={tujuanText}
+                  onChange={(e) => setTujuanText(e.target.value)}
+                  placeholder="memverifikasi berkas kendaraan dan koordinasi..."
+                  className="rounded-xl text-xs font-medium"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION D: PELAKSANA */}
+          <div className="space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                D. Daftar Pelaksana Kegiatan
+              </Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  setPelaksana((prev) => [
+                    ...prev,
+                    {
+                      no: prev.length + 1,
+                      nama_lengkap: "Pegawai Baru",
+                      nip: "-",
+                      jabatan: "Staf",
+                    },
+                  ])
+                }
+                className="text-xs text-blue-600 h-7 gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Tambah Pelaksana
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {pelaksana.map((p, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-1 md:grid-cols-3 gap-2 p-2 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 items-center"
+                >
+                  <Input
+                    value={p.nama_lengkap}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPelaksana((prev) =>
+                        prev.map((item, i) =>
+                          i === idx ? { ...item, nama_lengkap: val } : item
+                        )
+                      );
+                    }}
+                    placeholder="Nama Lengkap"
+                    className="rounded-lg text-xs font-semibold"
+                  />
+                  <Input
+                    value={p.nip}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPelaksana((prev) =>
+                        prev.map((item, i) =>
+                          i === idx ? { ...item, nip: val } : item
+                        )
+                      );
+                    }}
+                    placeholder="NIP"
+                    className="rounded-lg text-xs font-mono"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={p.jabatan}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPelaksana((prev) =>
+                          prev.map((item, i) =>
+                            i === idx ? { ...item, jabatan: val } : item
+                          )
+                        );
+                      }}
+                      placeholder="Jabatan"
+                      className="rounded-lg text-xs flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() =>
+                        setPelaksana((prev) =>
+                          prev.filter((_, i) => i !== idx)
+                        )
+                      }
+                      className="h-8 w-8 text-red-500 hover:text-red-700 shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SECTION E: WAKTU DAN TEMPAT */}
+          <div className="space-y-1.5 border-t border-slate-100 dark:border-zinc-800 pt-4">
+            <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              E. Waktu dan Tempat Pelaksanaan
+            </Label>
+            <Textarea
+              rows={2}
+              value={waktuTempat}
+              onChange={(e) => setWaktuTempat(e.target.value)}
+              placeholder="Kegiatan ini dilaksanakan selama 2 (dua) hari terhitung mulai..."
+              className="rounded-xl text-xs font-medium"
+            />
+          </div>
+
+          {/* SECTION F: HASIL PELAKSANAAN */}
+          <div className="space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                F. Hasil Pelaksanaan (Kronologis Hari)
+              </Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  setHasilPelaksanaan((prev) => [
+                    ...prev,
+                    "Pada hari berikutnya, melanjutkan penugasan...",
+                  ])
+                }
+                className="text-xs text-blue-600 h-7 gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Tambah Poin Hasil
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {hasilPelaksanaan.map((h, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <span className="text-xs font-bold text-slate-400 w-5 mt-2">
+                    {idx + 1}.
+                  </span>
+                  <Textarea
+                    rows={3}
+                    value={h}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setHasilPelaksanaan((prev) =>
+                        prev.map((item, i) => (i === idx ? val : item))
+                      );
+                    }}
+                    className="rounded-xl text-xs font-medium flex-1"
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() =>
+                      setHasilPelaksanaan((prev) =>
+                        prev.filter((_, i) => i !== idx)
+                      )
+                    }
+                    className="h-8 w-8 text-red-500 hover:text-red-700 mt-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SECTION G: DOKUMENTASI FOTO */}
+          <div className="space-y-3 border-t border-slate-100 dark:border-zinc-800 pt-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-emerald-600" />
+                G. Dokumentasi Foto Lapangan
+              </Label>
+              <label className="cursor-pointer bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5">
+                <Plus className="w-3.5 h-3.5" />
+                Unggah Foto
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {dokumentasiFoto.length === 0 ? (
+              <div className="p-6 text-center border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl bg-slate-50/50 dark:bg-zinc-800/30">
+                <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-xs text-slate-400 font-medium">
+                  Belum ada foto dokumentasi. Klik &quot;Unggah Foto&quot; untuk menambahkan foto kegiatan.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {dokumentasiFoto.map((foto, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2 border rounded-xl bg-white dark:bg-zinc-800 space-y-2 relative group"
+                  >
+                    <div className="w-full h-32 bg-slate-100 rounded-lg overflow-hidden relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={foto.url}
+                        alt={`Dokumentasi ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(idx)}
+                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-lg opacity-80 hover:opacity-100 shadow"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <Input
+                      value={foto.caption || ""}
+                      onChange={(e) => updatePhotoCaption(idx, e.target.value)}
+                      placeholder="Keterangan foto..."
+                      className="rounded-lg text-[10px] h-7 font-medium"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ACTION BUTTONS */}
+          <div className="pt-4 border-t border-slate-100 dark:border-zinc-800 flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onBack}
+              className="rounded-xl text-xs h-10 px-5"
+            >
+              Kembali
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setIsPrintMode(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-6 rounded-xl shadow-md gap-2"
+            >
+              <Printer className="w-4 h-4" />
+              Pratinjau & Cetak Laporan
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -32,6 +32,7 @@ import { MyAssetsTab, AssetItem } from "./_components/MyAssetsTab";
 import { MyLeaveTab } from "./_components/MyLeaveTab";
 import { ActiveLoansTab, BorrowedAssetItem } from "./_components/ActiveLoansTab";
 import { GeneralReportDialog } from "./_components/GeneralReportDialog";
+import { GeneralReportInlineForm } from "./_components/GeneralReportInlineForm";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -116,8 +117,9 @@ export default function PersonalDashboard() {
   const [stDetail, setStDetail] = useState<SuratTugasDetail | null>(null);
   const [stDetailLoading, setStDetailLoading] = useState(false);
 
-  // General Report Builder dialog state
+  // General Report Builder state
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [showInlineReport, setShowInlineReport] = useState(false);
 
   const filteredMyAssets = useMemo(() => {
     if (!data?.my_assets) return myAssets;
@@ -396,7 +398,7 @@ export default function PersonalDashboard() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl shadow-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
                     <DropdownMenuItem
-                      onClick={() => setReportDialogOpen(true)}
+                      onClick={() => setShowInlineReport(true)}
                       className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-bold text-slate-800 dark:text-slate-200"
                     >
                       <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 flex items-center justify-center shrink-0">
@@ -438,95 +440,102 @@ export default function PersonalDashboard() {
               </div>
             </div>
 
-            {/* Module Grid */}
-            {moduleCards.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Modul Akses</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                  {moduleCards.map((mod) => (
-                    <Link key={mod.key} href={mod.href} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
-                      <div className={cn("w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2", mod.bg, mod.color)}>
-                        {mod.icon}
-                      </div>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{mod.label}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{mod.desc}</p>
-                    </Link>
-                  ))}
+            {/* Main Section: Form Inline or Dashboard Grid */}
+            {showInlineReport ? (
+              <GeneralReportInlineForm onBack={() => setShowInlineReport(false)} />
+            ) : (
+              <>
+                {/* Module Grid */}
+                {moduleCards.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Modul Akses</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {moduleCards.map((mod) => (
+                        <Link key={mod.key} href={mod.href} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
+                          <div className={cn("w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2", mod.bg, mod.color)}>
+                            {mod.icon}
+                          </div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{mod.label}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">{mod.desc}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tabs Section */}
+                <div>
+                  <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-1 mb-4">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={cn(
+                          "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
+                          activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        )}
+                      >
+                        {tab.icon} {tab.label}
+                        {tab.count !== undefined && tab.count > 0 && (
+                          <span className={cn(
+                            "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                            activeTab === tab.key ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                          )}>
+                            {tab.count}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Tab: Pinjaman Aktif */}
+                  {activeTab === "pinjaman" && (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                      <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
+                    </div>
+                  )}
+
+                  {/* Tab: Aset Saya */}
+                  {activeTab === "aset" && (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                      <MyAssetsTab
+                        assetsLoading={assetsLoading}
+                        filteredMyAssets={filteredMyAssets as AssetItem[]}
+                        assetViewMode={assetViewMode}
+                        setAssetViewMode={setAssetViewMode}
+                      />
+                    </div>
+                  )}
+
+                  {/* Tab: Surat Tugas */}
+                  {activeTab === "surat_tugas" && (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                      <SuratTugasTab
+                        stLoading={stLoading}
+                        suratTugas={suratTugas}
+                        fetchSTDetail={fetchSTDetail}
+                        stDetailLoading={stDetailLoading}
+                        onOpenReportModal={() => setShowInlineReport(true)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Tab: Cuti Saya */}
+                  {activeTab === "cuti" && (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                      <MyLeaveTab
+                        myLeaveRequests={myLeaveRequests}
+                        onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
+                        onPrintLeave={(item) => {
+                          setPrintLeaveData(item);
+                          setTimeout(() => window.print(), 300);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
+              </>
             )}
-
-            {/* Tabs Section */}
-            <div>
-              <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-1 mb-4">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
-                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                    )}
-                  >
-                    {tab.icon} {tab.label}
-                    {tab.count !== undefined && tab.count > 0 && (
-                      <span className={cn(
-                        "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                        activeTab === tab.key ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-                      )}>
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab: Pinjaman Aktif */}
-              {activeTab === "pinjaman" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
-                </div>
-              )}
-
-              {/* Tab: Aset Saya */}
-              {activeTab === "aset" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <MyAssetsTab
-                    assetsLoading={assetsLoading}
-                    filteredMyAssets={filteredMyAssets as AssetItem[]}
-                    assetViewMode={assetViewMode}
-                    setAssetViewMode={setAssetViewMode}
-                  />
-                </div>
-              )}
-
-              {/* Tab: Surat Tugas */}
-              {activeTab === "surat_tugas" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <SuratTugasTab
-                    stLoading={stLoading}
-                    suratTugas={suratTugas}
-                    fetchSTDetail={fetchSTDetail}
-                    stDetailLoading={stDetailLoading}
-                    onOpenReportModal={() => setReportDialogOpen(true)}
-                  />
-                </div>
-              )}
-
-              {/* Tab: Cuti Saya */}
-              {activeTab === "cuti" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <MyLeaveTab
-                    myLeaveRequests={myLeaveRequests}
-                    onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
-                    onPrintLeave={(item) => {
-                      setPrintLeaveData(item);
-                      setTimeout(() => window.print(), 300);
-                    }}
-                  />
-                </div>
-              )}
-            </div>
           </main>
         </div>
 

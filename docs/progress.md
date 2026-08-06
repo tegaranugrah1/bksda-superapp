@@ -1,3 +1,17 @@
+# Progress - Phase 212: Implementasi Form Laporan Inline & Animasi Transisi Tampilan Portal (`GeneralReportInlineForm.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Integrasi Form Laporan Inline & Animasi Transisi (`GeneralReportInlineForm.tsx`)
+- **Tampilan Inline Menggantikan Modal Pop-up**: Mengganti modal pop-up dengan tampilan Form Inline (`GeneralReportInlineForm.tsx`) yang menggantikan seksi Modul Akses dan Tab Konten secara langsung di halaman Portal.
+- **Animasi Transisi Halus (`animate-in fade-in slide-in-from-top-4 duration-300`)**: Saat pengguna memilih *"1. Laporan Pelaksanaan"*, form pembuatan laporan muncul dengan animasi transisi yang mulus dan elegan.
+- **Navigasi Kembalian Kustom (`← Kembali ke Portal`)**: Menyediakan tombol header *"← Kembali ke Portal"* untuk kembali ke tampilan utama Portal Dashboard kapan saja secara fleksibel.
+
+---
+
 # Progress - Phase 211: Refactoring Tombol "Buat Laporan" ke Dropdown Menu Multi-Template & Responsive Modal Fix
 
 > Document updated: 2026-08-06
