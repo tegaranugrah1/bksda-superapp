@@ -482,7 +482,7 @@ class AssignmentLetterController extends Controller
     {
         $request->validate([
             'status' => 'required|in:pending,approved,rejected,completed',
-            'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
+            'nomor_surat' => 'nullable|string',
         ]);
 
         $surat = AssignmentLetter::findOrFail($id);
@@ -605,7 +605,7 @@ class AssignmentLetterController extends Controller
     public function approve(Request $request, string $id)
     {
         $request->validate([
-            'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
+            'nomor_surat' => 'nullable|string',
             'kode_surat' => 'nullable|string',
             'nama_kegiatan' => 'nullable|string',
             'tanggal_mulai' => 'nullable|date',
@@ -720,7 +720,7 @@ class AssignmentLetterController extends Controller
     public function directStore(Request $request)
     {
         $request->validate([
-            'nomor_surat' => 'required|string|unique:st_assignment_letters,nomor_surat',
+            'nomor_surat' => 'required|string',
             'kode_surat' => 'nullable|string',
             'maksud_tujuan' => 'required|string',
             'tanggal_mulai' => 'required|date',

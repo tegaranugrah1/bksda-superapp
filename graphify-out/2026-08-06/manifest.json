@@ -2490,8 +2490,8 @@
     "semantic_hash": "750ce65eb50b8c03f6bc81fcdc28c117"
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx": {
-    "mtime": 1785978311.542853,
-    "ast_hash": "f0838aa4529a4eb109cd2a17da6356e6",
+    "mtime": 1785979541.1263154,
+    "ast_hash": "012f3f9fd684edc2d13cdd18e8ac002e",
     "semantic_hash": ""
   },
   "frontend/src/app/lapor/page.tsx": {
@@ -5305,8 +5305,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx": {
-    "mtime": 1785977153.865301,
-    "ast_hash": "89710dabee8ac4e38733a73a23a315b9",
+    "mtime": 1785979566.0137644,
+    "ast_hash": "2b760a6f821fae9adbf8d4f2d9f95a95",
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/KepegawaianScreen.tsx": {

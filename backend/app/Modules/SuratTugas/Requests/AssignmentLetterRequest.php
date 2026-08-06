@@ -21,11 +21,7 @@ class AssignmentLetterRequest extends FormRequest
         $isDraft = strtolower((string) $this->input('status')) === 'draft';
 
         $rules = [
-            'nomor_surat' => [
-                'nullable',
-                'string',
-                Rule::unique('st_assignment_letters', 'nomor_surat')->ignore($letterId),
-            ],
+            'nomor_surat' => 'nullable|string',
             'kode_surat' => 'nullable|string',
             'tanggal_surat' => 'nullable|date',
             'maksud_tujuan' => $isDraft ? 'nullable|string' : 'required|string|min:5',
