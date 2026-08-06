@@ -1020,9 +1020,9 @@
     "semantic_hash": "64a880a335ba887db644572dda1e0857"
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
-    "mtime": 1785131863.5400019,
-    "ast_hash": "47efb24c3f477307c46b9e6b7dd4f4de",
-    "semantic_hash": "47efb24c3f477307c46b9e6b7dd4f4de"
+    "mtime": 1785984419.9427476,
+    "ast_hash": "3fbc517faeeb9620c7c347a979404d7f",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeLeave.php": {
     "mtime": 1785131863.5410063,
@@ -1435,9 +1435,9 @@
     "semantic_hash": "d8a246e7cd9cf8ebe3396c034433e940"
   },
   "backend/database/seeders/SuperAdminSeeder.php": {
-    "mtime": 1785369781.9317038,
-    "ast_hash": "c52e099f785ce78c73510d46f76f01e3",
-    "semantic_hash": "c52e099f785ce78c73510d46f76f01e3"
+    "mtime": 1785984413.077726,
+    "ast_hash": "05f51bcd4bc1bd85f514904d9e256d2f",
+    "semantic_hash": ""
   },
   "backend/database/seeders/UpdateAssetLocationSeeder.php": {
     "mtime": 1778401382.355986,
@@ -4405,8 +4405,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1785984138.7141628,
-    "ast_hash": "7a919ee82977ae7bae69646482fb3659",
+    "mtime": 1785984487.8868577,
+    "ast_hash": "36b658a55036da52503f22e91ad56c1a",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5310,8 +5310,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/KepegawaianScreen.tsx": {
-    "mtime": 1785830673.264233,
-    "ast_hash": "0678d343bc932d3844118d7fdff28280",
+    "mtime": 1785984440.9057634,
+    "ast_hash": "659829b041144a4510bfc6d3fd7beedb",
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/TambahPegawaiScreen.tsx": {

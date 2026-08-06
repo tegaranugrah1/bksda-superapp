@@ -1,3 +1,17 @@
+# Progress - Phase 209: Refactoring Linter Warning & Optimalisasi React Effect (`KepegawaianScreen.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Optimalisasi React Effect & Penyelesaian Warning Linter (`KepegawaianScreen.tsx`)
+- **Penyelesaian Cascading Render Error**: Mengganti panggilan `setState` langsung dalam `useEffect` dengan `useFocusEffect` dan `useCallback` dari `@react-navigation/native` agar tidak memicu cascading re-render yang mempengaruhi performa.
+- **Pembersihan Kode Mati (Dead Code)**: Menghapus variabel tak terpakai `toggleTheme` dan array mock `defaultEmployeeList`.
+- **Integrasi Tombol Hak Akses (Key Action)**: Menghubungkan fungsi `handleOpenAccess` pada tombol aksi ikon kunci (`key-outline`) untuk pengguna bertipe `super_admin`.
+
+---
+
 # Progress - Phase 208: Penyembunyian Akun Administrator Pusat dari Daftar & Statistik Pegawai
 
 > Document updated: 2026-08-06
