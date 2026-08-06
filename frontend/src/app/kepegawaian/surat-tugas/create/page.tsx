@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAxiosError } from "axios";
 import STBuilderPreview from "../builder/[id]/STBuilderPreview";
+import { cleanMelaksanakanKegiatanPrefix } from "../_lib/activity-helpers";
 import {
   formatDateIndonesian,
   formatNIP,
@@ -425,7 +426,9 @@ export default function STCreatePremiumPage() {
     // PLH template: durasi tampil di bagian Untuk, bukan di kegiatan Kepala Seksi.
     if (templateType === "plh") {
       let text = replacePlhPlaceholders(namaKegiatan || "...");
-      if (days > 0) {
+      if (days === 1 || tanggalMulai === tanggalSelesai) {
+        text += ` selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+      } else if (days > 1) {
         text += ` selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
       } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
         text += ".";
@@ -437,13 +440,14 @@ export default function STCreatePremiumPage() {
     if (activityPrefix.includes("Perjalanan Dinas")) {
       text = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
       if (namaKegiatan) {
-        text += ` dalam rangka ${namaKegiatan}`;
+        text += ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatan)}`;
       }
       if (tempatKegiatan) {
         text += ` di ${tempatKegiatan}`;
       }
     } else if (activityPrefix.includes("Melaksanakan Kegiatan")) {
-      text = `Melaksanakan Kegiatan ${namaKegiatan || "..."}`;
+      const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
+      text = `Melaksanakan Kegiatan ${cleanNama || "..."}`;
       if (tempatKegiatan) {
         text += ` pada ${tempatKegiatan}`;
       }
@@ -451,7 +455,7 @@ export default function STCreatePremiumPage() {
         text += ` di ${kotaTujuan}`;
       }
     } else {
-      text = `Menugaskan Staf untuk ${namaKegiatan || "..."}`;
+      text = `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatan) || "..."}`;
       if (tempatKegiatan) {
         text += ` pada ${tempatKegiatan}`;
       }
@@ -459,7 +463,9 @@ export default function STCreatePremiumPage() {
         text += ` di ${kotaTujuan}`;
       }
     }
-    if (days > 0) {
+    if (days === 1 || tanggalMulai === tanggalSelesai) {
+      text += `, selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+    } else if (days > 1) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
     } else {
       text += ";";

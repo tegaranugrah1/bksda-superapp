@@ -163,8 +163,7 @@ function parseMaksudTujuanData(maksudTujuanRaw: string) {
   const line1 = lines[0] || "";
   const additionalLines = lines.slice(1);
 
-  const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*$/i;
-  const cleanedActivity = line1.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
+  const cleanedActivity = line1.replace(/,?\s*selama\s+.*$/i, "").replace(/[;,.]$/, "").trim();
 
   // Pattern 1: Perjalanan Dinas dari X ke Y dalam rangka Z [di W]
   const pdRegex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
@@ -501,7 +500,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   const [setujuData, _setSetujuData] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_selectedFileName, _setSelectedFileName] = useState("");
-  const [activeDatePicker, setActiveDatePicker] = useState<"mulai" | "selesai" | null>(null);
+  const [activeDatePicker, setActiveDatePicker] = useState<"mulai" | "selesai" | "single" | null>(null);
   const [currentPickerMonth, setCurrentPickerMonth] = useState(new Date());
   const [dropdownModalType, setDropdownModalType] = useState<"jenisTugas" | "sumberDana" | "templateST" | null>(null);
 
@@ -836,7 +835,9 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       if (kotaTujuan) text += ` di ${kotaTujuan}`;
     }
 
-    if (days > 0) {
+    if (days === 1 || tanggalMulai === tanggalSelesai) {
+      text += `, selama 1 (satu) hari pada tanggal ${tglMulaiFormatted};`;
+    } else if (days > 1) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${tglMulaiFormatted} sampai dengan ${tglSelesaiFormatted};`;
     } else {
       text += ";";
@@ -1351,8 +1352,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
   };
 
   const handleSubmitSuratTugas = async () => {
-    if (!setujuData) {
-      showNotif("Persetujuan Diperlukan", "Silakan beri centang persetujuan bahwa data pengajuan sudah benar.");
+    if (selectedEmployees.length === 0) {
+      showNotif("Personil Diperlukan", "Silakan pilih minimal 1 pegawai personil.");
+      return;
+    }
+    if (!tanggalMulai || !tanggalSelesai) {
+      showNotif("Tanggal Diperlukan", "Silakan tentukan tanggal pelaksanaan kegiatan.");
       return;
     }
 
@@ -1385,6 +1390,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         .filter(Boolean);
 
       const payload: any = {
+        status: "pending",
         nomor_surat: fullNomorSurat,
         kode_surat: stCode,
         maksud_tujuan: fullMaksudTujuan,
@@ -1412,8 +1418,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         await apiClient.put(`/surat-tugas/${editId}`, payload);
 
         showNotif(
-          "Surat Tugas Berhasil Diperbarui!",
-          `Surat Tugas telah berhasil diperbarui.`,
+          "Surat Tugas Berhasil Diajukan!",
+          `Surat Tugas telah diajukan. Menunggu persetujuan Kasubag.`,
           "success",
           () => {
             setNotification((prev) => ({ ...prev, visible: false }));
@@ -1885,23 +1891,37 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             </>
           )}
 
-          <View style={styles.rowTwoInputs}>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.subLabel}>TANGGAL MULAI</Text>
-              <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => !isPublished && setActiveDatePicker("mulai")} disabled={isPublished}>
+          {jenisTugas.includes("1 Hari") || jenisTugas.includes("Melaksanakan Kegiatan") ? (
+            <View style={styles.inputGroup}>
+              <Text style={styles.subLabel}>TANGGAL KEGIATAN ( 1 HARI ) *</Text>
+              <TouchableOpacity
+                style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]}
+                onPress={() => !isPublished && setActiveDatePicker("single")}
+                disabled={isPublished}
+              >
                 <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalMulai}</Text>
                 <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
               </TouchableOpacity>
             </View>
+          ) : (
+            <View style={styles.rowTwoInputs}>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.subLabel}>TANGGAL MULAI</Text>
+                <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => !isPublished && setActiveDatePicker("mulai")} disabled={isPublished}>
+                  <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalMulai}</Text>
+                  <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
+                </TouchableOpacity>
+              </View>
 
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.subLabel}>TANGGAL SELESAI</Text>
-              <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => !isPublished && setActiveDatePicker("selesai")} disabled={isPublished}>
-                <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalSelesai}</Text>
-                <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
-              </TouchableOpacity>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.subLabel}>TANGGAL SELESAI</Text>
+                <TouchableOpacity style={[styles.input, styles.datePickerBtn, { borderColor: colors.glassBorder }]} onPress={() => !isPublished && setActiveDatePicker("selesai")} disabled={isPublished}>
+                  <Text style={[styles.datePickerBtnText, { color: colors.textDark }]}>{tanggalSelesai}</Text>
+                  <Ionicons name="calendar-outline" size={16} color="#2563eb" style={{ marginLeft: "auto" }} />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* UNTUK (Presisi Screenshot 3 with + TAMBAH) */}
           <View style={styles.inputGroup}>
@@ -2198,7 +2218,10 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                           key={`day-${day}`}
                           style={styles.dayCell}
                           onPress={() => {
-                            if (activeDatePicker === "mulai") {
+                            if (activeDatePicker === "single" || jenisTugas.includes("1 Hari") || jenisTugas.includes("Melaksanakan Kegiatan")) {
+                              setTanggalMulai(dateStr);
+                              setTanggalSelesai(dateStr);
+                            } else if (activeDatePicker === "mulai") {
                               setTanggalMulai(dateStr);
                               if (!tanggalSelesai || tanggalSelesai < dateStr) setTanggalSelesai(dateStr);
                             } else {
@@ -2223,9 +2246,16 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                 <TouchableOpacity 
                   style={styles.quickDateBtn}
                   onPress={() => {
-                    const today = new Date().toISOString().substring(0, 10);
-                    if (activeDatePicker === "mulai") setTanggalMulai(today);
-                    else setTanggalSelesai(today);
+                    const todayStr = new Date().toISOString().substring(0, 10);
+                    if (activeDatePicker === "single" || jenisTugas.includes("1 Hari") || jenisTugas.includes("Melaksanakan Kegiatan")) {
+                      setTanggalMulai(todayStr);
+                      setTanggalSelesai(todayStr);
+                    } else if (activeDatePicker === "mulai") {
+                      setTanggalMulai(todayStr);
+                      if (!tanggalSelesai || tanggalSelesai < todayStr) setTanggalSelesai(todayStr);
+                    } else {
+                      setTanggalSelesai(todayStr);
+                    }
                     setActiveDatePicker(null);
                   }}
                 >
@@ -2306,6 +2336,9 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
                           setSelectedTemplate(opt.id);
                         } else if (dropdownModalType === "jenisTugas") {
                           setJenisTugas(opt.id as any);
+                          if (opt.id.includes("1 Hari") || opt.id.includes("Melaksanakan Kegiatan")) {
+                            if (tanggalMulai) setTanggalSelesai(tanggalMulai);
+                          }
                         } else {
                           handleSumberDanaChange(opt.id);
                         }

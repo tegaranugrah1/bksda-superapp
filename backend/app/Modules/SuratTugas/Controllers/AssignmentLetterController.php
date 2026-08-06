@@ -28,7 +28,7 @@ class AssignmentLetterController extends Controller
             ]);
         }
 
-        $query = AssignmentLetter::with(['employees:id,nama_lengkap,nip'])
+        $query = AssignmentLetter::with(['employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
             ->whereHas('employees', function ($q) use ($employee) {
                 $q->where('kpg_employees.id', $employee->id);
             })
@@ -175,8 +175,10 @@ class AssignmentLetterController extends Controller
             'id' => $letter->id,
             'nomor' => $letter->nomor_surat,
             'nomor_surat' => $letter->nomor_surat,
+            'kode_surat' => $letter->kode_surat,
             'kegiatan' => $letter->maksud_tujuan,
             'maksud_tujuan' => $letter->maksud_tujuan,
+            'dasar_hukum' => $letter->dasar_hukum,
             'tujuan' => $letter->tempat_tujuan,
             'tempat_tujuan' => $letter->tempat_tujuan,
             'tanggal_mulai' => $letter->tanggal_mulai?->toDateString(),
@@ -184,9 +186,13 @@ class AssignmentLetterController extends Controller
             'tanggal_surat' => $letter->tanggal_surat?->toDateString(),
             'status' => $letter->status,
             'sumber_dana' => $letter->sumber_dana,
+            'template_type' => $letter->template_type,
             'nama_plh' => $letter->nama_plh,
             'menimbang' => $letter->menimbang,
             'dasar' => $letter->dasar,
+            'tembusan' => $letter->tembusan,
+            'penandatangan_nama' => $letter->penandatangan_nama,
+            'penandatangan_nip' => $letter->penandatangan_nip,
             'personel_summary' => $personelSummary ?: null,
             'personel_count' => $employees->count(),
             'employees' => $employees->map(fn ($e) => [
@@ -195,6 +201,15 @@ class AssignmentLetterController extends Controller
                 'name' => $e->nama_lengkap,
                 'nip' => $e->nip,
                 'jabatan' => $e->jabatan,
+                'unit_kerja' => $e->satuan_kerja,
+            ])->values(),
+            'personel' => $employees->map(fn ($e) => [
+                'id' => $e->id,
+                'nama_lengkap' => $e->nama_lengkap,
+                'name' => $e->nama_lengkap,
+                'nip' => $e->nip,
+                'jabatan' => $e->jabatan,
+                'unit_kerja' => $e->satuan_kerja,
             ])->values(),
             'has_file' => !empty($letter->file_surat_path),
             'file_surat_path' => $letter->file_surat_path,
@@ -320,11 +335,15 @@ class AssignmentLetterController extends Controller
                 'created_by' => $authUser ? (int) $authUser->id : null,
             ]);
 
-            $pivotData = [];
-            foreach ($validated['employees'] as $emp) {
-                $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+            if (isset($validated['employees']) && is_array($validated['employees'])) {
+                $pivotData = [];
+                foreach ($validated['employees'] as $emp) {
+                    if (isset($emp['id'])) {
+                        $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+                    }
+                }
+                $surat->employees()->sync($pivotData);
             }
-            $surat->employees()->sync($pivotData);
 
             if ($request->hasFile('file_surat')) {
                 $folderName = $surat->nomor_surat 
@@ -401,10 +420,10 @@ class AssignmentLetterController extends Controller
         DB::beginTransaction();
         try {
             $updateData = [
-                'maksud_tujuan' => $validated['maksud_tujuan'],
+                'maksud_tujuan' => $validated['maksud_tujuan'] ?? $surat->maksud_tujuan,
                 'dasar_hukum' => $validated['dasar_hukum'] ?? null,
-                'tanggal_mulai' => $validated['tanggal_mulai'],
-                'tanggal_selesai' => $validated['tanggal_selesai'],
+                'tanggal_mulai' => $validated['tanggal_mulai'] ?? $surat->tanggal_mulai,
+                'tanggal_selesai' => $validated['tanggal_selesai'] ?? $surat->tanggal_selesai,
                 'tempat_tujuan' => $validated['tempat_tujuan'] ?? null,
                 'sumber_dana' => $request->input('sumber_dana', $surat->sumber_dana),
                 'sumber_dana_other' => $request->input('sumber_dana_other', $surat->sumber_dana_other),
@@ -428,11 +447,15 @@ class AssignmentLetterController extends Controller
 
             $surat->update($updateData);
 
-            $pivotData = [];
-            foreach ($validated['employees'] as $emp) {
-                $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+            if (isset($validated['employees']) && is_array($validated['employees'])) {
+                $pivotData = [];
+                foreach ($validated['employees'] as $emp) {
+                    if (isset($emp['id'])) {
+                        $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+                    }
+                }
+                $surat->employees()->sync($pivotData);
             }
-            $surat->employees()->sync($pivotData);
 
             if ($request->hasFile('file_surat')) {
                 if ($surat->file_surat_path) {
@@ -456,8 +479,9 @@ class AssignmentLetterController extends Controller
                 'data' => $surat,
             ]);
 
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Update Surat Tugas failed: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json(['message' => 'Terjadi kegagalan sistem: '.$e->getMessage()], 500);
         }
@@ -467,7 +491,7 @@ class AssignmentLetterController extends Controller
     {
         $request->validate([
             'status' => 'required|in:pending,approved,rejected,completed',
-            'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
+            'nomor_surat' => 'nullable|string',
         ]);
 
         $surat = AssignmentLetter::findOrFail($id);
@@ -590,7 +614,7 @@ class AssignmentLetterController extends Controller
     public function approve(Request $request, string $id)
     {
         $request->validate([
-            'nomor_surat' => 'nullable|string|unique:st_assignment_letters,nomor_surat,'.$id,
+            'nomor_surat' => 'nullable|string',
             'kode_surat' => 'nullable|string',
             'nama_kegiatan' => 'nullable|string',
             'tanggal_mulai' => 'nullable|date',
@@ -705,7 +729,7 @@ class AssignmentLetterController extends Controller
     public function directStore(Request $request)
     {
         $request->validate([
-            'nomor_surat' => 'required|string|unique:st_assignment_letters,nomor_surat',
+            'nomor_surat' => 'required|string',
             'kode_surat' => 'nullable|string',
             'maksud_tujuan' => 'required|string',
             'tanggal_mulai' => 'required|date',

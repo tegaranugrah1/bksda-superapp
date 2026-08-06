@@ -44,9 +44,9 @@ class AssignmentLetter extends Model
     ];
 
     protected $casts = [
-        'tanggal_mulai' => 'date',
-        'tanggal_selesai' => 'date',
-        'tanggal_surat' => 'date',
+        'tanggal_mulai' => 'date:Y-m-d',
+        'tanggal_selesai' => 'date:Y-m-d',
+        'tanggal_surat' => 'date:Y-m-d',
         'menimbang' => 'array',
         'dasar' => 'array',
         'tembusan' => 'array',

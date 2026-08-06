@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+import { cleanMelaksanakanKegiatanPrefix } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
 import {
   EmployeeSelectionStep,
   Employee,
@@ -202,17 +203,18 @@ export default function SuratTugasForm() {
         finalNamaKegiatan = `Melaksanakan Perjalanan Dinas dari ${
           kotaAsal.trim() || "..."
         } ke ${kotaTujuan.trim() || "..."}${
-          namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ""
+          namaKegiatanText.trim() ? ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatanText)}` : ""
         }${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}`;
       } else if (jenisTugas.includes("Melaksanakan Kegiatan")) {
+        const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatanText);
         finalNamaKegiatan = `Melaksanakan Kegiatan ${
-          namaKegiatanText.trim() || "..."
+          cleanNama || "..."
         }${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${
           kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""
         }`;
       } else {
         finalNamaKegiatan = `Menugaskan Staf untuk ${
-          namaKegiatanText.trim() || "..."
+          cleanMelaksanakanKegiatanPrefix(namaKegiatanText) || "..."
         }${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${
           kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""
         }`;

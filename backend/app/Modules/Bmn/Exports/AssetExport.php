@@ -24,11 +24,11 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
         $query = Asset::latest();
 
         if (!empty($this->filters['search'])) {
-            $search = $this->filters['search'];
+            $search = mb_strtolower(trim((string) $this->filters['search']));
             $query->where(function ($q) use ($search) {
-                $q->where('nama_barang', 'LIKE', "%{$search}%")
-                    ->orWhere('kode_barang', 'LIKE', "%{$search}%")
-                    ->orWhere('merk', 'LIKE', "%{$search}%");
+                $q->whereRaw('LOWER(nama_barang) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(kode_barang) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(merk) LIKE ?', ["%{$search}%"]);
             });
         }
         if (!empty($this->filters['nup'])) {

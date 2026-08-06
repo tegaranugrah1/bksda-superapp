@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,23 @@ import {
   RefreshControl,
   Dimensions,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { FabMenu } from "../../components/ui/FabMenu";
 import { apiClient } from "../../lib/api/client";
+
+function cleanMaksudTujuan(text?: string | null): string {
+  if (!text) return "";
+  let clean = text.split("\n")[0].trim();
+  const parts = clean.split(/(?=Membuat laporan|Segala biaya)/i);
+  if (parts.length > 0) {
+    clean = parts[0].trim();
+  }
+  clean = clean.replace(/[,;]?\s*selama\s+.*$/i, "").trim().replace(/;$/, "").trim();
+  return clean || text;
+}
 
 interface KepegawaianDashboardScreenProps {
   navigation?: any;
@@ -27,46 +39,52 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
   onNavigateToModule,
 }) => {
   const { isDark, colors } = useTheme();
-  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Metrics Data State
   const [stats, setStats] = useState({
-    totalEmployees: 149,
-    activeSuratTugas: 1,
+    totalEmployees: 150,
+    activeSuratTugas: 2,
     pendingCuti: 0,
     activeRate: "100.0%",
   });
 
-  const [satkerDistribution, setSatkerDistribution] = useState([
-    { name: "Kantor Balai (Samarinda)", count: 34, percentage: 23, color: "#2563eb", dotColor: "#3b82f6" },
-    { name: "Seksi KSDA Wilayah I Berau", count: 30, percentage: 20, color: "#0284c7", dotColor: "#38bdf8" },
-    { name: "Seksi KSDA Wilayah II Tenggarong", count: 44, percentage: 30, color: "#10b981", dotColor: "#34d399" },
-    { name: "Seksi KSDA Wilayah III Balikpapan", count: 41, percentage: 28, color: "#f59e0b", dotColor: "#fbbf24" },
+  const [satkerDistribution, setSatkerDistribution] = useState<
+    { name: string; count: number; percentage: number; color: string; dotColor: string }[]
+  >([
+    { name: "Balai KSDA Kaltim (Pusat)", count: 48, percentage: 32, color: "#2563eb", dotColor: "#3b82f6" },
+    { name: "SKW I Berau", count: 34, percentage: 23, color: "#0284c7", dotColor: "#38bdf8" },
+    { name: "SKW II Tenggarong", count: 41, percentage: 27, color: "#10b981", dotColor: "#34d399" },
+    { name: "SKW III Sangatta", count: 27, percentage: 18, color: "#f59e0b", dotColor: "#fbbf24" },
   ]);
 
-  const [recentActivities, setRecentActivities] = useState<any[]>([
+  const [recentActivities, setRecentActivities] = useState<
+    { id: string; title: string; status: string; statusBg: string; statusColor: string; location: string }[]
+  >([
     {
       id: "1",
-      title: "Melaksanakan Perjalanan Dinas dari Samarinda ke Balikpapan dalam rangka Kegiatan Inventarisasi BMN di Paser...",
-      status: "APPROVED",
+      title: "Melaksanakan Perjalanan Dinas ke Berau dalam rangka Inventarisasi BMN di Seksi KSDA Wilayah I",
+      status: "DITERBITKAN",
       statusBg: "#dbeafe",
       statusColor: "#1e40af",
-      location: "Balikpapan",
+      location: "Berau",
     },
     {
       id: "2",
-      title: "Melaksanakan Perjalanan Dinas dari Samarinda ke Balikpapan dalam rangka Konservasi HKAN di Balikpapan...",
+      title: "Melaksanakan Kegiatan Opname Fisik ATK Persediaan pada Balai KSDA Kalimantan Timur di Samarinda",
       status: "DRAFT",
       statusBg: "#e0e7ff",
       statusColor: "#3730a3",
-      location: "Balikpapan",
+      location: "Samarinda",
     },
   ]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       const res = await apiClient.get("/kepegawaian/dashboard-stats");
       const d = res.data?.data;
       if (d) {
@@ -102,7 +120,7 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
           setRecentActivities(
             d.recent_activities.map((item: any) => ({
               id: item.id || Math.random().toString(),
-              title: item.title || "Melaksanakan Perjalanan Dinas",
+              title: cleanMaksudTujuan(item.title || "Melaksanakan Perjalanan Dinas"),
               status: item.status || "DITERBITKAN",
               statusBg: item.status === "APPROVED" ? "#dbeafe" : item.status === "DRAFT" ? "#e0e7ff" : "#dcfce7",
               statusColor: item.status === "APPROVED" ? "#1e40af" : item.status === "DRAFT" ? "#3730a3" : "#166534",
@@ -117,11 +135,17 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDashboardData(false);
+      const timer = setInterval(() => {
+        fetchDashboardData(true);
+      }, 5000);
+      return () => clearInterval(timer);
+    }, [fetchDashboardData])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -135,7 +159,7 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
       "buat-surat-tugas": "BuatSuratTugas",
       "inbox-surat-tugas": "InboxSuratTugas",
       "inbox-surat-cuti": "InboxSuratCuti",
-      "riwayat-surat-tugas": "InboxSuratTugas",
+      "riwayat-surat-tugas": "RiwayatSuratTugas",
     };
 
     if (navigation && typeof navigation.navigate === "function") {

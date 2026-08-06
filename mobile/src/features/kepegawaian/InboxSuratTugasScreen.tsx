@@ -11,7 +11,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
@@ -20,6 +20,49 @@ import { FabMenu } from "../../components/ui/FabMenu";
 import { apiClient } from "../../lib/api/client";
 import { downloadAssignmentFile } from "@/lib/files/download";
 import { shareFile } from "@/lib/files/share";
+
+function formatDateIndo(dateStr?: string | null): string {
+  if (!dateStr) return "-";
+  const cleaned = String(dateStr).split("T")[0].trim();
+  const parts = cleaned.split("-");
+  if (parts.length === 3) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    const year = parseInt(parts[0], 10);
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    if (!isNaN(year) && !isNaN(monthIdx) && !isNaN(day) && monthIdx >= 0 && monthIdx < 12) {
+      return `${day} ${months[monthIdx]} ${year}`;
+    }
+  }
+  return dateStr;
+}
+
+function formatPeriodeIndo(tglMulai?: string | null, tglSelesai?: string | null): string {
+  if (!tglMulai) return "-";
+  const startClean = String(tglMulai).split("T")[0].trim();
+  const endClean = tglSelesai ? String(tglSelesai).split("T")[0].trim() : startClean;
+
+  if (startClean === endClean) {
+    return formatDateIndo(startClean);
+  }
+
+  const p1 = startClean.split("-");
+  const p2 = endClean.split("-");
+  if (p1.length === 3 && p2.length === 3) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    const y1 = parseInt(p1[0], 10);
+    const m1 = parseInt(p1[1], 10) - 1;
+    const d1 = parseInt(p1[2], 10);
+    const y2 = parseInt(p2[0], 10);
+    const m2 = parseInt(p2[1], 10) - 1;
+    const d2 = parseInt(p2[2], 10);
+
+    if (y1 === y2 && m1 === m2) {
+      return `${d1} - ${d2} ${months[m1]} ${y1}`;
+    }
+  }
+  return `${formatDateIndo(startClean)} - ${formatDateIndo(endClean)}`;
+}
 
 interface InboxSuratTugasScreenProps {
   navigation?: any;
@@ -37,7 +80,7 @@ interface SuratTugasItem {
   title: string;
   location: string;
   dana: string;
-  personil: Array<{ name: string; nip: string }>;
+  personil: { name: string; nip: string }[];
   rawItem?: any;
 }
 
@@ -78,11 +121,27 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     }
   };
 
-  const fetchSuratTugas = async () => {
+  const fetchSuratTugas = React.useCallback(async () => {
     try {
-      const response = await apiClient.get<any>("/surat-tugas?mobile=true");
-      if (response.data && Array.isArray(response.data.data)) {
-        const apiList = response.data.data.map((st: any) => {
+      let rawList: any[] = [];
+      try {
+        const response = await apiClient.get<any>("/surat-tugas?mobile=true");
+        if (response.data && Array.isArray(response.data.data)) {
+          rawList = response.data.data;
+        }
+      } catch {}
+
+      if (rawList.length === 0) {
+        try {
+          const myRes = await apiClient.get<any>("/surat-tugas/my");
+          if (myRes.data && Array.isArray(myRes.data.data)) {
+            rawList = myRes.data.data;
+          }
+        } catch {}
+      }
+
+      if (rawList.length > 0) {
+        const apiList = rawList.map((st: any) => {
           const rawStatus = (st.status || "DRAFT").toUpperCase();
           const statusColor =
             rawStatus === "DITERBITKAN" || rawStatus === "APPROVED"
@@ -102,14 +161,25 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
             ? st.personil
             : [];
 
-          const titleStr = st.nama_kegiatan || (st.maksud_tujuan ? st.maksud_tujuan.split("\n")[0] : (st.kegiatan || st.perihal || st.title || "-"));
+          let cleanTitle = st.nama_kegiatan || (st.maksud_tujuan ? st.maksud_tujuan.split("\n")[0] : (st.kegiatan || st.perihal || st.title || "-"));
+          const titleParts = cleanTitle.split(/(?=Membuat laporan|Segala biaya)/i);
+          if (titleParts.length > 0) {
+            cleanTitle = titleParts[0].trim();
+          }
+          cleanTitle = cleanTitle.replace(/,?\s*selama\s+.*$/i, '').trim().replace(/;$/, '').trim();
+          const titleStr = cleanTitle;
+
+          const tglMulai = st.tanggal_mulai?.split('T')[0];
+          const tglSelesai = st.tanggal_selesai?.split('T')[0];
+          const periodeStr = formatPeriodeIndo(tglMulai, tglSelesai);
+
           return {
             id: String(st.id),
             status: rawStatus,
             statusColor,
             nomor_surat: st.nomor_surat || st.st_number || "",
             date: dateStr,
-            periode: st.periode || "2026",
+            periode: periodeStr,
             title: titleStr,
             location: st.tempat_tujuan || st.tujuan || st.location || "Kalimantan Timur",
             dana: (st.sumber_dana || "DIPA").toUpperCase(),
@@ -118,6 +188,11 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
           };
         });
         setStList(apiList);
+        setSelectedSt((prev) => {
+          if (!prev) return null;
+          const updated = apiList.find((item: SuratTugasItem) => item.id === prev.id);
+          return updated || prev;
+        });
       } else {
         setStList([]);
       }
@@ -126,25 +201,18 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    fetchSuratTugas();
-    if (!isFocused) return;
-    const interval = setInterval(() => {
+  useFocusEffect(
+    React.useCallback(() => {
       fetchSuratTugas();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isFocused]);
+      const interval = setInterval(() => {
+        fetchSuratTugas();
+      }, 5000);
 
-  useEffect(() => {
-    if (selectedSt && stList.length > 0) {
-      const updated = stList.find((item) => item.id === selectedSt.id);
-      if (updated && (updated.nomor_surat !== selectedSt.nomor_surat || updated.status !== selectedSt.status || updated.title !== selectedSt.title)) {
-        setSelectedSt(updated);
-      }
-    }
-  }, [stList, selectedSt]);
+      return () => clearInterval(interval);
+    }, [fetchSuratTugas])
+  );
 
   // Handle hardware back press & back gesture: return to Inbox list view first
   useEffect(() => {
@@ -301,7 +369,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
                         {item.status}
                       </Text>
                     </View>
-                    <Text style={styles.cardDateText}>{item.date}</Text>
+                    <Text style={styles.cardDateText}>{item.periode || item.date}</Text>
                   </View>
 
                   {item.nomor_surat ? (

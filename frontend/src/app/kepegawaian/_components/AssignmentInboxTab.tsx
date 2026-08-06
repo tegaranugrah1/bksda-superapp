@@ -24,6 +24,9 @@ export function AssignmentInboxTab() {
             const res = await api.get("/surat-tugas?status=pending");
             return res.data;
         },
+        staleTime: 0,
+        refetchInterval: 5000,
+        refetchOnWindowFocus: true,
     });
 
     const items = data?.data ?? [];

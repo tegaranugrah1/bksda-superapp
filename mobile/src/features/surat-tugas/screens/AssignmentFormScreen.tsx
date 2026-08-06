@@ -61,8 +61,6 @@ function formatDateIndo(dateStr: string): string {
 
 export default function AssignmentFormScreen() {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
-  const { colors } = useTheme();
 
   // Wizard Step: 1 = Pilih Pegawai, 2 = Detail ST, 3 = Berhasil
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -93,7 +91,9 @@ export default function AssignmentFormScreen() {
   // Modal Pickers State
   const [sumberDanaModalVisible, setSumberDanaModalVisible] = useState(false);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [datePickerTarget, setDatePickerTarget] = useState<"mulai" | "selesai" | null>(null);
+  const [datePickerTarget, setDatePickerTarget] = useState<"mulai" | "selesai" | "single" | null>(null);
+
+  const isSingleDayActivity = jenisTugas.includes("1 Hari") || jenisTugas.includes("Melaksanakan Kegiatan");
 
   // Date picker internal state
   const today = new Date();
@@ -144,27 +144,24 @@ export default function AssignmentFormScreen() {
     return "Samarinda";
   }, []);
 
-  useEffect(() => {
-    if (selectedEmployees.length > 0) {
-      setKotaAsal(detectDefaultKotaAsal(selectedEmployees));
-    } else {
-      setKotaAsal("Samarinda");
-    }
-  }, [selectedEmployees, detectDefaultKotaAsal]);
-
   const toggleEmployee = (emp: Employee) => {
     const validName = emp.name || emp.nip || "Pegawai";
-    if (selectedEmployees.some((e) => String(e.id) === String(emp.id))) {
-      setSelectedEmployees((prev) => prev.filter((e) => String(e.id) !== String(emp.id)));
-    } else {
-      setSelectedEmployees((prev) => [...prev, { ...emp, name: validName }]);
+    const isSelected = selectedEmployees.some((e) => String(e.id) === String(emp.id));
+    const next = isSelected
+      ? selectedEmployees.filter((e) => String(e.id) !== String(emp.id))
+      : [...selectedEmployees, { ...emp, name: validName }];
+    setSelectedEmployees(next);
+    setKotaAsal(detectDefaultKotaAsal(next));
+    if (!isSelected) {
       setSearchQuery("");
       setShowDropdown(false);
     }
   };
 
   const removeEmployee = (id: string | number) => {
-    setSelectedEmployees((prev) => prev.filter((e) => String(e.id) !== String(id)));
+    const next = selectedEmployees.filter((e) => String(e.id) !== String(id));
+    setSelectedEmployees(next);
+    setKotaAsal(detectDefaultKotaAsal(next));
   };
 
   // Pick PDF file
@@ -189,9 +186,9 @@ export default function AssignmentFormScreen() {
   };
 
   // Date Picker Open Handler
-  const openDatePicker = (target: "mulai" | "selesai") => {
+  const openDatePicker = (target: "mulai" | "selesai" | "single") => {
     setDatePickerTarget(target);
-    const currentDateStr = target === "mulai" ? tanggalMulai : tanggalSelesai;
+    const currentDateStr = target === "selesai" ? tanggalSelesai : tanggalMulai;
     if (currentDateStr && currentDateStr.includes("-")) {
       const parts = currentDateStr.split("-");
       if (parts.length === 3) {
@@ -211,7 +208,10 @@ export default function AssignmentFormScreen() {
     const dd = String(dateObj.getDate()).padStart(2, "0");
     const formattedStr = `${yyyy}-${mm}-${dd}`;
 
-    if (datePickerTarget === "mulai") {
+    if (isSingleDayActivity || datePickerTarget === "single") {
+      setTanggalMulai(formattedStr);
+      setTanggalSelesai(formattedStr);
+    } else if (datePickerTarget === "mulai") {
       setTanggalMulai(formattedStr);
       if (!tanggalSelesai) setTanggalSelesai(formattedStr);
     } else if (datePickerTarget === "selesai") {
@@ -440,7 +440,12 @@ export default function AssignmentFormScreen() {
                       styles.jenisTugasOption,
                       jenisTugas === opt && styles.jenisTugasActive,
                     ]}
-                    onPress={() => setJenisTugas(opt)}
+                    onPress={() => {
+                      setJenisTugas(opt);
+                      if (opt.includes("1 Hari") || opt.includes("Melaksanakan Kegiatan")) {
+                        if (tanggalMulai) setTanggalSelesai(tanggalMulai);
+                      }
+                    }}
                   >
                     <Text
                       style={[
@@ -536,13 +541,13 @@ export default function AssignmentFormScreen() {
                 <Text style={styles.previewText}>{previewText}</Text>
               </View>
 
-              {/* Date Pickers (Mulai & Sampai Tanggal) */}
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.fieldLabel}>MULAI TANGGAL *</Text>
+              {/* Date Pickers (Mulai & Sampai Tanggal or Single Date) */}
+              {isSingleDayActivity ? (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={styles.fieldLabel}>TANGGAL KEGIATAN ( 1 HARI ) *</Text>
                   <TouchableOpacity
                     style={styles.datePickerBtn}
-                    onPress={() => openDatePicker("mulai")}
+                    onPress={() => openDatePicker("single")}
                   >
                     <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
                     <Text style={[styles.datePickerBtnText, !tanggalMulai && { color: "#94a3b8" }]}>
@@ -550,20 +555,35 @@ export default function AssignmentFormScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
+              ) : (
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.fieldLabel}>MULAI TANGGAL *</Text>
+                    <TouchableOpacity
+                      style={styles.datePickerBtn}
+                      onPress={() => openDatePicker("mulai")}
+                    >
+                      <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
+                      <Text style={[styles.datePickerBtnText, !tanggalMulai && { color: "#94a3b8" }]}>
+                        {tanggalMulai ? formatDateIndo(tanggalMulai) : "Pilih Tanggal"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
 
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.fieldLabel}>SAMPAI TANGGAL *</Text>
-                  <TouchableOpacity
-                    style={styles.datePickerBtn}
-                    onPress={() => openDatePicker("selesai")}
-                  >
-                    <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
-                    <Text style={[styles.datePickerBtnText, !tanggalSelesai && { color: "#94a3b8" }]}>
-                      {tanggalSelesai ? formatDateIndo(tanggalSelesai) : "Pilih Tanggal"}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.fieldLabel}>SAMPAI TANGGAL *</Text>
+                    <TouchableOpacity
+                      style={styles.datePickerBtn}
+                      onPress={() => openDatePicker("selesai")}
+                    >
+                      <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
+                      <Text style={[styles.datePickerBtnText, !tanggalSelesai && { color: "#94a3b8" }]}>
+                        {tanggalSelesai ? formatDateIndo(tanggalSelesai) : "Pilih Tanggal"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
+              )}
 
               {/* Sumber Dana Compact Dropdown Selector */}
               <Text style={styles.fieldLabel}>SUMBER DANA *</Text>
@@ -697,7 +717,7 @@ export default function AssignmentFormScreen() {
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
-                  {datePickerTarget === "mulai" ? "Pilih Tanggal Mulai" : "Pilih Tanggal Selesai"}
+                  {datePickerTarget === "single" ? "Pilih Tanggal Kegiatan" : datePickerTarget === "mulai" ? "Pilih Tanggal Mulai" : "Pilih Tanggal Selesai"}
                 </Text>
                 <TouchableOpacity onPress={() => setDatePickerVisible(false)} style={styles.modalCloseBtn}>
                   <Ionicons name="close" size={20} color="#64748b" />
