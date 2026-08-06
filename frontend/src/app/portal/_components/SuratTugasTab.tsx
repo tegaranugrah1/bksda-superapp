@@ -61,7 +61,7 @@ export function SuratTugasTab({
               <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl shadow-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
                 <DropdownMenuItem
                   onClick={onOpenReportModal}
-                  className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-bold text-slate-800 dark:text-slate-200"
+                  className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 hover:bg-slate-100 dark:hover:bg-zinc-800 text-xs font-bold text-slate-800 dark:text-slate-200"
                 >
                   <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 flex items-center justify-center shrink-0">
                     <FileText className="w-4 h-4" />

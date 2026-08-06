@@ -1,3 +1,36 @@
+# Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Redesain Portal BKSDA Kaltim Terinspirasi MYASN (GitHub Issue #564)
+- **3-Column Hybrid Layout**: Mengimplementasikan tata letak 3 kolom modern (`PortalProfileSidebar.tsx`, `PortalHeaderBanner.tsx`, `PortalQuickStats.tsx`, `PortalInfoSidebar.tsx`) dengan tema Gradient Emerald dan nuansa MYASN.
+- **Unifikasi Beranda Portal**: Menyatukan Dashboard Utama, Modul Akses System, dan Ringkasan Statistik ke dalam 1 tampilan Beranda default.
+- **Restrukturisasi Sidebar Kiri & Menu Navigasi**:
+  - Memindahkan menu *Pinjaman Aktif*, *Aset Saya*, *Surat Tugas & Laporan*, dan *Pengajuan Cuti* ke Sidebar Kiri.
+  - Memindahkan tombol dropdown *"Buat Laporan"* ke Sidebar Kiri dan menghapusnya dari banner tengah.
+  - Mengklik menu sidebar menampilkan konten tab secara eksklusif sambil menyembunyikan menu/tab lainnya.
+- **Mode Form Inline Laporan & Navigasi Back**:
+  - Mengklik *"1. Laporan Pelaksanaan ST"* di sidebar langsung membuka mode Form Inline tanpa pop-up modal.
+  - Mengklik *"Kembali ke Portal"* dari form inline mereset tampilan secara bersih kembali ke Dashboard Utama.
+
+## 2. Penyempurnaan Kartu Profil & Layout Shift Fix
+- **Fix Layout Shift Scrollbar**: Menambahkan `html { scrollbar-gutter: stable; }` pada `globals.css` untuk menghentikan pergeseran pergerakan layar saat scrollbar vertikal muncul/hilang.
+- **Pembersihan Kartu Profil**:
+  - Menghapus tombol *"Lihat Profil"* dan menggantinya dengan Ikon Pensil Edit di kanan atas kartu profil (membuka dialog Edit Email & Telepon).
+  - Mengubah tombol *"Ganti Password"* menjadi tombol tunggal full-width di bagian bawah kartu profil.
+  - Menampilkan Email dan Nomor Telepon/WA pegawai langsung pada daftar detail profil.
+
+## 3. Opsi Pengaturan Cover Manual Laporan Pelaksanaan (`GeneralReportPrint.tsx` & `GeneralReportInlineForm.tsx`)
+- **Dukungan 3 Mode Cover Laporan**:
+  1. **Cover Standar BKSDA**: Cover resmi Balai KSDA Kaltim terautofill dari Judul, Logo, Pelaksana, dan Instansi.
+  2. **Cover Manual Gambar (Upload Cover)**: Pengguna dapat mengunggah gambar cover kustom full-page A4 sendiri.
+  3. **Custom Sub-Unit Cover Text**: Mengizinkan kustomisasi teks judul, penyusun, dan footer sub-unit kerja.
+
+---
+
 # Progress - Phase 213: Penyempurnaan Formatter Judul, Agenda A, Maksud & Tujuan C, serta Waktu E Laporan Pelaksanaan
 
 > Document updated: 2026-08-06
