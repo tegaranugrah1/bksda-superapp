@@ -62,7 +62,7 @@ export default function SuratTugasInbox() {
             return resp.data.data as AssignmentLetter[];
         },
         staleTime: 0,
-        refetchInterval: 3000,
+        refetchInterval: 2000,
         refetchOnWindowFocus: true,
     });
 

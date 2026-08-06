@@ -181,6 +181,10 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
   useFocusEffect(
     useCallback(() => {
       fetchHistory();
+      const timer = setInterval(() => {
+        fetchHistory();
+      }, 3000);
+      return () => clearInterval(timer);
     }, [fetchHistory])
   );
 

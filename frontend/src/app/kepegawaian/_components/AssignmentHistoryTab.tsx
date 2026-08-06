@@ -54,6 +54,9 @@ export function AssignmentHistoryTab() {
             const res = await api.get(`/surat-tugas?${params.toString()}`);
             return res.data;
         },
+        staleTime: 0,
+        refetchInterval: 2000,
+        refetchOnWindowFocus: true,
     });
 
     const deleteMutation = useMutation({

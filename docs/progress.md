@@ -1,3 +1,19 @@
+# Progress - Phase 204: Real-Time Auto Sync Cross-Platform (Mobile ↔ Web Localhost) Surat Tugas
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Auto Refetch & Polling Real-Time Web Localhost (`AssignmentHistoryTab.tsx` & `AssignmentInboxTab.tsx`)
+- **Real-Time Synchronisation**: Menambahkan `staleTime: 0`, `refetchInterval: 2000`, dan `refetchOnWindowFocus: true` pada `useQuery` di `AssignmentHistoryTab.tsx` dan `AssignmentInboxTab.tsx`.
+- **Pengalaman Tanpa Manual Refresh**: Saat terjadi penghapusan (soft-delete), pemulihan (restore), pengajuan (submit), atau otorisasi (approve) pada Mobile, tampilan Web Localhost kini langsung terbarui otomatis dalam 2 detik tanpa perlu menekan tombol refresh browser (F5).
+
+## 2. Auto Refetch Interval Mobile (`RiwayatSuratTugasScreen.tsx`)
+- **Mobile Polling Sync**: Menambahkan timer interval 3 detik pada `useFocusEffect` di `RiwayatSuratTugasScreen.tsx` agar tampilan Mobile juga langsung tersinkronkan dengan perubahan yang dilakukan di Web Localhost.
+
+---
+
 # Progress - Phase 203: Refactoring Dialog Notifikasi & Konfirmasi Custom UI Mobile (`RiwayatSuratTugasScreen.tsx`)
 
 > Document updated: 2026-08-06
