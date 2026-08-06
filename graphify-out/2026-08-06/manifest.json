@@ -1120,8 +1120,8 @@
     "semantic_hash": "f2cda7c59edcb41daccde2b3cf1c7b46"
   },
   "backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php": {
-    "mtime": 1785980099.6676192,
-    "ast_hash": "c3f9ffe762f170dd0b93f94de4dd8189",
+    "mtime": 1785980445.088494,
+    "ast_hash": "dd054873d050d6a05950893fe9bb8fee",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Requests/PublicSuratTugasRequest.php": {
@@ -5617,6 +5617,11 @@
   "frontend/src/app/icon.png": {
     "mtime": 1785917434.9523575,
     "ast_hash": "f829f000078a7c42c86fbb42f4594e47",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/SuratTugas/Migrations/2026_08_06_000001_drop_unique_from_st_assignment_letters_nomor_surat.php": {
+    "mtime": 1785980436.262143,
+    "ast_hash": "44b7ca4a8a8018db41c32d095f438616",
     "semantic_hash": ""
   }
 }

@@ -1,3 +1,25 @@
+# Progress - Phase 201: Fix Edit Mode Parsing, Database Nomor Surat Unique Constraint & Mobile Ajukan Persetujuan Alignment
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Presisi Parsing Mode Edit Teks Single-Day Activity (`builder/[id]/page.tsx` & `BuatSuratTugasScreen.tsx`)
+- **Web & Mobile Parser**: Memperbarui pembersihan suffix durasi tanggal `, selama ...` secara sempurna dari string `maksud_tujuan` sebelum memisahkan nama kegiatan, tempat/unit lokasi, dan kota tujuan.
+- **Eliminasi Spillage & Reduplikasi**: Mencegah teks tanggal tumpah ke field form input `PADA ( TEMPAT / UNIT / LOKASI )` dan menghapus total duplikasi ganda suffix tanggal pada pratinjau dokumen PDF/HTML.
+
+## 2. Penghapusan Constraint Unique `nomor_surat` di Database & PHP Validation
+- **Pembersihan Validation Rule (`AssignmentLetterRequest.php` & `AssignmentLetterController.php`)**: Menghapus aturan `unique:st_assignment_letters,nomor_surat` pada form request PHP Laravel agar pengguna dapat menyimpan draft / memperbarui Surat Tugas tanpa gagal validasi (Status 422).
+- **Migration PostgreSQL (`2026_08_06_000001_drop_unique_from_st_assignment_letters_nomor_surat.php`)**: Membuat dan menjalankan migration `php artisan migrate` untuk mencabut database-level unique constraint `st_assignment_letters_nomor_surat_unique` di PostgreSQL, menyelesaikan error *SQLSTATE[23505]* (Status 500) saat memperbarui nomor surat.
+- **Robust Manual Employee Handlers**: Menyelaraskan rule validation `employees.*.id` agar menerima string ID pegawai manual (contoh `manual-12345`) dan menambahkan pengecekan `isset() && is_array()` untuk mencegah *Internal Server Error* saat menyimpan draft.
+
+## 3. Penyelarasan Tombol "Ajukan Persetujuan" Mobile dengan Web Localhost (`BuatSuratTugasScreen.tsx`)
+- **Pembersihan Blocking Modal**: Menghapus syarat `setujuData` pada alur mobile sehingga pengguna dapat langsung menekan tombol **Ajukan Persetujuan** persis seperti pada Web Localhost.
+- **Status Payload Pending**: Pengajuan Surat Tugas dari Mobile kini mengirimkan `status: "pending"` dan menampilkan notifikasi sukses *"Surat Tugas Berhasil Diajukan!"* sebelum mengarahkan user kembali ke Inbox.
+
+---
+
 # Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth
 
 > Document updated: 2026-08-04
