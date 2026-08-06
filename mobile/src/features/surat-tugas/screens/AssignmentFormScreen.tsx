@@ -61,8 +61,6 @@ function formatDateIndo(dateStr: string): string {
 
 export default function AssignmentFormScreen() {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
-  const { colors } = useTheme();
 
   // Wizard Step: 1 = Pilih Pegawai, 2 = Detail ST, 3 = Berhasil
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -146,27 +144,24 @@ export default function AssignmentFormScreen() {
     return "Samarinda";
   }, []);
 
-  useEffect(() => {
-    if (selectedEmployees.length > 0) {
-      setKotaAsal(detectDefaultKotaAsal(selectedEmployees));
-    } else {
-      setKotaAsal("Samarinda");
-    }
-  }, [selectedEmployees, detectDefaultKotaAsal]);
-
   const toggleEmployee = (emp: Employee) => {
     const validName = emp.name || emp.nip || "Pegawai";
-    if (selectedEmployees.some((e) => String(e.id) === String(emp.id))) {
-      setSelectedEmployees((prev) => prev.filter((e) => String(e.id) !== String(emp.id)));
-    } else {
-      setSelectedEmployees((prev) => [...prev, { ...emp, name: validName }]);
+    const isSelected = selectedEmployees.some((e) => String(e.id) === String(emp.id));
+    const next = isSelected
+      ? selectedEmployees.filter((e) => String(e.id) !== String(emp.id))
+      : [...selectedEmployees, { ...emp, name: validName }];
+    setSelectedEmployees(next);
+    setKotaAsal(detectDefaultKotaAsal(next));
+    if (!isSelected) {
       setSearchQuery("");
       setShowDropdown(false);
     }
   };
 
   const removeEmployee = (id: string | number) => {
-    setSelectedEmployees((prev) => prev.filter((e) => String(e.id) !== String(id)));
+    const next = selectedEmployees.filter((e) => String(e.id) !== String(id));
+    setSelectedEmployees(next);
+    setKotaAsal(detectDefaultKotaAsal(next));
   };
 
   // Pick PDF file
