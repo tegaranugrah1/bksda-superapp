@@ -299,11 +299,12 @@ export function SuratTugasDetailStep({
                 Tanggal Kegiatan ( 1 Hari ) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 <input
                   type="date"
                   required
                   value={formData.tanggal_mulai}
+                  onClick={(e) => e.currentTarget.showPicker?.()}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -311,7 +312,7 @@ export function SuratTugasDetailStep({
                       tanggal_selesai: e.target.value,
                     })
                   }
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
                 />
               </div>
             </div>
@@ -322,15 +323,16 @@ export function SuratTugasDetailStep({
                   Mulai Tanggal <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     type="date"
                     required
                     value={formData.tanggal_mulai}
+                    onClick={(e) => e.currentTarget.showPicker?.()}
                     onChange={(e) =>
                       setFormData({ ...formData, tanggal_mulai: e.target.value })
                     }
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
                   />
                 </div>
               </div>
@@ -339,16 +341,17 @@ export function SuratTugasDetailStep({
                   Sampai Tanggal <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     type="date"
                     required
                     min={formData.tanggal_mulai}
                     value={formData.tanggal_selesai}
+                    onClick={(e) => e.currentTarget.showPicker?.()}
                     onChange={(e) =>
                       setFormData({ ...formData, tanggal_selesai: e.target.value })
                     }
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
                   />
                 </div>
               </div>
