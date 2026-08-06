@@ -118,7 +118,7 @@ function indexToLetter(index: number): string {
   return `${index + 1}.`;
 }
 
-function parseItems(value: any): Array<{ id: string; text: string }> {
+function parseItems(value: any): { id: string; text: string }[] {
   if (!value) return [];
   if (typeof value === "string") {
     try {

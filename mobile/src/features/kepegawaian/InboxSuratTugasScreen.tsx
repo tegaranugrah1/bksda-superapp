@@ -96,7 +96,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
 
   const fetchSuratTugas = async () => {
     try {
-      const response = await apiClient.get<any>("/surat-tugas?mobile=true");
+      const response = await apiClient.get<any>("/surat-tugas/my");
       if (response.data && Array.isArray(response.data.data)) {
         const apiList = response.data.data.map((st: any) => {
           const rawStatus = (st.status || "DRAFT").toUpperCase();
@@ -143,6 +143,11 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
           };
         });
         setStList(apiList);
+        setSelectedSt((prev) => {
+          if (!prev) return null;
+          const updated = apiList.find((item: SuratTugasItem) => item.id === prev.id);
+          return updated || prev;
+        });
       } else {
         setStList([]);
       }
@@ -161,15 +166,6 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     }, 5000);
     return () => clearInterval(interval);
   }, [isFocused]);
-
-  useEffect(() => {
-    if (selectedSt && stList.length > 0) {
-      const updated = stList.find((item) => item.id === selectedSt.id);
-      if (updated && (updated.nomor_surat !== selectedSt.nomor_surat || updated.status !== selectedSt.status || updated.title !== selectedSt.title)) {
-        setSelectedSt(updated);
-      }
-    }
-  }, [stList, selectedSt]);
 
   // Handle hardware back press & back gesture: return to Inbox list view first
   useEffect(() => {

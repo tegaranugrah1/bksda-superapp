@@ -148,7 +148,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     } catch {
       setMyAssetsList([]);
     }
-  }, [employee?.id]);
+  }, [employee]);
 
   const fetchMySt = React.useCallback(async () => {
     try {
@@ -601,7 +601,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         <View style={styles.heroBanner}>
           <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
           <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
-          <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur.</Text>
+          <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur ({resolvedNip}).</Text>
 
           {/* Quick Actions Row for Employees (Sisa Cuti & Buat Surat Tugas) */}
           <View style={styles.employeeQuickActionsRow}>
