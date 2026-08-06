@@ -81,6 +81,22 @@ const MODULES = [
   },
 ];
 
+function formatDateIndo(dateStr?: string | null): string {
+  if (!dateStr) return "-";
+  const cleaned = String(dateStr).split("T")[0].trim();
+  const parts = cleaned.split("-");
+  if (parts.length === 3) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    const year = parseInt(parts[0], 10);
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    if (!isNaN(year) && !isNaN(monthIdx) && !isNaN(day) && monthIdx >= 0 && monthIdx < 12) {
+      return `${day} ${months[monthIdx]} ${year}`;
+    }
+  }
+  return dateStr;
+}
+
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
   userProfile,
@@ -353,7 +369,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                           </Text>
                         </View>
                         <Text style={{ color: colors.textMuted, fontSize: 10 }}>
-                          {stItem.tanggal_mulai || "28 Jul 2026"}
+                          {stItem.tanggal_mulai && stItem.tanggal_selesai && stItem.tanggal_mulai.split('T')[0] === stItem.tanggal_selesai.split('T')[0]
+                            ? formatDateIndo(stItem.tanggal_mulai)
+                            : stItem.tanggal_mulai && stItem.tanggal_selesai
+                            ? `${formatDateIndo(stItem.tanggal_mulai)} - ${formatDateIndo(stItem.tanggal_selesai)}`
+                            : formatDateIndo(stItem.tanggal_mulai || "2026-07-28")}
                         </Text>
                       </View>
                     </View>

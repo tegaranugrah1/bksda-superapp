@@ -21,6 +21,22 @@ import { apiClient } from "../../lib/api/client";
 import { downloadAssignmentFile } from "@/lib/files/download";
 import { shareFile } from "@/lib/files/share";
 
+function formatDateIndo(dateStr?: string | null): string {
+  if (!dateStr) return "-";
+  const cleaned = String(dateStr).split("T")[0].trim();
+  const parts = cleaned.split("-");
+  if (parts.length === 3) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    const year = parseInt(parts[0], 10);
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    if (!isNaN(year) && !isNaN(monthIdx) && !isNaN(day) && monthIdx >= 0 && monthIdx < 12) {
+      return `${day} ${months[monthIdx]} ${year}`;
+    }
+  }
+  return dateStr;
+}
+
 interface InboxSuratTugasScreenProps {
   navigation?: any;
   onBack?: () => void;
@@ -103,13 +119,22 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
             : [];
 
           const titleStr = st.nama_kegiatan || (st.maksud_tujuan ? st.maksud_tujuan.split("\n")[0] : (st.kegiatan || st.perihal || st.title || "-"));
+
+          const tglMulai = st.tanggal_mulai?.split('T')[0];
+          const tglSelesai = st.tanggal_selesai?.split('T')[0];
+          const periodeStr = tglMulai && tglSelesai && tglMulai === tglSelesai
+            ? formatDateIndo(tglMulai)
+            : tglMulai && tglSelesai
+            ? `${formatDateIndo(tglMulai)} - ${formatDateIndo(tglSelesai)}`
+            : st.periode || "2026";
+
           return {
             id: String(st.id),
             status: rawStatus,
             statusColor,
             nomor_surat: st.nomor_surat || st.st_number || "",
             date: dateStr,
-            periode: st.periode || "2026",
+            periode: periodeStr,
             title: titleStr,
             location: st.tempat_tujuan || st.tujuan || st.location || "Kalimantan Timur",
             dana: (st.sumber_dana || "DIPA").toUpperCase(),
