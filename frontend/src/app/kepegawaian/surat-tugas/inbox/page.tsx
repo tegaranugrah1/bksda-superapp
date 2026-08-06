@@ -427,7 +427,9 @@ export default function SuratTugasInbox() {
                                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Periode</span>
                                             <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
                                                 <Calendar className="w-3.5 h-3.5 text-blue-500" />
-                                                {formatDateIndonesian(selectedLetter.tanggal_mulai)} — {formatDateIndonesian(selectedLetter.tanggal_selesai)}
+                                                {selectedLetter.tanggal_mulai === selectedLetter.tanggal_selesai
+                                                    ? formatDateIndonesian(selectedLetter.tanggal_mulai)
+                                                    : `${formatDateIndonesian(selectedLetter.tanggal_mulai)} — ${formatDateIndonesian(selectedLetter.tanggal_selesai)}`}
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800/50 space-y-1">
