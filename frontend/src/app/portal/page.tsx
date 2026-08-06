@@ -8,10 +8,17 @@ import {
   Sun, Sunset, Moon, Loader2, LogOut, Users, Package,
   Boxes, FileText, LayoutGrid, Mail, Sparkles, Bell,
   HandHelping, Briefcase, ClipboardList, Calendar,
+  ChevronDown, FileCheck, FileSpreadsheet,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -24,6 +31,8 @@ import { SuratTugasTab } from "./_components/SuratTugasTab";
 import { MyAssetsTab, AssetItem } from "./_components/MyAssetsTab";
 import { MyLeaveTab } from "./_components/MyLeaveTab";
 import { ActiveLoansTab, BorrowedAssetItem } from "./_components/ActiveLoansTab";
+import { GeneralReportDialog } from "./_components/GeneralReportDialog";
+import { GeneralReportInlineForm } from "./_components/GeneralReportInlineForm";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -108,11 +117,15 @@ export default function PersonalDashboard() {
   const [stDetail, setStDetail] = useState<SuratTugasDetail | null>(null);
   const [stDetailLoading, setStDetailLoading] = useState(false);
 
+  // General Report Builder state
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [showInlineReport, setShowInlineReport] = useState(false);
+
   const filteredMyAssets = useMemo(() => {
     if (!data?.my_assets) return myAssets;
     const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
     return myAssets.filter(a => !borrowedIds.has(a.id));
-  }, [myAssets, data?.my_assets]);
+  }, [myAssets, data]);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -361,7 +374,7 @@ export default function PersonalDashboard() {
           {/* Main Content */}
           <main className="flex-1 min-w-0 space-y-6 order-1 lg:order-2">
             {/* Welcome Banner */}
-            <div className="bg-emerald-600 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden">
+            <div className="bg-emerald-600 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
               <div className="absolute bottom-0 left-1/2 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
               <div className="relative z-10">
@@ -371,96 +384,158 @@ export default function PersonalDashboard() {
                 </h2>
                 <p className="text-emerald-100 text-sm mt-2">Selamat datang di portal BKSDA Kalimantan Timur.</p>
               </div>
-            </div>
-
-            {/* Module Grid */}
-            {moduleCards.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Modul Akses</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                  {moduleCards.map((mod) => (
-                    <Link key={mod.key} href={mod.href} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
-                      <div className={cn("w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2", mod.bg, mod.color)}>
-                        {mod.icon}
+              <div className="relative z-10 shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      className="bg-white text-emerald-900 hover:bg-emerald-50 font-bold text-xs h-10 px-5 rounded-xl shadow-lg gap-2 border border-white/20 transition-all hover:scale-105"
+                    >
+                      <FileText className="w-4 h-4 text-emerald-600" />
+                      Buat Laporan
+                      <ChevronDown className="w-3.5 h-3.5 opacity-70 ml-0.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl shadow-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
+                    <DropdownMenuItem
+                      onClick={() => setShowInlineReport(true)}
+                      className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-bold text-slate-800 dark:text-slate-200"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4" />
                       </div>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{mod.label}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{mod.desc}</p>
-                    </Link>
-                  ))}
-                </div>
+                      <div>
+                        <p className="font-bold leading-tight">1. Laporan Pelaksanaan</p>
+                        <p className="text-[10px] text-slate-400 font-normal">Format resmi Surat Tugas BKSDA</p>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => toast.info("Template Laporan Kegiatan Monitoring akan segera hadir.")}
+                      className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 hover:bg-slate-100 dark:hover:bg-zinc-800 text-xs font-semibold text-slate-600 dark:text-slate-400"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 flex items-center justify-center shrink-0">
+                        <FileCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="font-bold leading-tight">2. Laporan Monitoring</p>
+                        <p className="text-[10px] text-slate-400 font-normal">Template pengawasan lapangan</p>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => toast.info("Template Laporan Evaluasi & Keuangan akan segera hadir.")}
+                      className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 hover:bg-slate-100 dark:hover:bg-zinc-800 text-xs font-semibold text-slate-600 dark:text-slate-400"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-violet-100 dark:bg-violet-900/40 text-violet-600 flex items-center justify-center shrink-0">
+                        <FileSpreadsheet className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="font-bold leading-tight">3. Laporan Pertanggungjawaban</p>
+                        <p className="text-[10px] text-slate-400 font-normal">Template evaluasi kegiatan</p>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            )}
-
-            {/* Tabs Section */}
-            <div>
-              <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-1 mb-4">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
-                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                    )}
-                  >
-                    {tab.icon} {tab.label}
-                    {tab.count !== undefined && tab.count > 0 && (
-                      <span className={cn(
-                        "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                        activeTab === tab.key ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-                      )}>
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab: Pinjaman Aktif */}
-              {activeTab === "pinjaman" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
-                </div>
-              )}
-
-              {/* Tab: Aset Saya */}
-              {activeTab === "aset" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <MyAssetsTab
-                    assetsLoading={assetsLoading}
-                    filteredMyAssets={filteredMyAssets as AssetItem[]}
-                    assetViewMode={assetViewMode}
-                    setAssetViewMode={setAssetViewMode}
-                  />
-                </div>
-              )}
-
-              {/* Tab: Surat Tugas */}
-              {activeTab === "surat_tugas" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <SuratTugasTab
-                    stLoading={stLoading}
-                    suratTugas={suratTugas}
-                    fetchSTDetail={fetchSTDetail}
-                    stDetailLoading={stDetailLoading}
-                  />
-                </div>
-              )}
-
-              {/* Tab: Cuti Saya */}
-              {activeTab === "cuti" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <MyLeaveTab
-                    myLeaveRequests={myLeaveRequests}
-                    onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
-                    onPrintLeave={(item) => {
-                      setPrintLeaveData(item);
-                      setTimeout(() => window.print(), 300);
-                    }}
-                  />
-                </div>
-              )}
             </div>
+
+            {/* Main Section: Form Inline or Dashboard Grid */}
+            {showInlineReport ? (
+              <GeneralReportInlineForm onBack={() => setShowInlineReport(false)} />
+            ) : (
+              <>
+                {/* Module Grid */}
+                {moduleCards.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Modul Akses</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {moduleCards.map((mod) => (
+                        <Link key={mod.key} href={mod.href} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
+                          <div className={cn("w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2", mod.bg, mod.color)}>
+                            {mod.icon}
+                          </div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{mod.label}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">{mod.desc}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tabs Section */}
+                <div>
+                  <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-1 mb-4">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={cn(
+                          "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
+                          activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        )}
+                      >
+                        {tab.icon} {tab.label}
+                        {tab.count !== undefined && tab.count > 0 && (
+                          <span className={cn(
+                            "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                            activeTab === tab.key ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                          )}>
+                            {tab.count}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Tab: Pinjaman Aktif */}
+                  {activeTab === "pinjaman" && (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                      <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
+                    </div>
+                  )}
+
+                  {/* Tab: Aset Saya */}
+                  {activeTab === "aset" && (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                      <MyAssetsTab
+                        assetsLoading={assetsLoading}
+                        filteredMyAssets={filteredMyAssets as AssetItem[]}
+                        assetViewMode={assetViewMode}
+                        setAssetViewMode={setAssetViewMode}
+                      />
+                    </div>
+                  )}
+
+                  {/* Tab: Surat Tugas */}
+                  {activeTab === "surat_tugas" && (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                      <SuratTugasTab
+                        stLoading={stLoading}
+                        suratTugas={suratTugas}
+                        fetchSTDetail={fetchSTDetail}
+                        stDetailLoading={stDetailLoading}
+                        onOpenReportModal={() => setShowInlineReport(true)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Tab: Cuti Saya */}
+                  {activeTab === "cuti" && (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                      <MyLeaveTab
+                        myLeaveRequests={myLeaveRequests}
+                        onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
+                        onPrintLeave={(item) => {
+                          setPrintLeaveData(item);
+                          setTimeout(() => window.print(), 300);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </main>
         </div>
 
@@ -469,6 +544,12 @@ export default function PersonalDashboard() {
           open={leaveDialogOpen}
           onClose={() => setLeaveDialogOpen(false)}
           onSuccess={() => fetchMyLeaveRequests()}
+        />
+
+        {/* Modal Buat Laporan General / Pelaksanaan Surat Tugas */}
+        <GeneralReportDialog
+          open={reportDialogOpen}
+          onOpenChange={setReportDialogOpen}
         />
 
         {/* Hidden Printable Formulir Cuti */}
