@@ -1,3 +1,21 @@
+# Progress - Phase 213: Penyempurnaan Formatter Judul, Agenda A, Maksud & Tujuan C, serta Waktu E Laporan Pelaksanaan
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Pembersihan Prefix Judul Laporan (`formatJudulLaporan`)
+- **Pembersihan Awalan Redundan**: Mengeliminasi frasa awalan seperti `MELAKSANAKAN KEGIATAN`, `Melaksanakan perjalanan dinas`, `Menugaskan staf`, dan `Melaksanakan` dari autofill Judul Laporan.
+- **Formasi Judul Standar**: Menghasilkan Judul Laporan yang bersih, contoh: `LAPORAN PELAKSANAAN OPNAME FISIK ATK PERSEDIAAN PADA BALAI KSDA KALIMANTAN TIMUR DI SAMARINDA` dan `LAPORAN PELAKSANAAN INVENTARISASI BMN DI SEKSI KSDA WILAYAH I BERAU`.
+
+## 2. Penyempurnaan Struktur Seksi Laporan A, C, dan E
+- **A. Agenda Pelaksanaan**: Menampilkan kalimat penuh maksud penugasan dari Surat Tugas acuan.
+- **C. Maksud dan Tujuan**: Tampilan UI hanya memerlukan input bidang **Tujuan Spesifik Kegiatan**, sementara kalimat maksud kegiatan ditampilkan secara read-only dan otomatis digabungkan pada hasil dokumen PDF.
+- **E. Waktu dan Tempat Pelaksanaan**: Menggunakan klausa nama kegiatan ringkas hasil ekstraksi (contoh: *Kegiatan Pelaksanaan Lelang BMN ini dilaksanakan selama 2 (dua) hari terhitung mulai tanggal 20 Juli 2026 sampai dengan 21 Juli 2026 di Bontang.*).
+
+---
+
 # Progress - Phase 212: Implementasi Form Laporan Inline & Animasi Transisi Tampilan Portal (`GeneralReportInlineForm.tsx`)
 
 > Document updated: 2026-08-06

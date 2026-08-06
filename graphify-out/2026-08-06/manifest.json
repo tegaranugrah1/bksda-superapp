@@ -2530,8 +2530,8 @@
     "semantic_hash": "5880ee6fc926c2a72608e9f9aca63e37"
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1785986142.1745236,
-    "ast_hash": "67714833f8d85061a3b9aabbff52fcf4",
+    "mtime": 1785986380.932904,
+    "ast_hash": "5ba02580132d5244d64738e0f4276411",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -4405,8 +4405,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1785986100.6265988,
-    "ast_hash": "51a956bbb97870f571bbfac13096a0a0",
+    "mtime": 1785986415.8061967,
+    "ast_hash": "e25fa4ad38410409f73a0b69bf04aeaf",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5525,8 +5525,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SuratTugasTab.tsx": {
-    "mtime": 1785985950.09793,
-    "ast_hash": "efd6610d1fa716c23be16c36e0d21ec2",
+    "mtime": 1785986365.5569923,
+    "ast_hash": "dbf461bad480be4e182a56f5b617b94b",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/ConfirmActionModal.tsx": {
@@ -5630,8 +5630,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportDialog.tsx": {
-    "mtime": 1785986134.098013,
-    "ast_hash": "3d32de43410627bebaded1ced4efaf25",
+    "mtime": 1785986390.8839831,
+    "ast_hash": "c75129965de9263cf161c7d125dcf2ef",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportPrint.tsx": {

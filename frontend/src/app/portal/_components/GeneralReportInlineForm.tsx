@@ -77,6 +77,38 @@ function numberToTerbilang(num: number): string {
   return terbilangMap[num] || String(num);
 }
 
+function formatJudulLaporan(rawText: string): string {
+  let cleaned = (rawText || "")
+    .replace(/[,;]?\s*selama\s+\d+.*$/i, "")
+    .trim();
+
+  // If contains "dalam rangka", extract the activity name after "dalam rangka"
+  const matchDalamRangka = cleaned.match(/dalam\s+rangka\s+(.+)$/i);
+  if (matchDalamRangka && matchDalamRangka[1]) {
+    cleaned = matchDalamRangka[1].trim();
+  } else {
+    // Strip leading words: "melaksanakan kegiatan", "melaksanakan perjalanan dinas", "menugaskan staf", "melaksanakan"
+    cleaned = cleaned.replace(/^(melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i, "");
+  }
+
+  return `LAPORAN PELAKSANAAN ${cleaned.toUpperCase()}`;
+}
+
+function extractShortActivity(rawText: string): string {
+  let cleaned = (rawText || "")
+    .replace(/[,;]?\s*selama\s+\d+.*$/i, "")
+    .trim();
+
+  const matchDalamRangka = cleaned.match(/dalam\s+rangka\s+(.+)$/i);
+  if (matchDalamRangka && matchDalamRangka[1]) {
+    cleaned = matchDalamRangka[1].trim();
+  } else {
+    cleaned = cleaned.replace(/^(melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i, "");
+  }
+
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
 export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps) {
   // State for Surat Tugas Options
   const [stOptions, setStOptions] = useState<MySuratTugasOption[]>([]);
@@ -148,14 +180,15 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
       const st = resp.data?.data || resp.data;
       if (!st) return;
 
-      // 1. Judul Laporan Auto
-      const cleanTitle = (st.maksud_tujuan || "")
+      const rawMaksud = (st.maksud_tujuan || "")
         .replace(/[,;]?\s*selama\s+\d+.*$/i, "")
         .trim();
-      setJudulLaporan(`LAPORAN PELAKSANAAN ${cleanTitle.toUpperCase()}`);
 
-      // 2. Agenda Pelaksanaan Auto
-      setAgendaPelaksanaan(cleanTitle);
+      // 1. Judul Laporan Auto (Strips "Melaksanakan kegiatan / Perjalanan dinas")
+      setJudulLaporan(formatJudulLaporan(rawMaksud));
+
+      // 2. Agenda Pelaksanaan Auto (Full intent sentence)
+      setAgendaPelaksanaan(rawMaksud);
 
       // 3. Dasar Pelaksanaan Auto (+ Item #3)
       const baseDasar = [
@@ -170,10 +203,10 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
       }
       setDasarPelaksanaan(baseDasar);
 
-      // 4. Maksud & Tujuan Auto
-      setMaksudText(cleanTitle);
+      // 4. Maksud & Tujuan Auto (Maksud from ST, Tujuan user input)
+      setMaksudText(rawMaksud);
       setTujuanText(
-        `memverifikasi pelaksanaan ${cleanTitle} dan memastikan koordinasi teknis berjalan lancar.`
+        `memverifikasi berkas dan memantau hasil pelaksanaan ${extractShortActivity(rawMaksud)} tersebut.`
       );
 
       // 5. Pelaksana Auto
@@ -194,9 +227,10 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
       const tglMulaiStr = formatDateIndo(st.tanggal_mulai);
       const tglSelesaiStr = formatDateIndo(st.tanggal_selesai);
       const tempatStr = st.tempat_tujuan || "Kalimantan Timur";
+      const shortActivity = extractShortActivity(rawMaksud);
 
       setWaktuTempat(
-        `Kegiatan ${cleanTitle} ini dilaksanakan selama ${daysCount} (${daysTerbilang}) hari terhitung mulai tanggal ${tglMulaiStr} sampai dengan ${tglSelesaiStr} di ${tempatStr}.`
+        `Kegiatan ${shortActivity} ini dilaksanakan selama ${daysCount} (${daysTerbilang}) hari terhitung mulai tanggal ${tglMulaiStr} sampai dengan ${tglSelesaiStr} di ${tempatStr}.`
       );
 
       toast.success("Data laporan berhasil diisi otomatis dari Surat Tugas!");
@@ -443,30 +477,29 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
             <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
               C. Maksud dan Tujuan
             </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label className="text-[11px] text-slate-500 font-semibold">
-                  Maksud Kegiatan:
+            <div className="space-y-3">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/60 dark:border-zinc-700/60 space-y-1">
+                <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                  Maksud Kegiatan (Otomatis dari Agenda ST):
                 </Label>
-                <Textarea
-                  rows={2}
-                  value={maksudText}
-                  onChange={(e) => setMaksudText(e.target.value)}
-                  placeholder="Melaksanakan Perjalanan Dinas dari..."
-                  className="rounded-xl text-xs font-medium"
-                />
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
+                  {maksudText ? `Maksud kegiatan ini adalah ${maksudText}` : "-"}
+                </p>
               </div>
-              <div className="space-y-1">
-                <Label className="text-[11px] text-slate-500 font-semibold">
-                  Tujuan Spesifik Kegiatan:
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Tujuan Kegiatan (Input Spesifik Tujuan Pelaksanaan):
                 </Label>
                 <Textarea
                   rows={2}
                   value={tujuanText}
                   onChange={(e) => setTujuanText(e.target.value)}
-                  placeholder="memverifikasi berkas kendaraan dan koordinasi..."
+                  placeholder="Contoh: memverifikasi berkas kendaraan dengan KPKNL Bontang dan mengetahui pemenang hasil Lelang kendaraan tersebut."
                   className="rounded-xl text-xs font-medium"
                 />
+                <p className="text-[11px] text-slate-400 italic">
+                  Format akhir PDF akan digabungkan menjadi: &quot;Maksud kegiatan ini adalah [Maksud] dan dengan tujuan untuk [Tujuan di atas]&quot;.
+                </p>
               </div>
             </div>
           </div>
