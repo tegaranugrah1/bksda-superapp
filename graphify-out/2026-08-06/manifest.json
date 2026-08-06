@@ -2340,13 +2340,13 @@
     "semantic_hash": "4ab46d2ff0add06ff25b799f18b48685"
   },
   "frontend/src/app/kepegawaian/_components/AssignmentHistoryTab.tsx": {
-    "mtime": 1785983468.0356855,
-    "ast_hash": "c6bdce7fb69b81f061d268d650394450",
+    "mtime": 1785983597.4801261,
+    "ast_hash": "616bd39584e5eca442d88f0d5a50ecaa",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_components/AssignmentInboxTab.tsx": {
-    "mtime": 1785983472.1454232,
-    "ast_hash": "dbabca7b480c8519966751116c550d00",
+    "mtime": 1785983602.0039518,
+    "ast_hash": "846155542b366a5d8714a9e3f2a597fa",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_components/AssignmentLetterHistory.tsx": {
@@ -2490,8 +2490,8 @@
     "semantic_hash": "750ce65eb50b8c03f6bc81fcdc28c117"
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx": {
-    "mtime": 1785983476.8048997,
-    "ast_hash": "96a1b383aa845711b0429fdcee54ac8e",
+    "mtime": 1785983606.6938403,
+    "ast_hash": "70f58d04bb9787edbe003db67e96a61d",
     "semantic_hash": ""
   },
   "frontend/src/app/lapor/page.tsx": {
@@ -4405,8 +4405,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1785983524.8975596,
-    "ast_hash": "566a1be6309ca01ccf5a72e8707d8088",
+    "mtime": 1785983644.1810734,
+    "ast_hash": "e7062ddec36072bc8b9554473350cf74",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5625,8 +5625,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/RiwayatSuratTugasScreen.tsx": {
-    "mtime": 1785983486.7902312,
-    "ast_hash": "6458435fca9cae38ea6ad84a80cf3012",
+    "mtime": 1785983589.834267,
+    "ast_hash": "6e8fbe52c56289206bbfd72295f9d123",
     "semantic_hash": ""
   }
 }

@@ -36,6 +36,17 @@ const STATUS_LABELS: Record<string, string> = {
     completed: "Selesai",
 };
 
+function cleanMaksudTujuan(text?: string | null): string {
+    if (!text) return '-';
+    let clean = text.split("\n")[0].trim();
+    const parts = clean.split(/(?=Membuat laporan|Segala biaya)/i);
+    if (parts.length > 0) {
+        clean = parts[0].trim();
+    }
+    clean = clean.replace(/[,;]?\s*selama\s+.*$/i, '').trim().replace(/;$/, '').trim();
+    return clean || text;
+}
+
 export function AssignmentHistoryTab() {
     const router = useRouter();
     const [filterStatus, setFilterStatus] = useState("");
@@ -167,7 +178,7 @@ export function AssignmentHistoryTab() {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 max-w-xs">
-                                            <p className="text-zinc-900 dark:text-zinc-200 text-xs font-semibold line-clamp-2 leading-relaxed">{item.maksud_tujuan}</p>
+                                             <p className="text-zinc-900 dark:text-zinc-200 text-xs font-semibold line-clamp-2 leading-relaxed">{cleanMaksudTujuan(item.maksud_tujuan)}</p>
                                         </td>
                                         <td className="px-6 py-4 max-w-[200px]">
                                             <div className="flex flex-wrap gap-1">

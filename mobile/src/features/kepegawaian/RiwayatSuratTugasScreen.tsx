@@ -64,6 +64,17 @@ function formatPeriodeIndo(tglMulai?: string | null, tglSelesai?: string | null)
   return `${formatDateIndo(startClean)} - ${formatDateIndo(endClean)}`;
 }
 
+function cleanMaksudTujuan(text?: string | null): string {
+  if (!text) return "";
+  let clean = text.split("\n")[0].trim();
+  const parts = clean.split(/(?=Membuat laporan|Segala biaya)/i);
+  if (parts.length > 0) {
+    clean = parts[0].trim();
+  }
+  clean = clean.replace(/[,;]?\s*selama\s+.*$/i, "").trim().replace(/;$/, "").trim();
+  return clean || text;
+}
+
 interface RiwayatSuratTugasScreenProps {
   navigation?: any;
   onBack?: () => void;
@@ -154,7 +165,7 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
       const formatted: SuratTugasItem[] = listArray.map((item: any) => ({
         id: String(item.id),
         nomor_surat: item.nomor_surat || undefined,
-        maksud_tujuan: item.maksud_tujuan || item.title || "Melaksanakan Perjalanan Dinas",
+        maksud_tujuan: cleanMaksudTujuan(item.maksud_tujuan || item.title || "Melaksanakan Perjalanan Dinas"),
         tempat_tujuan: item.tempat_tujuan || item.location || "Balai KSDA Kaltim",
         tanggal_mulai: item.tanggal_mulai || item.created_at || new Date().toISOString(),
         tanggal_selesai: item.tanggal_selesai || item.tanggal_mulai || new Date().toISOString(),

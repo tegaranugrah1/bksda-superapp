@@ -16,6 +16,17 @@ import { GlassCard } from "../../components/ui/GlassCard";
 import { FabMenu } from "../../components/ui/FabMenu";
 import { apiClient } from "../../lib/api/client";
 
+function cleanMaksudTujuan(text?: string | null): string {
+  if (!text) return "";
+  let clean = text.split("\n")[0].trim();
+  const parts = clean.split(/(?=Membuat laporan|Segala biaya)/i);
+  if (parts.length > 0) {
+    clean = parts[0].trim();
+  }
+  clean = clean.replace(/[,;]?\s*selama\s+.*$/i, "").trim().replace(/;$/, "").trim();
+  return clean || text;
+}
+
 interface KepegawaianDashboardScreenProps {
   navigation?: any;
   onBack?: () => void;
@@ -109,7 +120,7 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
           setRecentActivities(
             d.recent_activities.map((item: any) => ({
               id: item.id || Math.random().toString(),
-              title: item.title || "Melaksanakan Perjalanan Dinas",
+              title: cleanMaksudTujuan(item.title || "Melaksanakan Perjalanan Dinas"),
               status: item.status || "DITERBITKAN",
               statusBg: item.status === "APPROVED" ? "#dbeafe" : item.status === "DRAFT" ? "#e0e7ff" : "#dcfce7",
               statusColor: item.status === "APPROVED" ? "#1e40af" : item.status === "DRAFT" ? "#3730a3" : "#166534",

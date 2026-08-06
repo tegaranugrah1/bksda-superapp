@@ -1,3 +1,17 @@
+# Progress - Phase 207: Pembersihan Suffix Durasi (`, selama ...`) pada Riwayat Surat Tugas (Web Localhost & Mobile)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Pembersihan Teks Redundan Durasi (`cleanMaksudTujuan`)
+- **Implementasi Helper Cleaner**: Menambahkan helper `cleanMaksudTujuan` pada Web Localhost (`AssignmentHistoryTab.tsx`) dan Mobile (`RiwayatSuratTugasScreen.tsx` & `KepegawaianDashboardScreen.tsx`).
+- **Eliminasi Redundansi Teks**: Mengeliminasi suffix durasi tanggal `, selama 1 (satu) hari pada...` atau `, selama 2 (dua) hari terhitung mulai...` dari judul/maksud kegiatan saat ditampilkan di daftar Riwayat Surat Tugas dan Aktivitas Terkini Dashboard.
+- **Tampilan Bersih & Rapi**: Informasi periode tanggal tetap tersedia dengan jelas di kolom/badge tanggal terpisah, sehingga teks maksud kegiatan menjadi lebih bersih, tidak terpotong (truncated), dan ringkas.
+
+---
+
 # Progress - Phase 206: Auto-Update Dashboard Kepegawaian & Eliminasi Portal Refetch Spinner (`KepegawaianDashboardScreen.tsx` & `SuratTugasTab.tsx`)
 
 > Document updated: 2026-08-06
