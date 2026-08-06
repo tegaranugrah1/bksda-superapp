@@ -1,3 +1,19 @@
+# Progress - Phase 205: Best Practices Silent Background Sync (Eliminasi Layout Shift & Refresh Flicker)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Silent Background Polling Mobile (`RiwayatSuratTugasScreen.tsx`)
+- **Eliminasi Visual Flicker**: Mengubah `fetchHistory(silent = false)` agar `setIsLoading(true)` hanya dipanggil pada **initial load pertama kali** (saat daftar kartu masih kosong).
+- **Background Update Mulus**: Pengambilan data berkala di latar belakang (`setInterval(..., 5000)`) tidak lagi meng-unmount daftar kartu atau menampilkan spinner `ActivityIndicator` raksasa, sehingga UI tidak mengalami kelipan/layout shift yang mengganggu.
+
+## 2. Optimalisasi Refetch Interval Web Localhost (`AssignmentHistoryTab.tsx`, `AssignmentInboxTab.tsx`, `inbox/page.tsx`)
+- **Polite Polling Interval**: Menyesuaikan `refetchInterval` menjadi 5000ms dengan `refetchOnWindowFocus: true` untuk memastikan sinkronisasi data antar platform tetap cepat tanpa membebani memori browser.
+
+---
+
 # Progress - Phase 204: Real-Time Auto Sync Cross-Platform (Mobile ↔ Web Localhost) Surat Tugas
 
 > Document updated: 2026-08-06

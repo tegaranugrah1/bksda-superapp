@@ -25,7 +25,7 @@ export function AssignmentInboxTab() {
             return res.data;
         },
         staleTime: 0,
-        refetchInterval: 2000,
+        refetchInterval: 5000,
         refetchOnWindowFocus: true,
     });
 

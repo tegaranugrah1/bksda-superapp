@@ -137,9 +137,11 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
     variant: "info",
   });
 
-  const fetchHistory = useCallback(async () => {
+  const fetchHistory = useCallback(async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) {
+        setIsLoading(true);
+      }
       const params = new URLSearchParams();
       if (selectedStatus) params.append("status", selectedStatus);
       if (isTrashMode) params.append("trashed", "true");
@@ -171,7 +173,7 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
 
       setStList(formatted);
     } catch {
-      setStList([]);
+      // Keep existing list on background error
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -180,10 +182,10 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
 
   useFocusEffect(
     useCallback(() => {
-      fetchHistory();
+      fetchHistory(false);
       const timer = setInterval(() => {
-        fetchHistory();
-      }, 3000);
+        fetchHistory(true);
+      }, 5000);
       return () => clearInterval(timer);
     }, [fetchHistory])
   );
