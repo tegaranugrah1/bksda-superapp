@@ -4405,8 +4405,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1785982010.0189977,
-    "ast_hash": "504599d2815e2a4c0a51a92026bd265c",
+    "mtime": 1785982995.253768,
+    "ast_hash": "ec9c36203727baf5e5172c11344c2bea",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5625,8 +5625,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/RiwayatSuratTugasScreen.tsx": {
-    "mtime": 1785982017.9736297,
-    "ast_hash": "4488e9dfd9e1331734fbdb69c7537be9",
+    "mtime": 1785982958.4132857,
+    "ast_hash": "eae16270a056c617e6769fa38369cc6e",
     "semantic_hash": ""
   }
 }

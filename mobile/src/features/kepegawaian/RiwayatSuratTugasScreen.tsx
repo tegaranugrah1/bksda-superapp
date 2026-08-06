@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
@@ -16,6 +15,8 @@ import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { FabMenu } from "../../components/ui/FabMenu";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import { NotificationModal } from "../../components/ui/NotificationModal";
 import { apiClient } from "../../lib/api/client";
 import { downloadAssignmentFile } from "@/lib/files/download";
 import { shareFile } from "@/lib/files/share";
@@ -106,6 +107,36 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
+  // Custom Modal States
+  const [confirmModal, setConfirmModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    iconName?: keyof typeof Ionicons.glyphMap;
+    variant?: "danger" | "warning" | "info";
+    onConfirm: () => void;
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const [notifModal, setNotifModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    variant?: "danger" | "warning" | "success" | "info";
+    buttonText?: string;
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "info",
+  });
+
   const fetchHistory = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -159,55 +190,111 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
   };
 
   const handleSoftDelete = (item: SuratTugasItem) => {
-    Alert.alert(
-      "Konfirmasi Hapus",
-      `Apakah Anda yakin ingin memindahkan Surat Tugas "${item.nomor_surat || item.maksud_tujuan.substring(0, 30)}" ke Sampah?`,
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Hapus",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setActionLoadingId(item.id);
-              await apiClient.delete(`/surat-tugas/${item.id}`);
-              Alert.alert("Berhasil", "Surat Tugas telah dipindahkan ke Sampah.");
-              fetchHistory();
-            } catch (err: any) {
-              Alert.alert("Gagal Hapus", err?.response?.data?.message || "Gagal memindahkan Surat Tugas.");
-            } finally {
-              setActionLoadingId(null);
-            }
-          },
-        },
-      ]
-    );
+    const titleSnippet = item.maksud_tujuan.length > 45 ? `${item.maksud_tujuan.substring(0, 45)}...` : item.maksud_tujuan;
+    setConfirmModal({
+      visible: true,
+      title: "Konfirmasi Hapus",
+      message: `Apakah Anda yakin ingin memindahkan Surat Tugas "${item.nomor_surat || titleSnippet}" ke Sampah?`,
+      confirmText: "Hapus ke Sampah",
+      cancelText: "Batal",
+      iconName: "trash-outline",
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, visible: false }));
+        try {
+          setActionLoadingId(item.id);
+          await apiClient.delete(`/surat-tugas/${item.id}`);
+          setNotifModal({
+            visible: true,
+            title: "Berhasil Dihapus",
+            message: "Surat Tugas telah berhasil dipindahkan ke Sampah.",
+            variant: "success",
+          });
+          fetchHistory();
+        } catch (err: any) {
+          setNotifModal({
+            visible: true,
+            title: "Gagal Hapus",
+            message: err?.response?.data?.message || "Gagal memindahkan Surat Tugas ke Sampah.",
+            variant: "danger",
+          });
+        } finally {
+          setActionLoadingId(null);
+        }
+      },
+    });
   };
 
-  const handleRestore = async (item: SuratTugasItem) => {
-    try {
-      setActionLoadingId(item.id);
-      await apiClient.post(`/surat-tugas/${item.id}/restore`);
-      Alert.alert("Berhasil", "Surat Tugas berhasil dipulihkan dari Sampah.");
-      fetchHistory();
-    } catch (err: any) {
-      Alert.alert("Gagal Pulihkan", err?.response?.data?.message || "Gagal memulihkan Surat Tugas.");
-    } finally {
-      setActionLoadingId(null);
-    }
+  const handleRestore = (item: SuratTugasItem) => {
+    const titleSnippet = item.maksud_tujuan.length > 45 ? `${item.maksud_tujuan.substring(0, 45)}...` : item.maksud_tujuan;
+    setConfirmModal({
+      visible: true,
+      title: "Konfirmasi Pulihkan",
+      message: `Apakah Anda yakin ingin memulihkan Surat Tugas "${item.nomor_surat || titleSnippet}" dari Sampah?`,
+      confirmText: "Pulihkan Surat",
+      cancelText: "Batal",
+      iconName: "refresh-outline",
+      variant: "info",
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, visible: false }));
+        try {
+          setActionLoadingId(item.id);
+          await apiClient.post(`/surat-tugas/${item.id}/restore`);
+          setNotifModal({
+            visible: true,
+            title: "Berhasil Dipulihkan",
+            message: "Surat Tugas telah berhasil dipulihkan dari Sampah.",
+            variant: "success",
+          });
+          fetchHistory();
+        } catch (err: any) {
+          setNotifModal({
+            visible: true,
+            title: "Gagal Pulihkan",
+            message: err?.response?.data?.message || "Gagal memulihkan Surat Tugas.",
+            variant: "danger",
+          });
+        } finally {
+          setActionLoadingId(null);
+        }
+      },
+    });
   };
 
-  const handleApproveDirect = async (item: SuratTugasItem) => {
-    try {
-      setActionLoadingId(item.id);
-      await apiClient.put(`/surat-tugas/${item.id}/approve`, { status: "approved" });
-      Alert.alert("Berhasil", "Surat Tugas telah berhasil diterbitkan!");
-      fetchHistory();
-    } catch (err: any) {
-      Alert.alert("Gagal Terbitkan", err?.response?.data?.message || "Gagal menerbitkan Surat Tugas.");
-    } finally {
-      setActionLoadingId(null);
-    }
+  const handleApproveDirect = (item: SuratTugasItem) => {
+    const titleSnippet = item.maksud_tujuan.length > 45 ? `${item.maksud_tujuan.substring(0, 45)}...` : item.maksud_tujuan;
+    setConfirmModal({
+      visible: true,
+      title: "Konfirmasi Terbitkan",
+      message: `Apakah Anda yakin ingin menerbitkan Surat Tugas "${item.nomor_surat || titleSnippet}"?`,
+      confirmText: "Terbitkan Sekarang",
+      cancelText: "Batal",
+      iconName: "checkmark-circle-outline",
+      variant: "info",
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, visible: false }));
+        try {
+          setActionLoadingId(item.id);
+          await apiClient.put(`/surat-tugas/${item.id}/approve`, { status: "approved" });
+          setNotifModal({
+            visible: true,
+            title: "Surat Tugas Diterbitkan",
+            message: "Surat Tugas telah berhasil diterbitkan!",
+            variant: "success",
+          });
+          fetchHistory();
+        } catch (err: any) {
+          setNotifModal({
+            visible: true,
+            title: "Gagal Menerbitkan",
+            message: err?.response?.data?.message || "Gagal menerbitkan Surat Tugas.",
+            variant: "danger",
+          });
+        } finally {
+          setActionLoadingId(null);
+        }
+      },
+    });
   };
 
   const handleDownloadDoc = async (item: SuratTugasItem) => {
@@ -218,7 +305,12 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
       const res = await downloadAssignmentFile({ assignmentId: item.id, mode: "management", filename });
       await shareFile({ localUri: res.localUri, dialogTitle: "Bagikan Surat Tugas PDF", mimeType: "application/pdf" });
     } catch (err: any) {
-      Alert.alert("Gagal Unduh", err?.message || "Terjadi kesalahan saat mengunduh PDF.");
+      setNotifModal({
+        visible: true,
+        title: "Gagal Unduh Berkas",
+        message: err?.message || "Terjadi kesalahan saat mengunduh PDF.",
+        variant: "danger",
+      });
     } finally {
       setActionLoadingId(null);
     }
@@ -470,6 +562,29 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
 
       {/* Floating Action Button */}
       <FabMenu onNavigateToModule={onNavigateToModule || ((key) => navigation && navigation.navigate(key))} />
+
+      {/* Custom Confirmation Modal */}
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        iconName={confirmModal.iconName}
+        variant={confirmModal.variant}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal((prev) => ({ ...prev, visible: false }))}
+      />
+
+      {/* Custom Notification Modal */}
+      <NotificationModal
+        visible={notifModal.visible}
+        title={notifModal.title}
+        message={notifModal.message}
+        variant={notifModal.variant}
+        buttonText={notifModal.buttonText || "Saya Mengerti"}
+        onClose={() => setNotifModal((prev) => ({ ...prev, visible: false }))}
+      />
     </View>
   );
 };

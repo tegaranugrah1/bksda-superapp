@@ -1,3 +1,20 @@
+# Progress - Phase 203: Refactoring Dialog Notifikasi & Konfirmasi Custom UI Mobile (`RiwayatSuratTugasScreen.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Migrasi Dialog Native `Alert.alert` ke Custom Component UI (`ConfirmModal` & `NotificationModal`)
+- **Penghapusan Native Dialog**: Mengganti seluruh dialog bawaan OS/Android `Alert.alert` pada layar `RiwayatSuratTugasScreen.tsx` dengan komponen modal custom Superapp (`ConfirmModal` & `NotificationModal`).
+- **Desain Glassmorphic & Konsisten**:
+  - **Konfirmasi Hapus ke Sampah**: Menggunakan `ConfirmModal` (variant `danger`, icon `trash-outline`, tombol *"Hapus ke Sampah"* & *"Batal"*).
+  - **Konfirmasi Pulihkan Surat**: Menggunakan `ConfirmModal` (variant `info`, icon `refresh-outline`, tombol *"Pulihkan Surat"* & *"Batal"*).
+  - **Konfirmasi Terbitkan Surat**: Menggunakan `ConfirmModal` (variant `info`, icon `checkmark-circle-outline`, tombol *"Terbitkan Sekarang"* & *"Batal"*).
+  - **Notifikasi Status & Error**: Menggunakan `NotificationModal` (variant `success` / `danger`) dengan pesan instruktif dan tombol *"Saya Mengerti"*.
+
+---
+
 # Progress - Phase 202: Dedicated Screen Riwayat Surat Tugas Mobile & Integrasi Navigasi (Issue #562)
 
 > Document updated: 2026-08-06
