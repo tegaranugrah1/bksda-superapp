@@ -3635,8 +3635,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalDashboardScreen.tsx": {
-    "mtime": 1785921838.0293248,
-    "ast_hash": "fa9ef5a134fa7bce82919f29b5845253",
+    "mtime": 1785976252.245508,
+    "ast_hash": "f31624792225efce1ff855500f28bc5d",
     "semantic_hash": ""
   },
   "mobile/src/features/inventory/InventoryStockScreen.tsx": {
@@ -5305,8 +5305,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx": {
-    "mtime": 1785917435.4013767,
-    "ast_hash": "ea9bede123b2e704ce5a57181c12f24d",
+    "mtime": 1785976277.2701905,
+    "ast_hash": "c7bc1fc9f0c8d27bda6c6c9fe3ffcbc6",
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/KepegawaianScreen.tsx": {
