@@ -505,8 +505,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_resources_medashboardresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "medashboardresource.php"
     },
     {
@@ -516,8 +516,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_http_resources_medashboardresource_medashboardresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "medashboardresource"
     },
     {
@@ -527,8 +527,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_http_resources_medashboardresource_medashboardresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".toarray()"
     },
     {
@@ -538,8 +538,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_resources_userresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "userresource.php"
     },
     {
@@ -549,8 +549,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_http_resources_userresource_userresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "userresource"
     },
     {
@@ -560,8 +560,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_http_resources_userresource_userresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".toarray()"
     },
     {
@@ -571,8 +571,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "backend_app_http_resources_userresource_userresource_getemployeedata",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".getemployeedata()"
     },
     {
@@ -1220,8 +1220,8 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_candidates",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".candidates()"
     },
     {
@@ -1396,8 +1396,8 @@
       "source_location": "L445",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_events",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".events()"
     },
     {
@@ -1968,8 +1968,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller_index",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".index()"
     },
     {
@@ -4916,8 +4916,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "assetmaintenanceresource.php"
     },
     {
@@ -4927,8 +4927,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource_assetmaintenanceresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "assetmaintenanceresource"
     },
     {
@@ -4938,8 +4938,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource_assetmaintenanceresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".toarray()"
     },
     {
@@ -4960,8 +4960,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "assetresource"
     },
     {
@@ -4971,8 +4971,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".toarray()"
     },
     {
@@ -4982,8 +4982,8 @@
       "source_location": "L164",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_vehicledocumentpayload",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".vehicledocumentpayload()"
     },
     {
@@ -4993,8 +4993,8 @@
       "source_location": "L196",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_vehicledocumentpreviewurls",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".vehicledocumentpreviewurls()"
     },
     {
@@ -5004,8 +5004,8 @@
       "source_location": "L219",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_documentversion",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".documentversion()"
     },
     {
@@ -5015,8 +5015,8 @@
       "source_location": "L227",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_isimagedocument",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".isimagedocument()"
     },
     {
@@ -5026,8 +5026,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatchassetresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "auctionbatchassetresource.php"
     },
     {
@@ -5059,8 +5059,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatcheventresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "auctionbatcheventresource.php"
     },
     {
@@ -5070,8 +5070,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatcheventresource_auctionbatcheventresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "auctionbatcheventresource"
     },
     {
@@ -5081,8 +5081,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatcheventresource_auctionbatcheventresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".toarray()"
     },
     {
@@ -5125,8 +5125,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctioncandidateassetresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "auctioncandidateassetresource.php"
     },
     {
@@ -5136,8 +5136,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctioncandidateassetresource_auctioncandidateassetresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "auctioncandidateassetresource"
     },
     {
@@ -5147,8 +5147,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctioncandidateassetresource_auctioncandidateassetresource_toarray",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": ".toarray()"
     },
     {
@@ -5334,8 +5334,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_auctionassetdocumentreadinessservice",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "auctionassetdocumentreadinessservice.php"
     },
     {
@@ -10416,8 +10416,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeaccesscontroller",
-      "community": 12,
-      "community_name": "Controller",
+      "community": 37,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "employeeaccesscontroller.php"
     },
     {
@@ -10427,8 +10427,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeaccesscontroller_employeeaccesscontroller",
-      "community": 12,
-      "community_name": "Controller",
+      "community": 37,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "employeeaccesscontroller"
     },
     {
@@ -10460,8 +10460,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeecontroller",
-      "community": 12,
-      "community_name": "Controller",
+      "community": 13,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "employeecontroller.php"
     },
     {
@@ -11164,8 +11164,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_routes_api",
-      "community": 12,
-      "community_name": "Controller",
+      "community": 13,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "kepegawaian/routes/api.php"
     },
     {
@@ -12825,8 +12825,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "backend_composer_keywords",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 595,
+      "community_name": "keywords",
       "norm_label": "keywords"
     },
     {
@@ -12836,8 +12836,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_laravel",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 595,
+      "community_name": "keywords",
       "norm_label": "laravel"
     },
     {
@@ -12847,8 +12847,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_framework",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 595,
+      "community_name": "keywords",
       "norm_label": "framework"
     },
     {
@@ -13485,8 +13485,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_composer_extra",
-      "community": 598,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "extra"
     },
     {
@@ -13496,8 +13496,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_composer_extra_laravel",
-      "community": 598,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "laravel"
     },
     {
@@ -13507,8 +13507,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_composer_laravel_dont_discover",
-      "community": 598,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "dont-discover"
     },
     {
@@ -16331,8 +16331,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_package_dependencies_tanstack_react_query",
-      "community": 640,
-      "community_name": "@tanstack/react-query",
+      "community": 19,
+      "community_name": "dependencies",
       "norm_label": "@tanstack/react-query"
     },
     {
@@ -16342,8 +16342,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "tanstack_react_query",
-      "community": 640,
-      "community_name": "@tanstack/react-query",
+      "community": 19,
+      "community_name": "dependencies",
       "norm_label": "@tanstack/react-query"
     },
     {
@@ -16397,8 +16397,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_package_dependencies_axios",
-      "community": 19,
-      "community_name": "dependencies",
+      "community": 636,
+      "community_name": "axios",
       "norm_label": "axios"
     },
     {
@@ -16408,8 +16408,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_package_json_axios",
-      "community": 19,
-      "community_name": "dependencies",
+      "community": 636,
+      "community_name": "axios",
       "norm_label": "axios"
     },
     {
@@ -20555,8 +20555,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs",
-      "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "documentnumberinputs.tsx"
     },
     {
@@ -20566,8 +20566,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_documentnumberinputsprops",
-      "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "documentnumberinputsprops"
     },
     {
@@ -20577,8 +20577,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_numberrow",
-      "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "numberrow"
     },
     {
@@ -20588,8 +20588,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_documentnumberinlinecardprops",
-      "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "documentnumberinlinecardprops"
     },
     {
@@ -20600,7 +20600,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_documentnumberinlinecard",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "documentnumberinlinecard()"
     },
     {
@@ -20610,8 +20610,8 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_numbersettingrow",
-      "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "numbersettingrow()"
     },
     {
@@ -20621,8 +20621,8 @@
       "source_location": "L207",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_documentnumberinputs",
-      "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "documentnumberinputs()"
     },
     {
@@ -20633,7 +20633,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "kepalabalaipicker.tsx"
     },
     {
@@ -20644,7 +20644,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_employeerecord",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "employeerecord"
     },
     {
@@ -20655,7 +20655,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_kepalabalaipickerprops",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "kepalabalaipickerprops"
     },
     {
@@ -20666,7 +20666,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_loadstoredkepalabalaidefault",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "loadstoredkepalabalaidefault()"
     },
     {
@@ -20677,7 +20677,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_savestoredkepalabalaidefault",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "savestoredkepalabalaidefault()"
     },
     {
@@ -20688,7 +20688,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_kepalabalaipicker",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "kepalabalaipicker()"
     },
     {
@@ -20995,8 +20995,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_notadinasdocument_notadinasdocumentprops",
-      "community": 14,
-      "community_name": "auction-helpers.ts",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "notadinasdocumentprops"
     },
     {
@@ -21073,7 +21073,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_panitiaeditor",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "panitiaeditor.tsx"
     },
     {
@@ -21084,7 +21084,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_panitiaeditor_panitiaeditorprops",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "panitiaeditorprops"
     },
     {
@@ -21095,7 +21095,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_panitiaeditor_panitiaeditor",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "panitiaeditor()"
     },
     {
@@ -21149,8 +21149,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_permohonankpknldocument_permohonankpknldocumentprops",
-      "community": 14,
-      "community_name": "auction-helpers.ts",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "permohonankpknldocumentprops"
     },
     {
@@ -21194,7 +21194,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_pernyataandocument",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "pernyataandocument.tsx"
     },
     {
@@ -21205,7 +21205,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_pernyataandocument_pernyataandocumentprops",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "pernyataandocumentprops"
     },
     {
@@ -21216,7 +21216,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_pernyataandocument_pernyataandocument",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "pernyataandocument()"
     },
     {
@@ -21227,7 +21227,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_pernyataandocument_pernyataanidentity",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "pernyataanidentity()"
     },
     {
@@ -21348,7 +21348,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skbuilder",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "skbuilder.tsx"
     },
     {
@@ -21359,7 +21359,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skbuilder_employeeoption",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "employeeoption"
     },
     {
@@ -21369,8 +21369,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skbuilder_skbuilderprops",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skbuilderprops"
     },
     {
@@ -21381,7 +21381,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skbuilder_skbuilder",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "skbuilder()"
     },
     {
@@ -21458,7 +21458,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpanitiadocument",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "skpanitiadocument.tsx"
     },
     {
@@ -21468,8 +21468,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpanitiadocument_skpanitiadocumentprops",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skpanitiadocumentprops"
     },
     {
@@ -21480,7 +21480,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpanitiadocument_renderkeduatext",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "renderkeduatext()"
     },
     {
@@ -21502,7 +21502,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpanitiadocument_skpanitiadocument",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "skpanitiadocument()"
     },
     {
@@ -21523,8 +21523,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_skpenghentiandocumentprops",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skpenghentiandocumentprops"
     },
     {
@@ -21590,7 +21590,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaibuilder",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sktimpenilaibuilder.tsx"
     },
     {
@@ -21601,7 +21601,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaibuilder_employeeoption",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "employeeoption"
     },
     {
@@ -21611,8 +21611,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaibuilder_sktimpenilaibuilderprops",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "sktimpenilaibuilderprops"
     },
     {
@@ -21623,7 +21623,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaibuilder_sktimpenilaibuilder",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sktimpenilaibuilder()"
     },
     {
@@ -21633,8 +21633,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 106,
+      "community_name": "DocumentsCenterTab.tsx",
       "norm_label": "sktimpenilaidocument.tsx"
     },
     {
@@ -21644,8 +21644,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument_sktimpenilaidocumentprops",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "sktimpenilaidocumentprops"
     },
     {
@@ -21655,8 +21655,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument_renderkeduatext",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 106,
+      "community_name": "DocumentsCenterTab.tsx",
       "norm_label": "renderkeduatext()"
     },
     {
@@ -21677,8 +21677,8 @@
       "source_location": "L209",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument_sktimpenilaidocument",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 106,
+      "community_name": "DocumentsCenterTab.tsx",
       "norm_label": "sktimpenilaidocument()"
     },
     {
@@ -21689,7 +21689,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptugasdocument",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptugasdocument.tsx"
     },
     {
@@ -21700,7 +21700,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptugasdocument_sptugasdocumentprops",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptugasdocumentprops"
     },
     {
@@ -21710,8 +21710,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptugasdocument_handleprintsptugas",
-      "community": 106,
-      "community_name": "DocumentsCenterTab.tsx",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "handleprintsptugas()"
     },
     {
@@ -21722,7 +21722,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptugasdocument_sptugasdocument",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptugasdocument()"
     },
     {
@@ -21733,7 +21733,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjlimitdocument",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjlimitdocument.tsx"
     },
     {
@@ -21744,7 +21744,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjlimitdocument_sptjlimitdocumentprops",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjlimitdocumentprops"
     },
     {
@@ -21754,8 +21754,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjlimitdocument_handleprintsptjlimit",
-      "community": 106,
-      "community_name": "DocumentsCenterTab.tsx",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "handleprintsptjlimit()"
     },
     {
@@ -21766,7 +21766,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjlimitdocument_sptjlimitdocument",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjlimitdocument()"
     },
     {
@@ -21777,7 +21777,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjmdocument",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjmdocument.tsx"
     },
     {
@@ -21788,7 +21788,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjmdocument_sptjmdocumentprops",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjmdocumentprops"
     },
     {
@@ -21810,7 +21810,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjmdocument_sptjmdocument",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjmdocument()"
     },
     {
@@ -21853,8 +21853,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument",
-      "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community": 66,
+      "community_name": "AuctionAsset",
       "norm_label": "surattugaspemeriksaanpenilaiandocument.tsx"
     },
     {
@@ -21864,8 +21864,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument_personlike",
-      "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community": 66,
+      "community_name": "AuctionAsset",
       "norm_label": "personlike"
     },
     {
@@ -21875,8 +21875,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument_surattugaspemeriksaanpenilaiandocumentprops",
-      "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community": 66,
+      "community_name": "AuctionAsset",
       "norm_label": "surattugaspemeriksaanpenilaiandocumentprops"
     },
     {
@@ -21886,8 +21886,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument_buildnomor",
-      "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community": 66,
+      "community_name": "AuctionAsset",
       "norm_label": "buildnomor()"
     },
     {
@@ -21897,8 +21897,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument_surattugaspemeriksaanpenilaiandocument",
-      "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community": 66,
+      "community_name": "AuctionAsset",
       "norm_label": "surattugaspemeriksaanpenilaiandocument()"
     },
     {
@@ -21908,8 +21908,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_timpenilaieditor",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "timpenilaieditor.tsx"
     },
     {
@@ -21919,8 +21919,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_timpenilaieditor_timpenilaieditorprops",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "timpenilaieditorprops"
     },
     {
@@ -21930,8 +21930,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_timpenilaieditor_timpenilaieditor",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "timpenilaieditor()"
     },
     {
@@ -22052,7 +22052,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_notadinassection",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "notadinassection.tsx"
     },
     {
@@ -22062,8 +22062,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_notadinassection_notadinassectionprops",
-      "community": 66,
-      "community_name": "AuctionAsset",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "notadinassectionprops"
     },
     {
@@ -22074,7 +22074,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_notadinassection_notadinassection",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "notadinassection()"
     },
     {
@@ -22085,7 +22085,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_permohonankpknlsection",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "permohonankpknlsection.tsx"
     },
     {
@@ -22095,8 +22095,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_permohonankpknlsection_permohonankpknlsectionprops",
-      "community": 66,
-      "community_name": "AuctionAsset",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "permohonankpknlsectionprops"
     },
     {
@@ -22107,7 +22107,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_permohonankpknlsection_permohonankpknlsection",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "permohonankpknlsection()"
     },
     {
@@ -22151,7 +22151,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpanitiasection",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "skpanitiasection.tsx"
     },
     {
@@ -22161,8 +22161,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpanitiasection_skpanitiasectionprops",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skpanitiasectionprops"
     },
     {
@@ -22173,7 +22173,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpanitiasection_skpanitiasection",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "skpanitiasection()"
     },
     {
@@ -22183,8 +22183,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skpenghentiansection.tsx"
     },
     {
@@ -22194,8 +22194,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection_skpenghentiansectionprops",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skpenghentiansectionprops"
     },
     {
@@ -22205,8 +22205,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection_skpenghentiansection",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skpenghentiansection()"
     },
     {
@@ -22216,8 +22216,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sktimpenilaisection",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "sktimpenilaisection.tsx"
     },
     {
@@ -22227,8 +22227,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sktimpenilaisection_sktimpenilaisectionprops",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "sktimpenilaisectionprops"
     },
     {
@@ -22238,8 +22238,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sktimpenilaisection_sktimpenilaisection",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "sktimpenilaisection()"
     },
     {
@@ -22250,7 +22250,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptugassection",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptugassection.tsx"
     },
     {
@@ -22261,7 +22261,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptugassection_sptugassectionprops",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptugassectionprops"
     },
     {
@@ -22272,7 +22272,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptugassection_sptugassection",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptugassection()"
     },
     {
@@ -22283,7 +22283,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjlimitsection",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjlimitsection.tsx"
     },
     {
@@ -22294,7 +22294,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjlimitsection_sptjlimitsectionprops",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjlimitsectionprops"
     },
     {
@@ -22305,7 +22305,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjlimitsection_sptjlimitsection",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjlimitsection()"
     },
     {
@@ -22316,7 +22316,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjmsection",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjmsection.tsx"
     },
     {
@@ -22327,7 +22327,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjmsection_sptjmsectionprops",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjmsectionprops"
     },
     {
@@ -22338,7 +22338,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjmsection_sptjmsection",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "sptjmsection()"
     },
     {
@@ -22502,8 +22502,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usenotakpknlbuilderstate",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 24,
+      "community_name": "useNotaKpknlBuilderState.ts",
       "norm_label": "usenotakpknlbuilderstate.ts"
     },
     {
@@ -22513,8 +22513,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usenotakpknlbuilderstate_usenotakpknlbuilderresult",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 24,
+      "community_name": "useNotaKpknlBuilderState.ts",
       "norm_label": "usenotakpknlbuilderresult"
     },
     {
@@ -22524,8 +22524,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usenotakpknlbuilderstate_usenotakpknlbuilderstate",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 24,
+      "community_name": "useNotaKpknlBuilderState.ts",
       "norm_label": "usenotakpknlbuilderstate()"
     },
     {
@@ -22536,7 +22536,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usepanitialist",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "usepanitialist.ts"
     },
     {
@@ -22547,7 +22547,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usepanitialist_usepanitialistresult",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "usepanitialistresult"
     },
     {
@@ -22558,7 +22558,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usepanitialist_usepanitialist",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "usepanitialist()"
     },
     {
@@ -22602,7 +22602,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskbuilderstate",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "useskbuilderstate.ts"
     },
     {
@@ -22612,8 +22612,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskbuilderstate_useskbuilderstateresult",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "useskbuilderstateresult"
     },
     {
@@ -22624,7 +22624,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskbuilderstate_useskbuilderstate",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "useskbuilderstate()"
     },
     {
@@ -22635,7 +22635,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskpanitiabuilderstate",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "useskpanitiabuilderstate.ts"
     },
     {
@@ -22645,8 +22645,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskpanitiabuilderstate_useskpanitiabuilderstateresult",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "useskpanitiabuilderstateresult"
     },
     {
@@ -22657,7 +22657,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskpanitiabuilderstate_useskpanitiabuilderstate",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "useskpanitiabuilderstate()"
     },
     {
@@ -22667,8 +22667,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usesktimpenilaibuilderstate",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "usesktimpenilaibuilderstate.ts"
     },
     {
@@ -22678,8 +22678,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usesktimpenilaibuilderstate_usesktimpenilaibuilderstateresult",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "usesktimpenilaibuilderstateresult"
     },
     {
@@ -22689,8 +22689,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usesktimpenilaibuilderstate_usesktimpenilaibuilderstate",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "usesktimpenilaibuilderstate()"
     },
     {
@@ -22700,8 +22700,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usetimpenilailist",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "usetimpenilailist.ts"
     },
     {
@@ -22711,8 +22711,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usetimpenilailist_usetimpenilailistresult",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "usetimpenilailistresult"
     },
     {
@@ -22722,8 +22722,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usetimpenilailist_usetimpenilailist",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "usetimpenilailist()"
     },
     {
@@ -22877,7 +22877,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_parsedocdate",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "parsedocdate()"
     },
     {
@@ -22887,8 +22887,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 24,
+      "community_name": "useNotaKpknlBuilderState.ts",
       "norm_label": "nota-kpknl-defaults.ts"
     },
     {
@@ -22898,8 +22898,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults_makeid",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 24,
+      "community_name": "useNotaKpknlBuilderState.ts",
       "norm_label": "makeid()"
     },
     {
@@ -22909,8 +22909,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults_kpknlmeta",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 24,
+      "community_name": "useNotaKpknlBuilderState.ts",
       "norm_label": "kpknlmeta"
     },
     {
@@ -22920,8 +22920,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults_default_nota_dinas_tembusan",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 24,
+      "community_name": "useNotaKpknlBuilderState.ts",
       "norm_label": "default_nota_dinas_tembusan"
     },
     {
@@ -22931,8 +22931,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults_default_kpknl_tembusan",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 24,
+      "community_name": "useNotaKpknlBuilderState.ts",
       "norm_label": "default_kpknl_tembusan"
     },
     {
@@ -22998,7 +22998,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_pernyataan",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "print-pernyataan.ts"
     },
     {
@@ -23009,7 +23009,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_pernyataan_buildpernyataannomor",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "buildpernyataannomor()"
     },
     {
@@ -23020,7 +23020,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_pernyataan_printpernyataanoptions",
       "community": 47,
-      "community_name": "SkKepalaBalai",
+      "community_name": "parseDocDate",
       "norm_label": "printpernyataanoptions"
     },
     {
@@ -23030,8 +23030,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_pernyataan_printpernyataan",
-      "community": 106,
-      "community_name": "DocumentsCenterTab.tsx",
+      "community": 47,
+      "community_name": "parseDocDate",
       "norm_label": "printpernyataan()"
     },
     {
@@ -23042,7 +23042,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sk-defaults.ts"
     },
     {
@@ -23053,7 +23053,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_makeid",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "makeid()"
     },
     {
@@ -23063,8 +23063,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_skbuilderitem",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skbuilderitem"
     },
     {
@@ -23074,8 +23074,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_skmemutuskan",
-      "community": 28,
-      "community_name": "SkBuilderItem",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skmemutuskan"
     },
     {
@@ -23085,7 +23085,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_skkepalabalai",
-      "community": 47,
+      "community": 65,
       "community_name": "SkKepalaBalai",
       "norm_label": "skkepalabalai"
     },
@@ -23097,7 +23097,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_menimbang",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "default_menimbang"
     },
     {
@@ -23108,7 +23108,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_mengingat",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "default_mengingat"
     },
     {
@@ -23119,7 +23119,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_memutuskan",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "default_memutuskan"
     },
     {
@@ -23130,7 +23130,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_kepala_balai",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "default_kepala_balai"
     },
     {
@@ -23141,7 +23141,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_tembusan",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "default_tembusan"
     },
     {
@@ -23152,7 +23152,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_formatnip",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "formatnip()"
     },
     {
@@ -23163,7 +23163,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_newskbuilderitem",
       "community": 65,
-      "community_name": "sk-defaults.ts",
+      "community_name": "SkKepalaBalai",
       "norm_label": "newskbuilderitem()"
     },
     {
@@ -23174,7 +23174,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_panitia_defaults",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "sk-panitia-defaults.ts"
     },
     {
@@ -23185,7 +23185,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_panitia_defaults_panitiaanggota",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "panitiaanggota"
     },
     {
@@ -23196,7 +23196,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_panitia_defaults_makeid",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "makeid()"
     },
     {
@@ -23207,7 +23207,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_panitia_defaults_default_panitia_susunan",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "default_panitia_susunan"
     },
     {
@@ -23218,7 +23218,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_panitia_defaults_default_panitia_menimbang",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "default_panitia_menimbang"
     },
     {
@@ -23229,7 +23229,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_panitia_defaults_default_panitia_mengingat",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "default_panitia_mengingat"
     },
     {
@@ -23240,7 +23240,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_panitia_defaults_default_panitia_memutuskan",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "default_panitia_memutuskan"
     },
     {
@@ -23251,7 +23251,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_panitia_defaults_default_panitia_tembusan",
       "community": 28,
-      "community_name": "SkBuilderItem",
+      "community_name": "SkPanitiaSection.tsx",
       "norm_label": "default_panitia_tembusan"
     },
     {
@@ -23316,8 +23316,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "sk-tim-penilai-defaults.ts"
     },
     {
@@ -23327,8 +23327,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_timpenilaianggota",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "timpenilaianggota"
     },
     {
@@ -23338,8 +23338,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_sktimpenilaimemutuskan",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 65,
+      "community_name": "SkKepalaBalai",
       "norm_label": "sktimpenilaimemutuskan"
     },
     {
@@ -23349,8 +23349,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_makeid",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "makeid()"
     },
     {
@@ -23360,8 +23360,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_default_tim_penilai_susunan",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "default_tim_penilai_susunan"
     },
     {
@@ -23371,8 +23371,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_default_tim_penilai_menimbang",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "default_tim_penilai_menimbang"
     },
     {
@@ -23382,8 +23382,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_default_tim_penilai_mengingat",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "default_tim_penilai_mengingat"
     },
     {
@@ -23393,8 +23393,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_default_tim_penilai_memutuskan",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "default_tim_penilai_memutuskan"
     },
     {
@@ -23404,8 +23404,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_default_tim_penilai_tembusan",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "default_tim_penilai_tembusan"
     },
     {
@@ -23415,8 +23415,8 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_newtimpenilaianggota",
-      "community": 24,
-      "community_name": "SkTimPenilaiSection.tsx",
+      "community": 30,
+      "community_name": "EmployeeOption",
       "norm_label": "newtimpenilaianggota()"
     },
     {
@@ -26584,7 +26584,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_components_assignmentletterhistory",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "assignmentletterhistory.tsx"
     },
     {
@@ -26595,7 +26595,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_components_assignmentletterhistory_assignmentletter",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "assignmentletter"
     },
     {
@@ -26606,7 +26606,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_components_assignmentletterhistory_previewemployee",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "previewemployee"
     },
     {
@@ -26617,7 +26617,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_components_assignmentletterhistory_previewitem",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "previewitem"
     },
     {
@@ -26628,7 +26628,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_components_assignmentletterhistory_assignmentletterpreviewdata",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "assignmentletterpreviewdata"
     },
     {
@@ -26639,7 +26639,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_components_assignmentletterhistory_meta",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "meta"
     },
     {
@@ -26650,7 +26650,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_components_assignmentletterhistory_apiresponse",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "apiresponse"
     },
     {
@@ -26661,7 +26661,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_components_assignmentletterhistory_assignmentletterhistory",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "assignmentletterhistory()"
     },
     {
@@ -26881,7 +26881,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "cutimodals.tsx"
     },
     {
@@ -26892,7 +26892,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals_leaverequestitem",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "leaverequestitem"
     },
     {
@@ -26903,7 +26903,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals_editformstate",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "editformstate"
     },
     {
@@ -26914,7 +26914,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals_editleavemodalprops",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "editleavemodalprops"
     },
     {
@@ -26925,7 +26925,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals_editleavemodal",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "editleavemodal()"
     },
     {
@@ -26936,7 +26936,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals_deleteleavemodalprops",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "deleteleavemodalprops"
     },
     {
@@ -26947,7 +26947,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals_deleteleavemodal",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "deleteleavemodal()"
     },
     {
@@ -26958,7 +26958,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals_printleavemodalprops",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "printleavemodalprops"
     },
     {
@@ -26969,7 +26969,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_cutimodals_printleavemodal",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "printleavemodal()"
     },
     {
@@ -26980,7 +26980,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_page",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "cuti/page.tsx"
     },
     {
@@ -26991,7 +26991,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_page_inboxsuratcutipage",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "inboxsuratcutipage()"
     },
     {
@@ -27002,7 +27002,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "employees/[id]/page.tsx"
     },
     {
@@ -27013,7 +27013,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_employee",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "employee"
     },
     {
@@ -27024,7 +27024,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_pangkat_options",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "pangkat_options"
     },
     {
@@ -27035,7 +27035,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_unit_kerja_options",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "unit_kerja_options"
     },
     {
@@ -27046,7 +27046,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_employeedetailpage",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "employeedetailpage()"
     },
     {
@@ -27057,7 +27057,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_infocard",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "infocard()"
     },
     {
@@ -27068,7 +27068,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_bioitem",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "bioitem()"
     },
     {
@@ -27079,7 +27079,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_biofield",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "biofield()"
     },
     {
@@ -28299,7 +28299,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_activeloanstab_borrowedassetitem",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "borrowedassetitem"
     },
@@ -28321,7 +28321,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_activeloanstab_activeloanstab",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "activeloanstab()"
     },
@@ -28333,7 +28333,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_formulircutiprint",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "formulircutiprint.tsx"
     },
     {
@@ -28343,7 +28343,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_formulircutiprint_leaverequestprintdata",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "leaverequestprintdata"
     },
@@ -28355,7 +28355,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_formulircutiprint_formulircutiprintprops",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "formulircutiprintprops"
     },
     {
@@ -28366,7 +28366,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_formulircutiprint_formatdateindo",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "formatdateindo()"
     },
     {
@@ -28377,7 +28377,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_formulircutiprint_calculatemasakerja",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "calculatemasakerja()"
     },
     {
@@ -28388,7 +28388,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_formulircutiprint_getkotaatasanfromsatuankerja",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "getkotaatasanfromsatuankerja()"
     },
     {
@@ -28399,7 +28399,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_formulircutiprint_formulircutiprint",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "formulircutiprint()"
     },
     {
@@ -28410,7 +28410,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_formulircutiprint_strmatch",
       "community": 38,
-      "community_name": "employees/[id]/page.tsx",
+      "community_name": "portal/page.tsx",
       "norm_label": "strmatch()"
     },
     {
@@ -28464,7 +28464,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myassetstab",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "myassetstab.tsx"
     },
@@ -28475,7 +28475,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myassetstab_assetitem",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "assetitem"
     },
@@ -28486,7 +28486,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myassetstab_formatmerktipe",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "formatmerktipe()"
     },
@@ -28497,7 +28497,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myassetstab_myassetstabprops",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "myassetstabprops"
     },
@@ -28508,7 +28508,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myassetstab_myassetstab",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "myassetstab()"
     },
@@ -28519,7 +28519,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myleavetab",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "myleavetab.tsx"
     },
@@ -28530,7 +28530,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myleavetab_myleavetabprops",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "myleavetabprops"
     },
@@ -28541,7 +28541,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myleavetab_myleavetab",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "myleavetab()"
     },
@@ -28585,7 +28585,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_profilesidebar_profilesidebar",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "profilesidebar()"
     },
@@ -28596,7 +28596,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_surattugastab",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "surattugastab.tsx"
     },
@@ -28607,7 +28607,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_surattugastab_surattugasitem",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "surattugasitem"
     },
@@ -28618,7 +28618,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_surattugastab_surattugastabprops",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "surattugastabprops"
     },
@@ -28629,7 +28629,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_surattugastab_surattugastab",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "surattugastab()"
     },
@@ -28640,7 +28640,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "portal/page.tsx"
     },
@@ -28651,7 +28651,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_dashboarddata",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "dashboarddata"
     },
@@ -28662,7 +28662,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_surattugasitem",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "surattugasitem"
     },
@@ -28673,7 +28673,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_dasaritem",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "dasaritem"
     },
@@ -28684,7 +28684,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_surattugasdetail",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "surattugasdetail"
     },
@@ -28695,7 +28695,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_tabkey",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "tabkey"
     },
@@ -28706,7 +28706,7 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_getgreeting",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "getgreeting()"
     },
@@ -28717,7 +28717,7 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_formatdate",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "formatdate()"
     },
@@ -28728,7 +28728,7 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_personaldashboard",
-      "community": 16,
+      "community": 38,
       "community_name": "portal/page.tsx",
       "norm_label": "personaldashboard()"
     },
@@ -33469,8 +33469,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo_file_system",
-      "community": 586,
-      "community_name": "expo-file-system",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "expo-file-system"
     },
     {
@@ -33480,8 +33480,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "expo_file_system",
-      "community": 586,
-      "community_name": "expo-file-system",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "expo-file-system"
     },
     {
@@ -33491,8 +33491,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo_font",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 624,
+      "community_name": "expo-font",
       "norm_label": "expo-font"
     },
     {
@@ -33502,8 +33502,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "expo_font",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 624,
+      "community_name": "expo-font",
       "norm_label": "expo-font"
     },
     {
@@ -37767,7 +37767,7 @@
       "label": "styles",
       "file_type": "code",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L2394",
+      "source_location": "L2421",
       "_origin": "ast",
       "id": "mobile_src_features_kepegawaian_buatsurattugasscreen_styles",
       "community": 555,
@@ -71936,8 +71936,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_200_refactoring_cleanup_modul_mobile_auth",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 197,
+      "community_name": "Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth",
       "norm_label": "progress - phase 200: refactoring & cleanup modul mobile auth"
     },
     {
@@ -71947,8 +71947,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "docs_progress_1_pembersihan_file_duplikat_dead_code_deletion",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 197,
+      "community_name": "Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth",
       "norm_label": "1. pembersihan file duplikat (dead code deletion)"
     },
     {
@@ -71958,8 +71958,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "docs_progress_2_penyederhanaan_state_management_error_validasi_login",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 197,
+      "community_name": "Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth",
       "norm_label": "2. penyederhanaan state management error validasi login"
     },
     {
@@ -71969,8 +71969,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "docs_progress_3_streamline_error_catching_authprovider_tsx",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 197,
+      "community_name": "Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth",
       "norm_label": "3. streamline error catching (`authprovider.tsx`)"
     },
     {
@@ -72233,8 +72233,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_195_creation_of_develop_bmn_branch_bmn_reports_print_page_2_margin_fix",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 586,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "progress - phase 195: creation of `develop-bmn` branch & bmn reports print page 2 margin fix"
     },
     {
@@ -72244,8 +72244,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_tampilan_ringkasan_kegiatan_sumber_dana_mobile_buatsurattugasscreen_tsx",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 586,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "perbaikan tampilan ringkasan kegiatan & sumber dana mobile (`buatsurattugasscreen.tsx`)"
     },
     {
@@ -72255,8 +72255,8 @@
       "source_location": "L188",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_188",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 586,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "status: selesai"
     },
     {
@@ -72266,8 +72266,8 @@
       "source_location": "L200",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 586,
+      "community_name": "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -72277,8 +72277,8 @@
       "source_location": "L206",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_179_perbaikan_presisi_layout_grid_7_kolom_datepicker_mobile",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 584,
+      "community_name": "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "progress - phase 179: perbaikan presisi layout grid 7-kolom datepicker mobile"
     },
     {
@@ -72288,8 +72288,8 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_presisi_layout_grid_7_kolom_datepicker_mobile_buatsurattugasscreen_tsx",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 584,
+      "community_name": "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "perbaikan presisi layout grid 7-kolom datepicker mobile (`buatsurattugasscreen.tsx`)"
     },
     {
@@ -72299,8 +72299,8 @@
       "source_location": "L215",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_215",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 584,
+      "community_name": "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "status: selesai"
     },
     {
@@ -72310,8 +72310,8 @@
       "source_location": "L225",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_225",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 584,
+      "community_name": "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -72321,8 +72321,8 @@
       "source_location": "L231",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_178_dropdown_select_modal_custom_notification_validasi_ketat_st_mobile",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 492,
+      "community_name": "Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "progress - phase 178: dropdown select modal, custom notification & validasi ketat st mobile"
     },
     {
@@ -72332,8 +72332,8 @@
       "source_location": "L238",
       "_origin": "ast",
       "id": "docs_progress_dropdown_select_modal_custom_notification_validasi_ketat_form_mobile_buatsurattugasscreen_tsx",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 492,
+      "community_name": "Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "dropdown select modal, custom notification & validasi ketat form mobile (`buatsurattugasscreen.tsx`)"
     },
     {
@@ -72343,8 +72343,8 @@
       "source_location": "L240",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_240",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 492,
+      "community_name": "Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "status: selesai"
     },
     {
@@ -72354,8 +72354,8 @@
       "source_location": "L254",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_254",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 492,
+      "community_name": "Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -72409,8 +72409,8 @@
       "source_location": "L293",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_176_sinkronisasi_form_detail_kegiatan_st_builder_premium",
-      "community": 592,
-      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 176: sinkronisasi form detail kegiatan st builder premium"
     },
     {
@@ -72420,8 +72420,8 @@
       "source_location": "L300",
       "_origin": "ast",
       "id": "docs_progress_sinkronisasi_form_detail_kegiatan_st_builder_premium_create_builder_id_dengan_surat_tugas",
-      "community": 592,
-      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "sinkronisasi form detail kegiatan st builder premium (`create` & `builder/[id]`) dengan `/surat-tugas`"
     },
     {
@@ -72431,8 +72431,8 @@
       "source_location": "L302",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_302",
-      "community": 592,
-      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -72442,8 +72442,8 @@
       "source_location": "L316",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_316",
-      "community": 592,
-      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -72585,8 +72585,8 @@
       "source_location": "L411",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_172_perbaikan_tampilan_lokasi_di_inbox_surat_tugas",
-      "community": 595,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 172: perbaikan tampilan lokasi di inbox surat tugas"
     },
     {
@@ -72596,8 +72596,8 @@
       "source_location": "L418",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_tampilan_lokasi_tempat_tujuan_di_inbox_surat_tugas_kepegawaian_surat_tugas_inbox",
-      "community": 595,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "perbaikan tampilan lokasi tempat tujuan di inbox surat tugas (`/kepegawaian/surat-tugas/inbox`)"
     },
     {
@@ -72607,8 +72607,8 @@
       "source_location": "L420",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_420",
-      "community": 595,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -72618,8 +72618,8 @@
       "source_location": "L430",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_430",
-      "community": 595,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -72673,8 +72673,8 @@
       "source_location": "L463",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_170_sinkronisasi_detail_kegiatan_100_dengan_kepegawaian_surat_tugas_create",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 592,
+      "community_name": "Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`",
       "norm_label": "progress - phase 170: sinkronisasi detail kegiatan 100% dengan /kepegawaian/surat-tugas/create"
     },
     {
@@ -72684,8 +72684,8 @@
       "source_location": "L470",
       "_origin": "ast",
       "id": "docs_progress_sinkronisasi_detail_kegiatan_100_presisi_http_localhost_3000_kepegawaian_surat_tugas_create",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 592,
+      "community_name": "Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`",
       "norm_label": "sinkronisasi detail kegiatan 100% presisi `http://localhost:3000/kepegawaian/surat-tugas/create`"
     },
     {
@@ -72695,8 +72695,8 @@
       "source_location": "L472",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_472",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 592,
+      "community_name": "Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`",
       "norm_label": "status: selesai"
     },
     {
@@ -72706,8 +72706,8 @@
       "source_location": "L491",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_491",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 592,
+      "community_name": "Sinkronisasi Detail Kegiatan 100% Presisi `http://localhost:3000/kepegawaian/surat-tugas/create`",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -73025,8 +73025,8 @@
       "source_location": "L686",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_162_penghapusan_tombol_toggle_tema_header_modul",
-      "community": 584,
-      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 162: penghapusan tombol toggle tema header modul"
     },
     {
@@ -73036,8 +73036,8 @@
       "source_location": "L693",
       "_origin": "ast",
       "id": "docs_progress_penghapusan_tombol_toggle_tema_header_modul",
-      "community": 584,
-      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "penghapusan tombol toggle tema header modul"
     },
     {
@@ -73047,8 +73047,8 @@
       "source_location": "L695",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_695",
-      "community": 584,
-      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -73058,8 +73058,8 @@
       "source_location": "L703",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_703",
-      "community": 584,
-      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -73069,8 +73069,8 @@
       "source_location": "L709",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_161_opsi_resmi_lengkap_pangkat_golongan_penempatan_satker",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 542,
+      "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "progress - phase 161: opsi resmi lengkap pangkat/golongan & penempatan satker"
     },
     {
@@ -73080,8 +73080,8 @@
       "source_location": "L716",
       "_origin": "ast",
       "id": "docs_progress_opsi_resmi_lengkap_pangkat_golongan_penempatan_satker",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 542,
+      "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "opsi resmi lengkap pangkat/golongan & penempatan satker"
     },
     {
@@ -73091,8 +73091,8 @@
       "source_location": "L718",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_718",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 542,
+      "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "status: selesai"
     },
     {
@@ -73102,8 +73102,8 @@
       "source_location": "L739",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_739",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 542,
+      "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -73333,8 +73333,8 @@
       "source_location": "L901",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_155_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 516,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 155: mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -73344,8 +73344,8 @@
       "source_location": "L908",
       "_origin": "ast",
       "id": "docs_progress_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 516,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -73355,8 +73355,8 @@
       "source_location": "L910",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_910",
-      "community": 516,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -73366,8 +73366,8 @@
       "source_location": "L925",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_925",
-      "community": 516,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -73377,8 +73377,8 @@
       "source_location": "L931",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_154_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 542,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 154: mobile employee full search sync & single-line nip layout"
     },
     {
@@ -73388,8 +73388,8 @@
       "source_location": "L938",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 542,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "mobile employee full search sync & single-line nip layout"
     },
     {
@@ -73399,8 +73399,8 @@
       "source_location": "L940",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_940",
-      "community": 542,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -73410,8 +73410,8 @@
       "source_location": "L951",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_951",
-      "community": 542,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -73982,8 +73982,8 @@
       "source_location": "L1328",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_141_lan_access_authentication_precision_disposition_print_optimization",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 516,
+      "community_name": "Progress - Phase 141: LAN Access Authentication & Precision Disposition Print Optimization",
       "norm_label": "progress - phase 141: lan access authentication & precision disposition print optimization"
     },
     {
@@ -73993,8 +73993,8 @@
       "source_location": "L1330",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1330",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 516,
+      "community_name": "Progress - Phase 141: LAN Access Authentication & Precision Disposition Print Optimization",
       "norm_label": "status: selesai"
     },
     {
@@ -74004,8 +74004,8 @@
       "source_location": "L1334",
       "_origin": "ast",
       "id": "docs_progress_implementasi_1334",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 516,
+      "community_name": "Progress - Phase 141: LAN Access Authentication & Precision Disposition Print Optimization",
       "norm_label": "implementasi"
     },
     {
@@ -74015,8 +74015,8 @@
       "source_location": "L1345",
       "_origin": "ast",
       "id": "docs_progress_validasi",
-      "community": 52,
-      "community_name": "progress.md",
+      "community": 516,
+      "community_name": "Progress - Phase 141: LAN Access Authentication & Precision Disposition Print Optimization",
       "norm_label": "validasi"
     },
     {
@@ -74026,8 +74026,8 @@
       "source_location": "L1352",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_140_module_surat_digital_letter_management_2_up_disposition_sheets",
-      "community": 197,
-      "community_name": "Digital Letter Management & 2-Up Disposition Sheets",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 140: module surat (digital letter management & 2-up disposition sheets)"
     },
     {
@@ -74037,8 +74037,8 @@
       "source_location": "L1359",
       "_origin": "ast",
       "id": "docs_progress_digital_letter_management_2_up_disposition_sheets",
-      "community": 197,
-      "community_name": "Digital Letter Management & 2-Up Disposition Sheets",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "digital letter management & 2-up disposition sheets"
     },
     {
@@ -74048,8 +74048,8 @@
       "source_location": "L1361",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1361",
-      "community": 197,
-      "community_name": "Digital Letter Management & 2-Up Disposition Sheets",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -74059,8 +74059,8 @@
       "source_location": "L1365",
       "_origin": "ast",
       "id": "docs_progress_implementasi_1365",
-      "community": 197,
-      "community_name": "Digital Letter Management & 2-Up Disposition Sheets",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "implementasi"
     },
     {
@@ -74070,8 +74070,8 @@
       "source_location": "L1379",
       "_origin": "ast",
       "id": "docs_progress_validasi_1379",
-      "community": 197,
-      "community_name": "Digital Letter Management & 2-Up Disposition Sheets",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "validasi"
     },
     {
@@ -81627,8 +81627,8 @@
       "source_location": "L5914",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_31_bmn_loan_ui_overhaul_comprehensive_dark_mode",
-      "community": 492,
-      "community_name": "Phase 31: BMN Loan UI & Dark Mode",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "progress - phase 31: bmn loan ui overhaul + comprehensive dark mode"
     },
     {
@@ -81638,8 +81638,8 @@
       "source_location": "L5921",
       "_origin": "ast",
       "id": "docs_progress_phase_31_bmn_loan_ui_dark_mode",
-      "community": 492,
-      "community_name": "Phase 31: BMN Loan UI & Dark Mode",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "phase 31: bmn loan ui & dark mode"
     },
     {
@@ -81649,8 +81649,8 @@
       "source_location": "L5923",
       "_origin": "ast",
       "id": "docs_progress_completed_5923",
-      "community": 492,
-      "community_name": "Phase 31: BMN Loan UI & Dark Mode",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "completed:"
     },
     {
@@ -81660,8 +81660,8 @@
       "source_location": "L5933",
       "_origin": "ast",
       "id": "docs_progress_files_modified",
-      "community": 492,
-      "community_name": "Phase 31: BMN Loan UI & Dark Mode",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "files modified:"
     },
     {
@@ -81671,8 +81671,8 @@
       "source_location": "L5941",
       "_origin": "ast",
       "id": "docs_progress_next_steps_5941",
-      "community": 492,
-      "community_name": "Phase 31: BMN Loan UI & Dark Mode",
+      "community": 52,
+      "community_name": "progress.md",
       "norm_label": "next steps:"
     },
     {
@@ -83618,8 +83618,8 @@
       "source_location": "L7386",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_11_milestone_1",
-      "community": 616,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 11 (milestone 1)"
     },
     {
@@ -83629,8 +83629,8 @@
       "source_location": "L7388",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7388",
-      "community": 616,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -83640,8 +83640,8 @@
       "source_location": "L7396",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7396",
-      "community": 616,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -83750,8 +83750,8 @@
       "source_location": "L7438",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_15_milestone_1",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 598,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 15 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 15 (milestone 1)"
     },
     {
@@ -83761,8 +83761,8 @@
       "source_location": "L7440",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7440",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 598,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 15 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -83772,8 +83772,8 @@
       "source_location": "L7447",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7447",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 598,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 15 (Milestone 1)",
       "norm_label": "next steps"
     },
     {
@@ -83915,8 +83915,8 @@
       "source_location": "L7500",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_20_milestone_1",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 616,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 20 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 20 (milestone 1)"
     },
     {
@@ -83926,8 +83926,8 @@
       "source_location": "L7502",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7502",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 616,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 20 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -83937,8 +83937,8 @@
       "source_location": "L7509",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7509",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 616,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 20 (Milestone 1)",
       "norm_label": "next steps"
     },
     {
@@ -84014,8 +84014,8 @@
       "source_location": "L7540",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_23_milestone_1",
-      "community": 624,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 23 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 23 (milestone 1)"
     },
     {
@@ -84025,8 +84025,8 @@
       "source_location": "L7542",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7542",
-      "community": 624,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 23 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -84036,8 +84036,8 @@
       "source_location": "L7550",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7550",
-      "community": 624,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 23 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -86302,8 +86302,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_http_resources_json_jsonresource",
-      "community": 13,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 16,
+      "community_name": "Illuminate\\Http\\Resources\\Json\\JsonResource",
       "norm_label": "illuminate\\http\\resources\\json\\jsonresource"
     },
     {
@@ -179908,7 +179908,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "mobile/src/features/kepegawaian/BuatSuratTugasScreen.tsx",
-      "source_location": "L2394",
+      "source_location": "L2421",
       "weight": 1.0,
       "_origin": "ast",
       "source": "mobile_src_features_kepegawaian_buatsurattugasscreen",
@@ -231169,5 +231169,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "2440f73b7a7064856845da947630b20a655ba000"
+  "built_at_commit": "e448df27fa8aa5110ba1eb11cefa40a90f10e6bb"
 }

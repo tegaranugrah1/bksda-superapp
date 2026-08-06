@@ -37,6 +37,33 @@ function formatDateIndo(dateStr?: string | null): string {
   return dateStr;
 }
 
+function formatPeriodeIndo(tglMulai?: string | null, tglSelesai?: string | null): string {
+  if (!tglMulai) return "-";
+  const startClean = String(tglMulai).split("T")[0].trim();
+  const endClean = tglSelesai ? String(tglSelesai).split("T")[0].trim() : startClean;
+
+  if (startClean === endClean) {
+    return formatDateIndo(startClean);
+  }
+
+  const p1 = startClean.split("-");
+  const p2 = endClean.split("-");
+  if (p1.length === 3 && p2.length === 3) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    const y1 = parseInt(p1[0], 10);
+    const m1 = parseInt(p1[1], 10) - 1;
+    const d1 = parseInt(p1[2], 10);
+    const y2 = parseInt(p2[0], 10);
+    const m2 = parseInt(p2[1], 10) - 1;
+    const d2 = parseInt(p2[2], 10);
+
+    if (y1 === y2 && m1 === m2) {
+      return `${d1} - ${d2} ${months[m1]} ${y1}`;
+    }
+  }
+  return `${formatDateIndo(startClean)} - ${formatDateIndo(endClean)}`;
+}
+
 interface InboxSuratTugasScreenProps {
   navigation?: any;
   onBack?: () => void;
@@ -134,15 +161,17 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
             ? st.personil
             : [];
 
-          const titleStr = st.nama_kegiatan || (st.maksud_tujuan ? st.maksud_tujuan.split("\n")[0] : (st.kegiatan || st.perihal || st.title || "-"));
+          let cleanTitle = st.nama_kegiatan || (st.maksud_tujuan ? st.maksud_tujuan.split("\n")[0] : (st.kegiatan || st.perihal || st.title || "-"));
+          const titleParts = cleanTitle.split(/(?=Membuat laporan|Segala biaya)/i);
+          if (titleParts.length > 0) {
+            cleanTitle = titleParts[0].trim();
+          }
+          cleanTitle = cleanTitle.replace(/,?\s*selama\s+.*$/i, '').trim().replace(/;$/, '').trim();
+          const titleStr = cleanTitle;
 
           const tglMulai = st.tanggal_mulai?.split('T')[0];
           const tglSelesai = st.tanggal_selesai?.split('T')[0];
-          const periodeStr = tglMulai && tglSelesai && tglMulai === tglSelesai
-            ? formatDateIndo(tglMulai)
-            : tglMulai && tglSelesai
-            ? `${formatDateIndo(tglMulai)} - ${formatDateIndo(tglSelesai)}`
-            : st.periode || "2026";
+          const periodeStr = formatPeriodeIndo(tglMulai, tglSelesai);
 
           return {
             id: String(st.id),
@@ -340,7 +369,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
                         {item.status}
                       </Text>
                     </View>
-                    <Text style={styles.cardDateText}>{item.date}</Text>
+                    <Text style={styles.cardDateText}>{item.periode || item.date}</Text>
                   </View>
 
                   {item.nomor_surat ? (

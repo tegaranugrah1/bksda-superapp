@@ -20,15 +20,12 @@ import { ConfirmActionModal } from "./_components/ConfirmActionModal";
 function formatInboxTitle(text?: string | null): string {
     if (!text) return '-';
     let clean = text.split("\n")[0].trim();
-    const cutoffMatch = clean.match(/^(.*?;\s*)(?:Membuat laporan|Segala biaya|2\.|3\.)/i);
-    if (cutoffMatch && cutoffMatch[1]) {
-        return cutoffMatch[1].trim();
-    }
     const parts = clean.split(/(?=Membuat laporan|Segala biaya)/i);
     if (parts.length > 0) {
-        return parts[0].trim();
+        clean = parts[0].trim();
     }
-    return clean;
+    clean = clean.replace(/,?\s*selama\s+.*$/i, '').trim().replace(/;$/, '').trim();
+    return clean || text;
 }
 
 export default function SuratTugasInbox() {

@@ -1,16 +1,16 @@
 # Graph Report - bksda-superapp  (2026-08-06)
 
 ## Corpus Check
-- 952 files · ~1,333,170 words
+- 952 files · ~1,333,216 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 7877 nodes · 12635 edges · 645 communities (577 shown, 68 thin omitted)
+- 7878 nodes · 12637 edges · 658 communities (578 shown, 80 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 315 edges (avg confidence: 0.79)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e448df27`
+- Built from commit: `8c7d45bd`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,41 +19,41 @@
 - Asset
 - formatDateIndonesian
 - reports/page.tsx
-- Illuminate\Database\Eloquent\Concerns\HasUuids
+- Illuminate\Database\Eloquent\Model
 - useRole
 - _lib/api.ts
 - EmployeeAccessSheet.tsx
 - BmnDetailScreen.tsx
-- Item
+- Illuminate\Database\Eloquent\Relations\BelongsTo
 - User
-- AppButton.tsx
+- useAppTheme
 - Controller
 - Illuminate\Http\Request
 - auction-helpers.ts
 - loans/create/page.tsx
-- Illuminate\Http\Resources\Json\JsonResource
+- portal/page.tsx
 - useEmployeeSearch.ts
-- useAppTheme
+- AssetDetail
 - dependencies
-- BmnFormScreen.tsx
+- useAppTheme.ts
 - download.ts
 - HANDOFF.md
 - ImportBatch
-- useNotaKpknlBuilderState.ts
+- SkTimPenilaiSection.tsx
 - AppTabs.tsx
 - Maatwebsite\Excel\Concerns\FromCollection
 - assets/[id]/page.tsx
-- SkPanitiaSection.tsx
+- SkBuilderItem
 - Illuminate\Support\ServiceProvider
 - EmployeeOption
 - useTheme
 - Issue #003 — Backend — Laravel 12 Scaffold
 - dependencies
-- AuctionBatchTest
-- Illuminate\Database\Seeder
+- AuctionBatch
+- User.php
 - assignmentFormSchema.ts
 - Illuminate\Http\JsonResponse
-- portal/page.tsx
+- employees/[id]/page.tsx
 - assets/page.tsx
 - LembarDisposisiForm.tsx
 - compilerOptions
@@ -62,13 +62,13 @@
 - Closure
 - AuthProvider.tsx
 - button.tsx
-- parseDocDate
+- SkKepalaBalai
 - SuratTugasListScreen.tsx
-- SuratMasuk
+- SuratKeluar
 - KertasKerjaAssetSection.tsx
 - Design: BMN Auction Srikandi Workflow Alignment
 - progress.md
-- PortalDashboardScreen.tsx
+- PratinjauSuratTugasModal.tsx
 - components.json
 - expo
 - Tasks: BMN Auction Srikandi Workflow Alignment
@@ -77,17 +77,17 @@
 - devDependencies
 - Issue #002 — Init Monorepo Structure
 - devDependencies
-- AuctionBatch
+- AuctionBatchService
 - Issue #114 — Frontend — Custom Components (Komponen Buatan Sendiri: EmployeeSelect, RichTextEditor, Sonner Toast)
 - surat/page.tsx
-- SkKepalaBalai
+- sk-defaults.ts
 - AuctionAsset
-- HandoverAgreement
+- PowerOfAttorney
 - surat-tugas/create/page.tsx
-- Leaflet
+- static
 - Mobile API Readiness Plan
 - composer.json
-- useAppTheme.ts
+- AlertCard.tsx
 - BaKoreksiDocument.tsx
 - Mobile Application Overhaul & Redesign
 - AuctionBatchDocumentWorkflow
@@ -107,7 +107,7 @@
 - require-dev
 - Issue #004 — Backend — Database & Environment Config
 - Mobile Surat Tugas List API Contract
-- setup
+- scripts
 - AuctionBatchCompletenessChecker
 - bmn-utils.ts
 - scripts
@@ -120,7 +120,7 @@
 - publikasi/page.tsx
 - Progress Log: Modul Kepegawaian & Surat Tugas
 - Issue #006 — Frontend — Design System & Theme
-- .log
+- PortalDashboardScreen.tsx
 - DocumentsCenterTab.tsx
 - psr-4
 - Progress - Phase 197: Fix Preservasi Tembusan ST, DatePicker Kalender Bulanan, Success Screen Portal & Unduh PDF Mobile Inbox
@@ -147,7 +147,7 @@
 - Mobile BMN Photo Capture & Geotag Upload
 - Issue #338: SK Penghentian Penggunaan BMN
 - Secure Private Storage Folders
-- Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth
+- ThemeContext.tsx
 - 2. Aturan Bisnis & Spesifikasi Utama
 - Ponytail Help
 - ponytail-audit/SKILL.md
@@ -160,7 +160,7 @@
 - framer-motion
 - eslint.config.mjs
 - Progress - Phase 196: BMN Reports Multi-Page Pagination, Dynamic Margins, Uncropped Asset Photo Documentation & Git Branch Consolidation/Deployment Setup
-- BmnPhotoCaptureScreen.tsx
+- BmnLoanScreen.tsx
 - Issue #046 — Backend — Inventory Migrations (Sistem Logistik)
 - postcss.config.mjs
 - type
@@ -296,7 +296,7 @@
 - Issue #102 — Frontend — Landing Page / Homepage (Wajah Pertama BKSDA)
 - Issue #392: Refactor kepegawaian — hilangkan duplikasi builder↔create (DRY)
 - Issue #360: Apply BMN Penghapusan Template Button for ST Builder
-- AssignmentSummarySection.tsx
+- HandoverAgreement
 - ⚠️ STATUS TERKINI (Phase 8 CMS Module)
 - Issue #127: RustFS Object Storage Setup
 - Issue #394: Refactor BMN auction-candidates — hilangkan duplikasi antar-dokumen (DRY)
@@ -340,7 +340,7 @@
 - Completed Tasks
 - BMN Vehicle Document Uploads
 - Browser Auth Storage Hardening Ringan
-- AssetDocumentController
+- UpdateAuctionBatchDraftMetadataRequest
 - Security Observability Hardening
 - XSS Blast Radius Reduction
 - Hardening Upload File dan Import
@@ -403,7 +403,7 @@
 - Content Security Policy (CSP) Enforcement
 - Halaman `/bmn/auction-candidates`
 - Issue #404: Generate BA Serah Terima BMN
-- UsageAgreement
+- StoreAssetRequest
 - Mobile Application Web Portal Light Emerald Alignment
 - Surat Kuasa Kendaraan Document Generator
 - Backend Configuration Status
@@ -411,7 +411,7 @@
 - Phase 28: STNK Countdown + Edit Inline + Filters
 - Issue #350: SK Builder Panel beside SK Preview
 - Issue #348: Align Colons in SK Ditetapkan/Pada tanggal Block
-- Illuminate\Database\Eloquent\Model
+- AssetLoan
 - ponytail-debt/SKILL.md
 - Mobile API Readiness
 - Phase 35b: CMS Editor Fixes & Public Detail Page
@@ -423,7 +423,7 @@
 - Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid
 - Mobile Application UI/UX Polishing & Single Navigation Fix
 - Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai
-- EmployeeLeave
+- StoreAssetLoanRequest
 - Mobile BMN Photo Slots Component
 - Fix Tombol Kembali Header & Navigasi Portal Utama
 - useDebounce
@@ -447,8 +447,8 @@
 - [2026-06-18] Mobile App Planning - Low-Model Task Contracts
 - Git Commits
 - Split Asset NUP Search
-- AuctionAssetSnapshotBuilder
-- Ekternal
+- StockOutRequest
+- EmployeeAccessRequest
 - FabMenu Drawer Sidebar Presisi 100% Kepegawaian Web Portal
 - [2026-06-18] Mobile API Readiness Cleanup
 - [2026-06-18] Mobile App Implementation - Task 1 s.d 4 (Milestone 1)
@@ -459,18 +459,18 @@
 - Phase 35: Public Website & CMS Upgrade
 - [2026-06-19] Mobile App Implementation - Task 41 (Milestone 2)
 - items/page.tsx
-- post-update-cmd
-- Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost
+- LoginRequest
+- AddAuctionAssetsRequest
 - 2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal
-- Pesan
+- PrintAuctionDocumentEventRequest
 - Form Builder Structured Jenis Perjalanan Dinas vs Kegiatan (1 Hari) Presisi Directive User
 - Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`
 - [2026-06-19] Mobile App Implementation - Task 19 (Milestone 1)
 - Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker
 - AuctionBatchController
-- [2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)
+- CreateAuctionBatchRequest
 - [2026-06-19] Mobile App Implementation - Task 14 (Milestone 1)
-- ProfileSummary.tsx
+- UpdateAuctionAssetOrderRequest
 - [2026-06-19] Mobile App Implementation - Task 25 (Milestone 1)
 - [2026-06-19] Mobile App Implementation - Task 26 (Milestone 1)
 - [2026-06-19] Mobile App Implementation - Task 16 (Milestone 1)
@@ -488,15 +488,15 @@
 - [2026-08-05] Hak Akses BMN User, Case-Insensitive Search, Auto-Refresh & Surat Tugas Sync Fixes (Phase 196)
 - [2026-06-19] Mobile App Implementation - Task 42 (Milestone 2)
 - Mobile Login Keyboard Avoiding & Input Focus Fix
-- Inbox Surat Tugas Alur Master-Detail Mobile
+- UpdateAuctionValuationRequest
 - [2026-06-19] Mobile App Implementation - Task 7 (Milestone 1)
 - [2026-06-19] Mobile App Implementation - Task 8 (Milestone 1)
 - [2026-06-19] Mobile App Implementation - Task 9 (Milestone 1)
-- Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy
+- StoreAssetMaintenanceRequest
 - [2026-06-22] BMN Auction Batches Implementation - Tasks 44-59 (Milestone 6-8 Completion)
 - Files Changed
 - @react-navigation/native-stack
-- Phase 33: Module Themes & Fluid Layouts
+- StockInRequest
 - Mobile Dashboard Compact Grid & 2-Row Interactive Tabs
 - Mobile App Empty States 100% Sync with Web Portal
 - rules/graphify.md
@@ -508,11 +508,11 @@
 - Phase 16: InteractiveKawasanMap Integration
 - Phase 17: Inventory Trash/Restore Upgrade
 - Phase 19: Audit Middleware (Next.js Middleware migration)
-- Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)
+- SuratMasukRequest
 - Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST
 - Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)
 - [2026-06-19] Mobile App Implementation - Task 5 (Milestone 1)
-- Mobile Application Kepegawaian & SDM Module Screen
+- PublicSuratTugasRequest
 - informasi/create/page.tsx
 - Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST
 - Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal
@@ -520,14 +520,14 @@
 - InternalUploadDrawer.tsx
 - keywords
 - react-dom
-- scripts
+- post-create-project-cmd
 - [2026-06-19] Mobile App Implementation - Task 15 (Milestone 1)
 - [2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)
 - Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning
 - [2026-06-19] Mobile App Implementation - Task 28 (Milestone 1)
-- [2026-06-19] Mobile App Implementation - Task 21 (Milestone 1)
+- Phase 31: BMN Loan UI & Dark Mode
 - [2026-06-19] Mobile App Implementation - Task 10 (Milestone 1)
-- expo
+- STCreatePremiumPage
 - expo-print
 - next-themes
 - [2026-06-19] Mobile App Implementation - Task 18 (Milestone 1)
@@ -559,15 +559,28 @@
 - zod
 - leaflet.markercluster
 - [2026-06-19] Mobile App Implementation - Task 24 (Milestone 1)
-- axios
+- TransitionAuctionBatchRequest
 - cmdk
 - leaflet
 - sonner
+- Mobile Employee Full Search Sync & Single-Line NIP Layout
 - [2026-06-19] Mobile App Implementation - Task 17 (Milestone 1)
 - buku/page.tsx
 - menus/page.tsx
 - regulasi/page.tsx
 - expo-document-picker
+- Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail
+- Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile
+- Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)
+- Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal
+- Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`
+- dev
+- post-autoload-dump
+- test
+- [2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)
+- [2026-06-19] Mobile App Implementation - Task 23 (Milestone 1)
+- expo-file-system
+- @tanstack/react-query
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 180 edges
@@ -596,95 +609,95 @@
 ## Import Cycles
 - None detected.
 
-## Communities (645 total, 68 thin omitted)
+## Communities (658 total, 80 thin omitted)
 
 ### Community 0 - "cn"
 Cohesion: 0.03
 Nodes (79): ActionButton(), DocumentAction, DocumentActionsProps, DocumentGroup, SummaryTile(), SummaryTileProps, steps, WorkflowSteps() (+71 more)
 
 ### Community 1 - "Asset"
-Cohesion: 0.07
-Nodes (10): AssetController, AssetPhotoController, Asset, AssetLoan, AssetUpdate, AssetService, AuctionAssetDocumentReadinessService, LoanService (+2 more)
+Cohesion: 0.05
+Nodes (12): AssetController, AssetDocumentController, AssetPhotoController, Asset, AssetUpdate, AssetService, AuctionAssetDocumentReadinessService, AuctionAssetSnapshotBuilder (+4 more)
 
 ### Community 2 - "formatDateIndonesian"
-Cohesion: 0.14
-Nodes (25): AssignmentInboxTab(), SuratTugasItem, AssignmentLetterPreview(), PreviewProps, DasarItem, Employee, PreviewProps, STBuilderPreview() (+17 more)
+Cohesion: 0.13
+Nodes (27): AssignmentInboxTab(), SuratTugasItem, AssignmentLetterPreview(), PreviewProps, DasarItem, Employee, PreviewProps, STBuilderPreview() (+19 more)
 
 ### Community 3 - "reports/page.tsx"
 Cohesion: 0.05
 Nodes (76): chunkPhotoItems(), convertDriveUrl(), dataCell(), DAYS, displayName(), fallback(), formatSpelledDate(), getItemPrintPhotos() (+68 more)
 
-### Community 4 - "Illuminate\Database\Eloquent\Concerns\HasUuids"
-Cohesion: 0.06
-Nodes (22): AssetMaintenance, PublicController, Buku, Category, Informasi, Jenis, Kawasan, Kepala (+14 more)
+### Community 4 - "Illuminate\Database\Eloquent\Model"
+Cohesion: 0.04
+Nodes (35): AuditLog, PesanController, WebsiteController, PublicController, Buku, Category, Informasi, Jenis (+27 more)
 
 ### Community 5 - "useRole"
 Cohesion: 0.06
 Nodes (55): ScheduleTab(), BatchInfo, ChangedField, DiffFields(), FIELD_LABELS, ImportReviewDetailPage(), RowsPagination, SelectionSummary (+47 more)
 
 ### Community 6 - "_lib/api.ts"
-Cohesion: 0.05
-Nodes (63): AssetsLotTabProps, AuditTrailTab(), AuditTrailTabProps, DocumentsCenterTabProps, formatThousandsInput(), parseThousandsInput(), RealizationTab(), RealizationTabProps (+55 more)
+Cohesion: 0.04
+Nodes (76): AssetsLotTab(), AssetsLotTabProps, AuditTrailTab(), AuditTrailTabProps, CommitteePickerProps, DocumentsCenterTabProps, formatThousandsInput(), parseThousandsInput() (+68 more)
 
 ### Community 7 - "EmployeeAccessSheet.tsx"
 Cohesion: 0.12
 Nodes (21): formSchema, AccessFormValues, accessSchema, AVAILABLE_MODULES, BMN_PERMISSIONS, EmployeeAccessSheet(), EmployeeAccessSheetProps, ApiResponse (+13 more)
 
 ### Community 8 - "BmnDetailScreen.tsx"
-Cohesion: 0.22
-Nodes (16): BmnDetailScreen(), driveToThumbnail(), resolvePhotoUrl(), styles, BmnFormScreen(), mockCan, mockGoBack, mockIsAdmin (+8 more)
+Cohesion: 0.19
+Nodes (17): BmnDetailScreen(), driveToThumbnail(), resolvePhotoUrl(), styles, BmnFormScreen(), formatThousandInput(), parseThousandInput(), mockCan (+9 more)
 
-### Community 9 - "Item"
-Cohesion: 0.09
-Nodes (10): DashboardController, ItemController, JsonResponse, OfficeController, Item, Office, InventorySeeder, RealDataSeeder (+2 more)
+### Community 9 - "Illuminate\Database\Eloquent\Relations\BelongsTo"
+Cohesion: 0.05
+Nodes (16): AuctionBatchEvent, DashboardController, ItemController, JsonResponse, OfficeController, StockController, InventoryStock, Item (+8 more)
 
 ### Community 10 - "User"
-Cohesion: 0.05
-Nodes (15): User, OperatorController, AssetSearchTest, EmployeeLeaveRequestTest, EmployeeLeaveTest, ExampleTest, SuratModuleTest, SuratTugasMobileListApiTest (+7 more)
+Cohesion: 0.06
+Nodes (11): User, OperatorController, AssetSearchTest, EmployeeLeaveRequestTest, EmployeeLeaveTest, ExampleTest, SuratModuleTest, VehicleDocumentPathServiceTest (+3 more)
 
-### Community 11 - "AppButton.tsx"
-Cohesion: 0.07
-Nodes (27): AppButton(), AppButtonProps, styles, ConfirmDialog(), ConfirmDialogProps, styles, AssetFilterSheet(), AssetFilterSheetProps (+19 more)
+### Community 11 - "useAppTheme"
+Cohesion: 0.06
+Nodes (34): AppButton(), AppButtonProps, styles, ConfirmDialog(), ConfirmDialogProps, styles, OfflineBanner(), OfflineBannerProps (+26 more)
 
 ### Community 12 - "Controller"
-Cohesion: 0.06
-Nodes (22): App\Modules\CMS\Traits\AdminCrudTrait, MobileDashboardController, Controller, DashboardController, MaintenanceController, MaintenanceService, BukuController, CategoryController (+14 more)
+Cohesion: 0.09
+Nodes (18): App\Modules\CMS\Traits\AdminCrudTrait, Controller, BukuController, CategoryController, InformasiController, JenisController, KawasanController, KepalaController (+10 more)
 
 ### Community 13 - "Illuminate\Http\Request"
-Cohesion: 0.07
-Nodes (12): LoanController, AssetLoanResource, handleFileUpload(), index(), store(), update(), validateCmsUploads(), MasterDataController (+4 more)
+Cohesion: 0.05
+Nodes (21): MobileDashboardController, MeDashboardResource, UserResource, AssetLoanResource, AssetMaintenanceResource, AuctionBatchAssetResource, AuctionBatchEventResource, AuctionCandidateAssetResource (+13 more)
 
 ### Community 14 - "auction-helpers.ts"
-Cohesion: 0.13
-Nodes (28): AssetLampiranLandscapeTable(), buildLampiranPages(), getAssetSuratStatus(), isTruthyCheck(), BaPemeriksaanDocument(), buildBaLampiranPages(), buildNomorText(), formatStNumberText() (+20 more)
+Cohesion: 0.12
+Nodes (30): AssetLampiranLandscapeTable(), buildLampiranPages(), getAssetSuratStatus(), isTruthyCheck(), BaPemeriksaanDocument(), buildBaLampiranPages(), buildNomorText(), formatStNumberText() (+22 more)
 
 ### Community 15 - "loans/create/page.tsx"
-Cohesion: 0.14
-Nodes (20): CommitteePickerProps, getEmployeeLabel(), getEmployeeName(), getEmployeePosition(), MultiPicker(), SignatoryPickerSection(), SignatoryPickerSectionProps, toggleId() (+12 more)
+Cohesion: 0.15
+Nodes (15): Asset, LoanCreatePage(), EmployeeLeaveData, EmployeeLeaveTab(), EmployeeLeaveTabProps, Employee, EmployeeSelect(), EmployeeSelectProps (+7 more)
 
-### Community 16 - "Illuminate\Http\Resources\Json\JsonResource"
+### Community 16 - "portal/page.tsx"
 Cohesion: 0.10
-Nodes (7): MeDashboardResource, UserResource, AssetMaintenanceResource, AssetResource, AuctionBatchEventResource, AuctionCandidateAssetResource, Illuminate\Http\Resources\Json\JsonResource
+Nodes (24): ActiveLoansTab(), BorrowedAssetItem, LeaveRequestPrintData, JENIS_CUTI_OPTIONS, LeaveRequestDialog(), LeaveRequestDialogProps, AssetItem, formatMerkTipe() (+16 more)
 
 ### Community 17 - "useEmployeeSearch.ts"
-Cohesion: 0.12
-Nodes (17): EmptyState(), EmptyStateProps, styles, ErrorState(), ErrorStateProps, styles, EmployeeSelectorSheet(), EmployeeSelectorSheetProps (+9 more)
+Cohesion: 0.14
+Nodes (20): EmployeeSelectorSheet(), EmployeeSelectorSheetProps, styles, EmployeeSearchFilters, EmployeeSelectorItem, EmployeeApiItem, LoadMode, normalizeEmployee() (+12 more)
 
-### Community 18 - "useAppTheme"
+### Community 18 - "AssetDetail"
 Cohesion: 0.10
-Nodes (31): OfflineBanner(), OfflineBannerProps, styles, AssetDocumentSection(), AssetDocumentSectionProps, styles, AssetFinanceSection(), AssetFinanceSectionProps (+23 more)
+Nodes (27): AssetDocumentSection(), AssetDocumentSectionProps, styles, AssetFinanceSection(), AssetFinanceSectionProps, styles, AssetIdentitySection(), AssetIdentitySectionProps (+19 more)
 
 ### Community 19 - "dependencies"
 Cohesion: 0.05
-Nodes (41): clsx, date-fns, dayjs, dependencies, clsx, date-fns, dayjs, lucide-react (+33 more)
+Nodes (41): clsx, date-fns, dayjs, dependencies, axios, clsx, date-fns, dayjs (+33 more)
 
-### Community 20 - "BmnFormScreen.tsx"
-Cohesion: 0.08
-Nodes (25): AppDatePickerModal(), AppDatePickerModalProps, DAY_HEADINGS, MONTH_NAMES_ID, styles, AppTextInput(), AppTextInputProps, styles (+17 more)
+### Community 20 - "useAppTheme.ts"
+Cohesion: 0.09
+Nodes (24): AppDatePickerModal(), AppDatePickerModalProps, DAY_HEADINGS, MONTH_NAMES_ID, styles, AppTextInput(), AppTextInputProps, styles (+16 more)
 
 ### Community 21 - "download.ts"
-Cohesion: 0.08
-Nodes (31): formatDateIndo(), InboxSuratTugasScreen(), InboxSuratTugasScreenProps, styles, SuratTugasItem, updateAssignmentStatus(), AssignmentDetailScreen(), mockGoBack (+23 more)
+Cohesion: 0.12
+Nodes (19): formatDateIndo(), InboxSuratTugasScreen(), InboxSuratTugasScreenProps, styles, SuratTugasItem, API_URL, config, getToken() (+11 more)
 
 ### Community 22 - "HANDOFF.md"
 Cohesion: 0.05
@@ -692,39 +705,39 @@ Nodes (43): 1. Cek ESLint, 1. ESLint — wajib 0 warning, 2. Cek TypeScript, 2. 
 
 ### Community 23 - "ImportBatch"
 Cohesion: 0.14
-Nodes (3): ImportReviewController, ImportBatch, UploadValidationRules
+Nodes (3): ImportReviewController, ImportBatch, ImportStaging
 
-### Community 24 - "useNotaKpknlBuilderState.ts"
-Cohesion: 0.32
-Nodes (4): UseNotaKpknlBuilderResult, DEFAULT_KPKNL_TEMBUSAN, DEFAULT_NOTA_DINAS_TEMBUSAN, KpknlMeta
+### Community 24 - "SkTimPenilaiSection.tsx"
+Cohesion: 0.15
+Nodes (19): SkTimPenilaiSectionProps, SkTimPenilaiBuilderProps, renderKeduaText(), SkTimPenilaiDocument(), SkTimPenilaiDocumentProps, TimPenilaiEditor(), TimPenilaiEditorProps, UseSkTimPenilaiBuilderStateResult (+11 more)
 
 ### Community 25 - "AppTabs.tsx"
-Cohesion: 0.10
-Nodes (16): InventoryStockScreen(), KepegawaianScreen(), ProfileScreen(), mockEmployee, mockLogout, mockUser, SuratMasukHistoryScreen(), AssignmentFormScreen() (+8 more)
+Cohesion: 0.08
+Nodes (22): NotificationModal(), NotificationModalProps, styles, useAuth(), LoginScreen(), styles, KepegawaianDashboardScreen(), KepegawaianDashboardScreenProps (+14 more)
 
 ### Community 26 - "Maatwebsite\Excel\Concerns\FromCollection"
-Cohesion: 0.09
+Cohesion: 0.10
 Nodes (11): ExportController, AssetExport, LoanExport, MaintenanceExport, ExportController, ItemExport, TransactionExport, Maatwebsite\Excel\Concerns\FromCollection (+3 more)
 
 ### Community 27 - "assets/[id]/page.tsx"
 Cohesion: 0.09
 Nodes (26): AreaRow(), BadgeRow(), CurrencyRow(), DetailRow(), DetailSection(), EditableCurrencyRow(), EditableEmployeeRow(), EditableRow() (+18 more)
 
-### Community 28 - "SkPanitiaSection.tsx"
-Cohesion: 0.17
-Nodes (12): PanitiaEditor(), PanitiaEditorProps, renderKeduaText(), SkPanitiaDocument(), usePanitiaList(), UsePanitiaListResult, DEFAULT_PANITIA_MEMUTUSKAN, DEFAULT_PANITIA_MENGINGAT (+4 more)
+### Community 28 - "SkBuilderItem"
+Cohesion: 0.10
+Nodes (25): PanitiaEditor(), PanitiaEditorProps, SkPanitiaSectionProps, SkPenghentianSectionProps, SkBuilderProps, renderKeduaText(), SkPanitiaDocument(), SkPanitiaDocumentProps (+17 more)
 
 ### Community 29 - "Illuminate\Support\ServiceProvider"
 Cohesion: 0.09
 Nodes (9): BmnServiceProvider, CMSServiceProvider, DeReportingServiceProvider, InventoryServiceProvider, KepegawaianServiceProvider, SuratServiceProvider, SuratTugasServiceProvider, AppServiceProvider (+1 more)
 
 ### Community 30 - "EmployeeOption"
-Cohesion: 0.12
-Nodes (23): PemeriksaEditor(), PemeriksaEditorProps, BaPemeriksaanSectionProps, TimPenilaiEditor(), TimPenilaiEditorProps, EmployeeOption, UseEmployeeOptionsResult, usePemeriksaList() (+15 more)
+Cohesion: 0.24
+Nodes (11): PemeriksaEditor(), PemeriksaEditorProps, BaPemeriksaanSectionProps, EmployeeOption, UseEmployeeOptionsResult, usePemeriksaList(), UsePemeriksaListResult, DEFAULT_PEMERIKSA (+3 more)
 
 ### Community 31 - "useTheme"
-Cohesion: 0.06
-Nodes (65): ConfirmModal(), ConfirmModalProps, styles, EmeraldButton(), EmeraldButtonProps, styles, FabMenu(), FabMenuProps (+57 more)
+Cohesion: 0.08
+Nodes (53): ConfirmModal(), ConfirmModalProps, styles, EmeraldButton(), EmeraldButtonProps, styles, FabMenu(), FabMenuProps (+45 more)
 
 ### Community 32 - "Issue #003 — Backend — Laravel 12 Scaffold"
 Cohesion: 0.05
@@ -732,23 +745,23 @@ Nodes (42): Acceptance Criteria, 🤖 AI Prompt, Apa yang Sudah Ada (dari Issue 
 
 ### Community 33 - "dependencies"
 Cohesion: 0.09
-Nodes (23): expo-camera, expo-file-system, expo-image-picker, expo-location, expo-sharing, dependencies, axios, expo-camera (+15 more)
+Nodes (23): expo, expo-camera, expo-image-picker, expo-location, expo-sharing, dependencies, axios, expo (+15 more)
 
-### Community 35 - "Illuminate\Database\Seeder"
-Cohesion: 0.10
-Nodes (12): BmnAssetSeeder, BMNSeeder, CleanupBidangSeeder, DatabaseSeeder, EmployeeSeeder, EmployeeUserSeeder, OfficialLocationSeeder, SuperAdminSeeder (+4 more)
+### Community 35 - "User.php"
+Cohesion: 0.06
+Nodes (15): BmnAssetSeeder, BMNSeeder, CleanupBidangSeeder, DatabaseSeeder, EmployeeSeeder, EmployeeUserSeeder, OfficialLocationSeeder, SuperAdminSeeder (+7 more)
 
 ### Community 36 - "assignmentFormSchema.ts"
 Cohesion: 0.21
 Nodes (13): AssignmentFormPayload, createAssignment(), toAssignmentFormPayload(), updateAssignment(), AssignmentEmployeeFormData, assignmentEmployeeSchema, AssignmentFormData, assignmentFormSchema (+5 more)
 
 ### Community 37 - "Illuminate\Http\JsonResponse"
-Cohesion: 0.08
-Nodes (13): AuthController, CategoryController, EmployeeAccessController, EmployeeController, EmployeeLeaveController, EmployeeLeaveRequestController, Employee, BelongsToMany (+5 more)
-
-### Community 38 - "portal/page.tsx"
 Cohesion: 0.05
-Nodes (47): ApiResponse, AssignmentLetter, AssignmentLetterHistory(), AssignmentLetterPreviewData, Meta, PreviewEmployee, PreviewItem, DeleteLeaveModal() (+39 more)
+Nodes (19): AuthController, EmployeeAccessController, EmployeeController, EmployeeLeaveController, EmployeeLeaveRequestController, Employee, BelongsToMany, HasMany (+11 more)
+
+### Community 38 - "employees/[id]/page.tsx"
+Cohesion: 0.09
+Nodes (26): ApiResponse, AssignmentLetter, AssignmentLetterHistory(), AssignmentLetterPreviewData, Meta, PreviewEmployee, PreviewItem, DeleteLeaveModal() (+18 more)
 
 ### Community 39 - "assets/page.tsx"
 Cohesion: 0.24
@@ -767,32 +780,32 @@ Cohesion: 0.10
 Nodes (20): dompurify, dompurify, Category, EditInformasiPage(), InformasiData, QUILL_FORMATS, QUILL_MODULES, ReactQuill (+12 more)
 
 ### Community 43 - "FormulirCutiPrintModal.tsx"
-Cohesion: 0.17
-Nodes (16): buildFormulirCutiHtml(), calculateMasaKerja(), formatDateIndo(), FormulirCutiPrintModal(), FormulirCutiPrintModalProps, getKotaAtasanFromSatuanKerja(), LeaveRequestPrintData, strMatch() (+8 more)
+Cohesion: 0.18
+Nodes (15): buildFormulirCutiHtml(), calculateMasaKerja(), formatDateIndo(), FormulirCutiPrintModal(), FormulirCutiPrintModalProps, getKotaAtasanFromSatuanKerja(), LeaveRequestPrintData, strMatch() (+7 more)
 
 ### Community 44 - "Closure"
 Cohesion: 0.11
 Nodes (9): AuditLogMiddleware, AuthenticateQueryToken, CheckModuleAccess, CheckPermission, CheckRole, SupabaseStorageService, Closure, Illuminate\Http\UploadedFile (+1 more)
 
 ### Community 45 - "AuthProvider.tsx"
-Cohesion: 0.11
-Nodes (22): App(), getMe(), login(), logout(), AuthContext, AuthContextType, AuthProvider(), useAuth() (+14 more)
+Cohesion: 0.24
+Nodes (12): getMe(), login(), logout(), AuthContext, AuthContextType, AuthProvider(), clearToken(), setToken() (+4 more)
 
 ### Community 46 - "button.tsx"
-Cohesion: 0.06
-Nodes (66): AssetsLotTab(), ValuationTab(), addAssets(), AuctionBatchAsset, AuctionCandidateAsset, createBatch(), getCandidates(), removeAsset() (+58 more)
+Cohesion: 0.07
+Nodes (55): ValuationTab(), AuctionBatchAsset, AuctionCandidateAsset, createBatch(), getCandidates(), updateValuation(), PageHeaderProps, PrintAction (+47 more)
 
-### Community 47 - "parseDocDate"
-Cohesion: 0.11
-Nodes (22): DocumentNumberInlineCardProps, DocumentNumberInputs(), DocumentNumberInputsProps, NumberRow, PernyataanDocument(), PernyataanDocumentProps, PernyataanIdentity(), SptjLimitSectionProps (+14 more)
+### Community 47 - "SkKepalaBalai"
+Cohesion: 0.14
+Nodes (20): PernyataanDocument(), PernyataanDocumentProps, PernyataanIdentity(), SptjLimitSectionProps, SptjmSectionProps, SpTugasSectionProps, SptjLimitDocument(), SptjLimitDocumentProps (+12 more)
 
 ### Community 48 - "SuratTugasListScreen.tsx"
-Cohesion: 0.13
-Nodes (20): AssignmentCard(), AssignmentCardProps, formatDateRange(), getStatusBadge(), styles, Stack, SuratTugasStackParamList, StatusFilter (+12 more)
-
-### Community 49 - "SuratMasuk"
 Cohesion: 0.09
-Nodes (5): SuratKeluarController, SuratMasukController, SuratMasuk, SuratKeluarRequest, SuratMasukRequest
+Nodes (27): StatusBadge(), StatusBadgeProps, styles, AssignmentCard(), AssignmentCardProps, formatDateRange(), getStatusBadge(), styles (+19 more)
+
+### Community 49 - "SuratKeluar"
+Cohesion: 0.19
+Nodes (3): SuratKeluarController, SuratKeluar, SuratKeluarRequest
 
 ### Community 50 - "KertasKerjaAssetSection.tsx"
 Cohesion: 0.13
@@ -804,11 +817,11 @@ Nodes (19): Backend Design, Checklist service, Compatibility, Current State Summ
 
 ### Community 52 - "progress.md"
 Cohesion: 0.04
-Nodes (56): Accomplishments:, Completed:, Digital Letter Management & 2-Up Disposition Sheets, Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas, Files Modified:, Implementasi, Issue #340: Refactor Auction Candidates Page, Issue #342: Editable BA Builder + Toggle BA/SK (+48 more)
+Nodes (55): 1. Pembersihan File Duplikat (Dead Code Deletion), 2. Penyederhanaan State Management Error Validasi Login, 3. Streamline Error Catching (`AuthProvider.tsx`), Accomplishments:, Completed:, Digital Letter Management & 2-Up Disposition Sheets, Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas, Implementasi (+47 more)
 
-### Community 53 - "PortalDashboardScreen.tsx"
-Cohesion: 0.11
-Nodes (23): buildSuratTugasHtml(), daysBetween(), formatDateIndonesian(), formatNIP(), indexToLetter(), numberToWords(), parseItems(), parseTembusan() (+15 more)
+### Community 53 - "PratinjauSuratTugasModal.tsx"
+Cohesion: 0.16
+Nodes (17): buildSuratTugasHtml(), daysBetween(), formatDateIndonesian(), formatNIP(), indexToLetter(), numberToWords(), parseItems(), parseTembusan() (+9 more)
 
 ### Community 54 - "components.json"
 Cohesion: 0.09
@@ -822,6 +835,14 @@ Nodes (27): backgroundColor, backgroundImage, foregroundImage, monochromeImage, 
 Cohesion: 0.11
 Nodes (17): Done Criteria, Ground Rules, Phase 0 - Confirm Current Baseline, Phase 10 - Tests, Phase 11 - Migration And Backward Compatibility, Phase 12 - Cleanup, Phase 1 - Create Document Workflow Registry, Phase 2 - Add Draft Workflow Metadata Persistence (+9 more)
 
+### Community 57 - "AuctionBatchStatus.php"
+Cohesion: 0.10
+Nodes (3): AuctionBatchAuditLogger, AuctionBatchStateMachine, AuctionBatchValidityService
+
+### Community 58 - "Internal"
+Cohesion: 0.12
+Nodes (3): InternalController, Internal, StoreInternalRequest
+
 ### Community 59 - "devDependencies"
 Cohesion: 0.08
 Nodes (25): eslint-config-expo, jest, jest-expo, devDependencies, eslint, eslint-config-expo, jest, jest-expo (+17 more)
@@ -834,10 +855,6 @@ Nodes (32): Acceptance Criteria, 🤖 AI Prompt, Apa yang Sudah Ada (dari Issue 
 Cohesion: 0.10
 Nodes (21): eslint-config-next, devDependencies, eslint, eslint-config-next, tailwindcss, @tailwindcss/postcss, @types/dompurify, @types/leaflet.markercluster (+13 more)
 
-### Community 62 - "AuctionBatch"
-Cohesion: 0.14
-Nodes (4): AssetAuctionBatch, AuctionBatch, AuctionBatchService, AuctionBatchStateMachine
-
 ### Community 63 - "Issue #114 — Frontend — Custom Components (Komponen Buatan Sendiri: EmployeeSelect, RichTextEditor, Sonner Toast)"
 Cohesion: 0.06
 Nodes (32): Acceptance Criteria, 🤖 AI Prompt, Apa Ini?, Apa Ini?, Apa Ini?, Arsitektur Visual, Arsitektur Visual, Arsitektur Visual (+24 more)
@@ -846,25 +863,25 @@ Nodes (32): Acceptance Criteria, 🤖 AI Prompt, Apa Ini?, Apa Ini?, Apa Ini?, A
 Cohesion: 0.24
 Nodes (8): BentoStatCards(), HeaderBanner(), RecentSuratWidget(), SuratKeluarItem, SuratMasukItem, QUICK_LINKS, SuratKeluarItem, SuratMasukItem
 
-### Community 65 - "SkKepalaBalai"
-Cohesion: 0.10
-Nodes (40): DocumentNumberInlineCard(), EmployeeRecord, KepalaBalaiPicker(), KepalaBalaiPickerProps, loadStoredKepalaBalaiDefault(), saveStoredKepalaBalaiDefault(), NotaDinasDocumentProps, PermohonanKpknlDocumentProps (+32 more)
+### Community 65 - "sk-defaults.ts"
+Cohesion: 0.11
+Nodes (25): DocumentNumberInlineCard(), DocumentNumberInlineCardProps, DocumentNumberInputs(), DocumentNumberInputsProps, NumberRow, EmployeeRecord, KepalaBalaiPicker(), KepalaBalaiPickerProps (+17 more)
 
 ### Community 66 - "AuctionAsset"
-Cohesion: 0.11
-Nodes (19): AssetLampiranLandscapeTableProps, LampiranPage, AssetTableProps, BaLampiranPage, BaPemeriksaanDocumentProps, ReorderPanelProps, SkKebenaranSectionProps, buildNomorText() (+11 more)
+Cohesion: 0.13
+Nodes (17): AssetLampiranLandscapeTableProps, LampiranPage, AssetTableProps, BaLampiranPage, BaPemeriksaanDocumentProps, ReorderPanelProps, NotaDinasSectionProps, PermohonanKpknlSectionProps (+9 more)
 
-### Community 67 - "HandoverAgreement"
-Cohesion: 0.10
-Nodes (7): DocumentHistoryController, HandoverAgreementController, PowerOfAttorneyController, HandoverAgreement, PowerOfAttorney, HandoverAgreementResource, PowerOfAttorneyResource
+### Community 67 - "PowerOfAttorney"
+Cohesion: 0.07
+Nodes (9): DocumentHistoryController, PowerOfAttorneyController, UsageAgreementController, PowerOfAttorney, UsageAgreement, AssetResource, PowerOfAttorneyResource, UsageAgreementResource (+1 more)
 
 ### Community 68 - "surat-tugas/create/page.tsx"
-Cohesion: 0.16
-Nodes (17): EditableItemListSection(), EditableItemListSectionProps, FormSection(), FormSectionProps, PenandatanganSection(), PenandatanganSectionProps, TembusanSection(), TembusanSectionProps (+9 more)
+Cohesion: 0.19
+Nodes (15): EditableItemListSection(), EditableItemListSectionProps, FormSection(), FormSectionProps, PenandatanganSection(), PenandatanganSectionProps, TembusanSection(), TembusanSectionProps (+7 more)
 
-### Community 69 - "Leaflet"
-Cohesion: 0.13
-Nodes (5): Leaflet, Poster, UserFactory, Illuminate\Database\Eloquent\Factories\Factory, static
+### Community 69 - "static"
+Cohesion: 0.24
+Nodes (3): UserFactory, Illuminate\Database\Eloquent\Factories\Factory, static
 
 ### Community 70 - "Mobile API Readiness Plan"
 Cohesion: 0.06
@@ -874,9 +891,9 @@ Nodes (32): 10. Error Message Konsisten, 11. Endpoint Notification Feed, 12. Dev
 Cohesion: 0.14
 Nodes (13): autoload-dev, psr-4, description, extra, laravel, dont-discover, license, minimum-stability (+5 more)
 
-### Community 72 - "useAppTheme.ts"
-Cohesion: 0.15
-Nodes (12): AlertCard(), AlertCardProps, styles, MetricCard(), MetricCardProps, styles, UrgentTaxVehicle, colors (+4 more)
+### Community 72 - "AlertCard.tsx"
+Cohesion: 0.19
+Nodes (9): AlertCard(), AlertCardProps, styles, ProfileSummary(), ProfileSummaryProps, styles, BriefProfile, DashboardSummary (+1 more)
 
 ### Community 73 - "BaKoreksiDocument.tsx"
 Cohesion: 0.14
@@ -895,16 +912,16 @@ Cohesion: 0.19
 Nodes (10): BmnCreateAssetPage(), FormData, getMode(), hasTipe(), isRumahNegara(), JENIS_BMN_OPTIONS, KONDISI_OPTIONS, LOKASI_RUANG_OPTIONS (+2 more)
 
 ### Community 78 - "BmnListScreen.tsx"
-Cohesion: 0.16
-Nodes (13): LoadingSkeleton(), LoadingSkeletonProps, styles, SearchInput(), SearchInputProps, styles, BmnListScreen(), styles (+5 more)
+Cohesion: 0.11
+Nodes (18): EmptyState(), EmptyStateProps, styles, SearchInput(), SearchInputProps, styles, AssetCard(), AssetCardProps (+10 more)
 
 ### Community 79 - "dereporting.ts"
 Cohesion: 0.15
 Nodes (12): DrAnggaran, DrBidang, DrEksternal, DrEksternalStatus, DrInternal, DrJenis, DrJenisData, DrKategori (+4 more)
 
 ### Community 80 - "client.ts"
-Cohesion: 0.12
-Nodes (17): mockGoBack, mockNavigate, mockGoBack, mockNavigate, UseAssignmentDetailResult, TestComponent(), isNetworkError(), OnlineStatus (+9 more)
+Cohesion: 0.10
+Nodes (15): mockGoBack, mockNavigate, ChangePasswordModalProps, styles, AssignmentFormScreen(), Employee, formatDateIndo(), MONTH_NAMES (+7 more)
 
 ### Community 81 - "UserPermissionFallbackTest"
 Cohesion: 0.18
@@ -913,10 +930,6 @@ Nodes (3): ExampleTest, UserPermissionFallbackTest, PHPUnit\Framework\TestCase
 ### Community 82 - "frontend/package.json"
 Cohesion: 0.18
 Nodes (10): name, overrides, postcss, private, scripts, build, dev, lint (+2 more)
-
-### Community 83 - "InitDataSeeder"
-Cohesion: 0.09
-Nodes (6): InitDataSeeder, Bidang, JenisData, Kategori, Koordinator, Tahun
 
 ### Community 84 - "Requirements: BMN Auction Srikandi Workflow Alignment"
 Cohesion: 0.13
@@ -950,9 +963,9 @@ Nodes (30): Acceptance Criteria, 🤖 AI Prompt, Apa yang Sudah Ada (dari Issue 
 Cohesion: 0.33
 Nodes (6): Implementasi, Mobile Surat Tugas List API Contract, Next Steps, Progress - Phase 100: Mobile Surat Tugas List API Contract, Status: SELESAI, Validasi
 
-### Community 92 - "setup"
-Cohesion: 0.25
-Nodes (8): post-root-package-install, setup, composer install, npm install --ignore-scripts, npm run build, @php artisan key:generate, @php artisan migrate --force, @php -r \"file_exists('.env') || copy('.env.example', '.env');\
+### Community 92 - "scripts"
+Cohesion: 0.14
+Nodes (15): scripts, post-root-package-install, post-update-cmd, pre-package-uninstall, setup, composer install, Illuminate\\Foundation\\ComposerScripts::prePackageUninstall, npm install --ignore-scripts (+7 more)
 
 ### Community 95 - "scripts"
 Cohesion: 0.15
@@ -988,15 +1001,19 @@ Nodes (5): CardProps, PublicationItem, PublikasiPage(), TabKey, TABS
 
 ### Community 103 - "Progress Log: Modul Kepegawaian & Surat Tugas"
 Cohesion: 0.06
-Nodes (31): [2026-06-18] Mobile API Readiness - Issue 1: API Contract Baseline, [2026-06-18] Mobile API Readiness - Issue 2: Auth & Me Endpoint, [2026-06-18] Portal Employee Assets Visibility & Switcher, [2026-06-19] Mobile App Implementation - Task 11 (Milestone 1), [2026-06-19] Mobile App Implementation - Task 23 (Milestone 1), [2026-06-19] Mobile App Implementation - Task 43 (Milestone 2), [2026-06-19] Mobile App Implementation - Task 44 (Milestone 2), [2026-06-19] Mobile App Implementation - Task 45 (Milestone 2) (+23 more)
+Nodes (31): [2026-06-18] Mobile API Readiness - Issue 1: API Contract Baseline, [2026-06-18] Mobile API Readiness - Issue 2: Auth & Me Endpoint, [2026-06-18] Portal Employee Assets Visibility & Switcher, [2026-06-19] Mobile App Implementation - Task 13 (Milestone 1), [2026-06-19] Mobile App Implementation - Task 21 (Milestone 1), [2026-06-19] Mobile App Implementation - Task 43 (Milestone 2), [2026-06-19] Mobile App Implementation - Task 44 (Milestone 2), [2026-06-19] Mobile App Implementation - Task 45 (Milestone 2) (+23 more)
 
 ### Community 104 - "Issue #006 — Frontend — Design System & Theme"
 Cohesion: 0.08
 Nodes (23): Acceptance Criteria, 🤖 AI Prompt, Apa yang Sudah Ada (dari Issue Sebelumnya), Branch, Deskripsi, Git Workflow (Professional), Issue #006 — Frontend — Design System & Theme, Langkah 1: Install `next-themes` (+15 more)
 
+### Community 105 - "PortalDashboardScreen.tsx"
+Cohesion: 0.16
+Nodes (13): PratinjauSuratTugasItem, FormulirCutiModal(), FormulirCutiModalProps, JENIS_CUTI_OPTIONS, styles, formatDateIndo(), MODULES, PortalDashboardScreen() (+5 more)
+
 ### Community 106 - "DocumentsCenterTab.tsx"
 Cohesion: 0.12
-Nodes (29): buildDocumentNumberPreview(), channelLabels, CommitteePicker(), defaultDocumentKaps, DocumentItem, documentNumberPrefixes, DocumentsCenterTab(), getEmployeeLabel() (+21 more)
+Nodes (30): buildDocumentNumberPreview(), channelLabels, CommitteePicker(), defaultDocumentKaps, DocumentItem, documentNumberPrefixes, DocumentsCenterTab(), getEmployeeLabel() (+22 more)
 
 ### Community 107 - "psr-4"
 Cohesion: 0.33
@@ -1066,9 +1083,9 @@ Nodes (5): Completed:, Issue #338: SK Penghentian Penggunaan BMN, Key Files:, Pe
 Cohesion: 0.40
 Nodes (5): Implementasi, Progress - Phase 93: Secure Private Storage Folders, Secure Private Storage Folders, Status: SELESAI, Validasi
 
-### Community 197 - "Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth"
-Cohesion: 0.50
-Nodes (4): 1. Pembersihan File Duplikat (Dead Code Deletion), 2. Penyederhanaan State Management Error Validasi Login, 3. Streamline Error Catching (`AuthProvider.tsx`), Progress - Phase 200: Refactoring & Cleanup Modul Mobile Auth
+### Community 197 - "ThemeContext.tsx"
+Cohesion: 0.16
+Nodes (10): App(), FloatingNav(), FloatingNavProps, styles, darkColors, lightColors, ThemeColors, ThemeContext (+2 more)
 
 ### Community 198 - "2. Aturan Bisnis & Spesifikasi Utama"
 Cohesion: 0.22
@@ -1083,20 +1100,20 @@ Cohesion: 0.40
 Nodes (4): Boundaries, Hunt, Output, Tags
 
 ### Community 205 - "Illuminate\Foundation\Http\FormRequest"
-Cohesion: 0.03
-Nodes (18): ChangePasswordRequest, LoginRequest, DisposeAssetRequest, StoreAssetLoanRequest, StoreAssetMaintenanceRequest, StoreAssetRequest, UpdateAssetRequest, StoreEksternalRequest (+10 more)
+Cohesion: 0.08
+Nodes (8): ChangePasswordRequest, DisposeAssetRequest, UpdateAssetRequest, StoreEksternalRequest, StoreOperatorRequest, StoreItemRequest, StoreOfficeRequest, Illuminate\Foundation\Http\FormRequest
 
 ### Community 206 - "AssignmentDetailScreen.tsx"
-Cohesion: 0.12
-Nodes (25): SectionCard(), SectionCardProps, styles, AssignmentContentSection(), AssignmentContentSectionProps, styles, AssignmentDatesSection(), AssignmentDatesSectionProps (+17 more)
+Cohesion: 0.10
+Nodes (30): SectionCard(), SectionCardProps, styles, updateAssignmentStatus(), AssignmentContentSection(), AssignmentContentSectionProps, styles, AssignmentDatesSection() (+22 more)
 
 ### Community 210 - "Progress - Phase 196: BMN Reports Multi-Page Pagination, Dynamic Margins, Uncropped Asset Photo Documentation & Git Branch Consolidation/Deployment Setup"
 Cohesion: 0.25
 Nodes (8): 1. Pembersihan, Konsolidasi Branch & Setup Branch Deployment (`production`), 2. Refactoring Cetak Laporan BMN (BA Pemakaian & BA Serah Terima), 3. Fitur Lampiran Dokumentasi Foto Aset BMN (Sesuai Sampel Gambar 2), Progress - Phase 196: BMN Reports Multi-Page Pagination, Dynamic Margins, Uncropped Asset Photo Documentation & Git Branch Consolidation/Deployment Setup, Status: SELESAI, Status: SELESAI, Status: SELESAI, Validasi & Git Status
 
-### Community 211 - "BmnPhotoCaptureScreen.tsx"
-Cohesion: 0.21
-Nodes (12): NotificationModal(), NotificationModalProps, styles, BmnPhotoCaptureScreen(), styles, mockGoBack, mockNavigate, getCurrentLocation() (+4 more)
+### Community 211 - "BmnLoanScreen.tsx"
+Cohesion: 0.12
+Nodes (19): IconButton(), IconButtonProps, styles, BmnStackParamList, Stack, BmnLoanScreen(), getTodayString(), LoanFormData (+11 more)
 
 ### Community 212 - "Issue #046 — Backend — Inventory Migrations (Sistem Logistik)"
 Cohesion: 0.09
@@ -1483,8 +1500,8 @@ Cohesion: 0.12
 Nodes (16): 1. Clone & Install, 2. Database Setup, 3. Run, 4. Login, BKSDA SuperApp, Contributing, Deployment, Documentation (+8 more)
 
 ### Community 335 - "builder/[id]/page.tsx"
-Cohesion: 0.19
-Nodes (19): STBuilderPage(), STCreatePremiumPage(), buildBiayaTextFor(), isSingleDayActivityPrefix(), shouldRenderAsSingleDayActivity(), cleanPlhKegiatanKasi(), extractPlhWilayahFromPosition(), normalizeEmployeeForSelection() (+11 more)
+Cohesion: 0.22
+Nodes (15): STBuilderPage(), buildBiayaTextFor(), isSingleDayActivityPrefix(), shouldRenderAsSingleDayActivity(), DEFAULT_KEPALA_BALAI, SUMBER_DANA_OPTIONS, printSuratTugas(), resolveImageUrl() (+7 more)
 
 ### Community 336 - "Issue #055 — Frontend — Items Management Page (Katalog Master Barang)"
 Cohesion: 0.12
@@ -1629,10 +1646,6 @@ Nodes (10): Catatan Pendekatan:, Completed (di branch, belum commit):, Filosofi,
 ### Community 371 - "Issue #360: Apply BMN Penghapusan Template Button for ST Builder"
 Cohesion: 0.20
 Nodes (10): Completed:, Completed:, How to Use:, Issue #360: Apply BMN Penghapusan Template Button for ST Builder, Issue #361: BA Pemeriksaan Lampiran (Asset Table + Dual-Column TTD), Key Files Modified:, Key Files Modified:, Progress - Phase 54: BA Pemeriksaan Lampiran + ST BMN Template (+2 more)
-
-### Community 372 - "AssignmentSummarySection.tsx"
-Cohesion: 0.21
-Nodes (9): StatusBadge(), StatusBadgeProps, styles, AssetCard(), AssetCardProps, styles, AssetListItem, getStatusBadge() (+1 more)
 
 ### Community 373 - "⚠️ STATUS TERKINI (Phase 8 CMS Module)"
 Cohesion: 0.22
@@ -2054,10 +2067,6 @@ Nodes (5): Halaman `/bmn/auction-candidates`, Implementasi, Progress - Phase 78:
 Cohesion: 0.40
 Nodes (5): Implementasi, Issue #404: Generate BA Serah Terima BMN, Progress - Phase 76: BA Serah Terima BMN, Status: MERGED, Validasi
 
-### Community 479 - "UsageAgreement"
-Cohesion: 0.22
-Nodes (3): UsageAgreementController, UsageAgreement, UsageAgreementResource
-
 ### Community 480 - "Mobile Application Web Portal Light Emerald Alignment"
 Cohesion: 0.40
 Nodes (5): Implementasi Presisi Screenshot Web Portal, Mobile Application Web Portal Light Emerald Alignment, Progress - Phase 144: Mobile Application Web Portal Light Emerald Alignment, Status: SELESAI, Validasi & Git Workflow Pro
@@ -2086,9 +2095,9 @@ Nodes (5): Completed:, Issue #350: SK Builder Panel beside SK Preview, Key Files
 Cohesion: 0.40
 Nodes (5): Completed:, Issue #348: Align Colons in SK Ditetapkan/Pada tanggal Block, Key Files:, Progress - Phase 48: SK Colon Alignment, Validation:
 
-### Community 487 - "Illuminate\Database\Eloquent\Model"
-Cohesion: 0.07
-Nodes (12): AuditLog, AuctionBatchEvent, StockController, InventoryStock, StockTransaction, InventoryService, SuratDisposisi, SuratKeluar (+4 more)
+### Community 487 - "AssetLoan"
+Cohesion: 0.09
+Nodes (8): DashboardController, LoanController, MaintenanceController, AssetLoan, AssetMaintenance, LoanService, MaintenanceService, Illuminate\Database\Eloquent\Builder
 
 ### Community 488 - "ponytail-debt/SKILL.md"
 Cohesion: 0.50
@@ -2262,21 +2271,9 @@ Nodes (3): [2026-06-19] Mobile App Implementation - Task 41 (Milestone 2), Compl
 Cohesion: 0.17
 Nodes (10): InventoryImportDialog(), InventoryTrashDialog(), IItem, IItemsResponse, ICategory, IInventoryDashboardStats, IInventoryStock, IItem (+2 more)
 
-### Community 535 - "post-update-cmd"
-Cohesion: 0.50
-Nodes (4): post-update-cmd, @php artisan ide-helper:generate, @php artisan ide-helper:meta, @php artisan vendor:publish --tag=laravel-assets --ansi --force
-
-### Community 536 - "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost"
-Cohesion: 0.50
-Nodes (4): Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost, Progress - Phase 177: Penyelarasan Form Buat Surat Tugas Mobile & Date Picker, Status: SELESAI, Validasi & Git Workflow Pro
-
 ### Community 537 - "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal"
 Cohesion: 0.50
 Nodes (4): 2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal, Progress - Phase 156: 2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal, Status: SELESAI, Validasi & Git Workflow Pro
-
-### Community 538 - "Pesan"
-Cohesion: 0.20
-Nodes (3): ImportStaging, PesanController, Pesan
 
 ### Community 539 - "Form Builder Structured Jenis Perjalanan Dinas vs Kegiatan (1 Hari) Presisi Directive User"
 Cohesion: 0.50
@@ -2295,20 +2292,12 @@ Cohesion: 0.50
 Nodes (4): Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker, Progress - Phase 161: Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker, Status: SELESAI, Validasi & Git Workflow Pro
 
 ### Community 543 - "AuctionBatchController"
-Cohesion: 0.04
-Nodes (14): AuctionBatchController, AddAuctionAssetsRequest, CreateAuctionBatchRequest, FirstAuctionResultsRequest, PrintAuctionDocumentEventRequest, ReauctionResultsRequest, TransitionAuctionBatchRequest, UpdateAuctionAssetOrderRequest (+6 more)
-
-### Community 544 - "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)"
-Cohesion: 0.67
-Nodes (3): [2026-06-19] Mobile App Implementation - Task 13 (Milestone 1), Completed (Selesai), Next Steps
+Cohesion: 0.11
+Nodes (4): AuctionBatchController, FirstAuctionResultsRequest, ReauctionResultsRequest, AuctionBatchResource
 
 ### Community 545 - "[2026-06-19] Mobile App Implementation - Task 14 (Milestone 1)"
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 14 (Milestone 1), Completed (Selesai), Next Steps
-
-### Community 546 - "ProfileSummary.tsx"
-Cohesion: 0.40
-Nodes (4): ProfileSummary(), ProfileSummaryProps, styles, BriefProfile
 
 ### Community 547 - "[2026-06-19] Mobile App Implementation - Task 25 (Milestone 1)"
 Cohesion: 0.67
@@ -2323,8 +2312,8 @@ Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 16 (Milestone 1), Completed (Selesai), Next Steps
 
 ### Community 550 - "inbox/page.tsx"
-Cohesion: 0.24
-Nodes (10): ConfirmActionModal(), ConfirmActionModalProps, getResolvedTempatTujuan(), getStatusLabel(), getStatusStyle(), AssignmentLetter, InboxEmployee, LetterItem (+2 more)
+Cohesion: 0.23
+Nodes (11): ConfirmActionModal(), ConfirmActionModalProps, getResolvedTempatTujuan(), getStatusLabel(), getStatusStyle(), AssignmentLetter, InboxEmployee, LetterItem (+3 more)
 
 ### Community 551 - "[2026-06-19] Mobile App Implementation - Task 30 (Milestone 2)"
 Cohesion: 0.67
@@ -2378,10 +2367,6 @@ Nodes (3): [2026-06-19] Mobile App Implementation - Task 42 (Milestone 2), Compl
 Cohesion: 0.50
 Nodes (4): Mobile Login Keyboard Avoiding & Input Focus Fix, Progress - Phase 149: Mobile Login Keyboard Avoiding & Input Focus Fix, Status: SELESAI, Validasi & Git Workflow Pro
 
-### Community 564 - "Inbox Surat Tugas Alur Master-Detail Mobile"
-Cohesion: 0.50
-Nodes (4): Inbox Surat Tugas Alur Master-Detail Mobile, Progress - Phase 163: Inbox Surat Tugas Alur Master-Detail Mobile, Status: SELESAI, Validasi & Git Workflow Pro
-
 ### Community 565 - "[2026-06-19] Mobile App Implementation - Task 7 (Milestone 1)"
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 7 (Milestone 1), Completed (Selesai), Next Steps
@@ -2394,10 +2379,6 @@ Nodes (3): [2026-06-19] Mobile App Implementation - Task 8 (Milestone 1), Comple
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 9 (Milestone 1), Completed (Selesai), Next Steps
 
-### Community 568 - "Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy"
-Cohesion: 0.50
-Nodes (4): Progress - Phase 165: Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy, Sinkronisasi Data Real-Time Backend API Tanpa Fallback Dummy, Status: SELESAI, Validasi & Git Workflow Pro
-
 ### Community 569 - "[2026-06-22] BMN Auction Batches Implementation - Tasks 44-59 (Milestone 6-8 Completion)"
 Cohesion: 0.67
 Nodes (3): [2026-06-22] BMN Auction Batches Implementation - Tasks 44-59 (Milestone 6-8 Completion), Completed (Selesai), Validation
@@ -2405,10 +2386,6 @@ Nodes (3): [2026-06-22] BMN Auction Batches Implementation - Tasks 44-59 (Milest
 ### Community 570 - "Files Changed"
 Cohesion: 0.67
 Nodes (3): Backend, Files Changed, Frontend
-
-### Community 572 - "Phase 33: Module Themes & Fluid Layouts"
-Cohesion: 0.50
-Nodes (4): Completed:, Next Steps:, Phase 33: Module Themes & Fluid Layouts, Progress - Phase 33: Module Themes & Fluid Layouts
 
 ### Community 573 - "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs"
 Cohesion: 0.50
@@ -2422,10 +2399,6 @@ Nodes (4): Mobile App Empty States 100% Sync with Web Portal, Progress - Phase 1
 Cohesion: 0.50
 Nodes (4): Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default, Progress - Phase 169: Pemisahan Rute Perjalanan (Dari/Ke) & Kolom Pada Kegiatan, Status: SELESAI, Validasi & Git Workflow Pro
 
-### Community 584 - "Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`)"
-Cohesion: 0.50
-Nodes (4): Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile (`BuatSuratTugasScreen.tsx`), Progress - Phase 179: Perbaikan Presisi Layout Grid 7-Kolom DatePicker Mobile, Status: SELESAI, Validasi & Git Workflow Pro
-
 ### Community 585 - "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST"
 Cohesion: 0.50
 Nodes (4): Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST, Progress - Phase 164: Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST, Status: SELESAI, Validasi & Git Workflow Pro
@@ -2437,10 +2410,6 @@ Nodes (4): Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSura
 ### Community 587 - "[2026-06-19] Mobile App Implementation - Task 5 (Milestone 1)"
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 5 (Milestone 1), Completed (Selesai), Next Steps
-
-### Community 588 - "Mobile Application Kepegawaian & SDM Module Screen"
-Cohesion: 0.50
-Nodes (4): Mobile Application Kepegawaian & SDM Module Screen, Progress - Phase 152: Mobile Application Kepegawaian & SDM Module Screen, Status: SELESAI, Validasi & Git Workflow Pro
 
 ### Community 589 - "informasi/create/page.tsx"
 Cohesion: 0.33
@@ -2462,9 +2431,9 @@ Nodes (4): Progress - Phase 170: Sinkronisasi Detail Kegiatan 100% dengan /kepeg
 Cohesion: 0.67
 Nodes (3): keywords, framework, laravel
 
-### Community 597 - "scripts"
-Cohesion: 0.12
-Nodes (16): scripts, dev, post-autoload-dump, post-create-project-cmd, pre-package-uninstall, test, Composer\\Config::disableProcessTimeout, Illuminate\\Foundation\\ComposerScripts::postAutoloadDump (+8 more)
+### Community 597 - "post-create-project-cmd"
+Cohesion: 0.50
+Nodes (4): post-create-project-cmd, @php artisan key:generate --ansi, @php artisan migrate --graceful --ansi, @php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\
 
 ### Community 598 - "[2026-06-19] Mobile App Implementation - Task 15 (Milestone 1)"
 Cohesion: 0.67
@@ -2482,13 +2451,17 @@ Nodes (4): Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning, Pro
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 28 (Milestone 1), Completed (Selesai), Next Steps
 
-### Community 602 - "[2026-06-19] Mobile App Implementation - Task 21 (Milestone 1)"
-Cohesion: 0.67
-Nodes (3): [2026-06-19] Mobile App Implementation - Task 21 (Milestone 1), Completed (Selesai), Next Steps
+### Community 602 - "Phase 31: BMN Loan UI & Dark Mode"
+Cohesion: 0.40
+Nodes (5): Completed:, Files Modified:, Next Steps:, Phase 31: BMN Loan UI & Dark Mode, Progress - Phase 31: BMN Loan UI Overhaul + Comprehensive Dark Mode
 
 ### Community 603 - "[2026-06-19] Mobile App Implementation - Task 10 (Milestone 1)"
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 10 (Milestone 1), Completed (Selesai), Next Steps
+
+### Community 604 - "STCreatePremiumPage"
+Cohesion: 0.60
+Nodes (4): STCreatePremiumPage(), cleanPlhKegiatanKasi(), extractPlhWilayahFromPosition(), normalizeEmployeeForSelection()
 
 ### Community 607 - "[2026-06-19] Mobile App Implementation - Task 18 (Milestone 1)"
 Cohesion: 0.67
@@ -2534,19 +2507,63 @@ Nodes (3): [2026-06-19] Mobile App Implementation - Task 38 (Milestone 2), Compl
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 24 (Milestone 1), Completed (Selesai), Next Steps
 
+### Community 640 - "Mobile Employee Full Search Sync & Single-Line NIP Layout"
+Cohesion: 0.50
+Nodes (4): Mobile Employee Full Search Sync & Single-Line NIP Layout, Progress - Phase 154: Mobile Employee Full Search Sync & Single-Line NIP Layout, Status: SELESAI, Validasi & Git Workflow Pro
+
 ### Community 641 - "[2026-06-19] Mobile App Implementation - Task 17 (Milestone 1)"
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 17 (Milestone 1), Completed (Selesai), Next Steps
 
+### Community 646 - "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail"
+Cohesion: 0.50
+Nodes (4): Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail, Progress - Phase 155: Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail, Status: SELESAI, Validasi & Git Workflow Pro
+
+### Community 647 - "Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile"
+Cohesion: 0.50
+Nodes (4): Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile, Progress - Phase 174: Penyesuaian Label Pilihan Jenis Tugas Surat Tugas, Status: SELESAI, Validasi & Git Workflow Pro
+
+### Community 648 - "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)"
+Cohesion: 0.50
+Nodes (4): Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`), Progress - Phase 172: Perbaikan Tampilan Lokasi di Inbox Surat Tugas, Status: SELESAI, Validasi & Git Workflow Pro
+
+### Community 649 - "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal"
+Cohesion: 0.50
+Nodes (4): Progress - Phase 160: Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal, Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal, Status: SELESAI, Validasi & Git Workflow Pro
+
+### Community 650 - "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`"
+Cohesion: 0.50
+Nodes (4): Progress - Phase 176: Sinkronisasi Form Detail Kegiatan ST Builder Premium, Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`, Status: SELESAI, Validasi & Git Workflow Pro
+
+### Community 651 - "dev"
+Cohesion: 0.67
+Nodes (3): dev, Composer\\Config::disableProcessTimeout, npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others
+
+### Community 652 - "post-autoload-dump"
+Cohesion: 0.67
+Nodes (3): post-autoload-dump, Illuminate\\Foundation\\ComposerScripts::postAutoloadDump, @php artisan package:discover --ansi
+
+### Community 653 - "test"
+Cohesion: 0.67
+Nodes (3): test, @php artisan config:clear --ansi @no_additional_args, @php artisan test
+
+### Community 654 - "[2026-06-19] Mobile App Implementation - Task 11 (Milestone 1)"
+Cohesion: 0.67
+Nodes (3): [2026-06-19] Mobile App Implementation - Task 11 (Milestone 1), Completed (Selesai), Next Steps
+
+### Community 655 - "[2026-06-19] Mobile App Implementation - Task 23 (Milestone 1)"
+Cohesion: 0.67
+Nodes (3): [2026-06-19] Mobile App Implementation - Task 23 (Milestone 1), Completed (Selesai), Next Steps
+
 ## Knowledge Gaps
 - **3700 isolated node(s):** `$schema`, `name`, `type`, `description`, `laravel` (+3695 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **68 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **80 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `dependencies` connect `dependencies` to `next-themes`, `sanitizeHtml`, `class-variance-authority`, `framer-motion`, `frontend/package.json`, `react-dom`, `@hookform/resolvers`, `leaflet.markercluster`, `axios`, `cmdk`, `leaflet`, `sonner`?**
+- **Why does `dependencies` connect `dependencies` to `next-themes`, `sanitizeHtml`, `class-variance-authority`, `framer-motion`, `@tanstack/react-query`, `frontend/package.json`, `react-dom`, `@hookform/resolvers`, `leaflet.markercluster`, `cmdk`, `leaflet`, `sonner`?**
   _High betweenness centrality (0.091) - this node is a cross-community bridge._
 - **Why does `sanitizeHtml()` connect `sanitizeHtml` to `cn`, `app/page.tsx`, `informasi/create/page.tsx`?**
   _High betweenness centrality (0.088) - this node is a cross-community bridge._
@@ -2557,6 +2574,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `cn` be split into smaller, more focused modules?**
   _Cohesion score 0.031777231777231775 - nodes in this community are weakly interconnected._
 - **Should `Asset` be split into smaller, more focused modules?**
-  _Cohesion score 0.06779661016949153 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05031645569620253 - nodes in this community are weakly interconnected._
 - **Should `formatDateIndonesian` be split into smaller, more focused modules?**
-  _Cohesion score 0.14408602150537633 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13257575757575757 - nodes in this community are weakly interconnected._
