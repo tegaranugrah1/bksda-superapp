@@ -17,6 +17,20 @@ import { getStatusStyle, getStatusLabel, getResolvedTempatTujuan } from "./_lib/
 import type { AssignmentLetter, InboxEmployee } from "./_lib/types";
 import { ConfirmActionModal } from "./_components/ConfirmActionModal";
 
+function formatInboxTitle(text?: string | null): string {
+    if (!text) return '-';
+    let clean = text.split("\n")[0].trim();
+    const cutoffMatch = clean.match(/^(.*?;\s*)(?:Membuat laporan|Segala biaya|2\.|3\.)/i);
+    if (cutoffMatch && cutoffMatch[1]) {
+        return cutoffMatch[1].trim();
+    }
+    const parts = clean.split(/(?=Membuat laporan|Segala biaya)/i);
+    if (parts.length > 0) {
+        return parts[0].trim();
+    }
+    return clean;
+}
+
 export default function SuratTugasInbox() {
     const [selectedLetter, setSelectedLetter] = useState<AssignmentLetter | null>(null);
     const [search, setSearch] = useState('');
@@ -343,7 +357,7 @@ export default function SuratTugasInbox() {
                                         "text-xs font-bold leading-snug mb-3 transition-colors line-clamp-2",
                                         selectedLetter?.id === l.id ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-zinc-400 group-hover:text-blue-700"
                                     )}>
-                                        {l.maksud_tujuan}
+                                        {formatInboxTitle(l.maksud_tujuan)}
                                     </h3>
 
                                     {l.template_type === "bmn-pemeriksaan" && (
@@ -419,7 +433,7 @@ export default function SuratTugasInbox() {
                                     </div>
                                     
                                     <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight mb-6 tracking-tight">
-                                        {selectedLetter.maksud_tujuan}
+                                        {formatInboxTitle(selectedLetter.maksud_tujuan)}
                                     </h2>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
