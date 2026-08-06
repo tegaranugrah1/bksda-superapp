@@ -4405,8 +4405,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1785986783.6656854,
-    "ast_hash": "c952ad4c3f188294b1626e1b44e87089",
+    "mtime": 1785987389.9241886,
+    "ast_hash": "1ede337f8eb7100965375992362b58c6",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5630,8 +5630,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportDialog.tsx": {
-    "mtime": 1785986390.8839831,
-    "ast_hash": "c75129965de9263cf161c7d125dcf2ef",
+    "mtime": 1785987358.2090588,
+    "ast_hash": "edc01778784e71fa4856b7d46842113f",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportPrint.tsx": {
@@ -5640,8 +5640,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportInlineForm.tsx": {
-    "mtime": 1785986577.9288504,
-    "ast_hash": "cf11073a149287601ddc109b9160fd26",
+    "mtime": 1785987321.844724,
+    "ast_hash": "284175e5bde1ab03032658ad75816d0d",
     "semantic_hash": ""
   }
 }

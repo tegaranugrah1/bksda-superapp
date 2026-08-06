@@ -88,33 +88,123 @@ function numberToTerbilang(num: number): string {
 }
 
 function formatJudulLaporan(rawText: string): string {
-  let cleaned = (rawText || "")
-    .replace(/[,;]?\s*selama\s+\d+.*$/i, "")
-    .trim();
+  let cleaned = (rawText || "").split(";")[0].trim();
+  cleaned = cleaned.replace(/[,;]?\s*selama\s+\d+.*$/i, "").trim();
 
   const matchDalamRangka = cleaned.match(/dalam\s+rangka\s+(.+)$/i);
   if (matchDalamRangka && matchDalamRangka[1]) {
     cleaned = matchDalamRangka[1].trim();
   } else {
-    cleaned = cleaned.replace(/^(melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i, "");
+    cleaned = cleaned.replace(/^(melaksanakan\s+perjalanan\s+dinas\s+dari\s+[^\s]+\s+ke\s+[^\s]+|melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i, "");
   }
 
+  cleaned = cleaned.replace(/^(dari\s+[^\s]+\s+ke\s+[^\s]+\s+)/i, "").trim();
   return `LAPORAN PELAKSANAAN ${cleaned.toUpperCase()}`;
 }
 
 function extractShortActivity(rawText: string): string {
-  let cleaned = (rawText || "")
-    .replace(/[,;]?\s*selama\s+\d+.*$/i, "")
-    .trim();
+  let cleaned = (rawText || "").split(";")[0].trim();
+  cleaned = cleaned.replace(/[,;]?\s*selama\s+\d+.*$/i, "").trim();
 
   const matchDalamRangka = cleaned.match(/dalam\s+rangka\s+(.+)$/i);
   if (matchDalamRangka && matchDalamRangka[1]) {
     cleaned = matchDalamRangka[1].trim();
   } else {
-    cleaned = cleaned.replace(/^(melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i, "");
+    cleaned = cleaned.replace(/^(melaksanakan\s+perjalanan\s+dinas\s+dari\s+[^\s]+\s+ke\s+[^\s]+|melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i, "");
   }
 
+  cleaned = cleaned.replace(/^(dari\s+[^\s]+\s+ke\s+[^\s]+\s+)/i, "").trim();
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+function extractAgendaPelaksanaan(rawText: string): string {
+  let cleaned = (rawText || "").split(";")[0].trim();
+  cleaned = cleaned.replace(/[,;]?\s*selama\s+\d+.*$/i, "").trim();
+  cleaned = cleaned.replace(/[\.\s]+$/, "");
+  return cleaned;
+}
+
+function formatMaksudDanTujuan(maksud: string, tujuan: string): string {
+  const cleanMaksud = (maksud || "").trim().replace(/[\.\s]+$/, "");
+  const cleanTujuan = (tujuan || "").trim().replace(/[\.\s]+$/, "");
+
+  if (cleanMaksud && cleanTujuan) {
+    return `Maksud kegiatan ini adalah ${cleanMaksud} dan dengan tujuan untuk ${cleanTujuan}.`;
+  }
+  if (cleanMaksud) {
+    return `Maksud kegiatan ini adalah ${cleanMaksud}.`;
+  }
+  if (cleanTujuan) {
+    return `dengan tujuan untuk ${cleanTujuan}.`;
+  }
+  return "";
+}
+
+function formatWaktuDanTempatPelaksanaan(
+  rawMaksud: string,
+  tanggalMulai: string,
+  tanggalSelesai: string,
+  tempatTujuan?: string
+): string {
+  const daysCount = getDurationInDays(tanggalMulai, tanggalSelesai);
+  const daysTerbilang = numberToTerbilang(daysCount);
+  const tglMulaiStr = formatDateIndo(tanggalMulai);
+  const tglSelesaiStr = formatDateIndo(tanggalSelesai);
+
+  let cleaned = (rawMaksud || "").split(";")[0].trim();
+  cleaned = cleaned.replace(/[,;]?\s*selama\s+\d+.*$/i, "").trim();
+
+  const isPerjalananDinas = /perjalanan\s+dinas/i.test(rawMaksud);
+
+  // Extract short activity title
+  let shortActivity = cleaned;
+  const matchDalamRangka = cleaned.match(/dalam\s+rangka\s+(.+)$/i);
+  if (matchDalamRangka && matchDalamRangka[1]) {
+    shortActivity = matchDalamRangka[1].trim();
+  } else {
+    shortActivity = shortActivity.replace(
+      /^(melaksanakan\s+perjalanan\s+dinas\s+dari\s+[^\s]+\s+ke\s+[^\s]+|melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i,
+      ""
+    );
+  }
+  shortActivity = shortActivity.replace(/^(dari\s+[^\s]+\s+ke\s+[^\s]+\s+)/i, "").trim();
+
+  // Handle prepositions "di Seksi KSDA...", "pada Balai KSDA...", "di KPKNL..." in activity title
+  let locationClause = "";
+  const matchLocationInActivity = shortActivity.match(/(.+?)\s+((?:pada|di)\s+.+)$/i);
+  if (matchLocationInActivity && matchLocationInActivity[1] && matchLocationInActivity[2]) {
+    shortActivity = matchLocationInActivity[1].trim();
+    locationClause = matchLocationInActivity[2].trim();
+  } else if (tempatTujuan) {
+    locationClause = tempatTujuan;
+  }
+
+  shortActivity = shortActivity.replace(/^kegiatan\s+/i, "").trim();
+  shortActivity = shortActivity.charAt(0).toUpperCase() + shortActivity.slice(1);
+
+  // Date Clause: single-day vs multi-day
+  const isSingleDay = daysCount === 1 || tglMulaiStr === tglSelesaiStr;
+  const dateClause = isSingleDay
+    ? `pada tanggal ${tglMulaiStr}`
+    : `terhitung mulai tanggal ${tglMulaiStr} sampai dengan ${tglSelesaiStr}`;
+
+  // Location Clause
+  let locationFormatted = "";
+  if (locationClause) {
+    if (locationClause.toLowerCase().startsWith("pada ") || locationClause.toLowerCase().startsWith("di ")) {
+      locationFormatted = locationClause;
+    } else if (isPerjalananDinas) {
+      locationFormatted = `di ${locationClause}`;
+    } else {
+      locationFormatted = `pada ${locationClause}`;
+    }
+  } else {
+    locationFormatted = isPerjalananDinas
+      ? `di Kalimantan Timur`
+      : `pada Balai KSDA Kalimantan Timur di Samarinda`;
+  }
+
+  return `Kegiatan ${shortActivity} ini dilaksanakan selama ${daysCount} (${daysTerbilang}) hari ${dateClause} ${locationFormatted}.`;
 }
 
 export function GeneralReportDialog({
@@ -195,15 +285,13 @@ export function GeneralReportDialog({
       const st = resp.data?.data || resp.data;
       if (!st) return;
 
-      const rawMaksud = (st.maksud_tujuan || "")
-        .replace(/[,;]?\s*selama\s+\d+.*$/i, "")
-        .trim();
+      const rawMaksud = st.maksud_tujuan || "";
 
-      // 1. Judul Laporan Auto
+      // 1. Judul Laporan Auto (Cleaned of all trailing clauses & leading prefixes)
       setJudulLaporan(formatJudulLaporan(rawMaksud));
 
-      // 2. Agenda Pelaksanaan Auto
-      setAgendaPelaksanaan(rawMaksud);
+      // 2. Agenda Pelaksanaan Auto (First sentence clause)
+      setAgendaPelaksanaan(extractAgendaPelaksanaan(rawMaksud) + ".");
 
       // 3. Dasar Pelaksanaan Auto (+ Item #3)
       const baseDasar = [
@@ -218,10 +306,10 @@ export function GeneralReportDialog({
       }
       setDasarPelaksanaan(baseDasar);
 
-      // 4. Maksud & Tujuan Auto
-      setMaksudText(rawMaksud);
+      // 4. Maksud & Tujuan Auto (Maksud from ST, Tujuan user input)
+      setMaksudText(extractAgendaPelaksanaan(rawMaksud));
       setTujuanText(
-        `memverifikasi berkas dan memantau hasil pelaksanaan ${extractShortActivity(rawMaksud)} tersebut.`
+        `memverifikasi berkas dan memantau hasil pelaksanaan ${extractShortActivity(rawMaksud)} tersebut`
       );
 
       // 5. Pelaksana Auto
@@ -236,16 +324,14 @@ export function GeneralReportDialog({
         );
       }
 
-      // 6. Waktu & Tempat Auto
-      const daysCount = getDurationInDays(st.tanggal_mulai, st.tanggal_selesai);
-      const daysTerbilang = numberToTerbilang(daysCount);
-      const tglMulaiStr = formatDateIndo(st.tanggal_mulai);
-      const tglSelesaiStr = formatDateIndo(st.tanggal_selesai);
-      const tempatStr = st.tempat_tujuan || "Kalimantan Timur";
-      const shortActivity = extractShortActivity(rawMaksud);
-
+      // 6. Waktu & Tempat Auto (Single-day vs Multi-day & Kegiatan vs Perjalanan Dinas)
       setWaktuTempat(
-        `Kegiatan ${shortActivity} ini dilaksanakan selama ${daysCount} (${daysTerbilang}) hari terhitung mulai tanggal ${tglMulaiStr} sampai dengan ${tglSelesaiStr} di ${tempatStr}.`
+        formatWaktuDanTempatPelaksanaan(
+          rawMaksud,
+          st.tanggal_mulai,
+          st.tanggal_selesai,
+          st.tempat_tujuan
+        )
       );
 
       toast.success("Data laporan berhasil diisi otomatis dari Surat Tugas!");
@@ -291,7 +377,7 @@ export function GeneralReportDialog({
     tanggal_laporan: tanggalLaporan,
     agenda_pelaksanaan: agendaPelaksanaan,
     dasar_pelaksanaan: dasarPelaksanaan,
-    maksud_tujuan: `Maksud kegiatan ini adalah ${maksudText} dan dengan tujuan untuk ${tujuanText}.`,
+    maksud_tujuan: formatMaksudDanTujuan(maksudText, tujuanText),
     pelaksana: pelaksana,
     waktu_tempat_pelaksanaan: waktuTempat,
     hasil_pelaksanaan: hasilPelaksanaan,
@@ -495,7 +581,7 @@ export function GeneralReportDialog({
                     {maksudText ? `Maksud kegiatan ini adalah ${maksudText}` : "-"}
                   </p>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                     Tujuan Kegiatan (Input Spesifik Tujuan Pelaksanaan):
                   </Label>
@@ -506,9 +592,17 @@ export function GeneralReportDialog({
                     placeholder="Contoh: memverifikasi berkas kendaraan dengan KPKNL Bontang dan mengetahui pemenang hasil Lelang kendaraan tersebut."
                     className="rounded-xl text-xs font-medium"
                   />
-                  <p className="text-[11px] text-slate-400 italic">
-                    Format akhir PDF akan digabungkan menjadi: &quot;Maksud kegiatan ini adalah [Maksud] dan dengan tujuan untuk [Tujuan di atas]&quot;.
-                  </p>
+                  
+                  {/* LIVE PREVIEW BOX FOR COMBINED MAKSUD & TUJUAN */}
+                  <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 space-y-1.5 mt-2">
+                    <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 font-bold text-xs">
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                      <span>Hasil Penggabungan Maksud &amp; Tujuan (Tampilan Resmi PDF):</span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed bg-white/80 dark:bg-zinc-800/80 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                      {formatMaksudDanTujuan(maksudText, tujuanText) || "-"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
