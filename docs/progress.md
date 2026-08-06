@@ -1,3 +1,17 @@
+# Progress - Phase 208: Penyembunyian Akun Administrator Pusat dari Daftar & Statistik Pegawai
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Penyembunyian Akun System Admin (`Administrator Pusat BKSDA`) dari Daftar Pegawai
+- **Global Scope Model (`Employee.php`)**: Menambahkan global scope `excludeAdminPusat` pada `Employee` model agar record `Administrator Pusat BKSDA` (NIP `198001012005011001`) tidak dipanggil di seluruh query daftar pegawai (`Employee::query()`, `index`, `select`, dan `dashboardStats`).
+- **Pembersihan Database & Seeder**: Menghapus entry `Employee` untuk NIP `198001012005011001` dari tabel `kpg_employees` (tanpa menghapus akun `User` untuk hak akses login `super_admin`) dan memperbarui `SuperAdminSeeder.php`. Total Personil Aktif di Dashboard kini mencerminkan 149 pegawai BKSDA riil.
+- **Pembersihan Mobile Client (`KepegawaianScreen.tsx`)**: Menghapus data mock dan menambahkan filter client-side pada `fetchEmployeeData()` untuk memastikan `Administrator Pusat` tidak tampil pada daftar pegawai di Mobile.
+
+---
+
 # Progress - Phase 207: Pembersihan Suffix Durasi (`, selama ...`) pada Riwayat Surat Tugas (Web Localhost & Mobile)
 
 > Document updated: 2026-08-06

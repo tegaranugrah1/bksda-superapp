@@ -13,19 +13,7 @@ class SuperAdminSeeder extends Seeder
         // NIP Fiktif untuk Super Admin (18 digit standar BKN)
         $nipAdmin = '198001012005011001';
 
-        // 1. Buat Data Master Pegawai
-        Employee::updateOrCreate(
-            ['nip' => $nipAdmin], // Cari berdasarkan NIP
-            [
-                'nama_lengkap' => 'Administrator Pusat BKSDA',
-                'jabatan' => 'Kepala Satuan Teknologi',
-                'pangkat_golongan' => 'Pembina Utama / IV.c',
-                'satuan_kerja' => 'BKSDA Pusat Provinsi',
-                'is_active' => true,
-            ]
-        );
-
-        // 2. Buat Akun Akses NIP
+        // 1. Buat Akun Akses NIP (Super Admin)
         User::updateOrCreate(
             ['username' => $nipAdmin], // Cari berdasarkan NIP
             [

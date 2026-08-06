@@ -115,17 +115,6 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
       accessModules: ["kepegawaian"],
     },
     {
-      id: "5",
-      name: "Administrator Pusat BKSDA",
-      nip: "198001012005011001",
-      position: "Kepala Satuan Teknologi",
-      workUnit: "BKSDA Pusat Provinsi",
-      rankGrade: "Golongan IV/a",
-      remainingLeaveDays: 12,
-      role: "super_admin",
-      accessModules: ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"],
-    },
-    {
       id: "6",
       name: "Affi Agung Rahmadi",
       nip: "199306242025061001",
@@ -197,17 +186,22 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     try {
       const response = await apiClient.get<any>("/kepegawaian/employees?per_page=500");
       if (response.data && Array.isArray(response.data.data)) {
-        const apiList = response.data.data.map((emp: any) => ({
-          id: emp.id,
-          name: emp.nama_lengkap || emp.name,
-          nip: emp.nip || "-",
-          position: emp.jabatan || "Staf BKSDA",
-          workUnit: emp.satuan_kerja || "Balai KSDA Kaltim",
-          rankGrade: emp.pangkat_golongan || "Golongan III/a",
-          remainingLeaveDays: emp.sisa_cuti ?? 12,
-          role: emp.user?.role || emp.role || "user",
-          accessModules: emp.user?.access_modules || emp.access_modules || ["kepegawaian"],
-        }));
+        const apiList = response.data.data
+          .filter((emp: any) => 
+            emp.nip !== "198001012005011001" && 
+            !String(emp.nama_lengkap || emp.name || "").toLowerCase().includes("administrator")
+          )
+          .map((emp: any) => ({
+            id: emp.id,
+            name: emp.nama_lengkap || emp.name,
+            nip: emp.nip || "-",
+            position: emp.jabatan || "Staf BKSDA",
+            workUnit: emp.satuan_kerja || "Balai KSDA Kaltim",
+            rankGrade: emp.pangkat_golongan || "Golongan III/a",
+            remainingLeaveDays: emp.sisa_cuti ?? 12,
+            role: emp.user?.role || emp.role || "user",
+            accessModules: emp.user?.access_modules || emp.access_modules || ["kepegawaian"],
+          }));
         setEmployees(apiList);
       } else {
         setEmployees([]);
