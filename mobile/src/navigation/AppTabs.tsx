@@ -11,6 +11,7 @@ import ProfileScreen from "../features/profile/screens/ProfileScreen";
 import { KepegawaianScreen } from "../features/kepegawaian/KepegawaianScreen";
 import { TambahPegawaiScreen } from "../features/kepegawaian/TambahPegawaiScreen";
 import { InboxSuratTugasScreen } from "../features/kepegawaian/InboxSuratTugasScreen";
+import { RiwayatSuratTugasScreen } from "../features/kepegawaian/RiwayatSuratTugasScreen";
 import { InboxSuratCutiScreen } from "../features/kepegawaian/screens/InboxSuratCutiScreen";
 import { BuatSuratTugasScreen } from "../features/kepegawaian/BuatSuratTugasScreen";
 import SuratTugasListScreen from "../features/surat-tugas/screens/SuratTugasListScreen";
@@ -31,6 +32,7 @@ export type AppTabParamList = {
   Kepegawaian: undefined;
   TambahPegawai: undefined;
   InboxSuratTugas: undefined;
+  RiwayatSuratTugas: undefined;
   InboxSuratCuti: undefined;
   BuatSuratTugas: undefined;
   SuratTugasList: { initialMode?: "personal" | "management"; initialStatus?: any } | undefined;
@@ -62,6 +64,7 @@ export default function AppTabs() {
       <Tab.Screen name="Kepegawaian" component={KepegawaianScreen} />
       <Tab.Screen name="TambahPegawai" component={TambahPegawaiScreen} />
       <Tab.Screen name="InboxSuratTugas" component={InboxSuratTugasScreen} />
+      <Tab.Screen name="RiwayatSuratTugas" component={RiwayatSuratTugasScreen} />
       <Tab.Screen name="InboxSuratCuti" component={InboxSuratCutiScreen} />
       <Tab.Screen name="BuatSuratTugas" component={BuatSuratTugasScreen} />
       <Tab.Screen name="SuratTugasList" component={SuratTugasListScreen} />

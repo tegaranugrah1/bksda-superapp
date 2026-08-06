@@ -135,7 +135,7 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
       "buat-surat-tugas": "BuatSuratTugas",
       "inbox-surat-tugas": "InboxSuratTugas",
       "inbox-surat-cuti": "InboxSuratCuti",
-      "riwayat-surat-tugas": "InboxSuratTugas",
+      "riwayat-surat-tugas": "RiwayatSuratTugas",
     };
 
     if (navigation && typeof navigation.navigate === "function") {

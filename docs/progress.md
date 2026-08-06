@@ -1,3 +1,27 @@
+# Progress - Phase 202: Dedicated Screen Riwayat Surat Tugas Mobile & Integrasi Navigasi (Issue #562)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Layar Dedicated Riwayat Surat Tugas (`RiwayatSuratTugasScreen.tsx`)
+- **Fitur Filter Status**: Filter chips horisontal (Semua Status, Draft, Menunggu Persetujuan, Diterbitkan, Ditolak, Selesai) untuk menyaring riwayat surat tugas.
+- **Mode Sampah / Trash (`isTrashMode`)**: Toggle sampah untuk menampilkan data yang di-soft delete (`trashed=true`) dengan tombol aksi **Pulihkan (Restore)** via `POST /api/surat-tugas/{id}/restore`.
+- **UI Responsif Mobile**: Menggunakan `GlassCard` dengan badge warna status, periode tanggal (`formatPeriodeIndo`), nomor surat, maksud kegiatan, lokasi tujuan, dan daftar personil.
+- **Aksi Lengkap Kartu**:
+  - **Edit / Detail**: Navigasi ke `BuatSuratTugasScreen` dalam mode edit.
+  - **Cetak / Share PDF**: Integrasi `downloadAssignmentFile` & `shareFile` untuk pratinjau dan pengunduhan berkas PDF instan.
+  - **Soft Delete**: Menghapus sementara ke Sampah via `DELETE /api/surat-tugas/{id}`.
+  - **Direct Approve**: Menerbitkan surat tugas via `PUT /api/surat-tugas/{id}/approve`.
+
+## 2. Integrasi Navigasi & FabMenu
+- **AppTabs Navigation**: Mendaftarkan `RiwayatSuratTugas` pada `AppTabParamList` & `AppTabs.tsx`.
+- **Dashboard Kepegawaian (`KepegawaianDashboardScreen.tsx`)**: Menghubungkan rute `"riwayat-surat-tugas"` langsung ke layar `RiwayatSuratTugasScreen`.
+- **FabMenu**: Menyesuaikan pemetaan tombol menu floating ke `RiwayatSuratTugas`.
+
+---
+
 # Progress - Phase 201: Fix Edit Mode Parsing, Database Nomor Surat Unique Constraint & Mobile Ajukan Persetujuan Alignment
 
 > Document updated: 2026-08-06
