@@ -140,7 +140,7 @@ export function ProfileSidebar({
               />
             </label>
           </div>
-          <div className={cn("inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full mb-2", isActive ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600" : "bg-slate-100 text-slate-500 dark:text-slate-400")}>
+          <div className={cn("inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full mb-2", isActive ? "bg-emerald-800 text-white dark:bg-emerald-900" : "bg-slate-700 text-white dark:bg-slate-800")}>
             <BadgeCheck className="w-3 h-3" /> {isActive ? "Aktif" : "Nonaktif"}
           </div>
           <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{data.employee?.name || data.user.name}</h2>

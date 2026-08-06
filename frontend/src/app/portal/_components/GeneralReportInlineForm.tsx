@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { GeneralReportPrint, GeneralReportData } from "./GeneralReportPrint";
 
 interface GeneralReportInlineFormProps {
@@ -96,7 +97,7 @@ function formatJudulLaporan(rawText: string): string {
   // Strip leftover "dari X ke Y" if present
   cleaned = cleaned.replace(/^(dari\s+[^\s]+\s+ke\s+[^\s]+\s+)/i, "").trim();
 
-  return `LAPORAN PELAKSANAAN ${cleaned.toUpperCase()}`;
+  return `PELAKSANAAN ${cleaned.toUpperCase()}`;
 }
 
 function extractShortActivity(rawText: string): string {
@@ -241,6 +242,43 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     Array<{ url: string; caption?: string }>
   >([]);
 
+  // Cover Configuration States
+  const [useCustomCover, setUseCustomCover] = useState(false);
+  const [coverMode, setCoverMode] = useState<"standard" | "image" | "custom_text">("standard");
+  const [customCoverImageUrl, setCustomCoverImageUrl] = useState("");
+  const [customCoverTitle, setCustomCoverTitle] = useState("");
+  const [customCoverAuthor, setCustomCoverAuthor] = useState("");
+  const [customCoverFooter, setCustomCoverFooter] = useState(
+    "BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR"
+  );
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    setUploadingCover(true);
+
+    try {
+      const res = await api.post("/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setCustomCoverImageUrl(res.data.url || res.data.path);
+      toast.success("Gambar cover manual berhasil diunggah!");
+    } catch {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCustomCoverImageUrl(reader.result as string);
+        toast.success("Gambar cover terpilih!");
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
   // Print Mode State
   const [isPrintMode, setIsPrintMode] = useState(false);
 
@@ -372,12 +410,18 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     waktu_tempat_pelaksanaan: waktuTempat,
     hasil_pelaksanaan: hasilPelaksanaan,
     dokumentasi_foto: dokumentasiFoto,
+    use_custom_cover: useCustomCover,
+    cover_mode: coverMode,
+    custom_cover_image_url: customCoverImageUrl,
+    custom_cover_title: customCoverTitle,
+    custom_cover_author: customCoverAuthor,
+    custom_cover_footer: customCoverFooter,
   };
 
   return (
-    <div className="w-full bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+    <div className="w-full bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 print:border-none print:shadow-none print:rounded-none print:overflow-visible print:bg-transparent">
       {/* Header Bar */}
-      <div className="p-5 sm:p-6 bg-slate-900 text-white border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 bg-slate-900 text-white border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-3">
           <Button
             type="button"
@@ -423,8 +467,8 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
 
       {isPrintMode ? (
         /* PRINT PREVIEW MODE */
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 p-4 rounded-2xl">
+        <div className="p-6 space-y-6 print:p-0 print:m-0 print:space-y-0">
+          <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 p-4 rounded-2xl print:hidden">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-600" />
               <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
@@ -440,7 +484,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
             </Button>
           </div>
 
-          <div className="border rounded-2xl p-6 bg-gray-50 overflow-x-auto shadow-inner">
+          <div className="border rounded-2xl p-6 bg-gray-50 overflow-x-auto shadow-inner print:p-0 print:border-none print:bg-transparent print:shadow-none print:m-0 print:overflow-visible">
             <GeneralReportPrint data={reportData} />
           </div>
         </div>
@@ -476,14 +520,168 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
             </p>
           </div>
 
-          {/* 2. JUDUL & TANGGAL LAPORAN */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* 1B. PENGATURAN COVER LAPORAN (COVER MANUAL / STANDAR) */}
+          <div className="p-4 bg-emerald-50/40 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200/80 dark:border-emerald-900/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-xs">
+                <Layers className="w-4 h-4 text-emerald-600" />
+                <span>Pengaturan Cover Laporan (Desain Halaman 1)</span>
+              </div>
+              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 px-2.5 py-0.5 rounded-full font-bold">
+                {coverMode === "standard" ? "Cover Standar BKSDA" : coverMode === "image" ? "Upload Image Cover Manual" : "Custom Teks Cover Manual"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Mode 1: Standar BKSDA */}
+              <button
+                type="button"
+                onClick={() => {
+                  setUseCustomCover(false);
+                  setCoverMode("standard");
+                  setCustomCoverFooter("BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR");
+                  setKotaLaporan("Samarinda");
+                }}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all space-y-1",
+                  coverMode === "standard"
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold"
+                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
+                )}
+              >
+                <p className="text-xs font-bold">1. Cover Standar BKSDA</p>
+                <p className={cn("text-[10px]", coverMode === "standard" ? "text-emerald-100" : "text-slate-400")}>
+                  Format resmi Balai KSDA Kaltim (Otomatis)
+                </p>
+              </button>
+
+              {/* Mode 2: Upload Gambar Cover Manual */}
+              <button
+                type="button"
+                onClick={() => {
+                  setUseCustomCover(true);
+                  setCoverMode("image");
+                }}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all space-y-1",
+                  coverMode === "image"
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold"
+                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
+                )}
+              >
+                <p className="text-xs font-bold">2. Upload Gambar Cover Manual</p>
+                <p className={cn("text-[10px]", coverMode === "image" ? "text-emerald-100" : "text-slate-400")}>
+                  Gunakan gambar / desain cover milik sendiri
+                </p>
+              </button>
+
+              {/* Mode 3: Custom Teks Cover */}
+              <button
+                type="button"
+                onClick={() => {
+                  setUseCustomCover(true);
+                  setCoverMode("custom_text");
+                }}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all space-y-1",
+                  coverMode === "custom_text"
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold"
+                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
+                )}
+              >
+                <p className="text-xs font-bold">3. Custom Sub-Unit Cover</p>
+                <p className={cn("text-[10px]", coverMode === "custom_text" ? "text-emerald-100" : "text-slate-400")}>
+                  Ubah nama instansi / unit di footer cover
+                </p>
+              </button>
+            </div>
+
+            {/* Detail inputs for Mode 2: Upload Image Cover */}
+            {coverMode === "image" && (
+              <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                <Label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Upload File Gambar Cover Halaman 1 (JPG / PNG / WEBP)
+                </Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageUpload}
+                    className="text-xs rounded-xl"
+                  />
+                  {uploadingCover && <Loader2 className="w-4 h-4 animate-spin text-emerald-600 shrink-0" />}
+                </div>
+                {customCoverImageUrl && (
+                  <div className="flex items-center gap-3 pt-2">
+                    <div className="w-16 h-20 relative rounded-lg border border-slate-200 overflow-hidden bg-slate-100 shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={customCoverImageUrl} alt="Pratinjau Cover" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="space-y-1 text-xs">
+                      <p className="font-bold text-emerald-600">Cover Manual Berhasil Diunggah</p>
+                      <button
+                        type="button"
+                        onClick={() => setCustomCoverImageUrl("")}
+                        className="text-[11px] text-red-600 hover:underline font-semibold"
+                      >
+                        Hapus Cover
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Detail inputs for Mode 3: Custom Instansi / Sub-Unit Cover */}
+            {coverMode === "custom_text" && (
+              <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold">Nama Instansi / Sub-Unit Kerja (Footer Cover)</Label>
+                    <Input
+                      type="text"
+                      placeholder="Contoh: SEKSI KSDA WILAYAH II TENGGARONG"
+                      value={customCoverFooter}
+                      onChange={(e) => setCustomCoverFooter(e.target.value)}
+                      className="text-xs rounded-xl font-semibold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold">Kota Penerbitan Laporan (Footer Cover)</Label>
+                    <Input
+                      type="text"
+                      placeholder="Contoh: Samarinda / Tenggarong / Berau"
+                      value={kotaLaporan}
+                      onChange={(e) => setKotaLaporan(e.target.value)}
+                      className="text-xs rounded-xl font-semibold"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Judul cover dan daftar penyusun otomatis diambil dari Judul Laporan & Daftar Pelaksana Kegiatan.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 2. JUDUL, KOTA & TANGGAL LAPORAN */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2 space-y-1.5">
               <Label className="text-xs font-bold">Judul Laporan</Label>
               <Input
                 value={judulLaporan}
                 onChange={(e) => setJudulLaporan(e.target.value)}
-                placeholder="Contoh: LAPORAN PELAKSANAAN LELANG BMN BALAI KSDA KALIMANTAN TIMUR"
+                placeholder="Contoh: PELAKSANAAN INVENTARISASI BMN DI SEKSI KSDA WILAYAH I BERAU"
+                className="rounded-xl text-xs font-semibold"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Kota Penerbitan</Label>
+              <Input
+                type="text"
+                value={kotaLaporan}
+                onChange={(e) => setKotaLaporan(e.target.value)}
+                placeholder="Samarinda"
                 className="rounded-xl text-xs font-semibold"
               />
             </div>
