@@ -440,7 +440,7 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
                         </TouchableOpacity>
                       ) : null}
 
-                      {["draft", "pending"].includes(item.status) ? (
+                      {item.status === "pending" ? (
                         <TouchableOpacity
                           style={[styles.btnAction, styles.btnApprove]}
                           onPress={() => handleApproveDirect(item)}

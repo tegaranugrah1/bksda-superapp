@@ -3575,8 +3575,8 @@
     "semantic_hash": ""
   },
   "mobile/src/navigation/AppTabs.tsx": {
-    "mtime": 1785917435.407387,
-    "ast_hash": "a37c2d74bc548834550134b7df4f98c5",
+    "mtime": 1785981899.2486017,
+    "ast_hash": "ee0a6f611e76c8a79255cd9c2b3def52",
     "semantic_hash": ""
   },
   "mobile/src/navigation/__tests__/AppTabs.test.tsx": {
@@ -4405,8 +4405,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1785981474.60192,
-    "ast_hash": "972005a95e97a3a7d90d9cb2f3ff353e",
+    "mtime": 1785982010.0189977,
+    "ast_hash": "504599d2815e2a4c0a51a92026bd265c",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5280,8 +5280,8 @@
     "semantic_hash": ""
   },
   "mobile/src/components/ui/FabMenu.tsx": {
-    "mtime": 1785917435.386856,
-    "ast_hash": "8a73ffff4f0184c5e9f12b2b0b3599c1",
+    "mtime": 1785981913.8397324,
+    "ast_hash": "06500da3b7464b33a0d44995692ac3f6",
     "semantic_hash": ""
   },
   "mobile/src/components/ui/FloatingNav.tsx": {
@@ -5475,8 +5475,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/KepegawaianDashboardScreen.tsx": {
-    "mtime": 1785917435.4023774,
-    "ast_hash": "3398f24e0326c5bd1d7c75bd956df8ed",
+    "mtime": 1785981906.678919,
+    "ast_hash": "c9d271e34a9a182e3bd70bd68f09f1ec",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/page.tsx": {
@@ -5622,6 +5622,11 @@
   "backend/app/Modules/SuratTugas/Migrations/2026_08_06_000001_drop_unique_from_st_assignment_letters_nomor_surat.php": {
     "mtime": 1785980436.262143,
     "ast_hash": "44b7ca4a8a8018db41c32d095f438616",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/kepegawaian/RiwayatSuratTugasScreen.tsx": {
+    "mtime": 1785982017.9736297,
+    "ast_hash": "4488e9dfd9e1331734fbdb69c7537be9",
     "semantic_hash": ""
   }
 }

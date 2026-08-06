@@ -13,7 +13,7 @@
   - **Edit / Detail**: Navigasi ke `BuatSuratTugasScreen` dalam mode edit.
   - **Cetak / Share PDF**: Integrasi `downloadAssignmentFile` & `shareFile` untuk pratinjau dan pengunduhan berkas PDF instan.
   - **Soft Delete**: Menghapus sementara ke Sampah via `DELETE /api/surat-tugas/{id}`.
-  - **Direct Approve**: Menerbitkan surat tugas via `PUT /api/surat-tugas/{id}/approve`.
+  - **Direct Approve**: Menerbitkan surat tugas via `PUT /api/surat-tugas/{id}/approve` (hanya muncul jika status `pending`, disamakan dengan Web Localhost).
 
 ## 2. Integrasi Navigasi & FabMenu
 - **AppTabs Navigation**: Mendaftarkan `RiwayatSuratTugas` pada `AppTabParamList` & `AppTabs.tsx`.
