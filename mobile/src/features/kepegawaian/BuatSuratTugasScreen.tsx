@@ -163,8 +163,7 @@ function parseMaksudTujuanData(maksudTujuanRaw: string) {
   const line1 = lines[0] || "";
   const additionalLines = lines.slice(1);
 
-  const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*$/i;
-  const cleanedActivity = line1.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
+  const cleanedActivity = line1.replace(/,?\s*selama\s+.*$/i, "").replace(/[;,.]$/, "").trim();
 
   // Pattern 1: Perjalanan Dinas dari X ke Y dalam rangka Z [di W]
   const pdRegex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;

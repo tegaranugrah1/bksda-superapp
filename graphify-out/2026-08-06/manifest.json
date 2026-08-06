@@ -2490,8 +2490,8 @@
     "semantic_hash": "750ce65eb50b8c03f6bc81fcdc28c117"
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx": {
-    "mtime": 1785975277.2771482,
-    "ast_hash": "b2a9f3bacefc92f6298be774f9e898be",
+    "mtime": 1785978311.542853,
+    "ast_hash": "f0838aa4529a4eb109cd2a17da6356e6",
     "semantic_hash": ""
   },
   "frontend/src/app/lapor/page.tsx": {

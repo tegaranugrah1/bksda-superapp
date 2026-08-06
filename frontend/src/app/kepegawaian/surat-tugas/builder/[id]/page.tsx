@@ -566,13 +566,11 @@ export default function STBuilderPage() {
         );
 
         const activityStr = storedUntukLines[0] || data.maksud_tujuan || "";
-        // Strip "selama X hari terhitung..." or "selama 1 (satu) hari pada tanggal..." suffix that buildUntukText appends
-        const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?(?:terhitung|pada).*$/i;
-        const cleanedActivity = activityStr.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
+        const cleanedActivity = activityStr.replace(/,?\s*selama\s+.*$/i, "").replace(/[;,.]$/, "").trim();
         
         // Try to parse structured activity text: "[Melaksanakan] Perjalanan Dinas dari X ke Y [dalam rangka Z] [di W]"
         const regex = /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
-        const singleDayActivity = cleanedActivity.replace(/\s+pada\s+tanggal\s+.+$/i, "").replace(/[;,.]$/, "").trim();
+        const singleDayActivity = cleanedActivity;
         const isParsedSingleDayActivity = /^Melaksanakan\s+Kegiatan/i.test(singleDayActivity);
         const isOneDayFromSubmittedForm =
           loadedTanggalMulai &&
