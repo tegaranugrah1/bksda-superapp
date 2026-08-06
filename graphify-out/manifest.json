@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1785980104.5874107,
-    "ast_hash": "e9757523927e1f12c924c2fadf1fba23",
+    "mtime": 1785980201.3354218,
+    "ast_hash": "f1678a37862ae9c75b6a1cb3a98b8d8d",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {

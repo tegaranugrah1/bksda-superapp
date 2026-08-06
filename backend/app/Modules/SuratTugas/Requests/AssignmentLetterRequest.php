@@ -38,7 +38,7 @@ class AssignmentLetterRequest extends FormRequest
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
             'employees' => $isDraft ? 'nullable|array' : 'required|array|min:1',
-            'employees.*.id' => 'required_with:employees|exists:kpg_employees,id',
+            'employees.*.id' => 'required_with:employees',
             'employees.*.peran' => 'nullable|string|max:100',
         ];
 
