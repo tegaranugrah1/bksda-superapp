@@ -131,31 +131,38 @@ export default function PersonalDashboard() {
       setSuratTugas([]);
       return;
     }
-    setStLoading(true);
+    if (suratTugas.length === 0) {
+      setStLoading(true);
+    }
     try {
       const resp = await api.get("/surat-tugas/my", { 
         params: { per_page: 20 } 
       });
       setSuratTugas(resp.data.data || []);
-    } catch { setSuratTugas([]); }
-    finally { setStLoading(false); }
-  }, [data]);
+    } catch {
+      // Keep existing list on background error
+    } finally {
+      setStLoading(false);
+    }
+  }, [data, suratTugas.length]);
 
   const fetchAssets = useCallback(async () => {
     if (!data?.employee?.id) {
       setMyAssets([]);
       return;
     }
-    setAssetsLoading(true);
+    if (myAssets.length === 0) {
+      setAssetsLoading(true);
+    }
     try {
       const respMy = await api.get("/bmn/assets", { params: { employee_id: data.employee.id, per_page: 50 } });
       setMyAssets(respMy.data.data || []);
     } catch {
-      setMyAssets([]);
+      // Keep existing list on background error
     } finally {
       setAssetsLoading(false);
     }
-  }, [data]);
+  }, [data, myAssets.length]);
 
   const fetchSTDetail = useCallback(async (id: string) => {
     setStDetailLoading(true);

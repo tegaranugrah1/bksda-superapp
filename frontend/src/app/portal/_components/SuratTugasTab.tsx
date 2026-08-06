@@ -42,7 +42,7 @@ export function SuratTugasTab({
           </Button>
         </Link>
       </div>
-      {stLoading ? (
+      {stLoading && suratTugas.length === 0 ? (
         <div className="p-12 text-center">
           <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
           <p className="text-sm text-slate-400">Memuat surat tugas...</p>

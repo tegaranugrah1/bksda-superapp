@@ -1,3 +1,20 @@
+# Progress - Phase 206: Auto-Update Dashboard Kepegawaian & Eliminasi Portal Refetch Spinner (`KepegawaianDashboardScreen.tsx` & `SuratTugasTab.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Auto Focus Sync Dashboard Kepegawaian Mobile (`KepegawaianDashboardScreen.tsx`)
+- **Implementasi `useFocusEffect`**: Mengganti `useEffect([])` statis dengan `useFocusEffect` dari `@react-navigation/native` agar saat pengguna kembali ke layar Dashboard dari *Riwayat Surat Tugas* / *Edit ST*, data statistik dan status kegiatan (*Aktivitas Terkini*) **langsung terbarui otomatis** tanpa perlu tekan tombol refresh manual.
+- **Silent Background Sync**: Mengkonfigurasi `fetchDashboardData(true)` agar pembaruan di latar belakang berjalan senyap tanpa menampilkan loading spinner berulang.
+
+## 2. Eliminasi Loading Spinner Portal Web Localhost (`SuratTugasTab.tsx` & `portal/page.tsx`)
+- **Pembersihan Layout Shift**: Memperbarui `SuratTugasTab.tsx` dan `fetchSuratTugas()` di `portal/page.tsx` agar spinner `Loader2` *"Memuat surat tugas..."* **hanya muncul jika daftar surat tugas masih kosong**.
+- **Hasil**: Saat data di-refetch di latar belakang, daftar surat tugas pada Web Portal tetap tampil utuh dan mulus tanpa menghilang atau mengalami kelipan UI.
+
+---
+
 # Progress - Phase 205: Best Practices Silent Background Sync (Eliminasi Layout Shift & Refresh Flicker)
 
 > Document updated: 2026-08-06
