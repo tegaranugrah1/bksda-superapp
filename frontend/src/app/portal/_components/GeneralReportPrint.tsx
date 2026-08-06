@@ -153,7 +153,83 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
         }
       `}</style>
 
-      {/* MASTER TABLE WRAPPER */}
+      {/* ==================== PAGE 1: COVER ==================== */}
+      {isCustomImageCover ? (
+        /* MODE COVER MANUAL: FULL-PAGE UPLOADED COVER IMAGE */
+        <div className="w-full min-h-[800px] print:min-h-0 print:h-[297mm] flex flex-col items-center justify-center p-0 m-0 overflow-hidden border-none page-break-after relative bg-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={data.custom_cover_image_url}
+            alt="Cover Manual Laporan"
+            className="w-full h-full object-cover object-center block m-0 p-0"
+          />
+        </div>
+      ) : (
+        /* MODE COVER STANDAR & CUSTOM SUB-UNIT COVER */
+        <div className="w-full min-h-[800px] print:min-h-0 print:h-[297mm] flex flex-col justify-between items-center text-center py-8 print:pt-[15mm] print:pb-[15mm] px-8 print:px-[20mm] border-none overflow-hidden page-break-after bg-white box-border">
+          {/* TOP TITLE BLOCK */}
+          <div className="w-full space-y-2 pt-4">
+            <h1 className="text-[17.5pt] font-bold tracking-wider uppercase font-sans">
+              LAPORAN
+            </h1>
+            <h2 className="text-[12.5pt] font-bold tracking-wide uppercase max-w-lg mx-auto leading-tight mt-2 font-sans">
+              {cleanCoverSubtitle(data.judul_laporan)}
+            </h2>
+          </div>
+
+          {/* BKSDA LOGO */}
+          <div className="my-auto py-4 flex justify-center shrink-0">
+            <div className="relative w-32 h-32">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo_bksda.png"
+                alt="Logo BKSDA"
+                className="w-full h-full object-contain mx-auto"
+              />
+            </div>
+          </div>
+
+          {/* DISUSUN OLEH */}
+          <div className="w-full space-y-1.5 my-auto pb-4 shrink-0">
+            <p className="text-[10.5pt] font-semibold">Disusun Oleh :</p>
+            <div className="space-y-0.5 max-h-48 overflow-hidden">
+              {data.pelaksana && data.pelaksana.length > 0 ? (
+                data.pelaksana.map((p, idx) => (
+                  <p key={idx} className="text-[10.5pt] font-bold tracking-wide">
+                    {formatNameWithDegree(p.nama_lengkap)}
+                  </p>
+                ))
+              ) : (
+                <p className="text-[10.5pt] font-bold tracking-wide">-</p>
+              )}
+            </div>
+          </div>
+
+          {/* FOOTER INSTANSI / SUB-UNIT KERJA */}
+          <div className="w-full border-t border-black pt-3 mb-0 space-y-1 mt-auto shrink-0">
+            {data.use_custom_cover && data.cover_mode === "custom_text" && data.custom_cover_footer ? (
+              <p className="text-[13pt] font-bold tracking-wider uppercase">
+                {data.custom_cover_footer}
+              </p>
+            ) : (
+              <>
+                <p className="text-[13pt] font-bold tracking-wider uppercase">
+                  BALAI KONSERVASI SUMBER DAYA ALAM
+                </p>
+                <p className="text-[13pt] font-bold tracking-wider uppercase">
+                  KALIMANTAN TIMUR
+                </p>
+              </>
+            )}
+            <div className="w-full border-b border-black my-1.5"></div>
+            <p className="text-[13.5pt] font-bold">
+              {data.use_custom_cover && data.cover_mode === "custom_text" ? (data.kota_laporan || "Samarinda") : "Samarinda"}, {tanggalFormat}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* MASTER TABLE WRAPPER FOR PAGE 2+ */}
       <table className="w-full border-none border-collapse">
         {/* REPEATING HEADER (TOP MARGIN) */}
         <thead className="hidden print:table-header-group">
@@ -165,86 +241,6 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
         </tfoot>
 
         <tbody>
-          {/* ==================== PAGE 1: COVER ==================== */}
-          <tr className="print:break-inside-auto page-break-after">
-            <td className="p-0 sm:px-8 print:px-[20mm] border-none align-top">
-              {isCustomImageCover ? (
-                /* MODE COVER MANUAL: FULL-PAGE UPLOADED COVER IMAGE */
-                <div className="w-full h-auto min-h-[800px] print:h-[267mm] flex flex-col items-center justify-center p-0 m-0 overflow-hidden border-none page-break-after">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={data.custom_cover_image_url}
-                    alt="Cover Manual Laporan"
-                    className="w-full h-full object-cover object-center block"
-                  />
-                </div>
-              ) : (
-                /* MODE COVER STANDAR & CUSTOM SUB-UNIT COVER */
-                <div className="w-full h-auto min-h-[800px] print:h-[267mm] flex flex-col justify-between items-center text-center py-8 print:py-4 border-none overflow-hidden page-break-after">
-                  {/* TOP TITLE BLOCK */}
-                  <div className="w-full space-y-2 pt-4">
-                    <h1 className="text-[17.5pt] font-bold tracking-wider uppercase font-sans">
-                      LAPORAN
-                    </h1>
-                    <h2 className="text-[12.5pt] font-bold tracking-wide uppercase max-w-lg mx-auto leading-tight mt-2 font-sans">
-                      {cleanCoverSubtitle(data.judul_laporan)}
-                    </h2>
-                  </div>
-
-                  {/* BKSDA LOGO */}
-                  <div className="my-auto py-4 flex justify-center shrink-0">
-                    <div className="relative w-32 h-32">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src="/logo_bksda.png"
-                        alt="Logo BKSDA"
-                        className="w-full h-full object-contain mx-auto"
-                      />
-                    </div>
-                  </div>
-
-                  {/* DISUSUN OLEH */}
-                  <div className="w-full space-y-1.5 my-auto pb-4 shrink-0">
-                    <p className="text-[10.5pt] font-semibold">Disusun Oleh :</p>
-                    <div className="space-y-0.5 max-h-48 overflow-hidden">
-                      {data.pelaksana && data.pelaksana.length > 0 ? (
-                        data.pelaksana.map((p, idx) => (
-                          <p key={idx} className="text-[10.5pt] font-bold tracking-wide">
-                            {formatNameWithDegree(p.nama_lengkap)}
-                          </p>
-                        ))
-                      ) : (
-                        <p className="text-[10.5pt] font-bold tracking-wide">-</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* FOOTER INSTANSI / SUB-UNIT KERJA */}
-                  <div className="w-full border-t border-black pt-3 mb-0 space-y-1 mt-auto shrink-0">
-                    {data.use_custom_cover && data.cover_mode === "custom_text" && data.custom_cover_footer ? (
-                      <p className="text-[13pt] font-bold tracking-wider uppercase">
-                        {data.custom_cover_footer}
-                      </p>
-                    ) : (
-                      <>
-                        <p className="text-[13pt] font-bold tracking-wider uppercase">
-                          BALAI KONSERVASI SUMBER DAYA ALAM
-                        </p>
-                        <p className="text-[13pt] font-bold tracking-wider uppercase">
-                          KALIMANTAN TIMUR
-                        </p>
-                      </>
-                    )}
-                    <div className="w-full border-b border-black my-1.5"></div>
-                    <p className="text-[13.5pt] font-bold">
-                      {data.use_custom_cover && data.cover_mode === "custom_text" ? (data.kota_laporan || "Samarinda") : "Samarinda"}, {tanggalFormat}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </td>
-          </tr>
-
           {/* ==================== PAGE 2+: ISI LAPORAN ==================== */}
           <tr className="print:break-inside-auto">
             <td className="p-8 pt-4 print:p-0 print:px-[20mm] border-none align-top">
