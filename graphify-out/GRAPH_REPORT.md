@@ -1,7 +1,7 @@
 # Graph Report - bksda-superapp  (2026-08-06)
 
 ## Corpus Check
-- 952 files · ~1,333,019 words
+- 952 files · ~1,333,063 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `031439d3`
+- Built from commit: `86a2ee7a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -422,7 +422,7 @@
 - Progress - Phase 198: Refactoring & Clean Code Modul Portal
 - Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid
 - Mobile Application UI/UX Polishing & Single Navigation Fix
-- Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai
+- Illuminate\Http\Resources\Json\JsonResource
 - EmployeeLeave
 - Mobile BMN Photo Slots Component
 - Fix Tombol Kembali Header & Navigasi Portal Utama
@@ -456,7 +456,7 @@
 - [2026-06-18] Mobile App Planning - Requirements Draft
 - [2026-06-18] Mobile App Planning - Spec Quality Upgrade
 - [2026-06-18] Mobile App Planning - Tasks Draft
-- post-create-project-cmd
+- Phase 35: Public Website & CMS Upgrade
 - [2026-06-19] Mobile App Implementation - Task 41 (Milestone 2)
 - items/page.tsx
 - post-update-cmd
@@ -498,7 +498,7 @@
 - @react-navigation/native-stack
 - Phase 33: Module Themes & Fluid Layouts
 - Mobile Dashboard Compact Grid & 2-Row Interactive Tabs
-- Mobile Login Screen Branding & Clean Up
+- Mobile App Empty States 100% Sync with Web Portal
 - rules/graphify.md
 - workflows/graphify.md
 - Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default
@@ -512,16 +512,16 @@
 - Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST
 - expo-file-system
 - [2026-06-19] Mobile App Implementation - Task 5 (Milestone 1)
-- Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile
+- Mobile Application Kepegawaian & SDM Module Screen
 - informasi/create/page.tsx
 - Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST
-- Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal
+- Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal
 - Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`
 - InternalUploadDrawer.tsx
-- Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)
+- Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)
 - react-dom
 - scripts
-- keywords
+- extra
 - [2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)
 - Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning
 - [2026-06-19] Mobile App Implementation - Task 28 (Milestone 1)
@@ -649,11 +649,11 @@ Nodes (27): AppButton(), AppButtonProps, styles, ConfirmDialog(), ConfirmDialogP
 
 ### Community 12 - "Controller"
 Cohesion: 0.06
-Nodes (23): App\Modules\CMS\Traits\AdminCrudTrait, MobileDashboardController, Controller, DashboardController, MaintenanceController, MaintenanceService, BukuController, CategoryController (+15 more)
+Nodes (22): App\Modules\CMS\Traits\AdminCrudTrait, MobileDashboardController, Controller, DashboardController, MaintenanceController, MaintenanceService, BukuController, CategoryController (+14 more)
 
 ### Community 13 - "Illuminate\Http\Request"
-Cohesion: 0.05
-Nodes (19): MeDashboardResource, UserResource, LoanController, AssetLoanResource, AssetMaintenanceResource, AssetResource, AuctionBatchEventResource, AuctionCandidateAssetResource (+11 more)
+Cohesion: 0.07
+Nodes (12): LoanController, AssetLoanResource, handleFileUpload(), index(), store(), update(), validateCmsUploads(), MasterDataController (+4 more)
 
 ### Community 14 - "auction-helpers.ts"
 Cohesion: 0.12
@@ -745,7 +745,7 @@ Nodes (13): AssignmentFormPayload, createAssignment(), toAssignmentFormPayload()
 
 ### Community 37 - "Illuminate\Http\JsonResponse"
 Cohesion: 0.08
-Nodes (12): AuthController, CategoryController, EmployeeController, EmployeeLeaveController, EmployeeLeaveRequestController, Employee, BelongsToMany, HasMany (+4 more)
+Nodes (13): AuthController, CategoryController, EmployeeAccessController, EmployeeController, EmployeeLeaveController, EmployeeLeaveRequestController, Employee, BelongsToMany (+5 more)
 
 ### Community 38 - "employees/[id]/page.tsx"
 Cohesion: 0.09
@@ -805,7 +805,7 @@ Nodes (19): Backend Design, Checklist service, Compatibility, Current State Summ
 
 ### Community 52 - "progress.md"
 Cohesion: 0.04
-Nodes (55): 1. Pembersihan File Duplikat (Dead Code Deletion), 2. Penyederhanaan State Management Error Validasi Login, 3. Streamline Error Catching (`AuthProvider.tsx`), Accomplishments:, Completed:, Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas, Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`), Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas` (+47 more)
+Nodes (54): 1. Pembersihan File Duplikat (Dead Code Deletion), 2. Penyederhanaan State Management Error Validasi Login, 3. Streamline Error Catching (`AuthProvider.tsx`), Accomplishments:, Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai, Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas, Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`), Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas` (+46 more)
 
 ### Community 53 - "PortalDashboardScreen.tsx"
 Cohesion: 0.11
@@ -873,7 +873,7 @@ Nodes (32): 10. Error Message Konsisten, 11. Endpoint Notification Feed, 12. Dev
 
 ### Community 71 - "composer.json"
 Cohesion: 0.14
-Nodes (13): autoload-dev, psr-4, description, extra, laravel, dont-discover, license, minimum-stability (+5 more)
+Nodes (13): autoload-dev, psr-4, description, keywords, license, minimum-stability, name, prefer-stable (+5 more)
 
 ### Community 72 - "useAppTheme.ts"
 Cohesion: 0.15
@@ -2131,9 +2131,9 @@ Nodes (4): Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid, Progress 
 Cohesion: 0.40
 Nodes (5): Implementasi, Mobile Application UI/UX Polishing & Single Navigation Fix, Progress - Phase 143: Mobile Application UI/UX Polishing & Single Navigation Fix, Status: SELESAI, Validasi & Git Workflow Pro
 
-### Community 498 - "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai"
-Cohesion: 0.50
-Nodes (4): Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai, Progress - Phase 171: Deteksi Otomatis Kota Asal Berdasarkan Satker Pegawai, Status: SELESAI, Validasi & Git Workflow Pro
+### Community 498 - "Illuminate\Http\Resources\Json\JsonResource"
+Cohesion: 0.10
+Nodes (7): MeDashboardResource, UserResource, AssetMaintenanceResource, AssetResource, AuctionBatchEventResource, AuctionCandidateAssetResource, Illuminate\Http\Resources\Json\JsonResource
 
 ### Community 500 - "Mobile BMN Photo Slots Component"
 Cohesion: 0.40
@@ -2251,9 +2251,9 @@ Nodes (3): [2026-06-18] Mobile App Planning - Spec Quality Upgrade, Completed (S
 Cohesion: 0.67
 Nodes (3): [2026-06-18] Mobile App Planning - Tasks Draft, Completed (Selesai), Next Steps
 
-### Community 532 - "post-create-project-cmd"
-Cohesion: 0.50
-Nodes (4): post-create-project-cmd, @php artisan key:generate --ansi, @php artisan migrate --graceful --ansi, @php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\
+### Community 532 - "Phase 35: Public Website & CMS Upgrade"
+Cohesion: 0.40
+Nodes (5): Completed:, Next Steps:, Phase 35: Public Website & CMS Upgrade, Progress - Phase 35: Public Website & CMS Upgrade, PRs Merged:
 
 ### Community 533 - "[2026-06-19] Mobile App Implementation - Task 41 (Milestone 2)"
 Cohesion: 0.67
@@ -2415,9 +2415,9 @@ Nodes (4): Completed:, Next Steps:, Phase 33: Module Themes & Fluid Layouts, Pro
 Cohesion: 0.50
 Nodes (4): Mobile Dashboard Compact Grid & 2-Row Interactive Tabs, Progress - Phase 145: Mobile Dashboard Compact Grid & 2-Row Interactive Tabs, Status: SELESAI, Validasi & Git Workflow Pro
 
-### Community 574 - "Mobile Login Screen Branding & Clean Up"
+### Community 574 - "Mobile App Empty States 100% Sync with Web Portal"
 Cohesion: 0.50
-Nodes (4): Mobile Login Screen Branding & Clean Up, Progress - Phase 148: Mobile Login Screen Branding & Clean Up, Status: SELESAI, Validasi & Git Workflow Pro
+Nodes (4): Mobile App Empty States 100% Sync with Web Portal, Progress - Phase 151: Mobile App Empty States 100% Sync with Web Portal, Status: SELESAI, Validasi & Git Workflow Pro
 
 ### Community 577 - "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default"
 Cohesion: 0.50
@@ -2435,9 +2435,9 @@ Nodes (4): Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detai
 Cohesion: 0.67
 Nodes (3): [2026-06-19] Mobile App Implementation - Task 5 (Milestone 1), Completed (Selesai), Next Steps
 
-### Community 588 - "Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile"
+### Community 588 - "Mobile Application Kepegawaian & SDM Module Screen"
 Cohesion: 0.50
-Nodes (4): Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile, Progress - Phase 174: Penyesuaian Label Pilihan Jenis Tugas Surat Tugas, Status: SELESAI, Validasi & Git Workflow Pro
+Nodes (4): Mobile Application Kepegawaian & SDM Module Screen, Progress - Phase 152: Mobile Application Kepegawaian & SDM Module Screen, Status: SELESAI, Validasi & Git Workflow Pro
 
 ### Community 589 - "informasi/create/page.tsx"
 Cohesion: 0.33
@@ -2447,25 +2447,25 @@ Nodes (5): Category, CreateInformasiPage(), QUILL_FORMATS, QUILL_MODULES, ReactQ
 Cohesion: 0.50
 Nodes (4): Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST, Progress - Phase 167: Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST, Status: SELESAI, Validasi & Git Workflow Pro
 
-### Community 591 - "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal"
+### Community 591 - "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal"
 Cohesion: 0.50
-Nodes (4): Progress - Phase 160: Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal, Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal, Status: SELESAI, Validasi & Git Workflow Pro
+Nodes (4): Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal, Progress - Phase 153: Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal, Status: SELESAI, Validasi & Git Workflow Pro
 
 ### Community 592 - "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`"
 Cohesion: 0.50
 Nodes (4): Progress - Phase 176: Sinkronisasi Form Detail Kegiatan ST Builder Premium, Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`, Status: SELESAI, Validasi & Git Workflow Pro
 
-### Community 595 - "Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`)"
+### Community 595 - "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)"
 Cohesion: 0.50
-Nodes (4): Perbaikan Tampilan Ringkasan Kegiatan & Sumber Dana Mobile (`BuatSuratTugasScreen.tsx`), Progress - Phase 195: Creation of `develop-bmn` Branch & BMN Reports Print Page 2 Margin Fix, Status: SELESAI, Validasi & Git Workflow Pro
+Nodes (4): Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`), Progress - Phase 172: Perbaikan Tampilan Lokasi di Inbox Surat Tugas, Status: SELESAI, Validasi & Git Workflow Pro
 
 ### Community 597 - "scripts"
-Cohesion: 0.17
-Nodes (12): scripts, dev, post-autoload-dump, pre-package-uninstall, test, Composer\\Config::disableProcessTimeout, Illuminate\\Foundation\\ComposerScripts::postAutoloadDump, Illuminate\\Foundation\\ComposerScripts::prePackageUninstall (+4 more)
+Cohesion: 0.12
+Nodes (16): scripts, dev, post-autoload-dump, post-create-project-cmd, pre-package-uninstall, test, Composer\\Config::disableProcessTimeout, Illuminate\\Foundation\\ComposerScripts::postAutoloadDump (+8 more)
 
-### Community 598 - "keywords"
+### Community 598 - "extra"
 Cohesion: 0.67
-Nodes (3): keywords, framework, laravel
+Nodes (3): extra, laravel, dont-discover
 
 ### Community 599 - "[2026-06-19] Mobile App Implementation - Task 12 (Milestone 1)"
 Cohesion: 0.67

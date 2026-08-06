@@ -53,7 +53,7 @@ interface SuratTugasItem {
   title: string;
   location: string;
   dana: string;
-  personil: Array<{ name: string; nip: string }>;
+  personil: { name: string; nip: string }[];
   rawItem?: any;
 }
 
@@ -94,7 +94,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     }
   };
 
-  const fetchSuratTugas = async () => {
+  const fetchSuratTugas = React.useCallback(async () => {
     try {
       let rawList: any[] = [];
       try {
@@ -172,7 +172,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSuratTugas();
@@ -181,7 +181,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
       fetchSuratTugas();
     }, 5000);
     return () => clearInterval(interval);
-  }, [isFocused]);
+  }, [isFocused, fetchSuratTugas]);
 
   // Handle hardware back press & back gesture: return to Inbox list view first
   useEffect(() => {
