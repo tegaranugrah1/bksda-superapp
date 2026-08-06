@@ -80,4 +80,19 @@ class UserPermissionFallbackTest extends TestCase
         $this->assertTrue($user->hasPermission('kepegawaian.view'));
         $this->assertFalse($user->hasPermission('surat_tugas.approve'));
     }
+
+    public function test_regular_user_with_bmn_access_and_empty_permissions_can_only_read_bmn(): void
+    {
+        $user = new User([
+            'role' => 'user',
+            'access_modules' => ['bmn'],
+            'permissions' => [],
+        ]);
+
+        $this->assertTrue($user->hasPermission('bmn.view'));
+        $this->assertFalse($user->hasPermission('bmn.asset.create'));
+        $this->assertFalse($user->hasPermission('bmn.asset.update'));
+        $this->assertFalse($user->hasPermission('bmn.asset.dispose'));
+    }
 }
+

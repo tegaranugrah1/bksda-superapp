@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Employee } from "./EmployeeSelectionStep";
+import { cleanMelaksanakanKegiatanPrefix } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
 
 export type JenisTugasType =
   | "Perjalanan Dinas ( Lebih dari 1 Hari )"
@@ -133,9 +134,16 @@ export function SuratTugasDetailStep({
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
                 JENIS TUGAS <span className="text-red-500">*</span>
               </label>
+
               <select
                 value={jenisTugas}
-                onChange={(e) => setJenisTugas(e.target.value as JenisTugasType)}
+                onChange={(e) => {
+                  const val = e.target.value as JenisTugasType;
+                  setJenisTugas(val);
+                  if (val.includes("Melaksanakan Kegiatan")) {
+                    setFormData((prev) => ({ ...prev, tanggal_selesai: prev.tanggal_mulai }));
+                  }
+                }}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-bold text-slate-800 outline-none cursor-pointer"
               >
                 <option value="Perjalanan Dinas ( Lebih dari 1 Hari )">
@@ -271,57 +279,84 @@ export function SuratTugasDetailStep({
                 {jenisTugas.includes("Perjalanan Dinas")
                   ? `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${
                       kotaTujuan || "..."
-                    }${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ""}${
+                    }${namaKegiatanText ? ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatanText)}` : ""}${
                       tempatSpesifik ? ` di ${tempatSpesifik}` : ""
                     }`
                   : jenisTugas.includes("Melaksanakan Kegiatan")
-                  ? `Melaksanakan Kegiatan ${namaKegiatanText || "..."}${
+                  ? `Melaksanakan Kegiatan ${cleanMelaksanakanKegiatanPrefix(namaKegiatanText) || "..."}${
                       tempatSpesifik ? ` pada ${tempatSpesifik}` : ""
                     }${kotaTujuan ? ` di ${kotaTujuan}` : ""}`
-                  : `Menugaskan Staf untuk ${namaKegiatanText || "..."}${
+                  : `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatanText) || "..."}${
                       tempatSpesifik ? ` pada ${tempatSpesifik}` : ""
                     }${kotaTujuan ? ` di ${kotaTujuan}` : ""}`}
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {jenisTugas.includes("Melaksanakan Kegiatan") ? (
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Mulai Tanggal <span className="text-red-500">*</span>
+                Tanggal Kegiatan ( 1 Hari ) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 <input
                   type="date"
                   required
                   value={formData.tanggal_mulai}
+                  onClick={(e) => e.currentTarget.showPicker?.()}
                   onChange={(e) =>
-                    setFormData({ ...formData, tanggal_mulai: e.target.value })
+                    setFormData({
+                      ...formData,
+                      tanggal_mulai: e.target.value,
+                      tanggal_selesai: e.target.value,
+                    })
                   }
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Sampai Tanggal <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="date"
-                  required
-                  min={formData.tanggal_mulai}
-                  value={formData.tanggal_selesai}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tanggal_selesai: e.target.value })
-                  }
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700"
-                />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Mulai Tanggal <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    required
+                    value={formData.tanggal_mulai}
+                    onClick={(e) => e.currentTarget.showPicker?.()}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tanggal_mulai: e.target.value })
+                    }
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Sampai Tanggal <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    required
+                    min={formData.tanggal_mulai}
+                    value={formData.tanggal_selesai}
+                    onClick={(e) => e.currentTarget.showPicker?.()}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tanggal_selesai: e.target.value })
+                    }
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-3">
             <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">

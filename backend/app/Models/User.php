@@ -79,9 +79,9 @@ class User extends Authenticatable
             return true;
         }
 
-        // 2. Jika kolom permissions bernilai null, gunakan fallback backward compatibility:
+        // 2. Jika kolom permissions bernilai null atau kosong (empty array), gunakan fallback backward compatibility:
         // Izinkan aksi BMN jika user memiliki akses modul BMN. Aksi penulisan tetap memerlukan role admin.
-        if (is_null($this->permissions)) {
+        if (is_null($this->permissions) || empty($this->permissions)) {
             if (str_starts_with($permission, 'bmn.')) {
                 if (str_starts_with($permission, 'bmn.auction.')) {
                     if ($permission === 'bmn.auction.view') {

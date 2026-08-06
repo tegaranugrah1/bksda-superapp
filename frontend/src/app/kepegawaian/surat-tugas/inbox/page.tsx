@@ -17,6 +17,17 @@ import { getStatusStyle, getStatusLabel, getResolvedTempatTujuan } from "./_lib/
 import type { AssignmentLetter, InboxEmployee } from "./_lib/types";
 import { ConfirmActionModal } from "./_components/ConfirmActionModal";
 
+function formatInboxTitle(text?: string | null): string {
+    if (!text) return '-';
+    let clean = text.split("\n")[0].trim();
+    const parts = clean.split(/(?=Membuat laporan|Segala biaya)/i);
+    if (parts.length > 0) {
+        clean = parts[0].trim();
+    }
+    clean = clean.replace(/,?\s*selama\s+.*$/i, '').trim().replace(/;$/, '').trim();
+    return clean || text;
+}
+
 export default function SuratTugasInbox() {
     const [selectedLetter, setSelectedLetter] = useState<AssignmentLetter | null>(null);
     const [search, setSearch] = useState('');
@@ -51,7 +62,7 @@ export default function SuratTugasInbox() {
             return resp.data.data as AssignmentLetter[];
         },
         staleTime: 0,
-        refetchInterval: 3000,
+        refetchInterval: 5000,
         refetchOnWindowFocus: true,
     });
 
@@ -343,7 +354,7 @@ export default function SuratTugasInbox() {
                                         "text-xs font-bold leading-snug mb-3 transition-colors line-clamp-2",
                                         selectedLetter?.id === l.id ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-zinc-400 group-hover:text-blue-700"
                                     )}>
-                                        {l.maksud_tujuan}
+                                        {formatInboxTitle(l.maksud_tujuan)}
                                     </h3>
 
                                     {l.template_type === "bmn-pemeriksaan" && (
@@ -419,7 +430,7 @@ export default function SuratTugasInbox() {
                                     </div>
                                     
                                     <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight mb-6 tracking-tight">
-                                        {selectedLetter.maksud_tujuan}
+                                        {formatInboxTitle(selectedLetter.maksud_tujuan)}
                                     </h2>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -427,7 +438,9 @@ export default function SuratTugasInbox() {
                                             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Periode</span>
                                             <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
                                                 <Calendar className="w-3.5 h-3.5 text-blue-500" />
-                                                {formatDateIndonesian(selectedLetter.tanggal_mulai)} — {formatDateIndonesian(selectedLetter.tanggal_selesai)}
+                                                {selectedLetter.tanggal_mulai === selectedLetter.tanggal_selesai
+                                                    ? formatDateIndonesian(selectedLetter.tanggal_mulai)
+                                                    : `${formatDateIndonesian(selectedLetter.tanggal_mulai)} — ${formatDateIndonesian(selectedLetter.tanggal_selesai)}`}
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800/50 space-y-1">

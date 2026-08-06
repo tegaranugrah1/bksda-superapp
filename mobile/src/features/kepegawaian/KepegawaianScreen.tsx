@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
@@ -44,7 +45,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
   onBack,
   onNavigateToModule,
 }) => {
-  const { isDark, toggleTheme, colors } = useTheme();
+  const { isDark, colors } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
@@ -69,145 +70,27 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
 
   const isSuperAdmin = user?.role === "super_admin";
 
-  const defaultEmployeeList: EmployeeItem[] = [
-    {
-      id: "1",
-      name: "A. Aliah Indah Fitriah, S.Hut.",
-      nip: "199601032024212050",
-      position: "Pengendali Ekosistem Hutan Ahli Pertama",
-      workUnit: "Seksi KSDA Wilayah III Balikpapan",
-      rankGrade: "PPPK Golongan IX",
-      remainingLeaveDays: 12,
-      role: "admin",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "2",
-      name: "Abdul Farij",
-      nip: "MMP-006",
-      position: "MMP Resor KSDA Wilayah 02 Kepulauan Derawan",
-      workUnit: "Seksi KSDA Wilayah I Berau",
-      rankGrade: "Non-ASN",
-      remainingLeaveDays: 12,
-      role: "user",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "3",
-      name: "Abdurrahman",
-      nip: "196906172025211013",
-      position: "Manggala Agni Pemula",
-      workUnit: "Seksi KSDA Wilayah II Tenggarong",
-      rankGrade: "Golongan II/a",
-      remainingLeaveDays: 12,
-      role: "user",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "4",
-      name: "Achmad Syafey N",
-      nip: "200009222024211004",
-      position: "Pengendali Ekosistem Hutan Pemula",
-      workUnit: "Seksi KSDA Wilayah II Tenggarong",
-      rankGrade: "Golongan II/c",
-      remainingLeaveDays: 12,
-      role: "user",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "5",
-      name: "Administrator Pusat BKSDA",
-      nip: "198001012005011001",
-      position: "Kepala Satuan Teknologi",
-      workUnit: "BKSDA Pusat Provinsi",
-      rankGrade: "Golongan IV/a",
-      remainingLeaveDays: 12,
-      role: "super_admin",
-      accessModules: ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"],
-    },
-    {
-      id: "6",
-      name: "Affi Agung Rahmadi",
-      nip: "199306242025061001",
-      position: "Pengendali Ekosistem Hutan Pemula",
-      workUnit: "Seksi KSDA Wilayah III Balikpapan",
-      rankGrade: "Golongan II/c",
-      remainingLeaveDays: 12,
-      role: "user",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "7",
-      name: "Afrizal Maula Alfarisi, S.Hut.",
-      nip: "199308162025061005",
-      position: "Polisi Kehutanan Ahli Pertama",
-      workUnit: "Seksi KSDA Wilayah II Tenggarong",
-      rankGrade: "Golongan III/a",
-      remainingLeaveDays: 12,
-      role: "user",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "8",
-      name: "Agung Suseno, S.PKP.",
-      nip: "198108242000121002",
-      position: "Pengendali Ekosistem Hutan Ahli Muda",
-      workUnit: "Seksi KSDA Wilayah III Balikpapan",
-      rankGrade: "Golongan III/c",
-      remainingLeaveDays: 12,
-      role: "user",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "9",
-      name: "Agus Salim",
-      nip: "MMP-008",
-      position: "MMP Resor KSDA Wilayah 02 Kepulauan Derawan",
-      workUnit: "Seksi KSDA Wilayah I Berau",
-      rankGrade: "Non-ASN",
-      remainingLeaveDays: 12,
-      role: "user",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "10",
-      name: "Agustaf Samber",
-      nip: "197208292007101001",
-      position: "Polisi Kehutanan Penyelia",
-      workUnit: "Seksi KSDA Wilayah I Berau",
-      rankGrade: "Golongan III/d",
-      remainingLeaveDays: 12,
-      role: "user",
-      accessModules: ["kepegawaian"],
-    },
-    {
-      id: "11",
-      name: "Tegar Anugrah, A.Md.Kom.",
-      nip: "199907072025061006",
-      position: "Pranata Komputer Terampil",
-      workUnit: "Kantor Balai KSDA Kalimantan Timur",
-      rankGrade: "Golongan II/c",
-      remainingLeaveDays: 12,
-      role: "super_admin",
-      accessModules: ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"],
-    },
-  ];
-
-  const fetchEmployeeData = async () => {
+  const fetchEmployeeData = useCallback(async () => {
     try {
+      setIsLoading(true);
       const response = await apiClient.get<any>("/kepegawaian/employees?per_page=500");
       if (response.data && Array.isArray(response.data.data)) {
-        const apiList = response.data.data.map((emp: any) => ({
-          id: emp.id,
-          name: emp.nama_lengkap || emp.name,
-          nip: emp.nip || "-",
-          position: emp.jabatan || "Staf BKSDA",
-          workUnit: emp.satuan_kerja || "Balai KSDA Kaltim",
-          rankGrade: emp.pangkat_golongan || "Golongan III/a",
-          remainingLeaveDays: emp.sisa_cuti ?? 12,
-          role: emp.user?.role || emp.role || "user",
-          accessModules: emp.user?.access_modules || emp.access_modules || ["kepegawaian"],
-        }));
+        const apiList = response.data.data
+          .filter((emp: any) => 
+            emp.nip !== "198001012005011001" && 
+            !String(emp.nama_lengkap || emp.name || "").toLowerCase().includes("administrator")
+          )
+          .map((emp: any) => ({
+            id: emp.id,
+            name: emp.nama_lengkap || emp.name,
+            nip: emp.nip || "-",
+            position: emp.jabatan || "Staf BKSDA",
+            workUnit: emp.satuan_kerja || "Balai KSDA Kaltim",
+            rankGrade: emp.pangkat_golongan || "Golongan III/a",
+            remainingLeaveDays: emp.sisa_cuti ?? 12,
+            role: emp.user?.role || emp.role || "user",
+            accessModules: emp.user?.access_modules || emp.access_modules || ["kepegawaian"],
+          }));
         setEmployees(apiList);
       } else {
         setEmployees([]);
@@ -217,11 +100,13 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchEmployeeData();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchEmployeeData();
+    }, [fetchEmployeeData])
+  );
 
   // Filter employees & reset page to 1 when typing search
   const filteredEmployees = employees.filter((emp) => {
@@ -461,13 +346,22 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
                   </TouchableOpacity>
 
                   {isSuperAdmin && (
-                    <TouchableOpacity
-                      style={styles.actionIconButton}
-                      onPress={() => handleDeleteEmployee(emp)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="trash-outline" size={16} color="#ef4444" />
-                    </TouchableOpacity>
+                    <>
+                      <TouchableOpacity
+                        style={styles.actionIconButton}
+                        onPress={() => handleOpenAccess(emp)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="key-outline" size={16} color="#10b981" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.actionIconButton}
+                        onPress={() => handleDeleteEmployee(emp)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                      </TouchableOpacity>
+                    </>
                   )}
                 </View>
               </TouchableOpacity>

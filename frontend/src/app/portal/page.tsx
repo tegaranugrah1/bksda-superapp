@@ -8,10 +8,17 @@ import {
   Sun, Sunset, Moon, Loader2, LogOut, Users, Package,
   Boxes, FileText, LayoutGrid, Mail, Sparkles, Bell,
   HandHelping, Briefcase, ClipboardList, Calendar,
+  ChevronDown, FileCheck, FileSpreadsheet,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -19,11 +26,16 @@ import { authStore } from "@/lib/auth-store";
 import SuratTugasLetterPreview from "@/components/SuratTugasLetterPreview";
 import { LeaveRequestDialog } from "./_components/LeaveRequestDialog";
 import { FormulirCutiPrint, LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
-import { ProfileSidebar } from "./_components/ProfileSidebar";
 import { SuratTugasTab } from "./_components/SuratTugasTab";
 import { MyAssetsTab, AssetItem } from "./_components/MyAssetsTab";
 import { MyLeaveTab } from "./_components/MyLeaveTab";
 import { ActiveLoansTab, BorrowedAssetItem } from "./_components/ActiveLoansTab";
+import { GeneralReportDialog } from "./_components/GeneralReportDialog";
+import { GeneralReportInlineForm } from "./_components/GeneralReportInlineForm";
+import { PortalProfileSidebar } from "./_components/PortalProfileSidebar";
+import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
+import { PortalQuickStats } from "./_components/PortalQuickStats";
+import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -75,24 +87,13 @@ interface SuratTugasDetail {
 
 type TabKey = "pinjaman" | "aset" | "surat_tugas" | "cuti";
 
-function getGreeting(): { text: string; icon: React.ReactNode } {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 11) return { text: "Selamat Pagi", icon: <Sun className="w-5 h-5 text-amber-400" /> };
-  if (hour >= 11 && hour < 15) return { text: "Selamat Siang", icon: <Sun className="w-5 h-5 text-orange-400" /> };
-  if (hour >= 15 && hour < 18) return { text: "Selamat Sore", icon: <Sunset className="w-5 h-5 text-orange-500" /> };
-  return { text: "Selamat Malam", icon: <Moon className="w-5 h-5 text-indigo-400" /> };
-}
-
-function formatDate(): string {
-  return new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-}
-
 export default function PersonalDashboard() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("pinjaman");
+  const [activeNavTab, setActiveNavTab] = useState<string>("dashboard");
   const [suratTugas, setSuratTugas] = useState<SuratTugasItem[]>([]);
   const [stLoading, setStLoading] = useState(false);
   
@@ -101,18 +102,20 @@ export default function PersonalDashboard() {
   const [assetsLoading, setAssetsLoading] = useState(false);
   const [assetViewMode, setAssetViewMode] = useState<"list" | "grid">("list");
 
-  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
-
   // Surat Tugas inline preview state
   const [stPreviewOpen, setStPreviewOpen] = useState(false);
   const [stDetail, setStDetail] = useState<SuratTugasDetail | null>(null);
   const [stDetailLoading, setStDetailLoading] = useState(false);
 
+  // General Report Builder state
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [showInlineReport, setShowInlineReport] = useState(false);
+
   const filteredMyAssets = useMemo(() => {
     if (!data?.my_assets) return myAssets;
     const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
     return myAssets.filter(a => !borrowedIds.has(a.id));
-  }, [myAssets, data?.my_assets]);
+  }, [myAssets, data]);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -131,31 +134,38 @@ export default function PersonalDashboard() {
       setSuratTugas([]);
       return;
     }
-    setStLoading(true);
+    if (suratTugas.length === 0) {
+      setStLoading(true);
+    }
     try {
       const resp = await api.get("/surat-tugas/my", { 
         params: { per_page: 20 } 
       });
       setSuratTugas(resp.data.data || []);
-    } catch { setSuratTugas([]); }
-    finally { setStLoading(false); }
-  }, [data]);
+    } catch {
+      // Keep existing list on background error
+    } finally {
+      setStLoading(false);
+    }
+  }, [data, suratTugas.length]);
 
   const fetchAssets = useCallback(async () => {
     if (!data?.employee?.id) {
       setMyAssets([]);
       return;
     }
-    setAssetsLoading(true);
+    if (myAssets.length === 0) {
+      setAssetsLoading(true);
+    }
     try {
       const respMy = await api.get("/bmn/assets", { params: { employee_id: data.employee.id, per_page: 50 } });
       setMyAssets(respMy.data.data || []);
     } catch {
-      setMyAssets([]);
+      // Keep existing list on background error
     } finally {
       setAssetsLoading(false);
     }
-  }, [data]);
+  }, [data, myAssets.length]);
 
   const fetchSTDetail = useCallback(async (id: string) => {
     setStDetailLoading(true);
@@ -185,8 +195,8 @@ export default function PersonalDashboard() {
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { 
-    if (activeTab === "aset") fetchAssets();
-  }, [activeTab, fetchAssets]);
+    if (data?.employee?.id) fetchAssets();
+  }, [data?.employee?.id, activeTab, fetchAssets]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Fetch leave balance for logged-in employee
@@ -214,6 +224,36 @@ export default function PersonalDashboard() {
   }, [fetchMyLeaveRequests]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  const fetchAllPortalData = useCallback(() => {
+    fetchDashboard();
+    fetchSuratTugas();
+    fetchAssets();
+    fetchMyLeaveRequests();
+  }, [fetchDashboard, fetchSuratTugas, fetchAssets, fetchMyLeaveRequests]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchAllPortalData();
+      }
+    }, 15000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        fetchAllPortalData();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [fetchAllPortalData]);
+
   const handleLogout = () => { authStore.logout(); router.push("/login"); };
 
   const modules = useMemo(() => {
@@ -225,12 +265,12 @@ export default function PersonalDashboard() {
 
   const moduleCards = useMemo(() => {
     const all: { key: string; href: string; label: string; desc: string; icon: React.ReactNode; color: string; bg: string }[] = [
-      { key: "kepegawaian", href: "/kepegawaian", label: "Kepegawaian", desc: "Surat Tugas & SDM", icon: <Users className="w-6 h-6" />, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-500/10" },
-      { key: "bmn", href: "/bmn", label: "BMN", desc: "Barang Milik Negara", icon: <Package className="w-6 h-6" />, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
-      { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: <Boxes className="w-6 h-6" />, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-500/10" },
-      { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: <FileText className="w-6 h-6" />, color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-500/10" },
-      { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: <LayoutGrid className="w-6 h-6" />, color: "text-teal-600", bg: "bg-teal-50 dark:bg-teal-500/10" },
-      { key: "surat", href: "/surat", label: "Persuratan", desc: "Surat & Disposisi", icon: <Mail className="w-6 h-6" />, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+      { key: "kepegawaian", href: "/kepegawaian", label: "Kepegawaian", desc: "Surat Tugas & SDM", icon: <Users className="w-5 h-5" />, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/60" },
+      { key: "bmn", href: "/bmn", label: "BMN", desc: "Barang Milik Negara", icon: <Package className="w-5 h-5" />, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
+      { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: <Boxes className="w-5 h-5" />, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/60" },
+      { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: <FileText className="w-5 h-5" />, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/60" },
+      { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: <LayoutGrid className="w-5 h-5" />, color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-950/60" },
+      { key: "surat", href: "/surat", label: "Persuratan", desc: "Surat & Disposisi", icon: <Mail className="w-5 h-5" />, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
     ];
     return all.filter(m => modules.includes(m.key));
   }, [modules]);
@@ -256,175 +296,193 @@ export default function PersonalDashboard() {
     );
   }
 
-  const greeting = getGreeting();
-  const firstName = (data.employee?.name || data.user.name).split(" ")[0];
-  const isActive = data.employee?.is_active !== false;
-
   const tabs: { key: TabKey; label: string; icon: React.ReactNode; count?: number }[] = [
     { key: "pinjaman", label: "Pinjaman Aktif", icon: <HandHelping className="w-4 h-4" />, count: data.my_assets.length },
     { key: "aset", label: "Aset Saya", icon: <Briefcase className="w-4 h-4" />, count: filteredMyAssets.length },
     { key: "surat_tugas", label: "Surat Tugas", icon: <ClipboardList className="w-4 h-4" />, count: suratTugas.length },
     { key: "cuti", label: "Pengajuan Cuti Saya", icon: <Calendar className="w-4 h-4" />, count: myLeaveRequests.length },
   ];
-
   return (
     <RouteGuard>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900/50">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 print:bg-transparent">
+        {/* HEADER NAVBAR */}
+        <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm print:hidden">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800/50 rounded-xl">
-                <Image src="/logo_bksda.png" alt="Logo" width={32} height={32} className="w-8 h-8 object-contain" />
+              <div className="p-1.5 bg-white dark:bg-slate-900 shadow-sm border border-slate-200/80 dark:border-slate-800 rounded-xl">
+                <Image src="/logo_bksda.png" alt="Logo BKSDA" width={32} height={32} className="w-8 h-8 object-contain" />
               </div>
-              <div className="hidden sm:block">
-                <h1 className="text-sm font-black text-slate-900 dark:text-slate-100 leading-none">BKSDA Kaltim</h1>
-                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">SuperApp Portal</p>
+              <div>
+                <h1 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 leading-none">BKSDA KALTIM</h1>
+                <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mt-0.5">SuperApp Portal</p>
               </div>
             </div>
+
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <button className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <Bell className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full"></span>
               </button>
-              <button 
-                onClick={() => setMobileProfileOpen(true)}
-                className="lg:hidden w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm ml-2 shadow-sm border border-emerald-500"
-              >
-                {data.user.name.charAt(0)}
-              </button>
-              <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-800">
-                <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
-                  {data.user.name.charAt(0)}
+
+              <div className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800">
+                <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                  {(data.employee?.name || data.user.name).charAt(0)}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-tight">{data.user.name}</p>
-                  <p className="text-[10px] text-slate-400">{data.employee?.position || data.user.role}</p>
+                <div className="hidden sm:block text-left">
+                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                    {data.employee?.name || data.user.name}
+                  </p>
+                  <p className="text-[10px] text-slate-500 truncate max-w-[150px]">
+                    {data.employee?.position || data.user.role}
+                  </p>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col lg:flex-row gap-6 sm:gap-8">
-          {/* Sidebar Profile */}
-          <ProfileSidebar
-            data={data}
-            isActive={isActive}
-            currentYear={currentYear}
-            myLeaveBalance={myLeaveBalance}
-            mobileProfileOpen={mobileProfileOpen}
-            setMobileProfileOpen={setMobileProfileOpen}
-            fetchDashboard={fetchDashboard}
-          />
+        {/* 3-COLUMN HYBRID LAYOUT (MYASN INSPIRED) */}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6 print:p-0 print:m-0 print:block print:max-w-none">
+          {/* LEFT COLUMN: SIDEBAR PROFIL & NAVIGASI */}
+          <div className="w-full lg:w-72 shrink-0 print:hidden">
+            <PortalProfileSidebar
+              user={data.user}
+              employee={data.employee}
+              activeNavTab={activeNavTab}
+              onSelectNavTab={(navTab) => {
+                setShowInlineReport(false);
+                setActiveNavTab(navTab);
+                if (navTab === "pinjaman" || navTab === "aset" || navTab === "surat_tugas" || navTab === "cuti") {
+                  setActiveTab(navTab);
+                }
+              }}
+              pinjamanCount={data.my_assets.length}
+              assetCount={filteredMyAssets.length}
+              suratTugasCount={suratTugas.length}
+              leaveCount={myLeaveRequests.length}
+              onOpenInlineReport={() => setShowInlineReport(true)}
+              isInlineReportOpen={showInlineReport}
+              onRefreshDashboard={fetchDashboard}
+            />
+          </div>
 
-          {/* Main Content */}
-          <main className="flex-1 min-w-0 space-y-6 order-1 lg:order-2">
-            {/* Welcome Banner */}
-            <div className="bg-emerald-600 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
-              <div className="absolute bottom-0 left-1/2 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
-              <div className="relative z-10">
-                <p className="text-emerald-100 text-sm mb-1">{formatDate()}</p>
-                <h2 className="text-2xl sm:text-3xl font-black flex flex-wrap items-center gap-2">
-                  {greeting.text}, {firstName}! {greeting.icon}
-                </h2>
-                <p className="text-emerald-100 text-sm mt-2">Selamat datang di portal BKSDA Kalimantan Timur.</p>
-              </div>
-            </div>
+          {/* CENTER COLUMN: MAIN WORKSPACE OR SPECIFIC MENU ITEM */}
+          <main className="flex-1 min-w-0 space-y-6 w-full print:m-0 print:p-0 print:space-y-0 print:block">
+            {showInlineReport ? (
+              <GeneralReportInlineForm
+                onBack={() => {
+                  setShowInlineReport(false);
+                  setActiveNavTab("dashboard");
+                }}
+              />
+            ) : activeNavTab === "dashboard" ? (
+              <>
+                {/* HERO BANNER GREETING */}
+                <PortalHeaderBanner
+                  displayName={data.employee?.name || data.user.name}
+                  activeSuratTugasCount={suratTugas.length}
+                />
 
-            {/* Module Grid */}
-            {moduleCards.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Modul Akses</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                  {moduleCards.map((mod) => (
-                    <Link key={mod.key} href={mod.href} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
-                      <div className={cn("w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2", mod.bg, mod.color)}>
-                        {mod.icon}
-                      </div>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{mod.label}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{mod.desc}</p>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
+                {/* QUICK STATS ROW (4 STATUS CARDS) */}
+                <PortalQuickStats
+                  rank={data.employee?.rank}
+                  rankLevel={data.employee?.rank_level}
+                  activeSuratTugasCount={suratTugas.length}
+                  myAssetsCount={filteredMyAssets.length}
+                  onSelectTab={(t) => {
+                    setActiveTab(t);
+                    setActiveNavTab(t);
+                  }}
+                />
 
-            {/* Tabs Section */}
-            <div>
-              <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 p-1 mb-4">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-fit",
-                      activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                    )}
-                  >
-                    {tab.icon} {tab.label}
-                    {tab.count !== undefined && tab.count > 0 && (
-                      <span className={cn(
-                        "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                        activeTab === tab.key ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-                      )}>
-                        {tab.count}
+                {/* MODUL AKSES GRID */}
+                {moduleCards.length > 0 && (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400">
+                        Modul Akses System
+                      </h3>
+                      <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full">
+                        {moduleCards.length} Modul Terotorisasi
                       </span>
-                    )}
-                  </button>
-                ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                      {moduleCards.map((mod) => (
+                        <Link
+                          key={mod.key}
+                          href={mod.href}
+                          className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all text-center flex flex-col items-center justify-center space-y-2"
+                        >
+                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", mod.bg, mod.color)}>
+                            {mod.icon}
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight">
+                              {mod.label}
+                            </p>
+                            <p className="text-[10px] text-slate-400 truncate max-w-[100px]">
+                              {mod.desc}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : activeNavTab === "pinjaman" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
               </div>
-
-              {/* Tab: Pinjaman Aktif */}
-              {activeTab === "pinjaman" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
-                </div>
-              )}
-
-              {/* Tab: Aset Saya */}
-              {activeTab === "aset" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <MyAssetsTab
-                    assetsLoading={assetsLoading}
-                    filteredMyAssets={filteredMyAssets as AssetItem[]}
-                    assetViewMode={assetViewMode}
-                    setAssetViewMode={setAssetViewMode}
-                  />
-                </div>
-              )}
-
-              {/* Tab: Surat Tugas */}
-              {activeTab === "surat_tugas" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <SuratTugasTab
-                    stLoading={stLoading}
-                    suratTugas={suratTugas}
-                    fetchSTDetail={fetchSTDetail}
-                    stDetailLoading={stDetailLoading}
-                  />
-                </div>
-              )}
-
-              {/* Tab: Cuti Saya */}
-              {activeTab === "cuti" && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                  <MyLeaveTab
-                    myLeaveRequests={myLeaveRequests}
-                    onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
-                    onPrintLeave={(item) => {
-                      setPrintLeaveData(item);
-                      setTimeout(() => window.print(), 300);
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+            ) : activeNavTab === "aset" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                <MyAssetsTab
+                  assetsLoading={assetsLoading}
+                  filteredMyAssets={filteredMyAssets as AssetItem[]}
+                  assetViewMode={assetViewMode}
+                  setAssetViewMode={setAssetViewMode}
+                />
+              </div>
+            ) : activeNavTab === "surat_tugas" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                <SuratTugasTab
+                  stLoading={stLoading}
+                  suratTugas={suratTugas}
+                  fetchSTDetail={fetchSTDetail}
+                  stDetailLoading={stDetailLoading}
+                  onOpenReportModal={() => setShowInlineReport(true)}
+                />
+              </div>
+            ) : activeNavTab === "cuti" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                <MyLeaveTab
+                  myLeaveRequests={myLeaveRequests}
+                  onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
+                  onPrintLeave={(item) => {
+                    setPrintLeaveData(item);
+                    setTimeout(() => window.print(), 300);
+                  }}
+                />
+              </div>
+            ) : null}
           </main>
+
+          {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN */}
+          <div className="shrink-0 print:hidden font-sans">
+            <PortalInfoSidebar />
+          </div>
         </div>
 
         {/* Modal Pengajuan Cuti Mandiri */}
@@ -432,6 +490,12 @@ export default function PersonalDashboard() {
           open={leaveDialogOpen}
           onClose={() => setLeaveDialogOpen(false)}
           onSuccess={() => fetchMyLeaveRequests()}
+        />
+
+        {/* Modal Buat Laporan General / Pelaksanaan Surat Tugas */}
+        <GeneralReportDialog
+          open={reportDialogOpen}
+          onOpenChange={setReportDialogOpen}
         />
 
         {/* Hidden Printable Formulir Cuti */}

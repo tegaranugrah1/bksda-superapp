@@ -69,6 +69,18 @@ class Employee extends Model
     ];
 
     /**
+     * Exclude administrator pusat from employee listings globally
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('excludeAdminPusat', function ($builder) {
+            $builder->where('nip', '!=', '198001012005011001')
+                ->where('nama_lengkap', 'NOT LIKE', '%Administrator Pusat%')
+                ->where('nama_lengkap', 'NOT LIKE', '%administrator%');
+        });
+    }
+
+    /**
      * RELASI (Rule 6.1)
      * Pegawai (Employee) mungkin memiliki 1 Akun Aplikasi (User).
      * Relasi ini tidak menggunakan employee_id seperti biasa,
