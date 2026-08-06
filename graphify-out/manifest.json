@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1785921800.7384348,
-    "ast_hash": "98a9656df83cb0a504585173e6aa51f5",
+    "mtime": 1785980104.5874107,
+    "ast_hash": "e9757523927e1f12c924c2fadf1fba23",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {
@@ -1120,8 +1120,8 @@
     "semantic_hash": "f2cda7c59edcb41daccde2b3cf1c7b46"
   },
   "backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php": {
-    "mtime": 1785917434.888255,
-    "ast_hash": "0f1e6fda73ce40a8b1e0acab1149fa93",
+    "mtime": 1785980099.6676192,
+    "ast_hash": "c3f9ffe762f170dd0b93f94de4dd8189",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Requests/PublicSuratTugasRequest.php": {

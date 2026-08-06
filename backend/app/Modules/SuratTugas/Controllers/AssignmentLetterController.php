@@ -335,11 +335,15 @@ class AssignmentLetterController extends Controller
                 'created_by' => $authUser ? (int) $authUser->id : null,
             ]);
 
-            $pivotData = [];
-            foreach ($validated['employees'] as $emp) {
-                $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+            if (isset($validated['employees']) && is_array($validated['employees'])) {
+                $pivotData = [];
+                foreach ($validated['employees'] as $emp) {
+                    if (isset($emp['id'])) {
+                        $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+                    }
+                }
+                $surat->employees()->sync($pivotData);
             }
-            $surat->employees()->sync($pivotData);
 
             if ($request->hasFile('file_surat')) {
                 $folderName = $surat->nomor_surat 
@@ -416,10 +420,10 @@ class AssignmentLetterController extends Controller
         DB::beginTransaction();
         try {
             $updateData = [
-                'maksud_tujuan' => $validated['maksud_tujuan'],
+                'maksud_tujuan' => $validated['maksud_tujuan'] ?? $surat->maksud_tujuan,
                 'dasar_hukum' => $validated['dasar_hukum'] ?? null,
-                'tanggal_mulai' => $validated['tanggal_mulai'],
-                'tanggal_selesai' => $validated['tanggal_selesai'],
+                'tanggal_mulai' => $validated['tanggal_mulai'] ?? $surat->tanggal_mulai,
+                'tanggal_selesai' => $validated['tanggal_selesai'] ?? $surat->tanggal_selesai,
                 'tempat_tujuan' => $validated['tempat_tujuan'] ?? null,
                 'sumber_dana' => $request->input('sumber_dana', $surat->sumber_dana),
                 'sumber_dana_other' => $request->input('sumber_dana_other', $surat->sumber_dana_other),
@@ -443,11 +447,15 @@ class AssignmentLetterController extends Controller
 
             $surat->update($updateData);
 
-            $pivotData = [];
-            foreach ($validated['employees'] as $emp) {
-                $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+            if (isset($validated['employees']) && is_array($validated['employees'])) {
+                $pivotData = [];
+                foreach ($validated['employees'] as $emp) {
+                    if (isset($emp['id'])) {
+                        $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+                    }
+                }
+                $surat->employees()->sync($pivotData);
             }
-            $surat->employees()->sync($pivotData);
 
             if ($request->hasFile('file_surat')) {
                 if ($surat->file_surat_path) {
@@ -471,8 +479,9 @@ class AssignmentLetterController extends Controller
                 'data' => $surat,
             ]);
 
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Update Surat Tugas failed: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json(['message' => 'Terjadi kegagalan sistem: '.$e->getMessage()], 500);
         }
