@@ -1,3 +1,42 @@
+# Progress - Phase 211: Refactoring Tombol "Buat Laporan" ke Dropdown Menu Multi-Template & Responsive Modal Fix
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Tombol Dropdown "Buat Laporan" Multi-Template (`DropdownMenu`)
+- **Implementasi Dropdown Menu**: Mengubah tombol tunggal "Buat Laporan" pada Banner Portal Utama dan Tab Surat Tugas menjadi tombol Dropdown Menu (`DropdownMenu` Radix UI) yang dinamis.
+- **Daftar Opsi Template Laporan**:
+  1. **1. Laporan Pelaksanaan Surat Tugas** (Aktif -> Membuka `GeneralReportDialog`).
+  2. **2. Laporan Monitoring & Pengawasan** (Opsi template mendatang).
+  3. **3. Laporan Pertanggungjawaban & Evaluasi** (Opsi template mendatang).
+
+## 2. Perbaikan Responsivitas & Tampilan Modal (`GeneralReportDialog.tsx`)
+- **Pelebaran & Responsivitas Modal**: Memperluas lebar dialog modal menjadi `w-[95vw] max-w-5xl` agar seluruh bidang input, tabel pelaksana, dan pratinjau format laporan tampil luas, rapi, dan nyaman tanpa terpotong atau memicu scrollbar horizontal.
+
+---
+
+# Progress - Phase 210: Implementasi Generator Laporan Pelaksanaan Surat Tugas di Portal Web (`GeneralReportDialog.tsx` & `GeneralReportPrint.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Pembuatan Fitur & Form Builder Laporan General (`GeneralReportDialog.tsx`)
+- **Pencetus GitHub Issue #563**: Berada pada branch `development` dan mempublikasikan Issue #563 di repository GitHub.
+- **Surat Tugas Selector (Autofill & Manual Mode)**:
+  - **Opsi Autofill dari Surat Tugas**: Pengguna dapat memilih Surat Tugas milik sendiri dari `api.get('/surat-tugas/my')`. Sistem secara otomatis mengisi **Judul Laporan**, **Agenda Pelaksanaan (Point A)**, **Dasar Pelaksanaan (Point B)** + menautkan item `#3` Surat Tugas resmi, **Maksud & Tujuan (Point C)**, **Tabel Pelaksana (Point D)**, dan **Waktu/Tempat (Point E)**.
+  - **Opsi Manual (Tanpa Surat Tugas)**: Memungkinkan pengguna mengosongkan acuan Surat Tugas dan mengisi seluruh bidang secara manual.
+- **Tabel Pelaksana & Poin Hasil**: Pelaksana kegiatan dapat ditambah/dikurangi secara fleksibel, dan kronologi Hasil Pelaksanaan (Point F) mendukung penambahan poin harian secara dinamis.
+- **Galeri Dokumentasi Foto (Point G)**: Pengunggah foto kegiatan lapangan yang menampilkan preview gambar & caption keterangan lokasi.
+
+## 2. Format Cetak Resmi BKSDA (`GeneralReportPrint.tsx`)
+- **Standard Layout Sesuai Spesifikasi**: Memiliki Halaman Judul/Cover resmi Balai KSDA Kaltim, struktur seksi A-G lengkap, tabel pelaksana, dan layout grid dokumentasi foto 2-kolom.
+
+---
+
 # Progress - Phase 209: Refactoring Linter Warning & Optimalisasi React Effect (`KepegawaianScreen.tsx`)
 
 > Document updated: 2026-08-06
