@@ -426,7 +426,9 @@ export default function STCreatePremiumPage() {
     // PLH template: durasi tampil di bagian Untuk, bukan di kegiatan Kepala Seksi.
     if (templateType === "plh") {
       let text = replacePlhPlaceholders(namaKegiatan || "...");
-      if (days > 0) {
+      if (days === 1 || tanggalMulai === tanggalSelesai) {
+        text += ` selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+      } else if (days > 1) {
         text += ` selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
       } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
         text += ".";
@@ -461,7 +463,9 @@ export default function STCreatePremiumPage() {
         text += ` di ${kotaTujuan}`;
       }
     }
-    if (days > 0) {
+    if (days === 1 || tanggalMulai === tanggalSelesai) {
+      text += `, selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+    } else if (days > 1) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
     } else {
       text += ";";

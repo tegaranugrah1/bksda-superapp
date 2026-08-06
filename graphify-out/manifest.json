@@ -1110,9 +1110,9 @@
     "semantic_hash": "ef1cca231a7e138e45bb92c678384ebf"
   },
   "backend/app/Modules/SuratTugas/Models/AssignmentLetter.php": {
-    "mtime": 1779956899.8179238,
-    "ast_hash": "1a03fab4fe9469da1a62b75db6b1ee64",
-    "semantic_hash": "1a03fab4fe9469da1a62b75db6b1ee64"
+    "mtime": 1785975257.4485672,
+    "ast_hash": "5c6e1b5241f41a11cf6134165399ba01",
+    "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Models/AssignmentLetterEmployee.php": {
     "mtime": 1778138197.8075516,
@@ -2490,8 +2490,8 @@
     "semantic_hash": "750ce65eb50b8c03f6bc81fcdc28c117"
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx": {
-    "mtime": 1785917434.9949412,
-    "ast_hash": "f4af8ac71f00d750b8ddc54acaa44e6d",
+    "mtime": 1785975277.2771482,
+    "ast_hash": "b2a9f3bacefc92f6298be774f9e898be",
     "semantic_hash": ""
   },
   "frontend/src/app/lapor/page.tsx": {
@@ -2815,9 +2815,9 @@
     "semantic_hash": "2e57578c5277fa2195628a110576f9de"
   },
   "frontend/src/lib/letter-utils.ts": {
-    "mtime": 1779098293.548778,
-    "ast_hash": "7b625bf694ce97667e1c6a2b62d5472c",
-    "semantic_hash": "7b625bf694ce97667e1c6a2b62d5472c"
+    "mtime": 1785975264.2204587,
+    "ast_hash": "70ff416753fe8edad7602a0034f7e55f",
+    "semantic_hash": ""
   },
   "frontend/src/lib/utils.ts": {
     "mtime": 1781745268.9373457,
@@ -5335,8 +5335,8 @@
     "semantic_hash": ""
   },
   "mobile/src/components/PratinjauSuratTugasModal.tsx": {
-    "mtime": 1785974264.938406,
-    "ast_hash": "1e821c249cb675c5eb561105dd063a9e",
+    "mtime": 1785975269.8909738,
+    "ast_hash": "fec2dbb6ce8251a212e270b57e0597a3",
     "semantic_hash": ""
   },
   "mobile/assets/header-new.png": {

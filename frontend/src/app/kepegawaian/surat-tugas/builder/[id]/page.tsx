@@ -194,7 +194,9 @@ export default function STBuilderPage() {
     // PLH template: durasi tampil di bagian Untuk, bukan di kegiatan Kepala Seksi.
     if (isPlhTemplate) {
       text = replacePlhPlaceholders(namaKegiatan || "...");
-      if (days > 0) {
+      if (days === 1 || effectiveMulai === effectiveSelesai) {
+        text += ` selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+      } else if (days > 1) {
         text += ` selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
       } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
         text += ".";
@@ -229,7 +231,9 @@ export default function STBuilderPage() {
       }
     }
 
-    if (days > 0) {
+    if (days === 1 || effectiveMulai === effectiveSelesai) {
+      text += `, selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+    } else if (days > 1) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
     } else {
       text += ";";
@@ -562,8 +566,8 @@ export default function STBuilderPage() {
         );
 
         const activityStr = storedUntukLines[0] || data.maksud_tujuan || "";
-        // Strip "selama X hari terhitung..." suffix that buildUntukText appends
-        const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?terhitung.*$/i;
+        // Strip "selama X hari terhitung..." or "selama 1 (satu) hari pada tanggal..." suffix that buildUntukText appends
+        const selamaRegex = /,?\s*selama\s+\d+\s*\([^)]+\)\s*(?:hari(?:\s+kerja)?\s+)?(?:terhitung|pada).*$/i;
         const cleanedActivity = activityStr.replace(selamaRegex, "").replace(/[;,.]$/, "").trim();
         
         // Try to parse structured activity text: "[Melaksanakan] Perjalanan Dinas dari X ke Y [dalam rangka Z] [di W]"

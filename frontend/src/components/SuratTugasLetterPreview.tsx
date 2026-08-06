@@ -310,14 +310,29 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                       <tr>
                         <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>1.</td>
                         <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                          {untukText}
-                          {data.tempat_tujuan && (
-                            <>, dari Samarinda ke {data.tempat_tujuan}</>
-                          )}
-                          {data.tanggal_mulai && data.tanggal_selesai && (
-                            <>, selama {daysBetween(data.tanggal_mulai, data.tanggal_selesai)} ({numberToWords(daysBetween(data.tanggal_mulai, data.tanggal_selesai))}) hari, dari tanggal {formatDateIndonesian(data.tanggal_mulai)} sampai dengan {formatDateIndonesian(data.tanggal_selesai)}</>
-                          )}
-                          ;
+                          {(() => {
+                            const hasDuration = /selama\s+\d+|terhitung\s+mulai\s+tanggal|pada\s+tanggal/i.test(untukText);
+                            if (hasDuration || untukText.endsWith(";")) {
+                              return untukText;
+                            }
+                            const isSingleDay = data.tanggal_mulai && data.tanggal_selesai && data.tanggal_mulai === data.tanggal_selesai;
+                            const days = daysBetween(data.tanggal_mulai, data.tanggal_selesai);
+                            return (
+                              <>
+                                {untukText}
+                                {data.tempat_tujuan && !untukText.includes(data.tempat_tujuan) && (
+                                  <>, dari Samarinda ke {data.tempat_tujuan}</>
+                                )}
+                                {isSingleDay ? (
+                                  <>, selama 1 (satu) hari pada tanggal {formatDateIndonesian(data.tanggal_mulai)};</>
+                                ) : days > 1 ? (
+                                  <>, selama {days} ({numberToWords(days)}) hari terhitung mulai tanggal {formatDateIndonesian(data.tanggal_mulai)} sampai dengan {formatDateIndonesian(data.tanggal_selesai)};</>
+                                ) : (
+                                  <>;</>
+                                )}
+                              </>
+                            );
+                          })()}
                         </td>
                       </tr>
                       <tr>

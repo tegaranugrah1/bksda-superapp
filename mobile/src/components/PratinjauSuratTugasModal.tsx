@@ -80,6 +80,31 @@ function formatDateIndonesian(dateStr: string | null | undefined): string {
   }
 }
 
+function daysBetween(start: string, end: string): number {
+  if (!start || !end) return 0;
+  try {
+    const s = new Date(start.split("T")[0] + "T00:00:00");
+    const e = new Date(end.split("T")[0] + "T00:00:00");
+    if (isNaN(s.getTime()) || isNaN(e.getTime())) return 0;
+    const diff = Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return diff > 0 ? diff : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function numberToWords(n: number): string {
+  const ones = ['nol', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+  if (n < 12) return ones[n] || String(n);
+  if (n < 20) return numberToWords(n - 10) + ' belas';
+  if (n < 100) {
+    const div = Math.floor(n / 10);
+    const rem = n % 10;
+    return (div === 1 ? 'sepuluh' : (ones[div] || String(div)) + ' puluh') + (rem > 0 ? ' ' + (ones[rem] || String(rem)) : '');
+  }
+  return String(n);
+}
+
 function formatNIP(nip: string | null | undefined): string {
   if (!nip) return "19740514 199903 1 001";
   const cleaned = nip.replace(/\s/g, "");
@@ -148,6 +173,24 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
 
   const penandatanganNama = (data as any).penandatangan_nama || (data as any).approver?.name || data.nama_plh || "M. Ari Wibawanto, S.Hut., M.Sc.";
   const penandatanganNip = (data as any).penandatangan_nip || (data as any).approver?.nip || "197405141999031001";
+
+  const hasDuration = /selama\s+\d+|terhitung\s+mulai\s+tanggal|pada\s+tanggal/i.test(kegiatanText);
+  const isSingleDay = Boolean(tglMulai && tglSelesai && tglMulai === tglSelesai);
+  const days = daysBetween(tglMulai, tglSelesai);
+
+  let firstUntukLine = kegiatanText;
+  if (!hasDuration && !kegiatanText.endsWith(";")) {
+    if (tempatText && !kegiatanText.includes(tempatText)) {
+      firstUntukLine += `, dari Samarinda ke ${tempatText}`;
+    }
+    if (isSingleDay) {
+      firstUntukLine += `, selama 1 (satu) hari pada tanggal ${formatDateIndonesian(tglMulai)};`;
+    } else if (days > 1) {
+      firstUntukLine += `, selama ${days} (${numberToWords(days)}) hari terhitung mulai tanggal ${formatDateIndonesian(tglMulai)} sampai dengan ${formatDateIndonesian(tglSelesai)};`;
+    } else {
+      firstUntukLine += `;`;
+    }
+  }
 
   const menimbangRowsHtml = menimbangItems.length > 0
     ? menimbangItems.map((m, idx) => `
@@ -388,7 +431,7 @@ function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
                 <table style="width: 100%; border-collapse: collapse;">
                   <tr>
                     <td style="width: 24px; vertical-align: top;">1.</td>
-                    <td style="vertical-align: top; text-align: justify;">${kegiatanText}${tempatText ? `, dari Samarinda ke ${tempatText}` : ''}, terhitung mulai tanggal ${formatDateIndonesian(tglMulai)} sampai dengan ${formatDateIndonesian(tglSelesai)};</td>
+                    <td style="vertical-align: top; text-align: justify;">${firstUntukLine}</td>
                   </tr>
                   <tr>
                     <td style="vertical-align: top; padding-top: 4px;">2.</td>

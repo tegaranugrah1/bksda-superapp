@@ -836,7 +836,9 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       if (kotaTujuan) text += ` di ${kotaTujuan}`;
     }
 
-    if (days > 0) {
+    if (days === 1 || tanggalMulai === tanggalSelesai) {
+      text += `, selama 1 (satu) hari pada tanggal ${tglMulaiFormatted};`;
+    } else if (days > 1) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${tglMulaiFormatted} sampai dengan ${tglSelesaiFormatted};`;
     } else {
       text += ";";
