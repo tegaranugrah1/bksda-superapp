@@ -22,12 +22,18 @@ import {
   Calendar,
   MapPin,
   Users,
+  ArrowLeft,
   Image as ImageIcon,
   Loader2,
   Layers,
+  Search,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { GeneralReportPrint, GeneralReportData } from "./GeneralReportPrint";
 
 interface GeneralReportDialogProps {
@@ -247,6 +253,9 @@ export function GeneralReportDialog({
     Array<{ url: string; caption?: string }>
   >([]);
 
+  const [stSearch, setStSearch] = useState("");
+  const [stPopoverOpen, setStPopoverOpen] = useState(false);
+
   // Print Mode State
   const [isPrintMode, setIsPrintMode] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
@@ -462,19 +471,84 @@ export function GeneralReportDialog({
                   <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
                 )}
               </div>
-              <select
-                value={selectedSTId}
-                onChange={(e) => handleSelectSuratTugas(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-emerald-300 dark:border-emerald-700 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 outline-none"
-              >
-                <option value="">[ Tanpa Surat Tugas / Input Manual ]</option>
-                {stOptions.map((st) => (
-                  <option key={st.id} value={st.id}>
-                    {st.nomor_surat ? `${st.nomor_surat} - ` : ""}
-                    {st.maksud_tujuan.substring(0, 60)}... ({formatDateIndo(st.tanggal_mulai)})
-                  </option>
-                ))}
-              </select>
+              <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen} modal={true}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={stPopoverOpen}
+                    className="w-full justify-between p-2.5 h-auto min-h-[44px] rounded-xl bg-white dark:bg-zinc-800 border border-emerald-300 dark:border-emerald-700 text-xs font-semibold text-slate-800 dark:text-slate-200"
+                  >
+                    <span className="truncate whitespace-normal text-left line-clamp-1 flex-1 pr-2">
+                      {selectedSTId
+                        ? (stOptions.find(st => st.id === selectedSTId)?.nomor_surat
+                            ? `${stOptions.find(st => st.id === selectedSTId)?.nomor_surat} - `
+                            : "") +
+                          (stOptions.find(st => st.id === selectedSTId)?.maksud_tujuan.substring(0, 60) || "") +
+                          "..."
+                        : "[ Tanpa Surat Tugas / Input Manual ]"}
+                    </span>
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[80vw] md:w-[600px] p-0" align="start">
+                  <div className="flex flex-col max-h-[350px]">
+                    <div className="flex items-center border-b px-3">
+                      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                      <Input
+                        className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground border-0 focus-visible:ring-0 px-0 shadow-none"
+                        placeholder="Cari nomor atau tujuan ST..."
+                        value={stSearch}
+                        onChange={(e) => setStSearch(e.target.value)}
+                      />
+                    </div>
+                    <div className="overflow-y-auto flex-1 p-1">
+                      <div
+                        className={cn(
+                          "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-300",
+                          selectedSTId === "" && "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-bold"
+                        )}
+                        onClick={() => {
+                          handleSelectSuratTugas("");
+                          setStPopoverOpen(false);
+                        }}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedSTId === "" ? "opacity-100" : "opacity-0")} />
+                        <span className="truncate">[ Tanpa Surat Tugas / Input Manual ]</span>
+                      </div>
+                      {stOptions
+                        .filter(st => st.nomor_surat?.toLowerCase().includes(stSearch.toLowerCase()) || st.maksud_tujuan.toLowerCase().includes(stSearch.toLowerCase()))
+                        .map((st) => (
+                          <div
+                            key={st.id}
+                            className={cn(
+                              "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-300",
+                              selectedSTId === st.id && "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-bold"
+                            )}
+                            onClick={() => {
+                              handleSelectSuratTugas(st.id);
+                              setStPopoverOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedSTId === st.id ? "opacity-100" : "opacity-0")} />
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="truncate text-xs">
+                                {st.nomor_surat ? `${st.nomor_surat} - ` : ""}
+                                {st.maksud_tujuan}
+                              </span>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400">{formatDateIndo(st.tanggal_mulai)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      {stOptions.filter(st => st.nomor_surat?.toLowerCase().includes(stSearch.toLowerCase()) || st.maksud_tujuan.toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
+                        <div className="py-6 text-center text-sm text-slate-500">
+                          Tidak ada Surat Tugas yang cocok.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Memilih Surat Tugas akan otomatis mengisi Agenda, Dasar, Pelaksana, dan Waktu Pelaksanaan. Pilih &quot;Tanpa Surat Tugas&quot; jika ingin mengisi manual.
               </p>

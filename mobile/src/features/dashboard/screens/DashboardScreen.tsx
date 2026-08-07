@@ -10,6 +10,8 @@ export default function DashboardScreen({ navigation }: any) {
   const handleNavigate = (moduleKey: string) => {
     if (moduleKey === 'buat-surat-tugas' || moduleKey === 'surat-tugas-baru') {
       navigation.navigate('AssignmentForm');
+    } else if (moduleKey === 'laporan-pelaksanaan-st') {
+      navigation.navigate('GeneralReportForm');
     } else if (moduleKey === 'inbox-surat-tugas') {
       navigation.navigate('InboxSuratTugas');
     } else if (moduleKey === 'inbox-surat-cuti') {

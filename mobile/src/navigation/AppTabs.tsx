@@ -18,6 +18,8 @@ import SuratTugasListScreen from "../features/surat-tugas/screens/SuratTugasList
 import AssignmentDetailScreen from "../features/surat-tugas/screens/AssignmentDetailScreen";
 import AssignmentFormScreen from "../features/surat-tugas/screens/AssignmentFormScreen";
 import { KepegawaianDashboardScreen } from "../features/kepegawaian/KepegawaianDashboardScreen";
+import GeneralReportFormScreen from "../features/surat-tugas/screens/GeneralReportFormScreen";
+import GeneralReportPreviewScreen from "../features/surat-tugas/screens/GeneralReportPreviewScreen";
 
 export type AppTabParamList = {
   Dashboard: undefined;
@@ -38,6 +40,8 @@ export type AppTabParamList = {
   SuratTugasList: { initialMode?: "personal" | "management"; initialStatus?: any } | undefined;
   AssignmentDetail: { id: string | number; mode?: "personal" | "management" };
   AssignmentForm: { id?: string | number } | undefined;
+  GeneralReportForm: undefined;
+  GeneralReportPreview: { reportData: any };
 };
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
@@ -45,6 +49,7 @@ const Tab = createBottomTabNavigator<AppTabParamList>();
 export default function AppTabs() {
   return (
     <Tab.Navigator
+      backBehavior="history"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -70,6 +75,8 @@ export default function AppTabs() {
       <Tab.Screen name="SuratTugasList" component={SuratTugasListScreen} />
       <Tab.Screen name="AssignmentDetail" component={AssignmentDetailScreen} />
       <Tab.Screen name="AssignmentForm" component={AssignmentFormScreen} />
+      <Tab.Screen name="GeneralReportForm" component={GeneralReportFormScreen} />
+      <Tab.Screen name="GeneralReportPreview" component={GeneralReportPreviewScreen} />
     </Tab.Navigator>
   );
 }

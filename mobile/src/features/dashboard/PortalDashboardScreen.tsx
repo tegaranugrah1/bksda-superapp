@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, RADIUS } from "../../theme";
@@ -104,7 +105,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 }) => {
   const { isDark, toggleTheme, colors } = useTheme();
   const { user, employee } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>("pinjaman");
+  const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [myStList, setMyStList] = useState<PratinjauSuratTugasItem[]>([]);
   const [selectedPreviewSt, setSelectedPreviewSt] = useState<PratinjauSuratTugasItem | null>(null);
 
@@ -125,6 +126,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [cutiModalVisible, setCutiModalVisible] = useState(false);
   const [cutiPreviewItem, setCutiPreviewItem] = useState<LeaveRequestPrintData | null>(null);
   const [cutiPreviewVisible, setCutiPreviewVisible] = useState(false);
+  const [laporanMenuVisible, setLaporanMenuVisible] = useState(false);
 
   const fetchMyLeaveRequests = React.useCallback(async () => {
     try {
@@ -597,8 +599,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Emerald Hero Greeting Banner */}
-        <View style={styles.heroBanner}>
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Emerald Hero Greeting Banner */}
+            <View style={styles.heroBanner}>
           <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
           <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
           <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur ({resolvedNip}).</Text>
@@ -678,53 +682,56 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </View>
           </>
         )}
+          </>
+        )}
 
-        {/* 2-Row x 2-Column Tab Buttons Grid Layout */}
-        <View style={styles.tabGrid}>
-          {tabOptions.map((tab) => {
-            const isActive = activeTab === tab.key;
-            return (
-              <TouchableOpacity
-                key={tab.key}
-                onPress={() => setActiveTab(tab.key)}
-                style={[
-                  styles.tabButton,
-                  { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
-                  isActive && styles.tabButtonActive,
-                ]}
-                activeOpacity={0.8}
-              >
-                <Ionicons
-                  name={tab.icon as any}
-                  size={13}
-                  color={isActive ? "#ffffff" : isDark ? "#a7f3d0" : "#64748b"}
-                  style={{ marginRight: 4 }}
-                />
-                <Text
-                  style={[
-                    styles.tabButtonText,
-                    { color: isDark ? "#a7f3d0" : "#64748b" },
-                    isActive && styles.tabButtonTextActive,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {tab.label}
-                </Text>
-                {tab.count > 0 && (
-                  <View style={[styles.tabBadge, isActive && styles.tabBadgeActive]}>
-                    <Text style={[styles.tabBadgeText, isActive && styles.tabBadgeTextActive]}>
-                      {tab.count}
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+
 
         {/* Dynamic Tab Content Box Presisi Web Portal */}
         {renderTabContent()}
       </ScrollView>
+
+      {/* Floating Bottom Navigation */}
+      <View style={[styles.bottomNavContainer, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("dashboard")}>
+          <Ionicons name={activeTab === "dashboard" ? "home" : "home-outline"} size={22} color={activeTab === "dashboard" ? "#10b981" : colors.textMuted} />
+          {activeTab === "dashboard" && <View style={styles.navActiveDot} />}
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("surattugas")}>
+          <View style={styles.navIconWrapper}>
+            <Ionicons name={activeTab === "surattugas" ? "document-text" : "document-text-outline"} size={22} color={activeTab === "surattugas" ? "#10b981" : colors.textMuted} />
+            {stBadgeCount > 0 && <View style={styles.navBadge} />}
+          </View>
+          {activeTab === "surattugas" && <View style={styles.navActiveDot} />}
+        </TouchableOpacity>
+
+        <View style={styles.fabWrapper}>
+          <TouchableOpacity 
+            style={styles.fabButton}
+            onPress={() => setLaporanMenuVisible(true)}
+            activeOpacity={0.9}
+          >
+            <Ionicons name="add" size={28} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("aset")}>
+          <View style={styles.navIconWrapper}>
+            <Ionicons name={activeTab === "aset" ? "briefcase" : "briefcase-outline"} size={22} color={activeTab === "aset" ? "#10b981" : colors.textMuted} />
+            {assetsBadgeCount > 0 && <View style={styles.navBadge} />}
+          </View>
+          {activeTab === "aset" && <View style={styles.navActiveDot} />}
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("cuti")}>
+          <View style={styles.navIconWrapper}>
+            <Ionicons name={activeTab === "cuti" ? "calendar" : "calendar-outline"} size={22} color={activeTab === "cuti" ? "#10b981" : colors.textMuted} />
+            {cutiBadgeCount > 0 && <View style={styles.navBadge} />}
+          </View>
+          {activeTab === "cuti" && <View style={styles.navActiveDot} />}
+        </TouchableOpacity>
+      </View>
 
       {/* Official Print Preview Modal Presisi Web Portal */}
       <PratinjauSuratTugasModal
@@ -746,6 +753,56 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         data={cutiPreviewItem}
         onClose={() => setCutiPreviewVisible(false)}
       />
+      {/* Laporan Menu Bottom Sheet Modal */}
+      <Modal
+        visible={laporanMenuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLaporanMenuVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setLaporanMenuVisible(false)}
+        >
+          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+            <View style={styles.menuModalHeader}>
+              <Text style={[styles.menuModalTitle, { color: colors.textDark }]}>Buat Laporan</Text>
+              <TouchableOpacity onPress={() => setLaporanMenuVisible(false)}>
+                <Ionicons name="close" size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.menuOptionBtn}
+              activeOpacity={0.7}
+              onPress={() => {
+                setLaporanMenuVisible(false);
+                if (onNavigateToModule) onNavigateToModule("laporan-pelaksanaan-st");
+              }}
+            >
+              <View style={[styles.menuOptionIcon, { backgroundColor: "#dcfce7" }]}>
+                <Ionicons name="document-text" size={20} color="#059669" />
+              </View>
+              <View style={styles.menuOptionTextWrap}>
+                <Text style={[styles.menuOptionTitle, { color: colors.textDark }]}>1. Laporan Pelaksanaan ST</Text>
+                <Text style={styles.menuOptionSubtitle}>Buka Mode Inline Form Laporan</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={[styles.menuOptionBtn, { opacity: 0.5 }]}>
+              <View style={[styles.menuOptionIcon, { backgroundColor: "#f1f5f9" }]}>
+                <Ionicons name="document-text-outline" size={20} color="#64748b" />
+              </View>
+              <View style={styles.menuOptionTextWrap}>
+                <Text style={[styles.menuOptionTitle, { color: colors.textDark }]}>2. Laporan Monitoring</Text>
+                <Text style={styles.menuOptionSubtitle}>(Mendatang)</Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
     </View>
   );
 };
@@ -823,7 +880,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 40,
+    paddingBottom: 100, // accommodate floating bottom nav
   },
   heroBanner: {
     backgroundColor: COLORS.emeraldElectric,
@@ -964,36 +1021,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     textAlign: "center",
   },
-  tabGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -4,
-    marginBottom: 10,
-  },
-  tabButton: {
-    width: "48%",
-    marginHorizontal: "1%",
-    marginBottom: 6,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderRadius: RADIUS.pill,
-    paddingVertical: 7,
-    paddingHorizontal: 6,
-  },
-  tabButtonActive: {
-    backgroundColor: COLORS.emeraldElectric,
-    borderColor: COLORS.emeraldElectric,
-  },
-  tabButtonText: {
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  tabButtonTextActive: {
-    color: "#ffffff",
-    fontWeight: "700",
-  },
   tabContentCard: {
     padding: 16,
     alignItems: "center",
@@ -1080,27 +1107,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
   },
-  tabBadge: {
-    marginLeft: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 8,
-    backgroundColor: "#e2e8f0",
-    minWidth: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  tabBadgeActive: {
-    backgroundColor: "#ffffff",
-  },
-  tabBadgeText: {
-    fontSize: 9.5,
-    fontWeight: "800",
-    color: "#0f172a",
-  },
-  tabBadgeTextActive: {
-    color: "#059669",
-  },
+
   stCardContainer: {
     padding: 12,
     borderRadius: 14,
@@ -1153,5 +1160,127 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
+  },
+  bottomNavContainer: {
+    position: 'absolute',
+    bottom: 24,
+    left: 20,
+    right: 20,
+    height: 64,
+    borderRadius: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    flex: 1,
+  },
+  navIconWrapper: {
+    position: 'relative',
+  },
+  navBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+  },
+  navActiveDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#10b981',
+    position: 'absolute',
+    bottom: 12,
+  },
+  fabWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fabButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#10b981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -30,
+    shadowColor: "#10b981",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 3,
+    borderColor: '#ffffff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    justifyContent: "flex-end",
+  },
+  menuModalContent: {
+    padding: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 20,
+  },
+  menuModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  menuModalTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  menuOptionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.15)",
+    borderRadius: 16,
+    marginBottom: 12,
+  },
+  menuOptionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  menuOptionTextWrap: {
+    flex: 1,
+  },
+  menuOptionTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  menuOptionSubtitle: {
+    fontSize: 11,
+    color: "#64748b",
   },
 });
