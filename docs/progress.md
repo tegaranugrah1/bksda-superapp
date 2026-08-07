@@ -1,3 +1,107 @@
+# Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Redesain Portal BKSDA Kaltim Terinspirasi MYASN (GitHub Issue #564)
+- **3-Column Hybrid Layout**: Mengimplementasikan tata letak 3 kolom modern (`PortalProfileSidebar.tsx`, `PortalHeaderBanner.tsx`, `PortalQuickStats.tsx`, `PortalInfoSidebar.tsx`) dengan tema Gradient Emerald dan nuansa MYASN.
+- **Unifikasi Beranda Portal**: Menyatukan Dashboard Utama, Modul Akses System, dan Ringkasan Statistik ke dalam 1 tampilan Beranda default.
+- **Restrukturisasi Sidebar Kiri & Menu Navigasi**:
+  - Memindahkan menu *Pinjaman Aktif*, *Aset Saya*, *Surat Tugas & Laporan*, dan *Pengajuan Cuti* ke Sidebar Kiri.
+  - Memindahkan tombol dropdown *"Buat Laporan"* ke Sidebar Kiri dan menghapusnya dari banner tengah.
+  - Mengklik menu sidebar menampilkan konten tab secara eksklusif sambil menyembunyikan menu/tab lainnya.
+- **Mode Form Inline Laporan & Navigasi Back**:
+  - Mengklik *"1. Laporan Pelaksanaan ST"* di sidebar langsung membuka mode Form Inline tanpa pop-up modal.
+  - Mengklik *"Kembali ke Portal"* dari form inline mereset tampilan secara bersih kembali ke Dashboard Utama.
+
+## 2. Penyempurnaan Kartu Profil & Layout Shift Fix
+- **Fix Layout Shift Scrollbar**: Menambahkan `html { scrollbar-gutter: stable; }` pada `globals.css` untuk menghentikan pergeseran pergerakan layar saat scrollbar vertikal muncul/hilang.
+- **Pembersihan Kartu Profil**:
+  - Menghapus tombol *"Lihat Profil"* dan menggantinya dengan Ikon Pensil Edit di kanan atas kartu profil (membuka dialog Edit Email & Telepon).
+  - Mengubah tombol *"Ganti Password"* menjadi tombol tunggal full-width di bagian bawah kartu profil.
+  - Menampilkan Email dan Nomor Telepon/WA pegawai langsung pada daftar detail profil.
+
+## 3. Opsi Pengaturan Cover Manual Laporan Pelaksanaan (`GeneralReportPrint.tsx` & `GeneralReportInlineForm.tsx`)
+- **Dukungan 3 Mode Cover Laporan**:
+  1. **Cover Standar BKSDA**: Cover resmi Balai KSDA Kaltim terautofill dari Judul, Logo, Pelaksana, dan Instansi.
+  2. **Cover Manual Gambar (Upload Cover)**: Pengguna dapat mengunggah gambar cover kustom full-page A4 sendiri.
+  3. **Custom Sub-Unit Cover Text**: Mengizinkan kustomisasi teks judul, penyusun, dan footer sub-unit kerja.
+
+---
+
+# Progress - Phase 213: Penyempurnaan Formatter Judul, Agenda A, Maksud & Tujuan C, serta Waktu E Laporan Pelaksanaan
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Pembersihan Prefix Judul Laporan (`formatJudulLaporan`)
+- **Pembersihan Awalan Redundan**: Mengeliminasi frasa awalan seperti `MELAKSANAKAN KEGIATAN`, `Melaksanakan perjalanan dinas`, `Menugaskan staf`, dan `Melaksanakan` dari autofill Judul Laporan.
+- **Formasi Judul Standar**: Menghasilkan Judul Laporan yang bersih, contoh: `LAPORAN PELAKSANAAN OPNAME FISIK ATK PERSEDIAAN PADA BALAI KSDA KALIMANTAN TIMUR DI SAMARINDA` dan `LAPORAN PELAKSANAAN INVENTARISASI BMN DI SEKSI KSDA WILAYAH I BERAU`.
+
+## 2. Penyempurnaan Struktur Seksi Laporan A, C, dan E
+- **A. Agenda Pelaksanaan**: Menampilkan kalimat penuh maksud penugasan dari Surat Tugas acuan.
+- **C. Maksud dan Tujuan**: Tampilan UI hanya memerlukan input bidang **Tujuan Spesifik Kegiatan**, sementara kalimat maksud kegiatan ditampilkan secara read-only dan otomatis digabungkan pada hasil dokumen PDF.
+- **E. Waktu dan Tempat Pelaksanaan**: Menggunakan klausa nama kegiatan ringkas hasil ekstraksi (contoh: *Kegiatan Pelaksanaan Lelang BMN ini dilaksanakan selama 2 (dua) hari terhitung mulai tanggal 20 Juli 2026 sampai dengan 21 Juli 2026 di Bontang.*).
+
+---
+
+# Progress - Phase 212: Implementasi Form Laporan Inline & Animasi Transisi Tampilan Portal (`GeneralReportInlineForm.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Integrasi Form Laporan Inline & Animasi Transisi (`GeneralReportInlineForm.tsx`)
+- **Tampilan Inline Menggantikan Modal Pop-up**: Mengganti modal pop-up dengan tampilan Form Inline (`GeneralReportInlineForm.tsx`) yang menggantikan seksi Modul Akses dan Tab Konten secara langsung di halaman Portal.
+- **Animasi Transisi Halus (`animate-in fade-in slide-in-from-top-4 duration-300`)**: Saat pengguna memilih *"1. Laporan Pelaksanaan"*, form pembuatan laporan muncul dengan animasi transisi yang mulus dan elegan.
+- **Navigasi Kembalian Kustom (`← Kembali ke Portal`)**: Menyediakan tombol header *"← Kembali ke Portal"* untuk kembali ke tampilan utama Portal Dashboard kapan saja secara fleksibel.
+
+---
+
+# Progress - Phase 211: Refactoring Tombol "Buat Laporan" ke Dropdown Menu Multi-Template & Responsive Modal Fix
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Tombol Dropdown "Buat Laporan" Multi-Template (`DropdownMenu`)
+- **Implementasi Dropdown Menu**: Mengubah tombol tunggal "Buat Laporan" pada Banner Portal Utama dan Tab Surat Tugas menjadi tombol Dropdown Menu (`DropdownMenu` Radix UI) yang dinamis.
+- **Daftar Opsi Template Laporan**:
+  1. **1. Laporan Pelaksanaan Surat Tugas** (Aktif -> Membuka `GeneralReportDialog`).
+  2. **2. Laporan Monitoring & Pengawasan** (Opsi template mendatang).
+  3. **3. Laporan Pertanggungjawaban & Evaluasi** (Opsi template mendatang).
+
+## 2. Perbaikan Responsivitas & Tampilan Modal (`GeneralReportDialog.tsx`)
+- **Pelebaran & Responsivitas Modal**: Memperluas lebar dialog modal menjadi `w-[95vw] max-w-5xl` agar seluruh bidang input, tabel pelaksana, dan pratinjau format laporan tampil luas, rapi, dan nyaman tanpa terpotong atau memicu scrollbar horizontal.
+
+---
+
+# Progress - Phase 210: Implementasi Generator Laporan Pelaksanaan Surat Tugas di Portal Web (`GeneralReportDialog.tsx` & `GeneralReportPrint.tsx`)
+
+> Document updated: 2026-08-06
+> Status: SELESAI & Verifikasi TypeScript Clean (0 Error), Backend PHPUnit Passed (59 Tests).
+
+---
+
+## 1. Pembuatan Fitur & Form Builder Laporan General (`GeneralReportDialog.tsx`)
+- **Pencetus GitHub Issue #563**: Berada pada branch `development` dan mempublikasikan Issue #563 di repository GitHub.
+- **Surat Tugas Selector (Autofill & Manual Mode)**:
+  - **Opsi Autofill dari Surat Tugas**: Pengguna dapat memilih Surat Tugas milik sendiri dari `api.get('/surat-tugas/my')`. Sistem secara otomatis mengisi **Judul Laporan**, **Agenda Pelaksanaan (Point A)**, **Dasar Pelaksanaan (Point B)** + menautkan item `#3` Surat Tugas resmi, **Maksud & Tujuan (Point C)**, **Tabel Pelaksana (Point D)**, dan **Waktu/Tempat (Point E)**.
+  - **Opsi Manual (Tanpa Surat Tugas)**: Memungkinkan pengguna mengosongkan acuan Surat Tugas dan mengisi seluruh bidang secara manual.
+- **Tabel Pelaksana & Poin Hasil**: Pelaksana kegiatan dapat ditambah/dikurangi secara fleksibel, dan kronologi Hasil Pelaksanaan (Point F) mendukung penambahan poin harian secara dinamis.
+- **Galeri Dokumentasi Foto (Point G)**: Pengunggah foto kegiatan lapangan yang menampilkan preview gambar & caption keterangan lokasi.
+
+## 2. Format Cetak Resmi BKSDA (`GeneralReportPrint.tsx`)
+- **Standard Layout Sesuai Spesifikasi**: Memiliki Halaman Judul/Cover resmi Balai KSDA Kaltim, struktur seksi A-G lengkap, tabel pelaksana, dan layout grid dokumentasi foto 2-kolom.
+
+---
+
 # Progress - Phase 209: Refactoring Linter Warning & Optimalisasi React Effect (`KepegawaianScreen.tsx`)
 
 > Document updated: 2026-08-06
