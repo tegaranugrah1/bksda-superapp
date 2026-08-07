@@ -8255,3 +8255,11 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 
 
 
+-   [ x ]   * * P r i n t   L a y o u t   &   P a g i n a t i o n   F i x e s   ( P o r t a l   &   K e p e g a w a i a n ) * * : 
+     -   R e s o l v e d   C h r o m e ' s   p r i n t   e n g i n e   p a g i n a t i o n   b u g s   i n   \ G e n e r a l R e p o r t P r i n t . t s x \   a n d   \ S T B u i l d e r P r e v i e w . t s x \ . 
+     -   R e p l a c e d   \ d i s p l a y :   g r i d \   l a y o u t s   i n   \ K e p a d a \   a n d   \ U n t u k \   s e c t i o n s   w i t h   H T M L   t a b l e s   t o   p r e v e n t   t e x t   o v e r f l o w   o n t o   t h e   g r a y   b a c k g r o u n d   d u r i n g   p r i n t i n g . 
+     -   A d d e d   r e p e a t i n g   \ 	 h e a d \   a n d   \ 	 f o o t \   s p a c e r s   t o   e n f o r c e   1 5 m m   t o p   a n d   b o t t o m   m a r g i n s   o n   e v e r y   p r i n t e d   p a g e . 
+     -   A p p l i e d   \ p a g e B r e a k A f t e r :   a v o i d \   t o   t h e   \ M E M B E R I   T U G A S , \   t i t l e   t o   p r e v e n t   o r p h a n e d   h e a d e r s   s e p a r a t i n g   f r o m   t h e   \ K e p a d a \   b l o c k . 
+     -   R e m o v e d   s t r i c t   \  v o i d - b r e a k \   f r o m   L a p o r a n   P o r t a l ' s   s i g n a t u r e   b l o c k   t o   a l l o w   n a t u r a l   p a g e   b r e a k s   f o r   l o n g   p a r t i c i p a n t   l i s t s . 
+  
+ 
