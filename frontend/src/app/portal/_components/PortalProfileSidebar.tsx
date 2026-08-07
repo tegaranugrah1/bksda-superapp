@@ -46,8 +46,8 @@ interface PortalProfileSidebarProps {
   assetCount?: number;
   suratTugasCount?: number;
   leaveCount?: number;
-  onOpenInlineReport?: () => void;
-  isInlineReportOpen?: boolean;
+  onOpenInlineReport: (type: "general" | "smart_patrol") => void;
+  isInlineReportOpen: boolean;
   onRefreshDashboard?: () => void;
 }
 
@@ -382,7 +382,7 @@ export function PortalProfileSidebar({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-64 p-2 rounded-2xl border border-slate-200 shadow-xl bg-white dark:bg-slate-900">
                   <DropdownMenuItem
-                    onClick={onOpenInlineReport}
+                    onClick={() => onOpenInlineReport("general")}
                     className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
                   >
                     <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 shrink-0 mt-0.5">
@@ -394,13 +394,16 @@ export function PortalProfileSidebar({
                     </div>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem disabled className="flex items-start gap-3 p-2.5 rounded-xl opacity-50 cursor-not-allowed">
-                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0 mt-0.5">
+                  <DropdownMenuItem 
+                    onClick={() => onOpenInlineReport("smart_patrol")}
+                    className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
+                  >
+                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 shrink-0 mt-0.5">
                       <FileSpreadsheet className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">2. Laporan Monitoring</p>
-                      <p className="text-[10px] text-slate-400 font-normal">(Mendatang)</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">2. Laporan SMART PATROL</p>
+                      <p className="text-[10px] text-slate-500 font-normal">Buka Form Patroli Kawasan</p>
                     </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
