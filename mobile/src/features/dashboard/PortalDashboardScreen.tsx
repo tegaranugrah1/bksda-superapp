@@ -603,23 +603,42 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
           <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur ({resolvedNip}).</Text>
 
-          {/* Quick Actions Row for Employees (Sisa Cuti & Buat Surat Tugas) */}
-          <View style={styles.employeeQuickActionsRow}>
-            <View style={styles.sisaCutiBox}>
-              <Ionicons name="calendar-outline" size={16} color="#059669" style={{ marginRight: 6 }} />
-              <Text style={styles.sisaCutiLabel}>Sisa Cuti:</Text>
-              <Text style={styles.sisaCutiValue}> 12 Hari</Text>
-            </View>
+          {/* Buat Surat Tugas Button */}
+          <TouchableOpacity
+            style={[styles.buatStQuickBtn, { alignSelf: 'flex-start', marginTop: 4 }]}
+            onPress={() => onNavigateToModule && onNavigateToModule("buat-surat-tugas")}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="paper-plane-outline" size={15} color="#ffffff" style={{ marginRight: 6 }} />
+            <Text style={styles.buatStQuickText}>Buat ST Baru</Text>
+          </TouchableOpacity>
+        </View>
 
-            <TouchableOpacity
-              style={styles.buatStQuickBtn}
-              onPress={() => onNavigateToModule && onNavigateToModule("buat-surat-tugas")}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="paper-plane-outline" size={15} color="#ffffff" style={{ marginRight: 6 }} />
-              <Text style={styles.buatStQuickText}>Buat ST Baru</Text>
-            </TouchableOpacity>
-          </View>
+        {/* Quick Stats Cards */}
+        <View style={styles.quickStatsRow}>
+          <GlassCard style={[styles.quickStatCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+            <View style={styles.quickStatHeader}>
+              <View style={[styles.quickStatIconBg, { backgroundColor: "rgba(59, 130, 246, 0.1)" }]}>
+                <Ionicons name="ribbon-outline" size={14} color="#3B82F6" />
+              </View>
+              <Text style={[styles.quickStatTitle, { color: colors.textMuted }]} numberOfLines={1}>PANGKAT / GOLONGAN</Text>
+            </View>
+            <Text style={[styles.quickStatValue, { color: colors.textDark }]} numberOfLines={1}>
+              {"Penata Muda (III/a)"}
+            </Text>
+            <Text style={[styles.quickStatSubtitle, { color: colors.textMuted }]}>TMT: 1 Juni 2025</Text>
+          </GlassCard>
+
+          <GlassCard style={[styles.quickStatCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+            <View style={styles.quickStatHeader}>
+              <View style={[styles.quickStatIconBg, { backgroundColor: "rgba(245, 158, 11, 0.1)" }]}>
+                <Ionicons name="calendar-outline" size={14} color="#F59E0B" />
+              </View>
+              <Text style={[styles.quickStatTitle, { color: colors.textMuted }]} numberOfLines={1}>SISA CUTI ({new Date().getFullYear()})</Text>
+            </View>
+            <Text style={[styles.quickStatValue, { color: colors.textDark }]}>12 Hari Kerja</Text>
+            <Text style={[styles.quickStatSubtitle, { color: colors.textMuted }]}>Cuti Tahunan Ready</Text>
+          </GlassCard>
         </View>
 
         {/* Section Title */}
@@ -865,6 +884,43 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 11,
     fontWeight: "800",
+  },
+  quickStatsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 16,
+  },
+  quickStatCard: {
+    flex: 1,
+    padding: 12,
+    borderRadius: RADIUS.card,
+    borderWidth: 1,
+  },
+  quickStatHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  quickStatIconBg: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 6,
+  },
+  quickStatTitle: {
+    fontSize: 9.5,
+    fontWeight: "700",
+    flex: 1,
+  },
+  quickStatValue: {
+    fontSize: 13,
+    fontWeight: "800",
+    marginBottom: 2,
+  },
+  quickStatSubtitle: {
+    fontSize: 10,
   },
   sectionHeader: {
     marginBottom: 8,
