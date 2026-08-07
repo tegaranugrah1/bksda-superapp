@@ -285,7 +285,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
 
                 {/* D. PELAKSANA KEGIATAN */}
                 <div className="space-y-2">
-                  <h3 className="text-[12pt] font-bold uppercase avoid-break">D. PELAKSANA KEGIATAN</h3>
+                  <h3 className="text-[12pt] font-bold uppercase">D. PELAKSANA KEGIATAN</h3>
                   <div className="pl-4 overflow-x-visible">
                     <div className="relative pt-[28px]">
                       {/* MAGIC HACK: Cover up the 1 | 2 | 3 row ONLY on the first page to perfectly match MS Word behavior! */}
@@ -347,7 +347,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                 </div>
 
                 {/* SIGNATURE BLOCK */}
-                <div className="avoid-break pt-4 space-y-4">
+                <div className="pt-4 space-y-4">
                   <p className="text-[12pt] leading-relaxed">
                     Demikian laporan ini dibuat untuk diketahui dan dipergunakan sebagaimana mestinya.
                   </p>
