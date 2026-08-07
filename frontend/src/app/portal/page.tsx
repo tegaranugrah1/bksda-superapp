@@ -32,6 +32,7 @@ import { MyLeaveTab } from "./_components/MyLeaveTab";
 import { ActiveLoansTab, BorrowedAssetItem } from "./_components/ActiveLoansTab";
 import { GeneralReportDialog } from "./_components/GeneralReportDialog";
 import { GeneralReportInlineForm } from "./_components/GeneralReportInlineForm";
+import { SmartPatrolInlineForm } from "./_components/SmartPatrolInlineForm";
 import { PortalProfileSidebar } from "./_components/PortalProfileSidebar";
 import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
 import { PortalQuickStats } from "./_components/PortalQuickStats";
@@ -109,7 +110,7 @@ export default function PersonalDashboard() {
 
   // General Report Builder state
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
-  const [showInlineReport, setShowInlineReport] = useState(false);
+  const [inlineFormType, setInlineFormType] = useState<"general" | "smart_patrol" | null>(null);
 
   const filteredMyAssets = useMemo(() => {
     if (!data?.my_assets) return myAssets;
@@ -361,7 +362,7 @@ export default function PersonalDashboard() {
               employee={data.employee}
               activeNavTab={activeNavTab}
               onSelectNavTab={(navTab) => {
-                setShowInlineReport(false);
+                setInlineFormType(null);
                 setActiveNavTab(navTab);
                 if (navTab === "pinjaman" || navTab === "aset" || navTab === "surat_tugas" || navTab === "cuti") {
                   setActiveTab(navTab);
@@ -371,18 +372,25 @@ export default function PersonalDashboard() {
               assetCount={filteredMyAssets.length}
               suratTugasCount={suratTugas.length}
               leaveCount={myLeaveRequests.length}
-              onOpenInlineReport={() => setShowInlineReport(true)}
-              isInlineReportOpen={showInlineReport}
+              onOpenInlineReport={(type) => setInlineFormType(type)}
+              isInlineReportOpen={inlineFormType !== null}
               onRefreshDashboard={fetchDashboard}
             />
           </div>
 
           {/* CENTER COLUMN: MAIN WORKSPACE OR SPECIFIC MENU ITEM */}
           <main className="flex-1 min-w-0 space-y-6 w-full print:m-0 print:p-0 print:space-y-0 print:block">
-            {showInlineReport ? (
+            {inlineFormType === "general" ? (
               <GeneralReportInlineForm
                 onBack={() => {
-                  setShowInlineReport(false);
+                  setInlineFormType(null);
+                  setActiveNavTab("dashboard");
+                }}
+              />
+            ) : inlineFormType === "smart_patrol" ? (
+              <SmartPatrolInlineForm
+                onBack={() => {
+                  setInlineFormType(null);
                   setActiveNavTab("dashboard");
                 }}
               />
@@ -462,7 +470,7 @@ export default function PersonalDashboard() {
                   suratTugas={suratTugas}
                   fetchSTDetail={fetchSTDetail}
                   stDetailLoading={stDetailLoading}
-                  onOpenReportModal={() => setShowInlineReport(true)}
+                  onOpenReportModal={(type) => setInlineFormType(type)}
                 />
               </div>
             ) : activeNavTab === "cuti" ? (
