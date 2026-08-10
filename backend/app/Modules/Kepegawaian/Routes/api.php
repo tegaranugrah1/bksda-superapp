@@ -18,6 +18,9 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
     Route::get('/employees/{employee}/assignment-letters', [EmployeeController::class, 'assignmentLetters']);
 
+    // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE) ---
+    Route::get('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'show']);
+
     // Operasi tulis/hapus hanya untuk Admin/SuperAdmin
     Route::middleware('role:super_admin,admin')->group(function () {
         Route::post('/employees', [EmployeeController::class, 'store']);
@@ -26,8 +29,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::post('/employees/{employee}/reset-password', [EmployeeController::class, 'resetPassword']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
 
-        // --- MANAJEMEN CUTI PEGAWAI (PERBKN 24/2017 & 7/2021) ---
-        Route::get('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'show']);
+        // --- MANAJEMEN CUTI PEGAWAI WRITE (PERBKN 24/2017 & 7/2021) ---
         Route::post('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'store']);
 
         // --- INBOX SURAT CUTI (ADMIN KEPEGAWAIAN) ---

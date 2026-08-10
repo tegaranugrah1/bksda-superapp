@@ -17,7 +17,7 @@ use RuntimeException;
 class AuctionBatchService
 {
     public function __construct(
-        private AuctionBatchAuditLogger $auditLogger,
+        public AuctionBatchAuditLogger $auditLogger,
         private AuctionBatchStateMachine $stateMachine,
         private AuctionBatchCompletenessChecker $completenessChecker,
         private AuctionBatchMetadataBuilder $metadataBuilder,
@@ -246,6 +246,7 @@ class AuctionBatchService
                 ]);
             }
 
+            /** @var AssetAuctionBatch|null $pivot */
             $pivot = AssetAuctionBatch::where('bmn_auction_batch_id', $batchId)
                 ->where('bmn_asset_id', $assetId)
                 ->first();
@@ -263,6 +264,7 @@ class AuctionBatchService
                 ->get();
 
             foreach ($pivots as $index => $p) {
+                /** @var AssetAuctionBatch $p */
                 $p->sort_order = $index;
                 $p->save();
             }
@@ -355,6 +357,7 @@ class AuctionBatchService
 
 
 
+            /** @var AssetAuctionBatch|null $pivot */
             $pivot = AssetAuctionBatch::where('bmn_auction_batch_id', $batchId)
                 ->where('bmn_asset_id', $assetId)
                 ->first();
@@ -872,6 +875,7 @@ class AuctionBatchService
             $previousStatus = $batch->status->value;
 
             foreach ($pivots as $p) {
+                /** @var AssetAuctionBatch $p */
                 $asset = Asset::withTrashed()->findOrFail($p->bmn_asset_id);
 
                 if ($p->first_auction_is_sold === true) {
@@ -943,6 +947,7 @@ class AuctionBatchService
 
             $pivots = AssetAuctionBatch::where('bmn_auction_batch_id', $batchId)->get();
             foreach ($pivots as $p) {
+                /** @var AssetAuctionBatch $p */
                 $p->final_result = AuctionAssetFinalResult::CANCELED;
                 $p->save();
 

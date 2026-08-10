@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -118,6 +118,8 @@ export default function PersonalDashboard() {
     return myAssets.filter(a => !borrowedIds.has(a.id));
   }, [myAssets, data]);
 
+  const employeeId = data?.employee?.id;
+
   const fetchDashboard = useCallback(async () => {
     try {
       const response = await api.get("/me/dashboard");
@@ -130,13 +132,11 @@ export default function PersonalDashboard() {
     } finally { setLoading(false); }
   }, [router]);
 
-  const fetchSuratTugas = useCallback(async () => {
-    if (!data?.employee?.id) {
+  const fetchSuratTugas = useCallback(async (targetEmpId?: number) => {
+    const empId = targetEmpId ?? employeeId;
+    if (!empId) {
       setSuratTugas([]);
       return;
-    }
-    if (suratTugas.length === 0) {
-      setStLoading(true);
     }
     try {
       const resp = await api.get("/surat-tugas/my", { 
@@ -148,25 +148,23 @@ export default function PersonalDashboard() {
     } finally {
       setStLoading(false);
     }
-  }, [data, suratTugas.length]);
+  }, [employeeId]);
 
-  const fetchAssets = useCallback(async () => {
-    if (!data?.employee?.id) {
+  const fetchAssets = useCallback(async (targetEmpId?: number) => {
+    const empId = targetEmpId ?? employeeId;
+    if (!empId) {
       setMyAssets([]);
       return;
     }
-    if (myAssets.length === 0) {
-      setAssetsLoading(true);
-    }
     try {
-      const respMy = await api.get("/bmn/assets", { params: { employee_id: data.employee.id, per_page: 50 } });
+      const respMy = await api.get("/bmn/assets", { params: { employee_id: empId, per_page: 50 } });
       setMyAssets(respMy.data.data || []);
     } catch {
       // Keep existing list on background error
     } finally {
       setAssetsLoading(false);
     }
-  }, [data, myAssets.length]);
+  }, [employeeId]);
 
   const fetchSTDetail = useCallback(async (id: string) => {
     setStDetailLoading(true);
@@ -181,25 +179,6 @@ export default function PersonalDashboard() {
     }
   }, []);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  // Fetch surat tugas immediately when employee data is available
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    if (data?.employee?.id) {
-      fetchSuratTugas();
-    }
-  }, [data, fetchSuratTugas]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => { 
-    if (data?.employee?.id) fetchAssets();
-  }, [data?.employee?.id, activeTab, fetchAssets]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
   // Fetch leave balance for logged-in employee
   const currentYear = new Date().getFullYear();
   const [myLeaveBalance, setMyLeaveBalance] = useState<{ sisa_cuti_tersedia: number; total_hak_cuti: number } | null>(null);
@@ -208,40 +187,56 @@ export default function PersonalDashboard() {
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [printLeaveData, setPrintLeaveData] = useState<LeaveRequestPrintData | null>(null);
 
-  const fetchMyLeaveRequests = useCallback(async () => {
+  const fetchMyLeaveRequests = useCallback(async (targetEmpId?: number) => {
+    const empId = targetEmpId ?? employeeId;
     try {
       const res = await api.get("/me/leave-requests");
       setMyLeaveRequests(res.data.data || []);
-      if (data?.employee?.id) {
-        const balRes = await api.get(`/kepegawaian/employees/${data.employee.id}/leaves?year=${currentYear}`);
+      if (empId) {
+        const balRes = await api.get(`/kepegawaian/employees/${empId}/leaves?year=${currentYear}`);
         setMyLeaveBalance(balRes.data.data);
       }
     } catch (e) {}
-  }, [data, currentYear]);
+  }, [employeeId, currentYear]);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // Initial dashboard load
   useEffect(() => {
-    fetchMyLeaveRequests();
-  }, [fetchMyLeaveRequests]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  const fetchAllPortalData = useCallback(() => {
     fetchDashboard();
-    fetchSuratTugas();
-    fetchAssets();
-    fetchMyLeaveRequests();
-  }, [fetchDashboard, fetchSuratTugas, fetchAssets, fetchMyLeaveRequests]);
+  }, [fetchDashboard]);
+
+  // Load details when employeeId becomes available
+  useEffect(() => {
+    if (employeeId) {
+      fetchSuratTugas(employeeId);
+      fetchAssets(employeeId);
+      fetchMyLeaveRequests(employeeId);
+    }
+  }, [employeeId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Stable reference for 15-second background polling without dependency loop
+  const fetchAllRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    fetchAllRef.current = () => {
+      fetchDashboard();
+      if (employeeId) {
+        fetchSuratTugas(employeeId);
+        fetchAssets(employeeId);
+        fetchMyLeaveRequests(employeeId);
+      }
+    };
+  }, [fetchDashboard, fetchSuratTugas, fetchAssets, fetchMyLeaveRequests, employeeId]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
-        fetchAllPortalData();
+        fetchAllRef.current();
       }
     }, 15000);
 
     const handleFocus = () => {
       if (document.visibilityState === "visible") {
-        fetchAllPortalData();
+        fetchAllRef.current();
       }
     };
 
@@ -253,7 +248,7 @@ export default function PersonalDashboard() {
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleFocus);
     };
-  }, [fetchAllPortalData]);
+  }, []);
 
   const handleLogout = () => { authStore.logout(); router.push("/login"); };
 

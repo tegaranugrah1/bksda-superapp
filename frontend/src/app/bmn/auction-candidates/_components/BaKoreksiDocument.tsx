@@ -713,7 +713,7 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai, date 
           >
             Kepala Balai,
           </p>
-          <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+          <div className="ttd-placeholder my-2 flex h-21 items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
           <p
             contentEditable="true"
             suppressContentEditableWarning

@@ -193,7 +193,7 @@ export function SkKebenaranDokumenDocument({ number, kap, date, assets, kepalaBa
             <div className="signature mt-4 ml-auto w-80">
           <p className="m-0">Samarinda, {formatDateLong(docDate)}</p>
           <p className="m-0">Kepala Balai,</p>
-          <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+          <div className="ttd-placeholder my-2 flex h-21 items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
           <p contentEditable suppressContentEditableWarning className="doc-editable m-0 mt-2">{kepalaBalai.nama}</p>
           <p contentEditable suppressContentEditableWarning className="doc-editable m-0">NIP. {kepalaBalai.nip}</p>
             </div>
