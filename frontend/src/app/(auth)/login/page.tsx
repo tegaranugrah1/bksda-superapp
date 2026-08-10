@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { authStore } from "@/lib/auth-store";
+import { authStore, parseAuthSnapshot } from "@/lib/auth-store";
 
 // Schema Validation
 const formSchema = z.object({
@@ -27,6 +27,15 @@ const formSchema = z.object({
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const authSnapshot = useSyncExternalStore(authStore.subscribe, authStore.getSnapshot, authStore.getSnapshot);
+  const { token } = parseAuthSnapshot(authSnapshot);
+
+  useEffect(() => {
+    if (token) {
+      window.location.replace("/portal");
+    }
+  }, [token]);
 
   const redirectToPortal = () => {
     window.location.replace("/portal");
@@ -83,6 +92,10 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (token) {
+    return null; // Return null while redirecting to prevent flashing
   }
 
   return (
