@@ -393,13 +393,22 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={() => setIsTrashMode(!isTrashMode)}
-          style={[styles.trashToggleBtn, { backgroundColor: isTrashMode ? "#fee2e2" : isDark ? "#1e293b" : "#f1f5f9" }]}
-          activeOpacity={0.7}
-        >
-          <Ionicons name={isTrashMode ? "trash" : "trash-outline"} size={20} color={isTrashMode ? "#dc2626" : "#64748b"} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            onPress={() => setIsTrashMode(!isTrashMode)}
+            style={[styles.trashToggleBtn, { backgroundColor: isTrashMode ? "#fee2e2" : isDark ? "#1e293b" : "#f1f5f9" }]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name={isTrashMode ? "trash" : "trash-outline"} size={20} color={isTrashMode ? "#dc2626" : "#64748b"} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation && navigation.navigate('Dashboard')}
+            style={[styles.trashToggleBtn, { backgroundColor: isDark ? "#1e293b" : "#f1f5f9" }]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="grid-outline" size={20} color="#2563eb" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -576,9 +585,6 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
           })
         )}
       </ScrollView>
-
-      {/* Floating Action Button */}
-      <FabMenu onNavigateToModule={onNavigateToModule || ((key) => navigation && navigation.navigate(key))} />
 
       {/* Custom Confirmation Modal */}
       <ConfirmModal

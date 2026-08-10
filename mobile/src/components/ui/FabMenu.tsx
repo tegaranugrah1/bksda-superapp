@@ -190,7 +190,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
       home: "Dashboard",
       portal: "Dashboard",
       dashboard: "Dashboard",
-      kepegawaian: "KepegawaianDashboard",
+      kepegawaian: "KepegawaianMain",
       "dashboard-kepegawaian": "KepegawaianDashboard",
       "daftar-pegawai": "Kepegawaian",
       "tambah-pegawai": "TambahPegawai",
@@ -210,7 +210,7 @@ export const FabMenu: React.FC<FabMenuProps> = ({
     }
     
     if (navigation && typeof navigation.navigate === "function") {
-      const routeName = routeMap[key] || (key === "kepegawaian" ? "KepegawaianDashboard" : null);
+      const routeName = routeMap[key] || (key === "kepegawaian" ? "KepegawaianMain" : null);
       if (routeName) {
         navigation.navigate(routeName);
       }

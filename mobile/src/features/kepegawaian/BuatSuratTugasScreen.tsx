@@ -953,10 +953,10 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
     } else if (onBack) {
       onBack();
     } else if (navigation) {
-      if (editId || editData) {
-        navigation.navigate("InboxSuratTugas");
+      if (navigation.canGoBack()) {
+        navigation.goBack();
       } else {
-        navigation.navigate("KepegawaianDashboard");
+        navigation.navigate("KepegawaianMain");
       }
     }
   };

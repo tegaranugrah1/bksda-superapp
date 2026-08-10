@@ -154,11 +154,11 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
 
   const handleNavigate = (routeKey: string) => {
     const routeMap: Record<string, string> = {
-      "daftar-pegawai": "Kepegawaian",
+      "daftar-pegawai": "Pegawai",
       "tambah-pegawai": "TambahPegawai",
       "buat-surat-tugas": "BuatSuratTugas",
-      "inbox-surat-tugas": "InboxSuratTugas",
-      "inbox-surat-cuti": "InboxSuratCuti",
+      "inbox-surat-tugas": "SuratTugas",
+      "inbox-surat-cuti": "Cuti",
       "riwayat-surat-tugas": "RiwayatSuratTugas",
     };
 
@@ -194,9 +194,14 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
           <Text style={[styles.headerTitle, { color: isDark ? "#ffffff" : "#0f172a" }]}>Dashboard Kepegawaian</Text>
         </View>
 
-        <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}>
-          <Ionicons name="refresh-outline" size={20} color="#2563eb" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}>
+            <Ionicons name="refresh-outline" size={20} color="#2563eb" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation && navigation.navigate('Dashboard')} style={styles.refreshBtn}>
+            <Ionicons name="grid-outline" size={20} color="#2563eb" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -417,9 +422,6 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
           </View>
         </GlassCard>
       </ScrollView>
-
-      {/* Floating Action Button Menu */}
-      <FabMenu onNavigateToModule={onNavigateToModule} activeModule="kepegawaian" activeSubmenu="dashboard-kepegawaian" />
     </View>
   );
 };
