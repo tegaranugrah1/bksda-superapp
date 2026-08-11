@@ -8263,3 +8263,26 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
      -   R e m o v e d   s t r i c t   \  v o i d - b r e a k \   f r o m   L a p o r a n   P o r t a l ' s   s i g n a t u r e   b l o c k   t o   a l l o w   n a t u r a l   p a g e   b r e a k s   f o r   l o n g   p a r t i c i p a n t   l i s t s . 
   
  
+---
+
+## [2026-08-10] Dynamic ST Templates Management for Superadmin
+
+### Completed (Selesai)
+- [x] **Database & API (Backend Laravel)**:
+  - Ditambahkan tabel st_templates via migration untuk menyimpan format template JSON.
+  - Dibuat model StTemplate dan StTemplateController dengan fungsionalitas CRUD.
+  - Didaftarkan endpoint CRUD di pp/Modules/Kepegawaian/Routes/api.php dengan pengecekan khusus otorisasi (ole === 'super_admin') untuk operasi tulis/ubah/hapus.
+- [x] **Halaman Manajemen Template (Frontend Next.js)**:
+  - Dibuat halaman baru khusus Superadmin di /kepegawaian/settings/st-templates.
+  - Disediakan form interaktif yang memanfaatkan komponen EditableItemListSection bawaan ST Builder untuk menambah butir-butir *Menimbang* dan *Dasar*.
+- [x] **Integrasi ST Builder**:
+  - Halaman ST Builder (/kepegawaian/surat-tugas/create) kini secara otomatis menarik template dinamis dari database dan menggabungkannya dengan opsi template bawaan di *dropdown* utama.
+  - Memilih template *custom* akan segera mengisi ulang baris-baris *Menimbang* dan *Dasar* sesuai dengan yang dikonfigurasikan.
+  - Menambahkan fitur **Simpan Baru** untuk menyimpan konfigurasi isian *Menimbang* dan *Dasar* yang sedang diketik sebagai *template* baru secara langsung dari halaman ST Builder.
+  - Menambahkan fitur **Hapus** untuk menghapus *template custom* langsung dari *dropdown* ST Builder.
+
+### Validation
+- [x] Template *custom* berhasil tersimpan di database.
+- [x] Daftar template termuat dengan baik di halaman ST Builder.
+- [x] Fungsionalitas hapus dan auto-select setelah tambah template baru berjalan lancar.
+
