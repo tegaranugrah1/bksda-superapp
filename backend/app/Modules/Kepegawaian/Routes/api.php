@@ -18,6 +18,12 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
     Route::get('/employees/{employee}/assignment-letters', [EmployeeController::class, 'assignmentLetters']);
 
+    // --- TEMPLATE SURAT TUGAS ---
+    Route::get('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'index']);
+    Route::post('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'store']);
+    Route::put('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'update']);
+    Route::delete('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'destroy']);
+
     // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE) ---
     Route::get('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'show']);
 

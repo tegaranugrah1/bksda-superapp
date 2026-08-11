@@ -71,6 +71,9 @@ export default function STCreatePremiumPage() {
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
   const [templateType, setTemplateType] = useState<string | null>(null);
+  const [dynamicTemplates, setDynamicTemplates] = useState<any[]>([]);
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState("");
   const [namaKegiatan, setNamaKegiatan] = useState("");
   const [activityPrefix, setActivityPrefix] = useState("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
   const [tanggalMulai, setTanggalMulai] = useState("");
@@ -133,6 +136,73 @@ export default function STCreatePremiumPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     selectPlhEmployeeByName(pendingPlhEmployeeName);
   }, [pendingPlhEmployeeName, selectPlhEmployeeByName, selectedEmployees.length, templateType]);
+
+  const fetchDynamicTemplates = useCallback(async () => {
+    try {
+      const res = await api.get("/kepegawaian/st-templates");
+      if (res.data?.data) {
+        setDynamicTemplates(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch dynamic ST templates", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDynamicTemplates();
+  }, [fetchDynamicTemplates]);
+
+  const handleSaveNewTemplate = async () => {
+    if (!newTemplateName.trim()) {
+      return toast.error("Nama template wajib diisi");
+    }
+    
+    try {
+      const payload = {
+        name: newTemplateName.trim(),
+        menimbang: menimbangItems,
+        dasar: dasarItems,
+      };
+      
+      const res = await api.post("/kepegawaian/st-templates", payload);
+      toast.success("Template berhasil disimpan");
+      
+      await fetchDynamicTemplates();
+      
+      // Auto-select the newly created template
+      if (res.data?.data?.id) {
+        setTemplateType(`db_${res.data.data.id}`);
+      }
+      
+      setNewTemplateName("");
+      setShowSaveTemplateModal(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Gagal menyimpan template");
+    }
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!templateType?.startsWith("db_")) return;
+    const id = parseInt(templateType.replace("db_", ""), 10);
+    const confirmed = await confirm({
+      title: "Hapus Template",
+      body: "Apakah Anda yakin ingin menghapus template ini?",
+      actionButton: "Hapus",
+      cancelButton: "Batal",
+    });
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/kepegawaian/st-templates/${id}`);
+      toast.success("Template berhasil dihapus");
+      await fetchDynamicTemplates();
+      setTemplateType(null);
+      setMenimbangItems([]);
+      setDasarItems([]);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Gagal menghapus template");
+    }
+  };
 
   const replacePlhPlaceholders = useCallback(
     (value: string) => {
@@ -324,7 +394,7 @@ export default function STCreatePremiumPage() {
     [selectPlhEmployeeByName],
   );
 
-  // Generic template handler: dropdown 4 pilihan
+  // Generic template handler: dropdown 4 pilihan + dynamic
   const handleTemplateChange = useCallback(
     (value: string) => {
       if (value === "bmn-pemeriksaan") {
@@ -333,11 +403,22 @@ export default function STCreatePremiumPage() {
         applyBedaHariTemplate();
       } else if (value === "plh") {
         applyPlhTemplate();
+      } else if (value.startsWith("db_")) {
+        const id = parseInt(value.replace("db_", ""), 10);
+        const template = dynamicTemplates.find((t) => t.id === id);
+        if (template) {
+          setTemplateType(value);
+          setMenimbangItems(template.menimbang || []);
+          setDasarItems(template.dasar || []);
+        }
       } else {
         setTemplateType(null);
+        // Reset to default empty items if reverting to default manual
+        setMenimbangItems([]);
+        setDasarItems([]);
       }
     },
-    [applyBmnTemplate, applyBedaHariTemplate, applyPlhTemplate],
+    [applyBmnTemplate, applyBedaHariTemplate, applyPlhTemplate, dynamicTemplates],
   );
 
   // Apply BMN Pemeriksaan template from query param (one-shot)
@@ -661,7 +742,7 @@ export default function STCreatePremiumPage() {
 
   return (
     <div className="h-screen flex bg-slate-50 dark:bg-zinc-950 overflow-hidden">
-      <aside className="w-[420px] bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col shadow-2xl z-10">
+      <aside className="w-105 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col shadow-2xl z-10">
         <header className="p-6 border-b border-slate-100 dark:border-zinc-800">
           <div className="flex items-center gap-3 mb-1">
             <div className="p-2 bg-blue-600 rounded-xl">
@@ -675,11 +756,29 @@ export default function STCreatePremiumPage() {
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
           {/* === Template Card (paling atas, di atas Nomor Surat) === */}
           <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-500/30 dark:bg-orange-500/10">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="inline-flex h-5 items-center rounded-full bg-orange-600 px-2 text-[9px] font-bold uppercase tracking-wider text-white">Template</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
-                Pilih Template ST
-              </span>
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-5 items-center rounded-full bg-orange-600 px-2 text-[9px] font-bold uppercase tracking-wider text-white">Template</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+                  Pilih Template ST
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                {templateType?.startsWith("db_") && (
+                  <button
+                    onClick={handleDeleteTemplate}
+                    className="text-[9px] font-bold uppercase tracking-wider text-red-500 hover:text-red-600 transition-colors"
+                  >
+                    Hapus
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowSaveTemplateModal(!showSaveTemplateModal)}
+                  className="text-[9px] font-bold uppercase tracking-wider text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 transition-colors"
+                >
+                  {showSaveTemplateModal ? "Tutup" : "+ Simpan Baru"}
+                </button>
+              </div>
             </div>
             <select
               value={templateType ?? ""}
@@ -690,6 +789,11 @@ export default function STCreatePremiumPage() {
               <option value="bmn-pemeriksaan">Penghapusan BMN</option>
               <option value="beda-hari">Beda Hari (Daftar Lampiran)</option>
               <option value="plh">PLH (Pelaksana Harian Kepala Seksi)</option>
+              {dynamicTemplates.map((t) => (
+                <option key={t.id} value={`db_${t.id}`}>
+                  {t.name}
+                </option>
+              ))}
             </select>
             {templateType === "beda-hari" && (
               <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
@@ -706,6 +810,36 @@ export default function STCreatePremiumPage() {
                 Template PLH aktif. Ganti placeholder <code>{"{wilayah}"}</code> dan <code>{"{kegiatan Kepala Seksi}"}</code> di Menimbang/Untuk dengan nilai sesuai.
               </p>
             )}
+            
+            <AnimatePresence>
+              {showSaveTemplateModal && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginTop: 12 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-3 bg-white dark:bg-zinc-900 border border-orange-200 dark:border-orange-500/30 rounded-xl space-y-3">
+                    <p className="text-[10px] text-slate-500 dark:text-zinc-400 leading-relaxed">
+                      Simpan butir Menimbang & Dasar yang ada saat ini menjadi Template Baru.
+                    </p>
+                    <input
+                      type="text"
+                      value={newTemplateName}
+                      onChange={(e) => setNewTemplateName(e.target.value)}
+                      placeholder="Nama Template Baru"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none transition focus:border-blue-500 focus:bg-white dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:bg-zinc-900"
+                    />
+                    <button
+                      onClick={handleSaveNewTemplate}
+                      className="w-full py-2 bg-orange-600 hover:bg-orange-700 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors"
+                    >
+                      Simpan Template
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <FormSection title="Nomor Surat">
