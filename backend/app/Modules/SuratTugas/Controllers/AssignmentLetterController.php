@@ -3,15 +3,23 @@
 namespace App\Modules\SuratTugas\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Kepegawaian\Models\Employee;
+use App\Modules\Kepegawaian\Models\StTemplate;
+use App\Modules\Kepegawaian\Services\StTemplateService;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
 use App\Modules\SuratTugas\Requests\AssignmentLetterRequest;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class AssignmentLetterController extends Controller
 {
+    public function __construct(private readonly StTemplateService $templateService) {}
+
     /**
      * GET /api/surat-tugas/my
      * Pegawai melihat surat tugas milik sendiri (no module access required)
@@ -19,9 +27,9 @@ class AssignmentLetterController extends Controller
     public function myLetters(Request $request)
     {
         $user = $request->user();
-        $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+        $employee = Employee::where('nip', $user->username)->first();
 
-        if (!$employee) {
+        if (! $employee) {
             return response()->json([
                 'data' => [],
                 'meta' => $this->emptyPaginationMeta($request),
@@ -50,9 +58,9 @@ class AssignmentLetterController extends Controller
     public function myShow(Request $request, string $id)
     {
         $user = $request->user();
-        $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+        $employee = Employee::where('nip', $user->username)->first();
 
-        if (!$employee) {
+        if (! $employee) {
             return response()->json(['message' => 'Data pegawai tidak ditemukan'], 404);
         }
 
@@ -78,9 +86,9 @@ class AssignmentLetterController extends Controller
     public function myDownload(Request $request, string $id)
     {
         $user = $request->user();
-        $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+        $employee = Employee::where('nip', $user->username)->first();
 
-        if (!$employee) {
+        if (! $employee) {
             return response()->json(['message' => 'Data pegawai tidak ditemukan'], 404);
         }
 
@@ -95,24 +103,25 @@ class AssignmentLetterController extends Controller
             $dasarSurat = $surat->maksud_tujuan ? substr(preg_replace('/[^a-zA-Z0-9\s]/', '', $surat->maksud_tujuan), 0, 50) : 'Surat Tugas';
             $namaPersonel = $surat->employees->first()?->nama_lengkap ?? 'Pegawai';
             $tanggalUpload = $surat->created_at?->format('d-m-Y') ?? date('d-m-Y');
-            $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}") . '.' . $ext;
+            $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}").'.'.$ext;
             $filename = preg_replace('/[\/\\\\:*?"<>|]/', '_', $filename);
+
             return Storage::download($surat->file_surat_path, $filename);
         }
 
         // Fallback document content if no file stored
         $content = "SURAT TUGAS BKSDA KALIMANTAN TIMUR\n";
-        $content .= "Nomor: " . ($surat->nomor_surat ?: '-') . "\n";
-        $content .= "Maksud/Tujuan: " . ($surat->maksud_tujuan ?: '-') . "\n";
-        $content .= "Tempat Tujuan: " . ($surat->tempat_tujuan ?: '-') . "\n";
-        $content .= "Tanggal: " . ($surat->tanggal_mulai?->format('d-m-Y') ?: '-') . " s/d " . ($surat->tanggal_selesai?->format('d-m-Y') ?: '-') . "\n";
-        $content .= "Status: " . strtoupper($surat->status) . "\n";
+        $content .= 'Nomor: '.($surat->nomor_surat ?: '-')."\n";
+        $content .= 'Maksud/Tujuan: '.($surat->maksud_tujuan ?: '-')."\n";
+        $content .= 'Tempat Tujuan: '.($surat->tempat_tujuan ?: '-')."\n";
+        $content .= 'Tanggal: '.($surat->tanggal_mulai?->format('d-m-Y') ?: '-').' s/d '.($surat->tanggal_selesai?->format('d-m-Y') ?: '-')."\n";
+        $content .= 'Status: '.strtoupper($surat->status)."\n";
 
-        $filename = "Surat-Tugas-" . ($surat->nomor_surat ? str_replace('/', '_', $surat->nomor_surat) : $surat->id) . ".txt";
+        $filename = 'Surat-Tugas-'.($surat->nomor_surat ? str_replace('/', '_', $surat->nomor_surat) : $surat->id).'.txt';
 
         return response($content, 200, [
             'Content-Type' => 'text/plain',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
@@ -121,7 +130,7 @@ class AssignmentLetterController extends Controller
         $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
 
         if ($search = $request->query('search')) {
-            $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
             $query->where(function ($q) use ($search, $likeOp) {
                 $q->where('tempat_tujuan', $likeOp, "%{$search}%")
                     ->orWhere('maksud_tujuan', $likeOp, "%{$search}%")
@@ -211,15 +220,15 @@ class AssignmentLetterController extends Controller
                 'jabatan' => $e->jabatan,
                 'unit_kerja' => $e->satuan_kerja,
             ])->values(),
-            'has_file' => !empty($letter->file_surat_path),
+            'has_file' => ! empty($letter->file_surat_path),
             'file_surat_path' => $letter->file_surat_path,
             'file' => [
-                'available' => !empty($letter->file_surat_path),
+                'available' => ! empty($letter->file_surat_path),
                 'download_url' => $personal ? "/api/surat-tugas/my/{$letter->id}/download" : "/api/surat-tugas/{$letter->id}/download",
             ],
             'allowed_actions' => [
                 'can_view' => true,
-                'can_download' => !empty($letter->file_surat_path),
+                'can_download' => ! empty($letter->file_surat_path),
             ],
         ];
     }
@@ -251,7 +260,7 @@ class AssignmentLetterController extends Controller
             'tembusan' => $letter->tembusan,
             'penandatangan_nama' => $letter->penandatangan_nama,
             'penandatangan_nip' => $letter->penandatangan_nip,
-            'has_file' => !empty($letter->file_surat_path),
+            'has_file' => ! empty($letter->file_surat_path),
             'file_surat_path' => $letter->file_surat_path,
             'personel' => $letter->employees->map(fn ($employee) => [
                 'id' => $employee->id,
@@ -262,14 +271,14 @@ class AssignmentLetterController extends Controller
                 'peran' => $employee->pivot?->peran,
             ])->values(),
             'file' => [
-                'available' => !empty($letter->file_surat_path),
+                'available' => ! empty($letter->file_surat_path),
                 'filename' => $letter->nomor_surat ? "ST-{$letter->nomor_surat}.pdf" : "Surat-Tugas-{$letter->id}.pdf",
                 'mime_type' => 'application/pdf',
                 'download_url' => $downloadUrl,
             ],
             'allowed_actions' => [
                 'can_view' => true,
-                'can_download' => !empty($letter->file_surat_path),
+                'can_download' => ! empty($letter->file_surat_path),
                 'can_update' => ! $personal,
                 'can_approve' => ! $personal && $letter->status === 'pending',
                 'can_delete' => ! $personal,
@@ -302,13 +311,14 @@ class AssignmentLetterController extends Controller
         ];
     }
 
-    public function store(AssignmentLetterRequest $request)
+    public function store(AssignmentLetterRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
         DB::beginTransaction();
         try {
             $authUser = auth('sanctum')->user() ?: $request->user();
+            $template = $this->resolveTemplate($validated);
 
             $surat = AssignmentLetter::create([
                 'nomor_surat' => $validated['nomor_surat'] ?? null,
@@ -322,6 +332,17 @@ class AssignmentLetterController extends Controller
                 'sumber_dana' => $validated['sumber_dana'] ?? 'dipa',
                 'sumber_dana_other' => $validated['sumber_dana_other'] ?? null,
                 'template_type' => $validated['template_type'] ?? null,
+                'template_id' => $template?->id,
+                'template_version' => $template?->version,
+                'template_snapshot' => $this->templateService->snapshot(
+                    $template,
+                    [
+                        'menimbang' => $validated['menimbang'] ?? null,
+                        'dasar' => $validated['dasar'] ?? null,
+                        'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
+                        'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
+                    ]
+                ),
                 'menimbang' => $validated['menimbang'] ?? null,
                 'dasar' => $validated['dasar'] ?? null,
                 'tembusan' => $validated['tembusan'] ?? null,
@@ -346,12 +367,12 @@ class AssignmentLetterController extends Controller
             }
 
             if ($request->hasFile('file_surat')) {
-                $folderName = $surat->nomor_surat 
-                    ? \Illuminate\Support\Str::slug($surat->nomor_surat)
-                    : date('Y-m') . '-' . \Illuminate\Support\Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
-                $folder = 'surat-tugas/' . $folderName;
+                $folderName = $surat->nomor_surat
+                    ? Str::slug($surat->nomor_surat)
+                    : date('Y-m').'-'.Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
+                $folder = 'surat-tugas/'.$folderName;
                 $ext = $request->file('file_surat')->extension();
-                $filename = 'dasar-surat.' . $ext;
+                $filename = 'dasar-surat.'.$ext;
                 $path = $request->file('file_surat')->storeAs($folder, $filename);
                 $surat->update(['file_surat_path' => $path]);
             }
@@ -419,6 +440,7 @@ class AssignmentLetterController extends Controller
 
         DB::beginTransaction();
         try {
+            $updateTemplate = $this->resolveTemplate($validated);
             $updateData = [
                 'maksud_tujuan' => $validated['maksud_tujuan'] ?? $surat->maksud_tujuan,
                 'dasar_hukum' => $validated['dasar_hukum'] ?? null,
@@ -428,6 +450,16 @@ class AssignmentLetterController extends Controller
                 'sumber_dana' => $request->input('sumber_dana', $surat->sumber_dana),
                 'sumber_dana_other' => $request->input('sumber_dana_other', $surat->sumber_dana_other),
                 'template_type' => $validated['template_type'] ?? null,
+                'template_id' => $validated['template_id'] ?? $surat->template_id,
+                'template_snapshot' => $updateTemplate
+                    ? $this->templateService->snapshot($updateTemplate, [
+                        'menimbang' => $request->input('menimbang', $surat->menimbang),
+                        'dasar' => $request->input('dasar', $surat->dasar),
+                        'penandatangan_nama' => $validated['penandatangan_nama'] ?? $surat->penandatangan_nama,
+                        'penandatangan_nip' => $validated['penandatangan_nip'] ?? $surat->penandatangan_nip,
+                    ])
+                    : $surat->template_snapshot,
+                'template_version' => $updateTemplate?->version ?? $surat->template_version,
                 'menimbang' => $request->input('menimbang', $surat->menimbang),
                 'dasar' => $request->input('dasar', $surat->dasar),
                 'tembusan' => $request->input('tembusan', $surat->tembusan),
@@ -461,12 +493,12 @@ class AssignmentLetterController extends Controller
                 if ($surat->file_surat_path) {
                     Storage::delete($surat->file_surat_path);
                 }
-                $folderName = $surat->nomor_surat 
-                    ? \Illuminate\Support\Str::slug($surat->nomor_surat)
-                    : date('Y-m') . '-' . \Illuminate\Support\Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
-                $folder = 'surat-tugas/' . $folderName;
+                $folderName = $surat->nomor_surat
+                    ? Str::slug($surat->nomor_surat)
+                    : date('Y-m').'-'.Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
+                $folder = 'surat-tugas/'.$folderName;
                 $ext = $request->file('file_surat')->extension();
-                $filename = 'dasar-surat.' . $ext;
+                $filename = 'dasar-surat.'.$ext;
                 $path = $request->file('file_surat')->storeAs($folder, $filename);
                 $surat->update(['file_surat_path' => $path]);
             }
@@ -481,7 +513,7 @@ class AssignmentLetterController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            \Illuminate\Support\Facades\Log::error('Update Surat Tugas failed: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('Update Surat Tugas failed: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json(['message' => 'Terjadi kegagalan sistem: '.$e->getMessage()], 500);
         }
@@ -496,7 +528,7 @@ class AssignmentLetterController extends Controller
 
         $surat = AssignmentLetter::findOrFail($id);
         $surat->status = $request->status;
-        
+
         if (in_array($request->status, ['approved', 'completed'])) {
             $surat->approved_by = (int) auth()->id();
         }
@@ -545,7 +577,7 @@ class AssignmentLetterController extends Controller
     private function authorizeAccess(AssignmentLetter $surat, Request $request): bool
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -553,7 +585,7 @@ class AssignmentLetterController extends Controller
             return true;
         }
 
-        $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+        $employee = Employee::where('nip', $user->username)->first();
         $isAssignedEmployee = $employee && $surat->employees->contains(fn ($item) => (int) $item->id === (int) $employee->id);
         $isCreator = (int) $surat->created_by === (int) $user->id;
 
@@ -580,7 +612,7 @@ class AssignmentLetterController extends Controller
         $dasarSurat = $surat->maksud_tujuan ? substr(preg_replace('/[^a-zA-Z0-9\s]/', '', $surat->maksud_tujuan), 0, 50) : 'Surat Tugas';
         $namaPersonel = $surat->employees->first()?->nama_lengkap ?? 'Pegawai';
         $tanggalUpload = $surat->created_at?->format('d-m-Y') ?? date('d-m-Y');
-        $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}") . '.' . $ext;
+        $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}").'.'.$ext;
         // Sanitize filename
         $filename = preg_replace('/[\/\\\\:*?"<>|]/', '_', $filename);
 
@@ -654,7 +686,7 @@ class AssignmentLetterController extends Controller
                 'tembusan' => $request->tembusan,
                 'penandatangan_nama' => $request->penandatangan_nama,
                 'penandatangan_nip' => $request->penandatangan_nip,
-            ], fn($v) => $v !== null);
+            ], fn ($v) => $v !== null);
 
             // Only update status if explicitly provided
             if ($targetStatus) {
@@ -696,12 +728,14 @@ class AssignmentLetterController extends Controller
             // })->afterResponse();
 
             $statusLabel = $targetStatus === 'pending' ? 'diajukan untuk persetujuan' : ($targetStatus === 'approved' ? 'berhasil diterbitkan' : 'berhasil disimpan');
+
             return response()->json([
                 'message' => "Surat Tugas {$statusLabel}.",
                 'data' => $surat->load('employees'),
             ]);
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'Gagal memproses surat: '.$e->getMessage()], 500);
         }
     }
@@ -739,16 +773,23 @@ class AssignmentLetterController extends Controller
             'sumber_dana' => 'required|string',
             'sumber_dana_other' => 'nullable|string',
             'template_type' => 'nullable|string|max:50',
-            'menimbang' => 'nullable|array',
-            'dasar' => 'nullable|array',
+            'template_id' => 'nullable|integer|exists:st_templates,id',
+            'menimbang' => 'nullable|array|max:50',
+            'menimbang.*.id' => 'required_with:menimbang|string|max:100',
+            'menimbang.*.text' => 'required_with:menimbang|string|max:5000',
+            'dasar' => 'nullable|array|max:50',
+            'dasar.*.id' => 'required_with:dasar|string|max:100',
+            'dasar.*.text' => 'required_with:dasar|string|max:5000',
             'tembusan' => 'nullable|array',
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
-            'employee_ids' => 'required|array',
+            'employee_ids' => 'required|array|min:1',
+            'employee_ids.*' => 'integer|exists:kpg_employees,id',
         ]);
 
         DB::beginTransaction();
         try {
+            $directTemplate = $this->resolveTemplate($request->all());
             $surat = AssignmentLetter::create([
                 'nomor_surat' => $request->nomor_surat,
                 'kode_surat' => $request->kode_surat,
@@ -760,6 +801,14 @@ class AssignmentLetterController extends Controller
                 'sumber_dana' => $request->sumber_dana,
                 'sumber_dana_other' => $request->sumber_dana_other,
                 'template_type' => $request->template_type,
+                'template_id' => $directTemplate?->id,
+                'template_version' => $directTemplate?->version,
+                'template_snapshot' => $this->templateService->snapshot($directTemplate, [
+                    'menimbang' => $request->menimbang,
+                    'dasar' => $request->dasar,
+                    'penandatangan_nama' => $request->penandatangan_nama,
+                    'penandatangan_nip' => $request->penandatangan_nip,
+                ]),
                 'menimbang' => $request->menimbang,
                 'dasar' => $request->dasar,
                 'tembusan' => $request->tembusan,
@@ -780,7 +829,38 @@ class AssignmentLetterController extends Controller
             ]);
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'Gagal menerbitkan surat: '.$e->getMessage()], 500);
         }
+    }
+
+    private function templateIdFromType(?string $templateType): ?int
+    {
+        if (! $templateType || ! str_starts_with($templateType, 'db_')) {
+            return null;
+        }
+
+        $id = filter_var(substr($templateType, 3), FILTER_VALIDATE_INT);
+
+        return $id === false ? null : $id;
+    }
+
+    private function resolveTemplate(array $payload): ?StTemplate
+    {
+        $query = StTemplate::query()->where('is_active', true);
+        $templateId = $payload['template_id'] ?? $this->templateIdFromType($payload['template_type'] ?? null);
+
+        if ($templateId) {
+            return $query->findOrFail($templateId);
+        }
+
+        $templateCode = match ($payload['template_type'] ?? null) {
+            'bmn-pemeriksaan' => 'bmn-penghapusan',
+            'beda-hari' => 'beda-hari',
+            'plh' => 'plh',
+            default => null,
+        };
+
+        return $templateCode ? $query->where('code', $templateCode)->first() : null;
     }
 }

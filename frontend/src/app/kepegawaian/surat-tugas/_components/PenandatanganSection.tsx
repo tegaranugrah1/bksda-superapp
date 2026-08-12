@@ -43,6 +43,7 @@ export function PenandatanganSection({
 
   const handleSelect = (emp: Employee) => {
     setKepalaBalai({
+      employeeId: emp.id,
       name: emp.nama_lengkap || emp.name || kepalaBalai.name,
       nip: formatNIP(emp.nip || kepalaBalai.nip),
     });
