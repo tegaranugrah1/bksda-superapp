@@ -20,6 +20,9 @@ class AssignmentLetter extends Model
         'nomor_surat',
         'kode_surat',
         'template_type',
+        'template_id',
+        'template_version',
+        'template_snapshot',
         'dasar_hukum',
         'maksud_tujuan',
         'tanggal_mulai',
@@ -50,6 +53,7 @@ class AssignmentLetter extends Model
         'menimbang' => 'array',
         'dasar' => 'array',
         'tembusan' => 'array',
+        'template_snapshot' => 'array',
         'has_seksi_employee' => 'boolean',
     ];
 

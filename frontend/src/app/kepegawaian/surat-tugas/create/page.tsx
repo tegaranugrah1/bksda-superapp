@@ -38,6 +38,7 @@ import {
   printSuratTugas,
   type DasarItem,
   type Employee,
+  type StTemplate,
 } from "../_lib";
 import { FormSection } from "../_components/FormSection";
 import { EditableItemListSection } from "../_components/EditableItemListSection";
@@ -71,7 +72,13 @@ export default function STCreatePremiumPage() {
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
   const [templateType, setTemplateType] = useState<string | null>(null);
-  const [dynamicTemplates, setDynamicTemplates] = useState<any[]>([]);
+  const [dynamicTemplates, setDynamicTemplates] = useState<StTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const selectedDynamicTemplate = dynamicTemplates.find((template) => templateType === `db_${template.id}`);
+  const isBmnTemplate = templateType === "bmn-pemeriksaan" || selectedDynamicTemplate?.type === "bmn";
+  const isBedaHariTemplate = templateType === "beda-hari" || selectedDynamicTemplate?.type === "beda_hari";
+  const isPlhTemplate = templateType === "plh" || selectedDynamicTemplate?.type === "plh";
+
   const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState("");
   const [namaKegiatan, setNamaKegiatan] = useState("");
@@ -132,21 +139,34 @@ export default function STCreatePremiumPage() {
   );
 
   useEffect(() => {
-    if (templateType !== "plh" || selectedEmployees.length > 0 || !pendingPlhEmployeeName) return;
+    if (!isPlhTemplate || selectedEmployees.length > 0 || !pendingPlhEmployeeName) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     selectPlhEmployeeByName(pendingPlhEmployeeName);
-  }, [pendingPlhEmployeeName, selectPlhEmployeeByName, selectedEmployees.length, templateType]);
+  }, [isPlhTemplate, pendingPlhEmployeeName, selectPlhEmployeeByName, selectedEmployees.length]);
 
   const fetchDynamicTemplates = useCallback(async () => {
     try {
       const res = await api.get("/kepegawaian/st-templates");
-      if (res.data?.data) {
-        setDynamicTemplates(res.data.data);
+      const templates: StTemplate[] = res.data?.data || [];
+      setDynamicTemplates(templates);
+      const defaultTemplate = templates.find((template) => template.is_default);
+      if (!templateAppliedRef.current && !initialTemplate && defaultTemplate) {
+        setSelectedTemplateId(defaultTemplate.id);
+        setTemplateType(`db_${defaultTemplate.id}`);
+        setMenimbangItems(defaultTemplate.menimbang || []);
+        setDasarItems(defaultTemplate.dasar || []);
+        if (defaultTemplate.default_signer_name && defaultTemplate.default_signer_nip) {
+          setKepalaBalai({
+            employeeId: defaultTemplate.default_signer_employee_id || undefined,
+            name: defaultTemplate.default_signer_name,
+            nip: formatNIP(defaultTemplate.default_signer_nip),
+          });
+        }
       }
     } catch (err) {
       console.error("Failed to fetch dynamic ST templates", err);
     }
-  }, []);
+  }, [initialTemplate]);
 
   useEffect(() => {
     fetchDynamicTemplates();
@@ -160,8 +180,11 @@ export default function STCreatePremiumPage() {
     try {
       const payload = {
         name: newTemplateName.trim(),
+        code: newTemplateName.trim().toLowerCase().replace(/\s+/g, "-"),
+        type: "custom",
         menimbang: menimbangItems,
         dasar: dasarItems,
+        default_signer_employee_id: kepalaBalai.employeeId || null,
       };
       
       const res = await api.post("/kepegawaian/st-templates", payload);
@@ -186,9 +209,9 @@ export default function STCreatePremiumPage() {
     const id = parseInt(templateType.replace("db_", ""), 10);
     const confirmed = await confirm({
       title: "Hapus Template",
-      body: "Apakah Anda yakin ingin menghapus template ini?",
-      actionButton: "Hapus",
-      cancelButton: "Batal",
+      description: "Apakah Anda yakin ingin menghapus template ini?",
+      confirmText: "Hapus",
+      cancelText: "Batal",
     });
     if (!confirmed) return;
 
@@ -206,23 +229,23 @@ export default function STCreatePremiumPage() {
 
   const replacePlhPlaceholders = useCallback(
     (value: string) => {
-      if (templateType !== "plh") return value;
+      if (!isPlhTemplate) return value;
       return value
         .split(PLH_WILAYAH_PLACEHOLDER)
         .join(plhWilayah.trim() || "...")
         .split(PLH_KEGIATAN_KASI_PLACEHOLDER)
         .join(plhKegiatanKasi.trim() || "...");
     },
-    [plhKegiatanKasi, plhWilayah, templateType],
+    [isPlhTemplate, plhKegiatanKasi, plhWilayah],
   );
 
   const getPreviewMenimbangItems = () =>
-    templateType === "plh"
+    isPlhTemplate
       ? menimbangItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
       : menimbangItems;
 
   const getTempatTujuanForPayload = () => {
-    if (templateType === "plh") {
+    if (isPlhTemplate) {
       return plhWilayah.trim() || kotaTujuan.trim() || tempatKegiatan.trim();
     }
     return kotaTujuan.trim();
@@ -398,20 +421,59 @@ export default function STCreatePremiumPage() {
   const handleTemplateChange = useCallback(
     (value: string) => {
       if (value === "bmn-pemeriksaan") {
+        setSelectedTemplateId(null);
         applyBmnTemplate();
       } else if (value === "beda-hari") {
+        setSelectedTemplateId(null);
         applyBedaHariTemplate();
       } else if (value === "plh") {
+        setSelectedTemplateId(null);
         applyPlhTemplate();
       } else if (value.startsWith("db_")) {
         const id = parseInt(value.replace("db_", ""), 10);
         const template = dynamicTemplates.find((t) => t.id === id);
         if (template) {
+          setSelectedTemplateId(template.id);
           setTemplateType(value);
           setMenimbangItems(template.menimbang || []);
           setDasarItems(template.dasar || []);
+
+          // Keep the existing specialized form behavior while taking editable
+          // content and configuration from the database template.
+          if (template.type === "bmn") {
+            applyBmnTemplate();
+            setTemplateType(value);
+            setMenimbangItems(template.menimbang || []);
+            setDasarItems(template.dasar || []);
+          } else if (template.type === "beda_hari") {
+            applyBedaHariTemplate();
+            setTemplateType(value);
+            setMenimbangItems(template.menimbang || []);
+            setDasarItems(template.dasar || []);
+          } else if (template.type === "plh") {
+            applyPlhTemplate();
+            setTemplateType(value);
+            setMenimbangItems(template.menimbang || []);
+            setDasarItems(template.dasar || []);
+          }
+
+          const configuration = template.configuration || {};
+          if (typeof configuration.klasifikasi === "string") setKlasifikasi(configuration.klasifikasi);
+          if (typeof configuration.sumber_dana === "string") setSumberDana(configuration.sumber_dana);
+          if (template.default_signer_name && template.default_signer_nip) {
+            setKepalaBalai({
+              employeeId: template.default_signer_employee_id || undefined,
+              name: template.default_signer_name,
+              nip: formatNIP(template.default_signer_nip),
+            });
+          }
+          if (template.type === "beda_hari") {
+            applyBedaHariTemplate();
+            setTemplateType(value);
+          }
         }
       } else {
+        setSelectedTemplateId(null);
         setTemplateType(null);
         // Reset to default empty items if reverting to default manual
         setMenimbangItems([]);
@@ -472,10 +534,10 @@ export default function STCreatePremiumPage() {
   // Helper for "Untuk" text
   const buildUntukText = (): string => {
     // Beda Hari: hitung MIN tanggal mulai dan MAX tanggal selesai dari semua pegawai
-    const isBedaHariTemplate = templateType === "beda-hari";
+    const isBedaHari = isBedaHariTemplate;
     let effectiveMulai = tanggalMulai;
     let effectiveSelesai = tanggalSelesai;
-    if (isBedaHariTemplate) {
+    if (isBedaHari) {
       const allMulai = selectedEmployees
         .map((emp) => employeeDates[emp.id]?.mulai)
         .filter((d): d is string => Boolean(d));
@@ -496,7 +558,7 @@ export default function STCreatePremiumPage() {
     const selesaiFormatted = formatDateIndonesian(effectiveSelesai);
 
     // BMN template: always freeform, no date suffix
-    if (templateType === "bmn-pemeriksaan") {
+    if (isBmnTemplate) {
       let text = namaKegiatan || "...";
       if (!text.trim().endsWith(".") && !text.trim().endsWith(";")) {
         text += ".";
@@ -505,7 +567,7 @@ export default function STCreatePremiumPage() {
     }
 
     // PLH template: durasi tampil di bagian Untuk, bukan di kegiatan Kepala Seksi.
-    if (templateType === "plh") {
+    if (isPlhTemplate) {
       let text = replacePlhPlaceholders(namaKegiatan || "...");
       if (days === 1 || tanggalMulai === tanggalSelesai) {
         text += ` selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
@@ -557,9 +619,16 @@ export default function STCreatePremiumPage() {
   // Build biaya text
   const buildBiayaText = (): string => {
     // BMN Penghapusan template: skip biaya line entirely (regardless of sumberDana)
-    if (templateType === 'bmn-pemeriksaan') return '';
+    if (isBmnTemplate) return '';
     // PLH template: skip biaya line (PLH tugas internal, tidak ada biaya)
-    if (templateType === 'plh') return '';
+    if (isPlhTemplate) return '';
+
+    const configuredBiaya = selectedDynamicTemplate?.configuration?.biaya_text;
+    if (typeof configuredBiaya === "string" && configuredBiaya.trim()) {
+      const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
+      return configuredBiaya.replace(/{tahun}/g, tahun);
+    }
+
     const opt = SUMBER_DANA_OPTIONS.find(o => o.id === sumberDana);
     if (opt?.biayaText) {
       const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
@@ -627,12 +696,29 @@ export default function STCreatePremiumPage() {
   };
 
   // Handlers
+  const getTemplateNomorFormat = (): string => {
+    const configuredFormat = selectedDynamicTemplate?.configuration?.nomor_surat_format;
+    return typeof configuredFormat === "string" && configuredFormat.trim()
+      ? configuredFormat
+      : "/K.18/TU/{klasifikasi}/B/{bulan}/{tahun}";
+  };
+
+  const buildNomorSurat = (number: string, classification: string): string => {
+    const format = getTemplateNomorFormat();
+    const suffix = format.startsWith("/") ? format : `/${format}`;
+
+    return `ST.${number}${suffix
+      .replace(/{klasifikasi}/g, classification)
+      .replace(/{bulan}/g, currentMonth)
+      .replace(/{tahun}/g, currentYear)}`;
+  };
+
   const buildDraftPayload = () => {
     const tempatTujuanPayload = getTempatTujuanForPayload();
     const trimmedNumber = stNumber.trim();
     const trimmedKlasifikasi = klasifikasi.trim();
     const fullNomorSurat = trimmedNumber && trimmedKlasifikasi
-      ? `ST.${trimmedNumber}/K.18/TU/${trimmedKlasifikasi}/B/${currentMonth}/${currentYear}`
+      ? buildNomorSurat(trimmedNumber, trimmedKlasifikasi)
       : null;
 
     return {
@@ -646,6 +732,7 @@ export default function STCreatePremiumPage() {
       sumber_dana: sumberDana,
       sumber_dana_other: sumberDanaOther,
       template_type: templateType,
+      template_id: selectedTemplateId,
       menimbang: getPreviewMenimbangItems(),
       dasar: dasarItems,
       tembusan: tembusanItems.length > 0 ? tembusanItems : null,
@@ -659,7 +746,7 @@ export default function STCreatePremiumPage() {
     if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
     const tempatTujuanPayload = getTempatTujuanForPayload();
     if (!tempatTujuanPayload) {
-      return toast.error(templateType === "plh" ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi.");
+      return toast.error(isPlhTemplate ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi.");
     }
     if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
 
@@ -691,7 +778,7 @@ export default function STCreatePremiumPage() {
     if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
     const tempatTujuanPayload = getTempatTujuanForPayload();
     if (!tempatTujuanPayload) {
-      return toast.error(templateType === "plh" ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi.");
+      return toast.error(isPlhTemplate ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi.");
     }
 
     const confirmed = await confirm({
@@ -704,7 +791,7 @@ export default function STCreatePremiumPage() {
     if (!confirmed) return;
 
     try {
-      const fullNomorSurat = `ST.${stNumber}/K.18/TU/${klasifikasi}/B/${currentMonth}/${currentYear}`;
+      const fullNomorSurat = buildNomorSurat(stNumber, klasifikasi);
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: `K.18/TU/${klasifikasi}/B`,
@@ -713,7 +800,8 @@ export default function STCreatePremiumPage() {
         sumber_dana_other: sumberDanaOther,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
-        employee_ids: selectedEmployees.map(e => e.id),
+        employee_ids: selectedEmployees.map((employee) => employee.id),
+        template_id: selectedTemplateId,
         maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
         tempat_tujuan: tempatTujuanPayload,
         template_type: templateType,
@@ -740,6 +828,11 @@ export default function STCreatePremiumPage() {
     printSuratTugas(stNumber, namaKegiatan);
   };
 
+  const displayedNomorFormat = getTemplateNomorFormat()
+    .replace(/{bulan}/g, currentMonth)
+    .replace(/{tahun}/g, currentYear);
+  const [nomorFormatPrefix, nomorFormatSuffix] = displayedNomorFormat.split("{klasifikasi}");
+
   return (
     <div className="h-screen flex bg-slate-50 dark:bg-zinc-950 overflow-hidden">
       <aside className="w-105 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col shadow-2xl z-10">
@@ -764,7 +857,7 @@ export default function STCreatePremiumPage() {
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                {templateType?.startsWith("db_") && (
+                {templateType?.startsWith("db_") && !selectedDynamicTemplate?.is_system && (
                   <button
                     onClick={handleDeleteTemplate}
                     className="text-[9px] font-bold uppercase tracking-wider text-red-500 hover:text-red-600 transition-colors"
@@ -786,26 +879,23 @@ export default function STCreatePremiumPage() {
               className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 outline-none transition focus:ring-2 focus:ring-orange-500/20 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300"
             >
               <option value="">Default (Manual)</option>
-              <option value="bmn-pemeriksaan">Penghapusan BMN</option>
-              <option value="beda-hari">Beda Hari (Daftar Lampiran)</option>
-              <option value="plh">PLH (Pelaksana Harian Kepala Seksi)</option>
               {dynamicTemplates.map((t) => (
                 <option key={t.id} value={`db_${t.id}`}>
                   {t.name}
                 </option>
               ))}
             </select>
-            {templateType === "beda-hari" && (
+            {isBedaHariTemplate && (
               <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
                 Kepada surat akan otomatis &quot;Daftar nama terlampir.&quot; Set tanggal per pegawai di section di bawah.
               </p>
             )}
-            {templateType === "bmn-pemeriksaan" && (
+            {isBmnTemplate && (
               <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
                 Klasifikasi KAP.05 + 8 peraturan dasar + freeform Untuk telah diterapkan.
               </p>
             )}
-            {templateType === "plh" && (
+            {isPlhTemplate && (
               <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
                 Template PLH aktif. Ganti placeholder <code>{"{wilayah}"}</code> dan <code>{"{kegiatan Kepala Seksi}"}</code> di Menimbang/Untuk dengan nilai sesuai.
               </p>
@@ -843,12 +933,17 @@ export default function STCreatePremiumPage() {
           </div>
 
           <FormSection title="Nomor Surat">
-            <div className="flex items-stretch bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/10">
-              <div className="bg-slate-100 dark:bg-zinc-700 px-3 flex items-center border-r border-slate-200 dark:border-zinc-600 shrink-0"><span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">ST.</span></div>
-              <input value={stNumber} onChange={e => setStNumber(e.target.value)} placeholder="001" className="w-14 px-2 py-2 text-sm font-bold bg-transparent outline-none text-center text-zinc-900 dark:text-white" />
-              <div className="bg-slate-100 dark:bg-zinc-700 px-2 flex items-center border-x border-slate-200 dark:border-zinc-600 shrink-0"><span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400">/K.18/TU/</span></div>
-              <input value={klasifikasi} onChange={e => setKlasifikasi(e.target.value)} placeholder="KSA.0X.0X" className="flex-1 min-w-0 px-2 py-2 text-xs font-medium bg-transparent outline-none text-zinc-900 dark:text-white" />
-              <div className="bg-slate-100 dark:bg-zinc-700 px-2 flex items-center border-l border-slate-200 dark:border-zinc-600 shrink-0"><span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400">/B/{currentMonth}/{currentYear}</span></div>
+            <div className="space-y-2">
+              <p className="text-[10px] text-slate-500 dark:text-zinc-400">Format nomor otomatis mengikuti template yang dipilih di atas. Untuk mengganti format, ubah pengaturan template di halaman Manajemen Template.</p>
+              <div className="flex items-stretch overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-zinc-700 dark:bg-zinc-800">
+                <div className="flex shrink-0 items-center border-r border-slate-200 bg-slate-100 px-3 dark:border-zinc-600 dark:bg-zinc-700"><span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">ST.</span></div>
+                <input value={stNumber} onChange={e => setStNumber(e.target.value)} placeholder="001" className="w-14 bg-transparent px-2 py-2 text-center text-sm font-bold text-zinc-900 outline-none dark:text-white" />
+                <div className="flex min-w-0 flex-1 items-center border-l border-slate-200 px-2 py-1 text-xs text-slate-600 dark:border-zinc-600 dark:text-zinc-300">
+                  <span className="whitespace-pre">{nomorFormatPrefix}</span>
+                  <input value={klasifikasi} onChange={e => setKlasifikasi(e.target.value)} placeholder="KSA.0X.0X" className="min-w-20 flex-1 bg-transparent px-1 py-1 font-medium text-zinc-900 outline-none dark:text-white" />
+                  <span className="whitespace-pre">{nomorFormatSuffix}</span>
+                </div>
+              </div>
             </div>
           </FormSection>
 
@@ -933,7 +1028,7 @@ export default function STCreatePremiumPage() {
                         const normalized = { ...emp, nama_lengkap: emp.nama_lengkap || emp.name || "", jabatan: emp.jabatan || emp.position || "" };
                         setSelectedEmployees([...selectedEmployees, normalized]);
                         // Auto-init employeeDates jika template Beda Hari aktif
-                        if (templateType === "beda-hari") {
+                        if (isBedaHariTemplate) {
                           setEmployeeDates((prev) => ({
                             ...prev,
                             [normalized.id]: prev[normalized.id] || { mulai: tanggalMulai || "", selesai: tanggalSelesai || "" },
@@ -967,7 +1062,7 @@ export default function STCreatePremiumPage() {
                         });
                       }} className="text-slate-300 hover:text-red-500"><X className="w-4 h-4" /></button>
                     </div>
-                    {templateType === "beda-hari" && (
+                    {isBedaHariTemplate && (
                       <div className="mt-2 grid grid-cols-2 gap-2">
                         <div>
                           <label className="mb-0.5 block text-[9px] font-bold uppercase tracking-wider text-slate-400">Tanggal Mulai</label>
@@ -1003,7 +1098,7 @@ export default function STCreatePremiumPage() {
                 );
               })}
             </div>
-            {templateType === "beda-hari" && (
+            {isBedaHariTemplate && (
               <div className="mt-3 rounded-xl border border-orange-200 bg-orange-50 p-2 dark:border-orange-500/30 dark:bg-orange-500/10">
                 <label className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
                   Judul Lampiran
@@ -1020,7 +1115,7 @@ export default function STCreatePremiumPage() {
 
           <FormSection title="Detail Kegiatan">
             <div className="space-y-3">
-              {templateType === "plh" && (
+              {isPlhTemplate && (
                 <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 space-y-2 dark:border-blue-500/30 dark:bg-blue-500/10">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-blue-700 uppercase dark:text-blue-300">Wilayah Kepala Seksi</label>
@@ -1108,11 +1203,11 @@ export default function STCreatePremiumPage() {
                   </div>
                 </>
               )}
-              <div className={`grid grid-cols-2 gap-2 ${templateType === "beda-hari" ? "hidden" : ""}`}>
+              <div className={`grid grid-cols-2 gap-2 ${isBedaHariTemplate ? "hidden" : ""}`}>
                 <input type="date" value={tanggalMulai} onChange={e => setTanggalMulai(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
                 <input type="date" value={tanggalSelesai} onChange={e => setTanggalSelesai(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white" />
               </div>
-              {templateType === "beda-hari" && (
+              {isBedaHariTemplate && (
                 <p className="rounded-lg bg-orange-50 px-3 py-2 text-[10px] text-orange-700 dark:bg-orange-500/10 dark:text-orange-300">
                   Mode Beda Hari aktif: tanggal kegiatan dihitung otomatis dari tanggal mulai paling awal sampai tanggal selesai paling akhir di daftar pegawai.
                 </p>
