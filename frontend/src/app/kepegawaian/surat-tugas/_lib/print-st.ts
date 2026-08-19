@@ -30,7 +30,7 @@ const PRINT_STYLE = `
   
   .kop-surat {
     width: 210mm !important;
-    margin: 0.3cm auto 4mm auto !important;
+    margin: -0.6cm auto 4mm auto !important;
     text-align: center !important;
   }
   
