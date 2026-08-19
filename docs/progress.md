@@ -1,3 +1,43 @@
+# Progress - Phase 215: Manajemen Template Surat Tugas Superadmin (Issue #570)
+
+> Document updated: 2026-08-19
+> Status: SELESAI, PR #571 squash-merged ke `development` (`90308a1`). `production` tidak disentuh.
+
+---
+
+## 1. Backend Template Management
+- Menambahkan CRUD template Surat Tugas dengan role protection `super_admin`.
+- Mendukung template sistem dan custom: Standard, BMN, Beda Hari, PLH, dan Custom.
+- Menambahkan status aktif/nonaktif, template default, duplikasi, soft delete, audit, signer default, dan versioning.
+- Menambahkan template bawaan Default, Penghapusan BMN, Beda Hari, dan PLH melalui `StTemplateSeeder`.
+- Menyimpan `template_id`, `template_version`, dan `template_snapshot` pada Surat Tugas agar dokumen lama tidak berubah ketika master template diedit.
+- Menambahkan migration pemulihan isi Menimbang/Dasar, backfill versi, dan normalisasi format nomor surat.
+
+## 2. Konfigurasi Template di Settings
+- Superadmin dapat mengubah Menimbang, Dasar, penandatangan default, deskripsi, status, dan default template.
+- Kode template baru dibuat otomatis dari nama template.
+- Deskripsi template ditampilkan pada daftar template.
+- Menambahkan konfigurasi Biaya/Nomor 3 dengan placeholder `{tahun}`.
+- Menambahkan pilihan radio Format Nomor Surat:
+  - Format default `/K.18/TU/KSA.0X.0X/B/{bulan berjalan}/{tahun berjalan}`.
+  - Tulis manual untuk format khusus.
+- Prefix `ST.{nomor}` tetap dibuat otomatis oleh sistem dan tidak menjadi bagian format yang diketik admin.
+
+## 3. Integrasi Create dan Print Surat Tugas
+- Halaman create otomatis mengikuti format nomor surat dari template terpilih.
+- Klasifikasi seperti `KSA.0X.0X` tetap dapat diedit pada form Nomor Surat.
+- Biaya/Nomor 3 dari template otomatis masuk ke bagian Untuk.
+- Margin print halaman lanjutan menggunakan master-table spacer agar konsisten dengan halaman pertama.
+- Direct publish mengirim array ID pegawai yang benar dan tervalidasi backend.
+
+## 4. Validasi dan Delivery
+- PHP syntax check, Laravel Pint, migration, TypeScript, diagnostics frontend, dan production build berhasil.
+- PHPUnit belum dijalankan karena binary PHPUnit tidak tersedia di `backend/vendor`.
+- Commit fitur: `c60edc2`.
+- Pull Request: [#571](https://github.com/tegaranugrah1/bksda-superapp/pull/571).
+
+---
+
 # Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan
 
 > Document updated: 2026-08-06
@@ -8261,5 +8301,30 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
      -   A d d e d   r e p e a t i n g   \ 	 h e a d \   a n d   \ 	 f o o t \   s p a c e r s   t o   e n f o r c e   1 5 m m   t o p   a n d   b o t t o m   m a r g i n s   o n   e v e r y   p r i n t e d   p a g e . 
      -   A p p l i e d   \ p a g e B r e a k A f t e r :   a v o i d \   t o   t h e   \ M E M B E R I   T U G A S , \   t i t l e   t o   p r e v e n t   o r p h a n e d   h e a d e r s   s e p a r a t i n g   f r o m   t h e   \ K e p a d a \   b l o c k . 
      -   R e m o v e d   s t r i c t   \  v o i d - b r e a k \   f r o m   L a p o r a n   P o r t a l ' s   s i g n a t u r e   b l o c k   t o   a l l o w   n a t u r a l   p a g e   b r e a k s   f o r   l o n g   p a r t i c i p a n t   l i s t s . 
-  
  
+ 
+ 
+---
+
+## [2026-08-10] Dynamic ST Templates Management for Superadmin
+
+### Completed (Selesai)
+- [x] **Database & API (Backend Laravel)**:
+  - Ditambahkan tabel st_templates via migration untuk menyimpan format template JSON.
+  - Dibuat model StTemplate dan StTemplateController dengan fungsionalitas CRUD.
+  - Didaftarkan endpoint CRUD di pp/Modules/Kepegawaian/Routes/api.php dengan pengecekan khusus otorisasi (
+ole === 'super_admin') untuk operasi tulis/ubah/hapus.
+- [x] **Halaman Manajemen Template (Frontend Next.js)**:
+  - Dibuat halaman baru khusus Superadmin di /kepegawaian/settings/st-templates.
+  - Disediakan form interaktif yang memanfaatkan komponen EditableItemListSection bawaan ST Builder untuk menambah butir-butir *Menimbang* dan *Dasar*.
+- [x] **Integrasi ST Builder**:
+  - Halaman ST Builder (/kepegawaian/surat-tugas/create) kini secara otomatis menarik template dinamis dari database dan menggabungkannya dengan opsi template bawaan di *dropdown* utama.
+  - Memilih template *custom* akan segera mengisi ulang baris-baris *Menimbang* dan *Dasar* sesuai dengan yang dikonfigurasikan.
+  - Menambahkan fitur **Simpan Baru** untuk menyimpan konfigurasi isian *Menimbang* dan *Dasar* yang sedang diketik sebagai *template* baru secara langsung dari halaman ST Builder.
+  - Menambahkan fitur **Hapus** untuk menghapus *template custom* langsung dari *dropdown* ST Builder.
+
+### Validation
+- [x] Template *custom* berhasil tersimpan di database.
+- [x] Daftar template termuat dengan baik di halaman ST Builder.
+- [x] Fungsionalitas hapus dan auto-select setelah tambah template baru berjalan lancar.
+

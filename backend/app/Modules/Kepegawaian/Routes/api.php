@@ -18,6 +18,18 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
     Route::get('/employees/{employee}/assignment-letters', [EmployeeController::class, 'assignmentLetters']);
 
+    // --- TEMPLATE SURAT TUGAS ---
+    Route::get('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'index']);
+    Route::get('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'show']);
+    Route::middleware('role:super_admin')->group(function () {
+        Route::post('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'store']);
+        Route::put('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'update']);
+        Route::post('/st-templates/{id}/set-default', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'setDefault']);
+        Route::patch('/st-templates/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'toggleActive']);
+        Route::post('/st-templates/{id}/duplicate', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'duplicate']);
+        Route::delete('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'destroy']);
+    });
+
     // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE) ---
     Route::get('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'show']);
 

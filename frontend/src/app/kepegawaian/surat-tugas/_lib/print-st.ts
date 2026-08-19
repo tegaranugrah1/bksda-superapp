@@ -30,7 +30,8 @@ const PRINT_STYLE = `
   
   .kop-surat {
     width: 210mm !important;
-    margin: -0.6cm auto 4mm auto !important;
+    /* Kompensasi spacer 15mm agar halaman pertama tetap rapat, sementara spacer berulang memberi margin halaman lanjutan. */
+    margin: -1.2cm auto 4mm auto !important;
     text-align: center !important;
   }
   
