@@ -8,13 +8,14 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
-import { useIsFocused, useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
-import { FabMenu } from "../../components/ui/FabMenu";
+
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { NotificationModal } from "../../components/ui/NotificationModal";
 import { apiClient } from "../../lib/api/client";
@@ -107,7 +108,7 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
   onBack,
   onNavigateToModule,
 }) => {
-  const isFocused = useIsFocused();
+
   const { isDark, colors } = useTheme();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -199,6 +200,16 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
       }, 5000);
       return () => clearInterval(timer);
     }, [fetchHistory])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+        navigation?.navigate("SuratTugas");
+        return true;
+      });
+      return () => subscription.remove();
+    }, [navigation])
   );
 
   const handleRefresh = () => {
@@ -378,7 +389,7 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
         <TouchableOpacity
           onPress={() => {
             if (onBack) onBack();
-            else if (navigation) navigation.goBack();
+            else if (navigation) navigation.navigate("SuratTugas");
           }}
           style={styles.backBtn}
           activeOpacity={0.6}

@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
+
 import { WebView } from "react-native-webview";
 import { HEADER_NEW_BASE64 } from "../../assets/headerNewBase64";
 import { RADIUS } from "../../theme";
@@ -20,6 +20,7 @@ import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { FabMenu } from "../../components/ui/FabMenu";
 import { apiClient } from "../../lib/api/client";
+import { shareFile } from "../../lib/files/share";
 
 interface Employee {
   id: string;
@@ -1068,6 +1069,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       </tr>
     `).join('');
 
+    const shouldStartSecondPage = listMenimbang.length > 4;
+
     const rawTembusanList = (params.tembusanItems && params.tembusanItems.length > 0)
       ? params.tembusanItems
       : tembusanItems;
@@ -1105,6 +1108,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
         <meta charset="utf-8">
         <meta name="viewport" content="width=210mm, initial-scale=0.42, minimum-scale=0.2, maximum-scale=3.0, user-scalable=yes">
         <style>
+          @page { size: A4 portrait; margin: 0; }
           * { box-sizing: border-box; }
           html, body {
             margin: 0;
@@ -1113,8 +1117,9 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             width: 100%;
             min-height: 100%;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
             font-family: 'Bookman Old Style', 'Georgia', serif;
           }
           .page-wrapper {
@@ -1127,7 +1132,7 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             width: 210mm;
             min-height: 297mm;
             background: #ffffff;
-            padding: 22mm 15.5mm 22mm 20mm;
+            padding: 6mm 15.5mm 10mm 20mm;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             color: #000000;
             font-size: 11pt;
@@ -1135,9 +1140,14 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
             text-align: justify;
             position: relative;
           }
+
+          .page-break {
+            page-break-before: always;
+            break-before: page;
+          }
           .kop-container {
             text-align: left;
-            margin-top: -16mm;
+            margin-top: 0;
             margin-bottom: 4px;
             margin-left: -1.0cm;
             margin-right: -0.45cm;
@@ -1147,7 +1157,10 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           .doc-title { font-size: 11pt; font-weight: bold; margin: 0 0 2px; text-transform: uppercase; letter-spacing: 1px; }
           .doc-number { font-size: 11pt; margin: 0; }
           .section-center { text-align: center; font-weight: bold; margin: 12px 0 4px; }
-          table.main-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; table-layout: fixed; }
+          table.main-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; table-layout: fixed; break-inside: auto; page-break-inside: auto; }
+          table.main-table > tbody > tr { break-inside: auto; page-break-inside: auto; }
+          table.main-table td { break-inside: auto; page-break-inside: auto; }
+          table.main-table table tr { break-inside: avoid; page-break-inside: avoid; }
           td.col-label { width: 110px; vertical-align: top; padding: 1px 0; font-size: 11pt; }
           td.col-colon { width: 12px; vertical-align: top; padding: 1px 0; font-size: 11pt; }
           td.col-content { vertical-align: top; padding: 1px 0; font-size: 11pt; }
@@ -1178,6 +1191,17 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
           }
           .sig-name { font-weight: bold; font-size: 11pt; margin: 0; }
           .sig-nip { font-size: 10pt; margin: 2px 0 0; }
+          @media print {
+            html, body { display: block; background: #ffffff; }
+            .page-wrapper { display: block; padding: 0; }
+            .page-card {
+              height: 297mm;
+              min-height: 297mm;
+              margin: 0 auto;
+              overflow: hidden;
+              box-shadow: none;
+            }
+          }
         </style>
       </head>
       <body>
@@ -1243,6 +1267,8 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
               </tr>
             </table>
 
+            ${shouldStartSecondPage ? '</div></div><div class="page-wrapper"><div class="page-card page-break">' : ''}
+
             <!-- UNTUK -->
             <table class="main-table">
               <tr>
@@ -1305,15 +1331,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       setIsGeneratingPdf(true);
       const html = getSuratTugasHtmlContent();
       const { uri } = await Print.printToFileAsync({ html });
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, {
-          dialogTitle: "Bagikan Surat Tugas BKSDA",
-          mimeType: "application/pdf",
-          UTI: "com.adobe.pdf",
-        });
-      } else {
-        showNotif("Berhasil", `File PDF tersimpan di: ${uri}`, "success");
-      }
+      await shareFile({
+        localUri: uri,
+        dialogTitle: "Bagikan Surat Tugas BKSDA",
+        mimeType: "application/pdf",
+        uti: "com.adobe.pdf",
+      });
     } catch (err: any) {
       showNotif("Gagal Berbagi PDF", err?.message || "Terjadi kesalahan saat membagikan PDF.", "error");
     } finally {
@@ -1326,15 +1349,12 @@ export const BuatSuratTugasScreen: React.FC<BuatSuratTugasScreenProps> = ({
       setIsGeneratingPdf(true);
       const html = getSuratTugasHtmlContent();
       const { uri } = await Print.printToFileAsync({ html });
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, {
-          dialogTitle: "Simpan Surat Tugas PDF ke HP",
-          mimeType: "application/pdf",
-        });
-        showNotif("Berhasil!", "Surat Tugas PDF siap disimpan ke perangkat HP Anda.", "success");
-      } else {
-        showNotif("Berhasil Disimpan", `PDF tersimpan di: ${uri}`, "success");
-      }
+      await shareFile({
+        localUri: uri,
+        dialogTitle: "Simpan Surat Tugas PDF ke HP",
+        mimeType: "application/pdf",
+      });
+      showNotif("Berhasil!", "Surat Tugas PDF siap disimpan ke perangkat HP Anda.", "success");
     } catch (err: any) {
       showNotif("Gagal Menyimpan PDF", err?.message || "Terjadi kesalahan.", "error");
     } finally {

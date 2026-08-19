@@ -219,12 +219,16 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
         setSelectedSt(null);
         return true; // Consume event & stay in Inbox Surat Tugas list view
       }
-      return false; // Delegate to default navigation back
+      if (navigation) {
+        navigation.navigate("Beranda");
+        return true;
+      }
+      return false;
     };
 
     const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
     return () => subscription.remove();
-  }, [selectedSt]);
+  }, [selectedSt, navigation]);
 
   const handleGoBack = () => {
     if (selectedSt !== null) {
@@ -232,7 +236,7 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     } else if (onBack) {
       onBack();
     } else if (navigation) {
-      navigation.navigate("KepegawaianDashboard");
+      navigation.navigate("Beranda");
     }
   };
 
