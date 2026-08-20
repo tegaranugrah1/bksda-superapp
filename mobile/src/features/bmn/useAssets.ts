@@ -47,7 +47,10 @@ export function useAssets(filters?: BmnQueryFilters) {
         params: queryParams,
       });
 
-      const newItems = response.data.data || [];
+      const rawItems = response.data.data || [];
+      const newItems = Array.from(
+        new Map(rawItems.map((item) => [String(item.id), item])).values()
+      );
       const meta = response.data.meta;
 
       setItems((prev) => (targetPage === 1 ? newItems : [...prev, ...newItems]));
@@ -85,6 +88,11 @@ export function useAssets(filters?: BmnQueryFilters) {
     }
   }, [page, hasNextPage, isFetchingNextPage, isLoading, loadData]);
 
+  const goToPage = useCallback((targetPage: number) => {
+    if (targetPage < 1 || isLoading) return;
+    loadData(targetPage, 'initial');
+  }, [isLoading, loadData]);
+
   return {
     items,
     isLoading,
@@ -93,6 +101,8 @@ export function useAssets(filters?: BmnQueryFilters) {
     error,
     refetch,
     fetchNextPage,
+    goToPage,
+    page,
     hasNextPage,
   };
 }

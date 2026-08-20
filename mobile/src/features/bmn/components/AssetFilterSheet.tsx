@@ -25,8 +25,23 @@ interface AssetFilterSheetProps {
 }
 
 const KONDISI_OPTIONS = ['Baik', 'Rusak Ringan', 'Rusak Berat'];
-const JENIS_BMN_OPTIONS = ['Kendaraan', 'Peralatan', 'Elektronik', 'Mebel', 'Lainnya'];
-const LOKASI_OPTIONS = ['Seksi Wilayah I', 'Seksi Wilayah II', 'Seksi Wilayah III', 'Kantor Balai'];
+const JENIS_BMN_OPTIONS = [
+  'ALAT ANGKUTAN BERMOTOR',
+  'ALAT BESAR',
+  'ALAT PERSENJATAAN',
+  'BANGUNAN AIR',
+  'BANGUNAN DAN GEDUNG',
+  'MESIN PERALATAN KHUSUS TIK',
+  'MESIN PERALATAN NON TIK',
+  'RUMAH NEGARA',
+  'TANAH',
+];
+const LOKASI_OPTIONS = [
+  'Kantor Balai KSDA Kalimantan Timur',
+  'Seksi KSDA Wilayah I (Berau)',
+  'Seksi KSDA Wilayah II (Tenggarong)',
+  'Seksi KSDA Wilayah III (Balikpapan)',
+];
 
 export default function AssetFilterSheet({
   visible,
@@ -148,7 +163,11 @@ export default function AssetFilterSheet({
                 </TouchableOpacity>
               </View>
 
-              <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false}>
+              <ScrollView
+                style={styles.scrollArea}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+              >
                 {/* Kondisi Filter */}
                 <View style={styles.section}>
                   <Text
@@ -214,7 +233,7 @@ export default function AssetFilterSheet({
               </ScrollView>
 
               {/* Action Buttons */}
-              <View style={[styles.actionRow, { marginTop: spacing.md }]}>
+              <View style={[styles.actionRow, { marginTop: spacing.md, paddingTop: spacing.sm, backgroundColor: colors.card }]}>
                 <View style={styles.buttonWrapper}>
                   <AppButton
                     title="Hapus Semua"
@@ -267,6 +286,9 @@ const styles = StyleSheet.create({
   },
   scrollArea: {
     marginVertical: 8,
+  },
+  scrollContent: {
+    paddingBottom: 28,
   },
   section: {
     marginBottom: 20,

@@ -120,12 +120,12 @@ export const FabMenu: React.FC<FabMenuProps> = ({
       submenus: [
         { key: "bmn", title: "Dashboard", icon: "grid-outline" },
         { key: "data-aset", title: "Data Aset", icon: "cube-outline" },
-        { key: "bmn-loan", title: "Peminjaman", icon: "swap-horizontal-outline" },
-        { key: "bmn-maintenance", title: "Pemeliharaan", icon: "construct-outline" },
+        { key: "bmn-loan", title: "Peminjaman", icon: "swap-horizontal-outline", disabled: true },
+        { key: "bmn-maintenance", title: "Pemeliharaan", icon: "construct-outline", disabled: true },
         { key: "bmn-import-review", title: "Import Review", icon: "document-text-outline", disabled: true },
         { key: "bmn-rusak-berat", title: "Kandidat Rusak Berat", icon: "hammer-outline", disabled: true },
         { key: "bmn-lelang", title: "Paket Lelang BMN", icon: "document-outline", disabled: true },
-        { key: "bmn-trash", title: "Aset Dihapus", icon: "trash-outline" },
+        { key: "bmn-trash", title: "Aset Dihapus", icon: "trash-outline", disabled: true },
         { key: "bmn-laporan", title: "Laporan", icon: "document-text-outline", disabled: true },
       ],
     },
@@ -198,8 +198,8 @@ export const FabMenu: React.FC<FabMenuProps> = ({
       "inbox-surat-cuti": "InboxSuratCuti",
       "buat-surat-tugas": "BuatSuratTugas",
       "riwayat-surat-tugas": "RiwayatSuratTugas",
-      bmn: "Bmn",
-      "data-aset": "Bmn",
+      bmn: "BmnMain",
+      "data-aset": "BmnMain",
       inventory: "Inventory",
       surat: "Surat",
       profile: "Profile",
@@ -211,7 +211,9 @@ export const FabMenu: React.FC<FabMenuProps> = ({
     
     if (navigation && typeof navigation.navigate === "function") {
       const routeName = routeMap[key] || (key === "kepegawaian" ? "KepegawaianMain" : null);
-      if (routeName) {
+      if (routeName === "BmnMain") {
+        navigation.navigate(routeName, { screen: key === "data-aset" ? "Aset" : "Beranda" });
+      } else if (routeName) {
         navigation.navigate(routeName);
       }
     }

@@ -109,7 +109,7 @@ export const SuratMasukHistoryScreen: React.FC<SuratMasukHistoryScreenProps> = (
         onBack();
       }
     } else if (tabKey === "bmn") {
-      if (navigation) navigation.navigate("Bmn");
+      if (navigation) navigation.navigate("BmnMain");
     } else if (tabKey === "surat") {
       if (navigation) navigation.navigate("Surat");
     } else if (tabKey === "inventory") {

@@ -222,7 +222,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     } else if (tabKey === "inbox-surat-cuti") {
       if (navigation) navigation.navigate("InboxSuratCuti");
     } else if (tabKey === "bmn") {
-      if (navigation) navigation.navigate("Bmn");
+      if (navigation) navigation.navigate("BmnMain");
     } else if (tabKey === "surat") {
       if (navigation) navigation.navigate("Surat");
     } else if (tabKey === "inventory") {

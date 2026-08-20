@@ -1,3 +1,79 @@
+# Progress - Phase 217: Bottom Navigation dan Modul BMN Mobile (Issue #576)
+
+> Document updated: 2026-08-20
+> Status: SELESAI DI `mobile-development`; siap dipush dan dibuat PR. `production` tidak disentuh.
+
+---
+
+## 1. Bottom Navigation BMN
+- Menambahkan nested bottom navigation BMN dengan Beranda, Aset, Pinjaman, dan Rawat.
+- Menjaga tab Aset tetap aktif saat membuka detail, form, dan capture foto.
+- Menambahkan tombol kembali dari Beranda BMN ke Portal Utama.
+- Mengubah Rawat menjadi halaman Coming Soon.
+- Mengarahkan seluruh entry point lama `Bmn` ke `BmnMain`.
+
+## 2. Data Aset Mobile
+- Memisahkan Beranda BMN dari halaman Data Aset.
+- Menyamakan filter Jenis BMN dan lokasi dengan halaman web `/bmn/assets`.
+- Menambahkan pagination dan deduplikasi data aset untuk mencegah duplicate key.
+- Menampilkan jenis BMN, merk/tipe, pengguna, lokasi, serta nopol khusus alat angkutan bermotor.
+
+## 3. Peminjaman BMN Mobile
+- Menambahkan halaman list peminjaman sebelum form.
+- Menambahkan form tiga langkah: pilih aset, detail peminjaman, dan konfirmasi.
+- Menggunakan date picker mobile untuk tanggal mulai dan selesai.
+- Menambahkan detail aset terpilih dan konfirmasi penghapusan pilihan.
+- Menambahkan notification modal untuk validasi, sukses, dan error pengiriman.
+- Menambahkan hapus riwayat peminjaman dengan konfirmasi modal.
+- Mengikuti payload dan endpoint web `/bmn/loans`.
+
+## 4. Detail Aset BMN
+- Menambahkan featured photo di bagian atas detail dengan prioritas foto geotag, tampak depan, belakang, kiri, lalu kanan.
+- Featured photo dapat dibuka melalui lightbox yang sudah tersedia.
+
+## 5. Validasi dan Delivery
+- TypeScript mobile berhasil.
+- ESLint file yang diubah berhasil pada screen/navigator utama; warning lama di file existing tetap tidak menghalangi build.
+- Graphify sudah diperbarui.
+- Tidak ada perubahan pada `production`.
+
+---
+
+# Progress - Phase 216: Perbaikan Mobile Kepegawaian Bottom Navigation, Hak Akses, dan Print Surat Tugas (Issue #573)
+
+> Document updated: 2026-08-19
+> Status: SELESAI, PR #574 squash-merged ke `main` (`fc711c3`). Issue #573 ditutup. `production` tidak disentuh.
+
+---
+
+## 1. Kepegawaian Bottom Navigation
+- Menjaga bottom navigation Kepegawaian tetap terpasang saat membuka layar internal seperti Tambah Pegawai, Inbox ST, Riwayat ST, Inbox Cuti, dan Buat ST.
+- Menyembunyikan route internal dari layout bottom nav tanpa menghapus route navigasinya.
+- Memperbaiki back dari Riwayat ST agar kembali ke tab ST yang aktif.
+- Memperbaiki back dari Inbox ST/Dashboard agar kembali ke tab Beranda yang aktif.
+- Menjaga distribusi jarak lima item bottom nav tetap merata.
+
+## 2. Sinkronisasi Hak Akses Pegawai Mobile
+- Modal hak akses mengambil data aktual dari endpoint `/kepegawaian/employees/{id}/access`.
+- Menghapus fallback keliru yang selalu memberikan modul `kepegawaian`.
+- Mendukung pegawai tanpa modul aktif.
+- Menampilkan modul sesuai `access_modules` server, termasuk BMN untuk user yang memang memilikinya.
+
+## 3. Print dan Download Surat Tugas Mobile
+- Menyalin PDF ke URI lokal yang kompatibel dengan `expo-sharing` sebelum dibagikan/disimpan.
+- Menambahkan aturan A4 dan pagination preview mobile.
+- Menyusun halaman kedua mulai dari bagian Untuk saat isi Menimbang panjang.
+- Menyesuaikan posisi kop surat mobile dan frontend print.
+
+## 4. Validasi dan Delivery
+- TypeScript mobile berhasil.
+- Permission tests berhasil: 16/16.
+- ESLint file terkait tidak menemukan error; warning lama pada state form tetap ada.
+- PR mobile: [#574](https://github.com/tegaranugrah1/bksda-superapp/pull/574).
+- Perubahan sudah tersedia di `main` melalui squash merge commit `fc711c3`.
+
+---
+
 # Progress - Phase 215: Manajemen Template Surat Tugas Superadmin (Issue #570)
 
 > Document updated: 2026-08-19
