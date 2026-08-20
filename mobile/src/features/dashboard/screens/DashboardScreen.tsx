@@ -19,7 +19,7 @@ export default function DashboardScreen({ navigation }: any) {
     } else if (moduleKey === 'surat-tugas' || moduleKey === 'surattugas' || moduleKey === 'surat-tugas-personal') {
       navigation.navigate('SuratTugasList', { initialMode: 'personal' });
     } else if (moduleKey === 'bmn') {
-      navigation.navigate('Bmn');
+      navigation.navigate('BmnMain');
     } else if (moduleKey === 'surat') {
       navigation.navigate('Surat');
     } else if (moduleKey === 'inventory') {

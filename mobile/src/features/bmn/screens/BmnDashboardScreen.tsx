@@ -22,6 +22,7 @@ interface BmnDashboardScreenProps {
   onNavigateToModule?: (moduleKey: string) => void;
   onNavigateToCatalog?: () => void;
   onNavigateToLoans?: () => void;
+  showFab?: boolean;
 }
 
 interface BmnStatsData {
@@ -79,6 +80,7 @@ export const BmnDashboardScreen: React.FC<BmnDashboardScreenProps> = ({
   onNavigateToModule,
   onNavigateToCatalog,
   onNavigateToLoans,
+  showFab = true,
 }) => {
   const { isDark, colors } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -227,7 +229,13 @@ export const BmnDashboardScreen: React.FC<BmnDashboardScreenProps> = ({
 
       {/* Top Header */}
       <View style={[styles.headerBar, { backgroundColor: isDark ? "#0f172a" : "#ffffff", borderBottomColor: isDark ? "#1e293b" : "#e2e8f0" }]}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack || (() => {})} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={onBack || (() => {})}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Kembali ke Portal Utama"
+        >
           <Ionicons name="chevron-back" size={24} color={isDark ? "#f8fafc" : "#0f172a"} />
         </TouchableOpacity>
 
@@ -528,8 +536,9 @@ export const BmnDashboardScreen: React.FC<BmnDashboardScreenProps> = ({
         )}
       </ScrollView>
 
-      {/* Floating Action Button (FabMenu) */}
-      <FabMenu onNavigateToModule={(mod) => handleSelectNavTab(mod)} activeModule="bmn" activeSubmenu="bmn" />
+      {showFab && (
+        <FabMenu onNavigateToModule={(mod) => handleSelectNavTab(mod)} activeModule="bmn" activeSubmenu="bmn" />
+      )}
     </SafeAreaView>
   );
 };
