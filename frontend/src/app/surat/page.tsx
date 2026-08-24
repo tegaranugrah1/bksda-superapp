@@ -93,10 +93,23 @@ const QUICK_LINKS = [
   },
 ];
 
+function getInitialMasuk(): SuratMasukItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const saved = localStorage.getItem("bksda_saved_surat_masuk");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
 export default function SuratHubPage() {
-  const [totalSuratMasuk, setTotalSuratMasuk] = useState<number>(0);
+  const initialMasuk = useMemo(() => getInitialMasuk(), []);
+  const [totalSuratMasuk, setTotalSuratMasuk] = useState<number>(initialMasuk.length);
   const [totalSuratKeluar, setTotalSuratKeluar] = useState<number>(0);
-  const [suratMasukList, setSuratMasukList] = useState<SuratMasukItem[]>([]);
+  const [suratMasukList, setSuratMasukList] = useState<SuratMasukItem[]>(initialMasuk.slice(0, 4));
   const [suratKeluarList, setSuratKeluarList] = useState<SuratKeluarItem[]>([]);
 
   useEffect(() => {
