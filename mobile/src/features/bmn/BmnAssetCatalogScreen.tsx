@@ -25,6 +25,8 @@ interface BmnAssetCatalogScreenProps {
   onBack?: () => void;
   onNavigateToModule?: (moduleKey: string) => void;
   navigation?: any;
+  showFab?: boolean;
+  initialSegment?: "dashboard" | "katalog";
 }
 
 const JENIS_OPTIONS = [
@@ -51,9 +53,11 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
   onBack,
   onNavigateToModule,
   navigation,
+  showFab = true,
+  initialSegment = "dashboard",
 }) => {
   const { isDark, colors } = useTheme();
-  const [activeSegment, setActiveSegment] = useState<"dashboard" | "katalog">("dashboard");
+  const [activeSegment, setActiveSegment] = useState<"dashboard" | "katalog">(initialSegment);
   const [searchQuery, setSearchQuery] = useState("");
   const [nupQuery, setNupQuery] = useState("");
 
@@ -238,6 +242,7 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
         onBack={handleGoBack}
         onNavigateToModule={(mod) => handleSelectNavTab(mod)}
         onNavigateToCatalog={() => setActiveSegment("katalog")}
+        showFab={showFab}
       />
     );
   }
@@ -569,7 +574,9 @@ export const BmnAssetCatalogScreen: React.FC<BmnAssetCatalogScreenProps> = ({
         )}
       </ScrollView>
 
-      <FabMenu onNavigateToModule={handleSelectNavTab} activeModule="bmn" activeSubmenu="data-aset" />
+      {showFab && (
+        <FabMenu onNavigateToModule={handleSelectNavTab} activeModule="bmn" activeSubmenu="data-aset" />
+      )}
 
       <Modal visible={loanModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>

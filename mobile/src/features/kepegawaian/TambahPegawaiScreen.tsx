@@ -129,7 +129,7 @@ export const TambahPegawaiScreen: React.FC<TambahPegawaiScreenProps> = ({
     if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
       if (navigation) navigation.navigate("Dashboard");
     } else if (tabKey === "bmn") {
-      if (navigation) navigation.navigate("Bmn");
+      if (navigation) navigation.navigate("BmnMain");
     } else if (tabKey === "surat") {
       if (navigation) navigation.navigate("Surat");
     } else if (tabKey === "inventory") {

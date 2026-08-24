@@ -485,6 +485,7 @@ export default function BmnDetailScreen() {
     { key: 'kiri', label: 'Tampak Kiri', url: resolvePhotoUrl(asset.foto_kiri_url) },
     { key: 'kanan', label: 'Tampak Kanan', url: resolvePhotoUrl(asset.foto_kanan_url) },
   ];
+  const featuredPhoto = photoSlots.find((slot) => !!slot.url);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? "#0f172a" : "#f8fafc" }]}>
@@ -516,6 +517,31 @@ export default function BmnDetailScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#059669']} />}
       >
+        {/* Featured photo: geotag first, then front/back/side photos */}
+        <TouchableOpacity
+          style={[styles.featuredPhotoCard, { backgroundColor: colors.cardBg }]}
+          activeOpacity={featuredPhoto?.url ? 0.88 : 1}
+          disabled={!featuredPhoto?.url}
+          onPress={() => featuredPhoto?.url && handleViewPhysicalPhoto(featuredPhoto.key, photoSlots)}
+          accessibilityRole={featuredPhoto?.url ? 'button' : undefined}
+          accessibilityLabel={featuredPhoto?.url ? `Lihat ${featuredPhoto.label}` : 'Belum ada foto aset'}
+        >
+          {featuredPhoto?.url ? (
+            <Image source={{ uri: featuredPhoto.url }} style={styles.featuredPhoto} resizeMode="cover" />
+          ) : (
+            <View style={styles.featuredPhotoEmpty}>
+              <Ionicons name="images-outline" size={34} color="#94a3b8" />
+              <Text style={styles.featuredPhotoEmptyText}>Belum ada foto aset</Text>
+            </View>
+          )}
+          {featuredPhoto?.url && (
+            <View style={styles.featuredPhotoLabel}>
+              <Ionicons name={featuredPhoto.key === 'geotag' ? 'location' : 'camera'} size={13} color="#ffffff" />
+              <Text style={styles.featuredPhotoLabelText}>{featuredPhoto.label}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
         {/* Glass Hero Card */}
         <GlassCard style={[styles.heroCard, { backgroundColor: colors.cardBg }]} highlighted>
           <View style={styles.heroTopRow}>
@@ -1265,6 +1291,47 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingBottom: 90,
+  },
+  featuredPhotoCard: {
+    height: 190,
+    borderRadius: 18,
+    marginBottom: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(226, 232, 240, 0.9)',
+  },
+  featuredPhoto: {
+    width: '100%',
+    height: '100%',
+  },
+  featuredPhotoEmpty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f1f5f9',
+    gap: 6,
+  },
+  featuredPhotoEmptyText: {
+    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  featuredPhotoLabel: {
+    position: 'absolute',
+    left: 12,
+    bottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 14,
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+  },
+  featuredPhotoLabelText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
   },
   heroCard: {
     borderRadius: 16,
