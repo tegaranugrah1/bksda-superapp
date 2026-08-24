@@ -124,7 +124,13 @@ export default function PersonalDashboard() {
     try {
       const response = await api.get("/me/dashboard");
       setData(response.data);
-      if (response.data?.user) authStore.updateUser(response.data.user);
+      if (response.data?.user) {
+        const currentSnap = authStore.getSnapshot();
+        const userStr = JSON.stringify(response.data.user);
+        if (!currentSnap.includes(userStr)) {
+          authStore.updateUser(response.data.user);
+        }
+      }
     } catch (error: unknown) {
       const err = error as { response?: { status?: number } };
       if (err.response?.status === 401) { router.push("/login"); }
@@ -213,11 +219,14 @@ export default function PersonalDashboard() {
     }
   }, [employeeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Stable reference for 15-second background polling without dependency loop
+  // Stable reference for 60-second background polling without dependency loop
   const fetchAllRef = useRef<() => void>(() => {});
+  const lastFetchTimeRef = useRef<number>(0);
+  const MIN_REFETCH_INTERVAL_MS = 30000; // Minimal jeda 30 detik antar event refetch
 
   useEffect(() => {
     fetchAllRef.current = () => {
+      lastFetchTimeRef.current = Date.now();
       fetchDashboard();
       if (employeeId) {
         fetchSuratTugas(employeeId);
@@ -232,10 +241,14 @@ export default function PersonalDashboard() {
       if (document.visibilityState === "visible") {
         fetchAllRef.current();
       }
-    }, 15000);
+    }, 60000);
 
     const handleFocus = () => {
-      if (document.visibilityState === "visible") {
+      const now = Date.now();
+      if (
+        document.visibilityState === "visible" &&
+        now - lastFetchTimeRef.current >= MIN_REFETCH_INTERVAL_MS
+      ) {
         fetchAllRef.current();
       }
     };
