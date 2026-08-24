@@ -47,7 +47,7 @@ export default function SuratMasukListPage() {
     }
 
     try {
-      const res = await api.get(`/api/surat-masuk?per_page=all`);
+      const res = await api.get(`/surat-masuk?per_page=all`);
       const apiData = res.data?.data || res.data || [];
       const formattedApi: SuratMasuk[] = Array.isArray(apiData)
         ? apiData.map((d: any) => ({
@@ -70,25 +70,10 @@ export default function SuratMasukListPage() {
 
       const combined = [...formattedApi];
 
+      // If there are offline/local items not yet in API, merge them
       for (const localItem of localItems) {
         if (!combined.some((item) => String(item.no_agenda) === String(localItem.no_agenda))) {
           combined.push(localItem);
-          try {
-            const fd = new FormData();
-            fd.append("no_agenda", localItem.no_agenda || "1000");
-            if (localItem.tanggal_agenda) fd.append("tanggal_agenda", localItem.tanggal_agenda);
-            if (localItem.indeks) fd.append("indeks", localItem.indeks);
-            if (localItem.kode) fd.append("kode", localItem.kode);
-            fd.append("no_surat", localItem.no_surat || "SURAT/BKSDA/2026");
-            if (localItem.referensi) fd.append("referensi", localItem.referensi);
-            if (localItem.tanggal_penyelesaian) fd.append("tanggal_penyelesaian", localItem.tanggal_penyelesaian);
-            if (localItem.tanggal_surat) fd.append("tanggal_surat", localItem.tanggal_surat);
-            if (localItem.isi_ringkas) fd.append("isi_ringkas", localItem.isi_ringkas);
-            if (localItem.asal_surat) fd.append("asal_surat", localItem.asal_surat);
-            if (localItem.lampiran) fd.append("lampiran", localItem.lampiran);
-            if (localItem.catatan) fd.append("catatan", localItem.catatan);
-            await api.post("/api/surat-masuk", fd);
-          } catch (e) {}
         }
       }
 
@@ -96,7 +81,7 @@ export default function SuratMasukListPage() {
       const seenAgenda = new Set<string>();
 
       combined.forEach((item) => {
-        const key = String(item.no_agenda);
+        const key = item.no_agenda ? String(item.no_agenda) : (item.id ? `id-${item.id}` : "");
         if (key && !seenAgenda.has(key)) {
           seenAgenda.add(key);
           uniqueCombined.push(item);
@@ -108,10 +93,10 @@ export default function SuratMasukListPage() {
       uniqueCombined.sort((a, b) => {
         const numA = parseInt(a.no_agenda || "0", 10);
         const numB = parseInt(b.no_agenda || "0", 10);
-        if (!isNaN(numA) && !isNaN(numB)) {
+        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
           return numB - numA;
         }
-        return 0;
+        return (Number(b.id) || 0) - (Number(a.id) || 0);
       });
 
       if (typeof window !== "undefined") {
@@ -121,12 +106,14 @@ export default function SuratMasukListPage() {
       setSuratList(uniqueCombined);
       setLoading(false);
       return;
-    } catch (err) {}
+    } catch (err) {
+      console.error("Failed to load surat masuk from API", err);
+    }
 
     const uniqueLocal: SuratMasuk[] = [];
     const seenLocalAgenda = new Set<string>();
     localItems.forEach((item) => {
-      const key = String(item.no_agenda);
+      const key = item.no_agenda ? String(item.no_agenda) : (item.id ? `id-${item.id}` : "");
       if (key && !seenLocalAgenda.has(key)) {
         seenLocalAgenda.add(key);
         uniqueLocal.push(item);
@@ -138,10 +125,10 @@ export default function SuratMasukListPage() {
     uniqueLocal.sort((a, b) => {
       const numA = parseInt(a.no_agenda || "0", 10);
       const numB = parseInt(b.no_agenda || "0", 10);
-      if (!isNaN(numA) && !isNaN(numB)) {
+      if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
         return numB - numA;
       }
-      return 0;
+      return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
 
     setSuratList(uniqueLocal);

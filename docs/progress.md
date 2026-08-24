@@ -1,3 +1,30 @@
+# Progress - Phase 219: Perbaikan Pagination Endpoint Surat Masuk & Sinkronisasi Arsip (Issue #580)
+
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Perbaikan type-casting pagination backend per_page=all, eliminasi ketergantungan localStorage, dan sinkronisasi arsip antar-pengguna).
+
+---
+
+## 1. Masalah & Analisis Root Cause
+- **Masalah**: Pengguna lain / pegawai non-superadmin yang baru diberi akses modul surat hanya melihat 1 dokumen teratas di `/surat/masuk`, data lama tidak tampil.
+- **Penyebab**:
+  1. Pada `SuratMasukController.php` & `SuratKeluarController.php`, query string `per_page=all` di-cast langsung dengan `(int) $request->input('per_page')`. Di PHP, `(int) "all"` bernilai `0`, lalu `min(max(1, 0), 100)` menghasilkan nilai `1`. Akibatnya Laravel mengeksekusi `$query->paginate(1)` (hanya mengembalikan 1 data).
+  2. Ketergantungan pada `localStorage` menyebabkan browser awal pembuat surat melihat dokumen dari cache lokal, sementara browser/akun baru hanya menerima 1 data dari API.
+
+## 2. Perubahan yang Dilakukan
+- **Backend (`SuratMasukController.php` & `SuratKeluarController.php`)**:
+  - Menambahkan penanganan eksplisit untuk parameter `per_page === 'all'` agar mengembalikan seluruh data menggunakan `$query->get()` beserta metadata yang konsisten.
+- **Frontend (`frontend/src/app/surat/masuk/page.tsx` & `frontend/src/app/surat/page.tsx`)**:
+  - Menghapus auto-post rekursif ke endpoint dan menjadikan database backend sebagai *single source of truth*.
+  - Menyinkronkan pemuatan data agar seluruh arsip surat masuk dan keluar tampil lengkap untuk seluruh pengguna yang memiliki hak akses.
+
+## 3. Validasi
+- PHP direct index test: Mengembalikan seluruh data (Count: 3, Total: 3).
+- ESLint pada modul `frontend/src/app/surat`: Lulus (0 error).
+
+---
+
 # Progress - Phase 218: Frontend Web Modul Keuangan dan SPJ (Issue #579)
 
 > Document updated: 2026-08-24
