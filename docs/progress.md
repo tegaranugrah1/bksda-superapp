@@ -1,3 +1,48 @@
+# Progress - Phase 218: Frontend Web Modul Keuangan dan SPJ (Issue #579)
+
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Frontend SPJ Wizard, Live FOLU ST Integration, Multi-Open RINBA Calculator, Searchable Master Pegawai & Standarisasi Dokumen Cetak Presisi).
+
+---
+
+## 1. Ringkasan Fitur & Keputusan Bisnis yang Diimplementasikan
+
+- **Integrasi Live FOLU Surat Tugas**: Menghubungkan wizard Buat SPJ ke endpoint `/api/surat-tugas` (memfilter ST aktif dengan sumber dana FOLU).
+- **Filter Personil Berdasarkan SPT (Step 0)**: Secara default menampilkan dan mencentang *hanya* personil dari Surat Tugas terpilih, dengan opsi pencarian dari seluruh database pegawai jika beralih ke mode manual.
+- **Default Penerima REKAP (Step 1)**: Tabel REKAP awal hanya memuat personil pegawai yang ditugaskan (penerima eksternal tidak diinjeksi otomatis).
+- **Auto Pre-Fill Form MCU Pihak Ketiga**: Uraian MCU otomatis mengisi nama personil pertama dan tanggal MCU dihitung **H-2 (2 hari sebelum tanggal mulai tugas)**.
+- **Searchable Picker Pejabat dan Pengelola**:
+  - Pejabat Pembuat Komitmen (PPK), Pemegang Dana Operasional (PDO), dan Verifikator Keuangan dapat dicari dan dipilih secara *real-time* dari seluruh master pegawai (135+ pegawai).
+  - Nilai default: PPK = *Ahmad Hidayat, S.PKP., M.Ling*, PDO = *Dilemma Ferti Hidayah, S.E.* (NIP: `19870130 201012 2 005`), Verifikator = *Sukma Mawarni, S.E.*
+  - Standardisasi format NIP 18-digit resmi pemerintah (*misal: `20051224 202506 1 001`*).
+- **Form Rincian Biaya (RINBA) Terintegrasi per Pegawai**:
+  - Operasional Pengamanan Hutan: Input Hari & Tarif/Hari (Rp 360.000) dengan subtotal otomatis.
+  - Rincian Transportasi: Daftar rute dinamis dengan input keterangan rute & nominal, tombol tambah rute, dan tombol hapus.
+  - Total RINBA (*Operasional + Transportasi*) otomatis mengisi kolom **Jumlah (Rp.)** pada baris REKAP dan grand total SPJ.
+  - **Dukungan Multi-Open**: Form RINBA dapat dibuka bersamaan untuk semua pegawai, dilengkapi tombol batch *"Buka Semua RINBA"* dan *"Tutup Semua"*.
+- **Presisi Template Cetak Dokumen SPJ**:
+  - Seluruh dokumen cetak (SPTJB / REKAP, SPB, Kwitansi, RINBA, dan SPD) tersinkronisasi presisi dengan layout resmi BKSDA Kalimantan Timur.
+
+## 2. File Frontend Utama
+
+- `frontend/src/app/keuangan/layout.tsx`
+- `frontend/src/app/keuangan/page.tsx`
+- `frontend/src/app/keuangan/_components/finance-data.ts`
+- `frontend/src/app/keuangan/_components/DocumentTemplates.tsx`
+- `frontend/src/app/keuangan/spj/page.tsx`
+- `frontend/src/app/keuangan/spj/create/page.tsx`
+- `frontend/src/components/module-switcher.tsx`
+- `frontend/src/components/RouteGuard.tsx`
+
+## 3. Validasi
+
+- ESLint pada modul Keuangan, `ModuleSwitcher`, dan `RouteGuard`: Lulus (0 error).
+- Formatting dan sinkronisasi NIP 18-digit: Lulus.
+- Perhitungan dinamis RINBA dan sinkronisasi ke REKAP: Lulus.
+
+---
+
 # Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan
 
 > Document updated: 2026-08-06
@@ -8261,7 +8306,8 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
      -   A d d e d   r e p e a t i n g   \ 	 h e a d \   a n d   \ 	 f o o t \   s p a c e r s   t o   e n f o r c e   1 5 m m   t o p   a n d   b o t t o m   m a r g i n s   o n   e v e r y   p r i n t e d   p a g e . 
      -   A p p l i e d   \ p a g e B r e a k A f t e r :   a v o i d \   t o   t h e   \ M E M B E R I   T U G A S , \   t i t l e   t o   p r e v e n t   o r p h a n e d   h e a d e r s   s e p a r a t i n g   f r o m   t h e   \ K e p a d a \   b l o c k . 
      -   R e m o v e d   s t r i c t   \  v o i d - b r e a k \   f r o m   L a p o r a n   P o r t a l ' s   s i g n a t u r e   b l o c k   t o   a l l o w   n a t u r a l   p a g e   b r e a k s   f o r   l o n g   p a r t i c i p a n t   l i s t s . 
-  
+ 
+ 
  
 ---
 
@@ -8271,7 +8317,8 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 - [x] **Database & API (Backend Laravel)**:
   - Ditambahkan tabel st_templates via migration untuk menyimpan format template JSON.
   - Dibuat model StTemplate dan StTemplateController dengan fungsionalitas CRUD.
-  - Didaftarkan endpoint CRUD di pp/Modules/Kepegawaian/Routes/api.php dengan pengecekan khusus otorisasi (ole === 'super_admin') untuk operasi tulis/ubah/hapus.
+  - Didaftarkan endpoint CRUD di pp/Modules/Kepegawaian/Routes/api.php dengan pengecekan khusus otorisasi (
+ole === 'super_admin') untuk operasi tulis/ubah/hapus.
 - [x] **Halaman Manajemen Template (Frontend Next.js)**:
   - Dibuat halaman baru khusus Superadmin di /kepegawaian/settings/st-templates.
   - Disediakan form interaktif yang memanfaatkan komponen EditableItemListSection bawaan ST Builder untuk menambah butir-butir *Menimbang* dan *Dasar*.
