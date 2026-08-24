@@ -3,7 +3,6 @@
 namespace App\Modules\SuratTugas\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class AssignmentLetterRequest extends FormRequest
 {
@@ -32,8 +31,13 @@ class AssignmentLetterRequest extends FormRequest
             'sumber_dana' => $isDraft ? 'nullable|string' : 'required|string',
             'sumber_dana_other' => 'nullable|string',
             'template_type' => 'nullable|string|max:50',
-            'menimbang' => 'nullable|array',
-            'dasar' => 'nullable|array',
+            'template_id' => 'nullable|integer|exists:st_templates,id',
+            'menimbang' => 'nullable|array|max:50',
+            'menimbang.*.id' => 'required_with:menimbang|string|max:100',
+            'menimbang.*.text' => 'required_with:menimbang|string|max:5000',
+            'dasar' => 'nullable|array|max:50',
+            'dasar.*.id' => 'required_with:dasar|string|max:100',
+            'dasar.*.text' => 'required_with:dasar|string|max:5000',
             'tembusan' => 'nullable|array',
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',

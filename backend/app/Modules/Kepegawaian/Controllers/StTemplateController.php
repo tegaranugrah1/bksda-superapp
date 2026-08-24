@@ -4,105 +4,110 @@ namespace App\Modules\Kepegawaian\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Kepegawaian\Models\StTemplate;
+use App\Modules\Kepegawaian\Requests\StoreStTemplateRequest;
+use App\Modules\Kepegawaian\Requests\UpdateStTemplateRequest;
+use App\Modules\Kepegawaian\Resources\StTemplateResource;
+use App\Modules\Kepegawaian\Services\StTemplateService;
+use DomainException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class StTemplateController extends Controller
 {
-    public function index()
+    public function __construct(private readonly StTemplateService $service) {}
+
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $templates = StTemplate::orderBy('created_at', 'desc')->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $templates
-        ]);
+        $includeInactive = $request->user()?->role === 'super_admin'
+            && $request->boolean('include_inactive');
+
+        return StTemplateResource::collection(
+            $this->service->list($includeInactive, (int) $request->query('per_page', 50))
+        );
     }
 
-    public function store(Request $request)
+    public function show(Request $request, int $id): StTemplateResource
     {
-        if ($request->user()->role !== 'super_admin') {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        $query = StTemplate::with('defaultSigner');
+        if ($request->user()?->role !== 'super_admin') {
+            $query->where('is_active', true);
         }
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'menimbang' => 'nullable|array',
-            'dasar' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $template = StTemplate::create($validator->validated());
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Template created successfully',
-            'data' => $template
-        ], 201);
+        return new StTemplateResource($query->findOrFail($id));
     }
 
-    public function update(Request $request, $id)
+    public function store(StoreStTemplateRequest $request): JsonResponse
     {
-        if ($request->user()->role !== 'super_admin') {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        try {
+            $template = $this->service->create($request->validated(), (int) $request->user()->id);
+
+            return (new StTemplateResource($template))
+                ->response()
+                ->setStatusCode(201);
+        } catch (DomainException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
         }
-
-        $template = StTemplate::find($id);
-        
-        if (!$template) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Template not found'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'menimbang' => 'nullable|array',
-            'dasar' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $template->update($validator->validated());
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Template updated successfully',
-            'data' => $template
-        ]);
     }
 
-    public function destroy(Request $request, $id)
+    public function update(UpdateStTemplateRequest $request, int $id): StTemplateResource|JsonResponse
     {
-        if ($request->user()->role !== 'super_admin') {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        try {
+            $template = StTemplate::with('defaultSigner')->findOrFail($id);
+
+            return new StTemplateResource(
+                $this->service->update($template, $request->validated(), (int) $request->user()->id)
+            );
+        } catch (DomainException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
         }
+    }
 
-        $template = StTemplate::find($id);
-        
-        if (!$template) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Template not found'
-            ], 404);
+    public function setDefault(Request $request, int $id): StTemplateResource|JsonResponse
+    {
+        try {
+            $template = StTemplate::findOrFail($id);
+
+            return new StTemplateResource(
+                $this->service->setDefault($template, (int) $request->user()->id)
+            );
+        } catch (DomainException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
         }
+    }
 
-        $template->delete();
+    public function toggleActive(Request $request, int $id): StTemplateResource|JsonResponse
+    {
+        try {
+            $validated = $request->validate(['is_active' => ['required', 'boolean']]);
+            $template = StTemplate::findOrFail($id);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Template deleted successfully'
-        ]);
+            return new StTemplateResource(
+                $this->service->toggleActive($template, (bool) $validated['is_active'], (int) $request->user()->id)
+            );
+        } catch (DomainException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+    }
+
+    public function duplicate(Request $request, int $id): JsonResponse
+    {
+        $template = StTemplate::findOrFail($id);
+        $copy = $this->service->duplicate($template, (int) $request->user()->id);
+
+        return (new StTemplateResource($copy))
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        try {
+            $this->service->delete(StTemplate::findOrFail($id));
+
+            return response()->json(['message' => 'Template berhasil dihapus.']);
+        } catch (DomainException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
     }
 }

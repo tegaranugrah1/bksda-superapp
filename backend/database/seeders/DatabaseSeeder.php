@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RealDataSeeder::class,
             EmployeeSeeder::class,
             InitDataSeeder::class,
+            StTemplateSeeder::class,
         ]);
     }
 }

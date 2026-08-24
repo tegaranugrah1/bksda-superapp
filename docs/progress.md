@@ -43,6 +43,47 @@
 
 ---
 
+# Progress - Phase 215: Manajemen Template Surat Tugas Superadmin (Issue #570)
+
+> Document updated: 2026-08-19
+> Status: SELESAI, PR #571 squash-merged ke `development` (`90308a1`). `production` tidak disentuh.
+
+---
+
+## 1. Backend Template Management
+- Menambahkan CRUD template Surat Tugas dengan role protection `super_admin`.
+- Mendukung template sistem dan custom: Standard, BMN, Beda Hari, PLH, dan Custom.
+- Menambahkan status aktif/nonaktif, template default, duplikasi, soft delete, audit, signer default, dan versioning.
+- Menambahkan template bawaan Default, Penghapusan BMN, Beda Hari, dan PLH melalui `StTemplateSeeder`.
+- Menyimpan `template_id`, `template_version`, dan `template_snapshot` pada Surat Tugas agar dokumen lama tidak berubah ketika master template diedit.
+- Menambahkan migration pemulihan isi Menimbang/Dasar, backfill versi, dan normalisasi format nomor surat.
+
+## 2. Konfigurasi Template di Settings
+- Superadmin dapat mengubah Menimbang, Dasar, penandatangan default, deskripsi, status, dan default template.
+- Kode template baru dibuat otomatis dari nama template.
+- Deskripsi template ditampilkan pada daftar template.
+- Menambahkan konfigurasi Biaya/Nomor 3 dengan placeholder `{tahun}`.
+- Menambahkan pilihan radio Format Nomor Surat:
+  - Format default `/K.18/TU/KSA.0X.0X/B/{bulan berjalan}/{tahun berjalan}`.
+  - Tulis manual untuk format khusus.
+- Prefix `ST.{nomor}` tetap dibuat otomatis oleh sistem dan tidak menjadi bagian format yang diketik admin.
+
+## 3. Integrasi Create dan Print Surat Tugas
+- Halaman create otomatis mengikuti format nomor surat dari template terpilih.
+- Klasifikasi seperti `KSA.0X.0X` tetap dapat diedit pada form Nomor Surat.
+- Biaya/Nomor 3 dari template otomatis masuk ke bagian Untuk.
+- Margin print halaman lanjutan menggunakan master-table spacer agar konsisten dengan halaman pertama.
+- Direct publish mengirim array ID pegawai yang benar dan tervalidasi backend.
+
+## 4. Validasi dan Delivery
+- PHP syntax check, Laravel Pint, migration, TypeScript, diagnostics frontend, dan production build berhasil.
+- PHPUnit belum dijalankan karena binary PHPUnit tidak tersedia di `backend/vendor`.
+- Commit fitur: `c60edc2`.
+- Pull Request: [#571](https://github.com/tegaranugrah1/bksda-superapp/pull/571).
+>>>>>>> origin/development
+
+---
+
 # Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan
 
 > Document updated: 2026-08-06

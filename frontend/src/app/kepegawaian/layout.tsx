@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, UserPlus, Inbox, FileText, History, Menu, Calendar, LayoutDashboard } from "lucide-react";
+import { Users, UserPlus, Inbox, FileText, History, Menu, Calendar, LayoutDashboard, Settings } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
@@ -20,6 +20,7 @@ const SIDEBAR_ITEMS = [
   { href: "/kepegawaian/cuti", label: "Inbox Surat Cuti", icon: Calendar, minRole: "admin" as const },
   { href: "/kepegawaian/surat-tugas/create", label: "Buat Surat Tugas", icon: FileText, minRole: "admin" as const },
   { href: "/kepegawaian/surat-tugas/history", label: "Riwayat Surat Tugas", icon: History, minRole: "user" as const },
+  { href: "/kepegawaian/settings/st-templates", label: "Template Surat Tugas", icon: Settings, minRole: "super_admin" as const },
 ];
 
 export default function KepegawaianLayout({
@@ -35,6 +36,7 @@ export default function KepegawaianLayout({
   const visibleItems = SIDEBAR_ITEMS.filter(item => {
     if (item.minRole === "user") return true;
     if (item.minRole === "admin") return canWrite;
+    if (item.minRole === "super_admin") return user?.role === "super_admin";
     return false;
   });
 
