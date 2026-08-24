@@ -11,10 +11,20 @@ export interface StoredUser {
 
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;
 
+// Cross-tab broadcast channel for instantaneous sync
+const authChannel =
+  typeof window !== "undefined" && typeof BroadcastChannel !== "undefined"
+    ? new BroadcastChannel("bksda_auth_channel")
+    : null;
+
 function cookieSecurityAttributes() {
   if (typeof window === "undefined") return "";
 
-  return window.location.protocol === "https:" ? "; Secure" : "";
+  const isHttps = window.location.protocol === "https:";
+  const hostname = window.location.hostname;
+  // If production domain, set domain to .bksdakaltim.net so both apex and all subdomains share cookies
+  const domainAttr = hostname.endsWith("bksdakaltim.net") ? "; domain=.bksdakaltim.net" : "";
+  return `${isHttps ? "; Secure" : ""}${domainAttr}`;
 }
 
 function setAuthCookie(name: string, value: string) {
@@ -62,7 +72,13 @@ export function getAuthSnapshot() {
 }
 
 export function parseAuthSnapshot(snapshot: string) {
-  const [loggedIn, userString] = snapshot.split("\n");
+  const newlineIndex = snapshot.indexOf("\n");
+  if (newlineIndex === -1) {
+    return { token: null, user: null };
+  }
+
+  const loggedIn = snapshot.substring(0, newlineIndex);
+  const userString = snapshot.substring(newlineIndex + 1);
 
   if (!loggedIn || !userString) {
     return { token: null, user: null };
@@ -72,8 +88,8 @@ export function parseAuthSnapshot(snapshot: string) {
     const user = JSON.parse(userString) as StoredUser;
     if (user.nama_lengkap && !user.name) user.name = user.nama_lengkap;
 
-    // "session" bertindak sebagai placeholder token untuk kompatibilitas pengecekan isAuthenticated
-    return { token: "session", user };
+    const token = (typeof window !== "undefined" ? localStorage.getItem("bksda_token") : null) || "session";
+    return { token, user };
   } catch {
     return { token: null, user: null };
   }
@@ -89,12 +105,24 @@ export const authStore = {
     window.addEventListener("storage", notify);
     window.addEventListener("pageshow", notify);
     window.addEventListener("popstate", notify);
+    window.addEventListener("focus", notify);
+    document.addEventListener("visibilitychange", notify);
+
+    if (authChannel) {
+      authChannel.addEventListener("message", notify);
+    }
 
     return () => {
       window.removeEventListener("auth-change", notify);
       window.removeEventListener("storage", notify);
       window.removeEventListener("pageshow", notify);
       window.removeEventListener("popstate", notify);
+      window.removeEventListener("focus", notify);
+      document.removeEventListener("visibilitychange", notify);
+
+      if (authChannel) {
+        authChannel.removeEventListener("message", notify);
+      }
     };
   },
 
@@ -104,24 +132,43 @@ export const authStore = {
   login(token: string, userData: unknown) {
     if (typeof window === "undefined") return;
     
-    // Simpan indikator logged_in alih-alih token mentah
+    const userJson = JSON.stringify(userData);
     localStorage.setItem("bksda_logged_in", "true");
-    localStorage.setItem("bksda_user", JSON.stringify(userData));
+    localStorage.setItem("bksda_user", userJson);
+    if (token) {
+      localStorage.setItem("bksda_token", token);
+    }
     
     setAuthCookie("bksda_logged_in", "true");
-    setAuthCookie("bksda_user", JSON.stringify(userData));
+    setAuthCookie("bksda_user", userJson);
+    if (token) {
+      setAuthCookie("bksda_token", token);
+    }
 
     window.dispatchEvent(new Event("auth-change"));
+
+    if (authChannel) {
+      try {
+        authChannel.postMessage({ type: "LOGIN", token, user: userData });
+      } catch {}
+    }
   },
 
   // Update User Data only
   updateUser(userData: unknown) {
     if (typeof window === "undefined") return;
 
-    localStorage.setItem("bksda_user", JSON.stringify(userData));
-    setAuthCookie("bksda_user", JSON.stringify(userData));
+    const userJson = JSON.stringify(userData);
+    localStorage.setItem("bksda_user", userJson);
+    setAuthCookie("bksda_user", userJson);
 
     window.dispatchEvent(new Event("auth-change"));
+
+    if (authChannel) {
+      try {
+        authChannel.postMessage({ type: "USER_UPDATE", user: userData });
+      } catch {}
+    }
   },
 
   // Fungsi Logout Sentral
@@ -130,12 +177,18 @@ export const authStore = {
 
     localStorage.removeItem("bksda_logged_in");
     localStorage.removeItem("bksda_user");
-    localStorage.removeItem("bksda_token"); // Bersihkan sisa token lama
+    localStorage.removeItem("bksda_token");
     
     deleteAuthCookie("bksda_logged_in");
     deleteAuthCookie("bksda_user");
     deleteAuthCookie("bksda_token");
 
     window.dispatchEvent(new Event("auth-change"));
+
+    if (authChannel) {
+      try {
+        authChannel.postMessage({ type: "LOGOUT" });
+      } catch {}
+    }
   }
 };

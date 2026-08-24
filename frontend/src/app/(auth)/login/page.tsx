@@ -28,14 +28,33 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const authSnapshot = useSyncExternalStore(authStore.subscribe, authStore.getSnapshot, authStore.getSnapshot);
-  const { token } = parseAuthSnapshot(authSnapshot);
+  const authSnapshot = useSyncExternalStore(authStore.subscribe, authStore.getSnapshot, () => "");
+  const { token, user } = parseAuthSnapshot(authSnapshot);
 
   useEffect(() => {
-    if (token) {
+    if (token && user) {
       window.location.replace("/portal");
+      return;
     }
-  }, [token]);
+
+    // Verify session with backend on mount
+    let isMounted = true;
+    api
+      .get("/user")
+      .then((res) => {
+        if (!isMounted) return;
+        const backendUser = res.data?.data || res.data;
+        if (backendUser && (backendUser.id || backendUser.username)) {
+          authStore.login("session", backendUser);
+          window.location.replace("/portal");
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, user]);
 
   const redirectToPortal = () => {
     window.location.replace("/portal");
