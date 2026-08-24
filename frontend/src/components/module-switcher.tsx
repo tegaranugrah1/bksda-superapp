@@ -9,6 +9,7 @@ import {
   FileText,
   Settings,
   Mail,
+  Banknote,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -37,6 +38,13 @@ const moduleDefinitions = [
     icon: Box,
     href: "/bmn",
     color: "bg-emerald-100 text-emerald-700",
+  },
+  {
+    name: "Keuangan",
+    slug: "keuangan",
+    icon: Banknote,
+    href: "/keuangan",
+    color: "bg-amber-100 text-amber-700",
   },
   {
     name: "Inventory",

@@ -9,6 +9,7 @@ const MODULE_ROUTES: Record<string, string> = {
   "/bmn": "bmn",
   "/inventory": "inventory",
   "/kepegawaian": "kepegawaian",
+  "/keuangan": "keuangan",
   "/dereporting": "dereporting",
   "/cms": "cms",
   "/surat": "surat",

@@ -1,76 +1,45 @@
-# Progress - Phase 217: Bottom Navigation dan Modul BMN Mobile (Issue #576)
+# Progress - Phase 218: Frontend Web Modul Keuangan dan SPJ (Issue #579)
 
-> Document updated: 2026-08-20
-> Status: SELESAI DI `mobile-development`; siap dipush dan dibuat PR. `production` tidak disentuh.
-
----
-
-## 1. Bottom Navigation BMN
-- Menambahkan nested bottom navigation BMN dengan Beranda, Aset, Pinjaman, dan Rawat.
-- Menjaga tab Aset tetap aktif saat membuka detail, form, dan capture foto.
-- Menambahkan tombol kembali dari Beranda BMN ke Portal Utama.
-- Mengubah Rawat menjadi halaman Coming Soon.
-- Mengarahkan seluruh entry point lama `Bmn` ke `BmnMain`.
-
-## 2. Data Aset Mobile
-- Memisahkan Beranda BMN dari halaman Data Aset.
-- Menyamakan filter Jenis BMN dan lokasi dengan halaman web `/bmn/assets`.
-- Menambahkan pagination dan deduplikasi data aset untuk mencegah duplicate key.
-- Menampilkan jenis BMN, merk/tipe, pengguna, lokasi, serta nopol khusus alat angkutan bermotor.
-
-## 3. Peminjaman BMN Mobile
-- Menambahkan halaman list peminjaman sebelum form.
-- Menambahkan form tiga langkah: pilih aset, detail peminjaman, dan konfirmasi.
-- Menggunakan date picker mobile untuk tanggal mulai dan selesai.
-- Menambahkan detail aset terpilih dan konfirmasi penghapusan pilihan.
-- Menambahkan notification modal untuk validasi, sukses, dan error pengiriman.
-- Menambahkan hapus riwayat peminjaman dengan konfirmasi modal.
-- Mengikuti payload dan endpoint web `/bmn/loans`.
-
-## 4. Detail Aset BMN
-- Menambahkan featured photo di bagian atas detail dengan prioritas foto geotag, tampak depan, belakang, kiri, lalu kanan.
-- Featured photo dapat dibuka melalui lightbox yang sudah tersedia.
-
-## 5. Validasi dan Delivery
-- TypeScript mobile berhasil.
-- ESLint file yang diubah berhasil pada screen/navigator utama; warning lama di file existing tetap tidak menghalangi build.
-- Graphify sudah diperbarui.
-- Tidak ada perubahan pada `production`.
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Frontend SPJ Wizard, Live FOLU ST Integration, Multi-Open RINBA Calculator, Searchable Master Pegawai & Standarisasi Dokumen Cetak Presisi).
 
 ---
 
-# Progress - Phase 216: Perbaikan Mobile Kepegawaian Bottom Navigation, Hak Akses, dan Print Surat Tugas (Issue #573)
+## 1. Ringkasan Fitur & Keputusan Bisnis yang Diimplementasikan
 
-> Document updated: 2026-08-19
-> Status: SELESAI, PR #574 squash-merged ke `main` (`fc711c3`). Issue #573 ditutup. `production` tidak disentuh.
+- **Integrasi Live FOLU Surat Tugas**: Menghubungkan wizard Buat SPJ ke endpoint `/api/surat-tugas` (memfilter ST aktif dengan sumber dana FOLU).
+- **Filter Personil Berdasarkan SPT (Step 0)**: Secara default menampilkan dan mencentang *hanya* personil dari Surat Tugas terpilih, dengan opsi pencarian dari seluruh database pegawai jika beralih ke mode manual.
+- **Default Penerima REKAP (Step 1)**: Tabel REKAP awal hanya memuat personil pegawai yang ditugaskan (penerima eksternal tidak diinjeksi otomatis).
+- **Auto Pre-Fill Form MCU Pihak Ketiga**: Uraian MCU otomatis mengisi nama personil pertama dan tanggal MCU dihitung **H-2 (2 hari sebelum tanggal mulai tugas)**.
+- **Searchable Picker Pejabat dan Pengelola**:
+  - Pejabat Pembuat Komitmen (PPK), Pemegang Dana Operasional (PDO), dan Verifikator Keuangan dapat dicari dan dipilih secara *real-time* dari seluruh master pegawai (135+ pegawai).
+  - Nilai default: PPK = *Ahmad Hidayat, S.PKP., M.Ling*, PDO = *Dilemma Ferti Hidayah, S.E.* (NIP: `19870130 201012 2 005`), Verifikator = *Sukma Mawarni, S.E.*
+  - Standardisasi format NIP 18-digit resmi pemerintah (*misal: `20051224 202506 1 001`*).
+- **Form Rincian Biaya (RINBA) Terintegrasi per Pegawai**:
+  - Operasional Pengamanan Hutan: Input Hari & Tarif/Hari (Rp 360.000) dengan subtotal otomatis.
+  - Rincian Transportasi: Daftar rute dinamis dengan input keterangan rute & nominal, tombol tambah rute, dan tombol hapus.
+  - Total RINBA (*Operasional + Transportasi*) otomatis mengisi kolom **Jumlah (Rp.)** pada baris REKAP dan grand total SPJ.
+  - **Dukungan Multi-Open**: Form RINBA dapat dibuka bersamaan untuk semua pegawai, dilengkapi tombol batch *"Buka Semua RINBA"* dan *"Tutup Semua"*.
+- **Presisi Template Cetak Dokumen SPJ**:
+  - Seluruh dokumen cetak (SPTJB / REKAP, SPB, Kwitansi, RINBA, dan SPD) tersinkronisasi presisi dengan layout resmi BKSDA Kalimantan Timur.
 
----
+## 2. File Frontend Utama
 
-## 1. Kepegawaian Bottom Navigation
-- Menjaga bottom navigation Kepegawaian tetap terpasang saat membuka layar internal seperti Tambah Pegawai, Inbox ST, Riwayat ST, Inbox Cuti, dan Buat ST.
-- Menyembunyikan route internal dari layout bottom nav tanpa menghapus route navigasinya.
-- Memperbaiki back dari Riwayat ST agar kembali ke tab ST yang aktif.
-- Memperbaiki back dari Inbox ST/Dashboard agar kembali ke tab Beranda yang aktif.
-- Menjaga distribusi jarak lima item bottom nav tetap merata.
+- `frontend/src/app/keuangan/layout.tsx`
+- `frontend/src/app/keuangan/page.tsx`
+- `frontend/src/app/keuangan/_components/finance-data.ts`
+- `frontend/src/app/keuangan/_components/DocumentTemplates.tsx`
+- `frontend/src/app/keuangan/spj/page.tsx`
+- `frontend/src/app/keuangan/spj/create/page.tsx`
+- `frontend/src/components/module-switcher.tsx`
+- `frontend/src/components/RouteGuard.tsx`
 
-## 2. Sinkronisasi Hak Akses Pegawai Mobile
-- Modal hak akses mengambil data aktual dari endpoint `/kepegawaian/employees/{id}/access`.
-- Menghapus fallback keliru yang selalu memberikan modul `kepegawaian`.
-- Mendukung pegawai tanpa modul aktif.
-- Menampilkan modul sesuai `access_modules` server, termasuk BMN untuk user yang memang memilikinya.
+## 3. Validasi
 
-## 3. Print dan Download Surat Tugas Mobile
-- Menyalin PDF ke URI lokal yang kompatibel dengan `expo-sharing` sebelum dibagikan/disimpan.
-- Menambahkan aturan A4 dan pagination preview mobile.
-- Menyusun halaman kedua mulai dari bagian Untuk saat isi Menimbang panjang.
-- Menyesuaikan posisi kop surat mobile dan frontend print.
-
-## 4. Validasi dan Delivery
-- TypeScript mobile berhasil.
-- Permission tests berhasil: 16/16.
-- ESLint file terkait tidak menemukan error; warning lama pada state form tetap ada.
-- PR mobile: [#574](https://github.com/tegaranugrah1/bksda-superapp/pull/574).
-- Perubahan sudah tersedia di `main` melalui squash merge commit `fc711c3`.
+- ESLint pada modul Keuangan, `ModuleSwitcher`, dan `RouteGuard`: Lulus (0 error).
+- Formatting dan sinkronisasi NIP 18-digit: Lulus.
+- Perhitungan dinamis RINBA dan sinkronisasi ke REKAP: Lulus.
 
 ---
 
@@ -111,6 +80,7 @@
 - PHPUnit belum dijalankan karena binary PHPUnit tidak tersedia di `backend/vendor`.
 - Commit fitur: `c60edc2`.
 - Pull Request: [#571](https://github.com/tegaranugrah1/bksda-superapp/pull/571).
+>>>>>>> origin/development
 
 ---
 
