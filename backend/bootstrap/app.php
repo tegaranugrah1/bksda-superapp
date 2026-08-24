@@ -21,8 +21,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // Percayai semua proxy reverse (Dokploy / Nginx) untuk mengamankan SSL HTTPS & IP
         $middleware->trustProxies(at: '*');
 
-        // Mengaktifkan stateful API middleware agar cookie session/CSRF Sanctum aktif untuk SPA
+        // Mengaktifkan stateful API middleware agar cookie session Sanctum aktif untuk SPA
         $middleware->statefulApi();
+
+        // Kecualikan endpoint API dan auth dari validasi CSRF (menggunakan Bearer Token Sanctum)
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+            'sanctum/csrf-cookie',
+            'login',
+            'logout',
+        ]);
 
         // 1. Mendaftarkan Alias (Agar bisa dipanggil di route misal: middleware('role:admin'))
         $middleware->alias([

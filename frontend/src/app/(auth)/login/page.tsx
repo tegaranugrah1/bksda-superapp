@@ -52,16 +52,6 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
-      // Dapatkan CSRF cookie jika tersedia (non-blocking untuk otentikasi Bearer Token)
-      try {
-        const backendBaseUrl = typeof window !== "undefined"
-          ? `http://${window.location.hostname}:8000`
-          : "http://127.0.0.1:8000";
-        await axios.get(`${backendBaseUrl}/sanctum/csrf-cookie`, { withCredentials: true });
-      } catch {
-        // Abaikan error CSRF cookie untuk otentikasi token produksi
-      }
-
       const payload = {
         ...values,
         username: values.username.trim()
