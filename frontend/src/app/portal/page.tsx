@@ -263,7 +263,14 @@ export default function PersonalDashboard() {
     };
   }, []);
 
-  const handleLogout = () => { authStore.logout(); router.push("/login"); };
+  const handleLogout = async () => {
+    try {
+      await api.post("/logout").catch(() => {});
+    } finally {
+      authStore.logout();
+      window.location.href = "/login";
+    }
+  };
 
   const modules = useMemo(() => {
     if (!data) return [];
