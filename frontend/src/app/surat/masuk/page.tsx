@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
@@ -23,11 +23,36 @@ function formatDisplayDate(dateStr?: string | null): string {
 
 const PER_PAGE_OPTIONS = ["10", "20", "50", "all"] as const;
 
+function getInitialSuratList(): SuratMasuk[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const saved = localStorage.getItem("bksda_saved_surat_masuk");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {}
+  return [];
+}
+
 export default function SuratMasukListPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [suratList, setSuratList] = useState<SuratMasuk[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [suratList, setSuratList] = useState<SuratMasuk[]>(getInitialSuratList);
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      const saved = localStorage.getItem("bksda_saved_surat_masuk");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return false;
+      }
+    } catch {}
+    return true;
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteItem, setDeleteItem] = useState<SuratMasuk | null>(null);
 
   // Pagination states
@@ -35,7 +60,6 @@ export default function SuratMasukListPage() {
   const [perPage, setPerPage] = useState<string>("10");
 
   const loadData = useCallback(async () => {
-    setLoading(true);
     let localItems: SuratMasuk[] = [];
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("bksda_saved_surat_masuk");
@@ -44,6 +68,12 @@ export default function SuratMasukListPage() {
           localItems = JSON.parse(saved);
         } catch (e) {}
       }
+    }
+
+    if (localItems.length === 0) {
+      setLoading(true);
+    } else {
+      setIsRefreshing(true);
     }
 
     try {
@@ -105,34 +135,14 @@ export default function SuratMasukListPage() {
 
       setSuratList(uniqueCombined);
       setLoading(false);
+      setIsRefreshing(false);
       return;
     } catch (err) {
       console.error("Failed to load surat masuk from API", err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
     }
-
-    const uniqueLocal: SuratMasuk[] = [];
-    const seenLocalAgenda = new Set<string>();
-    localItems.forEach((item) => {
-      const key = item.no_agenda ? String(item.no_agenda) : (item.id ? `id-${item.id}` : "");
-      if (key && !seenLocalAgenda.has(key)) {
-        seenLocalAgenda.add(key);
-        uniqueLocal.push(item);
-      } else if (!key) {
-        uniqueLocal.push(item);
-      }
-    });
-
-    uniqueLocal.sort((a, b) => {
-      const numA = parseInt(a.no_agenda || "0", 10);
-      const numB = parseInt(b.no_agenda || "0", 10);
-      if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
-        return numB - numA;
-      }
-      return (Number(b.id) || 0) - (Number(a.id) || 0);
-    });
-
-    setSuratList(uniqueLocal);
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -244,15 +254,27 @@ export default function SuratMasukListPage() {
           />
         </div>
 
-        <div className="text-xs font-semibold text-zinc-500">
-          Total <span className="text-zinc-900 font-bold dark:text-zinc-50">{totalCount}</span> Surat Masuk
+        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
+          {isRefreshing && (
+            <span className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Menyinkronkan...
+            </span>
+          )}
+          <span>
+            Total <span className="text-zinc-900 font-bold dark:text-zinc-50">{totalCount}</span> Surat Masuk
+          </span>
         </div>
       </div>
 
       <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="p-12 text-center text-xs text-zinc-400">Memuat data...</div>
+            <div className="p-4 space-y-2.5">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <div key={n} className="h-12 w-full animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-900" />
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center space-y-3">
               <Inbox className="h-10 w-10 text-zinc-300 mx-auto" />

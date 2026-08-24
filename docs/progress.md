@@ -1,3 +1,24 @@
+# Progress - Phase 220: Sinkronisasi Otentikasi Multi-Tab & Optimasi Render Surat Masuk
+
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Next.js server middleware `src/middleware.ts`, real-time cross-tab sync via BroadcastChannel, shared production domain cookies `.bksdakaltim.net`, dan cache-first SWR instant render pada Surat Masuk).
+
+---
+
+## 1. Ringkasan Masalah & Solusi
+- **Masalah 1 (Auto-Redirect Halaman Login Produksi)**: Pada `bksdakaltim.net`, halaman `/login` terkadang tetap terbuka meskipun pengguna telah masuk ke portal.
+  - **Penyebab**: File middleware sebelumnya bernama `src/proxy.ts` sehingga tidak dieksekusi oleh Next.js server engine. Selain itu, cookie otentikasi belum menggunakan scope domain `.bksdakaltim.net`.
+  - **Solusi**:
+    1. Membuat standar Next.js server middleware `src/middleware.ts` dengan HTTP redirect server-side (307) ke `/portal` bila cookie login terdeteksi.
+    2. Menambahkan integrasi `BroadcastChannel API` (`bksda_auth_channel`) di `auth-store.ts` untuk sinkronisasi instan login/logout ke seluruh tab secara real-time.
+    3. Menambahkan verifikasi sesi latar belakang di `LoginPage` via `/api/user`.
+    4. Mengatur cookie produksi agar mencakup seluruh domain dan subdomain via `domain=.bksdakaltim.net`.
+- **Masalah 2 (Optimasi Loading Halaman Surat Masuk)**: Menghilangkan delay "Memuat data..." (> 5 detik) saat pertama kali membuka `/surat/masuk`.
+  - **Solusi**: Menerapkan pola *Cache-First (SWR Instant Render)* dan *Skeleton Row Pulse Animation* sehingga tabel tampil instan dalam 0 ms dengan sinkronisasi background.
+
+---
+
 # Progress - Phase 219: Perbaikan Pagination Endpoint Surat Masuk & Sinkronisasi Arsip (Issue #580)
 
 > Document updated: 2026-08-24
