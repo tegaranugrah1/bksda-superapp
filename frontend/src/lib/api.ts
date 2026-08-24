@@ -144,9 +144,10 @@ api.get = function <T = any, R = AxiosResponse<T>, D = any>(
   return promise;
 };
 
-// Invalidate cache on mutations
-function clearGetCache() {
+// Invalidate cache on mutations or logout
+export function clearGetCache() {
   responseCache.clear();
+  inFlightRequests.clear();
 }
 
 api.post = function (...args: any[]) {

@@ -1,3 +1,5 @@
+import { clearGetCache } from "@/lib/api";
+
 export interface StoredUser {
   id: string;
   name?: string;
@@ -36,7 +38,14 @@ function setAuthCookie(name: string, value: string) {
 function deleteAuthCookie(name: string) {
   if (typeof document === "undefined") return;
 
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${cookieSecurityAttributes()}`;
+  // 1. Host-only cookie deletion
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+  // 2. Production domain deletion
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=.bksdakaltim.net; SameSite=Lax`;
+  // 3. Current hostname domain deletion
+  if (typeof window !== "undefined" && window.location.hostname) {
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${window.location.hostname}; SameSite=Lax`;
+  }
 }
 
 function getCookie(name: string) {
@@ -187,6 +196,12 @@ export const authStore = {
     deleteAuthCookie("bksda_logged_in");
     deleteAuthCookie("bksda_user");
     deleteAuthCookie("bksda_token");
+    deleteAuthCookie("laravel_session");
+    deleteAuthCookie("XSRF-TOKEN");
+
+    try {
+      clearGetCache();
+    } catch {}
 
     window.dispatchEvent(new Event("auth-change"));
 
