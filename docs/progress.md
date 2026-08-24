@@ -1,3 +1,48 @@
+# Progress - Phase 218: Frontend Web Modul Keuangan dan SPJ (Issue #579)
+
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Frontend SPJ Wizard, Live FOLU ST Integration, Multi-Open RINBA Calculator, Searchable Master Pegawai & Standarisasi Dokumen Cetak Presisi).
+
+---
+
+## 1. Ringkasan Fitur & Keputusan Bisnis yang Diimplementasikan
+
+- **Integrasi Live FOLU Surat Tugas**: Menghubungkan wizard Buat SPJ ke endpoint `/api/surat-tugas` (memfilter ST aktif dengan sumber dana FOLU).
+- **Filter Personil Berdasarkan SPT (Step 0)**: Secara default menampilkan dan mencentang *hanya* personil dari Surat Tugas terpilih, dengan opsi pencarian dari seluruh database pegawai jika beralih ke mode manual.
+- **Default Penerima REKAP (Step 1)**: Tabel REKAP awal hanya memuat personil pegawai yang ditugaskan (penerima eksternal tidak diinjeksi otomatis).
+- **Auto Pre-Fill Form MCU Pihak Ketiga**: Uraian MCU otomatis mengisi nama personil pertama dan tanggal MCU dihitung **H-2 (2 hari sebelum tanggal mulai tugas)**.
+- **Searchable Picker Pejabat dan Pengelola**:
+  - Pejabat Pembuat Komitmen (PPK), Pemegang Dana Operasional (PDO), dan Verifikator Keuangan dapat dicari dan dipilih secara *real-time* dari seluruh master pegawai (135+ pegawai).
+  - Nilai default: PPK = *Ahmad Hidayat, S.PKP., M.Ling*, PDO = *Dilemma Ferti Hidayah, S.E.* (NIP: `19870130 201012 2 005`), Verifikator = *Sukma Mawarni, S.E.*
+  - Standardisasi format NIP 18-digit resmi pemerintah (*misal: `20051224 202506 1 001`*).
+- **Form Rincian Biaya (RINBA) Terintegrasi per Pegawai**:
+  - Operasional Pengamanan Hutan: Input Hari & Tarif/Hari (Rp 360.000) dengan subtotal otomatis.
+  - Rincian Transportasi: Daftar rute dinamis dengan input keterangan rute & nominal, tombol tambah rute, dan tombol hapus.
+  - Total RINBA (*Operasional + Transportasi*) otomatis mengisi kolom **Jumlah (Rp.)** pada baris REKAP dan grand total SPJ.
+  - **Dukungan Multi-Open**: Form RINBA dapat dibuka bersamaan untuk semua pegawai, dilengkapi tombol batch *"Buka Semua RINBA"* dan *"Tutup Semua"*.
+- **Presisi Template Cetak Dokumen SPJ**:
+  - Seluruh dokumen cetak (SPTJB / REKAP, SPB, Kwitansi, RINBA, dan SPD) tersinkronisasi presisi dengan layout resmi BKSDA Kalimantan Timur.
+
+## 2. File Frontend Utama
+
+- `frontend/src/app/keuangan/layout.tsx`
+- `frontend/src/app/keuangan/page.tsx`
+- `frontend/src/app/keuangan/_components/finance-data.ts`
+- `frontend/src/app/keuangan/_components/DocumentTemplates.tsx`
+- `frontend/src/app/keuangan/spj/page.tsx`
+- `frontend/src/app/keuangan/spj/create/page.tsx`
+- `frontend/src/components/module-switcher.tsx`
+- `frontend/src/components/RouteGuard.tsx`
+
+## 3. Validasi
+
+- ESLint pada modul Keuangan, `ModuleSwitcher`, dan `RouteGuard`: Lulus (0 error).
+- Formatting dan sinkronisasi NIP 18-digit: Lulus.
+- Perhitungan dinamis RINBA dan sinkronisasi ke REKAP: Lulus.
+
+---
+
 # Progress - Phase 215: Manajemen Template Surat Tugas Superadmin (Issue #570)
 
 > Document updated: 2026-08-19
@@ -35,6 +80,7 @@
 - PHPUnit belum dijalankan karena binary PHPUnit tidak tersedia di `backend/vendor`.
 - Commit fitur: `c60edc2`.
 - Pull Request: [#571](https://github.com/tegaranugrah1/bksda-superapp/pull/571).
+>>>>>>> origin/development
 
 ---
 
