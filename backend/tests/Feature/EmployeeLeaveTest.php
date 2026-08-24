@@ -115,4 +115,19 @@ class EmployeeLeaveTest extends TestCase
         $getRes->assertStatus(200);
         $getRes->assertJsonPath('data.sisa_cuti_tersedia', 21);
     }
+
+    public function test_regular_employee_can_view_own_leave_balance(): void
+    {
+        $regularUser = User::factory()->create([
+            'role' => 'user',
+            'username' => $this->employee->nip,
+            'access_modules' => [],
+        ]);
+
+        $response = $this->actingAs($regularUser, 'sanctum')
+            ->getJson("/api/kepegawaian/employees/{$this->employee->id}/leaves?year=2026");
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('employee.id', $this->employee->id);
+    }
 }

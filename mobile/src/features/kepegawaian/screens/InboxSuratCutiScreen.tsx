@@ -29,7 +29,7 @@ interface ConfirmTarget {
 }
 
 export const InboxSuratCutiScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [requests, setRequests] = useState<LeaveRequestPrintData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -75,7 +75,7 @@ export const InboxSuratCutiScreen: React.FC = () => {
         setRequests(listData);
         setTotal(listData.length);
       }
-    } catch (err) {
+    } catch (_err) {
       // Fallback
     } finally {
       setLoading(false);
@@ -89,9 +89,6 @@ export const InboxSuratCutiScreen: React.FC = () => {
     }, [fetchLeaveRequests])
   );
 
-  useEffect(() => {
-    fetchLeaveRequests();
-  }, [fetchLeaveRequests]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -319,9 +316,14 @@ export const InboxSuratCutiScreen: React.FC = () => {
           <Text style={styles.headerSubtitle}>Total {total} Pengajuan Cuti</Text>
         </View>
 
-        <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
-          <Ionicons name="refresh" size={20} color="#059669" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
+            <Ionicons name="refresh" size={20} color="#059669" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.refreshBtn} onPress={() => navigation && navigation.navigate('Dashboard')}>
+            <Ionicons name="grid-outline" size={20} color="#059669" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search Input */}

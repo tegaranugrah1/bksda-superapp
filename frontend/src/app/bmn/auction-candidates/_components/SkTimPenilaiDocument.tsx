@@ -490,7 +490,7 @@ export function SkTimPenilaiDocument({
                 <span>{formatDateLong(docDate)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
-              <div className="sktp-ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+              <div className="sktp-ttd-placeholder my-2 flex h-21 items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
               <p className="sktp-signature-name m-0 mt-2">{kepalaBalai.nama}</p>
               <p className="m-0">NIP. {kepalaBalai.nip}</p>
             </div>
@@ -565,7 +565,7 @@ export function SkTimPenilaiDocument({
           {/* TTD */}
           <div className="sktp-ttd signature mt-16 ml-auto w-80">
             <p className="m-0">Kepala Balai,</p>
-            <div className="sktp-ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+            <div className="sktp-ttd-placeholder my-2 flex h-21 items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
             <p className="sktp-signature-name m-0 mt-2">{kepalaBalai.nama}</p>
             <p className="m-0">NIP. {kepalaBalai.nip}</p>
           </div>

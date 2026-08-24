@@ -924,7 +924,7 @@ export function SkPenghentianDocument({
                 <span>{formatDateLong(docDate)}</span>
               </div>
               <p className="m-0 mt-3">Kepala Balai,</p>
-              <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+              <div className="ttd-placeholder my-2 flex h-21 items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
               <p className="sk-signature-name m-0 mt-2">{kepalaBalai.nama}</p>
               <p className="m-0">NIP. {kepalaBalai.nip}</p>
             </div>
@@ -972,7 +972,7 @@ export function SkPenghentianDocument({
       {/* Hidden DOM measurement root for live height calculation */}
       <div
         ref={measurementRef}
-        className="sk-measurement sk-no-print print:hidden pointer-events-none absolute left-[-9999px] top-[-9999px] m-0 p-0 opacity-0 border-none"
+        className="sk-measurement sk-no-print print:hidden pointer-events-none absolute -left-[9999px] -top-[9999px] m-0 p-0 opacity-0 border-none"
         aria-hidden="true"
       >
         <article

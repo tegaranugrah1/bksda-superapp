@@ -11,12 +11,11 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
-import { useIsFocused, useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
-import { FabMenu } from "../../components/ui/FabMenu";
 import { apiClient } from "../../lib/api/client";
 import { downloadAssignmentFile } from "@/lib/files/download";
 import { shareFile } from "@/lib/files/share";
@@ -89,7 +88,6 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
   onBack,
   onNavigateToModule,
 }) => {
-  const isFocused = useIsFocused();
   const { isDark, colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("Semua Status");
@@ -238,23 +236,6 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
     }
   };
 
-  const handleSelectNavTab = (tabKey: string) => {
-    if (tabKey === "home" || tabKey === "portal" || tabKey === "dashboard") {
-      if (navigation) navigation.navigate("Dashboard");
-    } else if (tabKey === "bmn") {
-      if (navigation) navigation.navigate("Bmn");
-    } else if (tabKey === "surat") {
-      if (navigation) navigation.navigate("Surat");
-    } else if (tabKey === "inventory") {
-      if (navigation) navigation.navigate("Inventory");
-    } else if (tabKey === "profile") {
-      if (navigation) navigation.navigate("Profile");
-    } else if (tabKey === "kepegawaian") {
-      if (navigation) navigation.navigate("Kepegawaian");
-    } else if (onNavigateToModule) {
-      onNavigateToModule(tabKey);
-    }
-  };
 
   const filteredStList = stList.filter((item) => {
     const q = searchQuery.toLowerCase();
@@ -297,15 +278,11 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
         </View>
 
         <TouchableOpacity
-          style={styles.headerAddStBtn}
-          onPress={() => {
-            if (navigation) navigation.navigate("BuatSuratTugas");
-            else if (onNavigateToModule) onNavigateToModule("buat-surat-tugas");
-          }}
+          style={{ padding: 8, marginRight: 8 }}
+          onPress={() => navigation && navigation.navigate('Dashboard')}
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={16} color="#ffffff" />
-          <Text style={styles.headerAddStText}>Buat ST</Text>
+          <Ionicons name="grid-outline" size={20} color="#2563eb" />
         </TouchableOpacity>
       </View>
 
@@ -348,6 +325,14 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
                   {selectedStatusFilter}
                 </Text>
                 <Ionicons name="chevron-down" size={14} color="#64748b" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.filterBtn, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, paddingHorizontal: 10 }]}
+                onPress={() => navigation && navigation.navigate('RiwayatSuratTugas')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="time-outline" size={18} color="#2563eb" />
               </TouchableOpacity>
             </View>
 
@@ -644,8 +629,6 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
         )}
       </ScrollView>
 
-      {/* Floating Action Button (FAB ☰ Menu) */}
-      <FabMenu onNavigateToModule={handleSelectNavTab} activeSubmenu="inbox-surat-tugas" />
     </View>
   );
 };

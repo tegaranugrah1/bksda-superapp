@@ -196,7 +196,11 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     if (onBack) {
       onBack();
     } else if (navigation) {
-      navigation.navigate("Dashboard");
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.navigate("KepegawaianDashboard");
+      }
     }
   };
 
@@ -250,6 +254,10 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
           <Ionicons name="people" size={20} color="#3b82f6" style={{ marginRight: 6 }} />
           <Text style={[styles.headerTitle, { color: colors.textDark }]}>KEPEGAWAIAN & SDM</Text>
         </View>
+
+        <TouchableOpacity onPress={() => navigation && navigation.navigate('Dashboard')} style={{ padding: 8 }}>
+          <Ionicons name="grid-outline" size={20} color="#2563eb" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -417,8 +425,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
         </GlassCard>
       </ScrollView>
 
-      {/* Floating Action Button (FAB ☰ Menu) */}
-      <FabMenu onNavigateToModule={handleSelectNavTab} />
+
 
       {/* Modal Detail Pegawai (Opens when clicking any employee) */}
       <EmployeeDetailModal

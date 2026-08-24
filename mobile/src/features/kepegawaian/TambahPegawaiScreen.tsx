@@ -117,7 +117,11 @@ export const TambahPegawaiScreen: React.FC<TambahPegawaiScreenProps> = ({
     if (onBack) {
       onBack();
     } else if (navigation) {
-      navigation.navigate("Kepegawaian");
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.navigate("KepegawaianMain");
+      }
     }
   };
 

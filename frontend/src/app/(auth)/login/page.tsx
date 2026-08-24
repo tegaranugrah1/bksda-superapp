@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { authStore } from "@/lib/auth-store";
+import { authStore, parseAuthSnapshot } from "@/lib/auth-store";
 
 // Schema Validation
 const formSchema = z.object({
@@ -27,6 +27,34 @@ const formSchema = z.object({
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const authSnapshot = useSyncExternalStore(authStore.subscribe, authStore.getSnapshot, () => "");
+  const { token, user } = parseAuthSnapshot(authSnapshot);
+
+  useEffect(() => {
+    if (token && user) {
+      window.location.replace("/portal");
+      return;
+    }
+
+    // Verify session with backend on mount
+    let isMounted = true;
+    api
+      .get("/user")
+      .then((res) => {
+        if (!isMounted) return;
+        const backendUser = res.data?.data || res.data;
+        if (backendUser && (backendUser.id || backendUser.username)) {
+          authStore.login("session", backendUser);
+          window.location.replace("/portal");
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, user]);
 
   const redirectToPortal = () => {
     window.location.replace("/portal");
@@ -83,6 +111,10 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (token) {
+    return null; // Return null while redirecting to prevent flashing
   }
 
   return (

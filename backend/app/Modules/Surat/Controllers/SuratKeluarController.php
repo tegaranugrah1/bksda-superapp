@@ -25,7 +25,21 @@ class SuratKeluarController extends Controller
             });
         }
 
-        $requestedPerPage = (int) $request->input('per_page', 15);
+        $perPageParam = $request->input('per_page', 15);
+        if ($perPageParam === 'all') {
+            $items = $query->get();
+            return response()->json([
+                'data' => $items,
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $items->count(),
+                    'total' => $items->count(),
+                ],
+            ]);
+        }
+
+        $requestedPerPage = (int) $perPageParam;
         $perPage = min(max(1, $requestedPerPage), 100);
         $paginated = $query->paginate($perPage);
 

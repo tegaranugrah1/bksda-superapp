@@ -512,7 +512,7 @@ export function AssetsLotTab({ batch, readOnly, onRefetch }: AssetsLotTabProps) 
 
           {/* Modal Table body */}
           <div className="flex-1 overflow-y-auto border border-zinc-100 dark:border-zinc-800 rounded-xl">
-            <table className="w-full text-left border-collapse min-w-[700px]">
+            <table className="w-full text-left border-collapse min-w-175">
               <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800">
                 <tr className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   <th className="w-12 px-4 py-3 text-center">Pilih</th>

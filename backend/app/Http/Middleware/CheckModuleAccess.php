@@ -45,6 +45,18 @@ class CheckModuleAccess
         }
 
         if (! $hasAccess) {
+            // Special exception for Kepegawaian module: Allow regular employees to see their own leave balance & details
+            if (in_array('kepegawaian', $moduleNames)) {
+                $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+                $targetEmployeeId = $request->route('employee');
+                if ($employee && $targetEmployeeId) {
+                    $targetId = is_object($targetEmployeeId) ? $targetEmployeeId->id : (int)$targetEmployeeId;
+                    if ((int)$employee->id === $targetId) {
+                        return $next($request);
+                    }
+                }
+            }
+
             // Special exception for BMN module: Allow regular employees to see their own assets
             if (in_array('bmn', $moduleNames)) {
                 $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();

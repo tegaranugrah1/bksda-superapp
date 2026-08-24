@@ -25,7 +25,7 @@ export default function DashboardScreen({ navigation }: any) {
     } else if (moduleKey === 'inventory') {
       navigation.navigate('Inventory');
     } else if (moduleKey === 'kepegawaian' || moduleKey === 'dashboard-kepegawaian') {
-      navigation.navigate('KepegawaianDashboard');
+      navigation.navigate('KepegawaianMain');
     } else if (moduleKey === 'profile') {
       navigation.navigate('Profile');
     }

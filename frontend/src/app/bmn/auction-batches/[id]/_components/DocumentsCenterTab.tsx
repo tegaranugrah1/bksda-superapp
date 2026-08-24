@@ -302,7 +302,7 @@ function CommitteePicker({
             } ${disabled ? "" : "cursor-grab active:cursor-grabbing"}`}
           >
             <GripVertical className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
-            <span className="max-w-[13rem] truncate">
+            <span className="max-w-52 truncate">
               {index + 1}. {getEmployeeName(employee)}
             </span>
             <button
@@ -945,7 +945,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                       )}
                     </div>
                     <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-50">{doc.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500">{doc.description}</p>
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500 max-w-52">{doc.description}</p>
                     {(doc.numberKey || doc.dateKey) && (
                       <div className="mt-4 space-y-3">
                         {doc.numberKey && (

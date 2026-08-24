@@ -41,7 +41,7 @@ export function EmployeeSelectionStep({
   dropdownRef,
 }: EmployeeSelectionStepProps) {
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-white/80 backdrop-blur-xl rounded-4xl p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center mb-10">
         <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-sm border border-blue-100/50">
           <Users className="w-8 h-8" />
@@ -76,7 +76,7 @@ export function EmployeeSelectionStep({
                   <span className="text-sm font-bold text-blue-900 leading-tight">
                     {emp.name}
                   </span>
-                  <span className="text-[10px] text-blue-600 font-medium truncate max-w-[150px]">
+                  <span className="text-[10px] text-blue-600 font-medium truncate max-w-37.5">
                     {emp.department || emp.nip}
                   </span>
                 </div>

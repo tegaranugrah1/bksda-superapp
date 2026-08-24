@@ -20,6 +20,7 @@ import AssignmentFormScreen from "../features/surat-tugas/screens/AssignmentForm
 import { KepegawaianDashboardScreen } from "../features/kepegawaian/KepegawaianDashboardScreen";
 import GeneralReportFormScreen from "../features/surat-tugas/screens/GeneralReportFormScreen";
 import GeneralReportPreviewScreen from "../features/surat-tugas/screens/GeneralReportPreviewScreen";
+import KepegawaianTabs from "./KepegawaianTabs";
 
 export type AppTabParamList = {
   Dashboard: undefined;
@@ -31,6 +32,7 @@ export type AppTabParamList = {
   Inventory: undefined;
   Profile: undefined;
   KepegawaianDashboard: undefined;
+  KepegawaianMain: undefined;
   Kepegawaian: undefined;
   TambahPegawai: undefined;
   InboxSuratTugas: undefined;
@@ -65,6 +67,7 @@ export default function AppTabs() {
       <Tab.Screen name="Surat" component={SuratMasukHistoryScreen} />
       <Tab.Screen name="Inventory" component={InventoryStockScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="KepegawaianMain" component={KepegawaianTabs} />
       <Tab.Screen name="KepegawaianDashboard" component={KepegawaianDashboardScreen} />
       <Tab.Screen name="Kepegawaian" component={KepegawaianScreen} />
       <Tab.Screen name="TambahPegawai" component={TambahPegawaiScreen} />

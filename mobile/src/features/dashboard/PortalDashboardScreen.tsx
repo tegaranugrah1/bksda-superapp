@@ -126,7 +126,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [cutiModalVisible, setCutiModalVisible] = useState(false);
   const [cutiPreviewItem, setCutiPreviewItem] = useState<LeaveRequestPrintData | null>(null);
   const [cutiPreviewVisible, setCutiPreviewVisible] = useState(false);
-  const [laporanMenuVisible, setLaporanMenuVisible] = useState(false);
 
   const fetchMyLeaveRequests = React.useCallback(async () => {
     try {
@@ -606,16 +605,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
           <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
           <Text style={styles.heroSubtitle}>Selamat datang di portal BKSDA Kalimantan Timur ({resolvedNip}).</Text>
-
-          {/* Buat Surat Tugas Button */}
-          <TouchableOpacity
-            style={[styles.buatStQuickBtn, { alignSelf: 'flex-start', marginTop: 4 }]}
-            onPress={() => onNavigateToModule && onNavigateToModule("buat-surat-tugas")}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="paper-plane-outline" size={15} color="#ffffff" style={{ marginRight: 6 }} />
-            <Text style={styles.buatStQuickText}>Buat ST Baru</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Quick Stats Cards */}
@@ -709,7 +698,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         <View style={styles.fabWrapper}>
           <TouchableOpacity 
             style={styles.fabButton}
-            onPress={() => setLaporanMenuVisible(true)}
+            onPress={() => onNavigateToModule && onNavigateToModule("buat-surat-tugas")}
             activeOpacity={0.9}
           >
             <Ionicons name="add" size={28} color="#ffffff" />
@@ -747,62 +736,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         onSuccess={() => fetchMyLeaveRequests()}
       />
 
-      {/* Formulir Permohonan Cuti Print Modal */}
       <FormulirCutiPrintModal
         visible={cutiPreviewVisible}
         data={cutiPreviewItem}
         onClose={() => setCutiPreviewVisible(false)}
       />
-      {/* Laporan Menu Bottom Sheet Modal */}
-      <Modal
-        visible={laporanMenuVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setLaporanMenuVisible(false)}
-      >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setLaporanMenuVisible(false)}
-        >
-          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-            <View style={styles.menuModalHeader}>
-              <Text style={[styles.menuModalTitle, { color: colors.textDark }]}>Buat Laporan</Text>
-              <TouchableOpacity onPress={() => setLaporanMenuVisible(false)}>
-                <Ionicons name="close" size={20} color={colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity 
-              style={styles.menuOptionBtn}
-              activeOpacity={0.7}
-              onPress={() => {
-                setLaporanMenuVisible(false);
-                if (onNavigateToModule) onNavigateToModule("laporan-pelaksanaan-st");
-              }}
-            >
-              <View style={[styles.menuOptionIcon, { backgroundColor: "#dcfce7" }]}>
-                <Ionicons name="document-text" size={20} color="#059669" />
-              </View>
-              <View style={styles.menuOptionTextWrap}>
-                <Text style={[styles.menuOptionTitle, { color: colors.textDark }]}>1. Laporan Pelaksanaan ST</Text>
-                <Text style={styles.menuOptionSubtitle}>Buka Mode Inline Form Laporan</Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={[styles.menuOptionBtn, { opacity: 0.5 }]}>
-              <View style={[styles.menuOptionIcon, { backgroundColor: "#f1f5f9" }]}>
-                <Ionicons name="document-text-outline" size={20} color="#64748b" />
-              </View>
-              <View style={styles.menuOptionTextWrap}>
-                <Text style={[styles.menuOptionTitle, { color: colors.textDark }]}>2. Laporan Monitoring</Text>
-                <Text style={styles.menuOptionSubtitle}>(Mendatang)</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
     </View>
   );
 };
@@ -927,19 +865,6 @@ const styles = StyleSheet.create({
   sisaCutiValue: {
     color: "#065f46",
     fontSize: 10.5,
-    fontWeight: "800",
-  },
-  buatStQuickBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0f172a",
-    borderRadius: RADIUS.button,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-  },
-  buatStQuickText: {
-    color: "#ffffff",
-    fontSize: 11,
     fontWeight: "800",
   },
   quickStatsRow: {

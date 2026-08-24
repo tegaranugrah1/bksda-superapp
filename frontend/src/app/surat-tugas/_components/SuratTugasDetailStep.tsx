@@ -96,7 +96,7 @@ export function SuratTugasDetailStep({
   isSubmitting,
 }: SuratTugasDetailStepProps) {
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-right-8 duration-500">
+    <div className="bg-white/80 backdrop-blur-xl rounded-4xl p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-right-8 duration-500">
       <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
         <button
           type="button"
@@ -674,7 +674,7 @@ export function SuratTugasDetailStep({
               onChange={(e) =>
                 setFormData({ ...formData, keterangan: e.target.value })
               }
-              className="w-full min-h-[100px] p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm font-medium"
+              className="w-full min-h-25 p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm font-medium"
               placeholder="Catatan tambahan (opsional)"
             />
           </div>

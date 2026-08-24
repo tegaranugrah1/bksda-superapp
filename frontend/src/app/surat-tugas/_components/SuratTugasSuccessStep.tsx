@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export function SuratTugasSuccessStep() {
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 text-center animate-in zoom-in-95 duration-500">
+    <div className="bg-white/80 backdrop-blur-xl rounded-4xl p-8 sm:p-12 shadow-2xl border border-emerald-100 ring-1 ring-slate-100/50 animate-in fade-in zoom-in-95 duration-500 max-w-xl mx-auto text-center relative overflow-hidden">
       <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full mx-auto flex items-center justify-center mb-6 shadow-sm border border-emerald-100">
         <CheckCircle2 className="w-12 h-12" />
       </div>

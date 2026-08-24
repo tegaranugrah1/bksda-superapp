@@ -38,8 +38,8 @@ export function HeaderBanner() {
   return (
     <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-950 p-5 md:px-7 md:py-5 border border-white/10 shadow-2xl">
       {/* Glowing Mesh Gradients */}
-      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-96 h-96 bg-gradient-to-br from-emerald-600/40 via-teal-600/30 to-cyan-600/0 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/3 -mb-10 w-72 h-72 bg-gradient-to-tr from-blue-500/20 via-teal-500/20 to-transparent rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-96 h-96 bg-linear-to-br from-emerald-600/40 via-teal-600/30 to-cyan-600/0 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/3 -mb-10 w-72 h-72 bg-linear-to-tr from-blue-500/20 via-teal-500/20 to-transparent rounded-full blur-2xl pointer-events-none" />
 
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1.5">
@@ -66,7 +66,7 @@ export function HeaderBanner() {
 
         <div className="flex items-center gap-2.5 shrink-0">
           <Link href="/surat/masuk/create">
-            <button className="group flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-xl shadow-emerald-600/30 hover:scale-[1.02] active:scale-95 border border-emerald-400/30">
+            <button className="group flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-xl shadow-emerald-600/30 hover:scale-[1.02] active:scale-95 border border-emerald-400/30">
               <Plus className="w-4 h-4 text-white group-hover:rotate-90 transition-transform" />
               <span>Input Surat Masuk</span>
             </button>
@@ -96,7 +96,7 @@ export function BentoStatCards({
       <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-emerald-500/10 transition-all" />
         <div className="flex items-center justify-between">
-          <div className="w-9.5 h-9.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
             <Inbox className="w-4.5 h-4.5" />
           </div>
           <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
@@ -122,7 +122,7 @@ export function BentoStatCards({
       <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-blue-500/40 transition-all group flex flex-col justify-between">
         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-blue-500/10 transition-all" />
         <div className="flex items-center justify-between">
-          <div className="w-9.5 h-9.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
             <Send className="w-4.5 h-4.5" />
           </div>
           <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
@@ -148,7 +148,7 @@ export function BentoStatCards({
       <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-amber-500/40 transition-all group flex flex-col justify-between">
         <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/10 transition-all" />
         <div className="flex items-center justify-between">
-          <div className="w-9.5 h-9.5 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-amber-400 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
             <FileCheck className="w-4.5 h-4.5" />
           </div>
           <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
@@ -174,7 +174,7 @@ export function BentoStatCards({
       <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-teal-500/40 transition-all group flex flex-col justify-between">
         <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-teal-500/10 transition-all" />
         <div className="flex items-center justify-between">
-          <div className="w-9.5 h-9.5 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-600 text-white flex items-center justify-center shadow-lg shadow-teal-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-teal-400 to-emerald-600 text-white flex items-center justify-center shadow-lg shadow-teal-500/20 group-hover:scale-110 transition-transform">
             <CheckCircle2 className="w-4.5 h-4.5" />
           </div>
           <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/60">
@@ -212,7 +212,7 @@ export function RecentSuratWidget({
       <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-xs flex flex-col">
         <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8.5 h-8.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+            <div className="w-8.5 h-8.5 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
               <Inbox className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -239,7 +239,7 @@ export function RecentSuratWidget({
               key={item.id || idx}
               className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 border border-zinc-200/60 dark:border-zinc-800/80 transition-all group"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                 <Inbox className="w-4.5 h-4.5" />
               </div>
               <div className="flex-1 min-w-0">
@@ -274,7 +274,7 @@ export function RecentSuratWidget({
       <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-xs flex flex-col">
         <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8.5 h-8.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+            <div className="w-8.5 h-8.5 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
               <Send className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -301,7 +301,7 @@ export function RecentSuratWidget({
               key={item.id || idx}
               className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 border border-zinc-200/60 dark:border-zinc-800/80 transition-all group"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                 <Send className="w-4.5 h-4.5" />
               </div>
               <div className="flex-1 min-w-0">

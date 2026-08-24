@@ -1,3 +1,137 @@
+# Progress - Phase 220: Sinkronisasi Otentikasi Multi-Tab & Optimasi Render Surat Masuk
+
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Next.js server middleware `src/middleware.ts`, real-time cross-tab sync via BroadcastChannel, shared production domain cookies `.bksdakaltim.net`, dan cache-first SWR instant render pada Surat Masuk).
+
+---
+
+## 1. Ringkasan Masalah & Solusi
+- **Masalah 1 (Auto-Redirect Halaman Login Produksi)**: Pada `bksdakaltim.net`, halaman `/login` terkadang tetap terbuka meskipun pengguna telah masuk ke portal.
+  - **Penyebab**: File middleware sebelumnya bernama `src/proxy.ts` sehingga tidak dieksekusi oleh Next.js server engine. Selain itu, cookie otentikasi belum menggunakan scope domain `.bksdakaltim.net`.
+  - **Solusi**:
+    1. Membuat standar Next.js server middleware `src/middleware.ts` dengan HTTP redirect server-side (307) ke `/portal` bila cookie login terdeteksi.
+    2. Menambahkan integrasi `BroadcastChannel API` (`bksda_auth_channel`) di `auth-store.ts` untuk sinkronisasi instan login/logout ke seluruh tab secara real-time.
+    3. Menambahkan verifikasi sesi latar belakang di `LoginPage` via `/api/user`.
+    4. Mengatur cookie produksi agar mencakup seluruh domain dan subdomain via `domain=.bksdakaltim.net`.
+- **Masalah 2 (Optimasi Loading Halaman Surat Masuk)**: Menghilangkan delay "Memuat data..." (> 5 detik) saat pertama kali membuka `/surat/masuk`.
+  - **Solusi**: Menerapkan pola *Cache-First (SWR Instant Render)* dan *Skeleton Row Pulse Animation* sehingga tabel tampil instan dalam 0 ms dengan sinkronisasi background.
+
+---
+
+# Progress - Phase 219: Perbaikan Pagination Endpoint Surat Masuk & Sinkronisasi Arsip (Issue #580)
+
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Perbaikan type-casting pagination backend per_page=all, eliminasi ketergantungan localStorage, dan sinkronisasi arsip antar-pengguna).
+
+---
+
+## 1. Masalah & Analisis Root Cause
+- **Masalah**: Pengguna lain / pegawai non-superadmin yang baru diberi akses modul surat hanya melihat 1 dokumen teratas di `/surat/masuk`, data lama tidak tampil.
+- **Penyebab**:
+  1. Pada `SuratMasukController.php` & `SuratKeluarController.php`, query string `per_page=all` di-cast langsung dengan `(int) $request->input('per_page')`. Di PHP, `(int) "all"` bernilai `0`, lalu `min(max(1, 0), 100)` menghasilkan nilai `1`. Akibatnya Laravel mengeksekusi `$query->paginate(1)` (hanya mengembalikan 1 data).
+  2. Ketergantungan pada `localStorage` menyebabkan browser awal pembuat surat melihat dokumen dari cache lokal, sementara browser/akun baru hanya menerima 1 data dari API.
+
+## 2. Perubahan yang Dilakukan
+- **Backend (`SuratMasukController.php` & `SuratKeluarController.php`)**:
+  - Menambahkan penanganan eksplisit untuk parameter `per_page === 'all'` agar mengembalikan seluruh data menggunakan `$query->get()` beserta metadata yang konsisten.
+- **Frontend (`frontend/src/app/surat/masuk/page.tsx` & `frontend/src/app/surat/page.tsx`)**:
+  - Menghapus auto-post rekursif ke endpoint dan menjadikan database backend sebagai *single source of truth*.
+  - Menyinkronkan pemuatan data agar seluruh arsip surat masuk dan keluar tampil lengkap untuk seluruh pengguna yang memiliki hak akses.
+
+## 3. Validasi
+- PHP direct index test: Mengembalikan seluruh data (Count: 3, Total: 3).
+- ESLint pada modul `frontend/src/app/surat`: Lulus (0 error).
+
+---
+
+# Progress - Phase 218: Frontend Web Modul Keuangan dan SPJ (Issue #579)
+
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Frontend SPJ Wizard, Live FOLU ST Integration, Multi-Open RINBA Calculator, Searchable Master Pegawai & Standarisasi Dokumen Cetak Presisi).
+
+---
+
+## 1. Ringkasan Fitur & Keputusan Bisnis yang Diimplementasikan
+
+- **Integrasi Live FOLU Surat Tugas**: Menghubungkan wizard Buat SPJ ke endpoint `/api/surat-tugas` (memfilter ST aktif dengan sumber dana FOLU).
+- **Filter Personil Berdasarkan SPT (Step 0)**: Secara default menampilkan dan mencentang *hanya* personil dari Surat Tugas terpilih, dengan opsi pencarian dari seluruh database pegawai jika beralih ke mode manual.
+- **Default Penerima REKAP (Step 1)**: Tabel REKAP awal hanya memuat personil pegawai yang ditugaskan (penerima eksternal tidak diinjeksi otomatis).
+- **Auto Pre-Fill Form MCU Pihak Ketiga**: Uraian MCU otomatis mengisi nama personil pertama dan tanggal MCU dihitung **H-2 (2 hari sebelum tanggal mulai tugas)**.
+- **Searchable Picker Pejabat dan Pengelola**:
+  - Pejabat Pembuat Komitmen (PPK), Pemegang Dana Operasional (PDO), dan Verifikator Keuangan dapat dicari dan dipilih secara *real-time* dari seluruh master pegawai (135+ pegawai).
+  - Nilai default: PPK = *Ahmad Hidayat, S.PKP., M.Ling*, PDO = *Dilemma Ferti Hidayah, S.E.* (NIP: `19870130 201012 2 005`), Verifikator = *Sukma Mawarni, S.E.*
+  - Standardisasi format NIP 18-digit resmi pemerintah (*misal: `20051224 202506 1 001`*).
+- **Form Rincian Biaya (RINBA) Terintegrasi per Pegawai**:
+  - Operasional Pengamanan Hutan: Input Hari & Tarif/Hari (Rp 360.000) dengan subtotal otomatis.
+  - Rincian Transportasi: Daftar rute dinamis dengan input keterangan rute & nominal, tombol tambah rute, dan tombol hapus.
+  - Total RINBA (*Operasional + Transportasi*) otomatis mengisi kolom **Jumlah (Rp.)** pada baris REKAP dan grand total SPJ.
+  - **Dukungan Multi-Open**: Form RINBA dapat dibuka bersamaan untuk semua pegawai, dilengkapi tombol batch *"Buka Semua RINBA"* dan *"Tutup Semua"*.
+- **Presisi Template Cetak Dokumen SPJ**:
+  - Seluruh dokumen cetak (SPTJB / REKAP, SPB, Kwitansi, RINBA, dan SPD) tersinkronisasi presisi dengan layout resmi BKSDA Kalimantan Timur.
+
+## 2. File Frontend Utama
+
+- `frontend/src/app/keuangan/layout.tsx`
+- `frontend/src/app/keuangan/page.tsx`
+- `frontend/src/app/keuangan/_components/finance-data.ts`
+- `frontend/src/app/keuangan/_components/DocumentTemplates.tsx`
+- `frontend/src/app/keuangan/spj/page.tsx`
+- `frontend/src/app/keuangan/spj/create/page.tsx`
+- `frontend/src/components/module-switcher.tsx`
+- `frontend/src/components/RouteGuard.tsx`
+
+## 3. Validasi
+
+- ESLint pada modul Keuangan, `ModuleSwitcher`, dan `RouteGuard`: Lulus (0 error).
+- Formatting dan sinkronisasi NIP 18-digit: Lulus.
+- Perhitungan dinamis RINBA dan sinkronisasi ke REKAP: Lulus.
+
+---
+
+# Progress - Phase 215: Manajemen Template Surat Tugas Superadmin (Issue #570)
+
+> Document updated: 2026-08-19
+> Status: SELESAI, PR #571 squash-merged ke `development` (`90308a1`). `production` tidak disentuh.
+
+---
+
+## 1. Backend Template Management
+- Menambahkan CRUD template Surat Tugas dengan role protection `super_admin`.
+- Mendukung template sistem dan custom: Standard, BMN, Beda Hari, PLH, dan Custom.
+- Menambahkan status aktif/nonaktif, template default, duplikasi, soft delete, audit, signer default, dan versioning.
+- Menambahkan template bawaan Default, Penghapusan BMN, Beda Hari, dan PLH melalui `StTemplateSeeder`.
+- Menyimpan `template_id`, `template_version`, dan `template_snapshot` pada Surat Tugas agar dokumen lama tidak berubah ketika master template diedit.
+- Menambahkan migration pemulihan isi Menimbang/Dasar, backfill versi, dan normalisasi format nomor surat.
+
+## 2. Konfigurasi Template di Settings
+- Superadmin dapat mengubah Menimbang, Dasar, penandatangan default, deskripsi, status, dan default template.
+- Kode template baru dibuat otomatis dari nama template.
+- Deskripsi template ditampilkan pada daftar template.
+- Menambahkan konfigurasi Biaya/Nomor 3 dengan placeholder `{tahun}`.
+- Menambahkan pilihan radio Format Nomor Surat:
+  - Format default `/K.18/TU/KSA.0X.0X/B/{bulan berjalan}/{tahun berjalan}`.
+  - Tulis manual untuk format khusus.
+- Prefix `ST.{nomor}` tetap dibuat otomatis oleh sistem dan tidak menjadi bagian format yang diketik admin.
+
+## 3. Integrasi Create dan Print Surat Tugas
+- Halaman create otomatis mengikuti format nomor surat dari template terpilih.
+- Klasifikasi seperti `KSA.0X.0X` tetap dapat diedit pada form Nomor Surat.
+- Biaya/Nomor 3 dari template otomatis masuk ke bagian Untuk.
+- Margin print halaman lanjutan menggunakan master-table spacer agar konsisten dengan halaman pertama.
+- Direct publish mengirim array ID pegawai yang benar dan tervalidasi backend.
+
+## 4. Validasi dan Delivery
+- PHP syntax check, Laravel Pint, migration, TypeScript, diagnostics frontend, dan production build berhasil.
+- PHPUnit belum dijalankan karena binary PHPUnit tidak tersedia di `backend/vendor`.
+- Commit fitur: `c60edc2`.
+- Pull Request: [#571](https://github.com/tegaranugrah1/bksda-superapp/pull/571).
+>>>>>>> origin/development
+
+---
+
 # Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan
 
 > Document updated: 2026-08-06
@@ -8261,5 +8395,30 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
      -   A d d e d   r e p e a t i n g   \ 	 h e a d \   a n d   \ 	 f o o t \   s p a c e r s   t o   e n f o r c e   1 5 m m   t o p   a n d   b o t t o m   m a r g i n s   o n   e v e r y   p r i n t e d   p a g e . 
      -   A p p l i e d   \ p a g e B r e a k A f t e r :   a v o i d \   t o   t h e   \ M E M B E R I   T U G A S , \   t i t l e   t o   p r e v e n t   o r p h a n e d   h e a d e r s   s e p a r a t i n g   f r o m   t h e   \ K e p a d a \   b l o c k . 
      -   R e m o v e d   s t r i c t   \  v o i d - b r e a k \   f r o m   L a p o r a n   P o r t a l ' s   s i g n a t u r e   b l o c k   t o   a l l o w   n a t u r a l   p a g e   b r e a k s   f o r   l o n g   p a r t i c i p a n t   l i s t s . 
-  
  
+ 
+ 
+---
+
+## [2026-08-10] Dynamic ST Templates Management for Superadmin
+
+### Completed (Selesai)
+- [x] **Database & API (Backend Laravel)**:
+  - Ditambahkan tabel st_templates via migration untuk menyimpan format template JSON.
+  - Dibuat model StTemplate dan StTemplateController dengan fungsionalitas CRUD.
+  - Didaftarkan endpoint CRUD di pp/Modules/Kepegawaian/Routes/api.php dengan pengecekan khusus otorisasi (
+ole === 'super_admin') untuk operasi tulis/ubah/hapus.
+- [x] **Halaman Manajemen Template (Frontend Next.js)**:
+  - Dibuat halaman baru khusus Superadmin di /kepegawaian/settings/st-templates.
+  - Disediakan form interaktif yang memanfaatkan komponen EditableItemListSection bawaan ST Builder untuk menambah butir-butir *Menimbang* dan *Dasar*.
+- [x] **Integrasi ST Builder**:
+  - Halaman ST Builder (/kepegawaian/surat-tugas/create) kini secara otomatis menarik template dinamis dari database dan menggabungkannya dengan opsi template bawaan di *dropdown* utama.
+  - Memilih template *custom* akan segera mengisi ulang baris-baris *Menimbang* dan *Dasar* sesuai dengan yang dikonfigurasikan.
+  - Menambahkan fitur **Simpan Baru** untuk menyimpan konfigurasi isian *Menimbang* dan *Dasar* yang sedang diketik sebagai *template* baru secara langsung dari halaman ST Builder.
+  - Menambahkan fitur **Hapus** untuk menghapus *template custom* langsung dari *dropdown* ST Builder.
+
+### Validation
+- [x] Template *custom* berhasil tersimpan di database.
+- [x] Daftar template termuat dengan baik di halaman ST Builder.
+- [x] Fungsionalitas hapus dan auto-select setelah tambah template baru berjalan lancar.
+

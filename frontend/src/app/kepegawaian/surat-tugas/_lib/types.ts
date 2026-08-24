@@ -27,6 +27,31 @@ export interface SumberDanaOption {
 export interface KepalaBalaiInfo {
   name: string;
   nip: string;
+  employeeId?: string | number;
+}
+
+export interface StTemplate {
+  id: number;
+  name: string;
+  code: string | null;
+  description?: string | null;
+  type: "standard" | "bmn" | "beda_hari" | "plh" | "custom";
+  menimbang: DasarItem[];
+  dasar: DasarItem[];
+  default_signer_employee_id?: number | null;
+  default_signer_name?: string | null;
+  default_signer_nip?: string | null;
+  default_signer?: {
+    id?: number | null;
+    name: string;
+    nip: string;
+    jabatan?: string | null;
+  } | null;
+  configuration?: Record<string, unknown>;
+  is_system: boolean;
+  is_active: boolean;
+  is_default: boolean;
+  version: number;
 }
 
 export interface EmployeeDateRange {
