@@ -115,7 +115,7 @@ export default function SuratHubPage() {
         }
       }
 
-      let combinedMasuk: SuratMasukItem[] = [...localMasukItems];
+      const combinedMasuk: SuratMasukItem[] = [...localMasukItems];
 
       try {
         const resMasuk = await api.get("/surat-masuk");
