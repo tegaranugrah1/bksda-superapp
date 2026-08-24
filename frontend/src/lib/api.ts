@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { authStore } from "@/lib/auth-store";
 
 function getBaseApiUrl(): string {
@@ -94,6 +94,80 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// --- In-Flight Deduplication & Short-Term Throttle Cache ---
+const inFlightRequests = new Map<string, Promise<any>>();
+const responseCache = new Map<string, { timestamp: number; response: any }>();
+const CACHE_TTL_MS = 2500; // 2.5 seconds short-term throttle for identical GET requests
+
+function getRequestKey(method: string, url: string, params?: any): string {
+  const paramStr = params ? JSON.stringify(params) : "";
+  return `${method.toLowerCase()}:${url}:${paramStr}`;
+}
+
+const originalGet = api.get.bind(api);
+const originalPost = api.post.bind(api);
+const originalPut = api.put.bind(api);
+const originalDelete = api.delete.bind(api);
+const originalPatch = api.patch.bind(api);
+
+api.get = function <T = any, R = AxiosResponse<T>, D = any>(
+  url: string,
+  config?: AxiosRequestConfig<D>
+): Promise<R> {
+  const key = getRequestKey("get", url, config?.params);
+
+  // 1. Check short-term cache
+  const cached = responseCache.get(key);
+  const now = Date.now();
+  if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+    return Promise.resolve(cached.response as R);
+  }
+
+  // 2. Check in-flight request (promise sharing)
+  const inFlight = inFlightRequests.get(key);
+  if (inFlight) {
+    return inFlight as Promise<R>;
+  }
+
+  // 3. Execute request and share promise
+  const promise = originalGet<T, R, D>(url, config)
+    .then((res) => {
+      responseCache.set(key, { timestamp: Date.now(), response: res });
+      return res;
+    })
+    .finally(() => {
+      inFlightRequests.delete(key);
+    });
+
+  inFlightRequests.set(key, promise);
+  return promise;
+};
+
+// Invalidate cache on mutations
+function clearGetCache() {
+  responseCache.clear();
+}
+
+api.post = function (...args: any[]) {
+  clearGetCache();
+  return (originalPost as any)(...args);
+};
+
+api.put = function (...args: any[]) {
+  clearGetCache();
+  return (originalPut as any)(...args);
+};
+
+api.delete = function (...args: any[]) {
+  clearGetCache();
+  return (originalDelete as any)(...args);
+};
+
+api.patch = function (...args: any[]) {
+  clearGetCache();
+  return (originalPatch as any)(...args);
+};
 
 const apiExport = api;
 

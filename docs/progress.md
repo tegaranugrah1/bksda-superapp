@@ -1,3 +1,35 @@
+# Progress - Phase 221: Optimasi Request Storming, In-Flight Deduplication, & Cooldown Throttling (Issue #581)
+
+> Document updated: 2026-08-24
+> Branch: `development`
+> Status: SELESAI (Axios in-flight request deduplication, short-term throttle cache 2.5s, 30s cooldown pada window focus/visibilitychange refetch, dan eliminasi redundant authStore update loops).
+
+---
+
+## 1. Masalah & Analisis Root Cause
+- **Masalah**: Log dev server menunjukkan lonjakan request berulang dalam milidetik yang sama pada endpoint `/api/surat-masuk`, `/api/me/dashboard`, `/api/bmn/assets`, `/api/me/leave-requests`, dan `/api/kepegawaian/employees/{id}/leaves` dengan antrean response latency membengkak hingga ~45dt s.d. > 1 menit.
+- **Penyebab**:
+  1. Window `focus` dan `visibilitychange` mengeksekusi 4-5 request API sekaligus tanpa batas waktu jeda setiap kali pengguna beralih jendela/tab.
+  2. Ketiadaan *in-flight request deduplication*, sehingga request yang dipanggil bersamaan dikirim sebagai koneksi terpisah ke backend.
+  3. Pemanggilan `authStore.updateUser` yang terus memicu event `auth-change` berulang.
+
+## 2. Perubahan yang Dilakukan
+- **`frontend/src/lib/api.ts`**:
+  - Implementasi *in-flight request deduplication* (`inFlightRequests` Map) untuk berbagi response promise pada request GET identik.
+  - Implementasi *short-term TTL cache* 2.5 detik (`responseCache` Map) yang otomatis dibersihkan saat mutasi (`POST`, `PUT`, `DELETE`, `PATCH`).
+- **`frontend/src/app/portal/page.tsx`**:
+  - Penambahan batas jeda minimal 30 detik (`MIN_REFETCH_INTERVAL_MS`) pada event `focus` dan `visibilitychange`.
+  - Penyesuaian background polling interval menjadi 60 detik.
+  - Pengecekan perbandingan JSON sebelum memanggil `authStore.updateUser`.
+- **`frontend/src/lib/auth-store.ts`**:
+  - `updateUser` dibuat idempotent agar tidak mendispatch event jika data JSON user tidak berubah.
+
+## 3. Validasi
+- ESLint: Lulus (0 error, 0 warning).
+- Log backend stabil dan bebas antrean request storming.
+
+---
+
 # Progress - Phase 220: Sinkronisasi Otentikasi Multi-Tab & Optimasi Render Surat Masuk
 
 > Document updated: 2026-08-24
