@@ -34,26 +34,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (token && user) {
       window.location.replace("/portal");
-      return;
     }
-
-    // Verify session with backend on mount
-    let isMounted = true;
-    api
-      .get("/user")
-      .then((res) => {
-        if (!isMounted) return;
-        const backendUser = res.data?.data || res.data;
-        if (backendUser && (backendUser.id || backendUser.username)) {
-          authStore.login("session", backendUser);
-          window.location.replace("/portal");
-        }
-      })
-      .catch(() => {});
-
-    return () => {
-      isMounted = false;
-    };
   }, [token, user]);
 
   const redirectToPortal = () => {

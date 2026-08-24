@@ -8454,3 +8454,28 @@ ole === 'super_admin') untuk operasi tulis/ubah/hapus.
 - [x] Daftar template termuat dengan baik di halaman ST Builder.
 - [x] Fungsionalitas hapus dan auto-select setelah tambah template baru berjalan lancar.
 
+---
+
+## [2026-08-24] Phase 222 — Resolved Logout Session Invalidation & Auto-Login Loop Prevention
+
+### Problem Description
+Saat user melakukan logout di `/portal`, proses logout hanya membersihkan penyimpanan lokal client-side tanpa memanggil endpoint backend `POST /api/logout`. Ketika dialihkan ke `/login`, komponen `LoginPage` memanggil `api.get("/user")` pada saat *mount*. Karena cookie session backend Laravel masih valid, request mengembalikan data user aktif dan secara otomatis me-login ulang user serta me-redirect kembali ke `/portal`.
+
+### Completed (Selesai)
+- [x] **Frontend Portal Logout Invalidation (`frontend/src/app/portal/page.tsx`)**:
+  - Mengubah `handleLogout` menjadi `async` untuk memanggil `api.post("/logout")` ke backend Laravel guna mematikan session di server.
+  - Memastikan hard redirect ke `/login` (`window.location.href = "/login"`) agar seluruh state React dan cache browser ter-reset sempurna.
+- [x] **Frontend Login Page (`frontend/src/app/(auth)/login/page.tsx`)**:
+  - Menghapus pemanggilan *auto-resurrect* session `api.get("/user")` saat *mount*. Halaman login kini murni menampilkan form kredensial jika tidak ada token/session aktif di `authStore`.
+- [x] **Auth Store Cookie & Cache Cleanup (`frontend/src/lib/auth-store.ts`)**:
+  - Memperbarui `deleteAuthCookie` untuk membersihkan cookie di berbagai tingkatan domain (`localhost`, `.bksdakaltim.net`, `host-only`).
+  - Menghapus cookie `laravel_session` dan `XSRF-TOKEN` pada saat `authStore.logout()`.
+  - Memanggil `clearGetCache()` untuk membersihkan in-memory cache dan in-flight promise request.
+- [x] **In-Memory Cache Invalidation (`frontend/src/lib/api.ts`)**:
+  - Mengekspor fungsi `clearGetCache()` agar bisa dipanggil langsung saat logout.
+
+### Validation
+- [x] Next.js production build (`npm run build`) berhasil 100% (Exit code 0, 72/72 rute terkompilasi).
+- [x] Logout dari portal berhasil meng-invalidate session di backend, membersihkan cookies/localStorage, dan tetap berada di halaman `/login` tanpa auto-login kembali ke portal.
+
+
