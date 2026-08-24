@@ -1565,8 +1565,8 @@
     "semantic_hash": "8a2cd68b28597af05a4ba55c48ff97e7"
   },
   "frontend/src/app/(auth)/login/page.tsx": {
-    "mtime": 1787550880.9651215,
-    "ast_hash": "34fa8fe904faaacfe7be02a4ca83d034",
+    "mtime": 1787554580.9638486,
+    "ast_hash": "bfbe4069b3c9785287498abb6641758b",
     "semantic_hash": ""
   },
   "frontend/src/app/(dashboard)/layout.tsx": {
@@ -2530,8 +2530,8 @@
     "semantic_hash": "5880ee6fc926c2a72608e9f9aca63e37"
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1787553429.3360245,
-    "ast_hash": "7223aae72b2b5044aa8e4dcabfa3a790",
+    "mtime": 1787554589.8192315,
+    "ast_hash": "98f22ea48eb7aa99621932de9ab28d16",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -2795,13 +2795,13 @@
     "semantic_hash": "5b767209aad0cc948f3d404bb68b0136"
   },
   "frontend/src/lib/api.ts": {
-    "mtime": 1787553429.338027,
-    "ast_hash": "b9e18225a248948e09c2aadb9c429e30",
+    "mtime": 1787554551.254256,
+    "ast_hash": "79863ed8055e9087d749be236e78c16c",
     "semantic_hash": ""
   },
   "frontend/src/lib/auth-store.ts": {
-    "mtime": 1787553429.3390272,
-    "ast_hash": "5018f7a3eee26de2927fd8af47209103",
+    "mtime": 1787554571.2660863,
+    "ast_hash": "02eb73d2c25f2f2d82af569ea0bb936b",
     "semantic_hash": ""
   },
   "frontend/src/lib/bmn-utils.ts": {
@@ -4400,8 +4400,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1787553429.3320272,
-    "ast_hash": "a6da0af4b6f75bea6979466a8d346c66",
+    "mtime": 1787555090.260267,
+    "ast_hash": "3a709abb2d1b0d2635d8e95548e41c08",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {

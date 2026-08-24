@@ -17,9 +17,9 @@ return [
     'allowed_methods' => ['*'],
 
     // Izinkan origin terverifikasi (Frontend Next.js, Mobile Expo, dsb)
-    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081,http://localhost:19006,http://localhost:8000')))),
+    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081,http://localhost:19006,http://localhost:8000,https://bksdakaltim.net,https://www.bksdakaltim.net,https://api.bksdakaltim.net')))),
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => ['*bksdakaltim.net*'],
 
     // Izinkan semua header (termasuk Authorization untuk token Sanctum)
     'allowed_headers' => ['*'],
