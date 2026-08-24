@@ -8478,4 +8478,26 @@ Saat user melakukan logout di `/portal`, proses logout hanya membersihkan penyim
 - [x] Next.js production build (`npm run build`) berhasil 100% (Exit code 0, 72/72 rute terkompilasi).
 - [x] Logout dari portal berhasil meng-invalidate session di backend, membersihkan cookies/localStorage, dan tetap berada di halaman `/login` tanpa auto-login kembali ke portal.
 
+---
+
+## [2026-08-24] Phase 223 — Resolved CSRF Token Mismatch on API & Production Auth
+
+### Problem Description
+Di environment production (`bksdakaltim.net`), saat user melakukan logout atau login ulang, request POST API menghasilkan error `419 CSRF token mismatch`. Hal ini disebabkan oleh Sanctum `statefulApi` yang menerapkan validasi CSRF web session ke seluruh endpoint `/api/*`, sementara frontend SPA menggunakan otentikasi Bearer Token Sanctum. Selain itu, terdapat hardcoded URL `http://${hostname}:8000/sanctum/csrf-cookie` pada halaman login yang gagal diakses pada protokol HTTPS production.
+
+### Completed (Selesai)
+- [x] **Backend CSRF Validation Exemption (`backend/bootstrap/app.php`)**:
+  - Menambahkan `$middleware->validateCsrfTokens(except: ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'])` agar seluruh request REST API otentikasi Bearer Token tidak diblokir oleh CSRF middleware web session.
+- [x] **Backend CORS Production Configuration (`backend/config/cors.php`)**:
+  - Menambahkan default allowed origins untuk `https://bksdakaltim.net`, `https://www.bksdakaltim.net`, dan `https://api.bksdakaltim.net`.
+  - Menambahkan `allowed_origins_patterns => ['*bksdakaltim.net*']` untuk mendukung fleksibilitas subdomain di production.
+- [x] **Frontend Login CSRF Handshake Cleanup (`frontend/src/app/(auth)/login/page.tsx`)**:
+  - Menghapus pemanggilan hardcoded port `8000` (`http://${hostname}:8000/sanctum/csrf-cookie`) yang memicu mixed-content error di HTTPS production.
+
+### Validation
+- [x] `php artisan about` berjalan sukses dengan konfigurasi middleware dan route valid.
+- [x] Next.js build (`npm run build`) selesai 100% sukses (Exit code 0, 72/72 rute terkompilasi).
+- [x] Request login dan logout tidak lagi terhalang oleh CSRF token mismatch di production maupun local.
+
+
 
