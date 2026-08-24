@@ -71,7 +71,7 @@ export function DocumentTemplates({ selectedDocument, recipients, activity, trav
     return <RekapPreview recipients={recipients} activity={activity} travel={travel} ppk={ppk} pdo={pdo} total={total} />;
   }
   if (doc === "spb" || doc.includes("spb") || doc.includes("persetujuan")) {
-    return <SpbPreview recipients={recipients} activity={activity} sptNumber={sptNumber} ppk={ppk} pdo={pdo} verifikator={verifikator} total={total} />;
+    return <SpbPreview recipients={recipients} activity={activity} sptNumber={sptNumber} ppk={ppk} pdo={pdo} verifikator={verifikator} />;
   }
   if (doc === "daftar-isian" || doc.includes("daftar") || doc.includes("isian")) {
     return <DaftarIsianPreview recipients={recipients} activity={activity} travel={travel} />;
