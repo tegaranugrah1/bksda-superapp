@@ -12,7 +12,7 @@ const MODULE_ROUTES: Record<string, string> = {
   "surat": "surat",
 };
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const loggedIn = request.cookies.get("bksda_logged_in")?.value;
   const userCookie = request.cookies.get("bksda_user")?.value;
@@ -93,7 +93,7 @@ export function middleware(request: NextRequest) {
       }
     }
   } catch (error) {
-    console.error("Middleware auth parsing error:", error);
+    console.error("Proxy auth parsing error:", error);
   }
 
   return NextResponse.next();
