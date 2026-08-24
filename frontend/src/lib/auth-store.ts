@@ -159,6 +159,11 @@ export const authStore = {
     if (typeof window === "undefined") return;
 
     const userJson = JSON.stringify(userData);
+    const existing = localStorage.getItem("bksda_user");
+    if (existing === userJson) {
+      return; // No change, avoid dispatching events
+    }
+
     localStorage.setItem("bksda_user", userJson);
     setAuthCookie("bksda_user", userJson);
 
