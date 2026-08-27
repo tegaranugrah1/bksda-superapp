@@ -222,6 +222,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
         <title>BA Pemakaian BMN</title>
         <style>
           @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
+          @page :first { margin-top: 0; }
           * { box-sizing: border-box; }
           body {
             margin: 0;
@@ -451,6 +452,7 @@ export function UsageAgreementDocument({
         }
         @media print {
           @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
+          @page :first { margin-top: 0; }
           body * { visibility: hidden; }
           #ba-pemakaian-print-root, #ba-pemakaian-print-root * { visibility: visible; }
           #ba-pemakaian-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }

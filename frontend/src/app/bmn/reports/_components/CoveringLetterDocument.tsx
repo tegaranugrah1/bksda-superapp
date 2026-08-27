@@ -100,6 +100,7 @@ export function handlePrintCoveringLetter(documentId = "covering-letter-print-ro
         <title>Surat Pengantar BMN</title>
         <style>
           @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
+          @page :first { margin-top: 0; }
           * { box-sizing: border-box; }
           body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.35; }
           p { margin: 0; }
