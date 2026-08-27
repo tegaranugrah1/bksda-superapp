@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   FileText,
   Printer,
@@ -39,6 +39,7 @@ import {
   type DasarItem,
   type Employee,
   type StTemplate,
+  type StExpenseTemplate,
 } from "../_lib";
 import { FormSection } from "../_components/FormSection";
 import { EditableItemListSection } from "../_components/EditableItemListSection";
@@ -104,6 +105,31 @@ export default function STCreatePremiumPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const { data: expenseTemplates = [] } = useQuery({
+    queryKey: ["st-expense-templates-select-create"],
+    queryFn: async () => {
+      const res = await api.get("/kepegawaian/st-expense-templates?active_only=true&per_page=100");
+      return (res.data?.data || []) as StExpenseTemplate[];
+    },
+  });
+
+  const availableSumberDanaOptions = useMemo(() => {
+    if (expenseTemplates.length === 0) return SUMBER_DANA_OPTIONS;
+    const mapped = expenseTemplates.map((t) => ({
+      id: t.code,
+      label: t.name,
+      dasarText: t.dasar_text || "",
+      biayaText: t.biaya_text,
+    }));
+    mapped.push({
+      id: "other",
+      label: "Lainnya (Tulis Manual)",
+      dasarText: "",
+      biayaText: "",
+    });
+    return mapped;
+  }, [expenseTemplates]);
+
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-builder-create"],
     queryFn: async () => {
@@ -119,58 +145,70 @@ export default function STCreatePremiumPage() {
     )
     .slice(0, 50);
 
-  const selectPlhEmployeeByName = useCallback(
-    (plhName?: string | null) => {
-      const name = plhName?.trim().toLowerCase();
-      if (!name || allEmployees.length === 0) return false;
+  const selectPlhEmployeeByName = (plhName?: string | null) => {
+    const name = plhName?.trim().toLowerCase();
+    if (!name || allEmployees.length === 0) return false;
 
-      const matched = allEmployees.find((emp: Employee) => {
-        const fullName = (emp.nama_lengkap || emp.name || "").toLowerCase();
-        return fullName === name || fullName.includes(name);
-      });
+    const matched = allEmployees.find((emp: Employee) => {
+      const fullName = (emp.nama_lengkap || emp.name || "").toLowerCase();
+      return fullName === name || fullName.includes(name);
+    });
 
-      if (!matched) return false;
+    if (!matched) return false;
 
-      setSelectedEmployees([normalizeEmployeeForSelection(matched)]);
-      setPendingPlhEmployeeName("");
-      return true;
-    },
-    [allEmployees],
-  );
+    setSelectedEmployees([normalizeEmployeeForSelection(matched)]);
+    setPendingPlhEmployeeName("");
+    return true;
+  };
 
   useEffect(() => {
-    if (!isPlhTemplate || selectedEmployees.length > 0 || !pendingPlhEmployeeName) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    selectPlhEmployeeByName(pendingPlhEmployeeName);
-  }, [isPlhTemplate, pendingPlhEmployeeName, selectPlhEmployeeByName, selectedEmployees.length]);
+    if (!isPlhTemplate || selectedEmployees.length > 0 || !pendingPlhEmployeeName || allEmployees.length === 0) return;
+    const name = pendingPlhEmployeeName.trim().toLowerCase();
+    const matched = allEmployees.find((emp: Employee) => {
+      const fullName = (emp.nama_lengkap || emp.name || "").toLowerCase();
+      return fullName === name || fullName.includes(name);
+    });
+    if (matched) {
+      setSelectedEmployees([normalizeEmployeeForSelection(matched)]);
+      setPendingPlhEmployeeName("");
+    }
+  }, [allEmployees, isPlhTemplate, pendingPlhEmployeeName, selectedEmployees.length]);
 
-  const fetchDynamicTemplates = useCallback(async () => {
+  const formatYearInItems = (items: DasarItem[]) =>
+    (items || []).map((item) => ({
+      ...item,
+      text: (item.text || "").replace(/{tahun}/g, currentYear),
+    }));
+
+  const fetchDynamicTemplates = async (selectDefault = false) => {
     try {
       const res = await api.get("/kepegawaian/st-templates");
       const templates: StTemplate[] = res.data?.data || [];
       setDynamicTemplates(templates);
-      const defaultTemplate = templates.find((template) => template.is_default);
-      if (!templateAppliedRef.current && !initialTemplate && defaultTemplate) {
-        setSelectedTemplateId(defaultTemplate.id);
-        setTemplateType(`db_${defaultTemplate.id}`);
-        setMenimbangItems(defaultTemplate.menimbang || []);
-        setDasarItems(defaultTemplate.dasar || []);
-        if (defaultTemplate.default_signer_name && defaultTemplate.default_signer_nip) {
-          setKepalaBalai({
-            employeeId: defaultTemplate.default_signer_employee_id || undefined,
-            name: defaultTemplate.default_signer_name,
-            nip: formatNIP(defaultTemplate.default_signer_nip),
-          });
+      if (selectDefault) {
+        const defaultTemplate = templates.find((template) => template.is_default);
+        if (!templateAppliedRef.current && !initialTemplate && defaultTemplate) {
+          setSelectedTemplateId(defaultTemplate.id);
+          setTemplateType(`db_${defaultTemplate.id}`);
+          setMenimbangItems(formatYearInItems(defaultTemplate.menimbang || []));
+          setDasarItems(formatYearInItems(defaultTemplate.dasar || []));
+          if (defaultTemplate.default_signer_name && defaultTemplate.default_signer_nip) {
+            setKepalaBalai({
+              employeeId: defaultTemplate.default_signer_employee_id || undefined,
+              name: defaultTemplate.default_signer_name,
+              nip: formatNIP(defaultTemplate.default_signer_nip),
+            });
+          }
         }
       }
     } catch (err) {
       console.error("Failed to fetch dynamic ST templates", err);
     }
-  }, [initialTemplate]);
+  };
 
   useEffect(() => {
-    fetchDynamicTemplates();
-  }, [fetchDynamicTemplates]);
+    void fetchDynamicTemplates(true);
+  }, [initialTemplate]);
 
   const handleSaveNewTemplate = async () => {
     if (!newTemplateName.trim()) {
@@ -296,8 +334,8 @@ export default function STCreatePremiumPage() {
     setKotaAsal("Samarinda");
   }, [selectedEmployees]);
 
-  // Apply BMN Penghapusan template â€” extracted into a function so it can be triggered by query param OR sidebar button
-  const applyBmnTemplate = useCallback(() => {
+  // Apply BMN Penghapusan template — extracted into a function so it can be triggered by query param OR sidebar button
+  const applyBmnTemplate = () => {
     setKlasifikasi("KAP.05");
     setSumberDana("dl1");
     setTemplateType("bmn-pemeriksaan");
@@ -327,10 +365,10 @@ export default function STCreatePremiumPage() {
     setKotaTujuan("");
     setTempatKegiatan("");
     setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal " + formatDateIndonesian(today));
-  }, []);
+  };
 
-  // Apply Beda Hari template â€” Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
-  const applyBedaHariTemplate = useCallback(() => {
+  // Apply Beda Hari template — Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
+  const applyBedaHariTemplate = () => {
     setTemplateType("beda-hari");
     // Initialize employeeDates dari tanggalMulai/Selesai global jika sudah diisi
     setEmployeeDates((prev) => {
@@ -342,146 +380,140 @@ export default function STCreatePremiumPage() {
       });
       return next;
     });
-  }, [selectedEmployees, tanggalMulai, tanggalSelesai]);
+  };
 
-  // Apply PLH template â€” pelaksana harian Kepala Seksi
-  const applyPlhTemplate = useCallback(
-    (
-      parentSt?: {
-        nomor_surat?: string | null;
-        tanggal_surat?: string | null;
-        tanggal_mulai?: string | null;
-        tanggal_selesai?: string | null;
-        tempat_tujuan?: string | null;
-        maksud_tujuan?: string | null;
-        employees?: Employee[];
-      },
-      plhName?: string,
-    ) => {
-      setTemplateType("plh");
-      setKlasifikasi("PEG.09.01");
-      setSumberDana("dl1");
-
-      // Default tanggal: ikut tanggal ST induk kalau ada
-      const today = new Date().toISOString().substring(0, 10);
-      const mulai = parentSt?.tanggal_mulai?.split("T")[0] || today;
-      const selesai = parentSt?.tanggal_selesai?.split("T")[0] || today;
-      setTanggalMulai(mulai);
-      setTanggalSelesai(selesai);
-
-      const nomorInduk = parentSt?.nomor_surat || "...";
-      const tanggalInduk = parentSt?.tanggal_surat
-        ? formatDateIndonesian(parentSt.tanggal_surat.split("T")[0])
-        : "...";
-      const parentLeadEmployee = parentSt?.employees?.[0];
-      setPlhWilayah(extractPlhWilayahFromPosition(parentLeadEmployee?.jabatan || parentLeadEmployee?.position || ""));
-      setPlhKegiatanKasi(cleanPlhKegiatanKasi(parentSt?.maksud_tujuan));
-
-      setMenimbangItems([
-        {
-          id: "plh-m1",
-          text: `bahwa Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER} akan melaksanakan ${PLH_KEGIATAN_KASI_PLACEHOLDER};`,
-        },
-        {
-          id: "plh-m2",
-          text: `bahwa sehubungan dengan hal tersebut di atas untuk kelancaran pelaksanaan tugas sehari-hari maka perlu ada pejabat sementara yang menggantikan tugas Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}.`,
-        },
-      ]);
-
-      setDasarItems([
-        {
-          id: "plh-d1",
-          text: `Surat Tugas Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor : ${nomorInduk} tanggal ${tanggalInduk}.`,
-        },
-      ]);
-
-      // Freeform: clear structured fields, set namaKegiatan ke kalimat PLH
-      setActivityPrefix("");
-      setKotaAsal("");
-      setKotaTujuan("");
-      setTempatKegiatan("");
-      setNamaKegiatan(
-        `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`,
-      );
-
-      setTembusanItems([
-        "Direktur Jenderal KSDAE;",
-        "Sekretaris Direktorat Jenderal KSDAE.",
-      ]);
-
-      if (plhName?.trim()) {
-        setPendingPlhEmployeeName(plhName.trim());
-        selectPlhEmployeeByName(plhName);
-      }
+  // Apply PLH template — pelaksana harian Kepala Seksi
+  const applyPlhTemplate = (
+    parentSt?: {
+      nomor_surat?: string | null;
+      tanggal_surat?: string | null;
+      tanggal_mulai?: string | null;
+      tanggal_selesai?: string | null;
+      tempat_tujuan?: string | null;
+      maksud_tujuan?: string | null;
+      employees?: Employee[];
     },
-    [selectPlhEmployeeByName],
-  );
+    plhName?: string,
+  ) => {
+    setTemplateType("plh");
+    setKlasifikasi("PEG.09.01");
+    setSumberDana("dl1");
+
+    // Default tanggal: ikut tanggal ST induk kalau ada
+    const today = new Date().toISOString().substring(0, 10);
+    const mulai = parentSt?.tanggal_mulai?.split("T")[0] || today;
+    const selesai = parentSt?.tanggal_selesai?.split("T")[0] || today;
+    setTanggalMulai(mulai);
+    setTanggalSelesai(selesai);
+
+    const nomorInduk = parentSt?.nomor_surat || "...";
+    const tanggalInduk = parentSt?.tanggal_surat
+      ? formatDateIndonesian(parentSt.tanggal_surat.split("T")[0])
+      : "...";
+    const parentLeadEmployee = parentSt?.employees?.[0];
+    setPlhWilayah(extractPlhWilayahFromPosition(parentLeadEmployee?.jabatan || parentLeadEmployee?.position || ""));
+    setPlhKegiatanKasi(cleanPlhKegiatanKasi(parentSt?.maksud_tujuan));
+
+    setMenimbangItems([
+      {
+        id: "plh-m1",
+        text: `bahwa Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER} akan melaksanakan ${PLH_KEGIATAN_KASI_PLACEHOLDER};`,
+      },
+      {
+        id: "plh-m2",
+        text: `bahwa sehubungan dengan hal tersebut di atas untuk kelancaran pelaksanaan tugas sehari-hari maka perlu ada pejabat sementara yang menggantikan tugas Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}.`,
+      },
+    ]);
+
+    setDasarItems([
+      {
+        id: "plh-d1",
+        text: `Surat Tugas Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor : ${nomorInduk} tanggal ${tanggalInduk}.`,
+      },
+    ]);
+
+    // Freeform: clear structured fields, set namaKegiatan ke kalimat PLH
+    setActivityPrefix("");
+    setKotaAsal("");
+    setKotaTujuan("");
+    setTempatKegiatan("");
+    setNamaKegiatan(
+      `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`,
+    );
+
+    setTembusanItems([
+      "Direktur Jenderal KSDAE;",
+      "Sekretaris Direktorat Jenderal KSDAE.",
+    ]);
+
+    if (plhName?.trim()) {
+      setPendingPlhEmployeeName(plhName.trim());
+      selectPlhEmployeeByName(plhName);
+    }
+  };
 
   // Generic template handler: dropdown 4 pilihan + dynamic
-  const handleTemplateChange = useCallback(
-    (value: string) => {
-      if (value === "bmn-pemeriksaan") {
-        setSelectedTemplateId(null);
-        applyBmnTemplate();
-      } else if (value === "beda-hari") {
-        setSelectedTemplateId(null);
-        applyBedaHariTemplate();
-      } else if (value === "plh") {
-        setSelectedTemplateId(null);
-        applyPlhTemplate();
-      } else if (value.startsWith("db_")) {
-        const id = parseInt(value.replace("db_", ""), 10);
-        const template = dynamicTemplates.find((t) => t.id === id);
-        if (template) {
-          setSelectedTemplateId(template.id);
+  const handleTemplateChange = (value: string) => {
+    if (value === "bmn-pemeriksaan") {
+      setSelectedTemplateId(null);
+      applyBmnTemplate();
+    } else if (value === "beda-hari") {
+      setSelectedTemplateId(null);
+      applyBedaHariTemplate();
+    } else if (value === "plh") {
+      setSelectedTemplateId(null);
+      applyPlhTemplate();
+    } else if (value.startsWith("db_")) {
+      const id = parseInt(value.replace("db_", ""), 10);
+      const template = dynamicTemplates.find((t) => t.id === id);
+      if (template) {
+        setSelectedTemplateId(template.id);
+        setTemplateType(value);
+        setMenimbangItems(formatYearInItems(template.menimbang || []));
+        setDasarItems(formatYearInItems(template.dasar || []));
+
+        // Keep the existing specialized form behavior while taking editable
+        // content and configuration from the database template.
+        if (template.type === "bmn") {
+          applyBmnTemplate();
           setTemplateType(value);
-          setMenimbangItems(template.menimbang || []);
-          setDasarItems(template.dasar || []);
-
-          // Keep the existing specialized form behavior while taking editable
-          // content and configuration from the database template.
-          if (template.type === "bmn") {
-            applyBmnTemplate();
-            setTemplateType(value);
-            setMenimbangItems(template.menimbang || []);
-            setDasarItems(template.dasar || []);
-          } else if (template.type === "beda_hari") {
-            applyBedaHariTemplate();
-            setTemplateType(value);
-            setMenimbangItems(template.menimbang || []);
-            setDasarItems(template.dasar || []);
-          } else if (template.type === "plh") {
-            applyPlhTemplate();
-            setTemplateType(value);
-            setMenimbangItems(template.menimbang || []);
-            setDasarItems(template.dasar || []);
-          }
-
-          const configuration = template.configuration || {};
-          if (typeof configuration.klasifikasi === "string") setKlasifikasi(configuration.klasifikasi);
-          if (typeof configuration.sumber_dana === "string") setSumberDana(configuration.sumber_dana);
-          if (template.default_signer_name && template.default_signer_nip) {
-            setKepalaBalai({
-              employeeId: template.default_signer_employee_id || undefined,
-              name: template.default_signer_name,
-              nip: formatNIP(template.default_signer_nip),
-            });
-          }
-          if (template.type === "beda_hari") {
-            applyBedaHariTemplate();
-            setTemplateType(value);
-          }
+          setMenimbangItems(formatYearInItems(template.menimbang || []));
+          setDasarItems(formatYearInItems(template.dasar || []));
+        } else if (template.type === "beda_hari") {
+          applyBedaHariTemplate();
+          setTemplateType(value);
+          setMenimbangItems(formatYearInItems(template.menimbang || []));
+          setDasarItems(formatYearInItems(template.dasar || []));
+        } else if (template.type === "plh") {
+          applyPlhTemplate();
+          setTemplateType(value);
+          setMenimbangItems(formatYearInItems(template.menimbang || []));
+          setDasarItems(formatYearInItems(template.dasar || []));
         }
-      } else {
-        setSelectedTemplateId(null);
-        setTemplateType(null);
-        // Reset to default empty items if reverting to default manual
-        setMenimbangItems([]);
-        setDasarItems([]);
+
+        const configuration = template.configuration || {};
+        if (typeof configuration.klasifikasi === "string") setKlasifikasi(configuration.klasifikasi);
+        if (typeof configuration.sumber_dana === "string") setSumberDana(configuration.sumber_dana);
+        if (template.default_signer_name && template.default_signer_nip) {
+          setKepalaBalai({
+            employeeId: template.default_signer_employee_id || undefined,
+            name: template.default_signer_name,
+            nip: formatNIP(template.default_signer_nip),
+          });
+        }
+        if (template.type === "beda_hari") {
+          applyBedaHariTemplate();
+          setTemplateType(value);
+        }
       }
-    },
-    [applyBmnTemplate, applyBedaHariTemplate, applyPlhTemplate, dynamicTemplates],
-  );
+    } else {
+      setSelectedTemplateId(null);
+      setTemplateType(null);
+      // Reset to default empty items if reverting to default manual
+      setMenimbangItems([]);
+      setDasarItems([]);
+    }
+  };
 
   // Apply BMN Pemeriksaan template from query param (one-shot)
   useEffect(() => {
@@ -622,41 +654,95 @@ export default function STCreatePremiumPage() {
     if (isBmnTemplate) return '';
     // PLH template: skip biaya line (PLH tugas internal, tidak ada biaya)
     if (isPlhTemplate) return '';
+    // DL 1: tanpa pembebanan biaya
+    if (sumberDana === 'dl1') return '';
 
-    const configuredBiaya = selectedDynamicTemplate?.configuration?.biaya_text;
-    if (typeof configuredBiaya === "string" && configuredBiaya.trim()) {
-      const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
-      return configuredBiaya.replace(/{tahun}/g, tahun);
+    const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
+
+    // 1. Check selected sumberDana against dynamic expense templates
+    const dynExpense = expenseTemplates.find(
+      o => o.code === sumberDana || o.name.toLowerCase() === sumberDana.toLowerCase() || String(o.id) === sumberDana
+    );
+    if (dynExpense) {
+      if (!dynExpense.biaya_text) return '';
+      return dynExpense.biaya_text.replace(/{tahun}/g, tahun);
     }
 
-    const opt = SUMBER_DANA_OPTIONS.find(o => o.id === sumberDana);
-    if (opt?.biayaText) {
-      const tahun = tanggalSurat ? new Date(tanggalSurat).getFullYear().toString() : new Date().getFullYear().toString();
+    // 2. Check selected sumberDana against available options or static fallback
+    const opt = availableSumberDanaOptions.find(o => o.id === sumberDana) || SUMBER_DANA_OPTIONS.find(o => o.id === sumberDana);
+    if (opt) {
+      if (!opt.biayaText) return '';
       return opt.biayaText.replace(/{tahun}/g, tahun);
     }
     if (sumberDana === 'other') {
-      return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${sumberDanaOther || '...'};`;
+      return sumberDanaOther ? `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${sumberDanaOther};` : '';
     }
+
+    // 3. Fallback to ST template configuration if set
+    const configuredBiaya = selectedDynamicTemplate?.configuration?.biaya_text;
+    if (typeof configuredBiaya === "string" && configuredBiaya.trim()) {
+      return configuredBiaya.replace(/{tahun}/g, tahun);
+    }
+
     return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;`;
+  };
+
+  const isFundingDasarText = (text?: string | null) => {
+    if (!text) return false;
+    const lower = text.toLowerCase();
+    return (
+      lower.includes("surat pengesahan dipa") ||
+      lower.includes("sp dipa") ||
+      lower.includes("perjanjian kerjasama") ||
+      lower.includes("perjanjian kerja sama") ||
+      lower.includes("pks.") ||
+      lower.includes("kideco") ||
+      lower.includes("jayantara") ||
+      lower.includes("orangutan protection") ||
+      lower.includes("tjiwi kimia") ||
+      lower.includes("bosf") ||
+      lower.includes("alert") ||
+      lower.includes("conservation action network")
+    );
   };
 
   // Function to update Dasar items based on Funding
   const updateDasarFromFunding = (fundingId: string, date: string) => {
-    const opt = SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
-    if (opt && opt.dasarText) {
-      const tahun = date ? new Date(date).getFullYear().toString() : new Date().getFullYear().toString();
-      const text = opt.dasarText.replace(/{tahun}/g, tahun);
-      
-      setDasarItems(prev => {
-        const newItems = [...prev];
-        if (newItems.length >= 2) {
-          newItems[1].text = text;
-        } else if (newItems.length === 1) {
-          newItems.push({ id: Date.now().toString(), text });
+    const tahun = date ? new Date(date).getFullYear().toString() : new Date().getFullYear().toString();
+    const opt = availableSumberDanaOptions.find(o => o.id === fundingId) || SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
+    const fundingText = opt?.dasarText ? opt.dasarText.replace(/{tahun}/g, tahun).trim() : "";
+
+    setDasarItems(prev => {
+      const newItems = [...prev];
+
+      // Find existing funding dasar index (either by id="funding-dasar" or matching funding pattern)
+      const existingIdx = newItems.findIndex(
+        item => item.id === "funding-dasar" || isFundingDasarText(item.text)
+      );
+
+      if (fundingText) {
+        if (existingIdx !== -1) {
+          // Replace existing funding dasar in place
+          newItems[existingIdx] = {
+            id: newItems[existingIdx].id || "funding-dasar",
+            text: fundingText,
+          };
+        } else {
+          // No existing funding dasar -> append as a new item at the end
+          newItems.push({
+            id: "funding-dasar",
+            text: fundingText,
+          });
         }
-        return newItems;
-      });
-    }
+      } else {
+        // Switching to a funding source without a dasar (e.g. DL 1, Other)
+        if (existingIdx !== -1) {
+          newItems.splice(existingIdx, 1);
+        }
+      }
+
+      return newItems;
+    });
   };
 
   // Auto-fill klasifikasi & menimbang based on nama kegiatan keywords
@@ -983,7 +1069,7 @@ export default function STCreatePremiumPage() {
                 }} 
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white"
               >
-                {SUMBER_DANA_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                {availableSumberDanaOptions.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
               </select>
               {sumberDana === 'other' && (
                 <input 
@@ -1132,7 +1218,7 @@ export default function STCreatePremiumPage() {
                       value={plhKegiatanKasi}
                       onChange={(e) => setPlhKegiatanKasi(e.target.value)}
                       placeholder="Kegiatan Kepala Seksi yang menjadi dasar PLH"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm min-h-[72px] outline-none text-zinc-900 dark:text-white"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm min-h-18 outline-none text-zinc-900 dark:text-white"
                     />
                   </div>
                 </div>
@@ -1164,7 +1250,7 @@ export default function STCreatePremiumPage() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-400 uppercase">Dalam Rangka *</label>
-                    <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi..." className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+                    <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi..." className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm min-h-15 outline-none text-zinc-900 dark:text-white" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-400 uppercase">Di ( Tempat Spesifik / Opsional )</label>
@@ -1183,7 +1269,7 @@ export default function STCreatePremiumPage() {
                     <label className="text-[9px] font-bold text-slate-400 uppercase">
                       {activityPrefix.includes("Melaksanakan Kegiatan") ? "Melaksanakan Kegiatan ( 1 Hari ) *" : "Menugaskan Staf *"}
                     </label>
-                    <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={activityPrefix.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white" />
+                    <textarea value={namaKegiatan} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={activityPrefix.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm min-h-15 outline-none text-zinc-900 dark:text-white" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">

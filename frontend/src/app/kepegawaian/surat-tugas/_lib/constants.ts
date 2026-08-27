@@ -88,8 +88,7 @@ export const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
     id: "dl1",
     label: "DL 1 / Tidak ada biaya",
     dasarText: "",
-    biayaText:
-      "Segala biaya yang timbul akibat Surat Tugas ini tidak dibebankan pada anggaran manapun (DL 1 / tanpa biaya).",
+    biayaText: "",
   },
   {
     id: "other",

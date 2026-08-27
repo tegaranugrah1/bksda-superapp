@@ -95,6 +95,36 @@ export function SuratTugasDetailStep({
   handleFileChange,
   isSubmitting,
 }: SuratTugasDetailStepProps) {
+  const [expenseOptions, setExpenseOptions] = React.useState<Array<{ id: string; label: string }>>([
+    { id: "DIPA", label: "DIPA Balai KSDA Kalimantan Timur" },
+    { id: "Dana Hibah FOLU Net Sink 2030 (NC 2&3)", label: "Dana Hibah FOLU Net Sink 2030 (NC 2&3)" },
+    { id: "Dana Kerjasama KJA", label: "Dana Kerjasama PT Kideco Jaya Agung" },
+    { id: "Dana Kerjasama MJA", label: "Dana Kerjasama PT Multi Jayantara Abadi" },
+    { id: "Dana Kerjasama COP", label: "Dana Kerjasama COP (Centre for Orangutan Protection)" },
+    { id: "Dana Kerjasama PT. Tjiwi Kimia Tbk.", label: "Dana Kerjasama PT Pabrik Kertas Tjiwi Kimia Tbk" },
+    { id: "Dana Kerjasama BOSF", label: "Dana Kerjasama Yayasan BOSF" },
+    { id: "Dana Kerjasama CAN", label: "Dana Kerjasama CAN (Conservation Action Network)" },
+    { id: "Dana Kerjasama ALeRT", label: "Dana Kerjasama ALeRT" },
+    { id: "DL 1 / Tidak ada biaya", label: "DL 1 / Tidak ada biaya" },
+    { id: "other", label: "Lainnya" },
+  ]);
+
+  React.useEffect(() => {
+    fetch("/api/kepegawaian/st-expense-templates/public?active_only=true")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+          const list = data.data.map((item: { name: string; code: string }) => ({
+            id: item.name,
+            label: item.name,
+          }));
+          list.push({ id: "other", label: "Lainnya" });
+          setExpenseOptions(list);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="bg-white/80 backdrop-blur-xl rounded-4xl p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-right-8 duration-500">
       <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
@@ -363,22 +393,7 @@ export function SuratTugasDetailStep({
               Sumber Dana <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[
-                { id: "DIPA", label: "DIPA" },
-                { id: "Dana Kerjasama KJA", label: "Dana Kerjasama KJA" },
-                { id: "Dana Kerjasama MJA", label: "Dana Kerjasama MJA" },
-                { id: "Dana Kerjasama COP", label: "Dana Kerjasama COP" },
-                {
-                  id: "Dana Kerjasama PT. Tjiwi Kimia Tbk.",
-                  label: "Dana Kerjasama PT. Tjiwi Kimia Tbk.",
-                },
-                { id: "Dana Kerjasama BOSF", label: "Dana Kerjasama BOSF" },
-                { id: "Dana Kerjasama CAN", label: "Dana Kerjasama CAN" },
-                { id: "Dana Kerjasama ALeRT", label: "Dana Kerjasama ALeRT" },
-                { id: "Dana Kerjasama FOLU", label: "Dana Kerjasama FOLU" },
-                { id: "DL 1 / Tidak ada biaya", label: "DL 1 / Tidak ada biaya" },
-                { id: "other", label: "Lainnya" },
-              ].map((opt) => (
+              {expenseOptions.map((opt) => (
                 <label
                   key={opt.id}
                   className={cn(
