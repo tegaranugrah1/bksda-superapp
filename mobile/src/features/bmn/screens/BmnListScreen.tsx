@@ -42,7 +42,9 @@ export default function BmnListScreen() {
     error,
     isRefreshing,
     refetch,
-    fetchNextPage,
+    goToPage,
+    page,
+    hasNextPage,
     isFetchingNextPage,
   } = useAssets({
     search: debouncedSearch,
@@ -75,14 +77,23 @@ export default function BmnListScreen() {
     />
   );
 
-  const renderFooter = () => {
-    if (!isFetchingNextPage) return null;
-    return (
-      <View style={[styles.footer, { paddingVertical: spacing.md }]}>
-        <ActivityIndicator size="small" color={colors.primary} />
-      </View>
-    );
-  };
+  const renderFooter = () => (
+    <View style={[styles.pagination, { borderTopColor: colors.border }]}>
+      <IconButton
+        icon={<Text style={{ color: page > 1 ? colors.foreground : colors.mutedForeground }}>‹</Text>}
+        onPress={() => goToPage(page - 1)}
+        disabled={page <= 1 || isLoading || isFetchingNextPage}
+        accessibilityLabel="Halaman sebelumnya"
+      />
+      <Text style={[styles.paginationText, { color: colors.mutedForeground }]}>Halaman {page}</Text>
+      <IconButton
+        icon={isFetchingNextPage ? <ActivityIndicator size="small" color={colors.primary} /> : <Text style={{ color: hasNextPage ? colors.foreground : colors.mutedForeground }}>›</Text>}
+        onPress={() => goToPage(page + 1)}
+        disabled={!hasNextPage || isLoading || isFetchingNextPage}
+        accessibilityLabel="Halaman berikutnya"
+      />
+    </View>
+  );
 
   const renderContent = () => {
     if (isLoading && items.length === 0) {
@@ -127,8 +138,7 @@ export default function BmnListScreen() {
         showsVerticalScrollIndicator={false}
         onRefresh={refetch}
         refreshing={isRefreshing}
-        onEndReached={fetchNextPage}
-        onEndReachedThreshold={0.5}
+        onEndReached={undefined}
         ListFooterComponent={renderFooter}
       />
     );
@@ -151,7 +161,7 @@ export default function BmnListScreen() {
               },
             ]}
           >
-            Daftar Aset BMN
+            Data Aset
           </Text>
           <Text
             style={[
@@ -164,7 +174,7 @@ export default function BmnListScreen() {
               },
             ]}
           >
-            Kelola dan pantau seluruh aset milik BKSDA
+            Katalog seluruh Barang Milik Negara.
           </Text>
         </View>
 
@@ -174,7 +184,7 @@ export default function BmnListScreen() {
             <SearchInput
               value={search}
               onChangeText={handleSearchChange}
-              placeholder="Cari nama barang atau kode BMN..."
+              placeholder="Cari nama, kode, atau merk aset..."
               onClear={() => handleSearchChange('')}
             />
           </View>
@@ -231,8 +241,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  footer: {
+  pagination: {
+    minHeight: 58,
+    borderTopWidth: 1,
+    marginTop: 8,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
+  },
+  paginationText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

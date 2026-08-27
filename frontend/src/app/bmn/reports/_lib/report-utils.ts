@@ -31,6 +31,10 @@ export function buildPoaNumber(sequence: string, kap: string, documentDate: stri
   return `KS.${sequence.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.03.02"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
 }
 
+export function buildCoveringNumber(sequence: string, kap: string, documentDate: string): string {
+  return `SP.${sequence.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
+}
+
 export function formatDate(value?: string): string {
   if (!value) return "-";
   return new Date(value).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });

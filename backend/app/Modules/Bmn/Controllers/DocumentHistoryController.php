@@ -3,9 +3,11 @@
 namespace App\Modules\Bmn\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Bmn\Models\CoveringLetter;
 use App\Modules\Bmn\Models\HandoverAgreement;
 use App\Modules\Bmn\Models\PowerOfAttorney;
 use App\Modules\Bmn\Models\UsageAgreement;
+use App\Modules\Bmn\Resources\CoveringLetterResource;
 use App\Modules\Bmn\Resources\HandoverAgreementResource;
 use App\Modules\Bmn\Resources\PowerOfAttorneyResource;
 use App\Modules\Bmn\Resources\UsageAgreementResource;
@@ -18,7 +20,7 @@ class DocumentHistoryController extends Controller
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'type' => ['nullable', Rule::in(['all', 'usage_agreement', 'handover_agreement', 'power_of_attorney'])],
+            'type' => ['nullable', Rule::in(['all', 'usage_agreement', 'handover_agreement', 'power_of_attorney', 'covering_letter'])],
             'employee_id' => ['nullable', 'integer', 'exists:kpg_employees,id'],
             'search' => ['nullable', 'string', 'max:120'],
             'per_page' => ['nullable', 'integer', 'min:5', 'max:50'],
@@ -43,6 +45,10 @@ class DocumentHistoryController extends Controller
             $queries[] = $this->powerOfAttorneyHistoryQuery($employeeId, $search);
         }
 
+        if ($type === 'all' || $type === 'covering_letter') {
+            $queries[] = $this->coveringLetterHistoryQuery($employeeId, $search);
+        }
+
         $combined = array_shift($queries);
         foreach ($queries as $query) {
             $combined->unionAll($query);
@@ -58,6 +64,7 @@ class DocumentHistoryController extends Controller
         $usageIds = $rows->where('document_type', 'usage_agreement')->pluck('id')->all();
         $handoverIds = $rows->where('document_type', 'handover_agreement')->pluck('id')->all();
         $powerOfAttorneyIds = $rows->where('document_type', 'power_of_attorney')->pluck('id')->all();
+        $coveringLetterIds = $rows->where('document_type', 'covering_letter')->pluck('id')->all();
 
         $usageModels = UsageAgreement::with(['employee', 'generator'])
             ->whereIn('id', $usageIds)
@@ -74,7 +81,12 @@ class DocumentHistoryController extends Controller
             ->get()
             ->keyBy('id');
 
-        $data = $rows->map(function ($row) use ($request, $usageModels, $handoverModels, $powerOfAttorneyModels) {
+        $coveringLetterModels = CoveringLetter::with(['senderEmployee', 'generator'])
+            ->whereIn('id', $coveringLetterIds)
+            ->get()
+            ->keyBy('id');
+
+        $data = $rows->map(function ($row) use ($request, $usageModels, $handoverModels, $powerOfAttorneyModels, $coveringLetterModels) {
             if ($row->document_type === 'usage_agreement') {
                 $payload = (new UsageAgreementResource($usageModels[$row->id]))->resolve($request);
                 $payload['document_type'] = 'usage_agreement';
@@ -84,6 +96,12 @@ class DocumentHistoryController extends Controller
             if ($row->document_type === 'power_of_attorney') {
                 $payload = (new PowerOfAttorneyResource($powerOfAttorneyModels[$row->id]))->resolve($request);
                 $payload['document_type'] = 'power_of_attorney';
+                return $payload;
+            }
+
+            if ($row->document_type === 'covering_letter') {
+                $payload = (new CoveringLetterResource($coveringLetterModels[$row->id]))->resolve($request);
+                $payload['document_type'] = 'covering_letter';
                 return $payload;
             }
 
@@ -192,6 +210,41 @@ class DocumentHistoryController extends Controller
                     ->orWhereRaw('CAST(second_party_snapshot AS CHAR) LIKE ?', [$needle])
                     ->orWhereRaw('CAST(assets_snapshot AS CHAR) LIKE ?', [$needle])
                     ->orWhereHas('employee', function ($employeeQuery) use ($needle) {
+                        $employeeQuery->where('nama_lengkap', 'LIKE', $needle)
+                            ->orWhere('nip', 'LIKE', $needle);
+                    })
+                    ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'LIKE', $needle));
+            });
+        }
+
+        return $query;
+    }
+
+    private function coveringLetterHistoryQuery(?int $employeeId, string $search)
+    {
+        $query = CoveringLetter::query()
+            ->select([
+                'id',
+                'document_date',
+                'created_at',
+                DB::raw("'covering_letter' as document_type"),
+            ]);
+
+        if ($employeeId) {
+            $query->where('sender_employee_id', $employeeId);
+        }
+
+        if ($search !== '') {
+            $needle = '%' . $search . '%';
+            $query->where(function ($q) use ($needle) {
+                $q->where('number', 'LIKE', $needle)
+                    ->orWhere('regarding', 'LIKE', $needle)
+                    ->orWhere('recipient_title', 'LIKE', $needle)
+                    ->orWhere('recipient_location', 'LIKE', $needle)
+                    ->orWhereRaw('CAST(sender_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw('CAST(receiver_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw('CAST(items_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereHas('senderEmployee', function ($employeeQuery) use ($needle) {
                         $employeeQuery->where('nama_lengkap', 'LIKE', $needle)
                             ->orWhere('nip', 'LIKE', $needle);
                     })

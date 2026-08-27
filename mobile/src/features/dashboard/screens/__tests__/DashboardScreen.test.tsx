@@ -100,7 +100,7 @@ describe('DashboardScreen', () => {
     act(() => {
       onNavigateToModule('bmn');
     });
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('Bmn');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('BmnMain');
 
     act(() => {
       onNavigateToModule('surat');

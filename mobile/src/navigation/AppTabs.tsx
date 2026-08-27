@@ -21,10 +21,12 @@ import { KepegawaianDashboardScreen } from "../features/kepegawaian/KepegawaianD
 import GeneralReportFormScreen from "../features/surat-tugas/screens/GeneralReportFormScreen";
 import GeneralReportPreviewScreen from "../features/surat-tugas/screens/GeneralReportPreviewScreen";
 import KepegawaianTabs from "./KepegawaianTabs";
+import BmnTabs from "./BmnTabs";
 
 export type AppTabParamList = {
   Dashboard: undefined;
   Bmn: undefined;
+  BmnMain: undefined;
   BmnDetail: { id: string | number };
   BmnForm: { id?: string | number };
   BmnPhotoCapture: { assetId: string | number; type: string };
@@ -51,7 +53,7 @@ const Tab = createBottomTabNavigator<AppTabParamList>();
 export default function AppTabs() {
   return (
     <Tab.Navigator
-      backBehavior="history"
+      backBehavior="initialRoute"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -60,6 +62,7 @@ export default function AppTabs() {
       }}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="BmnMain" component={BmnTabs} />
       <Tab.Screen name="Bmn" component={BmnAssetCatalogScreen} />
       <Tab.Screen name="BmnDetail" component={BmnDetailScreen} />
       <Tab.Screen name="BmnForm" component={BmnFormScreen} />

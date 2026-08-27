@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { StatusBadge } from '@/components/StatusBadge';
 import { AssetListItem } from '../types';
@@ -86,55 +87,42 @@ export default function AssetCard({ asset, onPress }: AssetCardProps) {
         </Text>
       ) : null}
 
-      {asset.merk_tipe ? (
-        <Text
-          style={[
-            styles.metaText,
-            {
-              color: colors.mutedForeground,
-              fontFamily: typography.fontFamilies.sans,
-              fontSize: typography.fontSizes.sm,
-              marginTop: spacing.xs,
-            },
-          ]}
-        >
-          {`Merk/Tipe: ${asset.merk_tipe}`}
+      {!!asset.merk_tipe && (
+        <Text style={[styles.metaText, { color: colors.mutedForeground, fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.sm, marginTop: spacing.xs }]}>
+          {asset.merk_tipe}
+        </Text>
+      )}
+
+      {asset.jenis_bmn ? (
+        <Text style={[styles.metaText, { color: colors.mutedForeground, fontFamily: typography.fontFamilies.sans, fontSize: typography.fontSizes.sm, marginTop: spacing.xs }]}>
+          {asset.jenis_bmn}
         </Text>
       ) : null}
 
-      {asset.no_polisi ? (
-        <View style={[styles.plateContainer, { backgroundColor: colors.muted, borderRadius: radius.sm, marginTop: spacing.sm }]}>
-          <Text
-            style={[
-              styles.plateText,
-              {
-                color: colors.foreground,
-                fontFamily: typography.fontFamilies.sans,
-                fontWeight: typography.fontWeights.semibold,
-                fontSize: typography.fontSizes.sm,
-              },
-            ]}
-          >
-            {`Plat No: ${asset.no_polisi}`}
-          </Text>
+      {!!(asset.pengguna || asset.nama_pengguna) && (
+        <View style={styles.infoRow}>
+          <Ionicons name="person-outline" size={14} color={colors.mutedForeground} />
+          <Text style={[styles.infoText, { color: colors.mutedForeground }]}>{asset.nama_pengguna || asset.pengguna}</Text>
         </View>
-      ) : null}
+      )}
 
-      {asset.lokasi ? (
-        <Text
-          style={[
-            styles.locationText,
-            {
-              color: colors.mutedForeground,
-              fontFamily: typography.fontFamilies.sans,
-              fontSize: typography.fontSizes.xs,
-              marginTop: spacing.sm,
-            },
-          ]}
-        >
-          {`📍 ${asset.lokasi}`}
-        </Text>
-      ) : null}
+      {!!(asset.lokasi_ruang || asset.lokasi) && (
+        <View style={styles.infoRow}>
+          <Ionicons name="location-outline" size={14} color={colors.mutedForeground} />
+          <Text style={[styles.infoText, { color: colors.mutedForeground }]}>{asset.lokasi_ruang || asset.lokasi}</Text>
+        </View>
+      )}
+
+      {(() => {
+        const assetText = `${asset.jenis_bmn || ''} ${asset.nama_barang || ''}`.toLowerCase();
+        const isVehicle = assetText.includes('angkutan') || assetText.includes('kendaraan');
+        return isVehicle && asset.no_polisi && asset.no_polisi !== '-' ? (
+          <View style={styles.infoRow}>
+            <Ionicons name="car-outline" size={14} color="#059669" />
+            <Text style={[styles.infoText, { color: '#059669', fontWeight: '800' }]}>{asset.no_polisi}</Text>
+          </View>
+        ) : null;
+      })()}
 
       <View style={[styles.badgeRow, { marginTop: spacing.md }]}>
         {asset.kondisi && (
@@ -186,6 +174,17 @@ const styles = StyleSheet.create({
   },
   locationText: {
     lineHeight: 14,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 17,
   },
   badgeRow: {
     flexDirection: 'row',

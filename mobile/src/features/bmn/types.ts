@@ -1,13 +1,17 @@
 export interface AssetListItem {
   id: string | number;
   nama_barang: string;
+  jenis_bmn?: string;
   kode_barang?: string;
   nup?: string | number;
   merk_tipe?: string;
   kondisi?: string;
   lokasi?: string;
-  pengguna?: string;
+  lokasi_ruang?: string;
+  pengguna?: string | null;
+  nama_pengguna?: string | null;
   no_polisi?: string;
+  status_bmn?: string | null;
   is_verified?: boolean;
 }
 

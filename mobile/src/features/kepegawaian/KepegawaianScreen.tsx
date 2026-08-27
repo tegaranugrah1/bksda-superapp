@@ -16,7 +16,7 @@ import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
-import { FabMenu } from "../../components/ui/FabMenu";
+
 import { EmployeeDetailModal } from "./EmployeeDetailModal";
 import { EmployeeAccessModal } from "./EmployeeAccessModal";
 import { useAuth } from "../auth/AuthProvider";
@@ -89,7 +89,11 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
             rankGrade: emp.pangkat_golongan || "Golongan III/a",
             remainingLeaveDays: emp.sisa_cuti ?? 12,
             role: emp.user?.role || emp.role || "user",
-            accessModules: emp.user?.access_modules || emp.access_modules || ["kepegawaian"],
+            accessModules: Array.isArray(emp.user?.access_modules)
+              ? emp.user.access_modules
+              : Array.isArray(emp.access_modules)
+              ? emp.access_modules
+              : [],
           }));
         setEmployees(apiList);
       } else {
@@ -218,7 +222,7 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
     } else if (tabKey === "inbox-surat-cuti") {
       if (navigation) navigation.navigate("InboxSuratCuti");
     } else if (tabKey === "bmn") {
-      if (navigation) navigation.navigate("Bmn");
+      if (navigation) navigation.navigate("BmnMain");
     } else if (tabKey === "surat") {
       if (navigation) navigation.navigate("Surat");
     } else if (tabKey === "inventory") {

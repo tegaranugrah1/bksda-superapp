@@ -11,7 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
-import { GlassCard } from "../../components/ui/GlassCard";
+
 import { EmeraldButton } from "../../components/ui/EmeraldButton";
 import { apiClient } from "../../lib/api/client";
 
@@ -35,8 +35,8 @@ export const EmployeeAccessModal: React.FC<EmployeeAccessModalProps> = ({
   onSuccess,
 }) => {
   const { isDark, colors } = useTheme();
-  const [selectedRole, setSelectedRole] = useState<string>("admin");
-  const [selectedModules, setSelectedModules] = useState<string[]>(["kepegawaian"]);
+  const [selectedRole, setSelectedRole] = useState<string>("user");
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const availableModules = [
@@ -73,22 +73,34 @@ export const EmployeeAccessModal: React.FC<EmployeeAccessModalProps> = ({
   ];
 
   useEffect(() => {
-    if (employee) {
-      setSelectedRole(employee.role || "admin");
-      setSelectedModules(
-        employee.accessModules && employee.accessModules.length > 0
-          ? employee.accessModules
-          : ["kepegawaian"]
-      );
-    }
+    let cancelled = false;
+
+    const loadAccess = async () => {
+      if (!employee) return;
+
+      setSelectedRole(employee.role || "user");
+      setSelectedModules(employee.accessModules || []);
+
+      try {
+        const response = await apiClient.get(`/kepegawaian/employees/${employee.id}/access`);
+        const access = response.data?.data;
+        if (!cancelled && access) {
+          setSelectedRole(access.role || "user");
+          setSelectedModules(Array.isArray(access.access_modules) ? access.access_modules : []);
+        }
+      } catch {
+        // Keep the list data if the access detail request fails.
+      }
+    };
+
+    loadAccess();
+    return () => {
+      cancelled = true;
+    };
   }, [employee]);
 
   const toggleModule = (moduleKey: string) => {
     if (selectedModules.includes(moduleKey)) {
-      if (selectedModules.length === 1) {
-        Alert.alert("Perhatian", "Pegawai harus memiliki minimal 1 modul akses.");
-        return;
-      }
       setSelectedModules(selectedModules.filter((m) => m !== moduleKey));
     } else {
       setSelectedModules([...selectedModules, moduleKey]);
@@ -110,12 +122,7 @@ export const EmployeeAccessModal: React.FC<EmployeeAccessModalProps> = ({
         [{ text: "OK", onPress: () => { onClose(); if (onSuccess) onSuccess(); } }]
       );
     } catch {
-      // Fallback local notification if offline
-      Alert.alert(
-        "Berhasil Disimpan",
-        `Hak akses untuk ${employee.name} berhasil diperbarui.`,
-        [{ text: "OK", onPress: () => { onClose(); if (onSuccess) onSuccess(); } }]
-      );
+      Alert.alert("Gagal", "Hak akses gagal diperbarui. Periksa koneksi lalu coba lagi.");
     } finally {
       setIsSubmitting(false);
     }

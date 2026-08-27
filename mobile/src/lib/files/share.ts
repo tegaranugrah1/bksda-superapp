@@ -31,6 +31,19 @@ async function ensureLocalFile(localUri: string) {
   return info;
 }
 
+async function copyToShareableFile(localUri: string): Promise<string> {
+  const directory = FileSystem.cacheDirectory;
+  if (!directory) {
+    throw new FileShareError('share_unavailable', 'Penyimpanan sementara perangkat tidak tersedia.');
+  }
+
+  const shareDirectory = `${directory}share/`;
+  const shareUri = `${shareDirectory}surat-tugas-${Date.now()}.pdf`;
+  await FileSystem.makeDirectoryAsync(shareDirectory, { intermediates: true });
+  await FileSystem.copyAsync({ from: localUri, to: shareUri });
+  return shareUri;
+}
+
 export async function shareFile({
   localUri,
   mimeType,
@@ -38,13 +51,14 @@ export async function shareFile({
   uti,
 }: ShareFileOptions): Promise<void> {
   await ensureLocalFile(localUri);
+  const shareUri = await copyToShareableFile(localUri);
 
   const isSharingAvailable = await Sharing.isAvailableAsync();
   if (!isSharingAvailable) {
     throw new FileShareError('share_unavailable', 'Fitur berbagi file tidak tersedia di perangkat ini.');
   }
 
-  await Sharing.shareAsync(localUri, {
+  await Sharing.shareAsync(shareUri, {
     dialogTitle,
     mimeType: mimeType || undefined,
     UTI: uti,

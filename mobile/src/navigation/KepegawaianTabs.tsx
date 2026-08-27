@@ -3,12 +3,16 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 
-const { width } = Dimensions.get('window');
 import { KepegawaianDashboardScreen } from '../features/kepegawaian/KepegawaianDashboardScreen';
 import { KepegawaianScreen } from '../features/kepegawaian/KepegawaianScreen';
+import { TambahPegawaiScreen } from '../features/kepegawaian/TambahPegawaiScreen';
 import { InboxSuratTugasScreen } from '../features/kepegawaian/InboxSuratTugasScreen';
+import { RiwayatSuratTugasScreen } from '../features/kepegawaian/RiwayatSuratTugasScreen';
+import { BuatSuratTugasScreen } from '../features/kepegawaian/BuatSuratTugasScreen';
 import { InboxSuratCutiScreen } from '../features/kepegawaian/screens/InboxSuratCutiScreen';
 import { useTheme } from '../theme/ThemeContext';
+
+const { width } = Dimensions.get('window');
 
 export type KepegawaianTabParamList = {
   Beranda: undefined;
@@ -16,6 +20,12 @@ export type KepegawaianTabParamList = {
   BuatST_Placeholder: undefined;
   SuratTugas: undefined;
   Cuti: undefined;
+  KepegawaianDashboard: undefined;
+  TambahPegawai: undefined;
+  InboxSuratTugas: undefined;
+  RiwayatSuratTugas: undefined;
+  InboxSuratCuti: undefined;
+  BuatSuratTugas: undefined;
 };
 
 const Tab = createBottomTabNavigator<KepegawaianTabParamList>();
@@ -120,6 +130,12 @@ export default function KepegawaianTabs({ navigation }: any) {
           ),
         }}
       />
+      <Tab.Screen name="KepegawaianDashboard" component={KepegawaianDashboardScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="TambahPegawai" component={TambahPegawaiScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="InboxSuratTugas" component={InboxSuratTugasScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="RiwayatSuratTugas" component={RiwayatSuratTugasScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="InboxSuratCuti" component={InboxSuratCutiScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="BuatSuratTugas" component={BuatSuratTugasScreen} options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }} />
     </Tab.Navigator>
   );
 }

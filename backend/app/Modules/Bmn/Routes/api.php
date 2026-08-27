@@ -3,6 +3,7 @@
 use App\Modules\Bmn\Controllers\AssetController;
 use App\Modules\Bmn\Controllers\AssetDocumentController;
 use App\Modules\Bmn\Controllers\AssetPhotoController;
+use App\Modules\Bmn\Controllers\CoveringLetterController;
 use App\Modules\Bmn\Controllers\DashboardController;
 use App\Modules\Bmn\Controllers\DocumentHistoryController;
 use App\Modules\Bmn\Controllers\ExportController;
@@ -55,6 +56,11 @@ Route::get('power-of-attorneys', [PowerOfAttorneyController::class, 'index'])->m
 Route::post('power-of-attorneys', [PowerOfAttorneyController::class, 'store'])->middleware('permission:bmn.document.generate');
 Route::get('power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'show'])->middleware('permission:bmn.document.history.view');
 
+// 4e. SURAT PENGANTAR BMN
+Route::get('covering-letters', [CoveringLetterController::class, 'index'])->middleware('permission:bmn.document.history.view');
+Route::post('covering-letters', [CoveringLetterController::class, 'store'])->middleware('permission:bmn.document.generate');
+Route::get('covering-letters/{letter}', [CoveringLetterController::class, 'show'])->middleware('permission:bmn.document.history.view');
+
 // 1. JALUR MASTER ASET (Didefinisikan manual agar granular)
 Route::get('assets', [AssetController::class, 'index'])->middleware('permission:bmn.view');
 Route::get('assets/{asset}', [AssetController::class, 'show'])->middleware('permission:bmn.view');
@@ -75,6 +81,7 @@ Route::prefix('import-review')->group(function () {
 Route::delete('usage-agreements/{agreement}', [UsageAgreementController::class, 'destroy'])->middleware('permission:bmn.document.delete');
 Route::delete('handover-agreements/{agreement}', [HandoverAgreementController::class, 'destroy'])->middleware('permission:bmn.document.delete');
 Route::delete('power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'destroy'])->middleware('permission:bmn.document.delete');
+Route::delete('covering-letters/{letter}', [CoveringLetterController::class, 'destroy'])->middleware('permission:bmn.document.delete');
 
 Route::post('assets/import', [AssetController::class, 'import'])->middleware('permission:bmn.import.review');
 Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose'])->middleware('permission:bmn.asset.dispose');
