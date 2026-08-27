@@ -54,6 +54,20 @@ export interface StTemplate {
   version: number;
 }
 
+export interface StExpenseTemplate {
+  id: number;
+  name: string;
+  code: string;
+  category: "dipa" | "kerjasama" | "hibah_folu" | "dl1" | "other";
+  biaya_text: string;
+  dasar_text?: string | null;
+  is_active: boolean;
+  is_default: boolean;
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface EmployeeDateRange {
   mulai: string;
   selesai: string;
@@ -62,3 +76,4 @@ export interface EmployeeDateRange {
 export type EmployeeDates = Record<string, EmployeeDateRange>;
 
 export type TemplateType = "bmn-pemeriksaan" | "beda-hari" | "plh" | null;
+
