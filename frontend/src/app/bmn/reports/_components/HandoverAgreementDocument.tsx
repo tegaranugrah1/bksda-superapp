@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { resolveApiUrl } from "@/lib/api";
 
 export type HandoverVariant = "general_goods" | "vehicle";
 
@@ -164,10 +165,8 @@ function resolvePhotoUrl(url?: string | null): string | null {
   if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
     return trimmed;
   }
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
-  }
-  return trimmed;
+
+  return resolveApiUrl(trimmed) || trimmed;
 }
 
 function getItemPrintPhotos(item: HandoverItem): string[] {
@@ -216,7 +215,7 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           * { box-sizing: border-box; }
           body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
           p { margin: 0; }
-          .handover-page { width: 210mm; margin: 0 auto; padding: 0 20mm 10mm; }
+          .handover-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 10mm; }
           .handover-header { margin: 0 -12mm; text-align: center; }
           .handover-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
           .handover-title { margin-top: 5mm; text-align: center; font-weight: 700; }
@@ -246,7 +245,7 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
             break-before: page;
             width: 210mm;
             margin: 0 auto;
-            padding: 0 20mm 10mm;
+            padding: 5mm 20mm 10mm;
           }
           .photo-lampiran-title {
             margin-top: 3mm;
@@ -518,19 +517,21 @@ export function HandoverAgreementDocument({
             ) : (
               <table className="handover-table">
                 <colgroup>
-                  <col style={{ width: "8%" }} />
-                  <col style={{ width: "62%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "36%" }} />
+                  <col style={{ width: "30%" }} />
+                  <col style={{ width: "14%" }} />
+                  <col style={{ width: "14%" }} />
                 </colgroup>
                 <thead>
-                  <tr><th>No</th><th>Nama Barang</th><th>Jumlah</th><th>NUP</th></tr>
+                  <tr><th>No</th><th>Nama Barang</th><th>Merk / Tipe</th><th>Jumlah</th><th>NUP</th></tr>
                 </thead>
                 <tbody>
                   {items.map((item, index) => (
                     <tr key={`${item.name}-${index}`}>
                       <td>{index + 1}</td>
                       {dataCell(item.name)}
+                      {dataCell(item.merk_tipe)}
                       {dataCell(item.quantity)}
                       {dataCell(item.nup)}
                     </tr>
