@@ -104,7 +104,7 @@ export function handlePrintCoveringLetter(documentId = "covering-letter-print-ro
           * { box-sizing: border-box; }
           body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.35; }
           p { margin: 0; }
-          .covering-page { width: 210mm; margin: 0 auto; padding: 0 20mm 10mm; }
+          .covering-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 10mm; }
           .covering-header { margin: 0 -12mm; text-align: center; }
           .covering-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
           

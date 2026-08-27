@@ -493,6 +493,7 @@ export default function BmnReportsPage() {
   }, [vehicleAssets, vehicleSearch]);
 
   const handoverVehicleItems = useMemo<HandoverItem[]>(() => selectedVehicleAssets.map((asset) => ({
+    asset_id: asset.id,
     name: asset.nama_barang,
     vehicle_type: asset.nama_barang,
     merk_tipe: asset.merk_tipe || asset.merk || "-",
@@ -500,6 +501,13 @@ export default function BmnReportsPage() {
     no_mesin: asset.no_mesin || "-",
     no_rangka: asset.no_rangka || "-",
     nup: asset.nup || "",
+    foto_depan_url: asset.foto_depan_url,
+    foto_belakang_url: asset.foto_belakang_url,
+    foto_kiri_url: asset.foto_kiri_url,
+    foto_kanan_url: asset.foto_kanan_url,
+    foto_geotag_url: asset.foto_geotag_url,
+    foto_url: asset.foto_url,
+    photos: asset.photos,
   })), [selectedVehicleAssets]);
 
   const handoverDocumentItems = useMemo(
@@ -821,8 +829,16 @@ export default function BmnReportsPage() {
       {
         asset_id: asset.id,
         name: asset.nama_barang,
+        merk_tipe: asset.merk_tipe || asset.merk || "",
         quantity: 1,
         nup: asset.nup || "",
+        foto_depan_url: asset.foto_depan_url,
+        foto_belakang_url: asset.foto_belakang_url,
+        foto_kiri_url: asset.foto_kiri_url,
+        foto_kanan_url: asset.foto_kanan_url,
+        foto_geotag_url: asset.foto_geotag_url,
+        foto_url: asset.foto_url,
+        photos: asset.photos,
       },
     ]);
     setOpenGeneralAssetPicker(false);
@@ -2135,28 +2151,32 @@ export default function BmnReportsPage() {
                             <table className="w-full table-fixed text-left text-xs">
                               <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
                                 <tr>
-                                  <th className="px-3 py-2">Nama Barang</th>
-                                  <th className="w-20 px-2 py-2">Jumlah</th>
-                                  <th className="w-20 px-2 py-2">NUP</th>
-                                  <th className="w-16 px-2 py-2">Sumber</th>
-                                  <th className="w-20 px-3 py-2 text-right">Aksi</th>
+                                  <th className="w-40 px-3 py-2">Nama Barang</th>
+                                  <th className="w-32 px-2 py-2">Merk / Tipe</th>
+                                  <th className="w-16 px-2 py-2">Jumlah</th>
+                                  <th className="w-16 px-2 py-2">NUP</th>
+                                  <th className="w-14 px-2 py-2">Sumber</th>
+                                  <th className="w-16 px-3 py-2 text-right">Aksi</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                                 {handoverItems.map((item, index) => (
                                   <tr key={index}>
                                     <td className="px-3 py-2">
-                                      <input value={item.name || ""} onChange={(event) => updateHandoverItem(index, "name", event.target.value)} placeholder="Nama barang" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                      <input value={item.name || ""} onChange={(event) => updateHandoverItem(index, "name", event.target.value)} placeholder="Nama barang" className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     </td>
                                     <td className="px-2 py-2">
-                                      <input type="number" min={1} value={item.quantity || 1} onChange={(event) => updateHandoverItem(index, "quantity", Number(event.target.value) || 1)} className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                      <input value={item.merk_tipe || ""} onChange={(event) => updateHandoverItem(index, "merk_tipe", event.target.value)} placeholder="Merk / Tipe" className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     </td>
                                     <td className="px-2 py-2">
-                                      <input value={item.nup || ""} onChange={(event) => updateHandoverItem(index, "nup", event.target.value)} placeholder="-" className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                      <input type="number" min={1} value={item.quantity || 1} onChange={(event) => updateHandoverItem(index, "quantity", Number(event.target.value) || 1)} className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                    </td>
+                                    <td className="px-2 py-2">
+                                      <input value={item.nup || ""} onChange={(event) => updateHandoverItem(index, "nup", event.target.value)} placeholder="-" className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     </td>
                                     <td className="px-2 py-2 text-zinc-500">{item.asset_id ? "BMN" : "Manual"}</td>
                                     <td className="px-3 py-2 text-right">
-                                      <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50" onClick={() => removeHandoverItem(index)} disabled={handoverItems.length === 1}>
+                                      <Button type="button" variant="outline" size="sm" className="h-7 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50" onClick={() => removeHandoverItem(index)} disabled={handoverItems.length === 1}>
                                         Hapus
                                       </Button>
                                     </td>

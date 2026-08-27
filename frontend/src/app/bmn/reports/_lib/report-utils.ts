@@ -51,5 +51,5 @@ export function employeeToHandoverParty(employee?: EmployeeOption | null): Hando
 }
 
 export function emptyGeneralItem(): HandoverItem {
-  return { name: "", quantity: 1, nup: "" };
+  return { name: "", merk_tipe: "", quantity: 1, nup: "" };
 }
