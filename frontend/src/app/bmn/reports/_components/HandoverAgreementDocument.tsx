@@ -327,13 +327,14 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
 
 function PartyBlock({ index, party, label }: { index: number; party: HandoverParty; label: string }) {
   const idLabel = party.idType === "NIK" ? "NIK" : "NIP";
+  const positionLabel = party.idType === "NIK" ? "Pekerjaan" : "Jabatan";
   return (
     <div className="handover-party">
       <div>{index}</div>
       <div>
         <div className="handover-rows"><span>Nama</span><span className="handover-colon">:</span><span className="handover-val">{displayName(party.name)}</span></div>
         <div className="handover-rows"><span>{idLabel}</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.nip)}</span></div>
-        <div className="handover-rows"><span>Jabatan</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.position)}</span></div>
+        <div className="handover-rows"><span>{positionLabel}</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.position)}</span></div>
         <div className="handover-rows"><span>Alamat</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.address)}</span></div>
         <p style={{ marginTop: "1mm" }}>Selanjutnya disebut <strong>{label}</strong></p>
       </div>
