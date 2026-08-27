@@ -492,22 +492,20 @@ export function HandoverAgreementDocument({
             {variant === "vehicle" ? (
               <table className="handover-table">
                 <colgroup>
-                  <col style={{ width: "8%" }} />
-                  <col style={{ width: "24%" }} />
-                  <col style={{ width: "22%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "32%" }} />
                   <col style={{ width: "16%" }} />
+                  <col style={{ width: "20%" }} />
+                  <col style={{ width: "26%" }} />
                 </colgroup>
                 <thead>
-                  <tr><th>No</th><th>Jenis Kendaraan</th><th>Merk / Tipe</th><th>No. Polisi</th><th>No. Mesin</th><th>No. Rangka</th></tr>
+                  <tr><th>No</th><th>Jenis Kendaraan</th><th>No. Polisi</th><th>No. Mesin</th><th>No. Rangka</th></tr>
                 </thead>
                 <tbody>
                   {items.map((item, index) => (
-                    <tr key={`${item.vehicle_type}-${index}`}>
+                    <tr key={`${item.vehicle_type || item.merk_tipe}-${index}`}>
                       <td>{index + 1}</td>
-                      {dataCell(item.vehicle_type)}
-                      {dataCell(item.merk_tipe)}
+                      {dataCell(item.merk_tipe || item.vehicle_type)}
                       {dataCell(item.no_polisi)}
                       {dataCell(item.no_mesin)}
                       {dataCell(item.no_rangka)}
