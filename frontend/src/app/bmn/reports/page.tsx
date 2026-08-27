@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Archive, ChevronsUpDown, Download, Eye, FileClock, FileText, Handshake, Loader2, Package, Printer, Save, Search, Trash2, UserRound, Wrench } from "lucide-react";
@@ -73,7 +73,12 @@ interface HandoverAgreementHistory {
   witness_snapshot?: HandoverWitness | null;
   items_snapshot: HandoverItem[];
   asset_ids?: string[] | null;
-  metadata?: { description?: string };
+  metadata?: {
+    description?: string;
+    receipt_clause?: string;
+    signer_count?: 2 | 3;
+    witness?: HandoverWitness;
+  };
   generator?: { name: string };
 }
 
@@ -193,6 +198,16 @@ export default function BmnReportsPage() {
   const [poaKtpPreviewUrl, setPoaKtpPreviewUrl] = useState<string | null>(null);
   const [poaKtpPath, setPoaKtpPath] = useState<string | null>(null);
 
+  const DEFAULT_HANDOVER_WITNESS: HandoverWitness = {
+    name: "M. Ari Wibawanto, S.Hut., M.Sc.",
+    nip: "19740514 199903 1 001",
+    position: "KEPALA BALAI,",
+    label: "Mengetahui,",
+  };
+
+  const DEFAULT_HANDOVER_RECEIPT_CLAUSE =
+    "PIHAK KEDUA telah menerima barang tersebut dalam keadaan baik dan dapat dipergunakan dengan baik, dengan diserahkan barang tersebut dari PIHAK KESATU kepada PIHAK KEDUA, maka pengelolaan barang tersebut menjadi tanggung jawab PIHAK KEDUA.";
+
   const [handoverVariant, setHandoverVariant] = useState<HandoverVariant>("general_goods");
   const [handoverTitle, setHandoverTitle] = useState("Berita Acara Serah Terima Barang");
   const [handoverSequence, setHandoverSequence] = useState("");
@@ -200,8 +215,14 @@ export default function BmnReportsPage() {
   const [handoverDate, setHandoverDate] = useState(todayInputValue());
   const [handoverFirstEmployeeId, setHandoverFirstEmployeeId] = useState("");
   const [handoverSecondEmployeeId, setHandoverSecondEmployeeId] = useState("");
-  const [handoverFirstParty, setHandoverFirstParty] = useState<HandoverParty>(DEFAULT_HANDOVER_FIRST_PARTY);
-  const [handoverSecondParty, setHandoverSecondParty] = useState<HandoverParty>({ name: "", nip: "", rank: "", position: "", address: "Jl. Teuku Umar Samarinda." });
+  const [handoverFirstPartyType, setHandoverFirstPartyType] = useState<"internal" | "external">("internal");
+  const [handoverSecondPartyType, setHandoverSecondPartyType] = useState<"internal" | "external">("internal");
+  const [handoverFirstParty, setHandoverFirstParty] = useState<HandoverParty>({ ...DEFAULT_HANDOVER_FIRST_PARTY, idType: "NIP" });
+  const [handoverSecondParty, setHandoverSecondParty] = useState<HandoverParty>({ name: "", nip: "", rank: "", position: "", address: "Jl. Teuku Umar Samarinda.", idType: "NIP" });
+  const [handoverReceiptClause, setHandoverReceiptClause] = useState(DEFAULT_HANDOVER_RECEIPT_CLAUSE);
+  const [handoverSignerCount, setHandoverSignerCount] = useState<2 | 3>(2);
+  const [handoverWitnessEmployeeId, setHandoverWitnessEmployeeId] = useState("");
+  const [handoverWitness, setHandoverWitness] = useState<HandoverWitness>(DEFAULT_HANDOVER_WITNESS);
   const [handoverItems, setHandoverItems] = useState<HandoverItem[]>([emptyGeneralItem()]);
   const [openGeneralAssetPicker, setOpenGeneralAssetPicker] = useState(false);
   const [generalAssetSearch, setGeneralAssetSearch] = useState("");
@@ -220,6 +241,21 @@ export default function BmnReportsPage() {
       return response.data.data || [];
     },
   });
+
+  useEffect(() => {
+    if (employees.length > 0 && !handoverWitnessEmployeeId) {
+      const kepalaBalai = employees.find((e) => /kepala balai/i.test(e.jabatan || "")) || employees.find((e) => /ari wibawanto/i.test(e.nama_lengkap));
+      if (kepalaBalai) {
+        setHandoverWitnessEmployeeId(String(kepalaBalai.id));
+        setHandoverWitness({
+          name: kepalaBalai.nama_lengkap,
+          nip: kepalaBalai.nip,
+          position: "KEPALA BALAI,",
+          label: "Mengetahui,",
+        });
+      }
+    }
+  }, [employees, handoverWitnessEmployeeId]);
 
   const {
     data: documentHistory,
@@ -550,12 +586,48 @@ export default function BmnReportsPage() {
     const employee = employees.find((item) => String(item.id) === employeeId);
     if (role === "first") {
       setHandoverFirstEmployeeId(employeeId);
-      setHandoverFirstParty(employeeId ? employeeToHandoverParty(employee) : DEFAULT_HANDOVER_FIRST_PARTY);
+      setHandoverFirstParty(employeeId ? { ...employeeToHandoverParty(employee), idType: "NIP" } : { ...DEFAULT_HANDOVER_FIRST_PARTY, idType: "NIP" });
       return;
     }
 
     setHandoverSecondEmployeeId(employeeId);
-    setHandoverSecondParty(employeeToHandoverParty(employee));
+    setHandoverSecondParty(employeeId ? { ...employeeToHandoverParty(employee), idType: "NIP" } : { name: "", nip: "", rank: "", position: "", address: "Jl. Teuku Umar Samarinda.", idType: "NIP" });
+  };
+
+  const handleHandoverWitnessEmployeeChange = (employeeId: string) => {
+    setHandoverWitnessEmployeeId(employeeId);
+    if (!employeeId) {
+      setHandoverWitness(DEFAULT_HANDOVER_WITNESS);
+      return;
+    }
+    const employee = employees.find((item) => String(item.id) === employeeId);
+    if (!employee) return;
+    const rawPosition = (employee.jabatan || "KEPALA BALAI").trim();
+    let formattedPosition = rawPosition;
+    if (/^kepala balai/i.test(rawPosition)) {
+      formattedPosition = "KEPALA BALAI,";
+    } else if (!formattedPosition.endsWith(",")) {
+      formattedPosition = `${formattedPosition},`;
+    }
+    setHandoverWitness({
+      name: employee.nama_lengkap,
+      nip: employee.nip,
+      position: formattedPosition,
+      label: "Mengetahui,",
+    });
+  };
+
+  const handleHandoverVariantChange = (variant: HandoverVariant) => {
+    setHandoverVariant(variant);
+    if (variant === "vehicle") {
+      if (handoverTitle === "Berita Acara Serah Terima Barang" || !handoverTitle) {
+        setHandoverTitle("Berita Acara Serah Terima Kendaraan");
+      }
+    } else {
+      if (handoverTitle === "Berita Acara Serah Terima Kendaraan" || !handoverTitle) {
+        setHandoverTitle("Berita Acara Serah Terima Barang");
+      }
+    }
   };
 
   const updateHandoverItem = (index: number, key: keyof HandoverItem, value: string | number) => {
@@ -842,10 +914,14 @@ export default function BmnReportsPage() {
         second_party_employee_id: handoverSecondEmployeeId || null,
         first_party: handoverFirstParty,
         second_party: handoverSecondParty,
-        witness: null,
+        witness: handoverSignerCount === 3 ? handoverWitness : null,
         items: handoverVariant === "general_goods" ? validGeneralItems : [],
         asset_ids: handoverVariant === "vehicle" ? selectedVehicleAssetIds : [],
-        metadata: { description: activeHandoverDescription },
+        metadata: {
+          description: activeHandoverDescription,
+          receipt_clause: handoverReceiptClause,
+          signer_count: handoverSignerCount,
+        },
       });
       toast.success("Riwayat BA Serah Terima berhasil disimpan.");
       await refetchDocumentHistory();
@@ -866,6 +942,13 @@ export default function BmnReportsPage() {
     setHandoverDate(todayInputValue());
     setHandoverFirstParty(agreement.first_party_snapshot);
     setHandoverSecondParty(agreement.second_party_snapshot);
+    setHandoverFirstPartyType(agreement.first_party_snapshot?.idType === "NIK" ? "external" : "internal");
+    setHandoverSecondPartyType(agreement.second_party_snapshot?.idType === "NIK" ? "external" : "internal");
+    setHandoverReceiptClause(agreement.metadata?.receipt_clause || DEFAULT_HANDOVER_RECEIPT_CLAUSE);
+    setHandoverSignerCount(agreement.metadata?.signer_count || (agreement.witness_snapshot ? 3 : 2));
+    if (agreement.witness_snapshot) {
+      setHandoverWitness(agreement.witness_snapshot);
+    }
     setHandoverItems(agreement.variant === "general_goods" ? agreement.items_snapshot : [emptyGeneralItem()]);
     setSelectedVehicleAssetIds(agreement.variant === "vehicle" ? agreement.asset_ids || [] : []);
     if (agreement.variant === "vehicle") {
@@ -1382,7 +1465,7 @@ export default function BmnReportsPage() {
                       <button
                         key={variant}
                         type="button"
-                        onClick={() => setHandoverVariant(variant)}
+                        onClick={() => handleHandoverVariantChange(variant)}
                         className={`rounded-xl border p-4 text-left transition ${
                           handoverVariant === variant
                             ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100"
@@ -1460,33 +1543,160 @@ export default function BmnReportsPage() {
                       <h3 className="mb-4 text-sm font-bold text-zinc-900 dark:text-white">4. Para Pihak</h3>
                       <div className="space-y-4">
                         {([
-                          ["first", "Pihak Kesatu", handoverFirstEmployeeId, handoverFirstParty, setHandoverFirstParty],
-                          ["second", "Pihak Kedua", handoverSecondEmployeeId, handoverSecondParty, setHandoverSecondParty],
-                        ] as const).map(([role, label, employeeId, party, setParty]) => (
+                          ["first", "Pihak Kesatu", handoverFirstEmployeeId, handoverFirstParty, setHandoverFirstParty, handoverFirstPartyType, setHandoverFirstPartyType],
+                          ["second", "Pihak Kedua", handoverSecondEmployeeId, handoverSecondParty, setHandoverSecondParty, handoverSecondPartyType, setHandoverSecondPartyType],
+                        ] as const).map(([role, label, employeeId, party, setParty, partyType, setPartyType]) => (
                           <div key={role} className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-                            <div className="mb-2 flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-200">
-                              <UserRound className="w-3.5 h-3.5" /> {label}
+                            <div className="mb-2.5 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-200">
+                                <UserRound className="w-3.5 h-3.5" /> {label}
+                              </div>
+                              <div className="flex rounded-lg border border-zinc-200 p-0.5 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPartyType("internal");
+                                    setParty({ ...party, idType: "NIP" });
+                                  }}
+                                  className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition ${
+                                    partyType === "internal"
+                                      ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
+                                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                                  }`}
+                                >
+                                  Pegawai (NIP)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPartyType("external");
+                                    setParty({ ...party, idType: "NIK" });
+                                  }}
+                                  className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition ${
+                                    partyType === "external"
+                                      ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
+                                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                                  }`}
+                                >
+                                  Pihak Luar (NIK)
+                                </button>
+                              </div>
                             </div>
-                            <select
-                              value={employeeId}
-                              onChange={(event) => handleHandoverPartyEmployeeChange(role, event.target.value)}
-                              disabled={loadingEmployees}
-                              className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                            >
-                              <option value="">Pilih pegawai</option>
-                              {employees.map((employee) => (
-                                <option key={employee.id} value={employee.id}>
-                                  {employee.nama_lengkap} - {employee.nip}
-                                </option>
-                              ))}
-                            </select>
+
+                            {partyType === "internal" && (
+                              <select
+                                value={employeeId}
+                                onChange={(event) => handleHandoverPartyEmployeeChange(role, event.target.value)}
+                                disabled={loadingEmployees}
+                                className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                              >
+                                <option value="">Pilih pegawai</option>
+                                {employees.map((employee) => (
+                                  <option key={employee.id} value={employee.id}>
+                                    {employee.nama_lengkap} - {employee.nip}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+
                             <input value={party.name} onChange={(event) => setParty({ ...party, name: event.target.value })} placeholder="Nama" className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-                            <input value={party.nip || ""} onChange={(event) => setParty({ ...party, nip: event.target.value })} placeholder="NIP" className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-                            <input value={party.position || ""} onChange={(event) => setParty({ ...party, position: event.target.value })} placeholder="Jabatan" className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            <input value={party.nip || ""} onChange={(event) => setParty({ ...party, nip: event.target.value })} placeholder={partyType === "external" ? "NIK" : "NIP"} className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            <input value={party.position || ""} onChange={(event) => setParty({ ...party, position: event.target.value })} placeholder={partyType === "external" ? "Jabatan / Pekerjaan" : "Jabatan"} className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                             <input value={party.address || ""} onChange={(event) => setParty({ ...party, address: event.target.value })} placeholder="Alamat" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                           </div>
                         ))}
                       </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">5. Klausul Tanggung Jawab</h3>
+                        <button
+                          type="button"
+                          onClick={() => setHandoverReceiptClause(DEFAULT_HANDOVER_RECEIPT_CLAUSE)}
+                          className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                        >
+                          Reset Default
+                        </button>
+                      </div>
+                      <p className="text-xs text-zinc-500 mb-2 dark:text-zinc-400">
+                        Klausul penerimaan dan tanggung jawab barang (kata PIHAK KESATU & KEDUA otomatis dicetak tebal).
+                      </p>
+                      <textarea
+                        value={handoverReceiptClause}
+                        onChange={(event) => setHandoverReceiptClause(event.target.value)}
+                        rows={4}
+                        className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs leading-relaxed outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">6. Konfigurasi Tanda Tangan</h3>
+                        <div className="flex rounded-lg border border-zinc-200 p-0.5 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+                          <button
+                            type="button"
+                            onClick={() => setHandoverSignerCount(2)}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                              handoverSignerCount === 2
+                                ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
+                                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            }`}
+                          >
+                            2 TTD
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setHandoverSignerCount(3)}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                              handoverSignerCount === 3
+                                ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
+                                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            }`}
+                          >
+                            3 TTD (+ Mengetahui)
+                          </button>
+                        </div>
+                      </div>
+
+                      {handoverSignerCount === 3 && (
+                        <div className="space-y-2.5 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30">
+                          <div className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
+                            Penandatangan Mengetahui
+                          </div>
+                          <select
+                            value={handoverWitnessEmployeeId}
+                            onChange={(event) => handleHandoverWitnessEmployeeChange(event.target.value)}
+                            disabled={loadingEmployees}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          >
+                            <option value="">Pilih dari daftar pegawai (opsional)</option>
+                            {employees.map((employee) => (
+                              <option key={employee.id} value={employee.id}>
+                                {employee.nama_lengkap} - {employee.nip}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            value={handoverWitness?.name || ""}
+                            onChange={(event) => setHandoverWitness({ ...handoverWitness, name: event.target.value })}
+                            placeholder="Nama Penandatangan Mengetahui"
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                          <input
+                            value={handoverWitness?.nip || ""}
+                            onChange={(event) => setHandoverWitness({ ...handoverWitness, nip: event.target.value })}
+                            placeholder="NIP Penandatangan Mengetahui"
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                          <input
+                            value={handoverWitness?.position || ""}
+                            onChange={(event) => setHandoverWitness({ ...handoverWitness, position: event.target.value })}
+                            placeholder="Jabatan Mengetahui (contoh: KEPALA BALAI,)"
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1678,6 +1888,9 @@ export default function BmnReportsPage() {
                           secondParty={handoverSecondParty}
                           items={handoverDocumentItems}
                           description={activeHandoverDescription}
+                          receiptClause={handoverReceiptClause}
+                          signerCount={handoverSignerCount}
+                          witness={handoverWitness}
                         />
                       </div>
                     </div>
@@ -2347,6 +2560,9 @@ export default function BmnReportsPage() {
                   secondParty={selectedHandoverAgreement.second_party_snapshot}
                   items={selectedHandoverAgreement.items_snapshot || []}
                   description={selectedHandoverAgreement.metadata?.description || ""}
+                  receiptClause={selectedHandoverAgreement.metadata?.receipt_clause}
+                  signerCount={selectedHandoverAgreement.metadata?.signer_count || (selectedHandoverAgreement.witness_snapshot ? 3 : 2)}
+                  witness={selectedHandoverAgreement.witness_snapshot || selectedHandoverAgreement.metadata?.witness}
                 />
               </div>
             </div>
