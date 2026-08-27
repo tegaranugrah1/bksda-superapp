@@ -230,9 +230,11 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           .handover-table td.handover-cell-center { text-align: center; }
           .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
           .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .handover-signature-block { break-inside: avoid; page-break-inside: avoid; margin-top: 4mm; padding-top: 0; }
-          .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 4mm; }
-          .handover-signature-name { margin-top: 20mm; font-weight: 700; }
+          .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 4mm; text-align: left; }
+          .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; max-width: 48%; }
+          .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; max-width: 52%; }
+          .handover-sig-left p, .handover-sig-right p, .handover-signature-name { white-space: nowrap; }
+          .handover-signature-name { margin-top: 20mm; font-weight: 700; white-space: nowrap; }
           .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
           .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
@@ -393,9 +395,11 @@ export function HandoverAgreementDocument({
         .handover-preview .handover-table thead { display: table-header-group; }
         .handover-preview .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
         .handover-preview .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-        .handover-preview .handover-signature-block { break-inside: avoid; page-break-inside: avoid; margin-top: 4mm; padding-top: 0; }
-        .handover-preview .handover-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 4mm; }
-        .handover-preview .handover-signature-name { margin-top: 20mm; font-weight: 700; }
+        .handover-preview .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-top: 4mm; text-align: left; }
+        .handover-preview .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; max-width: 48%; }
+        .handover-preview .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; max-width: 52%; }
+        .handover-preview .handover-sig-left p, .handover-preview .handover-sig-right p, .handover-preview .handover-signature-name { white-space: nowrap; }
+        .handover-preview .handover-signature-name { margin-top: 20mm; font-weight: 700; white-space: nowrap; }
         .handover-preview .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
         .handover-preview .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
         .avoid-break { break-inside: avoid; page-break-inside: avoid; }
@@ -550,12 +554,12 @@ export function HandoverAgreementDocument({
                 })()} ini dibuat dengan sebenarnya, ditandatangani masing-masing kedua belah pihak pada tanggal tersebut di atas untuk dipergunakan sebagaimana mestinya.
               </p>
               <div className="handover-signatures">
-                <div>
+                <div className="handover-sig-left">
                   <p><strong>PIHAK KEDUA,</strong></p>
                   <p className="handover-signature-name">{signatureName(secondParty.name)}</p>
                   <p>{secondPartyIdPrefix} {fallback(secondParty.nip)}</p>
                 </div>
-                <div>
+                <div className="handover-sig-right">
                   <p><strong>PIHAK KESATU,</strong></p>
                   <p className="handover-signature-name">{signatureName(firstParty.name)}</p>
                   <p>{firstPartyIdPrefix} {fallback(firstParty.nip)}</p>

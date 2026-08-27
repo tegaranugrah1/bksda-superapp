@@ -30,6 +30,12 @@ import {
   type PowerOfAttorneyAsset,
   type PowerOfAttorneyParty,
 } from "./_components/PowerOfAttorneyDocument";
+import {
+  handlePrintCoveringLetter,
+  CoveringLetterDocument,
+  type CoveringLetterItem,
+  type CoveringLetterParty,
+} from "./_components/CoveringLetterDocument";
 import { useRole } from "@/hooks/useRole";
 
 interface UsageAgreementHistory {
@@ -99,11 +105,34 @@ interface PowerOfAttorneyHistory {
   ktp_url?: string | null;
 }
 
-type DocumentHistoryType = "all" | "usage_agreement" | "handover_agreement" | "power_of_attorney";
+interface CoveringLetterHistory {
+  id: string;
+  document_type: "covering_letter";
+  number: string;
+  regarding: string;
+  document_date: string;
+  recipient_title: string;
+  recipient_location: string;
+  items_snapshot: CoveringLetterItem[];
+  closing_phrase: string;
+  received_date?: string | null;
+  show_signatures?: boolean;
+  sender_employee_id?: number | null;
+  sender_snapshot: CoveringLetterParty;
+  receiver_snapshot?: CoveringLetterParty | null;
+  metadata?: any;
+  notes?: string | null;
+  sender_employee?: Pick<EmployeeOption, "id" | "nama_lengkap" | "nip" | "jabatan">;
+  generator?: { name: string };
+  created_at?: string;
+}
+
+type DocumentHistoryType = "all" | "usage_agreement" | "handover_agreement" | "power_of_attorney" | "covering_letter";
 type DocumentHistoryItem =
   | (UsageAgreementHistory & { document_type: "usage_agreement" })
   | HandoverAgreementHistory
-  | (PowerOfAttorneyHistory & { document_type: "power_of_attorney" });
+  | (PowerOfAttorneyHistory & { document_type: "power_of_attorney" })
+  | CoveringLetterHistory;
 
 interface PaginatedDocumentHistory {
   data: DocumentHistoryItem[];
@@ -137,6 +166,7 @@ import {
   yearNumber,
   buildBaNumber,
   buildPoaNumber,
+  buildCoveringNumber,
   formatDate,
   employeeToHandoverParty,
   emptyGeneralItem,
@@ -173,7 +203,7 @@ export default function BmnReportsPage() {
   const [historyPerPage, setHistoryPerPage] = useState(10);
   const [loadingUsageData, setLoadingUsageData] = useState(false);
   const [savingUsageAgreement, setSavingUsageAgreement] = useState(false);
-  const [activeDocumentType, setActiveDocumentType] = useState<"usage" | "handover" | "power_of_attorney">("usage");
+  const [activeDocumentType, setActiveDocumentType] = useState<"usage" | "handover" | "power_of_attorney" | "covering_letter">("usage");
   const [baSequence, setBaSequence] = useState("");
   const [kap, setKap] = useState("KAP.03.02");
   const [documentDate, setDocumentDate] = useState(todayInputValue());
@@ -197,6 +227,51 @@ export default function BmnReportsPage() {
   const [poaKtpFile, setPoaKtpFile] = useState<File | null>(null);
   const [poaKtpPreviewUrl, setPoaKtpPreviewUrl] = useState<string | null>(null);
   const [poaKtpPath, setPoaKtpPath] = useState<string | null>(null);
+
+  // Surat Pengantar States
+  const DEFAULT_COVERING_SENDER: CoveringLetterParty = {
+    name: "Heryanto Sumanbowo, S.Hut.",
+    nip: "19830528 200112 1 001",
+    role: "Pengirim,\nPenjual Lelang",
+  };
+
+  const DEFAULT_COVERING_RECEIVER: CoveringLetterParty = {
+    name: "",
+    idType: "NIP",
+    nip: "",
+    role: "Penerima,\nPejabat Lelang",
+  };
+
+  const DEFAULT_COVERING_ITEMS: CoveringLetterItem[] = [
+    {
+      id: "item-1",
+      title: "Dokumen Permohonan Pengajuan Lelang BMN Mini Bus (Penumpang 14 Orang Kebawah) / Toyota Kijang Super KF 83 Long dan Dokumen Pengumuman Lelang",
+      quantity: "1 (satu berkas)",
+      description: "Lelang Non-Eksekusi",
+    },
+    {
+      id: "item-2",
+      title: "Dokumen Permohonan Pengajuan Lelang BMN Sepeda Motor / Honda GL 160 D dan Dokumen Pengumuman Lelang",
+      quantity: "1 (satu berkas)",
+      description: "Lelang Non-Eksekusi",
+    },
+  ];
+
+  const [coveringSequence, setCoveringSequence] = useState("");
+  const [coveringKap, setCoveringKap] = useState("KAP.06.01");
+  const [coveringRegarding, setCoveringRegarding] = useState("Surat Pengantar Penyerahan Dokumen Permohonan Pengajuan Lelang dan Dokumen Pengumuman Lelang");
+  const [coveringDate, setCoveringDate] = useState(todayInputValue());
+  const [coveringRecipientTitle, setCoveringRecipientTitle] = useState("Kepala Kantor Pelayanan Kekayaan Negara dan Lelang");
+  const [coveringRecipientLocation, setCoveringRecipientLocation] = useState("Samarinda");
+  const [coveringItems, setCoveringItems] = useState<CoveringLetterItem[]>(DEFAULT_COVERING_ITEMS);
+  const [coveringClosingPhrase, setCoveringClosingPhrase] = useState("Demikian kami sampaikan, atas perhatian dan kerja sama yang baik kami mengucapkan terima kasih.");
+  const [coveringReceivedDate, setCoveringReceivedDate] = useState<string>(todayInputValue());
+  const [coveringShowSignatures, setCoveringShowSignatures] = useState(true);
+  const [coveringSenderEmployeeId, setCoveringSenderEmployeeId] = useState("");
+  const [coveringSender, setCoveringSender] = useState<CoveringLetterParty>(DEFAULT_COVERING_SENDER);
+  const [coveringReceiver, setCoveringReceiver] = useState<CoveringLetterParty>(DEFAULT_COVERING_RECEIVER);
+  const [savingCoveringLetter, setSavingCoveringLetter] = useState(false);
+  const [selectedCoveringLetter, setSelectedCoveringLetter] = useState<CoveringLetterHistory | null>(null);
 
   const DEFAULT_HANDOVER_WITNESS: HandoverWitness = {
     name: "M. Ari Wibawanto, S.Hut., M.Sc.",
@@ -256,6 +331,20 @@ export default function BmnReportsPage() {
       }
     }
   }, [employees, handoverWitnessEmployeeId]);
+
+  useEffect(() => {
+    if (employees.length > 0 && !coveringSenderEmployeeId) {
+      const heryanto = employees.find((e) => /heryanto/i.test(e.nama_lengkap));
+      if (heryanto) {
+        setCoveringSenderEmployeeId(String(heryanto.id));
+        setCoveringSender({
+          name: heryanto.nama_lengkap,
+          nip: heryanto.nip,
+          role: "Pengirim,\nPenjual Lelang",
+        });
+      }
+    }
+  }, [employees, coveringSenderEmployeeId]);
 
   const {
     data: documentHistory,
@@ -423,6 +512,11 @@ export default function BmnReportsPage() {
     [handoverDate, handoverKap, handoverSequence],
   );
 
+  const fullCoveringNumber = useMemo(
+    () => buildCoveringNumber(coveringSequence, coveringKap, coveringDate),
+    [coveringDate, coveringKap, coveringSequence],
+  );
+
   const activeHandoverDescription = handoverVariant === "vehicle"
     ? handoverVehicleDescription
     : handoverGeneralDescription;
@@ -435,15 +529,23 @@ export default function BmnReportsPage() {
     item.document_type === "power_of_attorney"
   );
 
+  const isCoveringLetterHistoryItem = (item: DocumentHistoryItem): item is CoveringLetterHistory => (
+    item.document_type === "covering_letter"
+  );
+
   const documentTypeLabel = (item: DocumentHistoryItem) => {
     if (isUsageHistoryItem(item)) return "BA Pemakaian";
     if (isPowerOfAttorneyHistoryItem(item)) return "Surat Kuasa Kendaraan";
+    if (isCoveringLetterHistoryItem(item)) return "Surat Pengantar";
     return item.variant === "vehicle" ? "BA Serah Terima Kendaraan" : "BA Serah Terima Barang";
   };
 
   const documentPartiesLabel = (item: DocumentHistoryItem) => {
     if (isUsageHistoryItem(item)) {
       return item.second_party_snapshot?.name || item.employee?.nama_lengkap || "-";
+    }
+    if (isCoveringLetterHistoryItem(item)) {
+      return `${item.sender_snapshot?.name || item.sender_employee?.nama_lengkap || "Pengirim"} -> ${item.recipient_title || "Penerima"}`;
     }
     return `${item.first_party_snapshot?.name || "-"} -> ${item.second_party_snapshot?.name || "-"}`;
   };
@@ -454,6 +556,9 @@ export default function BmnReportsPage() {
     }
     if (isPowerOfAttorneyHistoryItem(item)) {
       return `${item.assets_snapshot?.length || 0} kendaraan`;
+    }
+    if (isCoveringLetterHistoryItem(item)) {
+      return `${item.items_snapshot?.length || 0} berkas`;
     }
     return `${item.items_snapshot?.length || 0} item`;
   };
@@ -546,6 +651,7 @@ export default function BmnReportsPage() {
     setSelectedHistoryAgreement(null);
     setSelectedHandoverAgreement(null);
     setSelectedPowerOfAttorney(null);
+    setSelectedCoveringLetter(null);
   };
 
   const handleFirstPartyEmployeeChange = (employeeId: string) => {
@@ -582,16 +688,80 @@ export default function BmnReportsPage() {
     });
   };
 
-  const handleHandoverPartyEmployeeChange = (role: "first" | "second", employeeId: string) => {
-    const employee = employees.find((item) => String(item.id) === employeeId);
-    if (role === "first") {
-      setHandoverFirstEmployeeId(employeeId);
-      setHandoverFirstParty(employeeId ? { ...employeeToHandoverParty(employee), idType: "NIP" } : { ...DEFAULT_HANDOVER_FIRST_PARTY, idType: "NIP" });
+  const handleCoveringSenderEmployeeChange = (employeeId: string) => {
+    setCoveringSenderEmployeeId(employeeId);
+    if (!employeeId) {
+      setCoveringSender(DEFAULT_COVERING_SENDER);
       return;
     }
+    const employee = employees.find((item) => String(item.id) === employeeId);
+    if (!employee) return;
+    setCoveringSender({
+      name: employee.nama_lengkap,
+      nip: employee.nip,
+      role: "Pengirim,\nPenjual Lelang",
+    });
+  };
 
+  const updateCoveringItem = (index: number, key: keyof CoveringLetterItem, value: string) => {
+    setCoveringItems((current) => current.map((item, itemIndex) => (
+      itemIndex === index ? { ...item, [key]: value } : item
+    )));
+  };
+
+  const addCoveringItem = () => {
+    setCoveringItems((current) => [
+      ...current,
+      { id: `item-${Date.now()}`, title: "", quantity: "1 (satu berkas)", description: "Lelang Non-Eksekusi" },
+    ]);
+  };
+
+  const removeCoveringItem = (index: number) => {
+    setCoveringItems((current) => current.length === 1 ? current : current.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  const handleHandoverFirstEmployeeChange = (employeeId: string) => {
+    setHandoverFirstEmployeeId(employeeId);
+    if (!employeeId) {
+      setHandoverFirstParty({ ...DEFAULT_HANDOVER_FIRST_PARTY, idType: handoverFirstPartyType === "external" ? "NIK" : "NIP" });
+      return;
+    }
+    const employee = employees.find((item) => String(item.id) === employeeId);
+    if (!employee) return;
+    setHandoverFirstParty({
+      name: employee.nama_lengkap,
+      idType: "NIP",
+      nip: employee.nip,
+      rank: employee.pangkat_golongan || "",
+      position: employee.jabatan || "",
+      address: "Jl. Teuku Umar Samarinda.",
+    });
+  };
+
+  const handleHandoverSecondEmployeeChange = (employeeId: string) => {
     setHandoverSecondEmployeeId(employeeId);
-    setHandoverSecondParty(employeeId ? { ...employeeToHandoverParty(employee), idType: "NIP" } : { name: "", nip: "", rank: "", position: "", address: "Jl. Teuku Umar Samarinda.", idType: "NIP" });
+    if (!employeeId) {
+      setHandoverSecondParty({ name: "", nip: "", rank: "", position: "", address: "Jl. Teuku Umar Samarinda.", idType: handoverSecondPartyType === "external" ? "NIK" : "NIP" });
+      return;
+    }
+    const employee = employees.find((item) => String(item.id) === employeeId);
+    if (!employee) return;
+    setHandoverSecondParty({
+      name: employee.nama_lengkap,
+      idType: "NIP",
+      nip: employee.nip,
+      rank: employee.pangkat_golongan || "",
+      position: employee.jabatan || "",
+      address: "Jl. Teuku Umar Samarinda.",
+    });
+  };
+
+  const handleHandoverPartyEmployeeChange = (role: "first" | "second", employeeId: string) => {
+    if (role === "first") {
+      handleHandoverFirstEmployeeChange(employeeId);
+    } else {
+      handleHandoverSecondEmployeeChange(employeeId);
+    }
   };
 
   const handleHandoverWitnessEmployeeChange = (employeeId: string) => {
@@ -675,24 +845,35 @@ export default function BmnReportsPage() {
   const viewHistoryAgreement = (agreement: UsageAgreementHistory) => {
     setSelectedHandoverAgreement(null);
     setSelectedPowerOfAttorney(null);
+    setSelectedCoveringLetter(null);
     setSelectedHistoryAgreement(agreement);
   };
 
   const viewPowerOfAttorney = (agreement: PowerOfAttorneyHistory) => {
     setSelectedHandoverAgreement(null);
     setSelectedHistoryAgreement(null);
+    setSelectedCoveringLetter(null);
     setSelectedPowerOfAttorney(agreement);
   };
 
   const viewHandoverHistoryAgreement = (agreement: HandoverAgreementHistory) => {
     setSelectedHistoryAgreement(null);
     setSelectedPowerOfAttorney(null);
+    setSelectedCoveringLetter(null);
     setSelectedHandoverAgreement(agreement);
+  };
+
+  const viewCoveringLetterHistory = (letter: CoveringLetterHistory) => {
+    setSelectedHistoryAgreement(null);
+    setSelectedPowerOfAttorney(null);
+    setSelectedHandoverAgreement(null);
+    setSelectedCoveringLetter(letter);
   };
 
   const printHistoryAgreement = (agreement: UsageAgreementHistory) => {
     setSelectedHandoverAgreement(null);
     setSelectedPowerOfAttorney(null);
+    setSelectedCoveringLetter(null);
     setSelectedHistoryAgreement(agreement);
     setActiveTab("history");
     window.setTimeout(() => handlePrintUsageAgreement("ba-pemakaian-history-print-root"), 100);
@@ -701,6 +882,7 @@ export default function BmnReportsPage() {
   const printPowerOfAttorneyHistory = (agreement: PowerOfAttorneyHistory) => {
     setSelectedHistoryAgreement(null);
     setSelectedHandoverAgreement(null);
+    setSelectedCoveringLetter(null);
     setSelectedPowerOfAttorney(agreement);
     setActiveTab("history");
     window.setTimeout(() => handlePrintPowerOfAttorney("power-of-attorney-history-print-root"), 100);
@@ -709,9 +891,19 @@ export default function BmnReportsPage() {
   const printHandoverHistoryAgreement = (agreement: HandoverAgreementHistory) => {
     setSelectedHistoryAgreement(null);
     setSelectedPowerOfAttorney(null);
+    setSelectedCoveringLetter(null);
     setSelectedHandoverAgreement(agreement);
     setActiveTab("history");
     window.setTimeout(() => handlePrintHandoverAgreement("ba-serah-terima-history-print-root"), 100);
+  };
+
+  const printCoveringLetterHistory = (letter: CoveringLetterHistory) => {
+    setSelectedHistoryAgreement(null);
+    setSelectedPowerOfAttorney(null);
+    setSelectedHandoverAgreement(null);
+    setSelectedCoveringLetter(letter);
+    setActiveTab("history");
+    window.setTimeout(() => handlePrintCoveringLetter("covering-letter-history-print-root"), 100);
   };
 
   const deleteHistoryAgreement = async (agreement: UsageAgreementHistory) => {
@@ -755,6 +947,25 @@ export default function BmnReportsPage() {
       await refetchDocumentHistory();
     } catch {
       toast.error("Gagal menghapus riwayat Surat Kuasa.");
+    }
+  };
+
+  const deleteCoveringLetter = async (letter: CoveringLetterHistory) => {
+    const ok = await confirm({
+      title: "Hapus Riwayat Surat Pengantar?",
+      description: `Riwayat ${letter.number} akan dihapus permanen dari daftar Surat Pengantar.`,
+      confirmText: "Ya, Hapus",
+      variant: "danger",
+    });
+    if (!ok) return;
+
+    try {
+      await api.delete(`/bmn/covering-letters/${letter.id}`);
+      toast.success("Riwayat Surat Pengantar dihapus.");
+      setSelectedCoveringLetter((current) => current?.id === letter.id ? null : current);
+      await refetchDocumentHistory();
+    } catch {
+      toast.error("Gagal menghapus riwayat Surat Pengantar.");
     }
   };
 
@@ -1002,6 +1213,72 @@ export default function BmnReportsPage() {
     toast.info("Data arsip Surat Kuasa disalin sebagai dokumen baru. Nomor dan tanggal silakan disesuaikan.");
   };
 
+  const saveCoveringLetter = async () => {
+    const validItems = coveringItems.filter((it) => it.title.trim() !== "");
+    if (!fullCoveringNumber.trim() || fullCoveringNumber.includes("____")) {
+      toast.error("Nomor urut Surat Pengantar wajib diisi.");
+      return;
+    }
+    if (!coveringRegarding.trim()) {
+      toast.error("Hal Surat Pengantar wajib diisi.");
+      return;
+    }
+    if (validItems.length === 0) {
+      toast.error("Tambahkan minimal 1 berkas yang dikirim.");
+      return;
+    }
+
+    setSavingCoveringLetter(true);
+    try {
+      await api.post("/bmn/covering-letters", {
+        number: fullCoveringNumber,
+        regarding: coveringRegarding,
+        document_date: coveringDate,
+        recipient_title: coveringRecipientTitle,
+        recipient_location: coveringRecipientLocation,
+        items: validItems,
+        closing_phrase: coveringClosingPhrase,
+        received_date: coveringReceivedDate || null,
+        show_signatures: coveringShowSignatures,
+        sender_employee_id: coveringSenderEmployeeId ? Number(coveringSenderEmployeeId) : null,
+        sender: coveringSender,
+        receiver: coveringReceiver,
+      });
+      toast.success("Riwayat Surat Pengantar berhasil disimpan.");
+      await refetchDocumentHistory();
+    } catch {
+      toast.error("Gagal menyimpan riwayat Surat Pengantar.");
+    } finally {
+      setSavingCoveringLetter(false);
+    }
+  };
+
+  const duplicateCoveringLetter = (letter: CoveringLetterHistory) => {
+    setActiveTab("documents");
+    setActiveDocumentType("covering_letter");
+    const match = letter.number.match(/SP\.([^\/]+)\/K\.18\/TU\/([^\/]+)\//i);
+    if (match) {
+      setCoveringSequence(match[1]);
+      setCoveringKap(match[2]);
+    } else {
+      setCoveringSequence(letter.number.replace(/^SP\./i, "").split("/")[0] || "");
+    }
+    setCoveringRegarding(letter.regarding);
+    setCoveringDate(todayInputValue());
+    setCoveringRecipientTitle(letter.recipient_title);
+    setCoveringRecipientLocation(letter.recipient_location);
+    setCoveringItems(letter.items_snapshot || []);
+    setCoveringClosingPhrase(letter.closing_phrase);
+    setCoveringReceivedDate(todayInputValue());
+    setCoveringShowSignatures(letter.show_signatures ?? true);
+    setCoveringSender(letter.sender_snapshot);
+    setCoveringReceiver(letter.receiver_snapshot || DEFAULT_COVERING_RECEIVER);
+    if (letter.sender_employee_id) {
+      setCoveringSenderEmployeeId(String(letter.sender_employee_id));
+    }
+    toast.info("Arsip Surat Pengantar disalin sebagai dokumen baru. Nomor dan tanggal silakan disesuaikan.");
+  };
+
   const reports = [
     { title: "Katalog Aset BMN", desc: "Rekapitulasi seluruh aset beserta nilai perolehan.", icon: <Package className="w-6 h-6" />, color: "emerald", loading: loadingAsset, buttonLabel: "Unduh Excel", buttonIcon: Download, action: () => executeDownload("/bmn/assets/export", "Katalog_Aset_BMN.xlsx", setLoadingAsset) },
     { title: "Riwayat Peminjaman", desc: "Catatan historis serah-terima aset kepada pegawai.", icon: <Handshake className="w-6 h-6" />, color: "amber", loading: loadingLoan, buttonLabel: "Unduh Excel", buttonIcon: Download, action: () => executeDownload("/bmn/loans/export", "Peminjaman_BMN.xlsx", setLoadingLoan) },
@@ -1156,6 +1433,25 @@ export default function BmnReportsPage() {
               <span>
                 <span className="block text-sm font-bold text-zinc-900 dark:text-white">Surat Kuasa Kendaraan</span>
                 <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">Generate surat kuasa pengecekan fisik kendaraan.</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveDocumentType("covering_letter");
+              }}
+              className={`mt-2 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${
+                activeDocumentType === "covering_letter"
+                  ? "border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10"
+                  : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-zinc-950">
+                <FileClock className="w-5 h-5" />
+              </span>
+              <span>
+                <span className="block text-sm font-bold text-zinc-900 dark:text-white">Surat Pengantar</span>
+                <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">Generate surat pengantar berkas permohonan lelang.</span>
               </span>
             </button>
           </aside>
@@ -2256,6 +2552,363 @@ export default function BmnReportsPage() {
                 )}
               </>
             )}
+
+            {activeDocumentType === "covering_letter" && (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div>
+                    <h2 className="text-base font-bold text-zinc-900 dark:text-white">Generate Surat Pengantar BMN</h2>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullCoveringNumber}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button variant="outline" className="rounded-xl gap-2" onClick={saveCoveringLetter} disabled={savingCoveringLetter || !canGenerate}>
+                      {savingCoveringLetter ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Simpan Riwayat
+                    </Button>
+                    <Button className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500" onClick={() => handlePrintCoveringLetter()}>
+                      <Printer className="w-4 h-4" />
+                      Cetak
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-[370px_minmax(0,1fr)] xl:grid-cols-[390px_minmax(0,1fr)] gap-5 items-start">
+                  <div className="space-y-4">
+                    {/* 1. Detail Surat Pengantar */}
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                      <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">1. Detail Surat Pengantar</h3>
+                      <div className="space-y-2.5">
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Nomor Urut</span>
+                            <div className="mt-0.5 flex items-center rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950">
+                              <span className="font-mono text-zinc-400 mr-1 select-none">SP.</span>
+                              <input
+                                value={coveringSequence}
+                                onChange={(e) => setCoveringSequence(e.target.value)}
+                                placeholder="52"
+                                className="w-full bg-transparent outline-none dark:text-zinc-100 font-mono"
+                              />
+                            </div>
+                          </label>
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">KAP</span>
+                            <input
+                              value={coveringKap}
+                              onChange={(e) => setCoveringKap(e.target.value)}
+                              placeholder="KAP.06.01"
+                              className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 font-mono"
+                            />
+                          </label>
+                        </div>
+
+                        <div className="rounded-lg bg-zinc-50 px-3 py-2 text-[11px] text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-300">
+                          <span className="text-zinc-500">Hasil Format Nomor: </span>
+                          <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">{fullCoveringNumber}</span>
+                        </div>
+
+                        <label className="block">
+                          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Hal</span>
+                          <textarea
+                            rows={2}
+                            value={coveringRegarding}
+                            onChange={(e) => setCoveringRegarding(e.target.value)}
+                            placeholder="Hal surat pengantar..."
+                            className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Tanggal Surat</span>
+                          <input
+                            type="date"
+                            value={coveringDate}
+                            onChange={(e) => setCoveringDate(e.target.value)}
+                            className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* 2. Tujuan Surat (Yth) */}
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                      <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">2. Tujuan Surat (Yth)</h3>
+                      <div className="space-y-2.5">
+                        <label className="block">
+                          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Kepada (Yth.)</span>
+                          <input
+                            value={coveringRecipientTitle}
+                            onChange={(e) => setCoveringRecipientTitle(e.target.value)}
+                            placeholder="Kepala Kantor Pelayanan Kekayaan Negara dan Lelang"
+                            className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Di (Lokasi Tujuan)</span>
+                          <input
+                            value={coveringRecipientLocation}
+                            onChange={(e) => setCoveringRecipientLocation(e.target.value)}
+                            placeholder="Samarinda"
+                            className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* 3. Daftar Berkas yang Dikirim */}
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">3. Daftar Berkas yang Dikirim</h3>
+                        <Button type="button" size="sm" variant="outline" className="h-7 rounded-lg px-2 text-[11px]" onClick={addCoveringItem}>
+                          + Tambah Berkas
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        {coveringItems.map((item, index) => (
+                          <div key={item.id || index} className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800 space-y-2">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-zinc-500">
+                              <span>Berkas #{index + 1}</span>
+                              {coveringItems.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeCoveringItem(index)}
+                                  className="text-rose-500 hover:text-rose-700 text-[11px]"
+                                >
+                                  Hapus
+                                </button>
+                              )}
+                            </div>
+                            <label className="block">
+                              <span className="text-[10px] text-zinc-500">Berkas yang Dikirim</span>
+                              <textarea
+                                rows={4}
+                                value={item.title}
+                                onChange={(e) => updateCoveringItem(index, "title", e.target.value)}
+                                placeholder="Rincian berkas dokumen yang dikirim..."
+                                className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white p-2.5 text-xs leading-relaxed outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 min-h-[90px] resize-y"
+                              />
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <label className="block">
+                                <span className="text-[10px] text-zinc-500">Banyaknya</span>
+                                <input
+                                  value={item.quantity || ""}
+                                  onChange={(e) => updateCoveringItem(index, "quantity", e.target.value)}
+                                  placeholder="1 (satu berkas)"
+                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                />
+                              </label>
+                              <label className="block">
+                                <span className="text-[10px] text-zinc-500">Keterangan</span>
+                                <input
+                                  value={item.description || ""}
+                                  onChange={(e) => updateCoveringItem(index, "description", e.target.value)}
+                                  placeholder="Lelang Non-Eksekusi"
+                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 4. Kalimat Penutup & Tanggal Terima */}
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                      <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">4. Penutup & Tanggal Terima</h3>
+                      <div className="space-y-2.5">
+                        <label className="block">
+                          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Kalimat Penutup</span>
+                          <textarea
+                            rows={2}
+                            value={coveringClosingPhrase}
+                            onChange={(e) => setCoveringClosingPhrase(e.target.value)}
+                            placeholder="Demikian kami sampaikan..."
+                            className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                        <label className="block">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Tanggal Diterima</span>
+                            {coveringReceivedDate && (
+                              <button
+                                type="button"
+                                onClick={() => setCoveringReceivedDate("")}
+                                className="text-[10px] text-zinc-400 hover:text-zinc-600 underline"
+                              >
+                                Kosongkan
+                              </button>
+                            )}
+                          </div>
+                          <input
+                            type="date"
+                            value={coveringReceivedDate || ""}
+                            onChange={(e) => setCoveringReceivedDate(e.target.value)}
+                            className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* 5. Konfigurasi Tanda Tangan */}
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">5. Penandatangan</h3>
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={coveringShowSignatures}
+                            onChange={(e) => setCoveringShowSignatures(e.target.checked)}
+                            className="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+                          />
+                          <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Tampilkan TTD</span>
+                        </label>
+                      </div>
+
+                      {coveringShowSignatures && (
+                        <div className="space-y-3">
+                          {/* Pengirim (Kanan) */}
+                          <div className="rounded-xl border border-zinc-200 p-2.5 dark:border-zinc-800 space-y-2">
+                            <div className="text-xs font-bold text-zinc-700 dark:text-zinc-200">Pengirim</div>
+                            <label className="block">
+                              <span className="text-[10px] text-zinc-500">Pilih dari Pegawai</span>
+                              <select
+                                value={coveringSenderEmployeeId}
+                                onChange={(e) => handleCoveringSenderEmployeeChange(e.target.value)}
+                                disabled={loadingEmployees}
+                                className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                              >
+                                <option value="">Input Manual</option>
+                                {employees.map((employee) => (
+                                  <option key={employee.id} value={employee.id}>
+                                    {employee.nama_lengkap} - {employee.nip}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <label className="block">
+                                <span className="text-[10px] text-zinc-500">Nama Pengirim</span>
+                                <input
+                                  value={coveringSender.name || ""}
+                                  onChange={(e) => setCoveringSender((p) => ({ ...p, name: e.target.value }))}
+                                  placeholder="Nama Pengirim"
+                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                />
+                              </label>
+                              <label className="block">
+                                <span className="text-[10px] text-zinc-500">NIP Pengirim</span>
+                                <input
+                                  value={coveringSender.nip || ""}
+                                  onChange={(e) => setCoveringSender((p) => ({ ...p, nip: e.target.value }))}
+                                  placeholder="NIP Pengirim"
+                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                />
+                              </label>
+                            </div>
+                            <label className="block">
+                              <span className="text-[10px] text-zinc-500">Jabatan / Judul TTD Pengirim</span>
+                              <textarea
+                                rows={2}
+                                value={coveringSender.role || ""}
+                                onChange={(e) => setCoveringSender((p) => ({ ...p, role: e.target.value }))}
+                                placeholder={"Pengirim,\nPenjual Lelang"}
+                                className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                              />
+                            </label>
+                          </div>
+
+                          {/* Penerima (Kiri) */}
+                          <div className="rounded-xl border border-zinc-200 p-2.5 dark:border-zinc-800 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs font-bold text-zinc-700 dark:text-zinc-200">Penerima</div>
+                              <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] font-medium dark:border-zinc-700 dark:bg-zinc-800">
+                                <button
+                                  type="button"
+                                  onClick={() => setCoveringReceiver((p) => ({ ...p, idType: "NIP" }))}
+                                  className={`rounded-md px-2 py-0.5 transition ${
+                                    coveringReceiver.idType !== "NIK"
+                                      ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
+                                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                                  }`}
+                                >
+                                  NIP
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setCoveringReceiver((p) => ({ ...p, idType: "NIK" }))}
+                                  className={`rounded-md px-2 py-0.5 transition ${
+                                    coveringReceiver.idType === "NIK"
+                                      ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
+                                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                                  }`}
+                                >
+                                  NIK
+                                </button>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <label className="block">
+                                <span className="text-[10px] text-zinc-500">Nama Penerima</span>
+                                <input
+                                  value={coveringReceiver.name || ""}
+                                  onChange={(e) => setCoveringReceiver((p) => ({ ...p, name: e.target.value }))}
+                                  placeholder="Nama Pejabat Penerima"
+                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                />
+                              </label>
+                              <label className="block">
+                                <span className="text-[10px] text-zinc-500">{coveringReceiver.idType === "NIK" ? "NIK Penerima" : "NIP Penerima"}</span>
+                                <input
+                                  value={coveringReceiver.nip || ""}
+                                  onChange={(e) => setCoveringReceiver((p) => ({ ...p, nip: e.target.value }))}
+                                  placeholder={coveringReceiver.idType === "NIK" ? "NIK..." : "NIP..."}
+                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                />
+                              </label>
+                            </div>
+                            <label className="block">
+                              <span className="text-[10px] text-zinc-500">Jabatan / Judul TTD Penerima</span>
+                              <textarea
+                                rows={2}
+                                value={coveringReceiver.role || ""}
+                                onChange={(e) => setCoveringReceiver((p) => ({ ...p, role: e.target.value }))}
+                                placeholder={"Penerima,\nPejabat Lelang"}
+                                className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Preview Dokumen */}
+                  <div className="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sticky top-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">6. Preview Dokumen</h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullCoveringNumber}</p>
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-zinc-200 bg-zinc-100 p-2 sm:p-4 dark:border-zinc-800 dark:bg-zinc-950 flex justify-center">
+                      <CoveringLetterDocument
+                        number={fullCoveringNumber}
+                        regarding={coveringRegarding}
+                        documentDate={coveringDate}
+                        recipientTitle={coveringRecipientTitle}
+                        recipientLocation={coveringRecipientLocation}
+                        items={coveringItems}
+                        closingPhrase={coveringClosingPhrase}
+                        receivedDate={coveringReceivedDate}
+                        showSignatures={coveringShowSignatures}
+                        sender={coveringSender}
+                        receiver={coveringReceiver}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </section>
       )}
@@ -2278,6 +2931,7 @@ export default function BmnReportsPage() {
                 ["usage_agreement", "BA Pemakaian"],
                 ["handover_agreement", "BA Serah Terima"],
                 ["power_of_attorney", "Surat Kuasa"],
+                ["covering_letter", "Surat Pengantar"],
               ] as const).map(([value, label]) => (
                 <button
                   key={value}
@@ -2288,6 +2942,7 @@ export default function BmnReportsPage() {
                     setSelectedHistoryAgreement(null);
                     setSelectedHandoverAgreement(null);
                     setSelectedPowerOfAttorney(null);
+                    setSelectedCoveringLetter(null);
                   }}
                   className={`h-9 rounded-xl border px-3 text-xs font-semibold transition ${
                     historyDocumentType === value
@@ -2306,7 +2961,7 @@ export default function BmnReportsPage() {
                   setHistorySearch(event.target.value);
                   setHistoryPage(1);
                 }}
-                placeholder="Cari nomor BA, nama pegawai, NIP, pembuat, atau barang..."
+                placeholder="Cari nomor surat/BA, nama pegawai, NIP, pembuat, atau berkas..."
                 className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
               />
               <select
@@ -2357,7 +3012,7 @@ export default function BmnReportsPage() {
                     <th className="px-3 py-2">Nomor</th>
                     <th className="px-3 py-2">Tanggal</th>
                     <th className="px-3 py-2">Pegawai / Pihak</th>
-                    <th className="px-3 py-2">Barang</th>
+                    <th className="px-3 py-2">Barang / Berkas</th>
                     <th className="px-3 py-2">Pembuat</th>
                     <th className="px-3 py-2 text-right">Aksi</th>
                   </tr>
@@ -2369,7 +3024,10 @@ export default function BmnReportsPage() {
                     <tr
                       key={item.id}
                       className={`text-zinc-700 dark:text-zinc-200 ${
-                        selectedHistoryAgreement?.id === item.id || selectedHandoverAgreement?.id === item.id || selectedPowerOfAttorney?.id === item.id
+                        selectedHistoryAgreement?.id === item.id ||
+                        selectedHandoverAgreement?.id === item.id ||
+                        selectedPowerOfAttorney?.id === item.id ||
+                        selectedCoveringLetter?.id === item.id
                           ? "bg-emerald-50/70 dark:bg-emerald-500/10"
                           : ""
                       }`}
@@ -2380,6 +3038,8 @@ export default function BmnReportsPage() {
                             ? "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300"
                             : isPowerOfAttorneyHistoryItem(item)
                             ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
+                            : isCoveringLetterHistoryItem(item)
+                            ? "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300"
                             : "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
                         }`}>
                           {documentTypeLabel(item)}
@@ -2402,6 +3062,8 @@ export default function BmnReportsPage() {
                                 viewHistoryAgreement(item);
                               } else if (isPowerOfAttorneyHistoryItem(item)) {
                                 viewPowerOfAttorney(item);
+                              } else if (isCoveringLetterHistoryItem(item)) {
+                                viewCoveringLetterHistory(item);
                               } else {
                                 viewHandoverHistoryAgreement(item);
                               }
@@ -2419,6 +3081,8 @@ export default function BmnReportsPage() {
                                 printHistoryAgreement(item);
                               } else if (isPowerOfAttorneyHistoryItem(item)) {
                                 printPowerOfAttorneyHistory(item);
+                              } else if (isCoveringLetterHistoryItem(item)) {
+                                printCoveringLetterHistory(item);
                               } else {
                                 printHandoverHistoryAgreement(item);
                               }
@@ -2437,6 +3101,8 @@ export default function BmnReportsPage() {
                                 duplicateHistoryAgreement(item);
                               } else if (isPowerOfAttorneyHistoryItem(item)) {
                                 duplicatePowerOfAttorney(item);
+                              } else if (isCoveringLetterHistoryItem(item)) {
+                                duplicateCoveringLetter(item);
                               } else {
                                 duplicateHandoverAgreement(item);
                               }
@@ -2456,6 +3122,8 @@ export default function BmnReportsPage() {
                                   deleteHistoryAgreement(item);
                                 } else if (isPowerOfAttorneyHistoryItem(item)) {
                                   deletePowerOfAttorney(item);
+                                } else if (isCoveringLetterHistoryItem(item)) {
+                                  deleteCoveringLetter(item);
                                 } else {
                                   deleteHandoverHistoryAgreement(item);
                                 }
@@ -2603,6 +3271,42 @@ export default function BmnReportsPage() {
                   }
                   notes={selectedPowerOfAttorney.notes || ""}
                   ktpUrl={selectedPowerOfAttorney.ktp_url}
+                />
+              </div>
+            </div>
+          )}
+
+          {selectedCoveringLetter && (
+            <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Preview Arsip Surat Pengantar</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {selectedCoveringLetter.number} - {formatDate(selectedCoveringLetter.document_date)}
+                  </p>
+                </div>
+                <Button
+                  className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+                  onClick={() => handlePrintCoveringLetter("covering-letter-history-print-root")}
+                >
+                  <Printer className="w-4 h-4" />
+                  Cetak Arsip
+                </Button>
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <CoveringLetterDocument
+                  documentId="covering-letter-history-print-root"
+                  number={selectedCoveringLetter.number}
+                  regarding={selectedCoveringLetter.regarding}
+                  documentDate={selectedCoveringLetter.document_date}
+                  recipientTitle={selectedCoveringLetter.recipient_title}
+                  recipientLocation={selectedCoveringLetter.recipient_location}
+                  items={selectedCoveringLetter.items_snapshot || []}
+                  closingPhrase={selectedCoveringLetter.closing_phrase}
+                  receivedDate={selectedCoveringLetter.received_date}
+                  showSignatures={selectedCoveringLetter.show_signatures ?? true}
+                  sender={selectedCoveringLetter.sender_snapshot}
+                  receiver={selectedCoveringLetter.receiver_snapshot}
                 />
               </div>
             </div>
