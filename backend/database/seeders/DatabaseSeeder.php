@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             EmployeeSeeder::class,
             InitDataSeeder::class,
             StTemplateSeeder::class,
+            StExpenseTemplateSeeder::class,
         ]);
     }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   FileText,
   GripVertical,
@@ -50,6 +50,7 @@ import {
   printSuratTugas,
   type DasarItem,
   type Employee,
+  type StExpenseTemplate,
 } from "../../_lib";
 import { FormSection } from "../../_components/FormSection";
 import { EditableItemListSection } from "../../_components/EditableItemListSection";
@@ -117,6 +118,31 @@ export default function STBuilderPage() {
       return res.data.data || [];
     },
   });
+
+  const { data: expenseTemplates = [] } = useQuery<StExpenseTemplate[]>({
+    queryKey: ["st-expense-templates-active-builder"],
+    queryFn: async () => {
+      const res = await api.get("/kepegawaian/st-expense-templates?active_only=true&per_page=100");
+      return (res.data?.data || []) as StExpenseTemplate[];
+    },
+  });
+
+  const availableSumberDanaOptions = useMemo(() => {
+    if (expenseTemplates.length === 0) return SUMBER_DANA_OPTIONS;
+    const mapped = expenseTemplates.map((t) => ({
+      id: t.code,
+      label: t.name,
+      dasarText: t.dasar_text || "",
+      biayaText: t.biaya_text,
+    }));
+    mapped.push({
+      id: "other",
+      label: "Lainnya (Tulis Manual)",
+      dasarText: "",
+      biayaText: "",
+    });
+    return mapped;
+  }, [expenseTemplates]);
 
   const searchResults = allEmployees
     .filter((emp: Employee) => 
@@ -339,27 +365,61 @@ export default function STBuilderPage() {
       return prev;
     });
 
-    const opt = SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
-    if (opt && opt.dasarText) {
-      const text = opt.dasarText.replace(/{tahun}/g, tahun);
-      
-      setDasarItems(prev => {
-        const newItems = [...prev];
-        // Reset to 2 items if previously was FOLU (4 items)
-        if (newItems.length > 2) {
-          return [
-            { id: "1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" },
-            { id: Date.now().toString(), text },
-          ];
+    const isFundingDasarText = (text?: string | null) => {
+      if (!text) return false;
+      const lower = text.toLowerCase();
+      return (
+        lower.includes("surat pengesahan dipa") ||
+        lower.includes("sp dipa") ||
+        lower.includes("perjanjian kerjasama") ||
+        lower.includes("perjanjian kerja sama") ||
+        lower.includes("pks.") ||
+        lower.includes("kideco") ||
+        lower.includes("jayantara") ||
+        lower.includes("orangutan protection") ||
+        lower.includes("tjiwi kimia") ||
+        lower.includes("bosf") ||
+        lower.includes("alert") ||
+        lower.includes("conservation action network")
+      );
+    };
+
+    const opt = availableSumberDanaOptions.find(o => o.id === fundingId) || SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
+    const fundingText = opt?.dasarText ? opt.dasarText.replace(/{tahun}/g, tahun).trim() : "";
+
+    setDasarItems(prev => {
+      let currentItems = [...prev];
+      // Reset if previously was FOLU
+      if (currentItems.some(i => i.id?.startsWith("folu-d"))) {
+        currentItems = [
+          { id: "1", text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;" }
+        ];
+      }
+
+      const existingIdx = currentItems.findIndex(
+        item => item.id === "funding-dasar" || isFundingDasarText(item.text)
+      );
+
+      if (fundingText) {
+        if (existingIdx !== -1) {
+          currentItems[existingIdx] = {
+            id: currentItems[existingIdx].id || "funding-dasar",
+            text: fundingText,
+          };
+        } else {
+          currentItems.push({
+            id: "funding-dasar",
+            text: fundingText,
+          });
         }
-        if (newItems.length >= 2) {
-          newItems[1].text = text;
-        } else if (newItems.length === 1) {
-          newItems.push({ id: Date.now().toString(), text });
+      } else {
+        if (existingIdx !== -1) {
+          currentItems.splice(existingIdx, 1);
         }
-        return newItems;
-      });
-    }
+      }
+
+      return currentItems;
+    });
   };
 
   // Apply BMN Penghapusan template: one-click preset for ST Pemeriksaan BMN

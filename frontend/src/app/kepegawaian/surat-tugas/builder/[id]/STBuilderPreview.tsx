@@ -169,7 +169,9 @@ export default function STBuilderPreview({
                           {menimbangItems.map((m, idx) => (
                             <tr key={m.id}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0" }}>{indexToLetter(idx)}</td>
-                              <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>{m.text || "..."}</td>
+                              <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>
+                                {(m.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString())}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -191,7 +193,9 @@ export default function STBuilderPreview({
                           {dasarItems.map((d, idx) => (
                             <tr key={d.id}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                              <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{d.text || "..."}</td>
+                              <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
+                                {(d.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString())}
+                              </td>
                             </tr>
                           ))}
                         </tbody>

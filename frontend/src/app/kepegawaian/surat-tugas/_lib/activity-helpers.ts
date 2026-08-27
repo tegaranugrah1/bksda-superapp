@@ -2,6 +2,7 @@
  * Helpers untuk activity prefix dan single-day activity detection.
  */
 import { SUMBER_DANA_OPTIONS } from "./constants";
+import type { StExpenseTemplate } from "./types";
 
 /**
  * Cek apakah activity prefix mengindikasikan kegiatan single-day
@@ -49,17 +50,31 @@ export function buildBiayaTextFor(
   otherSource: string,
   letterDate: string,
   templateType?: string | null,
+  customExpenseTemplates?: StExpenseTemplate[],
 ) {
-  if (templateType === "bmn-pemeriksaan" || templateType === "plh") return "";
+  if (templateType === "bmn-pemeriksaan" || templateType === "plh" || fundingId === "dl1") return "";
+  
+  const tahun = letterDate
+    ? new Date(letterDate).getFullYear().toString()
+    : new Date().getFullYear().toString();
+
+  if (customExpenseTemplates && customExpenseTemplates.length > 0) {
+    const dyn = customExpenseTemplates.find(
+      (t) => t.code === fundingId || String(t.id) === fundingId || t.name.toLowerCase() === fundingId.toLowerCase()
+    );
+    if (dyn) {
+      if (!dyn.biaya_text) return "";
+      return dyn.biaya_text.replace(/{tahun}/g, tahun);
+    }
+  }
+
   const opt = SUMBER_DANA_OPTIONS.find((o) => o.id === fundingId);
-  if (opt?.biayaText) {
-    const tahun = letterDate
-      ? new Date(letterDate).getFullYear().toString()
-      : new Date().getFullYear().toString();
+  if (opt) {
+    if (!opt.biayaText) return "";
     return opt.biayaText.replace(/{tahun}/g, tahun);
   }
   if (fundingId === "other") {
-    return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${otherSource || "..."};`;
+    return otherSource ? `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${otherSource};` : "";
   }
   return "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;";
 }

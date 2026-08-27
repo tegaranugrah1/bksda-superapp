@@ -531,7 +531,7 @@ export function SkPenghentianDocument({
   const renderAttachmentSignature = (measure = false) => (
     <div className="sk-lampiran-ttd signature mt-10 ml-auto w-80" data-sk-measure={measure ? "signature" : undefined}>
       <p className="m-0">Kepala Balai,</p>
-      <div className="ttd-placeholder my-2 flex h-[84px] items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
+      <div className="ttd-placeholder my-2 flex h-21 items-center pt-0 pl-[1.1cm] box-border text-zinc-400">${"{ttd_pengirim}"}</div>
       <p className="m-0 mt-2">{kepalaBalai.nama}</p>
       <p className="m-0">NIP. {kepalaBalai.nip}</p>
     </div>
@@ -972,7 +972,8 @@ export function SkPenghentianDocument({
       {/* Hidden DOM measurement root for live height calculation */}
       <div
         ref={measurementRef}
-        className="sk-measurement sk-no-print print:hidden pointer-events-none absolute -left-[9999px] -top-[9999px] m-0 p-0 opacity-0 border-none"
+        className="sk-measurement sk-no-print print:hidden pointer-events-none absolute m-0 p-0 opacity-0 border-none"
+        style={{ left: -9999, top: -9999 }}
         aria-hidden="true"
       >
         <article

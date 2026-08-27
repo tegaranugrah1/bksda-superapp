@@ -3,12 +3,13 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RefreshCw } from "lucide-react";
+import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RefreshCw, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import type { SuratMasuk } from "../_lib/surat-types";
+import { ExportSuratMasukModal } from "./_components/ExportSuratMasukModal";
 
 function formatDisplayDate(dateStr?: string | null): string {
   if (!dateStr) return "-";
@@ -54,6 +55,7 @@ export default function SuratMasukListPage() {
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteItem, setDeleteItem] = useState<SuratMasuk | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Pagination states
   const [page, setPage] = useState(1);
@@ -219,11 +221,11 @@ export default function SuratMasukListPage() {
   const endRecord = isAll ? totalCount : Math.min(safePage * pageSize, totalCount);
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
+    <div className="space-y-3.5 px-5 py-4 md:px-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+            <div className="p-1.5 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
               <Inbox className="h-5 w-5" />
             </div>
             <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
@@ -235,15 +237,27 @@ export default function SuratMasukListPage() {
           </p>
         </div>
 
-        <Link href="/surat/masuk/create">
-          <Button className="h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20">
-            <Plus className="mr-1.5 h-4 w-4" />
-            Input Surat Masuk Baru
+        <div className="flex items-center gap-2.5">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsExportModalOpen(true)}
+            className="h-9 px-3.5 text-xs font-semibold border-emerald-200 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/80 hover:text-emerald-800 dark:border-emerald-900/60 dark:text-emerald-300 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/60 rounded-xl shadow-2xs gap-1.5"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            Export Excel
           </Button>
-        </Link>
+
+          <Link href="/surat/masuk/create">
+            <Button className="h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm shadow-emerald-600/20">
+              <Plus className="mr-1.5 h-4 w-4" />
+              Input Surat Masuk Baru
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-2.5 md:px-4 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
           <Input
@@ -267,12 +281,12 @@ export default function SuratMasukListPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
         <div className="overflow-x-auto">
           {loading ? (
             <div className="p-4 space-y-2.5">
               {[1, 2, 3, 4, 5].map((n) => (
-                <div key={n} className="h-12 w-full animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-900" />
+                <div key={n} className="h-11 w-full animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-900" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
@@ -282,60 +296,60 @@ export default function SuratMasukListPage() {
             </div>
           ) : (
             <table className="w-full text-left text-xs">
-              <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 font-semibold uppercase tracking-wider text-[10.5px]">
                 <tr>
-                  <th className="p-3.5">No Agenda</th>
-                  <th className="p-3.5">Nomor & Tanggal Surat</th>
-                  <th className="p-3.5">Asal Surat / Pengirim</th>
-                  <th className="p-3.5">Isi Ringkas / Perihal</th>
-                  <th className="p-3.5">Sifat</th>
-                  <th className="p-3.5 text-right">Aksi</th>
+                  <th className="py-2.5 px-3.5">No Agenda</th>
+                  <th className="py-2.5 px-3.5">Nomor & Tanggal Surat</th>
+                  <th className="py-2.5 px-3.5">Asal Surat / Pengirim</th>
+                  <th className="py-2.5 px-3.5">Isi Ringkas / Perihal</th>
+                  <th className="py-2.5 px-3.5">Sifat</th>
+                  <th className="py-2.5 px-3.5 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {paginatedList.map((item) => (
                   <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
-                    <td className="p-3.5 font-bold text-emerald-600">
-                      <div className="flex items-center gap-1.5">
-                        <FileText className="h-4 w-4 shrink-0" />
+                    <td className="py-3 px-3.5 align-middle font-bold text-emerald-600 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 text-[13px]">
+                        <FileText className="h-3.5 w-3.5 shrink-0" />
                         <span>{item.no_agenda}</span>
                       </div>
-                      <span className="text-[10px] font-normal text-zinc-400 block mt-0.5">
+                      <span className="text-[11px] font-normal text-zinc-400 block mt-0.5">
                         {formatDisplayDate(item.tanggal_agenda)}
                       </span>
                     </td>
 
-                    <td className="p-3.5">
-                      <span className="font-bold text-zinc-900 dark:text-zinc-100 block">
-                        {item.no_surat}
+                    <td className="py-3 px-3.5 align-middle min-w-36">
+                      <span className="font-bold text-[13px] text-zinc-900 dark:text-zinc-100 block truncate max-w-54">
+                        {item.no_surat || "-"}
                       </span>
-                      <span className="text-[10px] text-zinc-500 flex items-center gap-1 mt-0.5">
-                        <Calendar className="h-3 w-3" /> Tanggal: {formatDisplayDate(item.tanggal_surat)}
+                      <span className="text-[11px] text-zinc-500 flex items-center gap-1 mt-0.5">
+                        <Calendar className="h-3 w-3 text-zinc-400" /> Tanggal: {formatDisplayDate(item.tanggal_surat)}
                       </span>
                     </td>
 
-                    <td className="p-3.5 max-w-50">
-                      <span className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                    <td className="py-3 px-3.5 align-middle max-w-56">
+                      <span className="font-semibold text-[13px] text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
                         <Building2 className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                        <span className="truncate">{item.asal_surat}</span>
+                        <span className="truncate">{item.asal_surat || "-"}</span>
                       </span>
-                      <span className="text-[10px] text-zinc-400 block mt-0.5">
+                      <span className="text-[11px] text-zinc-400 block mt-0.5 truncate">
                         Lampiran: {item.lampiran || "-"}
                       </span>
                     </td>
 
-                    <td className="p-3.5 max-w-70">
-                      <p className="text-zinc-700 dark:text-zinc-300 line-clamp-2 leading-relaxed">
-                        {item.isi_ringkas}
+                    <td className="py-3 px-3.5 align-middle max-w-72">
+                      <p className="text-[12.5px] text-zinc-700 dark:text-zinc-300 line-clamp-2 leading-relaxed">
+                        {item.isi_ringkas || "-"}
                       </p>
                     </td>
 
-                    <td className="p-3.5">
+                    <td className="py-3 px-3.5 align-middle whitespace-nowrap">
                       <div className="flex flex-wrap gap-1">
                         {(item.sifat_json || ["Penting"]).map((sifat) => (
                           <span
                             key={sifat}
-                            className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300"
+                            className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300"
                           >
                             {sifat}
                           </span>
@@ -343,17 +357,17 @@ export default function SuratMasukListPage() {
                       </div>
                     </td>
 
-                    <td className="p-3.5 text-right">
+                    <td className="py-3 px-3.5 align-middle text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         <Link href={`/surat/masuk/create?id=${item.id}`}>
-                          <Button variant="outline" size="sm" className="h-8 text-[11px] font-semibold text-amber-700 border-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300">
+                          <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold text-amber-700 border-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300">
                             <Pencil className="mr-1 h-3 w-3" />
                             Edit
                           </Button>
                         </Link>
 
                         <Link href={`/surat/masuk/create?id=${item.id}`}>
-                          <Button variant="outline" size="sm" className="h-8 text-[11px] font-semibold text-emerald-700 border-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300">
+                          <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold text-emerald-700 border-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300">
                             <Printer className="mr-1 h-3 w-3" />
                             Cetak
                           </Button>
@@ -378,7 +392,7 @@ export default function SuratMasukListPage() {
 
         {/* Pagination Footer */}
         {!loading && totalCount > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 text-xs">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 sm:px-5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 text-xs">
             {/* Info Text */}
             <div className="text-zinc-500 dark:text-zinc-400 font-medium">
               Menampilkan <span className="font-bold text-zinc-900 dark:text-zinc-100">{startRecord}</span> -{" "}
@@ -442,6 +456,14 @@ export default function SuratMasukListPage() {
           </div>
         )}
       </div>
+
+      {/* Export Excel Modal */}
+      <ExportSuratMasukModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        currentSearch={search}
+        totalCurrentItems={filtered.length}
+      />
     </div>
   );
 }
