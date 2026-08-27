@@ -9,73 +9,88 @@ import {
   Plus,
   FileCheck,
   CheckCircle2,
-  Shield,
+  Building2,
   ChevronRight,
-  Layers,
-  ArrowUpRight,
+  Calendar,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-interface SuratMasukItem {
+export interface SuratMasukItem {
   id?: string | number;
   no_agenda?: string;
+  tanggal_agenda?: string;
+  no_surat?: string;
+  tanggal_surat?: string;
   asal_surat?: string;
+  isi_ringkas?: string;
   perihal?: string;
   tanggal_terima?: string;
   status_disposisi?: string;
   sifat?: string;
+  sifat_json?: string[];
 }
 
-interface SuratKeluarItem {
+export interface SuratKeluarItem {
   id?: string | number;
   no_surat?: string;
+  tanggal_surat?: string;
   tujuan_surat?: string;
   perihal?: string;
-  tanggal_surat?: string;
+  sifat?: string;
   status?: string;
+}
+
+function formatDisplayDate(dateStr?: string | null): string {
+  if (!dateStr) return "-";
+  const str = String(dateStr).trim();
+  const rawDate = str.includes("T") ? str.split("T")[0] : str.includes(" ") ? str.split(" ")[0] : str;
+  const parts = rawDate.split("-");
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return rawDate;
 }
 
 export function HeaderBanner() {
   return (
-    <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-950 p-5 md:px-7 md:py-5 border border-white/10 shadow-2xl">
-      {/* Glowing Mesh Gradients */}
-      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-96 h-96 bg-linear-to-br from-emerald-600/40 via-teal-600/30 to-cyan-600/0 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/3 -mb-10 w-72 h-72 bg-linear-to-tr from-blue-500/20 via-teal-500/20 to-transparent rounded-full blur-2xl pointer-events-none" />
-
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 backdrop-blur-md">
-            <Mail className="h-3.5 w-3.5 text-emerald-300" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300">
-              MODUL PERSURATAN & DISPOSISI DIGITAL BKSDA KALTIM
+    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-950 p-5 md:p-6 border border-zinc-200/90 dark:border-zinc-800/90 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/60">
+            <Building2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-[11px] font-bold tracking-wide uppercase">
+              BKSDA KALIMANTAN TIMUR &bull; PERSURATAN RESMI
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
               Pengelolaan Surat Masuk & Surat Keluar
             </h1>
-            <span className="hidden lg:inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
-              <Shield className="w-3 h-3" /> Digital Registry
-            </span>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl leading-relaxed">
+              Pusat penatausahaan naskah dinas resmi, registrasi nomor agenda, penerusan lembar disposisi, dan pengarsipan digital Balai KSDA Kalimantan Timur.
+            </p>
           </div>
-
-          <p className="text-slate-300 text-xs max-w-2xl leading-relaxed hidden md:block">
-            Penatausahaan naskah dinas resmi BKSDA Kalimantan Timur, registrasi nomor agenda, penerusan lembar disposisi presisi 2-Up, dan pengarsipan digital.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <Link href="/surat/masuk/create">
-            <button className="group flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-xl shadow-emerald-600/30 hover:scale-[1.02] active:scale-95 border border-emerald-400/30">
-              <Plus className="w-4 h-4 text-white group-hover:rotate-90 transition-transform" />
-              <span>Input Surat Masuk</span>
-            </button>
+            <Button className="h-10 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm shadow-emerald-600/20 gap-2">
+              <Plus className="h-4 w-4" />
+              Input Surat Masuk
+            </Button>
           </Link>
           <Link href="/surat/keluar/create">
-            <button className="group flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 font-bold text-xs rounded-xl transition-all shadow-lg hover:shadow-emerald-500/10 active:scale-95">
-              <Plus className="w-4 h-4 text-emerald-400 group-hover:rotate-90 transition-transform" />
-              <span>Input Surat Keluar</span>
-            </button>
+            <Button
+              variant="outline"
+              className="h-10 px-4 text-xs font-bold border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-900/60 dark:text-blue-300 dark:bg-blue-950/30 dark:hover:bg-blue-950/60 rounded-xl gap-2"
+            >
+              <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              Input Surat Keluar
+            </Button>
           </Link>
         </div>
       </div>
@@ -93,104 +108,100 @@ export function BentoStatCards({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
       {/* Card 1: Total Surat Masuk */}
-      <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-emerald-500/10 transition-all" />
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between">
         <div className="flex items-center justify-between">
-          <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
             <Inbox className="w-4.5 h-4.5" />
           </div>
-          <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/60">
             Surat Masuk
           </span>
         </div>
         <div className="mt-3">
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+            <p className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
               {totalSuratMasuk}
             </p>
-            <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-1.5 py-0.5 rounded-md">
+            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded">
               Agenda Aktif
             </span>
           </div>
-          <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
             Disposisi & Teragendakan
           </p>
         </div>
       </div>
 
       {/* Card 2: Total Surat Keluar */}
-      <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-blue-500/40 transition-all group flex flex-col justify-between">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-blue-500/10 transition-all" />
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:border-blue-500/40 transition-all flex flex-col justify-between">
         <div className="flex items-center justify-between">
-          <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 flex items-center justify-center">
             <Send className="w-4.5 h-4.5" />
           </div>
-          <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/60">
             Surat Keluar
           </span>
         </div>
         <div className="mt-3">
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+            <p className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
               {totalSuratKeluar}
             </p>
-            <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-1.5 py-0.5 rounded-md">
+            <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded">
               Terarsip
             </span>
           </div>
-          <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
             Penomoran Naskah Resmi
           </p>
         </div>
       </div>
 
       {/* Card 3: Lembar Disposisi 2-Up */}
-      <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-amber-500/40 transition-all group flex flex-col justify-between">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/10 transition-all" />
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:border-amber-500/40 transition-all flex flex-col justify-between">
         <div className="flex items-center justify-between">
-          <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-amber-400 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center">
             <FileCheck className="w-4.5 h-4.5" />
           </div>
-          <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/60">
             Disposisi Cetak
           </span>
         </div>
         <div className="mt-3">
           <div className="flex items-baseline gap-2">
-            <p className="text-xl md:text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
+            <p className="text-xl md:text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
               2-Up Letter
             </p>
-            <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-1.5 py-0.5 rounded-md">
+            <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded">
               Standar
             </span>
           </div>
-          <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
             2 Lembar Disposisi per Halaman
           </p>
         </div>
       </div>
 
-      {/* Card 4: Keaktifan Naskah */}
-      <div className="relative overflow-hidden bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:shadow-md hover:border-teal-500/40 transition-all group flex flex-col justify-between">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-teal-500/10 transition-all" />
+      {/* Card 4: Penatausahaan */}
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:border-teal-500/40 transition-all flex flex-col justify-between">
         <div className="flex items-center justify-between">
-          <div className="w-9.5 h-9.5 rounded-xl bg-linear-to-br from-teal-400 to-emerald-600 text-white flex items-center justify-center shadow-lg shadow-teal-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center">
             <CheckCircle2 className="w-4.5 h-4.5" />
           </div>
-          <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/60">
-            Responsif
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300 border border-teal-200/60 dark:border-teal-900/60">
+            Tata Kelola
           </span>
         </div>
         <div className="mt-3">
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+            <p className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
               100%
             </p>
-            <span className="text-[10px] font-extrabold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950 px-1.5 py-0.5 rounded-md">
+            <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50 px-1.5 py-0.5 rounded">
               Terdata
             </span>
           </div>
-          <p className="text-[10.5px] text-zinc-500 dark:text-zinc-400 font-semibold truncate mt-0.5">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
             Penatausahaan Naskah Resmi
           </p>
         </div>
@@ -207,127 +218,193 @@ export function RecentSuratWidget({
   suratKeluarList: SuratKeluarItem[];
 }) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Card Left: Surat Masuk Terbaru */}
-      <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-xs flex flex-col">
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80 mb-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {/* Kolom Kiri: Tabel Mini Surat Masuk Terbaru */}
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/90 dark:border-zinc-800/90 rounded-2xl shadow-xs overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 md:px-5 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40">
           <div className="flex items-center gap-2.5">
-            <div className="w-8.5 h-8.5 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
-              <Inbox className="w-4.5 h-4.5" />
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center justify-center">
+              <Inbox className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-extrabold text-xs md:text-sm text-zinc-900 dark:text-white">
+              <h3 className="font-bold text-xs md:text-sm text-zinc-900 dark:text-white">
                 Surat Masuk Terbaru
               </h3>
               <p className="text-[10px] text-zinc-400">
-                Naskah dinas masuk & lembar disposisi
+                5 naskah dinas masuk & disposisi terakhir
               </p>
             </div>
           </div>
           <Link
             href="/surat/masuk"
-            className="text-[11px] font-extrabold text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 flex items-center gap-0.5"
+            className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 flex items-center gap-1"
           >
             <span>Lihat Semua</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="space-y-2.5">
-          {suratMasukList.map((item, idx) => (
-            <div
-              key={item.id || idx}
-              className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 border border-zinc-200/60 dark:border-zinc-800/80 transition-all group"
-            >
-              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                <Inbox className="w-4.5 h-4.5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11.5px] font-extrabold text-zinc-900 dark:text-white truncate group-hover:text-emerald-600 transition-colors">
-                    {item.perihal || "Naskah Surat Masuk"}
-                  </p>
-                  <span className="text-[9px] font-mono text-zinc-400 shrink-0 ml-2">
-                    Agenda: {item.no_agenda || `#${idx + 1}`}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/50">
-                    {item.sifat || "Biasa"}
-                  </span>
-                  <span className="text-[10px] text-zinc-400 flex items-center gap-1 truncate font-medium">
-                    Dari: {item.asal_surat || "Instansi Luar"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-          {suratMasukList.length === 0 && (
-            <div className="p-6 text-center text-zinc-400 text-xs font-medium bg-zinc-50/40 dark:bg-zinc-800/20 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+        <div className="overflow-x-auto flex-1">
+          {suratMasukList.length === 0 ? (
+            <div className="p-8 text-center text-zinc-400 text-xs font-medium">
               Belum ada data Surat Masuk terbaru.
             </div>
+          ) : (
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-zinc-100 dark:border-zinc-800/60 text-[10px] uppercase font-bold text-zinc-400 bg-zinc-50/30 dark:bg-zinc-900/20">
+                <tr>
+                  <th className="py-2.5 px-4">No Agenda</th>
+                  <th className="py-2.5 px-3">No & Tgl Surat</th>
+                  <th className="py-2.5 px-3">Pengirim & Perihal</th>
+                  <th className="py-2.5 px-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                {suratMasukList.slice(0, 5).map((item) => {
+                  const perihalText = item.isi_ringkas || item.perihal || "-";
+                  const sifatText = (item.sifat_json && item.sifat_json[0]) || item.sifat || "Biasa";
+                  return (
+                    <tr
+                      key={item.id || item.no_agenda}
+                      className="hover:bg-zinc-50/70 dark:hover:bg-zinc-900/50 transition-colors"
+                    >
+                      <td className="py-3 px-4 align-top">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                            {item.no_agenda || "-"}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-zinc-400 block mt-0.5">
+                          {formatDisplayDate(item.tanggal_agenda || item.tanggal_terima)}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3 align-top min-w-36">
+                        <span className="font-semibold text-zinc-800 dark:text-zinc-200 block truncate max-w-44">
+                          {item.no_surat || "-"}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 flex items-center gap-1 mt-0.5">
+                          <Calendar className="w-3 h-3 text-zinc-400" />
+                          {formatDisplayDate(item.tanggal_surat)}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3 align-top min-w-44 max-w-64">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-zinc-900 dark:text-white truncate">
+                            {item.asal_surat || "Instansi Luar"}
+                          </span>
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-medium shrink-0">
+                            {sifatText}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 leading-tight">
+                          {perihalText}
+                        </p>
+                      </td>
+
+                      <td className="py-3 px-3 align-top text-right shrink-0">
+                        <Link
+                          href={`/surat/masuk/create?id=${item.id}`}
+                          className="inline-flex items-center justify-center p-1.5 rounded-lg text-zinc-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 transition-colors"
+                          title="Lihat / Edit Disposisi"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
         </div>
       </div>
 
-      {/* Card Right: Surat Keluar Terbaru */}
-      <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-xs flex flex-col">
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80 mb-4">
+      {/* Kolom Kanan: Tabel Mini Surat Keluar Terbaru */}
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/90 dark:border-zinc-800/90 rounded-2xl shadow-xs overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 md:px-5 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40">
           <div className="flex items-center gap-2.5">
-            <div className="w-8.5 h-8.5 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-              <Send className="w-4.5 h-4.5" />
+            <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 flex items-center justify-center">
+              <Send className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-extrabold text-xs md:text-sm text-zinc-900 dark:text-white">
+              <h3 className="font-bold text-xs md:text-sm text-zinc-900 dark:text-white">
                 Surat Keluar Terbaru
               </h3>
               <p className="text-[10px] text-zinc-400">
-                Pengagendaan naskah dinas keluar
+                5 penomoran naskah dinas keluar terakhir
               </p>
             </div>
           </div>
           <Link
             href="/surat/keluar"
-            className="text-[11px] font-extrabold text-blue-600 hover:text-blue-500 dark:text-blue-400 flex items-center gap-0.5"
+            className="text-[11px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 flex items-center gap-1"
           >
             <span>Lihat Semua</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="space-y-2.5">
-          {suratKeluarList.map((item, idx) => (
-            <div
-              key={item.id || idx}
-              className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 border border-zinc-200/60 dark:border-zinc-800/80 transition-all group"
-            >
-              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                <Send className="w-4.5 h-4.5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11.5px] font-extrabold text-zinc-900 dark:text-white truncate group-hover:text-blue-600 transition-colors">
-                    {item.perihal || "Surat Keluar Resmi"}
-                  </p>
-                  <span className="text-[9px] font-mono text-zinc-400 shrink-0 ml-2">
-                    {item.no_surat || `#${idx + 1}`}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50">
-                    {item.status || "Terarsip"}
-                  </span>
-                  <span className="text-[10px] text-zinc-400 flex items-center gap-1 truncate font-medium">
-                    Kepada: {item.tujuan_surat || "Tujuan Resmi"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-          {suratKeluarList.length === 0 && (
-            <div className="p-6 text-center text-zinc-400 text-xs font-medium bg-zinc-50/40 dark:bg-zinc-800/20 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+        <div className="overflow-x-auto flex-1">
+          {suratKeluarList.length === 0 ? (
+            <div className="p-8 text-center text-zinc-400 text-xs font-medium">
               Belum ada data Surat Keluar terbaru.
             </div>
+          ) : (
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-zinc-100 dark:border-zinc-800/60 text-[10px] uppercase font-bold text-zinc-400 bg-zinc-50/30 dark:bg-zinc-900/20">
+                <tr>
+                  <th className="py-2.5 px-4">No Surat</th>
+                  <th className="py-2.5 px-3">Tanggal</th>
+                  <th className="py-2.5 px-3">Tujuan & Perihal</th>
+                  <th className="py-2.5 px-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                {suratKeluarList.slice(0, 5).map((item) => (
+                  <tr
+                    key={item.id || item.no_surat}
+                    className="hover:bg-zinc-50/70 dark:hover:bg-zinc-900/50 transition-colors"
+                  >
+                    <td className="py-3 px-4 align-top min-w-36">
+                      <span className="font-bold text-blue-600 dark:text-blue-400 block truncate max-w-44">
+                        {item.no_surat || "-"}
+                      </span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 font-medium inline-block mt-0.5">
+                        {item.status || "Terarsip"}
+                      </span>
+                    </td>
+
+                    <td className="py-3 px-3 align-top text-zinc-500 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-zinc-400" />
+                        <span>{formatDisplayDate(item.tanggal_surat)}</span>
+                      </div>
+                    </td>
+
+                    <td className="py-3 px-3 align-top min-w-44 max-w-64">
+                      <span className="font-semibold text-zinc-900 dark:text-white block truncate">
+                        {item.tujuan_surat || "Tujuan Resmi"}
+                      </span>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 leading-tight">
+                        {item.perihal || "-"}
+                      </p>
+                    </td>
+
+                    <td className="py-3 px-3 align-top text-right shrink-0">
+                      <Link
+                        href={`/surat/keluar/create?id=${item.id}`}
+                        className="inline-flex items-center justify-center p-1.5 rounded-lg text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 dark:hover:text-blue-300 transition-colors"
+                        title="Lihat Detail Surat Keluar"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       </div>
