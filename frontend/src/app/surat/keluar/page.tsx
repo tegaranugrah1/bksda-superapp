@@ -44,12 +44,12 @@ export default function SuratKeluarListPage() {
   });
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-3.5 px-5 py-4 md:px-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+            <div className="p-1.5 rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
               <Send className="h-5 w-5" />
             </div>
             <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
@@ -62,7 +62,7 @@ export default function SuratKeluarListPage() {
         </div>
 
         <Link href="/surat/keluar/create">
-          <Button className="h-9 px-4 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md shadow-blue-600/20">
+          <Button className="h-9 px-4 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm shadow-blue-600/20">
             <Plus className="mr-1.5 h-4 w-4" />
             Input Surat Keluar Baru
           </Button>
@@ -70,7 +70,7 @@ export default function SuratKeluarListPage() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-2.5 md:px-4 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
           <Input
@@ -87,49 +87,49 @@ export default function SuratKeluarListPage() {
       </div>
 
       {/* Data Table */}
-      <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 font-semibold uppercase tracking-wider text-[10.5px]">
               <tr>
-                <th className="p-3.5">Nomor Surat</th>
-                <th className="p-3.5">Tanggal Surat</th>
-                <th className="p-3.5">Tujuan Surat</th>
-                <th className="p-3.5">Perihal</th>
-                <th className="p-3.5">Sifat & Lampiran</th>
-                <th className="p-3.5 text-right">Penandatangan</th>
+                <th className="py-2.5 px-3.5">Nomor Surat</th>
+                <th className="py-2.5 px-3.5">Tanggal Surat</th>
+                <th className="py-2.5 px-3.5">Tujuan Surat</th>
+                <th className="py-2.5 px-3.5">Perihal</th>
+                <th className="py-2.5 px-3.5">Sifat & Lampiran</th>
+                <th className="py-2.5 px-3.5 text-right">Penandatangan</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {filtered.map((item) => (
                 <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
-                  <td className="p-3.5 font-bold text-blue-600">
-                    <div className="flex items-center gap-1.5">
-                      <FileText className="h-4 w-4 shrink-0" />
+                  <td className="py-3 px-3.5 align-middle font-bold text-blue-600 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5 text-[13px]">
+                      <FileText className="h-3.5 w-3.5 shrink-0" />
                       <span>{item.no_surat}</span>
                     </div>
                   </td>
 
-                  <td className="p-3.5 text-zinc-600">
-                    <div className="flex items-center gap-1">
+                  <td className="py-3 px-3.5 align-middle text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                    <div className="flex items-center gap-1 text-[11px]">
                       <Calendar className="h-3 w-3 text-zinc-400" />
                       <span>{item.tanggal_surat}</span>
                     </div>
                   </td>
 
-                  <td className="p-3.5 max-w-[220px] font-semibold text-zinc-800 dark:text-zinc-200">
+                  <td className="py-3 px-3.5 align-middle max-w-[220px] font-semibold text-[13px] text-zinc-800 dark:text-zinc-200 leading-snug truncate">
                     {item.tujuan_surat}
                   </td>
 
-                  <td className="p-3.5 max-w-[280px] text-zinc-700 dark:text-zinc-300">
+                  <td className="py-3 px-3.5 align-middle max-w-[280px] text-[12.5px] text-zinc-700 dark:text-zinc-300 leading-snug">
                     {item.perihal}
                   </td>
 
-                  <td className="p-3.5">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                  <td className="py-3 px-3.5 align-middle whitespace-nowrap">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-950 dark:text-blue-300">
                       {item.sifat || "Biasa"}
                     </span>
-                    <span className="text-[10px] text-zinc-400 block mt-0.5">
+                    <span className="text-[11px] text-zinc-400 block mt-0.5">
                       {item.lampiran || "-"}
                     </span>
                   </td>
