@@ -35,9 +35,9 @@ class SuratMasuk extends Model
     ];
 
     protected $casts = [
-        'tanggal_agenda' => 'date',
-        'tanggal_penyelesaian' => 'date',
-        'tanggal_surat' => 'date',
+        'tanggal_agenda' => 'date:Y-m-d',
+        'tanggal_penyelesaian' => 'date:Y-m-d',
+        'tanggal_surat' => 'date:Y-m-d',
         'sifat_json' => 'array',
     ];
 

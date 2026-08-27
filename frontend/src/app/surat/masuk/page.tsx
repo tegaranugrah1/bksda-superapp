@@ -3,12 +3,13 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RefreshCw } from "lucide-react";
+import { Inbox, Plus, Search, Printer, FileText, Calendar, Building2, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RefreshCw, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import type { SuratMasuk } from "../_lib/surat-types";
+import { ExportSuratMasukModal } from "./_components/ExportSuratMasukModal";
 
 function formatDisplayDate(dateStr?: string | null): string {
   if (!dateStr) return "-";
@@ -54,6 +55,7 @@ export default function SuratMasukListPage() {
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteItem, setDeleteItem] = useState<SuratMasuk | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Pagination states
   const [page, setPage] = useState(1);
@@ -235,12 +237,24 @@ export default function SuratMasukListPage() {
           </p>
         </div>
 
-        <Link href="/surat/masuk/create">
-          <Button className="h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20">
-            <Plus className="mr-1.5 h-4 w-4" />
-            Input Surat Masuk Baru
+        <div className="flex items-center gap-2.5">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsExportModalOpen(true)}
+            className="h-9 px-3.5 text-xs font-semibold border-emerald-200 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/80 hover:text-emerald-800 dark:border-emerald-900/60 dark:text-emerald-300 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/60 rounded-xl shadow-xs gap-1.5"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            Export Excel
           </Button>
-        </Link>
+
+          <Link href="/surat/masuk/create">
+            <Button className="h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20">
+              <Plus className="mr-1.5 h-4 w-4" />
+              Input Surat Masuk Baru
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
@@ -442,6 +456,14 @@ export default function SuratMasukListPage() {
           </div>
         )}
       </div>
+
+      {/* Export Excel Modal */}
+      <ExportSuratMasukModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        currentSearch={search}
+        totalCurrentItems={filtered.length}
+      />
     </div>
   );
 }

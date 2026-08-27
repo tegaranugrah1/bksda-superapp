@@ -3,15 +3,28 @@
 namespace App\Modules\Surat\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Surat\Exports\SuratMasukExport;
 use App\Modules\Surat\Models\SuratMasuk;
 use App\Modules\Surat\Requests\SuratMasukRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SuratMasukController extends Controller
 {
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'start_date', 'end_date', 'year', 'month', 'sifat']);
+        
+        $filename = 'Rekap_Surat_Masuk_BKSDA_' . date('Ymd_His') . '.xlsx';
+        if (!empty($filters['year'])) {
+            $filename = 'Rekap_Surat_Masuk_BKSDA_' . $filters['year'] . (!empty($filters['month']) ? sprintf('_%02d', (int) $filters['month']) : '') . '.xlsx';
+        }
+
+        return Excel::download(new SuratMasukExport($filters), $filename);
+    }
     public function index(Request $request): JsonResponse
     {
         $query = SuratMasuk::with(['disposisi', 'creator'])
