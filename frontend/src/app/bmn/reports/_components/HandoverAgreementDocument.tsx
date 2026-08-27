@@ -212,6 +212,7 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
         <title>BA Serah Terima BMN</title>
         <style>
           @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
+          @page :first { margin-top: 0; }
           * { box-sizing: border-box; }
           body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
           p { margin: 0; }
@@ -461,6 +462,7 @@ export function HandoverAgreementDocument({
         }
         @media print {
           @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
+          @page :first { margin-top: 0; }
           body * { visibility: hidden; }
           #ba-serah-terima-print-root, #ba-serah-terima-print-root * { visibility: visible; }
           #ba-serah-terima-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
