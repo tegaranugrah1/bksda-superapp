@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 // Public routes (untuk form surat tugas)
 Route::get('/employees/select', [EmployeeController::class, 'select'])
     ->middleware('throttle:30,1');
+Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
+    ->middleware('throttle:60,1');
 
 Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
 
@@ -28,6 +30,18 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::patch('/st-templates/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'toggleActive']);
         Route::post('/st-templates/{id}/duplicate', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'duplicate']);
         Route::delete('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'destroy']);
+    });
+
+    // --- TEMPLATE BIAYA / SUMBER DANA ---
+    Route::get('/st-expense-templates', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index']);
+    Route::get('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'show']);
+    Route::middleware('role:super_admin,admin')->group(function () {
+        Route::post('/st-expense-templates', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'store']);
+        Route::put('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'update']);
+        Route::post('/st-expense-templates/{id}/set-default', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'setDefault']);
+        Route::patch('/st-expense-templates/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'toggleActive']);
+        Route::post('/st-expense-templates/{id}/duplicate', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'duplicate']);
+        Route::delete('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'destroy']);
     });
 
     // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE) ---

@@ -20,7 +20,7 @@ const SIDEBAR_ITEMS = [
   { href: "/kepegawaian/cuti", label: "Inbox Surat Cuti", icon: Calendar, minRole: "admin" as const },
   { href: "/kepegawaian/surat-tugas/create", label: "Buat Surat Tugas", icon: FileText, minRole: "admin" as const },
   { href: "/kepegawaian/surat-tugas/history", label: "Riwayat Surat Tugas", icon: History, minRole: "user" as const },
-  { href: "/kepegawaian/settings/st-templates", label: "Template Surat Tugas", icon: Settings, minRole: "super_admin" as const },
+  { href: "/kepegawaian/settings/st-templates", label: "Pengaturan Surat Tugas", icon: Settings, minRole: "super_admin" as const },
 ];
 
 export default function KepegawaianLayout({
