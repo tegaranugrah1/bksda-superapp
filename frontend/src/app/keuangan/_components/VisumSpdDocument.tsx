@@ -218,9 +218,10 @@ const VISUM_BASE_CSS = `
     margin: 0;
   }
   .visum-sheet {
-    width: 186mm;
+    width: 100%;
+    max-width: 186mm;
     margin: 0 auto;
-    background: white;
+    background: transparent;
     color: black;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 8.6pt;
