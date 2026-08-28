@@ -18,6 +18,9 @@ import {
   BookmarkPlus,
   Plus,
   Trash2,
+  ClipboardList,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +51,8 @@ interface EmployeeOption {
   department: string | null;
 }
 
-const STORAGE_KEY = "bksda_visum_spd_draft_v1";
+const STORAGE_KEY = "bksda_visum_spd_draft_v2";
+const STORAGE_KEY_TMPL_ID = "bksda_visum_spd_selected_template_id";
 
 const BULAN_INDO = [
   "Januari",
@@ -169,7 +173,22 @@ function IndoDatePicker({
   );
 }
 
-export function VisumSpdTab() {
+export interface SuratTugasSimpleItem {
+  id: string;
+  nomor_surat: string | null;
+  maksud_tujuan: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  tempat_tujuan?: string | null;
+}
+
+export function VisumSpdTab({
+  isPortal = false,
+  suratTugasList = [],
+}: {
+  isPortal?: boolean;
+  suratTugasList?: SuratTugasSimpleItem[];
+}) {
   const [data, setData] = useState<VisumSpdData>(getTemplateKelian());
   const [templates, setTemplates] = useState<VisumTemplateItem[]>([]);
   const [settings, setSettings] = useState<VisumSpdSettings | null>(null);
@@ -180,6 +199,7 @@ export function VisumSpdTab() {
   const [showTableBorder, setShowTableBorder] = useState<boolean>(true);
   const [showTransitSection, setShowTransitSection] = useState<boolean>(false);
   const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
+  const [previewZoom, setPreviewZoom] = useState<number>(0.85); // Default 85% large clear scale for high readability
 
   // Modals
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
@@ -412,10 +432,43 @@ export function VisumSpdTab() {
         const tmpls: VisumTemplateItem[] = resTemplates.data.data;
         setTemplates(tmpls);
 
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved && tmpls.length > 0) {
+        let savedDataRaw: string | null = null;
+        let savedTmplId: string | null = null;
+        try {
+          savedDataRaw = localStorage.getItem(STORAGE_KEY);
+          savedTmplId = localStorage.getItem(STORAGE_KEY_TMPL_ID);
+        } catch {}
+
+        let parsedSavedData: VisumSpdData | null = null;
+        try {
+          if (savedDataRaw) parsedSavedData = JSON.parse(savedDataRaw);
+        } catch {}
+
+        if (savedTmplId === "manual") {
+          setSelectedTemplateId("manual");
+          if (parsedSavedData) {
+            setData(parsedSavedData);
+          } else {
+            setData(getTemplateManual());
+          }
+        } else if (savedTmplId && tmpls.some((t) => String(t.id) === savedTmplId)) {
+          const matchedTmpl = tmpls.find((t) => String(t.id) === savedTmplId)!;
+          setSelectedTemplateId(String(matchedTmpl.id));
+          if (parsedSavedData && (parsedSavedData.asal_tempat || parsedSavedData.tujuan_1_tempat)) {
+            setData(parsedSavedData);
+          } else {
+            applyTemplateItem(matchedTmpl, false, loadedSettings);
+          }
+        } else {
           const def = tmpls.find((t) => t.is_default) || tmpls[0];
-          applyTemplateItem(def, false, loadedSettings);
+          if (def) {
+            setSelectedTemplateId(String(def.id));
+            if (parsedSavedData && (parsedSavedData.asal_tempat || parsedSavedData.tujuan_1_tempat)) {
+              setData(parsedSavedData);
+            } else {
+              applyTemplateItem(def, false, loadedSettings);
+            }
+          }
         }
       }
     } catch (err) {
@@ -427,30 +480,18 @@ export function VisumSpdTab() {
     fetchTemplatesAndSettings();
   }, []);
 
-  // Load saved draft on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setData((prev) => ({ ...prev, ...parsed }));
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const handleSelectTemplateOption = (val: string) => {
     setSelectedTemplateId(val);
+    try {
+      localStorage.setItem(STORAGE_KEY_TMPL_ID, val);
+    } catch {}
 
     if (val === "manual") {
       const manualData = getTemplateManual();
       setData(manualData);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(manualData));
-      } catch {
-        // ignore
-      }
+      } catch {}
       toast.info("Form dikosongkan untuk pengisian manual.");
       return;
     }
@@ -459,6 +500,33 @@ export function VisumSpdTab() {
     if (found) {
       applyTemplateItem(found, true);
     }
+  };
+
+  const handleApplySuratTugas = (st: SuratTugasSimpleItem) => {
+    const tglMulaiIndo = formatDateToIndo(st.tanggal_mulai);
+    const tglSelesaiIndo = formatDateToIndo(st.tanggal_selesai);
+    const dest = st.tempat_tujuan || st.maksud_tujuan || "";
+
+    setData((prev) => {
+      const next: VisumSpdData = {
+        ...prev,
+        tujuan_awal: dest,
+        tujuan_1_tempat: dest,
+        tujuan_1_berangkat_dari: dest,
+        asal_tanggal: tglMulaiIndo || prev.asal_tanggal,
+        tujuan_1_tiba_tanggal: tglMulaiIndo || prev.tujuan_1_tiba_tanggal,
+        tujuan_1_berangkat_tanggal: tglSelesaiIndo || prev.tujuan_1_berangkat_tanggal,
+        kembali_tanggal: tglSelesaiIndo || prev.kembali_tanggal,
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    toast.success(
+      `Data dari Surat Tugas "${st.nomor_surat || st.maksud_tujuan}" berhasil diterapkan ke form Visum.`
+    );
   };
 
   const handleResetDefault = () => {
@@ -638,14 +706,15 @@ export function VisumSpdTab() {
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
             <FileSpreadsheet className="h-4 w-4" />
-            <span>MODUL KEUANGAN / LEMBAR VISUM SPD</span>
+            <span>{isPortal ? "PORTAL PEGAWAI / LEMBAR VISUM SPD" : "MODUL KEUANGAN / LEMBAR VISUM SPD"}</span>
           </div>
           <h2 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
             Lembar Visum Perjalanan Dinas
           </h2>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Cetak lembar belakang SPD sebelum pelaksanaan SPJ. Mendukung cetak blanko kosong, cetak
-            parsial sisi Balai, lengkap, maupun cetak tumpuk (overlay nilai saja).
+            {isPortal
+              ? "Isi rute dan cetak lembar Visum SPD untuk melengkapi bukti perjalanan dinas Anda."
+              : "Cetak lembar belakang SPD sebelum pelaksanaan SPJ. Mendukung cetak blanko kosong, cetak parsial sisi Balai, lengkap, maupun cetak tumpuk (overlay nilai saja)."}
           </p>
         </div>
 
@@ -675,31 +744,35 @@ export function VisumSpdTab() {
             </select>
           </div>
 
-          {/* Save As Template Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsSaveAsModalOpen(true)}
-            title="Simpan isian form ini sebagai template baru"
-            className="rounded-xl border-amber-200 bg-amber-50/50 text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20"
-          >
-            <BookmarkPlus className="mr-1.5 h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-            <span>Simpan Template</span>
-          </Button>
+          {/* Admin-Only: Save As Template Button */}
+          {!isPortal && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSaveAsModalOpen(true)}
+              title="Simpan isian form ini sebagai template baru"
+              className="rounded-xl border-amber-200 bg-amber-50/50 text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20"
+            >
+              <BookmarkPlus className="mr-1.5 h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Simpan Template</span>
+            </Button>
+          )}
 
-          {/* Manage Templates & Officials Modal Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsManageModalOpen(true)}
-            title="Kelola daftar template dan master pejabat 4 wilayah"
-            className="rounded-xl border-zinc-200 text-xs text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-          >
-            <Settings2 className="mr-1.5 h-3.5 w-3.5" />
-            <span>Kelola Template</span>
-          </Button>
+          {/* Admin-Only: Manage Templates & Officials Modal Button */}
+          {!isPortal && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsManageModalOpen(true)}
+              title="Kelola daftar template dan master pejabat 4 wilayah"
+              className="rounded-xl border-zinc-200 text-xs text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              <Settings2 className="mr-1.5 h-3.5 w-3.5" />
+              <span>Kelola Template</span>
+            </Button>
+          )}
 
           <Button
             type="button"
@@ -722,10 +795,44 @@ export function VisumSpdTab() {
         </div>
       </div>
 
-      {/* Main Grid: Form Left, Preview Right */}
+      {/* Main Grid: Form Left (5 cols), Preview Right (7 cols) */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         {/* LEFT COLUMN: FORM CONTROLS (5 cols on xl) */}
         <div className="space-y-5 xl:col-span-5">
+          {/* Portal Only: Tarik Data dari Surat Tugas Aktif Saya */}
+          {isPortal && suratTugasList && suratTugasList.length > 0 && (
+            <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/5">
+              <div className="flex items-center gap-2 mb-1.5">
+                <ClipboardList className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                  Tarik Data dari Surat Tugas Saya (Opsional)
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mb-2.5">
+                Pilih Surat Tugas aktif Anda untuk mengisi otomatis tujuan dan tanggal perjalanan dinas.
+              </p>
+              <select
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  if (!selectedId) return;
+                  const st = suratTugasList.find((s) => String(s.id) === selectedId);
+                  if (st) {
+                    handleApplySuratTugas(st);
+                  }
+                }}
+                defaultValue=""
+                className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-700/50 dark:bg-zinc-900 dark:text-zinc-100"
+              >
+                <option value="">-- Pilih Surat Tugas Aktif Anda --</option>
+                {suratTugasList.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {st.nomor_surat || "Tanpa Nomor"} — {st.maksud_tujuan}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Card: Mode & Toggle Cetak */}
           <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
@@ -843,34 +950,39 @@ export function VisumSpdTab() {
             </div>
           </div>
 
-          {/* Quick Pejabat Presets 4 Wilayah */}
-          <div className="space-y-1.5">
+          {/* Quick Pejabat Presets 4 Wilayah (2x2 Grid for spacious layout without overflow) */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 Pilihan Pejabat Balai / Wilayah:
               </span>
               <span className="text-[10px] text-zinc-400">4 Wilayah Kerja</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={applyPresetSamarinda}
-                className={`h-auto flex-col items-start justify-start p-2.5 text-left text-xs rounded-xl border transition ${
+                className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition ${
                   data.asal_tempat === (settings?.samarinda?.place || "Samarinda")
-                    ? "border-amber-500 bg-amber-50/70 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300 font-semibold shadow-xs"
-                    : "border-zinc-200 hover:border-amber-300 dark:border-zinc-700"
+                    ? "border-amber-500 bg-amber-50/80 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-1 ring-amber-500/30"
+                    : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
                 }`}
               >
-                <div className="flex items-center gap-1 font-bold">
-                  <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
-                  <span>{settings?.samarinda?.place || "Samarinda"}</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    <span>{settings?.samarinda?.place || "Samarinda"}</span>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase text-amber-700 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-500/20 px-1.5 py-0.5 rounded">
+                    Balai
+                  </span>
                 </div>
-                <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 mt-0.5 truncate w-full" title={settings?.samarinda?.official_name || "Dheny Mardiono"}>
-                  {settings?.samarinda?.official_name || "Dheny Mardiono"}
+                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.samarinda?.official_name || "Dheny Mardiono, S.Hut., MSc."}>
+                  {settings?.samarinda?.official_name || "Dheny Mardiono, S.Hut., MSc."}
                 </span>
-                <span className="text-[9px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
                   {settings?.samarinda?.return_position?.split("\n")[0] || "Kasubbag Tata Usaha"}
                 </span>
               </Button>
@@ -880,20 +992,25 @@ export function VisumSpdTab() {
                 variant="outline"
                 size="sm"
                 onClick={applyPresetBerau}
-                className={`h-auto flex-col items-start justify-start p-2.5 text-left text-xs rounded-xl border transition ${
+                className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition ${
                   data.asal_tempat === (settings?.berau?.place || "Berau")
-                    ? "border-amber-500 bg-amber-50/70 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300 font-semibold shadow-xs"
-                    : "border-zinc-200 hover:border-amber-300 dark:border-zinc-700"
+                    ? "border-amber-500 bg-amber-50/80 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-1 ring-amber-500/30"
+                    : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
                 }`}
               >
-                <div className="flex items-center gap-1 font-bold">
-                  <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
-                  <span>{settings?.berau?.place || "Berau"}</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    <span>{settings?.berau?.place || "Berau"}</span>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase text-blue-700 dark:text-blue-400 bg-blue-100/60 dark:bg-blue-500/20 px-1.5 py-0.5 rounded">
+                    Wil. I
+                  </span>
                 </div>
-                <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 mt-0.5 truncate w-full" title={settings?.berau?.official_name || "Yulian Sadono"}>
-                  {settings?.berau?.official_name || "Yulian Sadono"}
+                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.berau?.official_name || "Yulian Sadono, S.Hut., M.T."}>
+                  {settings?.berau?.official_name || "Yulian Sadono, S.Hut., M.T."}
                 </span>
-                <span className="text-[9px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
                   {settings?.berau?.return_position?.split("\n")[0] || "Kepala Seksi Wil. I"}
                 </span>
               </Button>
@@ -903,20 +1020,25 @@ export function VisumSpdTab() {
                 variant="outline"
                 size="sm"
                 onClick={applyPresetTenggarong}
-                className={`h-auto flex-col items-start justify-start p-2.5 text-left text-xs rounded-xl border transition ${
+                className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition ${
                   data.asal_tempat === (settings?.tenggarong?.place || "Tenggarong")
-                    ? "border-amber-500 bg-amber-50/70 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300 font-semibold shadow-xs"
-                    : "border-zinc-200 hover:border-amber-300 dark:border-zinc-700"
+                    ? "border-amber-500 bg-amber-50/80 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-1 ring-amber-500/30"
+                    : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
                 }`}
               >
-                <div className="flex items-center gap-1 font-bold">
-                  <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
-                  <span>{settings?.tenggarong?.place || "Tenggarong"}</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    <span>{settings?.tenggarong?.place || "Tenggarong"}</span>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase text-emerald-700 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded">
+                    Wil. II
+                  </span>
                 </div>
-                <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 mt-0.5 truncate w-full" title={settings?.tenggarong?.official_name || "Suriawati Halim"}>
-                  {settings?.tenggarong?.official_name || "Suriawati Halim"}
+                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.tenggarong?.official_name || "Suriawati Halim, S.Hut., M.P."}>
+                  {settings?.tenggarong?.official_name || "Suriawati Halim, S.Hut., M.P."}
                 </span>
-                <span className="text-[9px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
                   {settings?.tenggarong?.return_position?.split("\n")[0] || "Kepala Seksi Wil. II"}
                 </span>
               </Button>
@@ -926,20 +1048,25 @@ export function VisumSpdTab() {
                 variant="outline"
                 size="sm"
                 onClick={applyPresetBalikpapan}
-                className={`h-auto flex-col items-start justify-start p-2.5 text-left text-xs rounded-xl border transition ${
+                className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition ${
                   data.asal_tempat === (settings?.balikpapan?.place || "Balikpapan")
-                    ? "border-amber-500 bg-amber-50/70 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300 font-semibold shadow-xs"
-                    : "border-zinc-200 hover:border-amber-300 dark:border-zinc-700"
+                    ? "border-amber-500 bg-amber-50/80 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-1 ring-amber-500/30"
+                    : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
                 }`}
               >
-                <div className="flex items-center gap-1 font-bold">
-                  <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
-                  <span>{settings?.balikpapan?.place || "Balikpapan"}</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    <span>{settings?.balikpapan?.place || "Balikpapan"}</span>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase text-purple-700 dark:text-purple-400 bg-purple-100/60 dark:bg-purple-500/20 px-1.5 py-0.5 rounded">
+                    Wil. III
+                  </span>
                 </div>
-                <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 mt-0.5 truncate w-full" title={settings?.balikpapan?.official_name || "Bambang Hari T."}>
+                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.balikpapan?.official_name || "Bambang Hari T."}>
                   {settings?.balikpapan?.official_name || "Bambang Hari T."}
                 </span>
-                <span className="text-[9px] text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
                   {settings?.balikpapan?.return_position?.split("\n")[0] || "Kepala Seksi Wil. III"}
                 </span>
               </Button>
@@ -1386,10 +1513,10 @@ export function VisumSpdTab() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: LIVE INTERACTIVE PREVIEW (7 cols on xl) */}
+        {/* RIGHT COLUMN: LIVE INTERACTIVE PREVIEW (7 cols on xl for large readable preview) */}
         <div className="space-y-4 xl:col-span-7">
           <div className="sticky top-20">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-3 dark:border-zinc-800">
                 <div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
@@ -1399,26 +1526,78 @@ export function VisumSpdTab() {
                     Format A4 Portrait · Tampilan langsung sesuai hasil cetak
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  onClick={() => handlePrintVisumSpd("visum-spd-print-root", showTableBorder)}
-                  className="rounded-xl bg-amber-600 px-4 text-xs font-semibold text-white hover:bg-amber-500 shadow-sm"
-                >
-                  <Printer className="mr-1.5 h-3.5 w-3.5" />
-                  Cetak Lembar Visum
-                </Button>
+
+                <div className="flex items-center gap-2">
+                  {/* Zoom Controls */}
+                  <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-800">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewZoom((z) => Math.max(0.5, Number((z - 0.05).toFixed(2))))}
+                      className="rounded p-1 text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                      title="Perkecil Tampilan"
+                    >
+                      <ZoomOut className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="min-w-[36px] text-center font-bold text-zinc-700 dark:text-zinc-200 text-[11px]">
+                      {Math.round(previewZoom * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewZoom((z) => Math.min(1.25, Number((z + 0.05).toFixed(2))))}
+                      className="rounded p-1 text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                      title="Perbesar Tampilan"
+                    >
+                      <ZoomIn className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewZoom(0.85)}
+                      className="ml-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+                      title="Ukuran Pas (85%)"
+                    >
+                      Fit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewZoom(1.0)}
+                      className="rounded px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+                      title="Ukuran Penuh 100%"
+                    >
+                      100%
+                    </button>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={() => handlePrintVisumSpd("visum-spd-print-root", showTableBorder)}
+                    className="rounded-xl bg-amber-600 px-4 text-xs font-semibold text-white hover:bg-amber-500 shadow-sm"
+                  >
+                    <Printer className="mr-1.5 h-3.5 w-3.5" />
+                    Cetak Lembar Visum
+                  </Button>
+                </div>
               </div>
 
-              {/* A4 Paper Frame */}
-              <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100/80 p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="mx-auto bg-white p-6 shadow-xl ring-1 ring-zinc-900/5 max-w-[210mm] min-h-[297mm]">
-                  <VisumSpdDocument
-                    data={data}
-                    documentId="visum-spd-print-root"
-                    includeBalaiData={includeBalaiData}
-                    includeDestinationData={includeDestinationData}
-                    showTableBorder={showTableBorder}
-                  />
+              {/* Scaled A4 Paper Frame (Single Unified Sheet, Zero Scrollbar) */}
+              <div className="w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100/80 p-2 sm:p-4 dark:border-zinc-800 dark:bg-zinc-950 flex justify-center">
+                <div
+                  style={{
+                    transform: `scale(${previewZoom})`,
+                    transformOrigin: "top center",
+                    marginBottom: `${(previewZoom - 1) * 1140}px`,
+                    width: "210mm",
+                  }}
+                  className="transition-all duration-150 shrink-0"
+                >
+                  <div className="w-[210mm] min-h-[297mm] bg-white shadow-2xl ring-1 ring-zinc-900/10 px-[12mm] py-[8mm] mx-auto box-border">
+                    <VisumSpdDocument
+                      data={data}
+                      documentId="visum-spd-print-root"
+                      includeBalaiData={includeBalaiData}
+                      includeDestinationData={includeDestinationData}
+                      showTableBorder={showTableBorder}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1426,27 +1605,32 @@ export function VisumSpdTab() {
         </div>
       </div>
 
-      {/* MODAL 1: KELOLA TEMPLATE & PEJABAT 4 WILAYAH */}
-      <VisumManageTemplatesModal
-        open={isManageModalOpen}
-        onOpenChange={setIsManageModalOpen}
-        onTemplatesUpdated={fetchTemplatesAndSettings}
-        onSettingsUpdated={handleSettingsUpdated}
-        employeeOptions={employeeOptions}
-      />
+      {/* Admin Modals (Only when not in portal mode) */}
+      {!isPortal && (
+        <>
+          {/* MODAL 1: KELOLA TEMPLATE & PEJABAT 4 WILAYAH */}
+          <VisumManageTemplatesModal
+            open={isManageModalOpen}
+            onOpenChange={setIsManageModalOpen}
+            onTemplatesUpdated={fetchTemplatesAndSettings}
+            onSettingsUpdated={handleSettingsUpdated}
+            employeeOptions={employeeOptions}
+          />
 
-      {/* MODAL 2: SIMPAN FORM INI SEBAGAI TEMPLATE */}
-      <VisumSaveAsTemplateModal
-        open={isSaveAsModalOpen}
-        onOpenChange={setIsSaveAsModalOpen}
-        currentFormData={data}
-        onTemplateSaved={(newId) => {
-          fetchTemplatesAndSettings();
-          if (newId) {
-            setSelectedTemplateId(String(newId));
-          }
-        }}
-      />
+          {/* MODAL 2: SIMPAN FORM INI SEBAGAI TEMPLATE */}
+          <VisumSaveAsTemplateModal
+            open={isSaveAsModalOpen}
+            onOpenChange={setIsSaveAsModalOpen}
+            currentFormData={data}
+            onTemplateSaved={(newId) => {
+              fetchTemplatesAndSettings();
+              if (newId) {
+                setSelectedTemplateId(String(newId));
+              }
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
