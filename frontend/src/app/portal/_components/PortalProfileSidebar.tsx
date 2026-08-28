@@ -369,6 +369,33 @@ export function PortalProfileSidebar({
             )}
           </button>
 
+          {/* 6. Visum SPD */}
+          <button
+            type="button"
+            onClick={() => onSelectNavTab("visum")}
+            className={cn(
+              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
+              activeNavTab === "visum" && !isInlineReportOpen
+                ? "bg-emerald-600 text-white shadow-sm font-bold"
+                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            )}
+          >
+            <div className="flex items-center gap-2.5">
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Visum SPD</span>
+            </div>
+            <span
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                activeNavTab === "visum" && !isInlineReportOpen
+                  ? "bg-emerald-500 text-white"
+                  : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
+              )}
+            >
+              Baru
+            </span>
+          </button>
+
           {/* FAST ACTION: BUAT LAPORAN DROPDOWN */}
           {onOpenInlineReport && (
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
