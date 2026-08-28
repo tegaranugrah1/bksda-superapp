@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { resolveApiUrl } from "@/lib/api";
 
 export interface UsageAgreementAsset {
   id: string;
@@ -174,10 +175,8 @@ function resolvePhotoUrl(url?: string | null): string | null {
   if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
     return trimmed;
   }
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
-  }
-  return trimmed;
+
+  return resolveApiUrl(trimmed) || trimmed;
 }
 
 function getAssetPrintPhotos(asset: UsageAgreementAsset): string[] {
@@ -222,6 +221,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
         <title>BA Pemakaian BMN</title>
         <style>
           @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
+          @page :first { margin-top: 0; }
           * { box-sizing: border-box; }
           body {
             margin: 0;
@@ -233,7 +233,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
             line-height: 1.22;
           }
           p { margin: 0; }
-          .usage-page { width: 210mm; margin: 0 auto; padding: 0 20mm 10mm; }
+          .usage-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 10mm; }
           .usage-header { margin: 0 -12mm; text-align: center; }
           .usage-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
           .usage-title { margin-top: 5mm; text-align: center; font-weight: 700; }
@@ -260,7 +260,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
             break-before: page;
             width: 210mm;
             margin: 0 auto;
-            padding: 0 20mm 10mm;
+            padding: 5mm 20mm 10mm;
           }
           .photo-lampiran-title {
             margin-top: 3mm;
@@ -451,6 +451,7 @@ export function UsageAgreementDocument({
         }
         @media print {
           @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
+          @page :first { margin-top: 0; }
           body * { visibility: hidden; }
           #ba-pemakaian-print-root, #ba-pemakaian-print-root * { visibility: visible; }
           #ba-pemakaian-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }

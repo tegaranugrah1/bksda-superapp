@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Banknote, FileText, LayoutDashboard, Menu, PlusCircle, Users } from "lucide-react";
+import { Banknote, FileSpreadsheet, FileText, LayoutDashboard, Menu, PlusCircle, Users } from "lucide-react";
 import { ModuleSwitcher } from "@/components/module-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 
 const MENUS = [
   { href: "/keuangan", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
+  { href: "/keuangan/visum", label: "Visum SPD", icon: FileSpreadsheet, adminOnly: false },
   { href: "/keuangan/spj", label: "SPJ", icon: FileText, adminOnly: false },
   { href: "/keuangan/spj/create", label: "Buat SPJ", icon: PlusCircle, adminOnly: true },
 ];
