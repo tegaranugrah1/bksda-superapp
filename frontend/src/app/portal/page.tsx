@@ -37,6 +37,7 @@ import { PortalProfileSidebar } from "./_components/PortalProfileSidebar";
 import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
 import { PortalQuickStats } from "./_components/PortalQuickStats";
 import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
+import { VisumSpdTab } from "@/app/keuangan/_components/VisumSpdTab";
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -415,6 +416,10 @@ export default function PersonalDashboard() {
                 <PortalHeaderBanner
                   displayName={data.employee?.name || data.user.name}
                   activeSuratTugasCount={suratTugas.length}
+                  onOpenVisum={() => {
+                    setInlineFormType(null);
+                    setActiveNavTab("visum");
+                  }}
                 />
 
                 {/* QUICK STATS ROW (4 STATUS CARDS) */}
@@ -499,13 +504,19 @@ export default function PersonalDashboard() {
                   }}
                 />
               </div>
+            ) : activeNavTab === "visum" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6">
+                <VisumSpdTab isPortal={true} suratTugasList={suratTugas} />
+              </div>
             ) : null}
           </main>
 
-          {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN */}
-          <div className="shrink-0 print:hidden font-sans">
-            <PortalInfoSidebar />
-          </div>
+          {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN (Hidden on Visum tab to give full width) */}
+          {activeNavTab !== "visum" && (
+            <div className="shrink-0 print:hidden font-sans">
+              <PortalInfoSidebar />
+            </div>
+          )}
         </div>
 
         {/* Modal Pengajuan Cuti Mandiri */}
