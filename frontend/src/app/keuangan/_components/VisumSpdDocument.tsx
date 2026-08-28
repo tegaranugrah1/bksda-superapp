@@ -181,7 +181,7 @@ export function getTemplateManual(): VisumSpdData {
     kembali_nip_pejabat: "",
 
     ppk_keterangan: "",
-    ppk_jabatan: "",
+    ppk_jabatan: "Pejabat Pembuat Komitmen,",
     ppk_nama: "",
     ppk_nip: "",
 
@@ -1029,7 +1029,7 @@ export function VisumSpdDocument({
                 {includeBalaiData && (
                   <div className="sig-block">
                     <div className="sig-title ppk-title">
-                      {d.ppk_jabatan || ""}
+                      {d.ppk_jabatan || "Pejabat Pembuat Komitmen,"}
                     </div>
                     <div className="sig-person">
                       <div className="sig-name">{d.ppk_nama || ""}</div>

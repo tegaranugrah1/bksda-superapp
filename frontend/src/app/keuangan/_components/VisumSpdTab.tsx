@@ -488,6 +488,11 @@ export function VisumSpdTab({
 
     if (val === "manual") {
       const manualData = getTemplateManual();
+      manualData.ppk_jabatan = settings?.ppk?.position || "Pejabat Pembuat Komitmen,";
+      if (settings?.ppk) {
+        manualData.ppk_nama = settings.ppk.name;
+        manualData.ppk_nip = settings.ppk.nip;
+      }
       setData(manualData);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(manualData));
