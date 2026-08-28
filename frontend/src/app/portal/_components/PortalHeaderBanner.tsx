@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
-import { Sun, Sunset, Moon, Sparkles } from "lucide-react";
+import { Sun, Sunset, Moon, Sparkles, FileSpreadsheet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PortalHeaderBannerProps {
   displayName: string;
   activeSuratTugasCount: number;
+  onOpenVisum?: () => void;
 }
 
 function getGreeting(): { text: string; icon: React.ReactNode } {
@@ -28,6 +30,7 @@ function formatDate(): string {
 export function PortalHeaderBanner({
   displayName,
   activeSuratTugasCount,
+  onOpenVisum,
 }: PortalHeaderBannerProps) {
   const greeting = getGreeting();
 
@@ -37,23 +40,38 @@ export function PortalHeaderBanner({
       <div className="absolute -top-16 -right-16 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="relative z-10 space-y-2">
-        <div className="flex items-center gap-2 text-emerald-100 text-xs font-semibold tracking-wide">
-          {greeting.icon}
-          <span>{formatDate()}</span>
-          <span className="w-1 h-1 rounded-full bg-emerald-300"></span>
-          <span className="bg-emerald-900/60 px-2.5 py-0.5 rounded-full text-[11px] text-emerald-200 border border-emerald-500/30 font-medium">
-            {activeSuratTugasCount} Surat Tugas Aktif
-          </span>
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-emerald-100 text-xs font-semibold tracking-wide">
+            {greeting.icon}
+            <span>{formatDate()}</span>
+            <span className="w-1 h-1 rounded-full bg-emerald-300"></span>
+            <span className="bg-emerald-900/60 px-2.5 py-0.5 rounded-full text-[11px] text-emerald-200 border border-emerald-500/30 font-medium">
+              {activeSuratTugasCount} Surat Tugas Aktif
+            </span>
+          </div>
+
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+            <span>{greeting.text}, {displayName.split(",")[0]}!</span>
+            <Sparkles className="w-6 h-6 text-amber-300 animate-pulse hidden sm:inline-block" />
+          </h1>
+          <p className="text-xs md:text-sm text-emerald-100/90 font-medium max-w-2xl">
+            Selamat datang di Portal Layanan Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur.
+          </p>
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-          <span>{greeting.text}, {displayName.split(",")[0]}!</span>
-          <Sparkles className="w-6 h-6 text-amber-300 animate-pulse hidden sm:inline-block" />
-        </h1>
-        <p className="text-xs md:text-sm text-emerald-100/90 font-medium max-w-2xl">
-          Selamat datang di Portal Layanan Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur.
-        </p>
+        {onOpenVisum && (
+          <div className="shrink-0 pt-2 md:pt-0">
+            <Button
+              type="button"
+              onClick={onOpenVisum}
+              className="rounded-2xl border border-amber-300/40 bg-amber-400/20 px-4 py-2.5 text-xs font-bold text-amber-100 shadow-sm backdrop-blur-xs hover:bg-amber-400/30 hover:text-white transition-all"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4 text-amber-300" />
+              Buat Visum SPD
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
