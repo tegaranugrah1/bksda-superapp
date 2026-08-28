@@ -458,7 +458,6 @@ const VISUM_BASE_CSS = `
   .hide-skeleton .lbl-vii,
   .hide-skeleton .col,
   .hide-skeleton .ppk-text,
-  .hide-skeleton .ppk-title,
   .hide-skeleton .perhatian-title,
   .hide-skeleton .perhatian-desc,
   .hide-skeleton .perhatian-box {
