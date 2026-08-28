@@ -17,4 +17,5 @@ return [
     DeReportingServiceProvider::class,
     CMSServiceProvider::class,
     App\Modules\Surat\SuratServiceProvider::class,
+    App\Modules\Keuangan\KeuanganServiceProvider::class,
 ];

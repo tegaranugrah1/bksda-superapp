@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, ClipboardCheck, FileCheck2, FilePlus2, Landmark, ReceiptText, UsersRound } from "lucide-react";
+import { ArrowUpRight, ClipboardCheck, FileCheck2, FilePlus2, FileSpreadsheet, FileText, Landmark, ReceiptText, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MOCK_SPJ, formatRupiah, statusClass } from "@/app/keuangan/_components/finance-data";
@@ -32,6 +32,9 @@ export default function KeuanganDashboardPage() {
           <div className="mt-7 flex flex-wrap gap-3">
             <Button asChild className="h-11 rounded-xl bg-amber-500 px-5 text-slate-950 hover:bg-amber-400">
               <Link href="/keuangan/spj/create"><FilePlus2 className="mr-2 h-4 w-4" /> Buat SPJ</Link>
+            </Button>
+            <Button asChild variant="outline" className="h-11 rounded-xl border-amber-400/30 bg-amber-500/10 px-5 text-amber-200 hover:bg-amber-500/20 hover:text-white">
+              <Link href="/keuangan/visum"><FileSpreadsheet className="mr-2 h-4 w-4 text-amber-400" /> Cetak Lembar Visum</Link>
             </Button>
             <Button asChild variant="outline" className="h-11 rounded-xl border-white/20 bg-white/5 px-5 text-white hover:bg-white/10 hover:text-white">
               <Link href="/keuangan/spj">Lihat daftar SPJ <ArrowUpRight className="ml-2 h-4 w-4" /></Link>
