@@ -115,7 +115,7 @@ class AuthController extends Controller
                 'rank_level' => 0,
                 'is_active' => $employee->is_active,
             ] : null,
-            'my_assets' => $loans->map(function ($loan) {
+            'my_assets' => $loans->filter(fn($loan) => $loan->asset !== null)->map(function ($loan) {
                 return [
                     'id' => $loan->asset->id,
                     'nama_barang' => $loan->asset->nama_barang,
@@ -129,7 +129,7 @@ class AuthController extends Controller
                     'jenis_bmn' => $loan->asset->jenis_bmn,
                     'no_polisi' => $loan->asset->no_polisi,
                 ];
-            }),
+            })->values(),
         ];
 
         return response()->json([
