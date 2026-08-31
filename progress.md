@@ -56,6 +56,20 @@
 
 ---
 
-### 3. Verifikasi & Pengujian
+### 3. GitHub Issue & Audit Refactor Seluruh Modul (/ponytail)
+
+- **Issue GitHub**: [#584 - refactor: Whole-Repository Module Optimization & Cleanup (Ponytail Audit)](https://github.com/tegaranugrah1/bksda-superapp/issues/584)
+- **Hasil Audit Modul Portal Pegawai**:
+  - **Status**: **Perlu Refactor Ringan (Targeted/Lite Refactor)**.
+  - **Temuan Utama**:
+    1. `frontend/src/app/portal/_components/ProfileSidebar.tsx`: **Dead code** (12KB tidak terpakai, digantikan `PortalProfileSidebar.tsx`).
+    2. *Initial bundle size*: Komponen form berat (`SmartPatrolInlineForm` 60KB, `GeneralReportInlineForm` 50KB, `VisumSpdTab` 100KB) dapat dioptimasi via `next/dynamic` lazy loading.
+    3. *State navigasi*: Sinkronisasi `activeTab` vs `activeNavTab` disederhanakan.
+- **Rencana Tindak Lanjut Modul Lain**:
+  - Keuangan, Kepegawaian, BMN, Inventory, Persuratan, DeReporting, dan CMS mengikuti checklist pada Issue #584.
+
+---
+
+### 4. Verifikasi & Pengujian
 - Kompilasi build Next.js (`npm run build`) lolos 100% tanpa error.
 - Validasi API backend (GET/POST/PUT/DELETE) modul keuangan visum normal.
