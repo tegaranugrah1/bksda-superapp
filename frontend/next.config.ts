@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
         removeConsole: process.env.NODE_ENV === "production",
     },
 
+    experimental: {
+        optimizePackageImports: ["lucide-react", "date-fns", "recharts"],
+    },
+
     webpack: (config, { dev }) => {
         if (dev) {
             config.watchOptions = {
