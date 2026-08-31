@@ -10,7 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, BookmarkPlus, Loader2, CheckCircle2 } from "lucide-react";
+import { BookmarkPlus, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { VisumSpdData } from "./VisumSpdDocument";
@@ -30,9 +30,18 @@ export default function VisumSaveAsTemplateModal({
 }: VisumSaveAsTemplateModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [saveSpdType, setSaveSpdType] = useState<"dipa" | "folu">(
+    currentFormData.spd_type === "folu" ? "folu" : "dipa"
+  );
   const [isDefault, setIsDefault] = useState(false);
   const [autoToday, setAutoToday] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  React.useEffect(() => {
+    if (open) {
+      setSaveSpdType(currentFormData.spd_type === "folu" ? "folu" : "dipa");
+    }
+  }, [open, currentFormData.spd_type]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,16 +52,25 @@ export default function VisumSaveAsTemplateModal({
 
     setSaving(true);
     try {
+      const prefix = saveSpdType === "dipa" ? "[DIPA] " : "[FOLU] ";
+      const cleanName = name
+        .replace(/^(\[(DIPA|FOLU|UMUM)\]\s*)+/gi, "")
+        .replace(/\s*\((DIPA|FOLU)\)$/gi, "")
+        .trim();
+
       const res = await api.post("/api/keuangan/visum/templates", {
-        name: name.trim(),
+        name: `${prefix}${cleanName}`,
         description: description.trim() || null,
         is_default: isDefault,
         auto_today_date: autoToday,
-        data: currentFormData,
+        data: {
+          ...currentFormData,
+          spd_type: saveSpdType,
+        },
       });
 
       if (res.data?.success) {
-        toast.success(`Template "${name}" berhasil disimpan.`);
+        toast.success(`Template "${cleanName}" (${saveSpdType.toUpperCase()}) berhasil disimpan.`);
         setName("");
         setDescription("");
         setIsDefault(false);
@@ -100,6 +118,36 @@ export default function VisumSaveAsTemplateModal({
               placeholder="Contoh: Monitoring Orangutan Berau, Patroli SKW II"
               className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Tipe Anggaran Template *
+            </label>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setSaveSpdType("dipa")}
+                className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition border cursor-pointer ${
+                  saveSpdType === "dipa"
+                    ? "border-blue-600 bg-blue-600 text-white shadow-xs"
+                    : "border-zinc-200 bg-white text-zinc-700 hover:border-blue-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                }`}
+              >
+                <span>🏛️ SPD DIPA</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSaveSpdType("folu")}
+                className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition border cursor-pointer ${
+                  saveSpdType === "folu"
+                    ? "border-emerald-600 bg-emerald-600 text-white shadow-xs"
+                    : "border-zinc-200 bg-white text-zinc-700 hover:border-emerald-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                }`}
+              >
+                <span>🌿 SPD FOLU</span>
+              </button>
+            </div>
           </div>
 
           <div>
@@ -159,7 +207,7 @@ export default function VisumSaveAsTemplateModal({
               disabled={saving}
               className="flex items-center gap-1.5 bg-amber-600 text-xs font-semibold text-white hover:bg-amber-700"
             >
-              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BookmarkPlus className="h-3.5 w-3.5" />}
               <span>Simpan Template</span>
             </Button>
           </DialogFooter>

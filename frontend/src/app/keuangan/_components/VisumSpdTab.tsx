@@ -13,7 +13,6 @@ import {
   Building2,
   Calendar,
   UserCheck,
-  Sparkles,
   Settings2,
   BookmarkPlus,
   Plus,
@@ -31,6 +30,7 @@ import {
   VisumTransitItem,
   DEFAULT_VISUM_SPD_DATA,
   getTemplateKelian,
+  getTemplateDipaTenggarong,
   getTemplateManual,
   getTodayIndoDate,
   handlePrintVisumSpd,
@@ -42,6 +42,22 @@ import VisumManageTemplatesModal, {
 import VisumSaveAsTemplateModal from "./VisumSaveAsTemplateModal";
 import api from "@/lib/api";
 import { toast } from "sonner";
+
+function cleanTemplateName(name: string): string {
+  return name
+    .replace(/^(\[(DIPA|FOLU|UMUM)\]\s*)+/gi, "")
+    .replace(/\s*\((DIPA|FOLU)\)$/gi, "")
+    .trim();
+}
+
+function getRegionRank(name: string): number {
+  const n = name.toLowerCase();
+  if (n.includes("samarinda") || n.includes("balai")) return 1;
+  if (n.includes("berau") || n.includes("wilayah i") || n.includes("skw i")) return 2;
+  if (n.includes("tenggarong") || n.includes("wilayah ii") || n.includes("skw ii") || n.includes("kelian")) return 3;
+  if (n.includes("balikpapan") || n.includes("wilayah iii") || n.includes("skw iii")) return 4;
+  return 5;
+}
 
 interface EmployeeOption {
   id: number;
@@ -189,7 +205,8 @@ export function VisumSpdTab({
   isPortal?: boolean;
   suratTugasList?: SuratTugasSimpleItem[];
 }) {
-  const [data, setData] = useState<VisumSpdData>(getTemplateKelian());
+  const [spdType, setSpdType] = useState<"dipa" | "folu">("dipa");
+  const [data, setData] = useState<VisumSpdData>(getTemplateDipaTenggarong());
   const [templates, setTemplates] = useState<VisumTemplateItem[]>([]);
   const [settings, setSettings] = useState<VisumSpdSettings | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("default");
@@ -343,6 +360,18 @@ export function VisumSpdTab({
     setSelectedTemplateId(String(tmpl.id));
     const tmplData = { ...tmpl.data };
     const currentSettings = customSettings !== undefined ? customSettings : settings;
+    const isDipa = tmplData.spd_type === "dipa" || tmpl.name.toLowerCase().includes("dipa");
+    if (isDipa) {
+      setSpdType("dipa");
+      try {
+        localStorage.setItem("bksda_visum_spd_type_v1", "dipa");
+      } catch {}
+    } else if (tmplData.spd_type === "folu" || tmpl.name.toLowerCase().includes("folu")) {
+      setSpdType("folu");
+      try {
+        localStorage.setItem("bksda_visum_spd_type_v1", "folu");
+      } catch {}
+    }
 
     // Auto today date if configured
     if (tmpl.auto_today_date) {
@@ -374,12 +403,20 @@ export function VisumSpdTab({
       tmplData.kembali_tanggal = today;
     }
 
-    // Always inject the current active master PPK from settings
-    if (currentSettings?.ppk) {
-      tmplData.ppk_nama = currentSettings.ppk.name;
-      tmplData.ppk_nip = currentSettings.ppk.nip;
-      if (currentSettings.ppk.position) tmplData.ppk_jabatan = currentSettings.ppk.position;
-      if (currentSettings.ppk.statement) tmplData.ppk_keterangan = currentSettings.ppk.statement;
+    // Always inject the current active master PPK from settings according to SPD type
+    if (isDipa && currentSettings?.ppk_dipa) {
+      tmplData.ppk_nama = currentSettings.ppk_dipa.name;
+      tmplData.ppk_nip = currentSettings.ppk_dipa.nip;
+      tmplData.ppk_jabatan = currentSettings.ppk_dipa.position || "Pejabat Pembuat Komitmen,";
+      if (currentSettings.ppk_dipa.statement) tmplData.ppk_keterangan = currentSettings.ppk_dipa.statement;
+    } else if (!isDipa) {
+      const ppkFolu = currentSettings?.ppk_folu || currentSettings?.ppk;
+      if (ppkFolu) {
+        tmplData.ppk_nama = ppkFolu.name;
+        tmplData.ppk_nip = ppkFolu.nip;
+        tmplData.ppk_jabatan = ppkFolu.position || "Pejabat Pembuat Komitmen,";
+        if (ppkFolu.statement) tmplData.ppk_keterangan = ppkFolu.statement;
+      }
     }
 
     // Always sync with the active regional official for template's departure city
@@ -395,15 +432,31 @@ export function VisumSpdTab({
       if (matchedRegion) {
         tmplData.asal_nama_pejabat = matchedRegion.official_name;
         tmplData.asal_nip_pejabat = matchedRegion.official_nip;
-        tmplData.asal_jabatan_pengesah = matchedRegion.depart_position;
-        tmplData.kembali_nama_pejabat = matchedRegion.official_name;
-        tmplData.kembali_nip_pejabat = matchedRegion.official_nip;
-        tmplData.kembali_jabatan_pengesah = matchedRegion.return_position;
+        // In DIPA, use depart_position_dipa or fallback
+        if (isDipa) {
+          const dipaPos =
+            matchedRegion.depart_position_dipa ||
+            (matchedRegion.depart_position || "")
+              .replace(/^a\.n\.\s*Kepala\s+Balai\s*\n?/i, "")
+              .replace(/^a\.n\.\s*Kepala\s+Balai,?\s*/i, "")
+              .trim();
+          tmplData.asal_jabatan_pengesah = dipaPos.endsWith(",") ? dipaPos : `${dipaPos},`;
+        } else {
+          tmplData.asal_jabatan_pengesah = matchedRegion.depart_position_folu || matchedRegion.depart_position;
+        }
+
+        // If not DIPA, ensure Section VI return signatory uses regional official
+        if (!isDipa) {
+          tmplData.kembali_nama_pejabat = matchedRegion.official_name;
+          tmplData.kembali_nip_pejabat = matchedRegion.official_nip;
+          tmplData.kembali_jabatan_pengesah = matchedRegion.return_position;
+        }
       }
     }
 
     setData(tmplData);
     try {
+      localStorage.setItem(STORAGE_KEY_TMPL_ID, String(tmpl.id));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tmplData));
     } catch {
       // ignore
@@ -424,7 +477,24 @@ export function VisumSpdTab({
 
       let loadedSettings: VisumSpdSettings | null = null;
       if (resSettings.data?.success) {
-        loadedSettings = resSettings.data.data;
+        const raw = resSettings.data.data;
+        loadedSettings = {
+          ...raw,
+          ppk_dipa: raw.ppk_dipa || {
+            name: "RUSMANTO, S.Hut",
+            nip: "19810907 200012 1 004",
+            position: "Pejabat Pembuat Komitmen,",
+            statement:
+              "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+          },
+          ppk_folu: raw.ppk_folu || raw.ppk || {
+            name: "Ahmad Hidayat, S.PKP., M.Ling",
+            nip: "19820301 200012 1 001",
+            position: "Pejabat Pembuat Komitmen,",
+            statement:
+              "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+          },
+        };
         setSettings(loadedSettings);
       }
 
@@ -434,10 +504,18 @@ export function VisumSpdTab({
 
         let savedDataRaw: string | null = null;
         let savedTmplId: string | null = null;
+        let savedType: string | null = null;
         try {
           savedDataRaw = localStorage.getItem(STORAGE_KEY);
           savedTmplId = localStorage.getItem(STORAGE_KEY_TMPL_ID);
+          savedType = localStorage.getItem("bksda_visum_spd_type_v1");
         } catch {}
+
+        if (savedType === "folu") {
+          setSpdType("folu");
+        } else {
+          setSpdType("dipa");
+        }
 
         let parsedSavedData: VisumSpdData | null = null;
         try {
@@ -460,7 +538,9 @@ export function VisumSpdTab({
             applyTemplateItem(matchedTmpl, false, loadedSettings);
           }
         } else {
-          const def = tmpls.find((t) => t.is_default) || tmpls[0];
+          // Default: Pick DIPA template if spdType is dipa, or default template
+          const dipaTmpl = tmpls.find((t) => t.data?.spd_type === "dipa" || t.name.toLowerCase().includes("dipa"));
+          const def = dipaTmpl || tmpls.find((t) => t.is_default) || tmpls[0];
           if (def) {
             setSelectedTemplateId(String(def.id));
             if (parsedSavedData && (parsedSavedData.asal_tempat || parsedSavedData.tujuan_1_tempat)) {
@@ -480,6 +560,112 @@ export function VisumSpdTab({
     fetchTemplatesAndSettings();
   }, []);
 
+  // Switch between SPD DIPA and SPD FOLU Net Sink 2030
+  const handleSwitchSpdType = (type: "dipa" | "folu") => {
+    setSpdType(type);
+    try {
+      localStorage.setItem("bksda_visum_spd_type_v1", type);
+    } catch {}
+
+    if (type === "dipa") {
+      const ppkDipa = settings?.ppk_dipa || {
+        name: "RUSMANTO, S.Hut",
+        nip: "19810907 200012 1 004",
+        position: "Pejabat Pembuat Komitmen,",
+        statement:
+          "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+      };
+
+      // Default to Manual (Kosong) when switching to DIPA
+      setSelectedTemplateId("manual");
+      const emptyDipa: VisumSpdData = {
+        spd_type: "dipa",
+        asal_tempat: "",
+        asal_tanggal: getTodayIndoDate(),
+        tujuan_awal: "",
+        asal_jabatan_pengesah: "",
+        asal_nama_pejabat: "",
+        asal_nip_pejabat: "",
+        tujuan_1_tempat: "",
+        tujuan_1_tiba_tanggal: getTodayIndoDate(),
+        tujuan_1_kepala_jabatan: "",
+        tujuan_1_kepala_nama: "",
+        tujuan_1_kepala_nip: "",
+        tujuan_1_id_type: "NIP",
+        tujuan_1_berangkat_dari: "",
+        tujuan_1_berangkat_ke: "",
+        tujuan_1_berangkat_tanggal: getTodayIndoDate(),
+        tujuan_1_berangkat_kepala_jabatan: "",
+        tujuan_1_berangkat_kepala_nama: "",
+        tujuan_1_berangkat_kepala_nip: "",
+        tujuan_1_berangkat_id_type: "NIP",
+        transit_3: {},
+        transit_4: {},
+        transit_5: {},
+        kembali_tempat: "",
+        kembali_tanggal: getTodayIndoDate(),
+        kembali_jabatan_pengesah: "Pejabat Pembuat Komitmen,",
+        kembali_nama_pejabat: ppkDipa.name,
+        kembali_nip_pejabat: ppkDipa.nip,
+        ppk_jabatan: "Pejabat Pembuat Komitmen,",
+        ppk_nama: ppkDipa.name,
+        ppk_nip: ppkDipa.nip,
+        ppk_keterangan: ppkDipa.statement,
+        catatan_lain: "",
+        perhatian_text:
+          "PPK yang menerbitkan SPD, pegawai yang melakukan perjalanan dinas, para pejabat yang mengesahkan tanggal berangkat / tiba, serta bendahara pengeluaran bertanggung jawab berdasarkan peraturan-peraturan Keuangan Negara apabila negara menderita rugi akibat kesalahan, kelalaian dan kealphaannya.",
+      };
+
+      setData(emptyDipa);
+      try {
+        localStorage.setItem(STORAGE_KEY_TMPL_ID, "manual");
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(emptyDipa));
+      } catch {}
+      toast.success("Beralih ke SPD DIPA (Manual Kosong - PPK: " + ppkDipa.name + ")");
+    } else {
+      const ppkFolu = settings?.ppk_folu || settings?.ppk || {
+        name: "Ahmad Hidayat, S.PKP., M.Ling",
+        nip: "19820301 200012 1 001",
+        position: "Pejabat Pembuat Komitmen,",
+        statement:
+          "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+      };
+
+      const foluTmpl = templates.find((t) => t.data?.spd_type === "folu" || t.name.toLowerCase().includes("kelian") || t.is_default);
+      if (foluTmpl) {
+        applyTemplateItem(foluTmpl, false);
+      } else {
+        setData((prev) => {
+          const asalLower = (prev.asal_tempat || "Samarinda").toLowerCase();
+          let matchedRegion = settings?.samarinda;
+          if (asalLower.includes("berau")) matchedRegion = settings?.berau;
+          else if (asalLower.includes("tenggarong") || asalLower.includes("kukar"))
+            matchedRegion = settings?.tenggarong;
+          else if (asalLower.includes("balikpapan"))
+            matchedRegion = settings?.balikpapan;
+
+          const next: VisumSpdData = {
+            ...prev,
+            spd_type: "folu",
+            asal_jabatan_pengesah: matchedRegion?.depart_position || prev.asal_jabatan_pengesah,
+            ppk_nama: ppkFolu.name,
+            ppk_nip: ppkFolu.nip,
+            ppk_jabatan: ppkFolu.position || "Pejabat Pembuat Komitmen,",
+            ppk_keterangan: ppkFolu.statement || prev.ppk_keterangan,
+            kembali_jabatan_pengesah: matchedRegion?.return_position || "Kepala Subbagian Tata Usaha",
+            kembali_nama_pejabat: matchedRegion?.official_name || "Dheny Mardiono, S.Hut., MSc.",
+            kembali_nip_pejabat: matchedRegion?.official_nip || "19750314 199903 1 004",
+          };
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+      }
+      toast.success("Beralih ke SPD FOLU Net Sink 2030 (PPK: " + ppkFolu.name + ")");
+    }
+  };
+
   const handleSelectTemplateOption = (val: string) => {
     setSelectedTemplateId(val);
     try {
@@ -487,11 +673,34 @@ export function VisumSpdTab({
     } catch {}
 
     if (val === "manual") {
+      const activePpk =
+        spdType === "dipa"
+          ? settings?.ppk_dipa || {
+              name: "RUSMANTO, S.Hut",
+              nip: "19810907 200012 1 004",
+              position: "Pejabat Pembuat Komitmen,",
+              statement:
+                "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+            }
+          : settings?.ppk_folu ||
+            settings?.ppk || {
+              name: "Ahmad Hidayat, S.PKP., M.Ling",
+              nip: "19820301 200012 1 001",
+              position: "Pejabat Pembuat Komitmen,",
+              statement:
+                "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+            };
+
       const manualData = getTemplateManual();
-      manualData.ppk_jabatan = settings?.ppk?.position || "Pejabat Pembuat Komitmen,";
-      if (settings?.ppk) {
-        manualData.ppk_nama = settings.ppk.name;
-        manualData.ppk_nip = settings.ppk.nip;
+      manualData.spd_type = spdType;
+      manualData.ppk_jabatan = activePpk.position || "Pejabat Pembuat Komitmen,";
+      manualData.ppk_nama = activePpk.name;
+      manualData.ppk_nip = activePpk.nip;
+      manualData.ppk_keterangan = activePpk.statement;
+      if (spdType === "dipa") {
+        manualData.kembali_jabatan_pengesah = "Pejabat Pembuat Komitmen,";
+        manualData.kembali_nama_pejabat = activePpk.name;
+        manualData.kembali_nip_pejabat = activePpk.nip;
       }
       setData(manualData);
       try {
@@ -540,13 +749,16 @@ export function VisumSpdTab({
     } else {
       const found =
         templates.find((t) => String(t.id) === selectedTemplateId) ||
-        templates.find((t) => t.is_default);
+        (spdType === "dipa"
+          ? templates.find((t) => t.data?.spd_type === "dipa" || t.name.toLowerCase().includes("dipa"))
+          : templates.find((t) => t.data?.spd_type === "folu" || t.is_default)) ||
+        templates[0];
       if (found) {
         applyTemplateItem(found, true);
       } else {
-        const kelian = getTemplateKelian();
-        setData(kelian);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(kelian));
+        const fallback = spdType === "dipa" ? getTemplateDipaTenggarong() : getTemplateKelian();
+        setData(fallback);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback));
         toast.info("Form direset ke template default.");
       }
     }
@@ -555,11 +767,17 @@ export function VisumSpdTab({
   // Dynamic 4 Regional Presets using Master Settings (or default fallbacks)
   const applyPresetSamarinda = () => {
     const s = settings?.samarinda;
-    const ppk = settings?.ppk;
+    const activePpk =
+      spdType === "dipa"
+        ? settings?.ppk_dipa || { name: "RUSMANTO, S.Hut", nip: "19810907 200012 1 004" }
+        : settings?.ppk_folu || settings?.ppk || { name: "Ahmad Hidayat, S.PKP., M.Ling", nip: "19820301 200012 1 001" };
 
     const nama = s?.official_name || "Dheny Mardiono, S.Hut., MSc.";
     const nip = s?.official_nip || "19750314 199903 1 004";
-    const departPos = s?.depart_position || "a.n. Kepala Balai\nKepala Subbagian Tata Usaha";
+    const departPos =
+      spdType === "dipa"
+        ? s?.depart_position_dipa || "Kepala Subbagian Tata Usaha,"
+        : s?.depart_position_folu || s?.depart_position || "a.n. Kepala Balai\nKepala Subbagian Tata Usaha";
     const returnPos = s?.return_position || "Kepala Subbagian Tata Usaha";
 
     setData((prev) => ({
@@ -570,24 +788,31 @@ export function VisumSpdTab({
       asal_nip_pejabat: nip,
       tujuan_1_berangkat_ke: s?.place || "Samarinda",
       kembali_tempat: s?.place || "Samarinda",
-      kembali_jabatan_pengesah: returnPos,
-      kembali_nama_pejabat: nama,
-      kembali_nip_pejabat: nip,
-      ppk_nama: ppk?.name || prev.ppk_nama || "Ahmad Hidayat, S.PKP., M.Ling",
-      ppk_nip: ppk?.nip || prev.ppk_nip || "19820301 200012 1 001",
+      kembali_jabatan_pengesah: spdType === "dipa" ? "Pejabat Pembuat Komitmen," : returnPos,
+      kembali_nama_pejabat: spdType === "dipa" ? activePpk.name : nama,
+      kembali_nip_pejabat: spdType === "dipa" ? activePpk.nip : nip,
+      ppk_nama: activePpk.name,
+      ppk_nip: activePpk.nip,
+      ppk_jabatan: "Pejabat Pembuat Komitmen,",
     }));
     toast.info(`Pejabat Balai diterapkan: ${s?.place || "Samarinda"} (${nama}).`);
   };
 
   const applyPresetBerau = () => {
     const b = settings?.berau;
-    const ppk = settings?.ppk;
+    const activePpk =
+      spdType === "dipa"
+        ? settings?.ppk_dipa || { name: "RUSMANTO, S.Hut", nip: "19810907 200012 1 004" }
+        : settings?.ppk_folu || settings?.ppk || { name: "Ahmad Hidayat, S.PKP., M.Ling", nip: "19820301 200012 1 001" };
 
     const nama = b?.official_name || "Yulian Sadono, S.Hut., M.T.";
     const nip = b?.official_nip || "19800707 200604 1 003";
     const departPos =
-      b?.depart_position ||
-      "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah I";
+      spdType === "dipa"
+        ? b?.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah I,"
+        : b?.depart_position_folu ||
+          b?.depart_position ||
+          "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah I";
     const returnPos =
       b?.return_position ||
       "Kepala Seksi Konservasi Sumber\nDaya Alam Wilayah I";
@@ -600,24 +825,31 @@ export function VisumSpdTab({
       asal_nip_pejabat: nip,
       tujuan_1_berangkat_ke: b?.place || "Berau",
       kembali_tempat: b?.place || "Berau",
-      kembali_jabatan_pengesah: returnPos,
-      kembali_nama_pejabat: nama,
-      kembali_nip_pejabat: nip,
-      ppk_nama: ppk?.name || prev.ppk_nama || "Ahmad Hidayat, S.PKP., M.Ling",
-      ppk_nip: ppk?.nip || prev.ppk_nip || "19820301 200012 1 001",
+      kembali_jabatan_pengesah: spdType === "dipa" ? "Pejabat Pembuat Komitmen," : returnPos,
+      kembali_nama_pejabat: spdType === "dipa" ? activePpk.name : nama,
+      kembali_nip_pejabat: spdType === "dipa" ? activePpk.nip : nip,
+      ppk_nama: activePpk.name,
+      ppk_nip: activePpk.nip,
+      ppk_jabatan: "Pejabat Pembuat Komitmen,",
     }));
     toast.info(`Pejabat Wilayah I diterapkan: ${b?.place || "Berau"} (${nama}).`);
   };
 
   const applyPresetTenggarong = () => {
     const t = settings?.tenggarong;
-    const ppk = settings?.ppk;
+    const activePpk =
+      spdType === "dipa"
+        ? settings?.ppk_dipa || { name: "RUSMANTO, S.Hut", nip: "19810907 200012 1 004" }
+        : settings?.ppk_folu || settings?.ppk || { name: "Ahmad Hidayat, S.PKP., M.Ling", nip: "19820301 200012 1 001" };
 
     const nama = t?.official_name || "Suriawati Halim, S.Hut., M.P.";
     const nip = t?.official_nip || "19751127 200003 2 001";
     const departPos =
-      t?.depart_position ||
-      "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah II";
+      spdType === "dipa"
+        ? t?.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah II,"
+        : t?.depart_position_folu ||
+          t?.depart_position ||
+          "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah II";
     const returnPos =
       t?.return_position ||
       "Kepala Seksi Konservasi Sumber\nDaya Alam Wilayah II";
@@ -630,24 +862,31 @@ export function VisumSpdTab({
       asal_nip_pejabat: nip,
       tujuan_1_berangkat_ke: t?.place || "Tenggarong",
       kembali_tempat: t?.place || "Tenggarong",
-      kembali_jabatan_pengesah: returnPos,
-      kembali_nama_pejabat: nama,
-      kembali_nip_pejabat: nip,
-      ppk_nama: ppk?.name || prev.ppk_nama || "Ahmad Hidayat, S.PKP., M.Ling",
-      ppk_nip: ppk?.nip || prev.ppk_nip || "19820301 200012 1 001",
+      kembali_jabatan_pengesah: spdType === "dipa" ? "Pejabat Pembuat Komitmen," : returnPos,
+      kembali_nama_pejabat: spdType === "dipa" ? activePpk.name : nama,
+      kembali_nip_pejabat: spdType === "dipa" ? activePpk.nip : nip,
+      ppk_nama: activePpk.name,
+      ppk_nip: activePpk.nip,
+      ppk_jabatan: "Pejabat Pembuat Komitmen,",
     }));
     toast.info(`Pejabat Wilayah II diterapkan: ${t?.place || "Tenggarong"} (${nama}).`);
   };
 
   const applyPresetBalikpapan = () => {
     const bp = settings?.balikpapan;
-    const ppk = settings?.ppk;
+    const activePpk =
+      spdType === "dipa"
+        ? settings?.ppk_dipa || { name: "RUSMANTO, S.Hut", nip: "19810907 200012 1 004" }
+        : settings?.ppk_folu || settings?.ppk || { name: "Ahmad Hidayat, S.PKP., M.Ling", nip: "19820301 200012 1 001" };
 
     const nama = bp?.official_name || "Bambang Hari Trimarsito, S.Si., M.P.";
     const nip = bp?.official_nip || "19740626 200112 1 004";
     const departPos =
-      bp?.depart_position ||
-      "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah III";
+      spdType === "dipa"
+        ? bp?.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah III,"
+        : bp?.depart_position_folu ||
+          bp?.depart_position ||
+          "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah III";
     const returnPos =
       bp?.return_position ||
       "Kepala Seksi Konservasi Sumber\nDaya Alam Wilayah III";
@@ -660,11 +899,12 @@ export function VisumSpdTab({
       asal_nip_pejabat: nip,
       tujuan_1_berangkat_ke: bp?.place || "Balikpapan",
       kembali_tempat: bp?.place || "Balikpapan",
-      kembali_jabatan_pengesah: returnPos,
-      kembali_nama_pejabat: nama,
-      kembali_nip_pejabat: nip,
-      ppk_nama: ppk?.name || prev.ppk_nama || "Ahmad Hidayat, S.PKP., M.Ling",
-      ppk_nip: ppk?.nip || prev.ppk_nip || "19820301 200012 1 001",
+      kembali_jabatan_pengesah: spdType === "dipa" ? "Pejabat Pembuat Komitmen," : returnPos,
+      kembali_nama_pejabat: spdType === "dipa" ? activePpk.name : nama,
+      kembali_nip_pejabat: spdType === "dipa" ? activePpk.nip : nip,
+      ppk_nama: activePpk.name,
+      ppk_nip: activePpk.nip,
+      ppk_jabatan: "Pejabat Pembuat Komitmen,",
     }));
     toast.info(`Pejabat Wilayah III diterapkan: ${bp?.place || "Balikpapan"} (${nama}).`);
   };
@@ -683,18 +923,40 @@ export function VisumSpdTab({
         else if (asalLower.includes("balikpapan"))
           matchedRegion = newSettings.balikpapan;
 
+        const isDipa = spdType === "dipa";
+        const activePpk = isDipa
+          ? newSettings.ppk_dipa || {
+              name: "RUSMANTO, S.Hut",
+              nip: "19810907 200012 1 004",
+              position: "Pejabat Pembuat Komitmen,",
+              statement:
+                "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+            }
+          : newSettings.ppk_folu ||
+            newSettings.ppk || {
+              name: "Ahmad Hidayat, S.PKP., M.Ling",
+              nip: "19820301 200012 1 001",
+              position: "Pejabat Pembuat Komitmen,",
+              statement:
+                "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+            };
+
+        const departPosDipa = matchedRegion.depart_position_dipa || matchedRegion.depart_position;
+        const departPosFolu = matchedRegion.depart_position_folu || matchedRegion.depart_position;
+        const departPos = isDipa ? departPosDipa : departPosFolu;
+
         const next = {
           ...prev,
           asal_nama_pejabat: matchedRegion.official_name,
           asal_nip_pejabat: matchedRegion.official_nip,
-          asal_jabatan_pengesah: matchedRegion.depart_position,
-          kembali_nama_pejabat: matchedRegion.official_name,
-          kembali_nip_pejabat: matchedRegion.official_nip,
-          kembali_jabatan_pengesah: matchedRegion.return_position,
-          ppk_nama: newSettings.ppk.name,
-          ppk_nip: newSettings.ppk.nip,
-          ppk_jabatan: newSettings.ppk.position || prev.ppk_jabatan,
-          ppk_keterangan: newSettings.ppk.statement || prev.ppk_keterangan,
+          asal_jabatan_pengesah: departPos,
+          kembali_nama_pejabat: isDipa ? activePpk.name : matchedRegion.official_name,
+          kembali_nip_pejabat: isDipa ? activePpk.nip : matchedRegion.official_nip,
+          kembali_jabatan_pengesah: isDipa ? "Pejabat Pembuat Komitmen," : matchedRegion.return_position,
+          ppk_nama: activePpk.name,
+          ppk_nip: activePpk.nip,
+          ppk_jabatan: activePpk.position || prev.ppk_jabatan,
+          ppk_keterangan: activePpk.statement || prev.ppk_keterangan,
         };
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -724,45 +986,99 @@ export function VisumSpdTab({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Template Selector Dropdown */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-              Template:
-            </span>
-            <select
-              value={selectedTemplateId}
-              onChange={(e) => handleSelectTemplateOption(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-zinc-800 outline-none dark:text-zinc-200 cursor-pointer max-w-[200px] truncate"
+          {/* TIPE SPD ANGGARAN TOGGLE / SWITCHER */}
+          <div className="flex items-center rounded-xl border border-zinc-200 bg-white p-1 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
+            <button
+              type="button"
+              onClick={() => handleSwitchSpdType("dipa")}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                spdType === "dipa"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-zinc-600 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400"
+              }`}
             >
-              {templates.length === 0 ? (
-                <option value="default">Suaka Badak Kelian</option>
-              ) : (
-                templates.map((t) => (
-                  <option key={t.id} value={String(t.id)} className="dark:bg-zinc-900">
-                    {t.name} {t.is_default ? "(Default)" : ""}
-                  </option>
-                ))
-              )}
-              <option value="manual" className="dark:bg-zinc-900">
-                Manual (Kosong)
-              </option>
-            </select>
+              <Building2 className="h-3.5 w-3.5" />
+              <span>🏛️ SPD DIPA</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSwitchSpdType("folu")}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                spdType === "folu"
+                  ? "bg-emerald-600 text-white shadow-xs"
+                  : "text-zinc-600 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400"
+              }`}
+            >
+              <span>🌿 SPD FOLU</span>
+            </button>
           </div>
 
-          {/* Admin-Only: Save As Template Button */}
-          {!isPortal && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsSaveAsModalOpen(true)}
-              title="Simpan isian form ini sebagai template baru"
-              className="rounded-xl border-amber-200 bg-amber-50/50 text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20"
-            >
-              <BookmarkPlus className="mr-1.5 h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-              <span>Simpan Template</span>
-            </Button>
-          )}
+          {/* Template Selector Dropdown */}
+          {(() => {
+            const dipaTemplates = templates
+              .filter(
+                (t) =>
+                  (t.data?.spd_type || "").toLowerCase() === "dipa" ||
+                  t.name.toUpperCase().includes("DIPA")
+              )
+              .sort((a, b) => getRegionRank(a.name) - getRegionRank(b.name));
+
+            const foluTemplates = templates
+              .filter(
+                (t) =>
+                  (t.data?.spd_type || "").toLowerCase() === "folu" ||
+                  t.name.toUpperCase().includes("FOLU") ||
+                  t.name.toLowerCase().includes("kelian")
+              )
+              .sort((a, b) => getRegionRank(a.name) - getRegionRank(b.name));
+
+            const otherTemplates = templates.filter(
+              (t) =>
+                !dipaTemplates.some((dt) => dt.id === t.id) &&
+                !foluTemplates.some((ft) => ft.id === t.id)
+            );
+
+            const activeTemplates = spdType === "dipa" ? dipaTemplates : foluTemplates;
+            const categoryLabel =
+              spdType === "dipa" ? "🏛️ Template SPD DIPA" : "🌿 Template SPD FOLU";
+
+            return (
+              <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
+                <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                  Template:
+                </span>
+                <select
+                  value={selectedTemplateId}
+                  onChange={(e) => handleSelectTemplateOption(e.target.value)}
+                  className="bg-transparent text-xs font-semibold text-zinc-800 outline-none dark:text-zinc-200 cursor-pointer max-w-[220px] truncate"
+                >
+                  <option value="manual" className="dark:bg-zinc-900 font-semibold text-amber-700 dark:text-amber-400">
+                    ✏️ Manual (Kosong)
+                  </option>
+
+                  {activeTemplates.length > 0 && (
+                    <optgroup label={categoryLabel} className="dark:bg-zinc-900 font-bold">
+                      {activeTemplates.map((t) => (
+                        <option key={t.id} value={String(t.id)} className="dark:bg-zinc-900 font-normal">
+                          {cleanTemplateName(t.name)} {t.is_default ? "(Default)" : ""}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+
+                  {otherTemplates.length > 0 && (
+                    <optgroup label="🌐 Template Lainnya" className="dark:bg-zinc-900 font-bold">
+                      {otherTemplates.map((t) => (
+                        <option key={t.id} value={String(t.id)} className="dark:bg-zinc-900 font-normal">
+                          {cleanTemplateName(t.name)} {t.is_default ? "(Default)" : ""}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+            );
+          })()}
 
           {/* Admin-Only: Manage Templates & Officials Modal Button */}
           {!isPortal && (
@@ -788,14 +1104,6 @@ export function VisumSpdTab({
           >
             <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
             Reset
-          </Button>
-          <Button
-            type="button"
-            onClick={() => handlePrintVisumSpd("visum-spd-print-root", showTableBorder)}
-            className="rounded-xl bg-amber-600 px-5 text-xs font-semibold text-white shadow-sm hover:bg-amber-500"
-          >
-            <Printer className="mr-2 h-4 w-4" />
-            Cetak Lembar Visum
           </Button>
         </div>
       </div>
@@ -963,119 +1271,143 @@ export function VisumSpdTab({
               </span>
               <span className="text-[10px] text-zinc-400">4 Wilayah Kerja</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={applyPresetSamarinda}
-                className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition ${
-                  data.asal_tempat === (settings?.samarinda?.place || "Samarinda")
-                    ? "border-amber-500 bg-amber-50/80 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-1 ring-amber-500/30"
-                    : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                    <span>{settings?.samarinda?.place || "Samarinda"}</span>
-                  </div>
-                  <span className="text-[9px] font-bold uppercase text-amber-700 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-500/20 px-1.5 py-0.5 rounded">
-                    Balai
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.samarinda?.official_name || "Dheny Mardiono, S.Hut., MSc."}>
-                  {settings?.samarinda?.official_name || "Dheny Mardiono, S.Hut., MSc."}
-                </span>
-                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
-                  {settings?.samarinda?.return_position?.split("\n")[0] || "Kasubbag Tata Usaha"}
-                </span>
-              </Button>
+            {/* Dynamic 4 Regional Presets */}
+            {(() => {
+              const currentOfficial = data.asal_nama_pejabat || "";
+              const currentPlace = (data.asal_tempat || "").toLowerCase();
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={applyPresetBerau}
-                className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition ${
-                  data.asal_tempat === (settings?.berau?.place || "Berau")
-                    ? "border-amber-500 bg-amber-50/80 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-1 ring-amber-500/30"
-                    : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                    <span>{settings?.berau?.place || "Berau"}</span>
-                  </div>
-                  <span className="text-[9px] font-bold uppercase text-blue-700 dark:text-blue-400 bg-blue-100/60 dark:bg-blue-500/20 px-1.5 py-0.5 rounded">
-                    Wil. I
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.berau?.official_name || "Yulian Sadono, S.Hut., M.T."}>
-                  {settings?.berau?.official_name || "Yulian Sadono, S.Hut., M.T."}
-                </span>
-                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
-                  {settings?.berau?.return_position?.split("\n")[0] || "Kepala Seksi Wil. I"}
-                </span>
-              </Button>
+              const isSamarindaActive =
+                currentOfficial === (settings?.samarinda?.official_name || "Dheny Mardiono, S.Hut., MSc.") ||
+                (currentPlace.includes("samarinda") && !currentOfficial);
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={applyPresetTenggarong}
-                className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition ${
-                  data.asal_tempat === (settings?.tenggarong?.place || "Tenggarong")
-                    ? "border-amber-500 bg-amber-50/80 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-1 ring-amber-500/30"
-                    : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                    <span>{settings?.tenggarong?.place || "Tenggarong"}</span>
-                  </div>
-                  <span className="text-[9px] font-bold uppercase text-emerald-700 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded">
-                    Wil. II
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.tenggarong?.official_name || "Suriawati Halim, S.Hut., M.P."}>
-                  {settings?.tenggarong?.official_name || "Suriawati Halim, S.Hut., M.P."}
-                </span>
-                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
-                  {settings?.tenggarong?.return_position?.split("\n")[0] || "Kepala Seksi Wil. II"}
-                </span>
-              </Button>
+              const isBerauActive =
+                currentOfficial === (settings?.berau?.official_name || "Yulian Sadono, S.Hut., M.T.") ||
+                (currentPlace.includes("berau") && !currentOfficial);
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={applyPresetBalikpapan}
-                className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition ${
-                  data.asal_tempat === (settings?.balikpapan?.place || "Balikpapan")
-                    ? "border-amber-500 bg-amber-50/80 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-1 ring-amber-500/30"
-                    : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                    <span>{settings?.balikpapan?.place || "Balikpapan"}</span>
-                  </div>
-                  <span className="text-[9px] font-bold uppercase text-purple-700 dark:text-purple-400 bg-purple-100/60 dark:bg-purple-500/20 px-1.5 py-0.5 rounded">
-                    Wil. III
-                  </span>
+              const isTenggarongActive =
+                currentOfficial === (settings?.tenggarong?.official_name || "Suriawati Halim, S.Hut., M.P.") ||
+                ((currentPlace.includes("tenggarong") || currentPlace.includes("kukar")) && !currentOfficial);
+
+              const isBalikpapanActive =
+                currentOfficial === (settings?.balikpapan?.official_name || "Bambang Hari Trimarsito, S.Si., M.P.") ||
+                (currentPlace.includes("balikpapan") && !currentOfficial);
+
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={applyPresetSamarinda}
+                    className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition cursor-pointer ${
+                      isSamarindaActive
+                        ? "border-amber-500 bg-amber-50/85 text-amber-950 dark:border-amber-500/50 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-2 ring-amber-500/40 shadow-xs"
+                        : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <Building2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <span>{settings?.samarinda?.place || "Samarinda"}</span>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase text-amber-700 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-500/20 px-1.5 py-0.5 rounded">
+                        Balai
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.samarinda?.official_name || "Dheny Mardiono, S.Hut., MSc."}>
+                      {settings?.samarinda?.official_name || "Dheny Mardiono, S.Hut., MSc."}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
+                      {settings?.samarinda?.return_position?.split("\n")[0] || "Kasubbag Tata Usaha"}
+                    </span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={applyPresetBerau}
+                    className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition cursor-pointer ${
+                      isBerauActive
+                        ? "border-amber-500 bg-amber-50/85 text-amber-950 dark:border-amber-500/50 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-2 ring-amber-500/40 shadow-xs"
+                        : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <Building2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <span>{settings?.berau?.place || "Berau"}</span>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase text-blue-700 dark:text-blue-400 bg-blue-100/60 dark:bg-blue-500/20 px-1.5 py-0.5 rounded">
+                        Wil. I
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.berau?.official_name || "Yulian Sadono, S.Hut., M.T."}>
+                      {settings?.berau?.official_name || "Yulian Sadono, S.Hut., M.T."}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
+                      {settings?.berau?.return_position?.split("\n")[0] || "Kepala Seksi Wil. I"}
+                    </span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={applyPresetTenggarong}
+                    className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition cursor-pointer ${
+                      isTenggarongActive
+                        ? "border-amber-500 bg-amber-50/85 text-amber-950 dark:border-amber-500/50 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-2 ring-amber-500/40 shadow-xs"
+                        : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <Building2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>{settings?.tenggarong?.place || "Tenggarong"}</span>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase text-emerald-700 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded">
+                        Wil. II
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.tenggarong?.official_name || "Suriawati Halim, S.Hut., M.P."}>
+                      {settings?.tenggarong?.official_name || "Suriawati Halim, S.Hut., M.P."}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
+                      {settings?.tenggarong?.return_position?.split("\n")[0] || "Kepala Seksi Wil. II"}
+                    </span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={applyPresetBalikpapan}
+                    className={`h-auto flex-col items-start justify-start p-3 text-left text-xs rounded-xl border transition cursor-pointer ${
+                      isBalikpapanActive
+                        ? "border-amber-500 bg-amber-50/85 text-amber-950 dark:border-amber-500/50 dark:bg-amber-500/15 dark:text-amber-300 font-semibold ring-2 ring-amber-500/40 shadow-xs"
+                        : "border-zinc-200 bg-white hover:border-amber-300 dark:border-zinc-700 dark:bg-zinc-900"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <Building2 className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                        <span>{settings?.balikpapan?.place || "Balikpapan"}</span>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase text-purple-700 dark:text-purple-400 bg-purple-100/60 dark:bg-purple-500/20 px-1.5 py-0.5 rounded">
+                        Wil. III
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.balikpapan?.official_name || "Bambang Hari T."}>
+                      {settings?.balikpapan?.official_name || "Bambang Hari T."}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
+                      {settings?.balikpapan?.return_position?.split("\n")[0] || "Kepala Seksi Wil. III"}
+                    </span>
+                  </Button>
                 </div>
-                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 mt-1 truncate w-full" title={settings?.balikpapan?.official_name || "Bambang Hari T."}>
-                  {settings?.balikpapan?.official_name || "Bambang Hari T."}
-                </span>
-                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full mt-0.5">
-                  {settings?.balikpapan?.return_position?.split("\n")[0] || "Kepala Seksi Wil. III"}
-                </span>
-              </Button>
-            </div>
+              );
+            })()}
           </div>
 
           {/* SECTION I: BERANGKAT DARI TEMPAT KEDUDUKAN */}
@@ -1441,6 +1773,63 @@ export function VisumSpdTab({
                   placeholder="30 April 2026"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                 />
+              </div>
+
+              {/* Quick Switch for Signatory VI Kiri */}
+              <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50/80 p-2.5 dark:border-zinc-800 dark:bg-zinc-800/40">
+                <span className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                  Pengesah Tiba (VI Kiri):
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const activePpk =
+                        spdType === "dipa"
+                          ? settings?.ppk_dipa || { name: "RUSMANTO, S.Hut", nip: "19810907 200012 1 004" }
+                          : settings?.ppk_folu || settings?.ppk || { name: "Ahmad Hidayat, S.PKP., M.Ling", nip: "19820301 200012 1 001" };
+                      updateData("kembali_jabatan_pengesah", "Pejabat Pembuat Komitmen,");
+                      updateData("kembali_nama_pejabat", activePpk.name);
+                      updateData("kembali_nip_pejabat", activePpk.nip);
+                      toast.success(`Pengesah Tiba diset ke PPK (${activePpk.name})`);
+                    }}
+                    className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition ${
+                      data.kembali_jabatan_pengesah.toLowerCase().includes("pembuat komitmen")
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                    }`}
+                  >
+                    Set PPK ({spdType === "dipa" ? "Rusmanto" : "Ahmad H."})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const asalLower = (data.asal_tempat || "Samarinda").toLowerCase();
+                      let matchedRegion = settings?.samarinda;
+                      if (asalLower.includes("berau")) matchedRegion = settings?.berau;
+                      else if (asalLower.includes("tenggarong") || asalLower.includes("kukar"))
+                        matchedRegion = settings?.tenggarong;
+                      else if (asalLower.includes("balikpapan"))
+                        matchedRegion = settings?.balikpapan;
+
+                      const pos = matchedRegion?.return_position || "Kepala Subbagian Tata Usaha";
+                      const name = matchedRegion?.official_name || "Dheny Mardiono, S.Hut., MSc.";
+                      const nip = matchedRegion?.official_nip || "19750314 199903 1 004";
+
+                      updateData("kembali_jabatan_pengesah", pos);
+                      updateData("kembali_nama_pejabat", name);
+                      updateData("kembali_nip_pejabat", nip);
+                      toast.success(`Pengesah Tiba diset ke Pejabat Wilayah (${name})`);
+                    }}
+                    className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition ${
+                      !data.kembali_jabatan_pengesah.toLowerCase().includes("pembuat komitmen")
+                        ? "bg-amber-600 text-white shadow-xs"
+                        : "bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                    }`}
+                  >
+                    Set Pejabat Balai/Wilayah
+                  </button>
+                </div>
               </div>
 
               <div className="sm:col-span-2">

@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Sparkles,
   Settings2,
   FileSpreadsheet,
   Plus,
@@ -47,6 +46,8 @@ export interface RegionalOfficialItem {
   official_name: string;
   official_nip: string;
   depart_position: string;
+  depart_position_dipa?: string;
+  depart_position_folu?: string;
   return_position: string;
 }
 
@@ -62,7 +63,16 @@ export interface VisumSpdSettings {
   berau: RegionalOfficialItem;
   tenggarong: RegionalOfficialItem;
   balikpapan: RegionalOfficialItem;
-  ppk: PpkSettingItem;
+  ppk_dipa?: PpkSettingItem;
+  ppk_folu?: PpkSettingItem;
+  ppk?: PpkSettingItem;
+}
+
+function cleanTemplateName(name: string): string {
+  return name
+    .replace(/^(\[(DIPA|FOLU|UMUM)\]\s*)+/gi, "")
+    .replace(/\s*\((DIPA|FOLU)\)$/gi, "")
+    .trim();
 }
 
 interface VisumManageTemplatesModalProps {
@@ -93,6 +103,8 @@ export default function VisumManageTemplatesModal({
   // Template Form State
   const [templateName, setTemplateName] = useState("");
   const [templateDesc, setTemplateDesc] = useState("");
+  const [templateSpdType, setTemplateSpdType] = useState<"dipa" | "folu">("dipa");
+  const [templateFilter, setTemplateFilter] = useState<"all" | "dipa" | "folu">("all");
   const [templateIsDefault, setTemplateIsDefault] = useState(false);
   const [templateAutoToday, setTemplateAutoToday] = useState(true);
   const [templateData, setTemplateData] = useState<VisumSpdData | null>(null);
@@ -117,7 +129,45 @@ export default function VisumManageTemplatesModal({
         setTemplates(resTemplates.data.data);
       }
       if (resSettings.data?.success) {
-        setSettings(resSettings.data.data);
+        const raw = resSettings.data.data;
+        const normalized: VisumSpdSettings = {
+          ...raw,
+          samarinda: {
+            ...raw.samarinda,
+            depart_position_dipa: raw.samarinda?.depart_position_dipa || "Kepala Subbagian Tata Usaha,",
+            depart_position_folu: raw.samarinda?.depart_position_folu || raw.samarinda?.depart_position || "a.n. Kepala Balai\nKepala Subbagian Tata Usaha",
+          },
+          berau: {
+            ...raw.berau,
+            depart_position_dipa: raw.berau?.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah I,",
+            depart_position_folu: raw.berau?.depart_position_folu || raw.berau?.depart_position || "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah I",
+          },
+          tenggarong: {
+            ...raw.tenggarong,
+            depart_position_dipa: raw.tenggarong?.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah II,",
+            depart_position_folu: raw.tenggarong?.depart_position_folu || raw.tenggarong?.depart_position || "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah II",
+          },
+          balikpapan: {
+            ...raw.balikpapan,
+            depart_position_dipa: raw.balikpapan?.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah III,",
+            depart_position_folu: raw.balikpapan?.depart_position_folu || raw.balikpapan?.depart_position || "a.n. Kepala Balai\nKepala Seksi Konservasi Sumber\nDaya Alam Wilayah III",
+          },
+          ppk_dipa: raw.ppk_dipa || {
+            name: "RUSMANTO, S.Hut",
+            nip: "19810907 200012 1 004",
+            position: "Pejabat Pembuat Komitmen,",
+            statement:
+              "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+          },
+          ppk_folu: raw.ppk_folu || raw.ppk || {
+            name: "Ahmad Hidayat, S.PKP., M.Ling",
+            nip: "19820301 200012 1 001",
+            position: "Pejabat Pembuat Komitmen,",
+            statement:
+              "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+          },
+        };
+        setSettings(normalized);
       }
     } catch (err) {
       console.error(err);
@@ -138,13 +188,70 @@ export default function VisumManageTemplatesModal({
   // Handle Select Template for Edit
   const handleEditTemplate = (tmpl: VisumTemplateItem) => {
     setSelectedTemplate(tmpl);
-    setTemplateName(tmpl.name);
+    setTemplateName(cleanTemplateName(tmpl.name));
     setTemplateDesc(tmpl.description || "");
     setTemplateIsDefault(tmpl.is_default);
     setTemplateAutoToday(tmpl.auto_today_date);
     setTemplateData(tmpl.data);
+    const resolvedType: "dipa" | "folu" =
+      tmpl.data?.spd_type === "folu" ||
+      tmpl.name.toLowerCase().includes("folu") ||
+      tmpl.name.toLowerCase().includes("kelian")
+        ? "folu"
+        : "dipa";
+    setTemplateSpdType(resolvedType);
     setIsEditingTemplate(true);
     setIsCreatingNew(false);
+  };
+
+  const handleSwitchTemplateSpdType = (newType: "dipa" | "folu") => {
+    setTemplateSpdType(newType);
+    if (!templateData || !settings) return;
+
+    const originKey = getOriginKey(templateData.asal_tempat);
+    const reg = settings[originKey];
+    const isDipa = newType === "dipa";
+
+    const ppkDipa = settings.ppk_dipa || {
+      name: "RUSMANTO, S.Hut",
+      nip: "19810907 200012 1 004",
+      position: "Pejabat Pembuat Komitmen,",
+      statement:
+        "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+    };
+    const ppkFolu = settings.ppk_folu || settings.ppk || {
+      name: "Ahmad Hidayat, S.PKP., M.Ling",
+      nip: "19820301 200012 1 001",
+      position: "Pejabat Pembuat Komitmen,",
+      statement:
+        "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+    };
+    const activePpk = isDipa ? ppkDipa : ppkFolu;
+
+    const departPosDipa = reg?.depart_position_dipa || "Kepala Subbagian Tata Usaha,";
+    const departPosFolu =
+      reg?.depart_position_folu || reg?.depart_position || "a.n. Kepala Balai\nKepala Subbagian Tata Usaha";
+    const departPos = isDipa ? departPosDipa : departPosFolu;
+
+    setTemplateData((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        spd_type: newType,
+        asal_jabatan_pengesah: departPos,
+        asal_nama_pejabat: reg?.official_name || prev.asal_nama_pejabat,
+        asal_nip_pejabat: reg?.official_nip || prev.asal_nip_pejabat,
+        kembali_jabatan_pengesah: isDipa
+          ? "Pejabat Pembuat Komitmen,"
+          : reg?.return_position || "Kepala Subbagian Tata Usaha",
+        kembali_nama_pejabat: isDipa ? activePpk.name : reg?.official_name || prev.kembali_nama_pejabat,
+        kembali_nip_pejabat: isDipa ? activePpk.nip : reg?.official_nip || prev.kembali_nip_pejabat,
+        ppk_jabatan: activePpk.position || "Pejabat Pembuat Komitmen,",
+        ppk_nama: activePpk.name,
+        ppk_nip: activePpk.nip,
+        ppk_keterangan: activePpk.statement,
+      };
+    });
   };
 
   const handleSelectTemplateOrigin = (
@@ -154,17 +261,33 @@ export default function VisumManageTemplatesModal({
     const reg = settings[regionKey];
     setTemplateData((prev) => {
       if (!prev) return null;
+      const isDipa = templateSpdType === "dipa";
+      const departPosDipa =
+        reg.depart_position_dipa ||
+        (reg.depart_position || "")
+          .replace(/^a\.n\.\s*Kepala\s+Balai\s*\n?/i, "")
+          .replace(/^a\.n\.\s*Kepala\s+Balai,?\s*/i, "")
+          .trim();
+      const departPosFolu = reg.depart_position_folu || reg.depart_position;
+      const departPos = isDipa ? departPosDipa : departPosFolu;
+
+      const ppkDipa = settings.ppk_dipa || {
+        name: "RUSMANTO, S.Hut",
+        nip: "19810907 200012 1 004",
+      };
+
       return {
         ...prev,
+        spd_type: templateSpdType,
         asal_tempat: reg.place,
         tujuan_1_berangkat_ke: reg.place,
         kembali_tempat: reg.place,
-        asal_jabatan_pengesah: reg.depart_position,
+        asal_jabatan_pengesah: departPos,
         asal_nama_pejabat: reg.official_name,
         asal_nip_pejabat: reg.official_nip,
-        kembali_jabatan_pengesah: reg.return_position,
-        kembali_nama_pejabat: reg.official_name,
-        kembali_nip_pejabat: reg.official_nip,
+        kembali_jabatan_pengesah: isDipa ? "Pejabat Pembuat Komitmen," : reg.return_position,
+        kembali_nama_pejabat: isDipa ? ppkDipa.name : reg.official_name,
+        kembali_nip_pejabat: isDipa ? ppkDipa.nip : reg.official_nip,
       };
     });
   };
@@ -184,15 +307,23 @@ export default function VisumManageTemplatesModal({
     setTemplateDesc("");
     setTemplateIsDefault(false);
     setTemplateAutoToday(true);
+    setTemplateSpdType("dipa");
 
     const s = settings?.samarinda;
-    const ppk = settings?.ppk;
+    const ppkDipa = settings?.ppk_dipa || {
+      name: "RUSMANTO, S.Hut",
+      nip: "19810907 200012 1 004",
+      position: "Pejabat Pembuat Komitmen,",
+      statement:
+        "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+    };
 
     setTemplateData({
+      spd_type: "dipa",
       asal_tempat: s?.place || "Samarinda",
       asal_tanggal: "",
       tujuan_awal: "",
-      asal_jabatan_pengesah: s?.depart_position || "a.n. Kepala Balai\nKepala Subbagian Tata Usaha",
+      asal_jabatan_pengesah: s?.depart_position_dipa || "Kepala Subbagian Tata Usaha,",
       asal_nama_pejabat: s?.official_name || "Dheny Mardiono, S.Hut., MSc.",
       asal_nip_pejabat: s?.official_nip || "19750314 199903 1 004",
 
@@ -216,16 +347,14 @@ export default function VisumManageTemplatesModal({
 
       kembali_tempat: s?.place || "Samarinda",
       kembali_tanggal: "",
-      kembali_jabatan_pengesah: s?.return_position || "Kepala Subbagian Tata Usaha",
-      kembali_nama_pejabat: s?.official_name || "Dheny Mardiono, S.Hut., MSc.",
-      kembali_nip_pejabat: s?.official_nip || "19750314 199903 1 004",
+      kembali_jabatan_pengesah: "Pejabat Pembuat Komitmen,",
+      kembali_nama_pejabat: ppkDipa.name,
+      kembali_nip_pejabat: ppkDipa.nip,
 
-      ppk_keterangan:
-        ppk?.statement ||
-        "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
-      ppk_jabatan: ppk?.position || "Pejabat Pembuat Komitmen,",
-      ppk_nama: ppk?.name || "Ahmad Hidayat, S.PKP., M.Ling",
-      ppk_nip: ppk?.nip || "19820301 200012 1 001",
+      ppk_keterangan: ppkDipa.statement,
+      ppk_jabatan: ppkDipa.position || "Pejabat Pembuat Komitmen,",
+      ppk_nama: ppkDipa.name,
+      ppk_nip: ppkDipa.nip,
 
       catatan_lain: "",
       perhatian_text:
@@ -359,20 +488,28 @@ export default function VisumManageTemplatesModal({
 
     setSaving(true);
     try {
+      const formattedName =
+        templateSpdType === "dipa"
+          ? `[DIPA] ${cleanTemplateName(templateName)}`
+          : `[FOLU] ${cleanTemplateName(templateName)}`;
+
       const payload = {
-        name: templateName,
+        name: formattedName,
         description: templateDesc,
         is_default: templateIsDefault,
         auto_today_date: templateAutoToday,
-        data: templateData,
+        data: {
+          ...templateData,
+          spd_type: templateSpdType,
+        },
       };
 
       if (isCreatingNew) {
         await api.post("/api/keuangan/visum/templates", payload);
-        toast.success("Template baru berhasil disimpan.");
+        toast.success(`Template ${templateSpdType.toUpperCase()} baru berhasil disimpan.`);
       } else if (selectedTemplate) {
         await api.put(`/api/keuangan/visum/templates/${selectedTemplate.id}`, payload);
-        toast.success("Template berhasil diperbarui.");
+        toast.success(`Template ${templateSpdType.toUpperCase()} berhasil diperbarui.`);
       }
 
       setIsEditingTemplate(false);
@@ -435,14 +572,18 @@ export default function VisumManageTemplatesModal({
     }
   };
 
-  // Update Settings (4 Wilayah & PPK)
+  // Update Settings (4 Wilayah & Dual PPK)
   const handleSaveSettings = async () => {
     if (!settings) return;
     setSaving(true);
     try {
-      await api.put("/api/keuangan/visum/settings", settings);
-      toast.success("Pengaturan Pejabat 4 Wilayah & PPK berhasil disimpan.");
-      onSettingsUpdated(settings);
+      const payload: VisumSpdSettings = {
+        ...settings,
+        ppk: settings.ppk_folu || settings.ppk,
+      };
+      await api.put("/api/keuangan/visum/settings", payload);
+      toast.success("Pengaturan Pejabat 4 Wilayah & PPK (DIPA & FOLU) berhasil disimpan.");
+      onSettingsUpdated(payload);
     } catch (err) {
       console.error(err);
       toast.error("Gagal menyimpan pengaturan pejabat.");
@@ -469,19 +610,40 @@ export default function VisumManageTemplatesModal({
     });
   };
 
-  // Helper to select employee for PPK
-  const handleSelectPpkEmployee = (empId: number) => {
+  // Helper to select employee for PPK (DIPA or FOLU)
+  const handleSelectPpkEmployee = (empId: number, target: "dipa" | "folu" = "dipa") => {
     const emp = employeeOptions.find((e) => e.id === empId);
     if (!emp || !settings) return;
 
-    setSettings({
-      ...settings,
-      ppk: {
-        ...settings.ppk,
+    if (target === "dipa") {
+      const cur = settings.ppk_dipa || settings.ppk;
+      setSettings({
+        ...settings,
+        ppk_dipa: {
+          position: cur?.position || "Pejabat Pembuat Komitmen,",
+          statement:
+            cur?.statement ||
+            "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+          name: emp.name,
+          nip: formatNip(emp.nip),
+        },
+      });
+    } else {
+      const cur = settings.ppk_folu || settings.ppk;
+      const updatedPpk: PpkSettingItem = {
+        position: cur?.position || "Pejabat Pembuat Komitmen,",
+        statement:
+          cur?.statement ||
+          "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
         name: emp.name,
         nip: formatNip(emp.nip),
-      },
-    });
+      };
+      setSettings({
+        ...settings,
+        ppk_folu: updatedPpk,
+        ppk: updatedPpk,
+      });
+    }
   };
 
   return (
@@ -535,7 +697,7 @@ export default function VisumManageTemplatesModal({
             <div className="space-y-4">
               {!isEditingTemplate ? (
                 <>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
                         Daftar Template Perjalanan Dinas
@@ -544,15 +706,56 @@ export default function VisumManageTemplatesModal({
                         Template ini dapat dipilih langsung pada lembar visum untuk mengisi tujuan secara cepat.
                       </p>
                     </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleNewTemplate}
-                      className="flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 text-xs font-semibold text-white hover:bg-amber-700 shadow-xs"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      <span>Tambah Template</span>
-                    </Button>
+
+                    <div className="flex items-center gap-2">
+                      {/* Filter DIPA / FOLU */}
+                      <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+                        <button
+                          type="button"
+                          onClick={() => setTemplateFilter("all")}
+                          className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                            templateFilter === "all"
+                              ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-800 dark:text-white font-bold"
+                              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400"
+                          }`}
+                        >
+                          Semua ({templates.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTemplateFilter("dipa")}
+                          className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                            templateFilter === "dipa"
+                              ? "bg-blue-600 text-white shadow-xs font-bold"
+                              : "text-zinc-500 hover:text-blue-600 dark:text-zinc-400"
+                          }`}
+                        >
+                          <Building2 className="h-3 w-3" />
+                          <span>DIPA ({templates.filter((t) => (t.data?.spd_type || "").toLowerCase() === "dipa" || t.name.toUpperCase().includes("DIPA")).length})</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTemplateFilter("folu")}
+                          className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                            templateFilter === "folu"
+                              ? "bg-emerald-600 text-white shadow-xs font-bold"
+                              : "text-zinc-500 hover:text-emerald-600 dark:text-zinc-400"
+                          }`}
+                        >
+                          <span>FOLU ({templates.filter((t) => (t.data?.spd_type || "").toLowerCase() === "folu" || t.name.toUpperCase().includes("FOLU") || t.name.toLowerCase().includes("kelian")).length})</span>
+                        </button>
+                      </div>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleNewTemplate}
+                        className="flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 text-xs font-semibold text-white hover:bg-amber-700 shadow-xs"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>Tambah Template</span>
+                      </Button>
+                    </div>
                   </div>
 
                   {loading ? (
@@ -577,7 +780,24 @@ export default function VisumManageTemplatesModal({
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {templates.map((tmpl) => (
+                      {templates
+                        .filter((t) => {
+                          if (templateFilter === "dipa") {
+                            return (
+                              (t.data?.spd_type || "").toLowerCase() === "dipa" ||
+                              t.name.toUpperCase().includes("DIPA")
+                            );
+                          }
+                          if (templateFilter === "folu") {
+                            return (
+                              (t.data?.spd_type || "").toLowerCase() === "folu" ||
+                              t.name.toUpperCase().includes("FOLU") ||
+                              t.name.toLowerCase().includes("kelian")
+                            );
+                          }
+                          return true;
+                        })
+                        .map((tmpl) => (
                         <div
                           key={tmpl.id}
                           className={`flex flex-col justify-between rounded-2xl border p-4 transition ${
@@ -589,14 +809,29 @@ export default function VisumManageTemplatesModal({
                           <div>
                             <div className="flex items-start justify-between gap-2">
                               <h4 className="font-bold text-xs text-zinc-900 dark:text-white">
-                                {tmpl.name}
+                                {cleanTemplateName(tmpl.name)}
                               </h4>
-                              {tmpl.is_default && (
-                                <span className="flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
-                                  <CheckCircle2 className="h-3 w-3" />
-                                  Default
-                                </span>
-                              )}
+                              <div className="flex items-center gap-1">
+                                {tmpl.data?.spd_type === "dipa" || tmpl.name.toUpperCase().includes("DIPA") ? (
+                                  <span className="rounded-md bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-blue-800 dark:bg-blue-500/20 dark:text-blue-300">
+                                    🏛️ DIPA
+                                  </span>
+                                ) : tmpl.data?.spd_type === "folu" || tmpl.name.toUpperCase().includes("FOLU") || tmpl.name.toLowerCase().includes("kelian") ? (
+                                  <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300">
+                                    🌿 FOLU
+                                  </span>
+                                ) : (
+                                  <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                    🌐 UMUM
+                                  </span>
+                                )}
+                                {tmpl.is_default && (
+                                  <span className="flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    Default
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <p className="mt-1 text-[11px] text-zinc-500 line-clamp-2">
                               {tmpl.description || "Tidak ada deskripsi."}
@@ -700,6 +935,44 @@ export default function VisumManageTemplatesModal({
                         placeholder="Contoh: Suaka Badak Kelian, Patroli SKW I Berau"
                         className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 font-semibold"
                       />
+                    </div>
+
+                    {/* Tipe Anggaran Template: DIPA vs FOLU */}
+                    <div className="sm:col-span-2 space-y-1.5 pt-1">
+                      <label className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
+                        Tipe Anggaran Template *
+                      </label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSwitchTemplateSpdType("dipa")}
+                          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition border cursor-pointer ${
+                            templateSpdType === "dipa"
+                              ? "border-blue-600 bg-blue-600 text-white shadow-xs"
+                              : "border-zinc-200 bg-white text-zinc-700 hover:border-blue-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                          }`}
+                        >
+                          <Building2 className="h-4 w-4" />
+                          <span>🏛️ SPD DIPA (Tanpa a.n.)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleSwitchTemplateSpdType("folu")}
+                          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition border cursor-pointer ${
+                            templateSpdType === "folu"
+                              ? "border-emerald-600 bg-emerald-600 text-white shadow-xs"
+                              : "border-zinc-200 bg-white text-zinc-700 hover:border-emerald-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                          }`}
+                        >
+                          <span>🌿 SPD FOLU (Dengan a.n.)</span>
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                        {templateSpdType === "dipa"
+                          ? "Pejabat pengesah berangkat akan otomatis menggunakan format jabatan DIPA (tanpa a.n. Kepala Balai) dan PPK RUSMANTO, S.Hut."
+                          : "Pejabat pengesah berangkat akan otomatis menggunakan format jabatan FOLU (dengan a.n. Kepala Balai) dan PPK Ahmad Hidayat, S.PKP., M.Ling."}
+                      </p>
                     </div>
 
                     <div className="sm:col-span-2">
@@ -1253,7 +1526,7 @@ export default function VisumManageTemplatesModal({
                   <div className="space-y-3">
                     <div>
                       <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Nama Pejabat
+                        Nama Pejabat (Kasubbag TU)
                       </label>
                       <input
                         type="text"
@@ -1286,19 +1559,40 @@ export default function VisumManageTemplatesModal({
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Jabatan Pengesah Berangkat (Bagian I)
+                      <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                        <span>🏛️ Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
-                        value={settings.samarinda.depart_position}
+                        value={settings.samarinda.depart_position_dipa || "Kepala Subbagian Tata Usaha,"}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
-                            samarinda: { ...settings.samarinda, depart_position: e.target.value },
+                            samarinda: { ...settings.samarinda, depart_position_dipa: e.target.value },
                           })
                         }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                        <span>🌿 Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={settings.samarinda.depart_position_folu || settings.samarinda.depart_position}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            samarinda: {
+                              ...settings.samarinda,
+                              depart_position_folu: e.target.value,
+                              depart_position: e.target.value,
+                            },
+                          })
+                        }
+                        className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       />
                     </div>
 
@@ -1384,19 +1678,40 @@ export default function VisumManageTemplatesModal({
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Jabatan Pengesah Berangkat (Bagian I)
+                      <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                        <span>🏛️ Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
-                        value={settings.berau.depart_position}
+                        value={settings.berau.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah I,"}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
-                            berau: { ...settings.berau, depart_position: e.target.value },
+                            berau: { ...settings.berau, depart_position_dipa: e.target.value },
                           })
                         }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                        <span>🌿 Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={settings.berau.depart_position_folu || settings.berau.depart_position}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            berau: {
+                              ...settings.berau,
+                              depart_position_folu: e.target.value,
+                              depart_position: e.target.value,
+                            },
+                          })
+                        }
+                        className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       />
                     </div>
 
@@ -1482,19 +1797,40 @@ export default function VisumManageTemplatesModal({
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Jabatan Pengesah Berangkat (Bagian I)
+                      <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                        <span>🏛️ Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
-                        value={settings.tenggarong.depart_position}
+                        value={settings.tenggarong.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah II,"}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
-                            tenggarong: { ...settings.tenggarong, depart_position: e.target.value },
+                            tenggarong: { ...settings.tenggarong, depart_position_dipa: e.target.value },
                           })
                         }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                        <span>🌿 Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={settings.tenggarong.depart_position_folu || settings.tenggarong.depart_position}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            tenggarong: {
+                              ...settings.tenggarong,
+                              depart_position_folu: e.target.value,
+                              depart_position: e.target.value,
+                            },
+                          })
+                        }
+                        className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       />
                     </div>
 
@@ -1580,19 +1916,40 @@ export default function VisumManageTemplatesModal({
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Jabatan Pengesah Berangkat (Bagian I)
+                      <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                        <span>🏛️ Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
-                        value={settings.balikpapan.depart_position}
+                        value={settings.balikpapan.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah III,"}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
-                            balikpapan: { ...settings.balikpapan, depart_position: e.target.value },
+                            balikpapan: { ...settings.balikpapan, depart_position_dipa: e.target.value },
                           })
                         }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                        <span>🌿 Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={settings.balikpapan.depart_position_folu || settings.balikpapan.depart_position}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            balikpapan: {
+                              ...settings.balikpapan,
+                              depart_position_folu: e.target.value,
+                              depart_position: e.target.value,
+                            },
+                          })
+                        }
+                        className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       />
                     </div>
 
@@ -1616,81 +1973,220 @@ export default function VisumManageTemplatesModal({
                 </div>
               </div>
 
-              {/* PPK Section */}
-              <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 dark:border-amber-500/30 dark:bg-amber-500/5 shadow-xs">
-                <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-amber-200/60 pb-2.5 dark:border-amber-500/20">
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-900 dark:text-amber-300">
-                    <UserCheck className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span>Pengaturan Pejabat Pembuat Komitmen (PPK)</span>
-                  </div>
-                  {employeeOptions.length > 0 && (
-                    <select
-                      onChange={(e) => handleSelectPpkEmployee(Number(e.target.value))}
-                      defaultValue=""
-                      className="h-7 rounded-lg border border-amber-200 bg-white px-2 text-[11px] font-medium text-zinc-700 outline-none hover:bg-zinc-50 focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer max-w-[200px]"
-                    >
-                      <option value="" disabled>
-                        Pilih dari Pegawai PPK...
-                      </option>
-                      {employeeOptions.map((emp) => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.name} {emp.position ? `(${emp.position})` : ""}
+              {/* Dual PPK Section: PPK DIPA & PPK FOLU */}
+              <div className="space-y-4">
+                {/* 1. PPK DIPA */}
+                <div className="rounded-2xl border border-blue-200 bg-blue-50/40 p-5 dark:border-blue-500/30 dark:bg-blue-500/5 shadow-xs">
+                  <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-blue-200/60 pb-2.5 dark:border-blue-500/20">
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-900 dark:text-blue-300">
+                      <UserCheck className="h-4 w-4 text-blue-600 shrink-0" />
+                      <span>1. Pejabat Pembuat Komitmen (PPK) — Anggaran DIPA</span>
+                    </div>
+                    {employeeOptions.length > 0 && (
+                      <select
+                        onChange={(e) => handleSelectPpkEmployee(Number(e.target.value), "dipa")}
+                        defaultValue=""
+                        className="h-7 rounded-lg border border-blue-200 bg-white px-2 text-[11px] font-medium text-zinc-700 outline-none hover:bg-zinc-50 focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer max-w-[220px]"
+                      >
+                        <option value="" disabled>
+                          Pilih Pegawai PPK DIPA...
                         </option>
-                      ))}
-                    </select>
-                  )}
+                        {employeeOptions.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.name} {emp.position ? `(${emp.position})` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                        Nama PPK DIPA
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.ppk_dipa?.name || "RUSMANTO, S.Hut"}
+                        onChange={(e) => {
+                          const cur = settings.ppk_dipa || settings.ppk;
+                          setSettings({
+                            ...settings,
+                            ppk_dipa: {
+                              name: e.target.value,
+                              nip: cur?.nip || "19810907 200012 1 004",
+                              position: cur?.position || "Pejabat Pembuat Komitmen,",
+                              statement:
+                                cur?.statement ||
+                                "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+                            },
+                          });
+                        }}
+                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                        NIP PPK DIPA
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.ppk_dipa?.nip || "19810907 200012 1 004"}
+                        onChange={(e) => {
+                          const cur = settings.ppk_dipa || settings.ppk;
+                          setSettings({
+                            ...settings,
+                            ppk_dipa: {
+                              name: cur?.name || "RUSMANTO, S.Hut",
+                              nip: e.target.value,
+                              position: cur?.position || "Pejabat Pembuat Komitmen,",
+                              statement:
+                                cur?.statement ||
+                                "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+                            },
+                          });
+                        }}
+                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                        Keterangan Pernyataan PPK DIPA (Bagian VI Kanan)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          settings.ppk_dipa?.statement ||
+                          "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya."
+                        }
+                        onChange={(e) => {
+                          const cur = settings.ppk_dipa || settings.ppk;
+                          setSettings({
+                            ...settings,
+                            ppk_dipa: {
+                              name: cur?.name || "RUSMANTO, S.Hut",
+                              nip: cur?.nip || "19810907 200012 1 004",
+                              position: cur?.position || "Pejabat Pembuat Komitmen,",
+                              statement: e.target.value,
+                            },
+                          });
+                        }}
+                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-                      Nama PPK
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.ppk.name}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          ppk: { ...settings.ppk, name: e.target.value },
-                        })
-                      }
-                      className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                    />
+                {/* 2. PPK FOLU */}
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 dark:border-emerald-500/30 dark:bg-emerald-500/5 shadow-xs">
+                  <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/60 pb-2.5 dark:border-emerald-500/20">
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-900 dark:text-emerald-300">
+                      <UserCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span>2. Pejabat Pembuat Komitmen (PPK) — Anggaran FOLU Net Sink 2030</span>
+                    </div>
+                    {employeeOptions.length > 0 && (
+                      <select
+                        onChange={(e) => handleSelectPpkEmployee(Number(e.target.value), "folu")}
+                        defaultValue=""
+                        className="h-7 rounded-lg border border-emerald-200 bg-white px-2 text-[11px] font-medium text-zinc-700 outline-none hover:bg-zinc-50 focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer max-w-[220px]"
+                      >
+                        <option value="" disabled>
+                          Pilih Pegawai PPK FOLU...
+                        </option>
+                        {employeeOptions.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.name} {emp.position ? `(${emp.position})` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-                      NIP PPK
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.ppk.nip}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          ppk: { ...settings.ppk, nip: e.target.value },
-                        })
-                      }
-                      className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                        Nama PPK FOLU
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.ppk_folu?.name || settings.ppk?.name || "Ahmad Hidayat, S.PKP., M.Ling"}
+                        onChange={(e) => {
+                          const cur = settings.ppk_folu || settings.ppk;
+                          const nextPpk: PpkSettingItem = {
+                            name: e.target.value,
+                            nip: cur?.nip || "19820301 200012 1 001",
+                            position: cur?.position || "Pejabat Pembuat Komitmen,",
+                            statement:
+                              cur?.statement ||
+                              "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+                          };
+                          setSettings({
+                            ...settings,
+                            ppk_folu: nextPpk,
+                            ppk: nextPpk,
+                          });
+                        }}
+                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
 
-                  <div className="sm:col-span-2">
-                    <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-                      Keterangan Pernyataan PPK (Bagian VI Kanan)
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={settings.ppk.statement}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          ppk: { ...settings.ppk, statement: e.target.value },
-                        })
-                      }
-                      className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                    />
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                        NIP PPK FOLU
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.ppk_folu?.nip || settings.ppk?.nip || "19820301 200012 1 001"}
+                        onChange={(e) => {
+                          const cur = settings.ppk_folu || settings.ppk;
+                          const nextPpk: PpkSettingItem = {
+                            name: cur?.name || "Ahmad Hidayat, S.PKP., M.Ling",
+                            nip: e.target.value,
+                            position: cur?.position || "Pejabat Pembuat Komitmen,",
+                            statement:
+                              cur?.statement ||
+                              "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+                          };
+                          setSettings({
+                            ...settings,
+                            ppk_folu: nextPpk,
+                            ppk: nextPpk,
+                          });
+                        }}
+                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                        Keterangan Pernyataan PPK FOLU (Bagian VI Kanan)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          settings.ppk_folu?.statement ||
+                          settings.ppk?.statement ||
+                          "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya."
+                        }
+                        onChange={(e) => {
+                          const cur = settings.ppk_folu || settings.ppk;
+                          const nextPpk: PpkSettingItem = {
+                            name: cur?.name || "Ahmad Hidayat, S.PKP., M.Ling",
+                            nip: cur?.nip || "19820301 200012 1 001",
+                            position: cur?.position || "Pejabat Pembuat Komitmen,",
+                            statement: e.target.value,
+                          };
+                          setSettings({
+                            ...settings,
+                            ppk_folu: nextPpk,
+                            ppk: nextPpk,
+                          });
+                        }}
+                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
