@@ -22,6 +22,8 @@ export interface VisumTransitItem {
 export type VisumRowTransit = VisumTransitItem;
 
 export interface VisumSpdData {
+  spd_type?: "dipa" | "folu";
+
   // Section I: Berangkat dari tempat kedudukan
   asal_tempat: string;
   asal_tanggal: string;
@@ -104,6 +106,7 @@ export function getTodayIndoDate(): string {
 export function getTemplateKelian(): VisumSpdData {
   const today = getTodayIndoDate();
   return {
+    spd_type: "folu",
     asal_tempat: "Samarinda",
     asal_tanggal: today,
     tujuan_awal: "Kabupaten Kutai Barat",
@@ -140,6 +143,53 @@ export function getTemplateKelian(): VisumSpdData {
     ppk_jabatan: "Pejabat Pembuat Komitmen,",
     ppk_nama: "Ahmad Hidayat, S.PKP., M.Ling",
     ppk_nip: "19820301 200012 1 001",
+
+    catatan_lain: "",
+    perhatian_text:
+      "PPK yang menerbitkan SPD, pegawai yang melakukan perjalanan dinas, para pejabat yang mengesahkan tanggal berangkat / tiba, serta bendahara pengeluaran bertanggung jawab berdasarkan peraturan-peraturan Keuangan Negara apabila negara menderita rugi akibat kesalahan, kelalaian dan kealphaannya.",
+  };
+}
+
+export function getTemplateDipaTenggarong(): VisumSpdData {
+  const today = getTodayIndoDate();
+  return {
+    spd_type: "dipa",
+    asal_tempat: "Tenggarong, Kab. Kukar",
+    asal_tanggal: today,
+    tujuan_awal: "Kec. Tenggarong Seberang",
+    asal_jabatan_pengesah: "Kepala Seksi Konservasi Sumber Daya Alam Wilayah II,",
+    asal_nama_pejabat: "SURIAWATI HALIM, S.Hut., M.P.",
+    asal_nip_pejabat: "19751127 200003 2 001",
+
+    tujuan_1_tempat: "Kec. Tenggarong Seberang",
+    tujuan_1_tiba_tanggal: today,
+    tujuan_1_kepala_jabatan: "Ketua RT. 15\nDesa Suka Maju",
+    tujuan_1_kepala_nama: "SUHENDRA",
+    tujuan_1_kepala_nip: "",
+    tujuan_1_id_type: "NIP",
+    tujuan_1_berangkat_dari: "Kec. Tenggarong Seberang",
+    tujuan_1_berangkat_ke: "Tenggarong, Kab. Kukar",
+    tujuan_1_berangkat_tanggal: today,
+    tujuan_1_berangkat_kepala_jabatan: "Ketua RT. 15\nDesa Suka Maju",
+    tujuan_1_berangkat_kepala_nama: "SUHENDRA",
+    tujuan_1_berangkat_kepala_nip: "",
+    tujuan_1_berangkat_id_type: "NIP",
+
+    transit_3: {},
+    transit_4: {},
+    transit_5: {},
+
+    kembali_tempat: "Tenggarong, Kab. Kukar",
+    kembali_tanggal: today,
+    kembali_jabatan_pengesah: "Pejabat Pembuat Komitmen,",
+    kembali_nama_pejabat: "RUSMANTO, S.Hut",
+    kembali_nip_pejabat: "19810907 200012 1 004",
+
+    ppk_keterangan:
+      "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
+    ppk_jabatan: "Pejabat Pembuat Komitmen,",
+    ppk_nama: "RUSMANTO, S.Hut",
+    ppk_nip: "19810907 200012 1 004",
 
     catatan_lain: "",
     perhatian_text:
@@ -379,6 +429,41 @@ const VISUM_BASE_CSS = `
     width: 62mm;
     max-width: 62mm;
   }
+  /* Khusus DIPA: Judul jabatan satu baris tanpa turun dan nama pejabat pas di tengah */
+  .sig-block.sig-block-dipa {
+    width: 100% !important;
+    max-width: 100% !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .sig-block.sig-block-dipa .sig-title {
+    font-size: 7.7pt !important;
+    letter-spacing: -0.15px;
+    white-space: nowrap !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+  .sig-block.sig-block-dipa .sig-person {
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+  }
+  .sig-block.sig-block-dipa .sig-name {
+    text-align: left !important;
+    width: 100% !important;
+    font-size: 8.6pt !important;
+    white-space: nowrap !important;
+  }
+  .sig-block.sig-block-dipa .sig-nip {
+    text-align: left !important;
+    width: 100% !important;
+    font-size: 8.2pt !important;
+    white-space: nowrap !important;
+  }
   .sig-title {
     font-size: 8.2pt;
     line-height: 1.15;
@@ -580,21 +665,34 @@ export function VisumSpdDocument({
 
               <div className="sig-box-i">
                 {includeBalaiData && (
-                  <div className="sig-block">
-                    <div className="sig-title">
-                      {d.asal_jabatan_pengesah || ""}
-                    </div>
-                    <div className="sig-person">
-                      <div className="sig-name">{d.asal_nama_pejabat || ""}</div>
-                      {d.asal_nip_pejabat && (
-                        <div className="sig-nip">
-                          {d.asal_nip_pejabat.startsWith("NIP")
-                            ? d.asal_nip_pejabat
-                            : `NIP. ${d.asal_nip_pejabat}`}
+                  (() => {
+                    const isDipa = (d.spd_type || "").toLowerCase() === "dipa";
+                    const cleanDepartPosition = isDipa
+                      ? (d.asal_jabatan_pengesah || "")
+                          .replace(/^a\.n\.\s*Kepala\s+Balai\s*\n?/i, "")
+                          .replace(/^a\.n\.\s*Kepala\s+Balai,?\s*/i, "")
+                          .replace(/\n+/g, " ")
+                          .trim()
+                      : d.asal_jabatan_pengesah || "";
+
+                    return (
+                      <div className={`sig-block ${isDipa ? "sig-block-dipa" : ""}`}>
+                        <div className="sig-title" title={cleanDepartPosition}>
+                          {cleanDepartPosition}
                         </div>
-                      )}
-                    </div>
-                  </div>
+                        <div className="sig-person">
+                          <div className="sig-name">{d.asal_nama_pejabat || ""}</div>
+                          {d.asal_nip_pejabat && (
+                            <div className="sig-nip">
+                              {d.asal_nip_pejabat.startsWith("NIP")
+                                ? d.asal_nip_pejabat
+                                : `NIP. ${d.asal_nip_pejabat}`}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()
                 )}
               </div>
             </td>
