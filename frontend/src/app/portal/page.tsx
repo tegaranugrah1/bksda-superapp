@@ -23,21 +23,66 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
-import SuratTugasLetterPreview from "@/components/SuratTugasLetterPreview";
-import { LeaveRequestDialog } from "./_components/LeaveRequestDialog";
-import { FormulirCutiPrint, LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
+import dynamic from "next/dynamic";
+import type { LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
 import { SuratTugasTab } from "./_components/SuratTugasTab";
 import { MyAssetsTab, AssetItem } from "./_components/MyAssetsTab";
 import { MyLeaveTab } from "./_components/MyLeaveTab";
 import { ActiveLoansTab, BorrowedAssetItem } from "./_components/ActiveLoansTab";
-import { GeneralReportDialog } from "./_components/GeneralReportDialog";
-import { GeneralReportInlineForm } from "./_components/GeneralReportInlineForm";
-import { SmartPatrolInlineForm } from "./_components/SmartPatrolInlineForm";
 import { PortalProfileSidebar } from "./_components/PortalProfileSidebar";
 import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
 import { PortalQuickStats } from "./_components/PortalQuickStats";
 import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
-import { VisumSpdTab } from "@/app/keuangan/_components/VisumSpdTab";
+
+// Lazy-loaded heavy components for optimal initial bundle performance
+const VisumSpdTab = dynamic(
+  () => import("@/app/keuangan/_components/VisumSpdTab").then((mod) => mod.VisumSpdTab),
+  {
+    loading: () => (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-amber-600" />
+      </div>
+    ),
+  }
+);
+
+const SmartPatrolInlineForm = dynamic(
+  () => import("./_components/SmartPatrolInlineForm").then((mod) => mod.SmartPatrolInlineForm),
+  {
+    loading: () => (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+      </div>
+    ),
+  }
+);
+
+const GeneralReportInlineForm = dynamic(
+  () => import("./_components/GeneralReportInlineForm").then((mod) => mod.GeneralReportInlineForm),
+  {
+    loading: () => (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+      </div>
+    ),
+  }
+);
+
+const LeaveRequestDialog = dynamic(
+  () => import("./_components/LeaveRequestDialog").then((mod) => mod.LeaveRequestDialog),
+  { ssr: false }
+);
+
+
+const FormulirCutiPrint = dynamic(
+  () => import("./_components/FormulirCutiPrint").then((mod) => mod.FormulirCutiPrint),
+  { ssr: false }
+);
+
+const SuratTugasLetterPreview = dynamic(
+  () => import("@/components/SuratTugasLetterPreview"),
+  { ssr: false }
+);
 
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
@@ -89,7 +134,79 @@ interface SuratTugasDetail {
 
 type TabKey = "pinjaman" | "aset" | "surat_tugas" | "cuti";
 
-export default function PersonalDashboard() {
+function PortalSkeleton() {
+  return (
+    <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950">
+      {/* HEADER NAVBAR SKELETON */}
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div className="space-y-1">
+              <div className="w-28 h-3.5 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+              <div className="w-20 h-2 bg-slate-100 dark:bg-slate-850 rounded animate-pulse" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
+          </div>
+        </div>
+      </header>
+
+      {/* 3-COLUMN SKELETON */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6">
+        {/* Left column */}
+        <div className="w-full lg:w-72 shrink-0 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 space-y-4 shadow-sm">
+            <div className="w-20 h-20 rounded-full bg-slate-200 dark:bg-slate-800 mx-auto animate-pulse" />
+            <div className="space-y-2 text-center">
+              <div className="w-36 h-4 bg-slate-200 dark:bg-slate-800 rounded mx-auto animate-pulse" />
+              <div className="w-24 h-3 bg-slate-100 dark:bg-slate-850 rounded mx-auto animate-pulse" />
+            </div>
+            <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="w-full h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
+              <div className="w-full h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
+              <div className="w-full h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Center column */}
+        <main className="flex-1 min-w-0 space-y-6 w-full">
+          {/* Banner skeleton */}
+          <div className="rounded-3xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 md:p-7 text-white shadow-md space-y-3 animate-pulse">
+            <div className="w-32 h-4 bg-emerald-600/60 rounded" />
+            <div className="w-64 h-7 bg-emerald-600/80 rounded" />
+            <div className="w-96 max-w-full h-3 bg-emerald-600/50 rounded" />
+          </div>
+
+          {/* Quick stats skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm h-24 animate-pulse" />
+            ))}
+          </div>
+
+          {/* Tabs skeleton */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 min-h-[300px]">
+            <div className="w-48 h-5 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mb-4" />
+            <div className="space-y-3">
+              <div className="w-full h-14 bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
+              <div className="w-full h-14 bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
+            </div>
+          </div>
+        </main>
+
+        {/* Right column */}
+        <div className="w-full lg:w-80 shrink-0 space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-sm h-64 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PortalContent() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,7 +227,6 @@ export default function PersonalDashboard() {
   const [stDetailLoading, setStDetailLoading] = useState(false);
 
   // General Report Builder state
-  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [inlineFormType, setInlineFormType] = useState<"general" | "smart_patrol" | null>(null);
 
   const filteredMyAssets = useMemo(() => {
@@ -124,12 +240,18 @@ export default function PersonalDashboard() {
   const fetchDashboard = useCallback(async () => {
     try {
       const response = await api.get("/me/dashboard");
-      setData(response.data);
-      if (response.data?.user) {
-        const currentSnap = authStore.getSnapshot();
-        const userStr = JSON.stringify(response.data.user);
-        if (!currentSnap.includes(userStr)) {
-          authStore.updateUser(response.data.user);
+      const resData = response.data?.data || response.data;
+      if (resData) {
+        setData(resData);
+        try {
+          localStorage.setItem("bksda_portal_dashboard_cache", JSON.stringify(resData));
+        } catch {}
+        if (resData.user) {
+          const currentSnap = authStore.getSnapshot();
+          const userStr = JSON.stringify(resData.user);
+          if (!currentSnap.includes(userStr)) {
+            authStore.updateUser(resData.user);
+          }
         }
       }
     } catch (error: unknown) {
@@ -206,8 +328,15 @@ export default function PersonalDashboard() {
     } catch (e) {}
   }, [employeeId, currentYear]);
 
-  // Initial dashboard load
+  // Initial dashboard load with fast cache populate
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem("bksda_portal_dashboard_cache");
+      if (cached) {
+        setData(JSON.parse(cached));
+        setLoading(false);
+      }
+    } catch {}
     fetchDashboard();
   }, [fetchDashboard]);
 
@@ -292,16 +421,8 @@ export default function PersonalDashboard() {
     return all.filter(m => modules.includes(m.key));
   }, [modules]);
 
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50">
-        <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-200/50 mb-4">
-          <Sparkles className="h-6 w-6 text-white animate-pulse" />
-        </div>
-        <Loader2 className="h-5 w-5 animate-spin text-emerald-500 mb-2" />
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Memuat dashboard...</p>
-      </div>
-    );
+  if (loading && !data) {
+    return <PortalSkeleton />;
   }
 
   if (!data) {
@@ -320,8 +441,7 @@ export default function PersonalDashboard() {
     { key: "cuti", label: "Pengajuan Cuti Saya", icon: <Calendar className="w-4 h-4" />, count: myLeaveRequests.length },
   ];
   return (
-    <RouteGuard>
-      <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 print:bg-transparent">
+    <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 print:bg-transparent">
         {/* HEADER NAVBAR */}
         <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm print:hidden">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
@@ -526,11 +646,6 @@ export default function PersonalDashboard() {
           onSuccess={() => fetchMyLeaveRequests()}
         />
 
-        {/* Modal Buat Laporan General / Pelaksanaan Surat Tugas */}
-        <GeneralReportDialog
-          open={reportDialogOpen}
-          onOpenChange={setReportDialogOpen}
-        />
 
         {/* Hidden Printable Formulir Cuti */}
         {printLeaveData && (
@@ -571,6 +686,13 @@ export default function PersonalDashboard() {
           />
         )}
       </div>
+  );
+}
+
+export default function PersonalDashboard() {
+  return (
+    <RouteGuard>
+      <PortalContent />
     </RouteGuard>
   );
 }
