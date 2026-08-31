@@ -29,6 +29,7 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
   const { user, isAuthenticated } = useAuth();
 
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -81,7 +82,7 @@ export function RouteGuard({ children, requiredModule }: RouteGuardProps) {
   }, [mounted, accessStatus, isAuthenticated, user, router]);
 
   // Show loading spinner while checking auth
-  if (accessStatus === "loading" || accessStatus === "denied") {
+  if (!mounted || accessStatus === "loading" || accessStatus === "denied") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-zinc-50 dark:bg-black">
         <div className="flex flex-col items-center gap-4">
