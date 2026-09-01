@@ -99,12 +99,11 @@ export function handlePrintCoveringLetter(documentId = "covering-letter-print-ro
       <head>
         <title>Surat Pengantar BMN</title>
         <style>
-          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
-          @page :first { margin-top: 0; }
+          @page { size: A4 portrait; margin: 0; }
           * { box-sizing: border-box; }
           body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.35; }
           p { margin: 0; }
-          .covering-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 10mm; }
+          .covering-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 10mm; }
           .covering-header { margin: 0 -12mm; text-align: center; }
           .covering-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
           
@@ -182,7 +181,7 @@ export function CoveringLetterDocument({
           max-width: 210mm;
           min-height: 297mm;
           margin: 0 auto;
-          padding: 8mm 12mm 15mm;
+          padding: 3.5mm 12mm 15mm;
           background: #fff;
           box-sizing: border-box;
           position: relative;
@@ -365,7 +364,7 @@ export function CoveringLetterDocument({
       <article className="covering-page shadow-xl ring-1 ring-zinc-200">
         <div className="covering-header">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-terbaru.png" alt="Kop Surat" />
+          <img src="/new-header.png" alt="Kop Surat" />
         </div>
 
         <div className="covering-meta-row">
