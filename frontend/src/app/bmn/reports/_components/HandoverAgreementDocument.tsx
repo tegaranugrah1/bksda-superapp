@@ -210,17 +210,16 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
       <head>
         <title>BA Serah Terima BMN</title>
         <style>
-          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
-          @page :first { margin-top: 0; }
+          @page { size: A4 portrait; margin: 0; }
           * { box-sizing: border-box; }
           body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
           p { margin: 0; }
-          .handover-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 10mm; }
+          .handover-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 10mm; }
           .handover-header { margin: 0 -12mm; text-align: center; }
           .handover-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          .handover-title { margin-top: 5mm; text-align: center; font-weight: 700; }
-          .handover-body { margin-top: 5mm; text-align: justify; }
-          .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 4mm 0; }
+          .handover-title { margin-top: 3.5mm; text-align: center; font-weight: 700; }
+          .handover-body { margin-top: 3.5mm; text-align: justify; }
+          .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 2.5mm 0; }
           .handover-rows { display: grid; grid-template-columns: 26mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.5mm; }
           .handover-colon { text-align: center; }
           .handover-val { text-align: left; word-break: break-word; overflow-wrap: break-word; line-height: 1.25; }
@@ -230,13 +229,13 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           .handover-table td.handover-cell-center { text-align: center; }
           .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
           .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 4mm; text-align: left; }
-          .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; max-width: 48%; }
-          .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; max-width: 52%; }
+          .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 5mm; text-align: left; }
+          .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 48%; }
+          .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 52%; }
           .handover-sig-left p, .handover-sig-right p, .handover-signature-name { white-space: nowrap; }
-          .handover-signature-name { margin-top: 20mm; font-weight: 700; white-space: nowrap; }
-          .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
-          .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
+          .handover-signature-name { margin-top: 28mm; font-weight: 700; white-space: nowrap; }
+          .handover-witness-block { margin-top: 8mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+          .page-continuation-spacer { height: 0; margin: 0; padding: 0; page-break-before: always; break-before: page; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
 
           /* Lampiran Foto Styles */
@@ -245,7 +244,7 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
             break-before: page;
             width: 210mm;
             margin: 0 auto;
-            padding: 5mm 20mm 10mm;
+            padding: 3.5mm 20mm 10mm;
           }
           .photo-lampiran-title {
             margin-top: 3mm;
@@ -378,13 +377,13 @@ export function HandoverAgreementDocument({
   return (
     <div id={documentId}>
       <style jsx global>{`
-        .handover-preview .handover-page { width: 210mm; max-width: 100%; margin: 0 auto; padding: 5mm 20mm 10mm; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
+        .handover-preview .handover-page { width: 210mm; max-width: 100%; margin: 0 auto; padding: 3.5mm 20mm 10mm; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
         .handover-preview p { margin: 0; }
         .handover-preview .handover-header { margin: 0 -12mm; text-align: center; }
         .handover-preview .handover-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .handover-preview .handover-title { margin-top: 5mm; text-align: center; font-weight: 700; }
-        .handover-preview .handover-body { margin-top: 5mm; text-align: justify; }
-        .handover-preview .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 4mm 0; }
+        .handover-preview .handover-title { margin-top: 3.5mm; text-align: center; font-weight: 700; }
+        .handover-preview .handover-body { margin-top: 3.5mm; text-align: justify; }
+        .handover-preview .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 2.5mm 0; }
         .handover-preview .handover-rows { display: grid; grid-template-columns: 26mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.5mm; }
         .handover-preview .handover-colon { text-align: center; }
         .handover-preview .handover-val { text-align: left; word-break: break-word; overflow-wrap: break-word; line-height: 1.25; }
@@ -396,13 +395,13 @@ export function HandoverAgreementDocument({
         .handover-preview .handover-table thead { display: table-header-group; }
         .handover-preview .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
         .handover-preview .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-        .handover-preview .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-top: 4mm; text-align: left; }
-        .handover-preview .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; max-width: 48%; }
-        .handover-preview .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; max-width: 52%; }
+        .handover-preview .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 5mm; text-align: left; }
+        .handover-preview .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 48%; }
+        .handover-preview .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 52%; }
         .handover-preview .handover-sig-left p, .handover-preview .handover-sig-right p, .handover-preview .handover-signature-name { white-space: nowrap; }
-        .handover-preview .handover-signature-name { margin-top: 20mm; font-weight: 700; white-space: nowrap; }
-        .handover-preview .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
-        .handover-preview .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
+        .handover-preview .handover-signature-name { margin-top: 28mm; font-weight: 700; white-space: nowrap; }
+        .handover-preview .handover-witness-block { margin-top: 8mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+        .handover-preview .page-continuation-spacer { height: 0; margin: 0; padding: 0; page-break-before: always; break-before: page; }
         .avoid-break { break-inside: avoid; page-break-inside: avoid; }
 
         /* Lampiran Foto Styles */
@@ -412,7 +411,7 @@ export function HandoverAgreementDocument({
           width: 210mm;
           max-width: 100%;
           margin: 0 auto;
-          padding: 5mm 20mm 10mm;
+          padding: 3.5mm 20mm 10mm;
           background: white;
         }
         .handover-preview .photo-lampiran-title {
@@ -474,7 +473,7 @@ export function HandoverAgreementDocument({
         <article className="handover-page shadow-xl ring-1 ring-zinc-200">
           <div className="handover-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/header-terbaru.png" alt="Kop Surat" />
+            <img src="/new-header.png" alt="Kop Surat" />
           </div>
 
           <div className="handover-title">
@@ -580,7 +579,7 @@ export function HandoverAgreementDocument({
                       return pos.endsWith(",") ? pos : `${pos},`;
                     })()}
                   </p>
-                  <p className="handover-signature-name" style={{ marginTop: "18mm" }}>{signatureName(witness?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}</p>
+                  <p className="handover-signature-name" style={{ marginTop: "24mm" }}>{signatureName(witness?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}</p>
                   <p>NIP. {fallback(witness?.nip || "19740514 199903 1 001")}</p>
                 </div>
               )}
@@ -593,7 +592,7 @@ export function HandoverAgreementDocument({
           <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
             <div className="handover-header">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/header-terbaru.png" alt="Kop Surat" />
+              <img src="/new-header.png" alt="Kop Surat" />
             </div>
 
             {/* Title ONLY on pageIndex === 0 */}

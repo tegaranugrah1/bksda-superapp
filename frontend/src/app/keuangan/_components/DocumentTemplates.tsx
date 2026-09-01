@@ -470,7 +470,7 @@ function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator, sp
             <div className="spb-kop text-center mb-3 -mt-2 -mx-2 md:-mx-4 print:-mx-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/header-terbaru.png"
+                src="/new-header.png"
                 alt="Kop Surat Balai Konservasi Sumber Daya Alam Kalimantan Timur"
                 className="w-full h-auto block mx-auto"
               />

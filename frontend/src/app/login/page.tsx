@@ -63,6 +63,10 @@ export default function LoginPage() {
       // Menggunakan authStore reaktif
       authStore.login(token, data);
 
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("just_logged_in", "true");
+      }
+
       toast.success("Login berhasil!");
       redirectToPortal();
     } catch (error: unknown) {
