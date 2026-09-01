@@ -771,7 +771,7 @@ Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Marga
         <div className="w-full bg-white relative page-break-before pt-8 px-[1.5cm]">
           <h2 className="text-[12pt] font-bold text-center uppercase tracking-wider underline mb-4">LAMPIRAN</h2>
           <h2 className="text-[12pt] font-bold text-center uppercase tracking-wider mb-8">TALLY SHEET</h2>
-          <img src="/header-terbaru.png" alt="Kop Surat" className="w-full mb-6" />
+          <img src="/new-header.png" alt="Kop Surat" className="w-full mb-6" />
           
           {tallySheetFile.type.startsWith('image/') ? (
             <img 
