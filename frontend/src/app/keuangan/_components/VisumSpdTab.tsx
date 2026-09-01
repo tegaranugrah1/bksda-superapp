@@ -502,53 +502,12 @@ export function VisumSpdTab({
         const tmpls: VisumTemplateItem[] = resTemplates.data.data;
         setTemplates(tmpls);
 
-        let savedDataRaw: string | null = null;
-        let savedTmplId: string | null = null;
-        let savedType: string | null = null;
-        try {
-          savedDataRaw = localStorage.getItem(STORAGE_KEY);
-          savedTmplId = localStorage.getItem(STORAGE_KEY_TMPL_ID);
-          savedType = localStorage.getItem("bksda_visum_spd_type_v1");
-        } catch {}
+        // Resolve default template from Kelola Template (database)
+        const defaultTmpl = tmpls.find((t) => t.is_default) || tmpls[0];
 
-        if (savedType === "folu") {
-          setSpdType("folu");
-        } else {
-          setSpdType("dipa");
-        }
-
-        let parsedSavedData: VisumSpdData | null = null;
-        try {
-          if (savedDataRaw) parsedSavedData = JSON.parse(savedDataRaw);
-        } catch {}
-
-        if (savedTmplId === "manual") {
-          setSelectedTemplateId("manual");
-          if (parsedSavedData) {
-            setData(parsedSavedData);
-          } else {
-            setData(getTemplateManual());
-          }
-        } else if (savedTmplId && tmpls.some((t) => String(t.id) === savedTmplId)) {
-          const matchedTmpl = tmpls.find((t) => String(t.id) === savedTmplId)!;
-          setSelectedTemplateId(String(matchedTmpl.id));
-          if (parsedSavedData && (parsedSavedData.asal_tempat || parsedSavedData.tujuan_1_tempat)) {
-            setData(parsedSavedData);
-          } else {
-            applyTemplateItem(matchedTmpl, false, loadedSettings);
-          }
-        } else {
-          // Default: Pick DIPA template if spdType is dipa, or default template
-          const dipaTmpl = tmpls.find((t) => t.data?.spd_type === "dipa" || t.name.toLowerCase().includes("dipa"));
-          const def = dipaTmpl || tmpls.find((t) => t.is_default) || tmpls[0];
-          if (def) {
-            setSelectedTemplateId(String(def.id));
-            if (parsedSavedData && (parsedSavedData.asal_tempat || parsedSavedData.tujuan_1_tempat)) {
-              setData(parsedSavedData);
-            } else {
-              applyTemplateItem(def, false, loadedSettings);
-            }
-          }
+        if (defaultTmpl) {
+          setSelectedTemplateId(String(defaultTmpl.id));
+          applyTemplateItem(defaultTmpl, false, loadedSettings);
         }
       }
     } catch (err) {
@@ -631,7 +590,8 @@ export function VisumSpdTab({
           "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
       };
 
-      const foluTmpl = templates.find((t) => t.data?.spd_type === "folu" || t.name.toLowerCase().includes("kelian") || t.is_default);
+      const foluTmpl = templates.find((t) => t.is_default && (t.data?.spd_type === "folu" || t.name.toLowerCase().includes("folu"))) ||
+        templates.find((t) => t.data?.spd_type === "folu" || t.name.toLowerCase().includes("kelian") || t.name.toLowerCase().includes("folu"));
       if (foluTmpl) {
         applyTemplateItem(foluTmpl, false);
       } else {
@@ -668,35 +628,18 @@ export function VisumSpdTab({
 
   const handleSelectTemplateOption = (val: string) => {
     setSelectedTemplateId(val);
-    try {
-      localStorage.setItem(STORAGE_KEY_TMPL_ID, val);
-    } catch {}
-
     if (val === "manual") {
+      try {
+        localStorage.setItem(STORAGE_KEY_TMPL_ID, "manual");
+      } catch {}
+      const manualData = getTemplateManual();
       const activePpk =
         spdType === "dipa"
-          ? settings?.ppk_dipa || {
-              name: "RUSMANTO, S.Hut",
-              nip: "19810907 200012 1 004",
-              position: "Pejabat Pembuat Komitmen,",
-              statement:
-                "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
-            }
-          : settings?.ppk_folu ||
-            settings?.ppk || {
-              name: "Ahmad Hidayat, S.PKP., M.Ling",
-              nip: "19820301 200012 1 001",
-              position: "Pejabat Pembuat Komitmen,",
-              statement:
-                "Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.",
-            };
-
-      const manualData = getTemplateManual();
+          ? settings?.ppk_dipa || { name: "RUSMANTO, S.Hut", nip: "19810907 200012 1 004" }
+          : settings?.ppk_folu || settings?.ppk || { name: "Ahmad Hidayat, S.PKP., M.Ling", nip: "19820301 200012 1 001" };
       manualData.spd_type = spdType;
-      manualData.ppk_jabatan = activePpk.position || "Pejabat Pembuat Komitmen,";
       manualData.ppk_nama = activePpk.name;
       manualData.ppk_nip = activePpk.nip;
-      manualData.ppk_keterangan = activePpk.statement;
       if (spdType === "dipa") {
         manualData.kembali_jabatan_pengesah = "Pejabat Pembuat Komitmen,";
         manualData.kembali_nama_pejabat = activePpk.name;
@@ -744,23 +687,18 @@ export function VisumSpdTab({
   };
 
   const handleResetDefault = () => {
-    if (selectedTemplateId === "manual") {
-      handleSelectTemplateOption("manual");
+    const defaultTmpl = templates.find((t) => t.is_default) ||
+      (spdType === "dipa"
+        ? templates.find((t) => t.data?.spd_type === "dipa" || t.name.toLowerCase().includes("dipa"))
+        : templates.find((t) => t.data?.spd_type === "folu" || t.name.toLowerCase().includes("folu"))) ||
+      templates[0];
+    if (defaultTmpl) {
+      applyTemplateItem(defaultTmpl, true);
     } else {
-      const found =
-        templates.find((t) => String(t.id) === selectedTemplateId) ||
-        (spdType === "dipa"
-          ? templates.find((t) => t.data?.spd_type === "dipa" || t.name.toLowerCase().includes("dipa"))
-          : templates.find((t) => t.data?.spd_type === "folu" || t.is_default)) ||
-        templates[0];
-      if (found) {
-        applyTemplateItem(found, true);
-      } else {
-        const fallback = spdType === "dipa" ? getTemplateDipaTenggarong() : getTemplateKelian();
-        setData(fallback);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback));
-        toast.info("Form direset ke template default.");
-      }
+      const fallback = spdType === "dipa" ? getTemplateDipaTenggarong() : getTemplateKelian();
+      setData(fallback);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback));
+      toast.info("Form direset ke template default.");
     }
   };
 
@@ -1424,7 +1362,7 @@ export function VisumSpdTab({
                 </label>
                 <input
                   type="text"
-                  value={data.asal_tempat}
+                  value={data.asal_tempat || ""}
                   onChange={(e) => updateData("asal_tempat", e.target.value)}
                   placeholder="Samarinda"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1436,7 +1374,7 @@ export function VisumSpdTab({
                   Pada Tanggal Berangkat
                 </label>
                 <IndoDatePicker
-                  value={data.asal_tanggal}
+                  value={data.asal_tanggal || ""}
                   onChange={(v) => updateData("asal_tanggal", v)}
                   placeholder="23 April 2026"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1449,7 +1387,7 @@ export function VisumSpdTab({
                 </label>
                 <input
                   type="text"
-                  value={data.tujuan_awal}
+                  value={data.tujuan_awal || ""}
                   onChange={(e) => updateData("tujuan_awal", e.target.value)}
                   placeholder="Kabupaten Kutai Barat"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1462,7 +1400,7 @@ export function VisumSpdTab({
                 </label>
                 <textarea
                   rows={2}
-                  value={data.asal_jabatan_pengesah}
+                  value={data.asal_jabatan_pengesah || ""}
                   onChange={(e) => updateData("asal_jabatan_pengesah", e.target.value)}
                   placeholder="a.n. Kepala Balai&#10;Kepala Subbagian Tata Usaha"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1475,7 +1413,7 @@ export function VisumSpdTab({
                 </label>
                 <input
                   type="text"
-                  value={data.asal_nama_pejabat}
+                  value={data.asal_nama_pejabat || ""}
                   onChange={(e) => updateData("asal_nama_pejabat", e.target.value)}
                   placeholder="Dheny Mardiono, S.Hut., MSc."
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1488,7 +1426,7 @@ export function VisumSpdTab({
                 </label>
                 <input
                   type="text"
-                  value={data.asal_nip_pejabat}
+                  value={data.asal_nip_pejabat || ""}
                   onChange={(e) => updateData("asal_nip_pejabat", e.target.value)}
                   placeholder="19750314 199903 1 004"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1515,7 +1453,7 @@ export function VisumSpdTab({
                     <label className="text-[11px] text-zinc-600 dark:text-zinc-400">Tiba di</label>
                     <input
                       type="text"
-                      value={data.tujuan_1_tempat}
+                      value={data.tujuan_1_tempat || ""}
                       onChange={(e) => updateData("tujuan_1_tempat", e.target.value)}
                       placeholder="Kabupaten Kutai Barat"
                       className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -1524,7 +1462,7 @@ export function VisumSpdTab({
                   <div>
                     <label className="text-[11px] text-zinc-600 dark:text-zinc-400">Pada Tanggal</label>
                     <IndoDatePicker
-                      value={data.tujuan_1_tiba_tanggal}
+                      value={data.tujuan_1_tiba_tanggal || ""}
                       onChange={(v) => updateData("tujuan_1_tiba_tanggal", v)}
                       placeholder="23 April 2026"
                       className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -1534,7 +1472,7 @@ export function VisumSpdTab({
                     <label className="text-[11px] text-zinc-600 dark:text-zinc-400">Jabatan Pejabat Tujuan</label>
                     <input
                       type="text"
-                      value={data.tujuan_1_kepala_jabatan}
+                      value={data.tujuan_1_kepala_jabatan || ""}
                       onChange={(e) => updateData("tujuan_1_kepala_jabatan", e.target.value)}
                       placeholder="Plt. Manager Camp PT. HLKL"
                       className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -1544,7 +1482,7 @@ export function VisumSpdTab({
                     <label className="text-[11px] text-zinc-600 dark:text-zinc-400">Nama Pejabat Tujuan</label>
                     <input
                       type="text"
-                      value={data.tujuan_1_kepala_nama}
+                      value={data.tujuan_1_kepala_nama || ""}
                       onChange={(e) => updateData("tujuan_1_kepala_nama", e.target.value)}
                       placeholder="Theodorus Dedi"
                       className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -1605,7 +1543,7 @@ export function VisumSpdTab({
                     <label className="text-[11px] text-zinc-600 dark:text-zinc-400">Berangkat Dari</label>
                     <input
                       type="text"
-                      value={data.tujuan_1_berangkat_dari}
+                      value={data.tujuan_1_berangkat_dari || ""}
                       onChange={(e) => updateData("tujuan_1_berangkat_dari", e.target.value)}
                       placeholder="Kabupaten Kutai Barat"
                       className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -1615,7 +1553,7 @@ export function VisumSpdTab({
                     <label className="text-[11px] text-zinc-600 dark:text-zinc-400">Ke</label>
                     <input
                       type="text"
-                      value={data.tujuan_1_berangkat_ke}
+                      value={data.tujuan_1_berangkat_ke || ""}
                       onChange={(e) => updateData("tujuan_1_berangkat_ke", e.target.value)}
                       placeholder="Samarinda"
                       className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -1624,7 +1562,7 @@ export function VisumSpdTab({
                   <div>
                     <label className="text-[11px] text-zinc-600 dark:text-zinc-400">Pada Tanggal</label>
                     <IndoDatePicker
-                      value={data.tujuan_1_berangkat_tanggal}
+                      value={data.tujuan_1_berangkat_tanggal || ""}
                       onChange={(v) => updateData("tujuan_1_berangkat_tanggal", v)}
                       placeholder="30 April 2026"
                       className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -1644,7 +1582,7 @@ export function VisumSpdTab({
                     <label className="text-[11px] text-zinc-600 dark:text-zinc-400">Nama Pejabat Berangkat</label>
                     <input
                       type="text"
-                      value={data.tujuan_1_berangkat_kepala_nama}
+                      value={data.tujuan_1_berangkat_kepala_nama || ""}
                       onChange={(e) => updateData("tujuan_1_berangkat_kepala_nama", e.target.value)}
                       placeholder="Theodorus Dedi"
                       className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
@@ -1756,7 +1694,7 @@ export function VisumSpdTab({
                 </label>
                 <input
                   type="text"
-                  value={data.kembali_tempat}
+                  value={data.kembali_tempat || ""}
                   onChange={(e) => updateData("kembali_tempat", e.target.value)}
                   placeholder="Samarinda"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1768,7 +1706,7 @@ export function VisumSpdTab({
                   Pada Tanggal Kembali
                 </label>
                 <IndoDatePicker
-                  value={data.kembali_tanggal}
+                  value={data.kembali_tanggal || ""}
                   onChange={(v) => updateData("kembali_tanggal", v)}
                   placeholder="30 April 2026"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1794,7 +1732,7 @@ export function VisumSpdTab({
                       toast.success(`Pengesah Tiba diset ke PPK (${activePpk.name})`);
                     }}
                     className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition ${
-                      data.kembali_jabatan_pengesah.toLowerCase().includes("pembuat komitmen")
+                      (data.kembali_jabatan_pengesah || "").toLowerCase().includes("pembuat komitmen")
                         ? "bg-blue-600 text-white shadow-xs"
                         : "bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
                     }`}
@@ -1822,7 +1760,7 @@ export function VisumSpdTab({
                       toast.success(`Pengesah Tiba diset ke Pejabat Wilayah (${name})`);
                     }}
                     className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition ${
-                      !data.kembali_jabatan_pengesah.toLowerCase().includes("pembuat komitmen")
+                      !(data.kembali_jabatan_pengesah || "").toLowerCase().includes("pembuat komitmen")
                         ? "bg-amber-600 text-white shadow-xs"
                         : "bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
                     }`}
@@ -1838,7 +1776,7 @@ export function VisumSpdTab({
                 </label>
                 <textarea
                   rows={2}
-                  value={data.kembali_jabatan_pengesah}
+                  value={data.kembali_jabatan_pengesah || ""}
                   onChange={(e) => updateData("kembali_jabatan_pengesah", e.target.value)}
                   placeholder="Kepala Subbagian Tata Usaha"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1851,7 +1789,7 @@ export function VisumSpdTab({
                 </label>
                 <input
                   type="text"
-                  value={data.kembali_nama_pejabat}
+                  value={data.kembali_nama_pejabat || ""}
                   onChange={(e) => updateData("kembali_nama_pejabat", e.target.value)}
                   placeholder="Dheny Mardiono, S.Hut., MSc."
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1864,7 +1802,7 @@ export function VisumSpdTab({
                 </label>
                 <input
                   type="text"
-                  value={data.kembali_nip_pejabat}
+                  value={data.kembali_nip_pejabat || ""}
                   onChange={(e) => updateData("kembali_nip_pejabat", e.target.value)}
                   placeholder="19750314 199903 1 004"
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1883,7 +1821,7 @@ export function VisumSpdTab({
                     </label>
                     <input
                       type="text"
-                      value={data.ppk_nama}
+                      value={data.ppk_nama || ""}
                       onChange={(e) => updateData("ppk_nama", e.target.value)}
                       placeholder="Ahmad Hidayat, S.PKP., M.Ling"
                       className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -1895,7 +1833,7 @@ export function VisumSpdTab({
                     </label>
                     <input
                       type="text"
-                      value={data.ppk_nip}
+                      value={data.ppk_nip || ""}
                       onChange={(e) => updateData("ppk_nip", e.target.value)}
                       placeholder="19820301 200012 1 001"
                       className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
