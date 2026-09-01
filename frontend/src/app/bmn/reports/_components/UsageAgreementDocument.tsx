@@ -463,7 +463,7 @@ export function UsageAgreementDocument({
         <article className="usage-page shadow-xl ring-1 ring-zinc-200">
           <div className="usage-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/new-header.png" alt="Kop Surat" />
+            <img src="/header.png" alt="Kop Surat" />
           </div>
 
           <div className="usage-title">
@@ -635,7 +635,7 @@ export function UsageAgreementDocument({
           <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
             <div className="usage-header">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/new-header.png" alt="Kop Surat" />
+              <img src="/header.png" alt="Kop Surat" />
             </div>
 
             {/* Title ONLY on pageIndex === 0 */}
