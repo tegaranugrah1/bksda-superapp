@@ -113,7 +113,7 @@ export function SkKebenaranDokumenDocument({ number, kap, date, assets, kepalaBa
       >
         <div className="doc-header -mx-18 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-terbaru.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
+          <img src="/new-header.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
         <div className="doc-title mt-2 text-center font-bold leading-snug">

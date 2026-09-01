@@ -340,6 +340,20 @@ function PortalContent() {
     fetchDashboard();
   }, [fetchDashboard]);
 
+  // Show welcome toast only once right after logging in to portal
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const justLoggedIn = sessionStorage.getItem("just_logged_in");
+      if (justLoggedIn === "true") {
+        sessionStorage.removeItem("just_logged_in");
+        const userName = data?.user?.name || "Super Admin System";
+        toast.success(`Selamat datang kembali, ${userName}!`, {
+          id: "welcome-toast",
+        });
+      }
+    }
+  }, [data?.user]);
+
   // Load details when employeeId becomes available
   useEffect(() => {
     if (employeeId) {
