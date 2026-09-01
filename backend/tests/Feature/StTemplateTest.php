@@ -117,7 +117,7 @@ class StTemplateTest extends TestCase
 
         $this->actingAs($this->superadmin, 'sanctum')
             ->deleteJson("/api/kepegawaian/st-templates/{$template->id}")
-            ->assertStatus(500)
+            ->assertStatus(422)
             ->assertJsonPath('message', 'Template sistem tidak dapat dihapus. Nonaktifkan template jika tidak digunakan.');
     }
 

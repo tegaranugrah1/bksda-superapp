@@ -6,6 +6,8 @@ export interface FinanceEmployee {
   nip: string;
   rank: string;
   position: string;
+  satuanKerja?: string;
+  origin?: string;
   destination: string;
 }
 
@@ -28,6 +30,8 @@ export const MOCK_EMPLOYEES: FinanceEmployee[] = [
     nip: "19880719 2012 1 003",
     rank: "Penata Muda (III/a)",
     position: "Polisi Kehutanan Ahli Pertama",
+    satuanKerja: "Seksi Konservasi Wilayah II",
+    origin: "Tenggarong",
     destination: "Kabupaten Kutai Barat",
   },
   {
@@ -36,14 +40,28 @@ export const MOCK_EMPLOYEES: FinanceEmployee[] = [
     nip: "19990707 2025 1 006",
     rank: "Pengatur (II/c)",
     position: "Penata Komputer Terampil",
+    satuanKerja: "Subbagian Tata Usaha",
+    origin: "Samarinda",
     destination: "Kabupaten Kutai Barat",
   },
   {
     id: "emp-003",
+    name: "Menik Tjahyoningrum, A.Md.",
+    nip: "19811215 200501 2 014",
+    rank: "Penata (III/c)",
+    position: "Pengadministrasi Umum",
+    satuanKerja: "Subbagian Tata Usaha",
+    origin: "Samarinda",
+    destination: "Kabupaten Kutai Barat",
+  },
+  {
+    id: "emp-004",
     name: "Sukma Mawarni, S.E.",
     nip: "19930425 2024 2 053",
     rank: "Penata (III/c)",
     position: "Analis Keuangan",
+    satuanKerja: "Subbagian Tata Usaha",
+    origin: "Samarinda",
     destination: "Samarinda",
   },
 ];
@@ -98,8 +116,34 @@ export const formatRupiah = (value: number) =>
 
 export const statusClass: Record<SpjStatus, string> = {
   Draft: "bg-slate-100 text-slate-700 border-slate-200",
-  Diajukan: "bg-blue-50 text-blue-700 border-blue-200",
-  Diproses: "bg-amber-50 text-amber-700 border-amber-200",
-  Disetujui: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  Selesai: "bg-violet-50 text-violet-700 border-violet-200",
+  Diajukan: "bg-blue-100 text-blue-700 border-blue-200",
+  Diproses: "bg-amber-100 text-amber-700 border-amber-200",
+  Disetujui: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  Selesai: "bg-purple-100 text-purple-700 border-purple-200",
 };
+
+export const BANK_ACCOUNTS: Record<string, { bank: string; accountNo: string; holderName: string }> = {
+  "didi susanto": { bank: "Mandiri", accountNo: "1480024359104", holderName: "Didi Susanto" },
+  "tegar anugrah": { bank: "Mandiri", accountNo: "1490018015471", holderName: "Tegar Anugrah" },
+  "menik tjahyoningrum": { bank: "Mandiri", accountNo: "1480017892341", holderName: "Menik Tjahyoningrum" },
+  "sukma mawarni": { bank: "Mandiri", accountNo: "1490018239012", holderName: "Sukma Mawarni" },
+};
+
+export function getRecipientBankInfo(name: string) {
+  const lower = (name || "").toLowerCase();
+  for (const [key, val] of Object.entries(BANK_ACCOUNTS)) {
+    if (lower.includes(key)) return { ...val };
+  }
+  if (lower.includes("uptd") || lower.includes("lab") || lower.includes("kesehatan")) {
+    return {
+      bank: "BPD Kaltimtara",
+      accountNo: "00360012402202040039",
+      holderName: "UPTD Lab. Kesehatan Daerah Kota Samarinda",
+    };
+  }
+  return {
+    bank: "Mandiri",
+    accountNo: "1480024" + String(Math.abs(name.split("").reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0))).slice(0, 6),
+    holderName: name.replace(/,\s*[A-Za-z\.\s]+$/, "").trim(),
+  };
+}

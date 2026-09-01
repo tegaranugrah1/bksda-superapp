@@ -21,7 +21,36 @@ interface Recipient {
   evidence: string;
   amount: number;
   rinba?: RinbaDetails;
+  bankName?: string;
+  accountNo?: string;
+  accountHolder?: string;
+  nip?: string;
+  rank?: string;
+  position?: string;
+  satuanKerja?: string;
+  mengetahui?: MengetahuiOfficial;
 }
+
+export interface MengetahuiOfficial {
+  name: string;
+  nik: string;
+  position: string;
+}
+export interface SpbConfig {
+  virtualAccount?: string;
+  ppkPosition?: string;
+  keperluanPrefix?: string;
+  point2Text?: string;
+  cityDateText?: string;
+}
+
+export interface SpdConfig {
+  ppkPoin1Text?: string;
+  anggaranHeader?: string;
+  instansiPoin9a?: string;
+  akunPoin9b?: string;
+}
+
 interface Official { name: string; nik: string }
 interface Props {
   selectedDocument: string;
@@ -33,6 +62,10 @@ interface Props {
   pdo: Official;
   verifikator?: Official;
   total: number;
+  spbNumber?: { no?: string; suffix?: string };
+  spdNumber?: { no?: string; suffix?: string };
+  spbConfig?: SpbConfig;
+  spdConfig?: SpdConfig;
 }
 
 const SATUAN_KERJA = "Balai Konservasi Sumber Daya Alam Kalimantan Timur";
@@ -64,14 +97,14 @@ const words = (value: number) => {
 };
 const formatNumber = (value: number) => (value ? value.toLocaleString("en-US") : "0");
 
-export function DocumentTemplates({ selectedDocument, recipients, activity, travel, sptNumber, ppk, pdo, verifikator, total }: Props) {
+export function DocumentTemplates({ selectedDocument, recipients, activity, travel, sptNumber, ppk, pdo, verifikator, total, spbNumber, spdNumber, spbConfig, spdConfig }: Props) {
   const doc = (selectedDocument || "").toLowerCase();
 
   if (doc === "sptjb" || doc.includes("sptjb") || doc.includes("rekap")) {
     return <RekapPreview recipients={recipients} activity={activity} travel={travel} ppk={ppk} pdo={pdo} total={total} />;
   }
   if (doc === "spb" || doc.includes("spb") || doc.includes("persetujuan")) {
-    return <SpbPreview recipients={recipients} activity={activity} sptNumber={sptNumber} ppk={ppk} pdo={pdo} verifikator={verifikator} />;
+    return <SpbPreview recipients={recipients} activity={activity} sptNumber={sptNumber} ppk={ppk} pdo={pdo} verifikator={verifikator} spbNumber={spbNumber} spbConfig={spbConfig} />;
   }
   if (doc === "daftar-isian" || doc.includes("daftar") || doc.includes("isian")) {
     return <DaftarIsianPreview recipients={recipients} activity={activity} travel={travel} />;
@@ -80,10 +113,10 @@ export function DocumentTemplates({ selectedDocument, recipients, activity, trav
     return <KuitansiPreview recipients={recipients} activity={activity} sptNumber={sptNumber} ppk={ppk} pdo={pdo} />;
   }
   if (doc === "rinba" || doc.includes("rinba")) {
-    return <RinbaPreview recipients={recipients} travel={travel} sptNumber={sptNumber} ppk={ppk} pdo={pdo} />;
+    return <RinbaPreview recipients={recipients} travel={travel} sptNumber={sptNumber} ppk={ppk} pdo={pdo} spdNumber={spdNumber} />;
   }
   if (doc === "spd" || doc.includes("spd")) {
-    return <SpdPreview recipients={recipients} activity={activity} travel={travel} sptNumber={sptNumber} ppk={ppk} />;
+    return <SpdPreview recipients={recipients} activity={activity} travel={travel} sptNumber={sptNumber} ppk={ppk} spdNumber={spdNumber} spdConfig={spdConfig} />;
   }
 
   return <RekapPreview recipients={recipients} activity={activity} travel={travel} ppk={ppk} pdo={pdo} total={total} />;
@@ -358,9 +391,15 @@ function RekapPreview({ recipients, activity, ppk, pdo, total }: Omit<Props, "se
   );
 }
 
-function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator }: Omit<Props, "selectedDocument" | "travel" | "total">) {
-  const spbNumberSuffix = sptNumber ? sptNumber.replace(/^.*?\//, "") : "K.18/FOLU-NC23/08/2026";
+function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator, spbNumber, spbConfig }: Omit<Props, "selectedDocument" | "travel" | "total">) {
   const verifikatorData = verifikator || { name: "Sukma Mawarni, S.E.", nik: "19930425 202421 2 053" };
+  const rawSuffix = spbNumber?.suffix?.trim() || (sptNumber ? `/SPB/${sptNumber.replace(/^.*?\//, "")}` : "/SPB/K.18/FOLU-NC23/05/2026");
+  const cleanSuffix = rawSuffix.startsWith("/") ? rawSuffix : `/${rawSuffix}`;
+
+  const virtualAccount = spbConfig?.virtualAccount?.trim() || "9899410000000115";
+  const ppkPosition = spbConfig?.ppkPosition?.trim() || "Pejabat Pembuat Komitmen IP BKSDA Kalimantan Timur";
+  const keperluanPrefix = spbConfig?.keperluanPrefix?.trim() || "Pembayaran Biaya";
+  const cityDateText = spbConfig?.cityDateText?.trim() || "Samarinda,";
 
   return (
     <div id="spb-print-root" className="spb-print-root font-['Figtree',sans-serif] space-y-8 print:space-y-0">
@@ -374,7 +413,7 @@ function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator }: 
         @media print {
           @page {
             size: A4 portrait;
-            margin: 6mm 15mm 8mm 15mm !important;
+            margin: 8mm 12mm 8mm 12mm !important;
           }
           *, *::before, *::after {
             box-sizing: border-box !important;
@@ -443,7 +482,7 @@ function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator }: 
                 SURAT PERSETUJUAN BAYAR
               </h1>
               <p className="text-[9.5pt] mt-0.5 font-normal">
-                No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/SPB/{spbNumberSuffix}
+                No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{spbNumber?.no?.trim() || ""}{cleanSuffix}
               </p>
             </div>
 
@@ -458,11 +497,11 @@ function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator }: 
 
               <span>Jabatan</span>
               <span>:</span>
-              <span>Pejabat Pembuat Komitmen IP BKSDA Kalimantan Timur</span>
+              <span>{ppkPosition}</span>
 
               <span>Virtual Account</span>
               <span>:</span>
-              <span>9899410000000115</span>
+              <span>{virtualAccount}</span>
             </div>
 
             {/* Point 1 */}
@@ -493,7 +532,7 @@ function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator }: 
                     <span>:</span>
                     <div className="text-justify leading-snug">
                       <span>
-                        Pembayaran Biaya {cleanDescription} atas nama {recipient.name}.
+                        {keperluanPrefix} {cleanDescription} atas nama {recipient.name}.
                       </span>
                     </div>
                   </div>
@@ -505,8 +544,10 @@ function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator }: 
             <div className="mt-4 text-[9.5pt]">
               <div className="grid grid-cols-[20px_1fr] gap-1">
                 <span className="font-normal">2.</span>
-                <div className="text-justify leading-snug">
-                  Memerintahkan Pemegang Dana Operasional untuk pembayaran dan membebankan pengeluaran pada Annual Work Plan (AWP) Project FOLU-NC 2&3 IP BKSDA Kalimantan Timur untuk &nbsp;Kode AWP {activity.awpCode} Tahun Anggaran 2026.
+                <div className="text-justify leading-snug whitespace-pre-line">
+                  {spbConfig?.point2Text?.trim()
+                    ? spbConfig.point2Text.replace("{awpCode}", activity.awpCode)
+                    : `Memerintahkan Pemegang Dana Operasional untuk pembayaran dan membebankan pengeluaran pada Annual Work Plan (AWP) Project FOLU-NC 2&3 IP BKSDA Kalimantan Timur untuk Kode AWP ${activity.awpCode} Tahun Anggaran 2026.`}
                 </div>
               </div>
             </div>
@@ -535,7 +576,7 @@ function SpbPreview({ recipients, activity, sptNumber, ppk, pdo, verifikator }: 
                 </div>
 
                 <div className="w-56 sm:w-60">
-                  <p>Samarinda,</p>
+                  <p>{cityDateText}</p>
                   <p>Menyetujui,</p>
                   <p>Pejabat Pembuat Komitmen</p>
                   <p className="italic">Implementing Partner <span className="not-italic">BKSDA KALTIM</span></p>
@@ -575,6 +616,16 @@ function getRecipientBankInfo(name: string) {
     accountNo: "1480024" + String(Math.abs(name.split("").reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0))).slice(0, 6),
     holderName: name.replace(/,\s*[A-Za-z\.\s]+$/, "").trim(),
   };
+}
+
+function calculateDays(startDate?: string, endDate?: string): number {
+  if (startDate && endDate) {
+    const d1 = new Date(startDate).getTime();
+    const d2 = new Date(endDate).getTime();
+    const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+    if (diff > 0) return diff;
+  }
+  return 8;
 }
 
 function formatIndonesianDateRange(startDateStr: string, endDateStr: string): string {
@@ -757,16 +808,19 @@ function DaftarIsianPreview({ recipients, activity, travel }: Omit<Props, "selec
             </thead>
             <tbody>
               {recipients.map((recipient, index) => {
-                const bankInfo = getRecipientBankInfo(recipient.name);
+                const defaultBankInfo = getRecipientBankInfo(recipient.name);
+                const accountNo = recipient.accountNo || defaultBankInfo.accountNo;
+                const bankName = recipient.bankName || defaultBankInfo.bank;
+                const holderName = recipient.accountHolder || defaultBankInfo.holderName;
                 const execDate = getRecipientExecutionDate(recipient, travel);
                 const formattedUraian = formatUraianText(recipient);
                 return (
                   <tr key={recipient.id || index}>
                     <td className="border border-black px-1 py-2 text-center align-top">{index + 1}</td>
                     <td className="border border-black px-1.5 py-2 align-top">{recipient.name}</td>
-                    <td className="border border-black px-1.5 py-2 text-center font-mono align-top">{bankInfo.accountNo}</td>
-                    <td className="border border-black px-1.5 py-2 text-center align-top">{bankInfo.bank}</td>
-                    <td className="border border-black px-1.5 py-2 align-top">{bankInfo.holderName}</td>
+                    <td className="border border-black px-1.5 py-2 text-center font-mono align-top">{accountNo}</td>
+                    <td className="border border-black px-1.5 py-2 text-center align-top">{bankName}</td>
+                    <td className="border border-black px-1.5 py-2 align-top">{holderName}</td>
                     <td className="border border-black px-2 py-2 text-justify align-top">{formattedUraian}</td>
                     <td className="border border-black px-1.5 py-2 text-center align-top">{execDate}</td>
                     <td className="border border-black px-1.5 py-2 text-right font-mono align-top">{formatNumber(recipient.amount)}</td>
@@ -790,7 +844,13 @@ const RECIPIENT_NIP: Record<string, string> = {
   "sukma mawarni": "19930425 202421 2 053",
 };
 
-function getReceiverInfo(recipient: { name: string; id: string; description: string }) {
+function getReceiverInfo(recipient: { name: string; id: string; description: string; nip?: string }) {
+  if (recipient.nip && recipient.nip.trim()) {
+    return {
+      name: recipient.name,
+      nip: formatNip(recipient.nip.trim()),
+    };
+  }
   if (recipient.description.toLowerCase().includes("a.n didi susanto")) {
     return {
       name: "Didi Susanto, S.Si.",
@@ -799,7 +859,7 @@ function getReceiverInfo(recipient: { name: string; id: string; description: str
   }
   const lower = recipient.name.toLowerCase();
   for (const [key, nip] of Object.entries(RECIPIENT_NIP)) {
-    if (lower.includes(key)) return { name: recipient.name, nip };
+    if (lower.includes(key)) return { name: recipient.name, nip: formatNip(nip) };
   }
   return {
     name: recipient.name,
@@ -807,19 +867,64 @@ function getReceiverInfo(recipient: { name: string; id: string; description: str
   };
 }
 
-function getMengetahuiOfficial(recipient: { name: string; id: string; description: string }) {
-  if (recipient.name.toLowerCase().includes("tegar") || recipient.description.toLowerCase().includes("samarinda ke kabupaten kutai barat")) {
-    return {
-      position: "Kepala Subbagian Tata Usaha,",
-      name: "Dheny Mardiono, S.Hut., MSc.",
-      nik: "19750314 199903 1 004",
-    };
-  }
-  return {
+export const PEJABAT_MENGETAHUI_OPTIONS: MengetahuiOfficial[] = [
+  {
     position: "Kepala Seksi KSDA Wilayah II",
     name: "Suriawati Halim, S.Hut., M.P.",
     nik: "19751127 200003 2 001",
-  };
+  },
+  {
+    position: "Kepala Subbagian Tata Usaha",
+    name: "Dheny Mardiono, S.Hut., MSc.",
+    nik: "19750314 199903 1 004",
+  },
+  {
+    position: "Kepala Seksi KSDA Wilayah I",
+    name: "Yulian Sadono, S.Hut., M.T.",
+    nik: "19800707 200604 1 003",
+  },
+  {
+    position: "Kepala Seksi KSDA Wilayah III",
+    name: "Bambang Hari Trimarsito, S.Si., M.P.",
+    nik: "19740626 200112 1 004",
+  },
+];
+
+function getMengetahuiOfficial(recipient: Recipient) {
+  if (recipient.mengetahui && recipient.mengetahui.name) {
+    return recipient.mengetahui;
+  }
+
+  const lowerName = (recipient.name || "").toLowerCase();
+  const lowerUnit = (recipient.satuanKerja || "").toLowerCase();
+  const lowerDesc = (recipient.description || "").toLowerCase();
+
+  // If employee is Subbag TU / Balai Samarinda (Menik, Tegar, Sukma, Dilemma, dll.)
+  if (
+    lowerName.includes("menik") ||
+    lowerName.includes("tegar") ||
+    lowerName.includes("sukma") ||
+    lowerName.includes("dilemma") ||
+    lowerUnit.includes("tata usaha") ||
+    lowerUnit.includes("subbag tu") ||
+    lowerUnit.includes("balai") ||
+    lowerDesc.includes("tata usaha")
+  ) {
+    return PEJABAT_MENGETAHUI_OPTIONS[1]; // Dheny Mardiono, S.Hut., MSc. (Kepala Subbagian Tata Usaha)
+  }
+
+  // If employee is Seksi Wilayah I / Berau
+  if (lowerUnit.includes("wilayah i") || lowerUnit.includes("wil 1") || lowerUnit.includes("berau")) {
+    return PEJABAT_MENGETAHUI_OPTIONS[2]; // Yulian Sadono, S.Hut., M.T. (Kepala Seksi KSDA Wilayah I)
+  }
+
+  // If employee is Seksi Wilayah III / Balikpapan
+  if (lowerUnit.includes("wilayah iii") || lowerUnit.includes("wil 3") || lowerUnit.includes("balikpapan")) {
+    return PEJABAT_MENGETAHUI_OPTIONS[3]; // Bambang Hari Trimarsito, S.Si., M.P. (Kepala Seksi KSDA Wilayah III)
+  }
+
+  // Default for Seksi Wilayah II / Jono / Didi / Tenggarong / Kutai Barat
+  return PEJABAT_MENGETAHUI_OPTIONS[0]; // Suriawati Halim, S.Hut., M.P. (Kepala Seksi KSDA Wilayah II)
 }
 
 function KuitansiPreview({ recipients, activity, ppk, pdo }: Omit<Props, "selectedDocument" | "travel" | "total">) {
@@ -903,15 +1008,25 @@ function KuitansiPreview({ recipients, activity, ppk, pdo }: Omit<Props, "select
 
               {/* Kotak Kanan Atas (Metadata) */}
               <div className="p-3 border-b border-black flex justify-end">
-                <div className="border border-black p-2 w-full max-w-[340px] text-[8.5pt]">
-                  <div className="grid grid-cols-[85px_10px_1fr] gap-y-1">
+                <div className="border border-black p-2 w-full max-w-[360px] text-[8.5pt]">
+                  <div className="grid grid-cols-[80px_8px_1fr] gap-y-1 items-start">
                     <span>TA</span>
                     <span>:</span>
                     <span>2026</span>
 
                     <span>Nomor Bukti</span>
                     <span>:</span>
-                    <span className="font-mono">{evidenceDisplay}</span>
+                    <span className="font-mono whitespace-nowrap text-[8pt]">
+                      {recipient.evidence?.trim() ? (
+                        recipient.evidence.trim().startsWith("/") ? (
+                          <>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{recipient.evidence.trim()}</>
+                        ) : (
+                          recipient.evidence.trim()
+                        )
+                      ) : (
+                        <>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/K.18/FOLU.NC-23/08/2026</>
+                      )}
+                    </span>
 
                     <span>Kode AWP</span>
                     <span>:</span>
@@ -1083,9 +1198,11 @@ function getRinbaBreakdown(recipient: { name: string; amount: number; rinba?: Ri
   };
 }
 
-function RinbaPreview({ recipients, travel, sptNumber, ppk, pdo }: Omit<Props, "selectedDocument" | "activity" | "total">) {
+function RinbaPreview({ recipients, travel, sptNumber, ppk, pdo, spdNumber }: Omit<Props, "selectedDocument" | "activity" | "total">) {
   const employeeRecipients = recipients.filter((recipient) => recipient.id.startsWith("employee-") || !recipient.id.startsWith("external-"));
-  const spdNumberSuffix = sptNumber ? sptNumber.replace(/^.*?\//, "") : "K.18-TU/FOLU.NC-23/08/2026";
+  const rawSuffix = spdNumber?.suffix?.trim() || (sptNumber ? `/${sptNumber.replace(/^.*?\//, "")}` : "/K.18-TU/FOLU.NC-23/04/2026");
+  const cleanSuffix = rawSuffix.startsWith("/") ? rawSuffix : `/${rawSuffix}`;
+  const noDisplay = spdNumber?.no?.trim() ? spdNumber.no.trim() : "                                ";
 
   return (
     <div id="rinba-print-root" className="rinba-print-root font-['Figtree',sans-serif] space-y-8 print:space-y-0">
@@ -1169,7 +1286,9 @@ function RinbaPreview({ recipients, travel, sptNumber, ppk, pdo }: Omit<Props, "
             <div className="mb-3 grid grid-cols-[150px_10px_1fr] text-[8.5pt] gap-y-1">
               <span>Lampiran SPD Nomor</span>
               <span>:</span>
-              <span>SPD. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/{spdNumberSuffix}</span>
+              <span>
+                SPD. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{spdNumber?.no?.trim() || ""}{cleanSuffix}
+              </span>
 
               <span>Tanggal</span>
               <span>:</span>
@@ -1258,6 +1377,7 @@ function RinbaPreview({ recipients, travel, sptNumber, ppk, pdo }: Omit<Props, "
             <div className="mt-5 grid grid-cols-2 text-[9pt]">
               {/* Left: PDO */}
               <div className="space-y-1">
+                <p className="invisible select-none" aria-hidden="true">&nbsp;</p>
                 <p>Telah dibayar sejumlah</p>
                 <div className="flex items-center gap-6 font-mono font-normal">
                   <span>Rp.</span>
@@ -1326,7 +1446,7 @@ function RinbaPreview({ recipients, travel, sptNumber, ppk, pdo }: Omit<Props, "
   );
 }
 
-function getEmployeeSpdInfo(recipient: { name: string; id: string; description: string }, travel: { origin: string; destination: string }) {
+function getEmployeeSpdInfo(recipient: Recipient, travel: { origin: string; destination: string }) {
   const emp = MOCK_EMPLOYEES.find((e) => e.name.toLowerCase().includes(recipient.name.toLowerCase().split(",")[0]));
   const receiver = getReceiverInfo(recipient);
 
@@ -1340,8 +1460,8 @@ function getEmployeeSpdInfo(recipient: { name: string; id: string; description: 
   return {
     name: receiver.name,
     nip: receiver.nip,
-    rank: emp?.rank || "Penata Muda (III/a)",
-    position: emp?.position || "Polisi Kehutanan Ahli Pertama",
+    rank: recipient.rank?.trim() || emp?.rank || "Penata Muda (III/a)",
+    position: recipient.position?.trim() || emp?.position || "Polisi Kehutanan",
     tingkatBiaya: "D",
     origin: origin,
     destination: travel.destination || "Kabupaten Kutai Barat",
@@ -1362,9 +1482,11 @@ function formatSingleDate(dateStr: string): string {
   }
 }
 
-function SpdPreview({ recipients, activity, travel, sptNumber, ppk }: { recipients: Props["recipients"]; activity: Props["activity"]; travel: Props["travel"]; sptNumber: string; ppk: Official }) {
+function SpdPreview({ recipients, activity, travel, sptNumber, ppk, spdNumber, spdConfig }: { recipients: Props["recipients"]; activity: Props["activity"]; travel: Props["travel"]; sptNumber: string; ppk: Official; spdNumber?: { no?: string; suffix?: string }; spdConfig?: SpdConfig }) {
   const employeeRecipients = recipients.filter((recipient) => recipient.id.startsWith("employee-") || !recipient.id.startsWith("external-"));
-  const spdNumberSuffix = sptNumber ? sptNumber.replace(/^.*?\//, "") : "K.18-TU/FOLU.NC-23/08/2026";
+  const rawSuffix = spdNumber?.suffix?.trim() || (sptNumber ? `/${sptNumber.replace(/^.*?\//, "")}` : "/K.18-TU/FOLU.NC-23/04/2026");
+  const cleanSuffix = rawSuffix.startsWith("/") ? rawSuffix : `/${rawSuffix}`;
+  const noDisplay = spdNumber?.no?.trim() ? spdNumber.no.trim() : "                                ";
 
   return (
     <div id="spd-print-root" className="spd-print-root font-['Figtree',sans-serif] space-y-8 print:space-y-0">
@@ -1432,6 +1554,15 @@ function SpdPreview({ recipients, activity, travel, sptNumber, ppk }: { recipien
         const tanggalSpd = `${padDate} ${months[travelStartDate.getMonth()]} ${travelStartDate.getFullYear()}`;
         const tglBerangkat = formatSingleDate(travel.startDate || "2026-07-10");
         const tglKembali = formatSingleDate(travel.endDate || "2026-07-17");
+        const daysCount = recipient.rinba?.operasionalDays || calculateDays(travel.startDate, travel.endDate);
+        const rawMaksud = recipient.description
+          ? recipient.description.replace(/^Biaya\s+/i, "")
+          : `Perjalanan dinas dari ${spdInfo.origin} ke ${spdInfo.destination} dalam rangka kegiatan ${activity.name}`;
+        const cleanMaksudCore = rawMaksud
+          .replace(/,?\s+selama\s+\d+.*$/i, "")
+          .replace(/,?\s+terhitung\s+mulai.*$/i, "")
+          .trim();
+        const maksudPerjalanan = cleanMaksudCore.endsWith(".") ? cleanMaksudCore : `${cleanMaksudCore}.`;
 
         return (
           <div
@@ -1480,7 +1611,7 @@ function SpdPreview({ recipients, activity, travel, sptNumber, ppk }: { recipien
                 SURAT PERJALANAN DINAS (SPD)
               </h1>
               <p className="text-[8.5pt] mt-0.5 font-normal">
-                Nomor : SPD. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/{spdNumberSuffix}
+                Nomor : SPD. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{spdNumber?.no?.trim() || ""}{cleanSuffix}
               </p>
             </div>
 
@@ -1496,7 +1627,9 @@ function SpdPreview({ recipients, activity, travel, sptNumber, ppk }: { recipien
                 <tr className="border-b border-black">
                   <td className="border-r border-black p-1.5 text-center align-top">1</td>
                   <td className="border-r border-black p-1.5 align-top">Pejabat Pembuat Komitmen</td>
-                  <td className="p-1.5 align-top">FOLU RBC NC 2&3 IP BKSDA KALTIM TA 2026</td>
+                  <td className="p-1.5 align-top">
+                    {spdConfig?.ppkPoin1Text?.trim() || "FOLU RBC NC 2&3 IP BKSDA KALTIM TA 2026"}
+                  </td>
                 </tr>
 
                 {/* Row 2 */}
@@ -1532,7 +1665,7 @@ function SpdPreview({ recipients, activity, travel, sptNumber, ppk }: { recipien
                   <td className="border-r border-black p-1.5 text-center align-top">4</td>
                   <td className="border-r border-black p-1.5 align-top">Maksud perjalanan dinas</td>
                   <td className="p-1.5 align-top text-justify">
-                    Perjalanan dinas dalam rangka kegiatan Smart Patrol/Patroli Perlindungan Kawasan di Kawasan Suaka Margasatwa Kelian di Suaka Margasatwa Kelian
+                    {maksudPerjalanan}
                   </td>
                 </tr>
 
@@ -1565,7 +1698,7 @@ function SpdPreview({ recipients, activity, travel, sptNumber, ppk }: { recipien
                     c. Tanggal harus kembali / tiba di tempat baru *)
                   </td>
                   <td className="p-1.5 align-top">
-                    a. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 8 Hari<br />
+                    a. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {daysCount} Hari<br />
                     b. {tglBerangkat}<br />
                     c. {tglKembali}
                   </td>
@@ -1619,9 +1752,9 @@ function SpdPreview({ recipients, activity, travel, sptNumber, ppk }: { recipien
                     b. Akun
                   </td>
                   <td className="p-1.5 align-top">
-                    Proyek FOLU Net Sink 2030 RBC Norwegia Tahap II dan III (FOLU NC 2&3) pada AWP KSDAE - TA 2026<br /><br />
-                    a. Balai KSDA Kalimantan Timur<br />
-                    b. {activity.awpCode}
+                    {spdConfig?.anggaranHeader?.trim() || "Proyek FOLU Net Sink 2030 RBC Norwegia Tahap II dan III (FOLU NC 2&3) pada AWP KSDAE - TA 2026"}<br /><br />
+                    a. {spdConfig?.instansiPoin9a?.trim() || "Balai KSDA Kalimantan Timur"}<br />
+                    b. {spdConfig?.akunPoin9b?.trim() ? spdConfig.akunPoin9b.replace("{awpCode}", activity.awpCode) : activity.awpCode}
                   </td>
                 </tr>
 
