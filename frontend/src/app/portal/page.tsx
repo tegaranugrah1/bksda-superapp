@@ -8,7 +8,7 @@ import {
   Sun, Sunset, Moon, Loader2, LogOut, Users, Package,
   Boxes, FileText, LayoutGrid, Mail, Sparkles, Bell,
   HandHelping, Briefcase, ClipboardList, Calendar,
-  ChevronDown, FileCheck, FileSpreadsheet,
+  ChevronDown, FileCheck, FileSpreadsheet, Banknote,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -405,13 +405,14 @@ function PortalContent() {
   const modules = useMemo(() => {
     if (!data) return [];
     return data.user.role === "super_admin" || (data.user.access_modules?.includes("*"))
-      ? ["kepegawaian", "bmn", "inventory", "dereporting", "cms", "surat"]
+      ? ["kepegawaian", "keuangan", "bmn", "inventory", "dereporting", "cms", "surat"]
       : (data.user.access_modules || []);
   }, [data]);
 
   const moduleCards = useMemo(() => {
     const all: { key: string; href: string; label: string; desc: string; icon: React.ReactNode; color: string; bg: string }[] = [
       { key: "kepegawaian", href: "/kepegawaian", label: "Kepegawaian", desc: "Surat Tugas & SDM", icon: <Users className="w-5 h-5" />, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/60" },
+      { key: "keuangan", href: "/keuangan", label: "Keuangan", desc: "SPJ & Visum SPD", icon: <Banknote className="w-5 h-5" />, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/60" },
       { key: "bmn", href: "/bmn", label: "BMN", desc: "Barang Milik Negara", icon: <Package className="w-5 h-5" />, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
       { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: <Boxes className="w-5 h-5" />, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/60" },
       { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: <FileText className="w-5 h-5" />, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/60" },
@@ -566,7 +567,7 @@ function PortalContent() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                       {moduleCards.map((mod) => (
                         <Link
                           key={mod.key}

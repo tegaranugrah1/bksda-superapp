@@ -134,7 +134,7 @@ export default function VisumSaveAsTemplateModal({
                     : "border-zinc-200 bg-white text-zinc-700 hover:border-blue-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
                 }`}
               >
-                <span>🏛️ SPD DIPA</span>
+                <span>SPD DIPA</span>
               </button>
               <button
                 type="button"
@@ -145,7 +145,7 @@ export default function VisumSaveAsTemplateModal({
                     : "border-zinc-200 bg-white text-zinc-700 hover:border-emerald-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
                 }`}
               >
-                <span>🌿 SPD FOLU</span>
+                <span>SPD FOLU</span>
               </button>
             </div>
           </div>
