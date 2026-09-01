@@ -34,7 +34,7 @@ export default function ProfilPage() {
       {/* Hero Banner */}
       <div className="relative h-[320px] md:h-[400px] bg-green-900 overflow-hidden flex items-center justify-center">
         <img
-          src="/assets/header-new.png"
+          src="/assets/header.png"
           alt="Profil BKSDA"
           className="absolute inset-0 w-full h-full object-cover opacity-20"
         />

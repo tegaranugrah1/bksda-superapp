@@ -784,7 +784,7 @@ export function DocumentHeader() {
   return (
     <div className="ba-header -mx-18 text-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/new-header.png" alt="Kop Surat" className="mx-auto h-auto w-full max-w-[196mm]" />
+      <img src="/header.png" alt="Kop Surat" className="mx-auto h-auto w-full max-w-[196mm]" />
     </div>
   );
 }
