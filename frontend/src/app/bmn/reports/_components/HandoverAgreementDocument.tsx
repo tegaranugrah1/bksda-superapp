@@ -473,7 +473,7 @@ export function HandoverAgreementDocument({
         <article className="handover-page shadow-xl ring-1 ring-zinc-200">
           <div className="handover-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/new-header.png" alt="Kop Surat" />
+            <img src="/header.png" alt="Kop Surat" />
           </div>
 
           <div className="handover-title">
@@ -592,7 +592,7 @@ export function HandoverAgreementDocument({
           <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
             <div className="handover-header">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/new-header.png" alt="Kop Surat" />
+              <img src="/header.png" alt="Kop Surat" />
             </div>
 
             {/* Title ONLY on pageIndex === 0 */}
