@@ -127,8 +127,7 @@ export function handlePrintPowerOfAttorney(documentId = "power-of-attorney-print
       <head>
         <title>Surat Kuasa Kendaraan</title>
         <style>
-          @page { size: A4 portrait; margin: 18mm 0 18mm 0; }
-          @page:first { margin-top: 10mm; }
+          @page { size: A4 portrait; margin: 0; }
           * { box-sizing: border-box; }
           body {
             margin: 0;
@@ -140,7 +139,7 @@ export function handlePrintPowerOfAttorney(documentId = "power-of-attorney-print
             line-height: 1.25;
           }
           p { margin: 0; }
-          .poa-page { width: 210mm; margin: 0 auto; padding: 0 20mm 14mm; }
+          .poa-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 14mm; }
           .poa-header { margin: 0 -12mm; text-align: center; }
           .poa-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
           .poa-title { margin-top: 6mm; text-align: center; }
@@ -212,7 +211,7 @@ export function PowerOfAttorneyDocument({
           width: 210mm;
           max-width: 100%;
           margin: 0 auto;
-          padding: 7mm 20mm 14mm;
+          padding: 3.5mm 20mm 14mm;
           background: white;
           color: black;
           font-family: "Bookman Old Style", Georgia, Garamond, serif;
@@ -287,7 +286,7 @@ export function PowerOfAttorneyDocument({
         <article className="poa-page shadow-xl ring-1 ring-zinc-200">
           <div className="poa-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/header-terbaru.png" alt="Kop Surat" />
+            <img src="/header.png" alt="Kop Surat" />
           </div>
 
           <div className="poa-title">

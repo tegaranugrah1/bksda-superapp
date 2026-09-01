@@ -818,7 +818,7 @@ export function SkPenghentianDocument({
       >
         <div className="sk-kop" style={{ marginTop: "-5mm", marginLeft: "-16mm", marginRight: "-16mm", marginBottom: "4px", textAlign: "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-new.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
+          <img src="/header.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
         <div className="sk-title mx-auto mt-3 w-[166mm] text-center font-bold leading-snug">

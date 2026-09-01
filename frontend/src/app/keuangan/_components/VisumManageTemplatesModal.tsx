@@ -564,6 +564,11 @@ export default function VisumManageTemplatesModal({
     try {
       await api.post(`/api/keuangan/visum/templates/${id}/set-default`);
       toast.success("Template default berhasil diubah.");
+      try {
+        localStorage.removeItem("bksda_visum_spd_selected_template_id");
+        localStorage.removeItem("bksda_visum_spd_draft_v2");
+        localStorage.removeItem("bksda_visum_spd_type_v1");
+      } catch {}
       fetchData();
       onTemplatesUpdated();
     } catch (err) {
@@ -814,15 +819,15 @@ export default function VisumManageTemplatesModal({
                               <div className="flex items-center gap-1">
                                 {tmpl.data?.spd_type === "dipa" || tmpl.name.toUpperCase().includes("DIPA") ? (
                                   <span className="rounded-md bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-blue-800 dark:bg-blue-500/20 dark:text-blue-300">
-                                    🏛️ DIPA
+                                    DIPA
                                   </span>
                                 ) : tmpl.data?.spd_type === "folu" || tmpl.name.toUpperCase().includes("FOLU") || tmpl.name.toLowerCase().includes("kelian") ? (
                                   <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300">
-                                    🌿 FOLU
+                                    FOLU
                                   </span>
                                 ) : (
                                   <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                    🌐 UMUM
+                                    UMUM
                                   </span>
                                 )}
                                 {tmpl.is_default && (
@@ -953,7 +958,7 @@ export default function VisumManageTemplatesModal({
                           }`}
                         >
                           <Building2 className="h-4 w-4" />
-                          <span>🏛️ SPD DIPA (Tanpa a.n.)</span>
+                          <span>SPD DIPA (Tanpa a.n.)</span>
                         </button>
 
                         <button
@@ -965,7 +970,7 @@ export default function VisumManageTemplatesModal({
                               : "border-zinc-200 bg-white text-zinc-700 hover:border-emerald-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
                           }`}
                         >
-                          <span>🌿 SPD FOLU (Dengan a.n.)</span>
+                          <span>SPD FOLU (Dengan a.n.)</span>
                         </button>
                       </div>
                       <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
@@ -1560,7 +1565,7 @@ export default function VisumManageTemplatesModal({
 
                     <div>
                       <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <span>🏛️ Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
+                        <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
@@ -1577,7 +1582,7 @@ export default function VisumManageTemplatesModal({
 
                     <div>
                       <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <span>🌿 Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                        <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
@@ -1679,11 +1684,11 @@ export default function VisumManageTemplatesModal({
 
                     <div>
                       <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <span>🏛️ Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
+                        <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
-                        value={settings.berau.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah I,"}
+                        value={settings.berau.depart_position_dipa || "Kepala Seksi Konservasi Wilayah I,"}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
@@ -1696,7 +1701,7 @@ export default function VisumManageTemplatesModal({
 
                     <div>
                       <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <span>🌿 Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                        <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
@@ -1798,11 +1803,11 @@ export default function VisumManageTemplatesModal({
 
                     <div>
                       <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <span>🏛️ Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
+                        <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
-                        value={settings.tenggarong.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah II,"}
+                        value={settings.tenggarong.depart_position_dipa || "Kepala Seksi Konservasi Wilayah II,"}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
@@ -1815,7 +1820,7 @@ export default function VisumManageTemplatesModal({
 
                     <div>
                       <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <span>🌿 Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                        <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
@@ -1917,11 +1922,11 @@ export default function VisumManageTemplatesModal({
 
                     <div>
                       <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <span>🏛️ Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
+                        <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
                       </label>
                       <textarea
                         rows={2}
-                        value={settings.balikpapan.depart_position_dipa || "Kepala Seksi Konservasi Sumber Daya Alam Wilayah III,"}
+                        value={settings.balikpapan.depart_position_dipa || "Kepala Seksi Konservasi Wilayah III,"}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
@@ -1934,7 +1939,7 @@ export default function VisumManageTemplatesModal({
 
                     <div>
                       <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <span>🌿 Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                        <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
                       </label>
                       <textarea
                         rows={2}

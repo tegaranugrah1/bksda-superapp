@@ -220,8 +220,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
       <head>
         <title>BA Pemakaian BMN</title>
         <style>
-          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
-          @page :first { margin-top: 0; }
+          @page { size: A4 portrait; margin: 0; }
           * { box-sizing: border-box; }
           body {
             margin: 0;
@@ -233,11 +232,11 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
             line-height: 1.22;
           }
           p { margin: 0; }
-          .usage-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 10mm; }
+          .usage-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 10mm; }
           .usage-header { margin: 0 -12mm; text-align: center; }
           .usage-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          .usage-title { margin-top: 5mm; text-align: center; font-weight: 700; }
-          .usage-body { margin-top: 5mm; text-align: justify; }
+          .usage-title { margin-top: 3.5mm; text-align: center; font-weight: 700; }
+          .usage-body { margin-top: 3.5mm; text-align: justify; }
           .usage-party { margin: 2mm 0 3mm 14mm; }
           .usage-indent { margin-left: 14mm; }
           .usage-gap-before { margin-top: 3mm; }
@@ -250,8 +249,8 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
           .usage-table tr { break-inside: avoid; page-break-inside: avoid; }
           .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; margin-top: 2mm; }
           .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 5mm; }
-          .signature-name { margin-top: 22mm; font-weight: 700; }
-          .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
+          .signature-name { margin-top: 28mm; font-weight: 700; }
+          .page-continuation-spacer { height: 0; margin: 0; padding: 0; page-break-before: always; break-before: page; }
           .avoid-break { break-inside: avoid; page-break-inside: avoid; }
           
           /* Lampiran Foto Styles */
@@ -260,7 +259,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
             break-before: page;
             width: 210mm;
             margin: 0 auto;
-            padding: 5mm 20mm 10mm;
+            padding: 3.5mm 20mm 10mm;
           }
           .photo-lampiran-title {
             margin-top: 3mm;
@@ -367,7 +366,7 @@ export function UsageAgreementDocument({
           width: 210mm;
           max-width: 100%;
           margin: 0 auto;
-          padding: 5mm 20mm 10mm;
+          padding: 3.5mm 20mm 10mm;
           background: white;
           color: black;
           font-family: Arial, Helvetica, sans-serif;
@@ -377,8 +376,8 @@ export function UsageAgreementDocument({
         .usage-preview p { margin: 0; }
         .usage-preview .usage-header { margin: 0 -12mm; text-align: center; }
         .usage-preview .usage-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .usage-preview .usage-title { margin-top: 5mm; text-align: center; font-weight: 700; }
-        .usage-preview .usage-body { margin-top: 5mm; text-align: justify; }
+        .usage-preview .usage-title { margin-top: 3.5mm; text-align: center; font-weight: 700; }
+        .usage-preview .usage-body { margin-top: 3.5mm; text-align: justify; }
         .usage-preview .usage-party { margin: 2mm 0 3mm 14mm; }
         .usage-preview .usage-indent { margin-left: 14mm; }
         .usage-preview .usage-gap-before { margin-top: 3mm; }
@@ -392,8 +391,8 @@ export function UsageAgreementDocument({
         .usage-preview .usage-table tr { break-inside: avoid; page-break-inside: avoid; }
         .usage-preview .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; margin-top: 2mm; }
         .usage-preview .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 5mm; }
-        .usage-preview .signature-name { margin-top: 22mm; font-weight: 700; }
-        .usage-preview .page-continuation-spacer { height: 15mm; page-break-before: always; break-before: page; }
+        .usage-preview .signature-name { margin-top: 28mm; font-weight: 700; }
+        .usage-preview .page-continuation-spacer { height: 0; margin: 0; padding: 0; page-break-before: always; break-before: page; }
         
         /* Lampiran Foto Styles */
         .usage-preview .photo-lampiran-page {
@@ -402,7 +401,7 @@ export function UsageAgreementDocument({
           width: 210mm;
           max-width: 100%;
           margin: 0 auto;
-          padding: 5mm 20mm 10mm;
+          padding: 3.5mm 20mm 10mm;
           background: white;
         }
         .usage-preview .photo-lampiran-title {
@@ -464,7 +463,7 @@ export function UsageAgreementDocument({
         <article className="usage-page shadow-xl ring-1 ring-zinc-200">
           <div className="usage-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/header-terbaru.png" alt="Kop Surat" />
+            <img src="/header.png" alt="Kop Surat" />
           </div>
 
           <div className="usage-title">
@@ -636,7 +635,7 @@ export function UsageAgreementDocument({
           <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
             <div className="usage-header">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/header-terbaru.png" alt="Kop Surat" />
+              <img src="/header.png" alt="Kop Surat" />
             </div>
 
             {/* Title ONLY on pageIndex === 0 */}

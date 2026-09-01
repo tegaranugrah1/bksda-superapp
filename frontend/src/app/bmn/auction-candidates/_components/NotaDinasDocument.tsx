@@ -199,7 +199,7 @@ export function NotaDinasDocument({
       >
         <div className="nd-kop -mx-18 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-terbaru.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
+          <img src="/header.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
         <div className="nd-title">

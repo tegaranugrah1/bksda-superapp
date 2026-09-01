@@ -53,7 +53,7 @@ export function SuratTugasPemeriksaanPenilaianDocument({
       <article className="doc-page surat-tugas-page bg-white text-black">
         <div className="doc-header">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header-terbaru.png" alt="Kop Surat" />
+          <img src="/header.png" alt="Kop Surat" />
         </div>
 
         <div className="doc-body">
