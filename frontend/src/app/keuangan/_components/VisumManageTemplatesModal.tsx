@@ -564,6 +564,11 @@ export default function VisumManageTemplatesModal({
     try {
       await api.post(`/api/keuangan/visum/templates/${id}/set-default`);
       toast.success("Template default berhasil diubah.");
+      try {
+        localStorage.removeItem("bksda_visum_spd_selected_template_id");
+        localStorage.removeItem("bksda_visum_spd_draft_v2");
+        localStorage.removeItem("bksda_visum_spd_type_v1");
+      } catch {}
       fetchData();
       onTemplatesUpdated();
     } catch (err) {
