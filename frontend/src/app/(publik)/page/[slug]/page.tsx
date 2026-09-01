@@ -75,7 +75,7 @@ export default function GenericCmsPage() {
           />
         ) : (
           <img
-            src="/assets/header-new.png"
+            src="/assets/header.png"
             alt=""
             className="absolute inset-0 w-full h-full object-cover opacity-20"
           />
