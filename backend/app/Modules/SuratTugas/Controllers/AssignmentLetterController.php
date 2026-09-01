@@ -127,7 +127,7 @@ class AssignmentLetterController extends Controller
 
     public function index(Request $request)
     {
-        $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan']);
+        $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,pangkat_golongan,satuan_kerja']);
 
         if ($search = $request->query('search')) {
             $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
@@ -210,6 +210,7 @@ class AssignmentLetterController extends Controller
                 'name' => $e->nama_lengkap,
                 'nip' => $e->nip,
                 'jabatan' => $e->jabatan,
+                'pangkat_golongan' => $e->pangkat_golongan,
                 'unit_kerja' => $e->satuan_kerja,
             ])->values(),
             'personel' => $employees->map(fn ($e) => [
@@ -218,6 +219,7 @@ class AssignmentLetterController extends Controller
                 'name' => $e->nama_lengkap,
                 'nip' => $e->nip,
                 'jabatan' => $e->jabatan,
+                'pangkat_golongan' => $e->pangkat_golongan,
                 'unit_kerja' => $e->satuan_kerja,
             ])->values(),
             'has_file' => ! empty($letter->file_surat_path),

@@ -998,7 +998,7 @@ export function VisumSpdTab({
               }`}
             >
               <Building2 className="h-3.5 w-3.5" />
-              <span>🏛️ SPD DIPA</span>
+              <span>SPD DIPA</span>
             </button>
             <button
               type="button"
@@ -1009,7 +1009,7 @@ export function VisumSpdTab({
                   : "text-zinc-600 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400"
               }`}
             >
-              <span>🌿 SPD FOLU</span>
+              <span>SPD FOLU</span>
             </button>
           </div>
 
@@ -1040,7 +1040,7 @@ export function VisumSpdTab({
 
             const activeTemplates = spdType === "dipa" ? dipaTemplates : foluTemplates;
             const categoryLabel =
-              spdType === "dipa" ? "🏛️ Template SPD DIPA" : "🌿 Template SPD FOLU";
+              spdType === "dipa" ? "Template SPD DIPA" : "Template SPD FOLU";
 
             return (
               <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
