@@ -65,20 +65,9 @@ export function AuthSync() {
       }
     }
 
-    // 2. Deteksi LOGIN di tab lain (Transition: false -> true).
-    // Jangan redirect dari /login berdasarkan snapshot lokal saja; halaman
-    // login memvalidasi session ke backend agar cookie stale tidak membuat loop.
-    if (prevAuth.current === false && isAuthenticated === true) {
-      if (!isLoginRoute) {
-        toast.success(`Selamat datang kembali, ${user?.name || 'User'}!`, {
-          id: "auth-sync-login",
-        });
-      }
-    }
-
     // Update ref untuk deteksi transisi berikutnya
     prevAuth.current = isAuthenticated;
-  }, [isAuthenticated, isLoginRoute, pathname, router, user]);
+  }, [isAuthenticated, pathname, router]);
 
   return null;
 }
