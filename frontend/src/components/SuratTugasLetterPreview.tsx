@@ -175,7 +175,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           <div data-kop className="print:!mt-0 print:!ml-0 print:!mr-0" style={{ marginTop: "-22mm", marginBottom: "2px", marginLeft: "-1.5cm", marginRight: "-1cm" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/new-header.png"
+              src="/header.png"
               alt="Kop Surat"
               style={{ width: "18.8cm", height: "auto", display: "block" }}
             />

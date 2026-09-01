@@ -286,7 +286,7 @@ export function PowerOfAttorneyDocument({
         <article className="poa-page shadow-xl ring-1 ring-zinc-200">
           <div className="poa-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/new-header.png" alt="Kop Surat" />
+            <img src="/header.png" alt="Kop Surat" />
           </div>
 
           <div className="poa-title">

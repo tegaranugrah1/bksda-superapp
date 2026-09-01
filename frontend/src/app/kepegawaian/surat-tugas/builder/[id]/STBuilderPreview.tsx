@@ -121,7 +121,7 @@ export default function STBuilderPreview({
               <div className="kop-surat" style={{ width: "100%", marginBottom: "4mm", textAlign: "center" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/new-header.png"
+                  src="/header.png"
                   alt="Kop Surat"
                   style={{ width: "188mm", maxWidth: "188mm", height: "auto", display: "block", margin: "0 auto" }}
                 />
