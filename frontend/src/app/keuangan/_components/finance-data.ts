@@ -66,42 +66,6 @@ export const MOCK_EMPLOYEES: FinanceEmployee[] = [
   },
 ];
 
-export const MOCK_SPJ: SpjRecord[] = [
-  {
-    id: "spj-001",
-    number: "SPJ.685/K.18/TU/FOLU-NC-23/KSA.02.01/B/07/2026",
-    activity: "Operasionalisasi SMART Patroli di KSA, KPA dan TB",
-    creator: "Didi Susanto, S.Si.",
-    period: "10 Jul — 17 Jul 2026",
-    employeeCount: 2,
-    total: 9_180_000,
-    status: "Diajukan",
-    updatedAt: "09 Jul 2026",
-  },
-  {
-    id: "spj-002",
-    number: "SPJ.412/K.18/TU/02/2026",
-    activity: "Monitoring kawasan konservasi wilayah III",
-    creator: "Tegar Anugrah, A.md.Kom.",
-    period: "21 Jun — 23 Jun 2026",
-    employeeCount: 3,
-    total: 4_750_000,
-    status: "Disetujui",
-    updatedAt: "25 Jun 2026",
-  },
-  {
-    id: "spj-003",
-    number: "SPJ.398/K.18/TU/02/2026",
-    activity: "Kegiatan administrasi dan koordinasi balai",
-    creator: "Sukma Mawarni, S.E.",
-    period: "12 Jun 2026",
-    employeeCount: 1,
-    total: 1_250_000,
-    status: "Draft",
-    updatedAt: "12 Jun 2026",
-  },
-];
-
 export const DOCUMENT_LABELS = [
   { key: "sptjb", label: "SPTJB / Rekap", description: "Satu paket dengan seluruh rincian penerima" },
   { key: "spb", label: "SPB", description: "Surat persetujuan bayar" },
@@ -109,6 +73,14 @@ export const DOCUMENT_LABELS = [
   { key: "kuitansi", label: "Kuitansi", description: "Bukti penerimaan pembayaran" },
   { key: "rinba", label: "Rinba", description: "Rincian biaya perjalanan dinas" },
   { key: "spd", label: "SPD", description: "Surat perjalanan dinas per pegawai" },
+] as const;
+
+export const DOCUMENT_LABELS_DIPA = [
+  { key: "spby-dipa", label: "SPBy", description: "Surat Perintah Bayar (3 Kolom TTD)" },
+  { key: "sptjb-dipa", label: "SPTJB DIPA", description: "Surat Pernyataan Tanggung Jawab Belanja Satker 693614" },
+  { key: "rinba-dipa", label: "Rinba & Rampung", description: "Rincian Biaya Perjalanan Dinas & Perhitungan SPD Rampung" },
+  { key: "nominatif-dipa", label: "Nominatif PD", description: "Daftar Nominatif Perjalanan Dinas (Tabel 10 Kolom)" },
+  { key: "spd-dipa", label: "SPD Depan", description: "Surat Perjalanan Dinas (Lembar Muka 10 Butir)" },
 ] as const;
 
 export const formatRupiah = (value: number) =>

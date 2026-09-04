@@ -20,11 +20,13 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 import {
   DOCUMENT_LABELS,
+  DOCUMENT_LABELS_DIPA,
   formatRupiah,
   statusClass,
   SpjStatus,
 } from "@/app/keuangan/_components/finance-data";
 import { DocumentTemplates } from "@/app/keuangan/_components/DocumentTemplates";
+import { Official, RecipientRow } from "@/app/keuangan/_components/templates/shared";
 
 interface SpjDetailData {
   id: number;
@@ -40,19 +42,11 @@ interface SpjDetailData {
   tujuan?: string;
   tanggal_mulai?: string;
   tanggal_selesai?: string;
-  pejabat_ppk?: { name: string; nik: string; position?: string };
-  pejabat_pdo?: { name: string; nik: string; position?: string };
-  pejabat_verifikator?: { name: string; nik: string; position?: string };
-  pejabat_kasubbag?: { name: string; nik: string; position?: string };
-  recipients?: Array<{
-    id: string;
-    name: string;
-    description: string;
-    evidenceNo?: string;
-    evidenceSuffix?: string;
-    amount: number;
-    rinba?: any;
-  }>;
+  pejabat_ppk?: Official;
+  pejabat_pdo?: Official;
+  pejabat_verifikator?: Official;
+  pejabat_kasubbag?: Official;
+  recipients?: RecipientRow[];
   total_anggaran: number;
   employee_count: number;
   status: SpjStatus;
@@ -75,7 +69,11 @@ export default function SpjDetailPage() {
     setIsLoading(true);
     try {
       const res = await api.get(`/api/keuangan/spj/${id}`);
-      setSpj(res.data?.data || null);
+      const data: SpjDetailData = res.data?.data || null;
+      setSpj(data);
+      if (data) {
+        setSelectedDocument(data.tipe_anggaran === "DIPA" ? "spby-dipa" : "sptjb");
+      }
     } catch (err: unknown) {
       console.error("Gagal memuat detail SPJ:", err);
       toast.error("Gagal memuat detail data SPJ dari server.");
@@ -88,6 +86,9 @@ export default function SpjDetailPage() {
     fetchDetail();
   }, [id]);
 
+  const isDipa = spj?.tipe_anggaran === "DIPA";
+  const documentLabels = isDipa ? DOCUMENT_LABELS_DIPA : DOCUMENT_LABELS;
+
   const previewRecipients = useMemo(() => {
     if (!spj?.recipients) return [];
     return spj.recipients.map((r) => ({
@@ -96,22 +97,37 @@ export default function SpjDetailPage() {
       description: r.description,
       evidence: r.evidenceNo
         ? `${r.evidenceNo}${r.evidenceSuffix || ""}`
-        : `          ${r.evidenceSuffix || "/K.18/FOLU.NC-23/08/2026"}`,
+        : `          ${r.evidenceSuffix || (isDipa ? "/K.18-TU/KEU/01/2026" : "/K.18/FOLU.NC-23/08/2026")}`,
       amount: r.amount,
       rinba: r.rinba,
+      dipa: r.dipa,
+      bankName: r.bankName,
+      accountNo: r.accountNo,
+      accountHolder: r.accountHolder,
+      nip: r.nip,
+      rank: r.rank,
+      position: r.position,
+      satuanKerja: r.satuanKerja,
+      mengetahui: r.mengetahui
+        ? {
+            name: r.mengetahui.name,
+            nik: r.mengetahui.nik,
+            position: r.mengetahui.position || "Pejabat Pengawas",
+          }
+        : undefined,
     }));
-  }, [spj]);
+  }, [spj, isDipa]);
 
   const documentCounts = useMemo(() => {
     const recCount = spj?.recipients?.length || 0;
-    return DOCUMENT_LABELS.map((document) => ({
+    return documentLabels.map((document) => ({
       ...document,
-      count: ["rinba", "spd", "spb", "kuitansi"].includes(document.key) ? recCount : 1,
+      count: ["rinba", "spd", "spb", "kuitansi", "rinba-dipa", "spd-dipa"].includes(document.key) ? recCount : 1,
     }));
-  }, [spj?.recipients?.length]);
+  }, [documentLabels, spj?.recipients?.length]);
 
   const selectedDocumentLabel =
-    DOCUMENT_LABELS.find((document) => document.key === selectedDocument)?.label || "SPTJB / Rekap";
+    documentLabels.find((document) => document.key === selectedDocument)?.label || (isDipa ? "SPBy" : "SPTJB / Rekap");
 
   const printDocument = () => {
     window.print();
@@ -262,20 +278,21 @@ export default function SpjDetailPage() {
         selectedDocument={selectedDocument}
         recipients={previewRecipients}
         activity={{
-          awpCode: spj.kode_awp || "C.1.1.2.01",
+          awpCode: spj.kode_awp || (isDipa ? "524111" : "C.1.1.2.01"),
           name: spj.nama_kegiatan,
         }}
         travel={{
-          origin: spj.asal || "Tenggarong",
+          origin: spj.asal || "Samarinda",
           destination: spj.tujuan || "Kabupaten Kutai Barat",
           startDate: spj.tanggal_mulai || "2026-07-10",
           endDate: spj.tanggal_selesai || "2026-07-17",
         }}
         sptNumber={spj.nomor_spt || spj.nomor_spj}
-        ppk={spj.pejabat_ppk || { name: "Ahmad Hidayat, S.PKP., M.Ling", nik: "19820301 200012 1 001" }}
-        pdo={spj.pejabat_pdo || { name: "Dilemma Ferti Hidayah, S.E.", nik: "19870130 201012 2 005" }}
-        verifikator={spj.pejabat_verifikator || { name: "Sukma Mawarni, S.E.", nik: "19930425 202421 2 053" }}
+        ppk={spj.pejabat_ppk || { name: isDipa ? "RUSMANTO, S.Hut" : "Ahmad Hidayat, S.PKP., M.Ling", nik: isDipa ? "19810907 200012 1 004" : "19820301 200012 1 001", position: "Pejabat Pembuat Komitmen" }}
+        pdo={spj.pejabat_pdo || { name: isDipa ? "SOERENDENG, SE" : "Dilemma Ferti Hidayah, S.E.", nik: isDipa ? "19790721 200701 2 001" : "19870130 201012 2 005", position: isDipa ? "Bendahara Pengeluaran" : "Pemegang Dana Operasional" }}
+        verifikator={spj.pejabat_verifikator || { name: "Sukma Mawarni, S.E.", nik: "19930425 202421 2 053", position: "Verifikator Keuangan" }}
         total={spj.total_anggaran}
+        tipeAnggaran={spj.tipe_anggaran || "FOLU"}
       />
     </div>
   );

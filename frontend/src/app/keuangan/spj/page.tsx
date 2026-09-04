@@ -30,6 +30,7 @@ import {
   formatRupiah,
   statusClass,
 } from "@/app/keuangan/_components/finance-data";
+import { formatPeriod } from "@/app/keuangan/_components/templates/shared";
 
 export interface BackendSpjRecord {
   id: number | string;
@@ -115,17 +116,6 @@ export default function SpjListPage() {
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       toast.error(error.response?.data?.message || "Gagal menghapus SPJ.");
-    }
-  };
-
-  const formatPeriod = (startDate?: string, endDate?: string) => {
-    if (!startDate) return "-";
-    try {
-      const d1 = new Date(startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
-      const d2 = endDate ? new Date(endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "";
-      return d2 ? `${d1} — ${d2}` : d1;
-    } catch {
-      return startDate;
     }
   };
 
