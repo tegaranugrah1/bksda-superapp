@@ -63,11 +63,7 @@ export default function KeuanganLayout({ children }: { children: React.ReactNode
           <nav className="flex-1 space-y-1 overflow-y-auto p-3">
             {visibleMenus.map((menu) => {
               const Icon = menu.icon;
-              const active = pathname === menu.href || (
-                menu.href !== "/keuangan" &&
-                pathname.startsWith(`${menu.href}/`) &&
-                !visibleMenus.some((other) => other.href !== menu.href && other.href.startsWith(menu.href) && (pathname === other.href || pathname.startsWith(`${other.href}/`)))
-              );
+              const active = pathname === menu.href || (menu.href !== "/keuangan" && pathname.startsWith(`${menu.href}/`));
               return (
                 <Link
                   key={menu.href}

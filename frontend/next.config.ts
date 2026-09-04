@@ -74,6 +74,10 @@ const nextConfig: NextConfig = {
                 source: "/(.*)",
                 headers: [
                     {
+                        key: "X-Robots-Tag",
+                        value: "noindex, nofollow, noarchive",
+                    },
+                    {
                         key: "X-Frame-Options",
                         value: "SAMEORIGIN",
                     },

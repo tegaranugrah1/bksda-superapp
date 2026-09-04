@@ -14,6 +14,7 @@ import { BookmarkPlus, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { VisumSpdData } from "./VisumSpdDocument";
+import { cleanTemplateName } from "./templates/shared";
 
 interface VisumSaveAsTemplateModalProps {
   open: boolean;
@@ -53,10 +54,7 @@ export default function VisumSaveAsTemplateModal({
     setSaving(true);
     try {
       const prefix = saveSpdType === "dipa" ? "[DIPA] " : "[FOLU] ";
-      const cleanName = name
-        .replace(/^(\[(DIPA|FOLU|UMUM)\]\s*)+/gi, "")
-        .replace(/\s*\((DIPA|FOLU)\)$/gi, "")
-        .trim();
+      const cleanName = cleanTemplateName(name);
 
       const res = await api.post("/api/keuangan/visum/templates", {
         name: `${prefix}${cleanName}`,

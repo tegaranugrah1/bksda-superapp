@@ -1,17 +1,22 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, ClipboardCheck, FileCheck2, FilePlus2, FileSpreadsheet, FileText, Landmark, ReceiptText, UsersRound } from "lucide-react";
+import {
+  ArrowUpRight,
+  ClipboardCheck,
+  FileCheck2,
+  FilePlus2,
+  FileSpreadsheet,
+  Landmark,
+  ReceiptText,
+  UsersRound,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MOCK_SPJ, formatRupiah, statusClass } from "@/app/keuangan/_components/finance-data";
-
-const stats = [
-  { label: "Total SPJ", value: "24", detail: "Semua periode", icon: ReceiptText, tone: "amber" },
-  { label: "Draft", value: "6", detail: "Perlu dilanjutkan", icon: FilePlus2, tone: "slate" },
-  { label: "Dalam proses", value: "8", detail: "Menunggu pemeriksaan", icon: ClipboardCheck, tone: "blue" },
-  { label: "Disetujui", value: "10", detail: "Periode berjalan", icon: FileCheck2, tone: "emerald" },
-];
+import api from "@/lib/api";
+import { formatRupiah, statusClass } from "@/app/keuangan/_components/finance-data";
+import { BackendSpjRecord } from "@/app/keuangan/spj/page";
 
 const toneClasses: Record<string, string> = {
   amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
@@ -21,12 +26,35 @@ const toneClasses: Record<string, string> = {
 };
 
 export default function KeuanganDashboardPage() {
+  const [records, setRecords] = useState<BackendSpjRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get("/api/keuangan/spj", { params: { per_page: 5 } })
+      .then((res) => setRecords(res.data?.data || []))
+      .catch(() => setRecords([]))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const totalCount = records.length;
+  const draftCount = records.filter((r) => r.status === "Draft").length;
+  const processCount = records.filter((r) => r.status === "Diajukan" || r.status === "Diproses").length;
+  const approvedCount = records.filter((r) => r.status === "Disetujui" || r.status === "Selesai").length;
+
+  const stats = [
+    { label: "Total SPJ", value: String(totalCount), detail: "Tersimpan di sistem", icon: ReceiptText, tone: "amber" },
+    { label: "Draft", value: String(draftCount), detail: "Perlu dilanjutkan", icon: FilePlus2, tone: "slate" },
+    { label: "Dalam proses", value: String(processCount), detail: "Menunggu persetujuan", icon: ClipboardCheck, tone: "blue" },
+    { label: "Disetujui", value: String(approvedCount), detail: "Selesai verifikasi", icon: FileCheck2, tone: "emerald" },
+  ];
+
   return (
     <div className="space-y-8 p-5 md:p-10">
       <section className="relative overflow-hidden rounded-4xl bg-slate-950 px-6 py-8 text-white shadow-xl md:px-10 md:py-10">
         <div className="absolute -right-12 -top-20 h-64 w-64 rounded-full bg-amber-500/20 blur-3xl" />
         <div className="relative max-w-2xl">
-          <Badge className="mb-4 border-amber-300/20 bg-amber-400/15 text-amber-200 hover:bg-amber-400/15">MODUL KEUANGAN · FRONTEND PREVIEW</Badge>
+          <Badge className="mb-4 border-amber-300/20 bg-amber-400/15 text-amber-200 hover:bg-amber-400/15">MODUL KEUANGAN · SISTEM SPJ</Badge>
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Kelola SPJ dalam satu alur yang rapi.</h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">Pantau pengajuan, susun dokumen pembayaran, dan siapkan satu paket SPJ yang mengikuti format workbook resmi.</p>
           <div className="mt-7 flex flex-wrap gap-3">
@@ -71,18 +99,24 @@ export default function KeuanganDashboardPage() {
             <Link href="/keuangan/spj" className="text-xs font-semibold text-amber-700 hover:text-amber-600 dark:text-amber-300">Lihat semua</Link>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {MOCK_SPJ.map((record) => (
-              <div key={record.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{record.activity}</p>
-                  <p className="mt-1 truncate text-xs text-slate-500">{record.number} · {record.creator}</p>
+            {isLoading ? (
+              <div className="p-5 text-center text-xs text-slate-400">Memuat data...</div>
+            ) : records.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-400">Belum ada SPJ tersimpan di database.</div>
+            ) : (
+              records.map((record) => (
+                <div key={record.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{record.nama_kegiatan}</p>
+                    <p className="mt-1 truncate text-xs text-slate-500">{record.nomor_spj || "Draft SPJ"} · {record.creator_name || "Pegawai"}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">{formatRupiah(record.total_anggaran)}</span>
+                    <Badge variant="outline" className={statusClass[record.status] || "bg-slate-100"}>{record.status}</Badge>
+                  </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="text-xs text-slate-500">{formatRupiah(record.total)}</span>
-                  <Badge variant="outline" className={statusClass[record.status]}>{record.status}</Badge>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

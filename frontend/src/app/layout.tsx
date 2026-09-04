@@ -11,6 +11,19 @@ export const metadata: Metadata = {
   description: "Portal Resmi dan Sistem Informasi Administrasi Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur, Kementerian Kehutanan Republik Indonesia.",
   keywords: ["BKSDA KALTIM", "Kementerian Kehutanan", "KSDAE", "Konservasi Kalimantan Timur", "BKSDA SuperApp"],
   authors: [{ name: "BKSDA Kalimantan Timur" }],
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      "max-video-preview": -1,
+      "max-image-preview": "none",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: "/logo_bksda.png",
     shortcut: "/logo_bksda.png",
