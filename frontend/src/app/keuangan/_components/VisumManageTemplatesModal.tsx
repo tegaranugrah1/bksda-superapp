@@ -28,7 +28,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import { VisumSpdData, VisumTransitItem, formatNip } from "./VisumSpdDocument";
+import { VisumSpdData, VisumTransitItem } from "./VisumSpdDocument";
+import { cleanTemplateName, formatNip } from "./templates/shared";
 
 export interface VisumTemplateItem {
   id: number;
@@ -66,13 +67,6 @@ export interface VisumSpdSettings {
   ppk_dipa?: PpkSettingItem;
   ppk_folu?: PpkSettingItem;
   ppk?: PpkSettingItem;
-}
-
-function cleanTemplateName(name: string): string {
-  return name
-    .replace(/^(\[(DIPA|FOLU|UMUM)\]\s*)+/gi, "")
-    .replace(/\s*\((DIPA|FOLU)\)$/gi, "")
-    .trim();
 }
 
 interface VisumManageTemplatesModalProps {
@@ -1501,481 +1495,133 @@ export default function VisumManageTemplatesModal({
               </div>
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                {/* 1. Samarinda (Balai) */}
-                <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-5 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-xs">
-                  <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200/70 pb-2.5 dark:border-zinc-800">
-                    <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
-                      <Building2 className="h-4 w-4 shrink-0" />
-                      <span>1. Samarinda (Balai)</span>
-                    </div>
-                    {employeeOptions.length > 0 && (
-                      <select
-                        onChange={(e) =>
-                          handleSelectOfficialEmployee("samarinda", Number(e.target.value))
-                        }
-                        defaultValue=""
-                        className="h-7 rounded-lg border border-zinc-200 bg-white px-2 text-[11px] font-medium text-zinc-700 outline-none hover:bg-zinc-50 focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer max-w-[200px]"
-                      >
-                        <option value="" disabled>
-                          Pilih dari Pegawai...
-                        </option>
-                        {employeeOptions.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name} {emp.position ? `(${emp.position})` : ""}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
+                {[
+                  { key: "samarinda" as const, title: "1. Samarinda (Balai)", roleLabel: "Kasubbag TU", defaultDipaPos: "Kepala Subbagian Tata Usaha," },
+                  { key: "berau" as const, title: "2. Berau (Wilayah I)", roleLabel: "Kepala Seksi Wil. I", defaultDipaPos: "Kepala Seksi Konservasi Wilayah I," },
+                  { key: "tenggarong" as const, title: "3. Tenggarong (Wilayah II)", roleLabel: "Kepala Seksi Wil. II", defaultDipaPos: "Kepala Seksi Konservasi Wilayah II," },
+                  { key: "balikpapan" as const, title: "4. Balikpapan (Wilayah III)", roleLabel: "Kepala Seksi Wil. III", defaultDipaPos: "Kepala Seksi Konservasi Wilayah III," },
+                ].map((reg) => {
+                  const regData = settings[reg.key];
+                  return (
+                    <div key={reg.key} className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-5 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-xs">
+                      <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200/70 pb-2.5 dark:border-zinc-800">
+                        <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
+                          <Building2 className="h-4 w-4 shrink-0" />
+                          <span>{reg.title}</span>
+                        </div>
+                        {employeeOptions.length > 0 && (
+                          <select
+                            onChange={(e) =>
+                              handleSelectOfficialEmployee(reg.key, Number(e.target.value))
+                            }
+                            defaultValue=""
+                            className="h-7 rounded-lg border border-zinc-200 bg-white px-2 text-[11px] font-medium text-zinc-700 outline-none hover:bg-zinc-50 focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer max-w-[200px]"
+                          >
+                            <option value="" disabled>
+                              Pilih dari Pegawai...
+                            </option>
+                            {employeeOptions.map((emp) => (
+                              <option key={emp.id} value={emp.id}>
+                                {emp.name} {emp.position ? `(${emp.position})` : ""}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
 
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Nama Pejabat (Kasubbag TU)
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.samarinda.official_name}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            samarinda: { ...settings.samarinda, official_name: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                            Nama Pejabat ({reg.roleLabel})
+                          </label>
+                          <input
+                            type="text"
+                            value={regData.official_name}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                [reg.key]: { ...regData, official_name: e.target.value },
+                              })
+                            }
+                            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </div>
 
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        NIP Pejabat
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.samarinda.official_nip}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            samarinda: { ...settings.samarinda, official_nip: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                            NIP Pejabat
+                          </label>
+                          <input
+                            type="text"
+                            value={regData.official_nip}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                [reg.key]: { ...regData, official_nip: e.target.value },
+                              })
+                            }
+                            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </div>
 
-                    <div>
-                      <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.samarinda.depart_position_dipa || "Kepala Subbagian Tata Usaha,"}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            samarinda: { ...settings.samarinda, depart_position_dipa: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                            <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={regData.depart_position_dipa || reg.defaultDipaPos}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                [reg.key]: { ...regData, depart_position_dipa: e.target.value },
+                              })
+                            }
+                            className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </div>
 
-                    <div>
-                      <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.samarinda.depart_position_folu || settings.samarinda.depart_position}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            samarinda: {
-                              ...settings.samarinda,
-                              depart_position_folu: e.target.value,
-                              depart_position: e.target.value,
-                            },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                            <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={regData.depart_position_folu || regData.depart_position}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                [reg.key]: {
+                                  ...regData,
+                                  depart_position_folu: e.target.value,
+                                  depart_position: e.target.value,
+                                },
+                              })
+                            }
+                            className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </div>
 
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Jabatan Pengesah Tiba Kembali (Bagian VI)
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.samarinda.return_position}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            samarinda: { ...settings.samarinda, return_position: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
+                        <div>
+                          <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                            Jabatan Pengesah Tiba Kembali (Bagian VI)
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={regData.return_position}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                [reg.key]: { ...regData, return_position: e.target.value },
+                              })
+                            }
+                            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* 2. Berau (Wilayah I) */}
-                <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-5 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-xs">
-                  <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200/70 pb-2.5 dark:border-zinc-800">
-                    <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
-                      <Building2 className="h-4 w-4 shrink-0" />
-                      <span>2. Berau (Wilayah I)</span>
-                    </div>
-                    {employeeOptions.length > 0 && (
-                      <select
-                        onChange={(e) =>
-                          handleSelectOfficialEmployee("berau", Number(e.target.value))
-                        }
-                        defaultValue=""
-                        className="h-7 rounded-lg border border-zinc-200 bg-white px-2 text-[11px] font-medium text-zinc-700 outline-none hover:bg-zinc-50 focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer max-w-[200px]"
-                      >
-                        <option value="" disabled>
-                          Pilih dari Pegawai...
-                        </option>
-                        {employeeOptions.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name} {emp.position ? `(${emp.position})` : ""}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Nama Pejabat (Kepala Seksi Wil. I)
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.berau.official_name}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            berau: { ...settings.berau, official_name: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        NIP Pejabat
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.berau.official_nip}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            berau: { ...settings.berau, official_nip: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.berau.depart_position_dipa || "Kepala Seksi Konservasi Wilayah I,"}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            berau: { ...settings.berau, depart_position_dipa: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.berau.depart_position_folu || settings.berau.depart_position}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            berau: {
-                              ...settings.berau,
-                              depart_position_folu: e.target.value,
-                              depart_position: e.target.value,
-                            },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Jabatan Pengesah Tiba Kembali (Bagian VI)
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.berau.return_position}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            berau: { ...settings.berau, return_position: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Tenggarong (Wilayah II) */}
-                <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-5 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-xs">
-                  <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200/70 pb-2.5 dark:border-zinc-800">
-                    <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
-                      <Building2 className="h-4 w-4 shrink-0" />
-                      <span>3. Tenggarong (Wilayah II)</span>
-                    </div>
-                    {employeeOptions.length > 0 && (
-                      <select
-                        onChange={(e) =>
-                          handleSelectOfficialEmployee("tenggarong", Number(e.target.value))
-                        }
-                        defaultValue=""
-                        className="h-7 rounded-lg border border-zinc-200 bg-white px-2 text-[11px] font-medium text-zinc-700 outline-none hover:bg-zinc-50 focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer max-w-[200px]"
-                      >
-                        <option value="" disabled>
-                          Pilih dari Pegawai...
-                        </option>
-                        {employeeOptions.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name} {emp.position ? `(${emp.position})` : ""}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Nama Pejabat (Kepala Seksi Wil. II)
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.tenggarong.official_name}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            tenggarong: { ...settings.tenggarong, official_name: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        NIP Pejabat
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.tenggarong.official_nip}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            tenggarong: { ...settings.tenggarong, official_nip: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.tenggarong.depart_position_dipa || "Kepala Seksi Konservasi Wilayah II,"}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            tenggarong: { ...settings.tenggarong, depart_position_dipa: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.tenggarong.depart_position_folu || settings.tenggarong.depart_position}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            tenggarong: {
-                              ...settings.tenggarong,
-                              depart_position_folu: e.target.value,
-                              depart_position: e.target.value,
-                            },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Jabatan Pengesah Tiba Kembali (Bagian VI)
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.tenggarong.return_position}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            tenggarong: { ...settings.tenggarong, return_position: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. Balikpapan (Wilayah III) */}
-                <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-5 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-xs">
-                  <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200/70 pb-2.5 dark:border-zinc-800">
-                    <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
-                      <Building2 className="h-4 w-4 shrink-0" />
-                      <span>4. Balikpapan (Wilayah III)</span>
-                    </div>
-                    {employeeOptions.length > 0 && (
-                      <select
-                        onChange={(e) =>
-                          handleSelectOfficialEmployee("balikpapan", Number(e.target.value))
-                        }
-                        defaultValue=""
-                        className="h-7 rounded-lg border border-zinc-200 bg-white px-2 text-[11px] font-medium text-zinc-700 outline-none hover:bg-zinc-50 focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 cursor-pointer max-w-[200px]"
-                      >
-                        <option value="" disabled>
-                          Pilih dari Pegawai...
-                        </option>
-                        {employeeOptions.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name} {emp.position ? `(${emp.position})` : ""}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Nama Pejabat (Kepala Seksi Wil. III)
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.balikpapan.official_name}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            balikpapan: { ...settings.balikpapan, official_name: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        NIP Pejabat
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.balikpapan.official_nip}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            balikpapan: { ...settings.balikpapan, official_nip: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                        <span>Jabatan Berangkat SPD DIPA (Bagian I - Tanpa a.n.)</span>
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.balikpapan.depart_position_dipa || "Kepala Seksi Konservasi Wilayah III,"}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            balikpapan: { ...settings.balikpapan, depart_position_dipa: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                        <span>Jabatan Berangkat SPD FOLU (Bagian I - Pakai a.n.)</span>
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.balikpapan.depart_position_folu || settings.balikpapan.depart_position}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            balikpapan: {
-                              ...settings.balikpapan,
-                              depart_position_folu: e.target.value,
-                              depart_position: e.target.value,
-                            },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-                        Jabatan Pengesah Tiba Kembali (Bagian VI)
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={settings.balikpapan.return_position}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            balikpapan: { ...settings.balikpapan, return_position: e.target.value },
-                          })
-                        }
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                      />
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
 
               {/* Dual PPK Section: PPK DIPA & PPK FOLU */}
