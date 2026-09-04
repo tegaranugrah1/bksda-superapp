@@ -42,6 +42,16 @@ const nextConfig: NextConfig = {
 
     turbopack: {},
 
+    async redirects() {
+        return [
+            {
+                source: "/",
+                destination: "https://bksdakaltim.ksdae.kehutanan.go.id/",
+                permanent: false,
+            },
+        ];
+    },
+
     async rewrites() {
         if (process.env.NODE_ENV === "development") {
             const backendUrl = "http://localhost:8000";
