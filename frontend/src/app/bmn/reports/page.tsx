@@ -168,6 +168,7 @@ import {
   buildPoaNumber,
   buildCoveringNumber,
   formatDate,
+  formatNip,
   employeeToHandoverParty,
   emptyGeneralItem,
   type EmployeeOption,
@@ -324,7 +325,7 @@ export default function BmnReportsPage() {
         setHandoverWitnessEmployeeId(String(kepalaBalai.id));
         setHandoverWitness({
           name: kepalaBalai.nama_lengkap,
-          nip: kepalaBalai.nip,
+          nip: formatNip(kepalaBalai.nip),
           position: "KEPALA BALAI,",
           label: "Mengetahui,",
         });
@@ -339,7 +340,7 @@ export default function BmnReportsPage() {
         setCoveringSenderEmployeeId(String(heryanto.id));
         setCoveringSender({
           name: heryanto.nama_lengkap,
-          nip: heryanto.nip,
+          nip: formatNip(heryanto.nip),
           role: "Pengirim,\nPenjual Lelang",
         });
       }
@@ -417,7 +418,7 @@ export default function BmnReportsPage() {
 
   const secondParty = useMemo<UsageAgreementParty>(() => ({
     name: selectedEmployee?.nama_lengkap || "",
-    nip: selectedEmployee?.nip || "",
+    nip: formatNip(selectedEmployee?.nip),
     rank: selectedEmployee?.pangkat_golongan || "",
     position: selectedEmployee?.jabatan || "",
   }), [selectedEmployee]);
@@ -643,7 +644,7 @@ export default function BmnReportsPage() {
       if (employee) {
         setPoaSecondParty({
           name: employee.nama_lengkap,
-          nip: employee.nip,
+          nip: formatNip(employee.nip),
           position: employee.jabatan || "",
           address: "Jln. Teuku Umar Samarinda",
         });
@@ -673,7 +674,7 @@ export default function BmnReportsPage() {
     if (!employee) return;
     setFirstParty({
       name: employee.nama_lengkap,
-      nip: employee.nip,
+      nip: formatNip(employee.nip),
       rank: employee.pangkat_golongan || "",
       position: employee.jabatan || "",
     });
@@ -690,7 +691,7 @@ export default function BmnReportsPage() {
     if (!employee) return;
     setPoaFirstParty({
       name: employee.nama_lengkap,
-      nip: employee.nip,
+      nip: formatNip(employee.nip),
       position: employee.jabatan || "",
       address: "Jln. Teuku Umar Samarinda",
     });
@@ -706,7 +707,7 @@ export default function BmnReportsPage() {
     if (!employee) return;
     setCoveringSender({
       name: employee.nama_lengkap,
-      nip: employee.nip,
+      nip: formatNip(employee.nip),
       role: "Pengirim,\nPenjual Lelang",
     });
   };
@@ -739,7 +740,7 @@ export default function BmnReportsPage() {
     setHandoverFirstParty({
       name: employee.nama_lengkap,
       idType: "NIP",
-      nip: employee.nip,
+      nip: formatNip(employee.nip),
       rank: employee.pangkat_golongan || "",
       position: employee.jabatan || "",
       address: "Jl. Teuku Umar Samarinda.",
@@ -757,7 +758,7 @@ export default function BmnReportsPage() {
     setHandoverSecondParty({
       name: employee.nama_lengkap,
       idType: "NIP",
-      nip: employee.nip,
+      nip: formatNip(employee.nip),
       rank: employee.pangkat_golongan || "",
       position: employee.jabatan || "",
       address: "Jl. Teuku Umar Samarinda.",
@@ -789,7 +790,7 @@ export default function BmnReportsPage() {
     }
     setHandoverWitness({
       name: employee.nama_lengkap,
-      nip: employee.nip,
+      nip: formatNip(employee.nip),
       position: formattedPosition,
       label: "Mengetahui,",
     });
@@ -1467,7 +1468,7 @@ export default function BmnReportsPage() {
                   if (employee) {
                     setPoaSecondParty({
                       name: employee.nama_lengkap,
-                      nip: employee.nip,
+                      nip: formatNip(employee.nip),
                       position: employee.jabatan || "",
                       address: "Jln. Teuku Umar Samarinda",
                     });

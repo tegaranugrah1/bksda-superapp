@@ -357,14 +357,14 @@ export function PowerOfAttorneyDocument({
                   <p className="poa-date-spacer">&nbsp;</p>
                   <p>Yang menerima kuasa,</p>
                   <p className="signature-name">{signatureName(secondParty.name)}</p>
-                  <p>NIP. {secondParty.nip ? secondParty.nip.replace(/\s+/g, "") : "-"}</p>
+                  <p>NIP. {formatNip(secondParty.nip)}</p>
                 </div>
                 <div className="poa-sig-col right">
                   <div className="poa-sig-wrapper">
                     <p className="poa-date-line">Samarinda, {formattedDate}</p>
                     <p>Yang memberi kuasa,</p>
                     <p className="signature-name">{signatureName(firstParty.name)}</p>
-                    <p>NIP. {firstParty.nip ? firstParty.nip.replace(/\s+/g, "") : "-"}</p>
+                    <p>NIP. {formatNip(firstParty.nip)}</p>
                   </div>
                 </div>
               </div>
