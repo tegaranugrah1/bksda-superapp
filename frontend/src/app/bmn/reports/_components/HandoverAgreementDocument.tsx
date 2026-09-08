@@ -24,7 +24,7 @@ export interface HandoverWitness {
 export interface HandoverItem {
   asset_id?: string | null;
   name?: string | null;
-  quantity?: number | null;
+  quantity?: number | string | null;
   nup?: string | null;
   vehicle_type?: string | null;
   merk_tipe?: string | null;
@@ -99,9 +99,10 @@ function fallback(value?: string | number | null) {
   return text || "-";
 }
 
-function dataCell(value?: string | number | null) {
+function dataCell(value?: string | number | null, align?: "left" | "center") {
   const text = fallback(value);
-  return <td className={text === "-" ? "handover-cell-center" : "handover-cell-left"}>{text}</td>;
+  const cellAlign = text === "-" ? "handover-cell-center" : align === "center" ? "handover-cell-center" : "handover-cell-left";
+  return <td className={cellAlign}>{text}</td>;
 }
 
 function displayName(value?: string | null) {
@@ -358,7 +359,13 @@ export function HandoverAgreementDocument({
   witness,
 }: HandoverAgreementDocumentProps) {
   const { day, dateText, month, yearText } = formatSpelledDate(documentDate);
-  const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+  const parseQuantityNumber = (qty?: number | string | null) => {
+    if (typeof qty === "number") return Number.isFinite(qty) && qty > 0 ? qty : 1;
+    if (!qty) return 1;
+    const match = String(qty).match(/\d+/);
+    return match ? parseInt(match[0], 10) : 1;
+  };
+  const itemCount = items.reduce((sum, item) => sum + parseQuantityNumber(item.quantity), 0);
   const itemCountText = `${itemCount} (${spellNumber(itemCount).toLocaleLowerCase("id-ID")})`;
   const itemDescription = (description || (variant === "vehicle" ? "kendaraan" : "barang")).trim();
 
@@ -531,8 +538,8 @@ export function HandoverAgreementDocument({
                       <td>{index + 1}</td>
                       {dataCell(item.name)}
                       {dataCell(item.merk_tipe)}
-                      {dataCell(item.quantity)}
-                      {dataCell(item.nup)}
+                      {dataCell(item.quantity, "center")}
+                      {dataCell(item.nup, "center")}
                     </tr>
                   ))}
                 </tbody>
