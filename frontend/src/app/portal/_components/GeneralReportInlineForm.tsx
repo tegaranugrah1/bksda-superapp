@@ -127,8 +127,11 @@ function extractAgendaPelaksanaan(rawText: string): string {
 }
 
 function formatMaksudDanTujuan(maksud: string, tujuan: string): string {
-  const cleanMaksud = (maksud || "").trim().replace(/[\.\s]+$/, "");
-  const cleanTujuan = (tujuan || "").trim().replace(/[\.\s]+$/, "");
+  let cleanMaksud = (maksud || "").trim().replace(/[\.\s]+$/, "");
+  let cleanTujuan = (tujuan || "").trim().replace(/[\.\s]+$/, "");
+
+  cleanMaksud = cleanMaksud.replace(/^maksud\s+kegiatan\s+(?:ini\s+)?adalah\s+/i, "");
+  cleanTujuan = cleanTujuan.replace(/^(?:dan\s+)?(?:dengan\s+)?tujuan\s+(?:untuk\s+)?/i, "");
 
   if (cleanMaksud && cleanTujuan) {
     return `Maksud kegiatan ini adalah ${cleanMaksud} dan dengan tujuan untuk ${cleanTujuan}.`;
@@ -137,7 +140,7 @@ function formatMaksudDanTujuan(maksud: string, tujuan: string): string {
     return `Maksud kegiatan ini adalah ${cleanMaksud}.`;
   }
   if (cleanTujuan) {
-    return `dengan tujuan untuk ${cleanTujuan}.`;
+    return `Tujuan kegiatan ini adalah untuk ${cleanTujuan}.`;
   }
   return "";
 }
@@ -370,7 +373,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     }
   };
 
-  // Handler for Photo Upload
+  // Handler for Photo Upload (Otomatis dipaginasi maks. 6 foto per halaman saat cetak)
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -382,12 +385,13 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
         if (resultUrl) {
           setDokumentasiFoto((prev) => [
             ...prev,
-            { url: resultUrl, caption: file.name.split(".")[0] },
+            { url: resultUrl, caption: "" },
           ]);
         }
       };
       reader.readAsDataURL(file);
     });
+    e.target.value = "";
   };
 
   const removePhoto = (index: number) => {
@@ -830,19 +834,36 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
 
           {/* SECTION C: MAKSUD DAN TUJUAN */}
           <div className="space-y-3 border-t border-slate-100 dark:border-zinc-800 pt-4">
-            <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-              C. Maksud dan Tujuan
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                C. Maksud dan Tujuan
+              </Label>
+              {selectedSTId ? (
+                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold px-2.5 py-0.5 rounded-full">
+                  Otomatis dari ST (Dapat Disesuaikan)
+                </span>
+              ) : (
+                <span className="text-[10px] bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 font-bold px-2.5 py-0.5 rounded-full">
+                  Mode Input Manual
+                </span>
+              )}
+            </div>
+
             <div className="space-y-3">
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/60 dark:border-zinc-700/60 space-y-1">
-                <Label className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                  Maksud Kegiatan (Otomatis dari Agenda ST):
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Maksud Kegiatan {selectedSTId ? "(Otomatis dari ST)" : "(Input Manual)"}:
                 </Label>
-                <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
-                  {maksudText ? `Maksud kegiatan ini adalah ${maksudText}` : "-"}
-                </p>
+                <Textarea
+                  rows={2}
+                  value={maksudText}
+                  onChange={(e) => setMaksudText(e.target.value)}
+                  placeholder="Contoh: Mengantar peralatan kebakaran hutan berupa 1 unit mobil tangki air ke CA Teluk Adang..."
+                  className="rounded-xl text-xs font-medium"
+                />
               </div>
-              <div className="space-y-2">
+
+              <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   Tujuan Kegiatan (Input Spesifik Tujuan Pelaksanaan):
                 </Label>
@@ -1034,10 +1055,15 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
           {/* SECTION G: DOKUMENTASI FOTO */}
           <div className="space-y-3 border-t border-slate-100 dark:border-zinc-800 pt-4">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
-                <ImageIcon className="w-4 h-4 text-emerald-600" />
-                G. Dokumentasi Foto Lapangan
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-emerald-600" />
+                  G. Dokumentasi Foto Lapangan
+                </Label>
+                <span className="text-[10px] bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 font-bold px-2.5 py-0.5 rounded-full">
+                  {dokumentasiFoto.length} Foto (Maks. 6 / Halaman Cetak)
+                </span>
+              </div>
               <label className="cursor-pointer bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5">
                 <Plus className="w-3.5 h-3.5" />
                 Unggah Foto
