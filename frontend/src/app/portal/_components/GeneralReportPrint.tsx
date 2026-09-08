@@ -87,6 +87,14 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
   const tanggalFormat = formatDateIndo(data.tanggal_laporan);
   const isCustomImageCover = data.use_custom_cover && data.cover_mode === "image" && data.custom_cover_image_url;
 
+  // Chunk foto dokumentasi: maksimal 6 foto per halaman cetak
+  const photoChunks: Array<typeof data.dokumentasi_foto> = [];
+  if (data.dokumentasi_foto && data.dokumentasi_foto.length > 0) {
+    for (let i = 0; i < data.dokumentasi_foto.length; i += 6) {
+      photoChunks.push(data.dokumentasi_foto.slice(i, i + 6));
+    }
+  }
+
   return (
     <div className="print-report-wrapper bg-white text-black font-sans font-['Arial',sans-serif] text-[12pt] leading-relaxed max-w-[210mm] mx-auto p-0">
       {/* 
@@ -335,67 +343,87 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                 </div>
 
                 {/* F. HASIL PELAKSANAAN */}
-                <div className="space-y-2 avoid-break">
+                <div className="space-y-2">
                   <h3 className="text-[12pt] font-bold uppercase">F. HASIL PELAKSANAAN</h3>
                   <ol className="list-decimal pl-9 text-[12pt] space-y-2 text-justify leading-relaxed">
                     {data.hasil_pelaksanaan && data.hasil_pelaksanaan.length > 0 ? (
-                      data.hasil_pelaksanaan.map((item, idx) => <li key={idx}>{item}</li>)
+                      data.hasil_pelaksanaan.map((item, idx) => (
+                        <li key={idx} className="pl-1 whitespace-pre-line">
+                          {item}
+                        </li>
+                      ))
                     ) : (
                       <li>-</li>
                     )}
                   </ol>
                 </div>
 
-                {/* SIGNATURE BLOCK */}
-                <div className="pt-4 space-y-4">
-                  <p className="text-[12pt] leading-relaxed">
-                    Demikian laporan ini dibuat untuk diketahui dan dipergunakan sebagaimana mestinya.
-                  </p>
+                {/* SIGNATURE BLOCK & PENUTUP (1 ATOMIC THEAD TABLE - TURUN BARENG) */}
+                <table className="w-full border-none border-collapse mt-8 avoid-break" style={{ pageBreakInside: "avoid", breakInside: "avoid" }}>
+                  <thead className="avoid-break" style={{ pageBreakInside: "avoid", breakInside: "avoid" }}>
+                    <tr className="avoid-break">
+                      <td className="border-none p-0">
+                        <p className="text-[12pt] leading-relaxed mb-4">
+                          Demikian laporan ini dibuat untuk diketahui dan dipergunakan sebagaimana mestinya.
+                        </p>
 
-                  <div className="pt-2 flex justify-end">
-                    <div className="min-w-[280px] max-w-[340px] text-left space-y-0.5 text-[12pt]">
-                      <p className="font-normal">{data.kota_laporan || "Samarinda"}, {tanggalFormat}</p>
-                      <p className="font-normal">Pelaksana Kegiatan,</p>
+                        <div className="pt-2 flex justify-end">
+                          <div className="min-w-[280px] max-w-[340px] text-left space-y-0.5 text-[12pt]">
+                            <p className="font-normal">{data.kota_laporan || "Samarinda"}, {tanggalFormat}</p>
+                            <p className="font-normal">Pelaksana Kegiatan,</p>
 
-                      {/* Stacked Pelaksana List with Signature Spaces */}
-                      <div className="space-y-10">
-                        {data.pelaksana && data.pelaksana.length > 0 ? (
-                          data.pelaksana.map((p, idx) => (
-                            <div key={idx} className="pt-10 space-y-0.5">
-                              <p className="font-normal">{formatNameWithDegree(p.nama_lengkap)}</p>
-                              <p className="text-[12pt] font-normal">NIP. {p.nip || "-"}</p>
+                            {/* Stacked Pelaksana List with Generous Signature Spaces */}
+                            <div>
+                              {data.pelaksana && data.pelaksana.length > 0 ? (
+                                data.pelaksana.map((p, idx) => (
+                                  <div key={idx} className="pt-24 space-y-0.5">
+                                    <p className="font-normal">{formatNameWithDegree(p.nama_lengkap)}</p>
+                                    <p className="text-[12pt] font-normal">NIP. {p.nip || "-"}</p>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="pt-24 space-y-0.5">
+                                  <p className="font-normal">ANISA RAHMAWATI, S.Tr.Kom.</p>
+                                  <p className="text-[12pt] font-normal">NIP. 199911032025062012</p>
+                                </div>
+                              )}
                             </div>
-                          ))
-                        ) : (
-                          <div className="pt-10 space-y-0.5">
-                            <p className="font-normal">ANISA RAHMAWATI, S.Tr.Kom.</p>
-                            <p className="text-[12pt] font-normal">NIP. 199911032025062012</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* G. DOKUMENTASI FOTO KEGIATAN */}
-                {data.dokumentasi_foto && data.dokumentasi_foto.length > 0 && (
-                  <div className="page-break space-y-4 avoid-break pt-4">
-                    <h3 className="text-[12pt] font-bold uppercase">G. DOKUMENTASI FOTO KEGIATAN</h3>
-                    <div className="grid grid-cols-2 gap-4 pl-4 pt-1">
-                      {data.dokumentasi_foto.map((foto, idx) => (
-                        <div key={idx} className="overflow-hidden">
-                          <div className="w-full h-56 relative flex items-center justify-center p-0">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={foto.url}
-                              alt={`Dokumentasi ${idx + 1}`}
-                              className="w-full h-full object-contain mx-auto rounded-none border-none"
-                            />
                           </div>
                         </div>
-                      ))}
+                      </td>
+                    </tr>
+                  </thead>
+                </table>
+
+                {/* G. DOKUMENTASI FOTO KEGIATAN (MAKSIMAL 6 FOTO PER HALAMAN) */}
+                {photoChunks && photoChunks.length > 0 && (
+                  photoChunks.map((chunk, pageIdx) => (
+                    <div
+                      key={pageIdx}
+                      className="page-break space-y-4 pt-4 avoid-break"
+                      style={{ pageBreakInside: "avoid", breakInside: "avoid" }}
+                    >
+                      {pageIdx === 0 && (
+                        <h3 className="text-[12pt] font-bold uppercase">
+                          G. DOKUMENTASI FOTO KEGIATAN
+                        </h3>
+                      )}
+                      <div className="grid grid-cols-2 gap-4 pl-4 pt-1">
+                        {chunk.map((foto, idx) => (
+                          <div key={idx} className="overflow-hidden">
+                            <div className="w-full h-72 print:h-[72mm] relative flex items-center justify-center p-0">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={foto.url}
+                                alt={`Dokumentasi ${pageIdx * 6 + idx + 1}`}
+                                className="w-full h-full object-contain mx-auto rounded-none border-none"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ))
                 )}
               </div>
             </td>
