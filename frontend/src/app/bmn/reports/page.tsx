@@ -260,6 +260,7 @@ export default function BmnReportsPage() {
 
   const [coveringSequence, setCoveringSequence] = useState("");
   const [coveringKap, setCoveringKap] = useState("KAP.06.01");
+  const [coveringHasNumber, setCoveringHasNumber] = useState(true);
   const [coveringRegarding, setCoveringRegarding] = useState("Surat Pengantar Penyerahan Dokumen Permohonan Pengajuan Lelang dan Dokumen Pengumuman Lelang");
   const [coveringDate, setCoveringDate] = useState(todayInputValue());
   const [coveringRecipientTitle, setCoveringRecipientTitle] = useState("Kepala Kantor Pelayanan Kekayaan Negara dan Lelang");
@@ -268,9 +269,14 @@ export default function BmnReportsPage() {
   const [coveringClosingPhrase, setCoveringClosingPhrase] = useState("Demikian kami sampaikan, atas perhatian dan kerja sama yang baik kami mengucapkan terima kasih.");
   const [coveringReceivedDate, setCoveringReceivedDate] = useState<string>(todayInputValue());
   const [coveringShowSignatures, setCoveringShowSignatures] = useState(true);
+  const [coveringShowReceiver, setCoveringShowReceiver] = useState(true);
   const [coveringSenderEmployeeId, setCoveringSenderEmployeeId] = useState("");
+  const [coveringReceiverEmployeeId, setCoveringReceiverEmployeeId] = useState("");
   const [coveringSender, setCoveringSender] = useState<CoveringLetterParty>(DEFAULT_COVERING_SENDER);
   const [coveringReceiver, setCoveringReceiver] = useState<CoveringLetterParty>(DEFAULT_COVERING_RECEIVER);
+  const [coveringReceiverIsBlank, setCoveringReceiverIsBlank] = useState(false);
+  const [coveringReceiverIncludePhone, setCoveringReceiverIncludePhone] = useState(false);
+  const [coveringReceiverPhone, setCoveringReceiverPhone] = useState("");
   const [savingCoveringLetter, setSavingCoveringLetter] = useState(false);
   const [selectedCoveringLetter, setSelectedCoveringLetter] = useState<CoveringLetterHistory | null>(null);
 
@@ -710,6 +716,20 @@ export default function BmnReportsPage() {
       nip: formatNip(employee.nip),
       role: "Pengirim,\nPenjual Lelang",
     });
+  };
+
+  const handleCoveringReceiverEmployeeChange = (employeeId: string) => {
+    setCoveringReceiverEmployeeId(employeeId);
+    if (!employeeId) return;
+    const employee = employees.find((item) => String(item.id) === employeeId);
+    if (!employee) return;
+    setCoveringReceiver((prev) => ({
+      ...prev,
+      idType: "NIP",
+      name: employee.nama_lengkap,
+      nip: formatNip(employee.nip),
+      role: prev.role || "Penerima,\nPejabat Lelang",
+    }));
   };
 
   const updateCoveringItem = (index: number, key: keyof CoveringLetterItem, value: string) => {
@@ -1269,7 +1289,8 @@ export default function BmnReportsPage() {
 
   const saveCoveringLetter = async () => {
     const validItems = coveringItems.filter((it) => it.title.trim() !== "");
-    if (!fullCoveringNumber.trim() || fullCoveringNumber.includes("____")) {
+    const finalNumber = coveringHasNumber ? fullCoveringNumber : "-";
+    if (coveringHasNumber && (!fullCoveringNumber.trim() || fullCoveringNumber.includes("____"))) {
       toast.error("Nomor urut Surat Pengantar wajib diisi.");
       return;
     }
@@ -1285,7 +1306,7 @@ export default function BmnReportsPage() {
     setSavingCoveringLetter(true);
     try {
       await api.post("/bmn/covering-letters", {
-        number: fullCoveringNumber,
+        number: finalNumber,
         regarding: coveringRegarding,
         document_date: coveringDate,
         recipient_title: coveringRecipientTitle,
@@ -1296,7 +1317,14 @@ export default function BmnReportsPage() {
         show_signatures: coveringShowSignatures,
         sender_employee_id: coveringSenderEmployeeId ? Number(coveringSenderEmployeeId) : null,
         sender: coveringSender,
-        receiver: coveringReceiver,
+        receiver: coveringShowReceiver ? coveringReceiver : null,
+        metadata: {
+          has_number: coveringHasNumber,
+          show_receiver: coveringShowReceiver,
+          receiver_is_blank: coveringReceiverIsBlank,
+          receiver_include_phone: coveringReceiverIncludePhone,
+          receiver_phone: coveringReceiverPhone,
+        },
       });
       toast.success("Riwayat Surat Pengantar berhasil disimpan.");
       await refetchDocumentHistory();
@@ -1310,12 +1338,18 @@ export default function BmnReportsPage() {
   const duplicateCoveringLetter = (letter: CoveringLetterHistory) => {
     setActiveTab("documents");
     setActiveDocumentType("covering_letter");
-    const match = letter.number.match(/SP\.([^\/]+)\/K\.18\/TU\/([^\/]+)\//i);
-    if (match) {
-      setCoveringSequence(match[1]);
-      setCoveringKap(match[2]);
+    if (letter.number === "-" || letter.metadata?.has_number === false) {
+      setCoveringHasNumber(false);
+      setCoveringSequence("");
     } else {
-      setCoveringSequence(letter.number.replace(/^SP\./i, "").split("/")[0] || "");
+      setCoveringHasNumber(true);
+      const match = letter.number.match(/SP\.([^\/]+)\/K\.18\/TU\/([^\/]+)\//i);
+      if (match) {
+        setCoveringSequence(match[1]);
+        setCoveringKap(match[2]);
+      } else {
+        setCoveringSequence(letter.number.replace(/^SP\./i, "").split("/")[0] || "");
+      }
     }
     setCoveringRegarding(letter.regarding);
     setCoveringDate(todayInputValue());
@@ -1325,6 +1359,14 @@ export default function BmnReportsPage() {
     setCoveringClosingPhrase(letter.closing_phrase);
     setCoveringReceivedDate(todayInputValue());
     setCoveringShowSignatures(letter.show_signatures ?? true);
+    if (letter.metadata?.show_receiver !== undefined) {
+      setCoveringShowReceiver(letter.metadata.show_receiver);
+    } else {
+      setCoveringShowReceiver(Boolean(letter.receiver_snapshot?.name?.trim()));
+    }
+    setCoveringReceiverIsBlank(letter.metadata?.receiver_is_blank ?? false);
+    setCoveringReceiverIncludePhone(letter.metadata?.receiver_include_phone ?? false);
+    setCoveringReceiverPhone(letter.metadata?.receiver_phone || "");
     setCoveringSender(letter.sender_snapshot);
     setCoveringReceiver(letter.receiver_snapshot || DEFAULT_COVERING_RECEIVER);
     if (letter.sender_employee_id) {
@@ -2713,7 +2755,7 @@ export default function BmnReportsPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
                   <div>
                     <h2 className="text-base font-bold text-zinc-900 dark:text-white">Generate Surat Pengantar BMN</h2>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullCoveringNumber}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{coveringHasNumber ? fullCoveringNumber : "Nomor : -"}</p>
                   </div>
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     <Button variant="outline" className="rounded-xl gap-2" onClick={saveCoveringLetter} disabled={savingCoveringLetter || !canGenerate}>
@@ -2731,36 +2773,70 @@ export default function BmnReportsPage() {
                   <div className="space-y-4">
                     {/* 1. Detail Surat Pengantar */}
                     <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                      <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">1. Detail Surat Pengantar</h3>
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">1. Detail Surat Pengantar</h3>
+                        <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] font-medium dark:border-zinc-700 dark:bg-zinc-800">
+                          <button
+                            type="button"
+                            onClick={() => setCoveringHasNumber(true)}
+                            className={`rounded-md px-2.5 py-0.5 transition ${
+                              coveringHasNumber
+                                ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
+                                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            }`}
+                          >
+                            Ada Nomor
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCoveringHasNumber(false)}
+                            className={`rounded-md px-2.5 py-0.5 transition ${
+                              !coveringHasNumber
+                                ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
+                                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            }`}
+                          >
+                            Tanpa Nomor (-)
+                          </button>
+                        </div>
+                      </div>
                       <div className="space-y-2.5">
-                        <div className="grid grid-cols-2 gap-2">
-                          <label className="block">
-                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Nomor Urut</span>
-                            <div className="mt-0.5 flex items-center rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950">
-                              <span className="font-mono text-zinc-400 mr-1 select-none">SP.</span>
-                              <input
-                                value={coveringSequence}
-                                onChange={(e) => setCoveringSequence(e.target.value)}
-                                placeholder="52"
-                                className="w-full bg-transparent outline-none dark:text-zinc-100 font-mono"
-                              />
+                        {coveringHasNumber ? (
+                          <>
+                            <div className="grid grid-cols-2 gap-2">
+                              <label className="block">
+                                <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Nomor Urut</span>
+                                <div className="mt-0.5 flex items-center rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950">
+                                  <span className="font-mono text-zinc-400 mr-1 select-none">SP.</span>
+                                  <input
+                                    value={coveringSequence}
+                                    onChange={(e) => setCoveringSequence(e.target.value)}
+                                    placeholder="52"
+                                    className="w-full bg-transparent outline-none dark:text-zinc-100 font-mono"
+                                  />
+                                </div>
+                              </label>
+                              <label className="block">
+                                <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">KAP</span>
+                                <input
+                                  value={coveringKap}
+                                  onChange={(e) => setCoveringKap(e.target.value)}
+                                  placeholder="KAP.06.01"
+                                  className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 font-mono"
+                                />
+                              </label>
                             </div>
-                          </label>
-                          <label className="block">
-                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">KAP</span>
-                            <input
-                              value={coveringKap}
-                              onChange={(e) => setCoveringKap(e.target.value)}
-                              placeholder="KAP.06.01"
-                              className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 font-mono"
-                            />
-                          </label>
-                        </div>
 
-                        <div className="rounded-lg bg-zinc-50 px-3 py-2 text-[11px] text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-300">
-                          <span className="text-zinc-500">Hasil Format Nomor: </span>
-                          <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">{fullCoveringNumber}</span>
-                        </div>
+                            <div className="rounded-lg bg-zinc-50 px-3 py-2 text-[11px] text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-300">
+                              <span className="text-zinc-500">Hasil Format Nomor: </span>
+                              <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">{fullCoveringNumber}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-2 text-center text-xs text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800/40 dark:text-zinc-300">
+                            Nomor surat diatur: <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">Nomor : -</span>
+                          </div>
+                        )}
 
                         <label className="block">
                           <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Hal</span>
@@ -2790,7 +2866,8 @@ export default function BmnReportsPage() {
                       <div className="space-y-2.5">
                         <label className="block">
                           <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Kepada (Yth.)</span>
-                          <input
+                          <textarea
+                            rows={2}
                             value={coveringRecipientTitle}
                             onChange={(e) => setCoveringRecipientTitle(e.target.value)}
                             placeholder="Kepala Kantor Pelayanan Kekayaan Negara dan Lelang"
@@ -2921,6 +2998,34 @@ export default function BmnReportsPage() {
 
                       {coveringShowSignatures && (
                         <div className="space-y-3">
+                          <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-2 text-xs dark:bg-zinc-800/50">
+                            <span className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">Pilihan TTD:</span>
+                            <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] font-medium dark:border-zinc-700 dark:bg-zinc-800">
+                              <button
+                                type="button"
+                                onClick={() => setCoveringShowReceiver(true)}
+                                className={`rounded-md px-2.5 py-0.5 transition ${
+                                  coveringShowReceiver
+                                    ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
+                                    : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                                }`}
+                              >
+                                Pengirim & Penerima
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setCoveringShowReceiver(false)}
+                                className={`rounded-md px-2.5 py-0.5 transition ${
+                                  !coveringShowReceiver
+                                    ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
+                                    : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                                }`}
+                              >
+                                Hanya Pengirim
+                              </button>
+                            </div>
+                          </div>
+
                           {/* Pengirim (Kanan) */}
                           <div className="rounded-xl border border-zinc-200 p-2.5 dark:border-zinc-800 space-y-2">
                             <div className="text-xs font-bold text-zinc-700 dark:text-zinc-200">Pengirim</div>
@@ -2935,7 +3040,7 @@ export default function BmnReportsPage() {
                                 <option value="">Input Manual</option>
                                 {employees.map((employee) => (
                                   <option key={employee.id} value={employee.id}>
-                                    {employee.nama_lengkap} - {employee.nip}
+                                    {employee.nama_lengkap} - {formatNip(employee.nip)}
                                   </option>
                                 ))}
                               </select>
@@ -2955,6 +3060,7 @@ export default function BmnReportsPage() {
                                 <input
                                   value={coveringSender.nip || ""}
                                   onChange={(e) => setCoveringSender((p) => ({ ...p, nip: e.target.value }))}
+                                  onBlur={(e) => setCoveringSender((p) => ({ ...p, nip: formatNip(e.target.value) }))}
                                   placeholder="NIP Pengirim"
                                   className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                                 />
@@ -2973,65 +3079,140 @@ export default function BmnReportsPage() {
                           </div>
 
                           {/* Penerima (Kiri) */}
-                          <div className="rounded-xl border border-zinc-200 p-2.5 dark:border-zinc-800 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="text-xs font-bold text-zinc-700 dark:text-zinc-200">Penerima</div>
-                              <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] font-medium dark:border-zinc-700 dark:bg-zinc-800">
-                                <button
-                                  type="button"
-                                  onClick={() => setCoveringReceiver((p) => ({ ...p, idType: "NIP" }))}
-                                  className={`rounded-md px-2 py-0.5 transition ${
-                                    coveringReceiver.idType !== "NIK"
-                                      ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
-                                  }`}
-                                >
-                                  NIP
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setCoveringReceiver((p) => ({ ...p, idType: "NIK" }))}
-                                  className={`rounded-md px-2 py-0.5 transition ${
-                                    coveringReceiver.idType === "NIK"
-                                      ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
-                                  }`}
-                                >
-                                  NIK
-                                </button>
+                          {coveringShowReceiver && (
+                            <div className="rounded-xl border border-zinc-200 p-2.5 dark:border-zinc-800 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200">Penerima</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setCoveringReceiver((p) => ({ ...p, name: "", nip: " " }))}
+                                    title="Kosongkan Nama dan isi spasi pada NIP agar muncul tulisan NIP kosong di kertas untuk diisi manual"
+                                    className="text-[10px] text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 hover:underline cursor-pointer"
+                                  >
+                                    (Kosongkan TTD)
+                                  </button>
+                                </div>
+                                <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] font-medium dark:border-zinc-700 dark:bg-zinc-800">
+                                  <button
+                                    type="button"
+                                    onClick={() => setCoveringReceiver((p) => ({ ...p, idType: "NIP" }))}
+                                    className={`rounded-md px-2 py-0.5 transition ${
+                                      coveringReceiver.idType !== "NIK"
+                                        ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
+                                        : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                                    }`}
+                                  >
+                                    NIP
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setCoveringReceiver((p) => ({ ...p, idType: "NIK" }));
+                                      setCoveringReceiverEmployeeId("");
+                                    }}
+                                    className={`rounded-md px-2 py-0.5 transition ${
+                                      coveringReceiver.idType === "NIK"
+                                        ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
+                                        : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                                    }`}
+                                  >
+                                    NIK
+                                  </button>
+                                </div>
+                              </div>
+
+                              {coveringReceiver.idType !== "NIK" && (
+                                <label className="block">
+                                  <span className="text-[10px] text-zinc-500">Pilih dari Pegawai (Opsional)</span>
+                                  <select
+                                    value={coveringReceiverEmployeeId}
+                                    onChange={(e) => handleCoveringReceiverEmployeeChange(e.target.value)}
+                                    disabled={loadingEmployees}
+                                    className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                  >
+                                    <option value="">Input Manual</option>
+                                    {employees.map((employee) => (
+                                      <option key={employee.id} value={employee.id}>
+                                        {employee.nama_lengkap} - {formatNip(employee.nip)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                              )}
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <label className="block">
+                                  <span className="text-[10px] text-zinc-500">Nama Penerima</span>
+                                  <input
+                                    value={coveringReceiver.name || ""}
+                                    onChange={(e) => setCoveringReceiver((p) => ({ ...p, name: e.target.value }))}
+                                    placeholder="Nama Pejabat Penerima"
+                                    className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                  />
+                                </label>
+                                <label className="block">
+                                  <span className="text-[10px] text-zinc-500">{coveringReceiver.idType === "NIK" ? "NIK Penerima" : "NIP Penerima"}</span>
+                                  <input
+                                    value={coveringReceiver.nip ?? ""}
+                                    onChange={(e) => setCoveringReceiver((p) => ({ ...p, nip: e.target.value }))}
+                                    onBlur={(e) => {
+                                      const val = e.target.value;
+                                      if (val.startsWith(" ")) {
+                                        setCoveringReceiver((p) => ({ ...p, nip: " " }));
+                                      } else if (coveringReceiver.idType === "NIK") {
+                                        setCoveringReceiver((p) => ({ ...p, nip: val.trim() }));
+                                      } else {
+                                        setCoveringReceiver((p) => ({ ...p, nip: val.trim() ? formatNip(val) : "" }));
+                                      }
+                                    }}
+                                    placeholder={coveringReceiver.idType === "NIK" ? "NIK... (spasi untuk NIK kosong)" : "NIP... (spasi untuk NIP kosong)"}
+                                    className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                  />
+                                </label>
+                              </div>
+                              <label className="block">
+                                <span className="text-[10px] text-zinc-500">Jabatan / Judul TTD Penerima</span>
+                                <textarea
+                                  rows={2}
+                                  value={coveringReceiver.role || ""}
+                                  onChange={(e) => setCoveringReceiver((p) => ({ ...p, role: e.target.value }))}
+                                  placeholder={"Penerima,\nPejabat Lelang"}
+                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                />
+                              </label>
+
+                              {/* Pilihan Nomor Telepon Penerima */}
+                              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={coveringReceiverIncludePhone}
+                                    onChange={(e) => setCoveringReceiverIncludePhone(e.target.checked)}
+                                    className="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 dark:border-zinc-700"
+                                  />
+                                  <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                                    Tampilkan No. Telp / HP Penerima di Dokumen
+                                  </span>
+                                </label>
+
+                                {coveringReceiverIncludePhone && (
+                                  <label className="block pl-6">
+                                    <span className="text-[10px] text-zinc-500">
+                                      No. Telepon / HP Penerima (Opsional, kosongkan jika ingin diisi manual di kertas)
+                                    </span>
+                                    <input
+                                      type="text"
+                                      value={coveringReceiverPhone}
+                                      onChange={(e) => setCoveringReceiverPhone(e.target.value)}
+                                      placeholder="Contoh: 081234567890 (atau kosongkan)"
+                                      className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                    />
+                                  </label>
+                                )}
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <label className="block">
-                                <span className="text-[10px] text-zinc-500">Nama Penerima</span>
-                                <input
-                                  value={coveringReceiver.name || ""}
-                                  onChange={(e) => setCoveringReceiver((p) => ({ ...p, name: e.target.value }))}
-                                  placeholder="Nama Pejabat Penerima"
-                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                                />
-                              </label>
-                              <label className="block">
-                                <span className="text-[10px] text-zinc-500">{coveringReceiver.idType === "NIK" ? "NIK Penerima" : "NIP Penerima"}</span>
-                                <input
-                                  value={coveringReceiver.nip || ""}
-                                  onChange={(e) => setCoveringReceiver((p) => ({ ...p, nip: e.target.value }))}
-                                  placeholder={coveringReceiver.idType === "NIK" ? "NIK..." : "NIP..."}
-                                  className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                                />
-                              </label>
-                            </div>
-                            <label className="block">
-                              <span className="text-[10px] text-zinc-500">Jabatan / Judul TTD Penerima</span>
-                              <textarea
-                                rows={2}
-                                value={coveringReceiver.role || ""}
-                                onChange={(e) => setCoveringReceiver((p) => ({ ...p, role: e.target.value }))}
-                                placeholder={"Penerima,\nPejabat Lelang"}
-                                className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                              />
-                            </label>
-                          </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -3042,12 +3223,13 @@ export default function BmnReportsPage() {
                     <div className="mb-3 flex items-center justify-between">
                       <div>
                         <h3 className="text-sm font-bold text-zinc-900 dark:text-white">6. Preview Dokumen</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullCoveringNumber}</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{coveringHasNumber ? fullCoveringNumber : "Nomor : -"}</p>
                       </div>
                     </div>
                     <div className="rounded-xl border border-zinc-200 bg-zinc-100 p-2 sm:p-4 dark:border-zinc-800 dark:bg-zinc-950 flex justify-center">
                       <CoveringLetterDocument
-                        number={fullCoveringNumber}
+                        number={coveringHasNumber ? fullCoveringNumber : "-"}
+                        hasNumber={coveringHasNumber}
                         regarding={coveringRegarding}
                         documentDate={coveringDate}
                         recipientTitle={coveringRecipientTitle}
@@ -3056,8 +3238,11 @@ export default function BmnReportsPage() {
                         closingPhrase={coveringClosingPhrase}
                         receivedDate={coveringReceivedDate}
                         showSignatures={coveringShowSignatures}
+                        showReceiverSignature={coveringShowReceiver}
+                        receiverIncludePhone={coveringReceiverIncludePhone}
+                        receiverPhone={coveringReceiverPhone}
                         sender={coveringSender}
-                        receiver={coveringReceiver}
+                        receiver={coveringShowReceiver ? coveringReceiver : null}
                       />
                     </div>
                   </div>
@@ -3452,6 +3637,7 @@ export default function BmnReportsPage() {
                 <CoveringLetterDocument
                   documentId="covering-letter-history-print-root"
                   number={selectedCoveringLetter.number}
+                  hasNumber={selectedCoveringLetter.metadata?.has_number ?? selectedCoveringLetter.number !== "-"}
                   regarding={selectedCoveringLetter.regarding}
                   documentDate={selectedCoveringLetter.document_date}
                   recipientTitle={selectedCoveringLetter.recipient_title}
@@ -3460,6 +3646,13 @@ export default function BmnReportsPage() {
                   closingPhrase={selectedCoveringLetter.closing_phrase}
                   receivedDate={selectedCoveringLetter.received_date}
                   showSignatures={selectedCoveringLetter.show_signatures ?? true}
+                  showReceiverSignature={
+                    selectedCoveringLetter.metadata?.show_receiver !== undefined
+                      ? selectedCoveringLetter.metadata.show_receiver
+                      : Boolean(selectedCoveringLetter.receiver_snapshot?.name?.trim())
+                  }
+                  receiverIncludePhone={selectedCoveringLetter.metadata?.receiver_include_phone ?? false}
+                  receiverPhone={selectedCoveringLetter.metadata?.receiver_phone || ""}
                   sender={selectedCoveringLetter.sender_snapshot}
                   receiver={selectedCoveringLetter.receiver_snapshot}
                 />
