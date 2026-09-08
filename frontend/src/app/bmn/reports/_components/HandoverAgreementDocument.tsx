@@ -99,10 +99,9 @@ function fallback(value?: string | number | null) {
   return text || "-";
 }
 
-function dataCell(value?: string | number | null, align?: "left" | "center") {
+function dataCell(value?: string | number | null) {
   const text = fallback(value);
-  const cellAlign = text === "-" ? "handover-cell-center" : align === "center" ? "handover-cell-center" : "handover-cell-left";
-  return <td className={cellAlign}>{text}</td>;
+  return <td className={text === "-" ? "handover-cell-center" : "handover-cell-left"}>{text}</td>;
 }
 
 function displayName(value?: string | null) {
@@ -538,8 +537,8 @@ export function HandoverAgreementDocument({
                       <td>{index + 1}</td>
                       {dataCell(item.name)}
                       {dataCell(item.merk_tipe)}
-                      {dataCell(item.quantity, "center")}
-                      {dataCell(item.nup, "center")}
+                      {dataCell(item.quantity)}
+                      {dataCell(item.nup)}
                     </tr>
                   ))}
                 </tbody>
