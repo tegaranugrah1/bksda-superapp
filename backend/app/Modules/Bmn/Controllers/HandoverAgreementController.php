@@ -79,7 +79,7 @@ class HandoverAgreementController extends Controller
             'items.*.asset_id' => ['nullable', 'uuid', Rule::exists('bmn_assets', 'id')->whereNull('deleted_at')],
             'items.*.name' => ['required_if:variant,general_goods', 'string', 'max:255'],
             'items.*.merk_tipe' => ['nullable', 'string', 'max:255'],
-            'items.*.quantity' => ['required_if:variant,general_goods', 'integer', 'min:1', 'max:100000'],
+            'items.*.quantity' => ['required_if:variant,general_goods'],
             'items.*.nup' => ['nullable', 'string', 'max:80'],
             'items.*.foto_depan_url' => ['nullable', 'string'],
             'items.*.foto_belakang_url' => ['nullable', 'string'],
@@ -174,7 +174,9 @@ class HandoverAgreementController extends Controller
                 'asset_id' => $item['asset_id'] ?? null,
                 'name' => trim((string) $item['name']),
                 'merk_tipe' => $item['merk_tipe'] ?? null,
-                'quantity' => (int) ($item['quantity'] ?? 1),
+                'quantity' => is_numeric($item['quantity'] ?? null)
+                    ? (int) $item['quantity']
+                    : (trim((string) ($item['quantity'] ?? '1')) ?: 1),
                 'nup' => $item['nup'] ?? null,
                 'foto_depan_url' => $item['foto_depan_url'] ?? null,
                 'foto_belakang_url' => $item['foto_belakang_url'] ?? null,

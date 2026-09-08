@@ -2153,7 +2153,7 @@ export default function BmnReportsPage() {
                                 <tr>
                                   <th className="w-40 px-3 py-2">Nama Barang</th>
                                   <th className="w-32 px-2 py-2">Merk / Tipe</th>
-                                  <th className="w-16 px-2 py-2">Jumlah</th>
+                                  <th className="w-24 px-2 py-2">Jumlah</th>
                                   <th className="w-16 px-2 py-2">NUP</th>
                                   <th className="w-14 px-2 py-2">Sumber</th>
                                   <th className="w-16 px-3 py-2 text-right">Aksi</th>
@@ -2169,7 +2169,13 @@ export default function BmnReportsPage() {
                                       <input value={item.merk_tipe || ""} onChange={(event) => updateHandoverItem(index, "merk_tipe", event.target.value)} placeholder="Merk / Tipe" className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     </td>
                                     <td className="px-2 py-2">
-                                      <input type="number" min={1} value={item.quantity || 1} onChange={(event) => updateHandoverItem(index, "quantity", Number(event.target.value) || 1)} className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                      <input
+                                        type="text"
+                                        value={item.quantity ?? ""}
+                                        onChange={(event) => updateHandoverItem(index, "quantity", event.target.value)}
+                                        placeholder="Contoh: 1 Box"
+                                        className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                      />
                                     </td>
                                     <td className="px-2 py-2">
                                       <input value={item.nup || ""} onChange={(event) => updateHandoverItem(index, "nup", event.target.value)} placeholder="-" className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
