@@ -104,6 +104,18 @@ function dataCell(value?: string | number | null) {
   return <td className={text === "-" ? "handover-cell-center" : "handover-cell-left"}>{text}</td>;
 }
 
+function formatNip(nip?: string | null) {
+  if (!nip) return "-";
+  const trimmed = nip.trim();
+  if (trimmed === "" || trimmed === "-") return "-";
+  if (trimmed.startsWith("MMP-")) return "-";
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length === 18) {
+    return `${digits.slice(0, 8)} ${digits.slice(8, 14)} ${digits.slice(14, 15)} ${digits.slice(15, 18)}`;
+  }
+  return trimmed;
+}
+
 function displayName(value?: string | null) {
   const text = fallback(value);
   if (text === "-") return text;
@@ -332,7 +344,7 @@ function PartyBlock({ index, party, label }: { index: number; party: HandoverPar
       <div>{index}</div>
       <div>
         <div className="handover-rows"><span>Nama</span><span className="handover-colon">:</span><span className="handover-val">{displayName(party.name)}</span></div>
-        <div className="handover-rows"><span>{idLabel}</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.nip)}</span></div>
+        <div className="handover-rows"><span>{idLabel}</span><span className="handover-colon">:</span><span className="handover-val">{party.idType === "NIK" ? fallback(party.nip) : formatNip(party.nip)}</span></div>
         <div className="handover-rows"><span>{positionLabel}</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.position)}</span></div>
         <div className="handover-rows"><span>Alamat</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.address)}</span></div>
         <p style={{ marginTop: "1mm" }}>Selanjutnya disebut <strong>{label}</strong></p>
@@ -564,12 +576,12 @@ export function HandoverAgreementDocument({
                 <div className="handover-sig-left">
                   <p><strong>PIHAK KEDUA,</strong></p>
                   <p className="handover-signature-name">{signatureName(secondParty.name)}</p>
-                  <p>{secondPartyIdPrefix} {fallback(secondParty.nip)}</p>
+                  <p>{secondPartyIdPrefix} {secondParty.idType === "NIK" ? fallback(secondParty.nip) : formatNip(secondParty.nip)}</p>
                 </div>
                 <div className="handover-sig-right">
                   <p><strong>PIHAK KESATU,</strong></p>
                   <p className="handover-signature-name">{signatureName(firstParty.name)}</p>
-                  <p>{firstPartyIdPrefix} {fallback(firstParty.nip)}</p>
+                  <p>{firstPartyIdPrefix} {firstParty.idType === "NIK" ? fallback(firstParty.nip) : formatNip(firstParty.nip)}</p>
                 </div>
               </div>
 
@@ -586,7 +598,7 @@ export function HandoverAgreementDocument({
                     })()}
                   </p>
                   <p className="handover-signature-name" style={{ marginTop: "24mm" }}>{signatureName(witness?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}</p>
-                  <p>NIP. {fallback(witness?.nip || "19740514 199903 1 001")}</p>
+                  <p>NIP. {formatNip(witness?.nip || "19740514 199903 1 001")}</p>
                 </div>
               )}
             </div>

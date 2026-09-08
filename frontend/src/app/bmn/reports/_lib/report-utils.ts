@@ -40,10 +40,22 @@ export function formatDate(value?: string): string {
   return new Date(value).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+export function formatNip(nip?: string | null): string {
+  if (!nip) return "-";
+  const trimmed = nip.trim();
+  if (trimmed === "" || trimmed === "-") return "-";
+  if (trimmed.startsWith("MMP-")) return "-";
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length === 18) {
+    return `${digits.slice(0, 8)} ${digits.slice(8, 14)} ${digits.slice(14, 15)} ${digits.slice(15, 18)}`;
+  }
+  return trimmed;
+}
+
 export function employeeToHandoverParty(employee?: EmployeeOption | null): HandoverParty {
   return {
     name: employee?.nama_lengkap || "",
-    nip: employee?.nip || "",
+    nip: formatNip(employee?.nip),
     rank: employee?.pangkat_golongan || "",
     position: employee?.jabatan || "",
     address: "Jl. Teuku Umar Samarinda.",

@@ -113,6 +113,18 @@ function fallback(value?: string | null) {
   return text || "-";
 }
 
+function formatNip(nip?: string | null) {
+  if (!nip) return "-";
+  const trimmed = nip.trim();
+  if (trimmed === "" || trimmed === "-") return "-";
+  if (trimmed.startsWith("MMP-")) return "-";
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length === 18) {
+    return `${digits.slice(0, 8)} ${digits.slice(8, 14)} ${digits.slice(14, 15)} ${digits.slice(15, 18)}`;
+  }
+  return trimmed;
+}
+
 function displayName(value?: string | null) {
   const text = fallback(value);
   if (text === "-") return text;
@@ -478,7 +490,7 @@ export function UsageAgreementDocument({
 
             <div className="usage-party">
               <div className="usage-row"><span>Nama</span><span className="usage-colon">:</span><span>{displayName(firstParty.name)}</span></div>
-              <div className="usage-row"><span>NIP</span><span className="usage-colon">:</span><span>{fallback(firstParty.nip)}</span></div>
+              <div className="usage-row"><span>NIP</span><span className="usage-colon">:</span><span>{formatNip(firstParty.nip)}</span></div>
               <div className="usage-row"><span>Pangkat/Gol. Ruang</span><span className="usage-colon">:</span><span>{displayRank(firstParty.rank)}</span></div>
               <div className="usage-row"><span>Jabatan</span><span className="usage-colon">:</span><span>{fallback(firstParty.position)}</span></div>
             </div>
@@ -489,7 +501,7 @@ export function UsageAgreementDocument({
 
             <div className="usage-party">
               <div className="usage-row"><span>Nama</span><span className="usage-colon">:</span><span>{displayName(secondParty.name)}</span></div>
-              <div className="usage-row"><span>NIP</span><span className="usage-colon">:</span><span>{fallback(secondParty.nip)}</span></div>
+              <div className="usage-row"><span>NIP</span><span className="usage-colon">:</span><span>{formatNip(secondParty.nip)}</span></div>
               <div className="usage-row"><span>Pangkat/Gol. Ruang</span><span className="usage-colon">:</span><span>{displayRank(secondParty.rank)}</span></div>
               <div className="usage-row"><span>Jabatan</span><span className="usage-colon">:</span><span>{fallback(secondParty.position)}</span></div>
             </div>
@@ -618,12 +630,12 @@ export function UsageAgreementDocument({
                 <div>
                   <p>PIHAK KEDUA,</p>
                   <p className="signature-name">{signatureName(secondParty.name)}</p>
-                  <p>NIP.{fallback(secondParty.nip)}</p>
+                  <p>NIP. {formatNip(secondParty.nip)}</p>
                 </div>
                 <div>
                   <p>PIHAK PERTAMA,</p>
                   <p className="signature-name">{signatureName(firstParty.name)}</p>
-                  <p>NIP.{fallback(firstParty.nip)}</p>
+                  <p>NIP. {formatNip(firstParty.nip)}</p>
                 </div>
               </div>
             </div>
