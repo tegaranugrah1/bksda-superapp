@@ -49,6 +49,18 @@ function fallback(value?: string | number | null): string {
   return text || "-";
 }
 
+function formatNip(nip?: string | null): string {
+  if (!nip) return "-";
+  const trimmed = nip.trim();
+  if (trimmed === "" || trimmed === "-") return "-";
+  if (trimmed.startsWith("MMP-")) return "-";
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length === 18) {
+    return `${digits.slice(0, 8)} ${digits.slice(8, 14)} ${digits.slice(14, 15)} ${digits.slice(15, 18)}`;
+  }
+  return trimmed;
+}
+
 function displayName(value?: string | null): string {
   const text = fallback(value);
   if (text === "-") return text;
@@ -437,13 +449,13 @@ export function CoveringLetterDocument({
               <div className="covering-sig-left">
                 {renderRoleLines(receiver?.role || "Penerima,\nPejabat Lelang")}
                 <p className="covering-sig-name">{signatureName(receiver?.name)}</p>
-                <p className="covering-sig-id">{receiver?.nip ? `${receiver?.idType === "NIK" ? "NIK." : "NIP."} ${receiver.nip}` : ""}</p>
+                <p className="covering-sig-id">{receiver?.nip ? `${receiver?.idType === "NIK" ? "NIK." : "NIP."} ${receiver?.idType === "NIK" ? receiver.nip : formatNip(receiver.nip)}` : ""}</p>
               </div>
 
               <div className="covering-sig-right">
                 {renderRoleLines(sender.role || "Pengirim,\nPenjual Lelang")}
                 <p className="covering-sig-name">{signatureName(sender.name || "Heryanto Sumanbowo, S.Hut.")}</p>
-                <p className="covering-sig-id">{sender?.nip ? `${sender?.idType === "NIK" ? "NIK." : "NIP."} ${sender.nip}` : ""}</p>
+                <p className="covering-sig-id">{sender?.nip ? `${sender?.idType === "NIK" ? "NIK." : "NIP."} ${sender?.idType === "NIK" ? sender.nip : formatNip(sender.nip)}` : ""}</p>
               </div>
             </div>
           )}
