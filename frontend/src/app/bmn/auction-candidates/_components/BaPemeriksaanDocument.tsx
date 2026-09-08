@@ -7,6 +7,7 @@ import {
   formatDateLong,
   getSpelledDate,
   getAssetNilaiTaksiran,
+  EMPTY_DOC_NUMBER_GAP,
 } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 import type { PemeriksaAnggota } from "../_lib/pemeriksa-defaults";
@@ -31,7 +32,7 @@ interface BaLampiranPage {
 
 function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `BA.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
+  return `BA.${number.trim() || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 function parseDocDate(dateStr?: string | null): Date {
@@ -53,7 +54,7 @@ function parseDocDate(dateStr?: string | null): Date {
 
 function formatStNumberText(stNumber: string, today: Date) {
   const raw = (stNumber || "").trim();
-  if (!raw) return "____";
+  if (!raw) return EMPTY_DOC_NUMBER_GAP;
   if (raw.toUpperCase().startsWith("ST.")) return raw;
   const month = String(today.getMonth() + 1).padStart(2, "0");
   return `ST.${raw}/K.18/TU/KAP.06.01/B/${month}/${today.getFullYear()}`;

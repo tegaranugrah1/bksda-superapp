@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, FileText, Settings2 } from "lucide-react";
-import { formatDateLong } from "../_lib/auction-helpers";
+import { formatDateLong, EMPTY_DOC_NUMBER_GAP } from "../_lib/auction-helpers";
 
 interface DocumentNumberInputsProps {
   baNumber: string;
@@ -96,7 +96,7 @@ export function DocumentNumberInlineCard({
   setStTanggal,
 }: DocumentNumberInlineCardProps) {
   const monthSuffix = `${String(new Date().getMonth() + 1).padStart(2, "0")}/${new Date().getFullYear()}`;
-  const preview = `${prefix}${number || "____"}/K.18/TU/${kap || "____"}/B/${monthSuffix}`;
+  const preview = `${prefix}${number || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${kap || "____"}/B/${monthSuffix}`;
   const showStFields = setStNumber && setStTanggal;
 
   return (
@@ -167,7 +167,7 @@ export function DocumentNumberInlineCard({
 }
 
 function NumberSettingRow({ row, monthSuffix }: { row: NumberRow; monthSuffix: string }) {
-  const preview = `${row.prefix}${row.number || "____"}/K.18/TU/${row.kap || "____"}/B/${monthSuffix}`;
+  const preview = `${row.prefix}${row.number || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${row.kap || "____"}/B/${monthSuffix}`;
 
   return (
     <div className="grid gap-3 rounded-xl border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950 lg:grid-cols-[minmax(0,1fr)_6.5rem_8rem] lg:items-center">

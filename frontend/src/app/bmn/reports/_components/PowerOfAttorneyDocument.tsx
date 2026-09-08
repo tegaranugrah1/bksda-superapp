@@ -144,7 +144,7 @@ export function handlePrintPowerOfAttorney(documentId = "power-of-attorney-print
           .poa-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
           .poa-title { margin-top: 6mm; text-align: center; }
           .poa-title-text { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; }
-          .poa-number-text { margin-top: 2px; }
+          .poa-number-text { margin-top: 2px; white-space: pre-wrap; }
           .poa-body { margin-top: 6mm; text-align: justify; }
           .poa-party { margin: 3mm 0 3mm 0; }
           .poa-gap-before { margin-top: 4mm; }
@@ -223,7 +223,7 @@ export function PowerOfAttorneyDocument({
         .poa-preview .poa-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
         .poa-preview .poa-title { margin-top: 6mm; text-align: center; }
         .poa-preview .poa-title-text { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; }
-        .poa-preview .poa-number-text { margin-top: 2px; }
+        .poa-preview .poa-number-text { margin-top: 2px; white-space: pre-wrap; }
         .poa-preview .poa-body { margin-top: 6mm; text-align: justify; }
         .poa-preview .poa-party { margin: 3mm 0 3mm 0; }
         .poa-preview .poa-gap-before { margin-top: 4mm; }
@@ -291,7 +291,7 @@ export function PowerOfAttorneyDocument({
 
           <div className="poa-title">
             <p className="poa-title-text">SURAT KUASA</p>
-            <p className="poa-number-text">Nomor : {number || "KS.____/K.18/TU/KAP.03.02/B/__/____"}</p>
+            <p className="poa-number-text">Nomor : {number || "KS.\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0/K.18/TU/KAP.03.02/B/__/____"}</p>
           </div>
 
           <div className="poa-body">

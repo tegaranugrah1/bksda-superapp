@@ -171,3 +171,5 @@ export function parseDocDate(dateStr?: string | null): Date {
   } catch (e) {}
   return new Date();
 }
+
+export const EMPTY_DOC_NUMBER_GAP = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";

@@ -229,7 +229,7 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           .handover-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 10mm; }
           .handover-header { margin: 0 -12mm; text-align: center; }
           .handover-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          .handover-title { margin-top: 3.5mm; text-align: center; font-weight: 700; }
+          .handover-title { margin-top: 3.5mm; text-align: center; font-weight: 700; white-space: pre-wrap; }
           .handover-body { margin-top: 3.5mm; text-align: justify; }
           .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 2.5mm 0; }
           .handover-rows { display: grid; grid-template-columns: 26mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.5mm; }
@@ -399,7 +399,7 @@ export function HandoverAgreementDocument({
         .handover-preview p { margin: 0; }
         .handover-preview .handover-header { margin: 0 -12mm; text-align: center; }
         .handover-preview .handover-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .handover-preview .handover-title { margin-top: 3.5mm; text-align: center; font-weight: 700; }
+        .handover-preview .handover-title { margin-top: 3.5mm; text-align: center; font-weight: 700; white-space: pre-wrap; }
         .handover-preview .handover-body { margin-top: 3.5mm; text-align: justify; }
         .handover-preview .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 2.5mm 0; }
         .handover-preview .handover-rows { display: grid; grid-template-columns: 26mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.5mm; }
@@ -491,12 +491,12 @@ export function HandoverAgreementDocument({
         <article className="handover-page shadow-xl ring-1 ring-zinc-200">
           <div className="handover-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/header.png" alt="Kop Surat" />
+            <img src="/header-paling-baru.png" alt="Kop Surat" />
           </div>
 
           <div className="handover-title">
             <p>{title.toLocaleUpperCase("id-ID")}</p>
-            <p>NOMOR : {number || "BA.___/K.18/TU/KAP.03.02/B/__/____"}</p>
+            <p>NOMOR : {number || "BA.\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0/K.18/TU/KAP.03.02/B/__/____"}</p>
           </div>
 
           <div className="handover-body">
@@ -610,7 +610,7 @@ export function HandoverAgreementDocument({
           <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
             <div className="handover-header">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/header.png" alt="Kop Surat" />
+              <img src="/header-paling-baru.png" alt="Kop Surat" />
             </div>
 
             {/* Title ONLY on pageIndex === 0 */}
