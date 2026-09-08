@@ -385,7 +385,7 @@ export default function BmnReportsPage() {
   const { data: generalAssetOptions = [], isLoading: loadingGeneralAssetOptions } = useQuery<BmnAssetOption[]>({
     queryKey: ["bmn-report-general-asset-options", debouncedGeneralAssetSearch],
     queryFn: async () => {
-      const params: Record<string, string | number> = { page: 1, per_page: 30 };
+      const params: Record<string, string | number> = { page: 1, per_page: 50 };
       if (debouncedGeneralAssetSearch.trim()) {
         params.search = debouncedGeneralAssetSearch.trim();
       }
@@ -818,32 +818,69 @@ export default function BmnReportsPage() {
     setHandoverItems((current) => [...current, emptyGeneralItem()]);
   };
 
-  const addGeneralAssetItemFromAsset = (asset: UsageAgreementAsset) => {
-    if (handoverItems.some((item) => item.asset_id === asset.id)) {
-      toast.error("Barang BMN sudah dipilih.");
-      return;
-    }
+  const toggleGeneralAssetItem = (asset: UsageAgreementAsset) => {
+    const isAlreadySelected = handoverItems.some((item) => item.asset_id === asset.id);
 
-    setHandoverItems((current) => [
-      ...current.filter((item) => String(item.name || "").trim() !== ""),
-      {
-        asset_id: asset.id,
-        name: asset.nama_barang,
-        merk_tipe: asset.merk_tipe || asset.merk || "",
-        quantity: 1,
-        nup: asset.nup || "",
-        foto_depan_url: asset.foto_depan_url,
-        foto_belakang_url: asset.foto_belakang_url,
-        foto_kiri_url: asset.foto_kiri_url,
-        foto_kanan_url: asset.foto_kanan_url,
-        foto_geotag_url: asset.foto_geotag_url,
-        foto_url: asset.foto_url,
-        photos: asset.photos,
-      },
-    ]);
-    setOpenGeneralAssetPicker(false);
-    setGeneralAssetSearch("");
-    toast.success("Barang BMN ditambahkan.");
+    if (isAlreadySelected) {
+      setHandoverItems((current) => {
+        const next = current.filter((item) => item.asset_id !== asset.id);
+        return next.length === 0 ? [emptyGeneralItem()] : next;
+      });
+      toast.info(`"${asset.nama_barang}" dihapus dari pilihan.`);
+    } else {
+      setHandoverItems((current) => [
+        ...current.filter((item) => String(item.name || "").trim() !== ""),
+        {
+          asset_id: asset.id,
+          name: asset.nama_barang,
+          merk_tipe: asset.merk_tipe || asset.merk || asset.tipe || "",
+          quantity: 1,
+          nup: asset.nup || "",
+          foto_depan_url: asset.foto_depan_url,
+          foto_belakang_url: asset.foto_belakang_url,
+          foto_kiri_url: asset.foto_kiri_url,
+          foto_kanan_url: asset.foto_kanan_url,
+          foto_geotag_url: asset.foto_geotag_url,
+          foto_url: asset.foto_url,
+          photos: asset.photos,
+        },
+      ]);
+      toast.success(`"${asset.nama_barang}" ditambahkan.`);
+    }
+  };
+
+  const toggleAllVisibleGeneralAssets = () => {
+    const visibleIds = generalAssetOptions.map((a) => a.id);
+    if (visibleIds.length === 0) return;
+    const allVisibleSelected = visibleIds.every((id) => selectedGeneralAssetIds.has(id));
+
+    if (allVisibleSelected) {
+      setHandoverItems((current) => {
+        const next = current.filter((item) => !item.asset_id || !visibleIds.includes(item.asset_id));
+        return next.length === 0 ? [emptyGeneralItem()] : next;
+      });
+      toast.info("Semua barang hasil pencarian ini dibatalkan.");
+    } else {
+      const toAdd = generalAssetOptions.filter((a) => !selectedGeneralAssetIds.has(a.id));
+      setHandoverItems((current) => [
+        ...current.filter((item) => String(item.name || "").trim() !== ""),
+        ...toAdd.map((asset) => ({
+          asset_id: asset.id,
+          name: asset.nama_barang,
+          merk_tipe: asset.merk_tipe || asset.merk || asset.tipe || "",
+          quantity: 1,
+          nup: asset.nup || "",
+          foto_depan_url: asset.foto_depan_url,
+          foto_belakang_url: asset.foto_belakang_url,
+          foto_kiri_url: asset.foto_kiri_url,
+          foto_kanan_url: asset.foto_kanan_url,
+          foto_geotag_url: asset.foto_geotag_url,
+          foto_url: asset.foto_url,
+          photos: asset.photos,
+        })),
+      ]);
+      toast.success(`${toAdd.length} barang ditambahkan.`);
+    }
   };
 
   const removeHandoverItem = (index: number) => {
@@ -2086,61 +2123,152 @@ export default function BmnReportsPage() {
                                   className="h-11 w-full justify-between rounded-lg bg-white px-3 text-left text-xs font-normal dark:bg-zinc-900"
                                   disabled={loadingGeneralAssetOptions}
                                 >
-                                  <span className="truncate text-zinc-500">
-                                    <Search className="mr-2 inline h-4 w-4" />
-                                    {loadingGeneralAssetOptions ? "Memuat barang BMN..." : "Cari nama barang atau NUP..."}
+                                  <span className="flex items-center gap-2 truncate text-zinc-600 dark:text-zinc-300">
+                                    <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+                                    {loadingGeneralAssetOptions ? (
+                                      <span className="text-zinc-500">Memuat barang BMN...</span>
+                                    ) : selectedGeneralAssetIds.size > 0 ? (
+                                      <span>
+                                        <strong className="text-emerald-600 dark:text-emerald-400">{selectedGeneralAssetIds.size} barang BMN terpilih</strong> (klik untuk cari & tambah lagi)
+                                      </span>
+                                    ) : (
+                                      <span className="text-zinc-500">Cari nama barang, merk, atau NUP...</span>
+                                    )}
                                   </span>
                                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-[min(620px,90vw)] p-0" align="start">
-                                <div className="flex max-h-[420px] flex-col">
-                                  <div className="flex items-center border-b px-3 py-2">
-                                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                              <PopoverContent className="w-[min(680px,95vw)] p-0 shadow-xl" align="start">
+                                <div className="flex max-h-[500px] flex-col">
+                                  {/* Input pencarian */}
+                                  <div className="flex items-center border-b px-3 py-2.5">
+                                    <Search className="mr-2 h-4 w-4 shrink-0 text-zinc-400" />
                                     <Input
-                                      className="h-10 border-0 bg-transparent px-0 text-sm shadow-none outline-none focus-visible:ring-0"
-                                      placeholder="Ketik untuk mencari..."
+                                      className="h-9 border-0 bg-transparent px-0 text-sm shadow-none outline-none focus-visible:ring-0"
+                                      placeholder="Ketik nama barang, merk/tipe, atau NUP..."
                                       value={generalAssetSearch}
                                       onChange={(event) => setGeneralAssetSearch(event.target.value)}
                                       autoFocus
                                     />
+                                    {generalAssetSearch && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setGeneralAssetSearch("")}
+                                        className="ml-2 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                                      >
+                                        Hapus
+                                      </button>
+                                    )}
                                   </div>
-                                  <div className="flex-1 overflow-y-auto p-1">
+
+                                  {/* Sub-header info hasil & tombol Pilih Semua */}
+                                  {!loadingGeneralAssetOptions && generalAssetOptions.length > 0 && (
+                                    <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/80 px-3 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/60">
+                                      <span>
+                                        Ditemukan <strong>{generalAssetOptions.length}</strong> barang
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={toggleAllVisibleGeneralAssets}
+                                        className="font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                                      >
+                                        {generalAssetOptions.every((a) => selectedGeneralAssetIds.has(a.id))
+                                          ? "Batalkan Semua Hasil Ini"
+                                          : "Pilih Semua Hasil Ini"}
+                                      </button>
+                                    </div>
+                                  )}
+
+                                  {/* Daftar Barang */}
+                                  <div className="flex-1 overflow-y-auto p-1.5 divide-y divide-zinc-100 dark:divide-zinc-800/60 max-h-[340px]">
                                     {loadingGeneralAssetOptions && (
-                                      <div className="py-6 text-center text-sm text-zinc-500">
+                                      <div className="py-8 text-center text-sm text-zinc-500">
                                         <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-emerald-600" />
-                                        Memuat...
+                                        Mencari data BMN...
                                       </div>
                                     )}
                                     {!loadingGeneralAssetOptions && generalAssetOptions.length === 0 && (
-                                      <div className="py-6 text-center text-sm text-zinc-400">Tidak ada aset ditemukan.</div>
+                                      <div className="py-8 text-center text-sm text-zinc-400">
+                                        Tidak ada aset yang sesuai kata kunci pencarian.
+                                      </div>
                                     )}
                                     {!loadingGeneralAssetOptions && generalAssetOptions.map((asset) => {
-                                      const alreadySelected = selectedGeneralAssetIds.has(asset.id);
+                                      const isSelected = selectedGeneralAssetIds.has(asset.id);
+                                      const merkTipe = asset.merk_tipe || asset.merk || asset.tipe || "-";
                                       return (
-                                        <button
+                                        <div
                                           key={asset.id}
-                                          type="button"
-                                          disabled={alreadySelected}
-                                          onClick={() => addGeneralAssetItemFromAsset(asset)}
-                                          className={`flex w-full items-start justify-between gap-3 rounded-lg p-3 text-left transition ${
-                                            alreadySelected
-                                              ? "cursor-not-allowed bg-zinc-50 text-zinc-400 opacity-60 dark:bg-zinc-900"
-                                              : "hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
+                                          onClick={() => toggleGeneralAssetItem(asset)}
+                                          className={`flex cursor-pointer items-start gap-3 rounded-lg p-2.5 transition select-none ${
+                                            isSelected
+                                              ? "bg-emerald-50/80 dark:bg-emerald-950/30"
+                                              : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                                           }`}
                                         >
-                                          <span className="min-w-0">
-                                            <span className={`block truncate text-sm font-bold ${alreadySelected ? "text-zinc-400" : "text-zinc-900 dark:text-zinc-100"}`}>
-                                              {asset.nama_barang}
-                                            </span>
-                                            <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                                              <span>NUP <b className={alreadySelected ? "text-zinc-400" : "text-emerald-600"}>{asset.nup || "-"}</b></span>
-                                              {alreadySelected && <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800">Sudah dipilih</span>}
-                                            </span>
-                                          </span>
-                                        </button>
+                                          <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={() => {}}
+                                            className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900"
+                                          />
+                                          <div className="min-w-0 flex-1">
+                                            <div className="flex items-start justify-between gap-2">
+                                              <span className={`block text-xs font-bold leading-tight ${
+                                                isSelected ? "text-emerald-900 dark:text-emerald-200" : "text-zinc-900 dark:text-zinc-100"
+                                              }`}>
+                                                {asset.nama_barang}
+                                              </span>
+                                              {isSelected && (
+                                                <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+                                                  ✓ Dipilih
+                                                </span>
+                                              )}
+                                            </div>
+
+                                            {/* Deskripsi Lengkap: Merk/Tipe, NUP, Kode Barang, Kondisi */}
+                                            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                                              <span>
+                                                Merk/Tipe: <b className="font-semibold text-zinc-700 dark:text-zinc-200">{merkTipe}</b>
+                                              </span>
+                                              <span>
+                                                NUP: <b className="font-semibold text-emerald-600 dark:text-emerald-400">{asset.nup || "-"}</b>
+                                              </span>
+                                              {asset.kode_barang && (
+                                                <span className="text-zinc-400 dark:text-zinc-500">
+                                                  Kode: {asset.kode_barang}
+                                                </span>
+                                              )}
+                                              {asset.kondisi && (
+                                                <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                                                  /baik/i.test(asset.kondisi)
+                                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                                                    : /rusak berat/i.test(asset.kondisi)
+                                                    ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                                                    : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                                }`}>
+                                                  {asset.kondisi}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
                                       );
                                     })}
+                                  </div>
+
+                                  {/* Footer Popover: info total terpilih & tombol selesai */}
+                                  <div className="flex items-center justify-between border-t border-zinc-200 bg-zinc-50/90 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950">
+                                    <span className="text-zinc-600 dark:text-zinc-300">
+                                      Total terpilih: <strong className="font-bold text-emerald-600 dark:text-emerald-400">{selectedGeneralAssetIds.size}</strong> barang
+                                    </span>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      className="h-8 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
+                                      onClick={() => setOpenGeneralAssetPicker(false)}
+                                    >
+                                      Selesai
+                                    </Button>
                                   </div>
                                 </div>
                               </PopoverContent>
