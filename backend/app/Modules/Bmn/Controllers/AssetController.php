@@ -35,12 +35,19 @@ class AssetController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = mb_strtolower(trim((string) $request->search));
-            $query->where(function ($q) use ($search) {
-                $q->whereRaw('LOWER(nama_barang) LIKE ?', ["%{$search}%"])
-                    ->orWhereRaw('LOWER(kode_barang) LIKE ?', ["%{$search}%"])
-                    ->orWhereRaw('LOWER(merk) LIKE ?', ["%{$search}%"])
-                    ->orWhereRaw('LOWER(no_polisi) LIKE ?', ["%{$search}%"]);
+            $search = trim((string) $request->search);
+            $likePattern = "%{$search}%";
+            $isPgSql = config('database.default') === 'pgsql';
+            $likeOp = $isPgSql ? 'ilike' : 'like';
+
+            $query->where(function ($q) use ($likePattern, $likeOp) {
+                $q->where('nama_barang', $likeOp, $likePattern)
+                    ->orWhere('kode_barang', $likeOp, $likePattern)
+                    ->orWhere('merk', $likeOp, $likePattern)
+                    ->orWhere('merk_tipe', $likeOp, $likePattern)
+                    ->orWhere('tipe', $likeOp, $likePattern)
+                    ->orWhere('nup', $likeOp, $likePattern)
+                    ->orWhere('no_polisi', $likeOp, $likePattern);
             });
         }
 
