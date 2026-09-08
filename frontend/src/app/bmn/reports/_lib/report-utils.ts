@@ -23,16 +23,21 @@ export function yearNumber(value: string): number {
   return (Number.isNaN(date.getTime()) ? new Date() : date).getFullYear();
 }
 
+export const EMPTY_DOC_NUMBER_GAP = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+
 export function buildBaNumber(sequence: string, kap: string, documentDate: string): string {
-  return `BA.${sequence.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.03.02"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
+  const seq = sequence.trim() || EMPTY_DOC_NUMBER_GAP;
+  return `BA.${seq}/K.18/TU/${kap.trim() || "KAP.03.02"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
 }
 
 export function buildPoaNumber(sequence: string, kap: string, documentDate: string): string {
-  return `KS.${sequence.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.03.02"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
+  const seq = sequence.trim() || EMPTY_DOC_NUMBER_GAP;
+  return `KS.${seq}/K.18/TU/${kap.trim() || "KAP.03.02"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
 }
 
 export function buildCoveringNumber(sequence: string, kap: string, documentDate: string): string {
-  return `SP.${sequence.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
+  const seq = sequence.trim() || EMPTY_DOC_NUMBER_GAP;
+  return `SP.${seq}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${monthNumber(documentDate)}/${yearNumber(documentDate)}`;
 }
 
 export function formatDate(value?: string): string {

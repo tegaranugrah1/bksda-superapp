@@ -1291,7 +1291,7 @@ export default function BmnReportsPage() {
   const saveCoveringLetter = async () => {
     const validItems = coveringItems.filter((it) => it.title.trim() !== "");
     const finalNumber = coveringHeaderMode === "with-number" ? fullCoveringNumber : "-";
-    if (coveringHeaderMode === "with-number" && (!fullCoveringNumber.trim() || fullCoveringNumber.includes("____"))) {
+    if (coveringHeaderMode === "with-number" && !coveringSequence.trim()) {
       toast.error("Nomor urut Surat Pengantar wajib diisi.");
       return;
     }

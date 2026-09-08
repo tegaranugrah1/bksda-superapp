@@ -9,6 +9,7 @@ import {
   formatDateLong,
   getSpelledDate,
   parseDocDate,
+  EMPTY_DOC_NUMBER_GAP,
 } from "../_lib/auction-helpers";
 
 const BA_ATTACHMENT_PAGE_HEIGHT_MM = 269;
@@ -454,7 +455,7 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai, date 
   const docDate = parseDocDate(date);
   const { day, dateText, month, yearText } = getSpelledDate(docDate);
   const monthNum = String(docDate.getMonth() + 1).padStart(2, "0");
-  const baNumberText = `BA.${baNumber.trim() || "____"}/K.18/TU/${baKap}/B/${monthNum}/${docDate.getFullYear()}`;
+  const baNumberText = `BA.${baNumber.trim() || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${baKap}/B/${monthNum}/${docDate.getFullYear()}`;
   const datePhrase = `${dateText} bulan ${month} tahun ${yearText}`;
 
   useLayoutEffect(() => {

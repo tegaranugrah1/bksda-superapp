@@ -247,7 +247,7 @@ export function handlePrintUsageAgreement(documentId = "ba-pemakaian-print-root"
           .usage-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 10mm; }
           .usage-header { margin: 0 -12mm; text-align: center; }
           .usage-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          .usage-title { margin-top: 3.5mm; text-align: center; font-weight: 700; }
+          .usage-title { margin-top: 3.5mm; text-align: center; font-weight: 700; white-space: pre-wrap; }
           .usage-body { margin-top: 3.5mm; text-align: justify; }
           .usage-party { margin: 2mm 0 3mm 14mm; }
           .usage-indent { margin-left: 14mm; }
@@ -388,7 +388,7 @@ export function UsageAgreementDocument({
         .usage-preview p { margin: 0; }
         .usage-preview .usage-header { margin: 0 -12mm; text-align: center; }
         .usage-preview .usage-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .usage-preview .usage-title { margin-top: 3.5mm; text-align: center; font-weight: 700; }
+        .usage-preview .usage-title { margin-top: 3.5mm; text-align: center; font-weight: 700; white-space: pre-wrap; }
         .usage-preview .usage-body { margin-top: 3.5mm; text-align: justify; }
         .usage-preview .usage-party { margin: 2mm 0 3mm 14mm; }
         .usage-preview .usage-indent { margin-left: 14mm; }
@@ -404,7 +404,25 @@ export function UsageAgreementDocument({
         .usage-preview .usage-signature-block { break-inside: avoid; page-break-inside: avoid; padding-top: 15mm; margin-top: 2mm; }
         .usage-preview .usage-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28mm; margin-top: 5mm; }
         .usage-preview .signature-name { margin-top: 28mm; font-weight: 700; }
-        .usage-preview .page-continuation-spacer { height: 0; margin: 0; padding: 0; page-break-before: always; break-before: page; }
+        .usage-preview .page-continuation-spacer {
+          height: 10mm;
+          margin: 6mm 0 4mm 0;
+          border-top: 2px dashed #cbd5e1;
+          position: relative;
+          page-break-before: always;
+          break-before: page;
+        }
+        .usage-preview .page-continuation-spacer::after {
+          content: "Halaman 2";
+          position: absolute;
+          top: -9px;
+          right: 0;
+          font-size: 8pt;
+          color: #94a3b8;
+          background: #fff;
+          padding: 0 6px;
+        }
+        .usage-preview .avoid-break { break-inside: avoid; page-break-inside: avoid; }
         
         /* Lampiran Foto Styles */
         .usage-preview .photo-lampiran-page {
@@ -480,7 +498,7 @@ export function UsageAgreementDocument({
 
           <div className="usage-title">
             <p>BERITA ACARA PEMAKAIAN BARANG MILIK NEGARA</p>
-            <p>Nomor : {number || "BA.____/K.18/TU/KAP.03.02/B/__/____"}</p>
+            <p>Nomor : {number || "BA.\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0/K.18/TU/KAP.03.02/B/__/____"}</p>
           </div>
 
           <div className="usage-body">

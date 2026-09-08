@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { formatDateLong, parseDocDate } from "../_lib/auction-helpers";
+import { formatDateLong, parseDocDate, EMPTY_DOC_NUMBER_GAP } from "../_lib/auction-helpers";
 import { runSkPagination } from "../_lib/sk-print";
 import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 import type {
@@ -219,7 +219,7 @@ export function SkTimPenilaiDocument({
 }: SkTimPenilaiDocumentProps) {
   const docDate = parseDocDate(date);
   const month = String(docDate.getMonth() + 1).padStart(2, "0");
-  const skNumberText = `SK.${skNumber.trim() || "____"}/K.18/TU/${skKap.trim() || "KAP.06.01"}/B/${month}/${docDate.getFullYear()}`;
+  const skNumberText = `SK.${skNumber.trim() || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${skKap.trim() || "KAP.06.01"}/B/${month}/${docDate.getFullYear()}`;
   const mengingatTexts = mengingat.map((m) => m.text);
 
   const pageStyle: React.CSSProperties = {

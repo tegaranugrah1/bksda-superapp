@@ -67,6 +67,7 @@ import {
 } from "../../../auction-candidates/_components/PermohonanKpknlDocument";
 import { SuratTugasPemeriksaanPenilaianDocument } from "../../../auction-candidates/_components/SuratTugasPemeriksaanPenilaianDocument";
 import { PERNYATAAN_PRINT_CSS } from "../../../auction-candidates/_lib/print-pernyataan";
+import { EMPTY_DOC_NUMBER_GAP } from "../../../auction-candidates/_lib/auction-helpers";
 
 import {
   DEFAULT_MEMUTUSKAN,
@@ -330,7 +331,7 @@ function buildDocumentNumberPreview(documentKey: string, number: string, kap: st
   const monthSuffix = `${String(new Date().getMonth() + 1).padStart(2, "0")}/${new Date().getFullYear()}`;
   const prefix = documentNumberPrefixes[documentKey] || "";
 
-  return `${prefix}${number || "____"}/K.18/TU/${kap || "____"}/B/${monthSuffix}`;
+  return `${prefix}${number || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${kap || "____"}/B/${monthSuffix}`;
 }
 
 function isLegacyKapPlaceholder(value: unknown) {
@@ -672,7 +673,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   }));
   const signatoryFieldDisabled = batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || isLoadingEmployees;
 
-  const getDocumentNumber = (key: string, fallback = "____") => meta.document_numbers?.[key] || fallback;
+  const getDocumentNumber = (key: string, fallback = EMPTY_DOC_NUMBER_GAP) => meta.document_numbers?.[key] || fallback;
   const getDocumentKap = (key: string, fallback = defaultDocumentKaps[key] || DEFAULT_GENERAL_KAP) => {
     const value = meta.document_kaps?.[key];
 

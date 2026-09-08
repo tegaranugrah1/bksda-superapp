@@ -6,6 +6,7 @@
 // window-opening logic.
 
 import { toast } from "sonner";
+import { EMPTY_DOC_NUMBER_GAP } from "./auction-helpers";
 
 /**
  * Canonical print stylesheet for the "Surat Pernyataan" family. This is the
@@ -49,7 +50,7 @@ export const PERNYATAAN_PRINT_CSS = `
  */
 export function buildPernyataanNomor(prefix: string, number: string, kap: string, today: Date): string {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `${prefix}.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
+  return `${prefix}.${number.trim() || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 interface PrintPernyataanOptions {

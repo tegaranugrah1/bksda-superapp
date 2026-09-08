@@ -8,6 +8,7 @@ import {
   formatPlainRupiah,
   numberToWords,
   parseDocDate,
+  EMPTY_DOC_NUMBER_GAP,
 } from "../_lib/auction-helpers";
 import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 
@@ -29,7 +30,7 @@ const LAMPIRAN_TITLE = "Persetujuan Pemindahtanganan BMN dengan Penjualan Pada B
 
 function buildNomor(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `ND.${(number || "").trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
+  return `ND.${(number || "").trim() || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 export function handlePrintNotaDinas() {
