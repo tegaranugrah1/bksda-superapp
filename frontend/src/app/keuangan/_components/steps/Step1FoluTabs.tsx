@@ -856,7 +856,7 @@ export function Step1FoluTabs({
                 />
               </div>
               <p className="mt-1 text-[10px] text-slate-400">
-                Format output cetak di atas lembar RINBA: <span className="font-mono text-slate-600 dark:text-slate-300">SPD. {spdNumber.no || "____"}{spdNumber.suffix || "/K.18-TU/FOLU.NC-23/08/2026"}</span>
+                Format output cetak di atas lembar RINBA: <span className="font-mono text-slate-600 dark:text-slate-300">SPD. {spdNumber.no || "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"}{spdNumber.suffix || "/K.18-TU/FOLU.NC-23/08/2026"}</span>
               </p>
             </div>
           </div>

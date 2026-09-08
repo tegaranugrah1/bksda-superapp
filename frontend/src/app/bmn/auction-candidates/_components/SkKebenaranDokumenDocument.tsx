@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import type { AuctionAsset } from "../_lib/auction-helpers";
-import { formatDateLong, parseDocDate } from "../_lib/auction-helpers";
+import { formatDateLong, parseDocDate, EMPTY_DOC_NUMBER_GAP } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 
 interface SkKebenaranDokumenDocumentProps {
@@ -15,7 +15,7 @@ interface SkKebenaranDokumenDocumentProps {
 
 function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  return `KT.${number.trim() || "____"}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
+  return `KT.${number.trim() || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
 }
 
 function getOwnershipDocumentNumber(asset: AuctionAsset) {
