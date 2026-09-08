@@ -260,7 +260,8 @@ export default function BmnReportsPage() {
 
   const [coveringSequence, setCoveringSequence] = useState("");
   const [coveringKap, setCoveringKap] = useState("KAP.06.01");
-  const [coveringHasNumber, setCoveringHasNumber] = useState(true);
+  const [coveringHeaderMode, setCoveringHeaderMode] = useState<"with-number" | "dash" | "none">("with-number");
+  const coveringHasNumber = coveringHeaderMode === "with-number";
   const [coveringRegarding, setCoveringRegarding] = useState("Surat Pengantar Penyerahan Dokumen Permohonan Pengajuan Lelang dan Dokumen Pengumuman Lelang");
   const [coveringDate, setCoveringDate] = useState(todayInputValue());
   const [coveringRecipientTitle, setCoveringRecipientTitle] = useState("Kepala Kantor Pelayanan Kekayaan Negara dan Lelang");
@@ -1289,12 +1290,12 @@ export default function BmnReportsPage() {
 
   const saveCoveringLetter = async () => {
     const validItems = coveringItems.filter((it) => it.title.trim() !== "");
-    const finalNumber = coveringHasNumber ? fullCoveringNumber : "-";
-    if (coveringHasNumber && (!fullCoveringNumber.trim() || fullCoveringNumber.includes("____"))) {
+    const finalNumber = coveringHeaderMode === "with-number" ? fullCoveringNumber : "-";
+    if (coveringHeaderMode === "with-number" && (!fullCoveringNumber.trim() || fullCoveringNumber.includes("____"))) {
       toast.error("Nomor urut Surat Pengantar wajib diisi.");
       return;
     }
-    if (!coveringRegarding.trim()) {
+    if (coveringHeaderMode !== "none" && !coveringRegarding.trim()) {
       toast.error("Hal Surat Pengantar wajib diisi.");
       return;
     }
@@ -1307,7 +1308,7 @@ export default function BmnReportsPage() {
     try {
       await api.post("/bmn/covering-letters", {
         number: finalNumber,
-        regarding: coveringRegarding,
+        regarding: coveringHeaderMode === "none" ? (coveringRegarding.trim() || "-") : coveringRegarding,
         document_date: coveringDate,
         recipient_title: coveringRecipientTitle,
         recipient_location: coveringRecipientLocation,
@@ -1319,7 +1320,8 @@ export default function BmnReportsPage() {
         sender: coveringSender,
         receiver: coveringShowReceiver ? coveringReceiver : null,
         metadata: {
-          has_number: coveringHasNumber,
+          has_number: coveringHeaderMode === "with-number",
+          header_mode: coveringHeaderMode,
           show_receiver: coveringShowReceiver,
           receiver_is_blank: coveringReceiverIsBlank,
           receiver_include_phone: coveringReceiverIncludePhone,
@@ -1338,11 +1340,16 @@ export default function BmnReportsPage() {
   const duplicateCoveringLetter = (letter: CoveringLetterHistory) => {
     setActiveTab("documents");
     setActiveDocumentType("covering_letter");
-    if (letter.number === "-" || letter.metadata?.has_number === false) {
-      setCoveringHasNumber(false);
+    if (letter.metadata?.header_mode) {
+      setCoveringHeaderMode(letter.metadata.header_mode);
+      if (letter.metadata.header_mode !== "with-number") {
+        setCoveringSequence("");
+      }
+    } else if (letter.number === "-" || letter.metadata?.has_number === false) {
+      setCoveringHeaderMode("dash");
       setCoveringSequence("");
     } else {
-      setCoveringHasNumber(true);
+      setCoveringHeaderMode("with-number");
       const match = letter.number.match(/SP\.([^\/]+)\/K\.18\/TU\/([^\/]+)\//i);
       if (match) {
         setCoveringSequence(match[1]);
@@ -2773,14 +2780,14 @@ export default function BmnReportsPage() {
                   <div className="space-y-4">
                     {/* 1. Detail Surat Pengantar */}
                     <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                      <div className="mb-3 flex items-center justify-between">
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">1. Detail Surat Pengantar</h3>
                         <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] font-medium dark:border-zinc-700 dark:bg-zinc-800">
                           <button
                             type="button"
-                            onClick={() => setCoveringHasNumber(true)}
+                            onClick={() => setCoveringHeaderMode("with-number")}
                             className={`rounded-md px-2.5 py-0.5 transition ${
-                              coveringHasNumber
+                              coveringHeaderMode === "with-number"
                                 ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
                                 : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
                             }`}
@@ -2789,19 +2796,30 @@ export default function BmnReportsPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setCoveringHasNumber(false)}
+                            onClick={() => setCoveringHeaderMode("dash")}
                             className={`rounded-md px-2.5 py-0.5 transition ${
-                              !coveringHasNumber
+                              coveringHeaderMode === "dash"
                                 ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
                                 : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
                             }`}
                           >
                             Tanpa Nomor (-)
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => setCoveringHeaderMode("none")}
+                            className={`rounded-md px-2.5 py-0.5 transition ${
+                              coveringHeaderMode === "none"
+                                ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400 font-semibold"
+                                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            }`}
+                          >
+                            Tanpa Nomor & Hal
+                          </button>
                         </div>
                       </div>
                       <div className="space-y-2.5">
-                        {coveringHasNumber ? (
+                        {coveringHeaderMode === "with-number" && (
                           <>
                             <div className="grid grid-cols-2 gap-2">
                               <label className="block">
@@ -2832,22 +2850,33 @@ export default function BmnReportsPage() {
                               <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">{fullCoveringNumber}</span>
                             </div>
                           </>
-                        ) : (
+                        )}
+
+                        {coveringHeaderMode === "dash" && (
                           <div className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-2 text-center text-xs text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800/40 dark:text-zinc-300">
                             Nomor surat diatur: <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">Nomor : -</span>
                           </div>
                         )}
 
-                        <label className="block">
-                          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Hal</span>
-                          <textarea
-                            rows={2}
-                            value={coveringRegarding}
-                            onChange={(e) => setCoveringRegarding(e.target.value)}
-                            placeholder="Hal surat pengantar..."
-                            className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-                          />
-                        </label>
+                        {coveringHeaderMode === "none" && (
+                          <div className="rounded-lg border border-dashed border-emerald-300 bg-emerald-50/50 px-3 py-2 text-center text-xs text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-300">
+                            Surat pengantar diatur: <span className="font-semibold">Tanpa Nomor & Hal (langsung ke Yth.)</span>
+                          </div>
+                        )}
+
+                        {coveringHeaderMode !== "none" && (
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Hal</span>
+                            <textarea
+                              rows={2}
+                              value={coveringRegarding}
+                              onChange={(e) => setCoveringRegarding(e.target.value)}
+                              placeholder="Hal surat pengantar..."
+                              className="mt-0.5 w-full rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                            />
+                          </label>
+                        )}
+
                         <label className="block">
                           <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Tanggal Surat</span>
                           <input
@@ -3223,13 +3252,20 @@ export default function BmnReportsPage() {
                     <div className="mb-3 flex items-center justify-between">
                       <div>
                         <h3 className="text-sm font-bold text-zinc-900 dark:text-white">6. Preview Dokumen</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{coveringHasNumber ? fullCoveringNumber : "Nomor : -"}</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {coveringHeaderMode === "none"
+                            ? "Tanpa Nomor & Hal"
+                            : coveringHeaderMode === "dash"
+                            ? "Nomor : -"
+                            : fullCoveringNumber}
+                        </p>
                       </div>
                     </div>
                     <div className="rounded-xl border border-zinc-200 bg-zinc-100 p-2 sm:p-4 dark:border-zinc-800 dark:bg-zinc-950 flex justify-center">
                       <CoveringLetterDocument
-                        number={coveringHasNumber ? fullCoveringNumber : "-"}
-                        hasNumber={coveringHasNumber}
+                        number={coveringHeaderMode === "with-number" ? fullCoveringNumber : "-"}
+                        hasNumber={coveringHeaderMode === "with-number"}
+                        showNumberAndRegarding={coveringHeaderMode !== "none"}
                         regarding={coveringRegarding}
                         documentDate={coveringDate}
                         recipientTitle={coveringRecipientTitle}
@@ -3638,6 +3674,11 @@ export default function BmnReportsPage() {
                   documentId="covering-letter-history-print-root"
                   number={selectedCoveringLetter.number}
                   hasNumber={selectedCoveringLetter.metadata?.has_number ?? selectedCoveringLetter.number !== "-"}
+                  showNumberAndRegarding={
+                    selectedCoveringLetter.metadata?.header_mode !== undefined
+                      ? selectedCoveringLetter.metadata.header_mode !== "none"
+                      : true
+                  }
                   regarding={selectedCoveringLetter.regarding}
                   documentDate={selectedCoveringLetter.document_date}
                   recipientTitle={selectedCoveringLetter.recipient_title}

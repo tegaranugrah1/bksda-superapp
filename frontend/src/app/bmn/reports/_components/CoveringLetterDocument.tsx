@@ -37,6 +37,9 @@ export interface CoveringLetterDocumentProps {
   receiverPhone?: string | null;
   sender: CoveringLetterParty;
   receiver?: CoveringLetterParty | null;
+  showNumberAndRegarding?: boolean;
+  showTitle?: boolean;
+  title?: string;
 }
 
 const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -104,6 +107,15 @@ function renderRoleLines(roleText?: string | null) {
   );
 }
 
+function formatTableCell(val?: string | null) {
+  const text = `${val ?? ""}`.trim();
+  const isEmpty = !text || text === "-";
+  return {
+    text: isEmpty ? "-" : text,
+    isCenter: isEmpty,
+  };
+}
+
 export function handlePrintCoveringLetter(documentId = "covering-letter-print-root") {
   const printContent = document.getElementById(documentId);
   if (!printContent) {
@@ -136,10 +148,13 @@ export function handlePrintCoveringLetter(documentId = "covering-letter-print-ro
           .covering-meta-colon { text-align: center; }
           .covering-meta-val { text-align: left; word-break: break-word; line-height: 1.3; }
 
-          .covering-recipient-block { margin-top: 6mm; margin-bottom: 5mm; word-break: break-word; overflow-wrap: anywhere; }
+          .covering-recipient-block { margin-top: 6mm; margin-bottom: 4mm; word-break: break-word; overflow-wrap: anywhere; }
           .covering-recipient-block p { margin-bottom: 0.5mm; word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }
 
-          .covering-table { width: 100%; border-collapse: collapse; margin-top: 4mm; margin-bottom: 4mm; font-size: 9.5pt; table-layout: fixed; }
+          .covering-title-block { text-align: center; margin: 4mm 0 3mm; }
+          .covering-title-text { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin: 0; }
+
+          .covering-table { width: 100%; border-collapse: collapse; margin-top: 3mm; margin-bottom: 4mm; font-size: 9.5pt; table-layout: fixed; }
           .covering-table thead { display: table-header-group; }
           .covering-table thead tr.table-number-row th { font-weight: normal; padding: 1px 0; font-size: 8.5pt; text-align: center; }
           .covering-table th, .covering-table td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
@@ -184,9 +199,14 @@ export function handlePrintCoveringLetter(documentId = "covering-letter-print-ro
   printWindow.document.close();
 }
 
-function estimateInitialCutoff(items: CoveringLetterItem[]): { isMultiPage: boolean; cutoff: number } {
+function estimateInitialCutoff(
+  items: CoveringLetterItem[],
+  showNumberAndRegarding = true,
+  showTitle = true,
+): { isMultiPage: boolean; cutoff: number } {
   const USABLE_PAGE_1_PX = 1020;
-  const HEADER_HEIGHT_PX = 270;
+  // If Nomor & Hal is hidden, header saves ~45px. If title is shown, add ~35px.
+  const HEADER_HEIGHT_PX = (showNumberAndRegarding ? 270 : 225) + (showTitle ? 35 : 0);
   const SIGNATURE_BLOCK_HEIGHT_PX = 290;
 
   let totalItemsHeight = 0;
@@ -245,11 +265,16 @@ export function CoveringLetterDocument({
   receiverPhone,
   sender,
   receiver,
+  showNumberAndRegarding = true,
+  showTitle = true,
+  title = "SURAT PENGANTAR",
 }: CoveringLetterDocumentProps) {
   const displayDocNumber = hasNumber === false || number === "-" ? "-" : (number || "PL.02.06/S-52/PW17.1/2026");
 
   const measureContainerRef = useRef<HTMLDivElement>(null);
-  const [pagination, setPagination] = useState<{ isMultiPage: boolean; cutoff: number }>(() => estimateInitialCutoff(items));
+  const [pagination, setPagination] = useState<{ isMultiPage: boolean; cutoff: number }>(() =>
+    estimateInitialCutoff(items, showNumberAndRegarding, showTitle),
+  );
 
   useIsomorphicLayoutEffect(() => {
     if (!measureContainerRef.current) return;
@@ -289,7 +314,7 @@ export function CoveringLetterDocument({
       isMultiPage: true,
       cutoff: Math.max(1, finalCutoff),
     });
-  }, [items, regarding, documentDate, recipientTitle, recipientLocation, showSignatures, showReceiverSignature, receiverIsBlank, receiverIncludePhone]);
+  }, [items, regarding, documentDate, recipientTitle, recipientLocation, showSignatures, showReceiverSignature, receiverIsBlank, receiverIncludePhone, showNumberAndRegarding, showTitle]);
 
   const isMultiPage = pagination.isMultiPage && pagination.cutoff < items.length;
   const page1Items = isMultiPage ? items.slice(0, pagination.cutoff) : items;
@@ -371,6 +396,17 @@ export function CoveringLetterDocument({
           overflow-wrap: anywhere;
           white-space: pre-wrap;
         }
+        .covering-title-block {
+          text-align: center;
+          margin: 4mm 0 3mm;
+        }
+        .covering-title-text {
+          font-size: 14pt;
+          font-weight: bold;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          margin: 0;
+        }
         .covering-table {
           width: 100%;
           border-collapse: collapse;
@@ -380,7 +416,9 @@ export function CoveringLetterDocument({
           table-layout: fixed;
         }
         .covering-table th,
-        .covering-table td {
+        .covering-table td,
+        .covering-table :global(th),
+        .covering-table :global(td) {
           border: 1px solid #000;
           padding: 5px 6px;
           vertical-align: top;
@@ -522,6 +560,17 @@ export function CoveringLetterDocument({
             overflow-wrap: anywhere;
             white-space: pre-wrap;
           }
+          .covering-title-block {
+            text-align: center;
+            margin: 4mm 0 3mm;
+          }
+          .covering-title-text {
+            font-size: 14pt;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
+          }
           .covering-table thead {
             display: table-header-group;
           }
@@ -617,30 +666,44 @@ export function CoveringLetterDocument({
           <img src="/header.png" alt="Kop Surat" />
         </div>
 
-        <div className="covering-meta-row">
-          <div className="covering-meta-left">
-            <div className="covering-meta-item">
-              <span className="covering-meta-label">Nomor</span>
-              <span className="covering-meta-colon">:</span>
-              <span className="covering-meta-val">{displayDocNumber}</span>
+        {showNumberAndRegarding ? (
+          <div className="covering-meta-row">
+            <div className="covering-meta-left">
+              <div className="covering-meta-item">
+                <span className="covering-meta-label">Nomor</span>
+                <span className="covering-meta-colon">:</span>
+                <span className="covering-meta-val">{displayDocNumber}</span>
+              </div>
+              <div className="covering-meta-item">
+                <span className="covering-meta-label">Hal</span>
+                <span className="covering-meta-colon">:</span>
+                <span className="covering-meta-val">
+                  {regarding || "Surat Pengantar Penyerahan Dokumen Permohonan Pengajuan Lelang dan Dokumen Pengumuman Lelang"}
+                </span>
+              </div>
             </div>
-            <div className="covering-meta-item">
-              <span className="covering-meta-label">Hal</span>
-              <span className="covering-meta-colon">:</span>
-              <span className="covering-meta-val">
-                {regarding || "Surat Pengantar Penyerahan Dokumen Permohonan Pengajuan Lelang dan Dokumen Pengumuman Lelang"}
-              </span>
+            <div className="covering-meta-right">
+              <span>{formatIndonesianDate(documentDate)}</span>
             </div>
           </div>
-          <div className="covering-meta-right">
-            <span>{formatIndonesianDate(documentDate)}</span>
+        ) : documentDate ? (
+          <div className="covering-meta-row" style={{ justifyContent: "flex-end" }}>
+            <div className="covering-meta-right">
+              <span>{formatIndonesianDate(documentDate)}</span>
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="covering-recipient-block">
           <p>Yth. {recipientTitle || "Kepala Kantor Pelayanan Kekayaan Negara dan Lelang"}</p>
           <p>di {recipientLocation || "Samarinda"}</p>
         </div>
+
+        {showTitle && (
+          <div className="covering-title-block">
+            <p className="covering-title-text">{title || "SURAT PENGANTAR"}</p>
+          </div>
+        )}
 
         <table className="covering-table">
           <thead style={{ display: "table-header-group" }}>
@@ -659,14 +722,22 @@ export function CoveringLetterDocument({
                 </td>
               </tr>
             ) : (
-              page1Items.map((item, index) => (
-                <tr key={item.id || index}>
-                  <td style={{ textAlign: "center" }}>{index + 1}.</td>
-                  <td style={{ textAlign: "left", whiteSpace: "pre-wrap" }}>{fallback(item.title)}</td>
-                  <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>{fallback(item.quantity)}</td>
-                  <td style={{ textAlign: "left" }}>{fallback(item.description)}</td>
-                </tr>
-              ))
+              page1Items.map((item, index) => {
+                const qty = formatTableCell(item.quantity);
+                const desc = formatTableCell(item.description);
+                return (
+                  <tr key={item.id || index}>
+                    <td style={{ textAlign: "center" }}>{index + 1}.</td>
+                    <td style={{ textAlign: "left", whiteSpace: "pre-wrap" }}>{fallback(item.title)}</td>
+                    <td style={{ textAlign: qty.isCenter ? "center" : "left", whiteSpace: qty.isCenter ? "normal" : "pre-wrap" }}>
+                      {qty.text}
+                    </td>
+                    <td style={{ textAlign: desc.isCenter ? "center" : "left" }}>
+                      {desc.text}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -691,14 +762,22 @@ export function CoveringLetterDocument({
                 </tr>
               </thead>
               <tbody>
-                {page2Items.map((item, index) => (
-                  <tr key={item.id || index}>
-                    <td style={{ textAlign: "center" }}>{page1Items.length + index + 1}.</td>
-                    <td style={{ textAlign: "left", whiteSpace: "pre-wrap" }}>{fallback(item.title)}</td>
-                    <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>{fallback(item.quantity)}</td>
-                    <td style={{ textAlign: "left" }}>{fallback(item.description)}</td>
-                  </tr>
-                ))}
+                {page2Items.map((item, index) => {
+                  const qty = formatTableCell(item.quantity);
+                  const desc = formatTableCell(item.description);
+                  return (
+                    <tr key={item.id || index}>
+                      <td style={{ textAlign: "center" }}>{page1Items.length + index + 1}.</td>
+                      <td style={{ textAlign: "left", whiteSpace: "pre-wrap" }}>{fallback(item.title)}</td>
+                      <td style={{ textAlign: qty.isCenter ? "center" : "left", whiteSpace: qty.isCenter ? "normal" : "pre-wrap" }}>
+                        {qty.text}
+                      </td>
+                      <td style={{ textAlign: desc.isCenter ? "center" : "left" }}>
+                        {desc.text}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </>
@@ -767,28 +846,42 @@ export function CoveringLetterDocument({
             <img src="/header.png" alt="" />
           </div>
 
-          <div className="covering-meta-row">
-            <div className="covering-meta-left">
-              <div className="covering-meta-item">
-                <span className="covering-meta-label">Nomor</span>
-                <span className="covering-meta-colon">:</span>
-                <span className="covering-meta-val">{displayDocNumber}</span>
+          {showNumberAndRegarding ? (
+            <div className="covering-meta-row">
+              <div className="covering-meta-left">
+                <div className="covering-meta-item">
+                  <span className="covering-meta-label">Nomor</span>
+                  <span className="covering-meta-colon">:</span>
+                  <span className="covering-meta-val">{displayDocNumber}</span>
+                </div>
+                <div className="covering-meta-item">
+                  <span className="covering-meta-label">Hal</span>
+                  <span className="covering-meta-colon">:</span>
+                  <span className="covering-meta-val">{regarding || "Surat Pengantar"}</span>
+                </div>
               </div>
-              <div className="covering-meta-item">
-                <span className="covering-meta-label">Hal</span>
-                <span className="covering-meta-colon">:</span>
-                <span className="covering-meta-val">{regarding || "Surat Pengantar"}</span>
+              <div className="covering-meta-right">
+                <span>{formatIndonesianDate(documentDate)}</span>
               </div>
             </div>
-            <div className="covering-meta-right">
-              <span>{formatIndonesianDate(documentDate)}</span>
+          ) : documentDate ? (
+            <div className="covering-meta-row" style={{ justifyContent: "flex-end" }}>
+              <div className="covering-meta-right">
+                <span>{formatIndonesianDate(documentDate)}</span>
+              </div>
             </div>
-          </div>
+          ) : null}
 
           <div className="covering-recipient-block">
             <p>Yth. {recipientTitle || "Kepala..."}</p>
             <p>di {recipientLocation || "Samarinda"}</p>
           </div>
+
+          {showTitle && (
+            <div className="covering-title-block">
+              <p className="covering-title-text">{title || "SURAT PENGANTAR"}</p>
+            </div>
+          )}
 
           <table className="covering-table">
             <thead>
@@ -800,14 +893,22 @@ export function CoveringLetterDocument({
               </tr>
             </thead>
             <tbody>
-              {items.map((item, index) => (
-                <tr key={item.id || index} className="measure-row">
-                  <td style={{ textAlign: "center" }}>{index + 1}.</td>
-                  <td style={{ textAlign: "left", whiteSpace: "pre-wrap" }}>{fallback(item.title)}</td>
-                  <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>{fallback(item.quantity)}</td>
-                  <td style={{ textAlign: "left" }}>{fallback(item.description)}</td>
-                </tr>
-              ))}
+              {items.map((item, index) => {
+                const qty = formatTableCell(item.quantity);
+                const desc = formatTableCell(item.description);
+                return (
+                  <tr key={item.id || index} className="measure-row">
+                    <td style={{ textAlign: "center" }}>{index + 1}.</td>
+                    <td style={{ textAlign: "left", whiteSpace: "pre-wrap" }}>{fallback(item.title)}</td>
+                    <td style={{ textAlign: qty.isCenter ? "center" : "left", whiteSpace: qty.isCenter ? "normal" : "pre-wrap" }}>
+                      {qty.text}
+                    </td>
+                    <td style={{ textAlign: desc.isCenter ? "center" : "left" }}>
+                      {desc.text}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
