@@ -44,6 +44,9 @@ class AssignmentLetterRequest extends FormRequest
             'employees' => $isDraft ? 'nullable|array' : 'required|array|min:1',
             'employees.*.id' => 'required_with:employees',
             'employees.*.peran' => 'nullable|string|max:100',
+            'nama_plh' => 'nullable|string|max:255',
+            'has_seksi_employee' => 'nullable|boolean',
+            'tanda_setuju' => 'nullable|string|max:50',
         ];
 
         if ($this->isMethod('post') || $this->hasFile('file_surat')) {

@@ -580,11 +580,16 @@ export default function STBuilderPage() {
         if (data.sumber_dana_other) setSumberDanaOther(data.sumber_dana_other);
 
         // Load template type if present (for ST that was created with a template)
-        if (data.template_type) {
-          setTemplateType(data.template_type);
-          if (data.template_type === "plh") {
-            const firstEmployee = data.employees?.[0];
-            setPlhWilayah(extractPlhWilayahFromPosition(firstEmployee?.jabatan || firstEmployee?.position || data.tempat_tujuan));
+        const resolvedTemplateType = data.template_type || (
+          data.maksud_tujuan?.toLowerCase().includes("pelaksana harian") || data.kode_surat?.includes("PEG.09.01")
+            ? "plh"
+            : null
+        );
+        if (resolvedTemplateType) {
+          setTemplateType(resolvedTemplateType);
+          if (resolvedTemplateType === "plh") {
+            const firstEmployee = data.employees?.[0] || data.personel?.[0];
+            setPlhWilayah(extractPlhWilayahFromPosition(firstEmployee?.satuan_kerja || firstEmployee?.jabatan || firstEmployee?.position || data.tempat_tujuan));
             const firstMenimbang = Array.isArray(data.menimbang) ? data.menimbang[0]?.text || "" : "";
             const kegiatanMatch = firstMenimbang.match(/akan melaksanakan\s+(.+?);?$/i);
             setPlhKegiatanKasi(cleanPlhKegiatanKasi(kegiatanMatch?.[1] || data.maksud_tujuan));
@@ -597,7 +602,7 @@ export default function STBuilderPage() {
           });
         }
         
-        setSelectedEmployees(data.employees || []);
+        setSelectedEmployees(data.employees || data.personel || []);
         setKotaTujuan(data.tempat_tujuan || "");
 
         // Parse menimbang & dasar if saved
