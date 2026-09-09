@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Archive, ChevronsUpDown, Download, Eye, FileClock, FileText, Handshake, Loader2, Package, Printer, Save, Search, Trash2, UserRound, Wrench } from "lucide-react";
+import { Archive, ChevronsUpDown, Download, Eye, FileClock, FileText, Handshake, Loader2, Package, Pencil, Printer, Save, Search, Trash2, UserRound, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,7 @@ import { useRole } from "@/hooks/useRole";
 interface UsageAgreementHistory {
   id: string;
   document_type?: "usage_agreement";
+  status?: "draft" | "published";
   number: string;
   document_date: string;
   first_party_snapshot?: UsageAgreementParty;
@@ -70,10 +71,13 @@ interface BmnAssetOption extends UsageAgreementAsset {
 interface HandoverAgreementHistory {
   id: string;
   document_type: "handover_agreement";
+  status?: "draft" | "published";
   variant: HandoverVariant;
   title: string;
   number: string;
   document_date: string;
+  first_party_employee_id?: number | null;
+  second_party_employee_id?: number | null;
   first_party_snapshot: HandoverParty;
   second_party_snapshot: HandoverParty;
   witness_snapshot?: HandoverWitness | null;
@@ -91,6 +95,7 @@ interface HandoverAgreementHistory {
 interface PowerOfAttorneyHistory {
   id: string;
   document_type: "power_of_attorney";
+  status?: "draft" | "published";
   number: string;
   document_date: string;
   first_party_snapshot: PowerOfAttorneyParty;
@@ -108,6 +113,7 @@ interface PowerOfAttorneyHistory {
 interface CoveringLetterHistory {
   id: string;
   document_type: "covering_letter";
+  status?: "draft" | "published";
   number: string;
   regarding: string;
   document_date: string;
@@ -133,6 +139,13 @@ type DocumentHistoryItem =
   | HandoverAgreementHistory
   | (PowerOfAttorneyHistory & { document_type: "power_of_attorney" })
   | CoveringLetterHistory;
+
+interface EditingDocumentState {
+  id: string;
+  type: "usage" | "handover" | "power_of_attorney" | "covering_letter";
+  titleOrNumber: string;
+  status: "draft" | "published" | string;
+}
 
 interface PaginatedDocumentHistory {
   data: DocumentHistoryItem[];
@@ -171,6 +184,9 @@ import {
   formatNip,
   employeeToHandoverParty,
   emptyGeneralItem,
+  isDraftNumber,
+  extractDocumentSequence,
+  extractDocumentKap,
   type EmployeeOption,
 } from "./_lib/report-utils";
 
@@ -316,6 +332,7 @@ export default function BmnReportsPage() {
   const [handoverVehicleDescription, setHandoverVehicleDescription] = useState("kendaraan");
   const [savingHandoverAgreement, setSavingHandoverAgreement] = useState(false);
   const [selectedHandoverAgreement, setSelectedHandoverAgreement] = useState<HandoverAgreementHistory | null>(null);
+  const [editingDocument, setEditingDocument] = useState<EditingDocumentState | null>(null);
 
   const { data: employees = [], isLoading: loadingEmployees } = useQuery<EmployeeOption[]>({
     queryKey: ["bmn-usage-employees"],
@@ -1079,6 +1096,195 @@ export default function BmnReportsPage() {
     );
   };
 
+  const cancelEditMode = () => {
+    setEditingDocument(null);
+    toast.info("Mode edit dibatalkan.");
+  };
+
+  const editUsageAgreement = async (agreement: UsageAgreementHistory) => {
+    setEditingDocument({
+      id: agreement.id,
+      type: "usage",
+      titleOrNumber: isDraftNumber(agreement.number) ? "BA Pemakaian (Draf)" : agreement.number,
+      status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
+    });
+    setActiveTab("documents");
+    setActiveDocumentType("usage");
+
+    const employeeId = agreement.second_party_snapshot?.id;
+    if (employeeId) {
+      setSelectedEmployeeId(String(employeeId));
+      await loadUsageData(String(employeeId));
+    }
+
+    const seq = extractDocumentSequence(agreement.number);
+    setBaSequence(seq);
+    const kapVal = extractDocumentKap(agreement.number);
+    if (kapVal) setKap(kapVal);
+
+    if (agreement.document_date) {
+      setDocumentDate(agreement.document_date);
+    }
+    setFirstPartyEmployeeId("");
+    setFirstParty(agreement.first_party_snapshot || DEFAULT_FIRST_PARTY);
+    if (agreement.assets_snapshot && agreement.assets_snapshot.length > 0) {
+      setAssets((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id));
+        const toAdd = agreement.assets_snapshot!.filter((a) => !existingIds.has(a.id));
+        return [...prev, ...toAdd];
+      });
+    }
+    setSelectedAssetIds(agreement.asset_ids || agreement.assets_snapshot?.map((a) => a.id) || []);
+    setNotes(agreement.notes || "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA.");
+    toast.info(`Mengedit dokumen: ${isDraftNumber(agreement.number) ? "BA Pemakaian (Draf)" : agreement.number}`);
+  };
+
+  const editPowerOfAttorney = async (agreement: PowerOfAttorneyHistory) => {
+    setEditingDocument({
+      id: agreement.id,
+      type: "power_of_attorney",
+      titleOrNumber: isDraftNumber(agreement.number) ? "Surat Kuasa Kendaraan (Draf)" : agreement.number,
+      status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
+    });
+    setActiveTab("documents");
+    setActiveDocumentType("power_of_attorney");
+
+    const employeeId = agreement.second_party_snapshot?.id;
+    if (employeeId) {
+      setSelectedEmployeeId(String(employeeId));
+      await loadPoaData(String(employeeId));
+    }
+
+    const seq = extractDocumentSequence(agreement.number);
+    setPoaSequence(seq);
+    const kapVal = extractDocumentKap(agreement.number);
+    if (kapVal) setPoaKap(kapVal);
+
+    if (agreement.document_date) {
+      setPoaDate(agreement.document_date);
+    }
+    setPoaFirstEmployeeId("");
+    setPoaFirstParty(agreement.first_party_snapshot || DEFAULT_POA_FIRST_PARTY);
+    setPoaSecondParty(agreement.second_party_snapshot || { name: "", nip: "", position: "", address: "Jln. Teuku Umar Samarinda" });
+    setPoaSelectedAssetIds(agreement.asset_ids || agreement.assets_snapshot?.map((a) => a.id) || []);
+    setPoaNotes(agreement.notes || "Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:");
+    setPoaKtpPreviewUrl(agreement.ktp_url || null);
+    setPoaKtpPath(agreement.ktp_path || null);
+    setPoaKtpFile(null);
+    toast.info(`Mengedit dokumen: ${isDraftNumber(agreement.number) ? "Surat Kuasa Kendaraan (Draf)" : agreement.number}`);
+  };
+
+  const editHandoverAgreement = (agreement: HandoverAgreementHistory) => {
+    setEditingDocument({
+      id: agreement.id,
+      type: "handover",
+      titleOrNumber: isDraftNumber(agreement.number) ? `${agreement.title} (Draf)` : agreement.number,
+      status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
+    });
+    setActiveTab("documents");
+    setActiveDocumentType("handover");
+    setHandoverVariant(agreement.variant);
+    setHandoverTitle(agreement.title);
+
+    const seq = extractDocumentSequence(agreement.number);
+    setHandoverSequence(seq);
+    const kapVal = extractDocumentKap(agreement.number);
+    if (kapVal) setHandoverKap(kapVal);
+
+    if (agreement.document_date) {
+      setHandoverDate(agreement.document_date);
+    }
+    setHandoverFirstEmployeeId(agreement.first_party_employee_id ? String(agreement.first_party_employee_id) : "");
+    setHandoverSecondEmployeeId(agreement.second_party_employee_id ? String(agreement.second_party_employee_id) : "");
+    setHandoverFirstParty(agreement.first_party_snapshot);
+    setHandoverSecondParty(agreement.second_party_snapshot);
+    setHandoverFirstPartyType(agreement.first_party_snapshot?.idType === "NIK" ? "external" : "internal");
+    setHandoverSecondPartyType(agreement.second_party_snapshot?.idType === "NIK" ? "external" : "internal");
+    setHandoverReceiptClause(agreement.metadata?.receipt_clause || DEFAULT_HANDOVER_RECEIPT_CLAUSE);
+    setHandoverSignerCount(agreement.metadata?.signer_count || (agreement.witness_snapshot ? 3 : 2));
+    if (agreement.witness_snapshot) {
+      setHandoverWitness(agreement.witness_snapshot);
+    }
+    setHandoverItems(agreement.variant === "general_goods" ? (agreement.items_snapshot?.length ? agreement.items_snapshot : [emptyGeneralItem()]) : [emptyGeneralItem()]);
+    setSelectedVehicleAssetIds(agreement.variant === "vehicle" ? agreement.asset_ids || [] : []);
+    if (agreement.variant === "vehicle") {
+      setHandoverVehicleDescription(agreement.metadata?.description || "kendaraan");
+      setHandoverGeneralDescription("");
+    } else {
+      setHandoverGeneralDescription(agreement.metadata?.description || "");
+      setHandoverVehicleDescription("kendaraan");
+    }
+    toast.info(`Mengedit dokumen: ${isDraftNumber(agreement.number) ? `${agreement.title} (Draf)` : agreement.number}`);
+  };
+
+  const editCoveringLetter = (letter: CoveringLetterHistory) => {
+    setEditingDocument({
+      id: letter.id,
+      type: "covering_letter",
+      titleOrNumber: isDraftNumber(letter.number) ? "Surat Pengantar (Draf)" : letter.number,
+      status: letter.status || (isDraftNumber(letter.number) ? "draft" : "published"),
+    });
+    setActiveTab("documents");
+    setActiveDocumentType("covering_letter");
+
+    if (letter.metadata?.header_mode) {
+      setCoveringHeaderMode(letter.metadata.header_mode);
+      if (letter.metadata.header_mode !== "with-number") {
+        setCoveringSequence("");
+      } else {
+        const seq = extractDocumentSequence(letter.number);
+        setCoveringSequence(seq);
+      }
+    } else if (letter.number === "-" || letter.metadata?.has_number === false) {
+      setCoveringHeaderMode("dash");
+      setCoveringSequence("");
+    } else {
+      setCoveringHeaderMode("with-number");
+      const seq = extractDocumentSequence(letter.number);
+      setCoveringSequence(seq);
+    }
+
+    const kapVal = extractDocumentKap(letter.number);
+    if (kapVal) setCoveringKap(kapVal);
+
+    setCoveringRegarding(letter.regarding);
+    if (letter.document_date) {
+      setCoveringDate(letter.document_date);
+    }
+    setCoveringRecipientTitle(letter.recipient_title);
+    setCoveringRecipientLocation(letter.recipient_location);
+    setCoveringItems(letter.items_snapshot || []);
+    setCoveringClosingPhrase(letter.closing_phrase);
+    setCoveringReceivedDate(letter.received_date || todayInputValue());
+    setCoveringShowSignatures(letter.show_signatures ?? true);
+    if (letter.metadata?.show_receiver !== undefined) {
+      setCoveringShowReceiver(letter.metadata.show_receiver);
+    } else {
+      setCoveringShowReceiver(Boolean(letter.receiver_snapshot?.name?.trim()));
+    }
+    setCoveringReceiverIsBlank(letter.metadata?.receiver_is_blank ?? false);
+    setCoveringReceiverIncludePhone(letter.metadata?.receiver_include_phone ?? false);
+    setCoveringReceiverPhone(letter.metadata?.receiver_phone || "");
+    setCoveringSender(letter.sender_snapshot);
+    setCoveringReceiver(letter.receiver_snapshot || DEFAULT_COVERING_RECEIVER);
+    if (letter.sender_employee_id) {
+      setCoveringSenderEmployeeId(String(letter.sender_employee_id));
+    }
+    toast.info(`Mengedit dokumen: ${isDraftNumber(letter.number) ? "Surat Pengantar (Draf)" : letter.number}`);
+  };
+
+  const editDocument = (item: DocumentHistoryItem) => {
+    if (isUsageHistoryItem(item)) {
+      editUsageAgreement(item);
+    } else if (isPowerOfAttorneyHistoryItem(item)) {
+      editPowerOfAttorney(item);
+    } else if (isCoveringLetterHistoryItem(item)) {
+      editCoveringLetter(item);
+    } else {
+      editHandoverAgreement(item);
+    }
+  };
+
   const saveUsageAgreement = async () => {
     if (!selectedEmployee) {
       toast.error("Pilih pegawai terlebih dahulu.");
@@ -1089,18 +1295,31 @@ export default function BmnReportsPage() {
       return;
     }
 
+    const isDraft = !baSequence.trim();
+    const docStatus = isDraft ? "draft" : "published";
+
     setSavingUsageAgreement(true);
     try {
-      await api.post("/bmn/usage-agreements", {
+      const payload = {
         employee_id: selectedEmployee.id,
         number: fullBaNumber,
+        status: docStatus,
         kap,
         document_date: documentDate,
         first_party: firstParty,
         asset_ids: selectedAssetIds,
         notes,
-      });
-      toast.success("Riwayat BA Pemakaian berhasil disimpan.");
+      };
+
+      if (editingDocument?.type === "usage") {
+        await api.put(`/bmn/usage-agreements/${editingDocument.id}`, payload);
+        toast.success(isDraft ? "Draf BA Pemakaian berhasil diperbarui." : "Perubahan BA Pemakaian berhasil disimpan.");
+        setEditingDocument(null);
+      } else {
+        await api.post("/bmn/usage-agreements", payload);
+        toast.success(isDraft ? "Draf BA Pemakaian berhasil disimpan." : "Riwayat BA Pemakaian berhasil disimpan.");
+      }
+
       await loadUsageData(String(selectedEmployee.id));
       await refetchDocumentHistory();
     } catch {
@@ -1120,11 +1339,15 @@ export default function BmnReportsPage() {
       return;
     }
 
+    const isDraft = !poaSequence.trim();
+    const docStatus = isDraft ? "draft" : "published";
+
     setSavingPowerOfAttorney(true);
     try {
       const formData = new FormData();
       formData.append("employee_id", String(selectedEmployee.id));
       formData.append("number", fullPoaNumber);
+      formData.append("status", docStatus);
       if (poaKap) formData.append("kap", poaKap);
       formData.append("document_date", poaDate);
 
@@ -1149,13 +1372,24 @@ export default function BmnReportsPage() {
         formData.append("existing_ktp_path", poaKtpPath);
       }
 
-      await api.post("/bmn/power-of-attorneys", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      if (editingDocument?.type === "power_of_attorney") {
+        formData.append("_method", "PUT");
+        await api.post(`/bmn/power-of-attorneys/${editingDocument.id}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        toast.success(isDraft ? "Draf Surat Kuasa berhasil diperbarui." : "Perubahan Surat Kuasa berhasil disimpan.");
+        setEditingDocument(null);
+      } else {
+        await api.post("/bmn/power-of-attorneys", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        toast.success(isDraft ? "Draf Surat Kuasa berhasil disimpan." : "Riwayat Surat Kuasa berhasil disimpan.");
+      }
 
-      toast.success("Riwayat Surat Kuasa berhasil disimpan.");
       setPoaKtpFile(null);
       setPoaKtpPreviewUrl(null);
       setPoaKtpPath(null);
@@ -1188,12 +1422,16 @@ export default function BmnReportsPage() {
       return;
     }
 
+    const isDraft = !handoverSequence.trim();
+    const docStatus = isDraft ? "draft" : "published";
+
     setSavingHandoverAgreement(true);
     try {
-      await api.post("/bmn/handover-agreements", {
+      const payload = {
         variant: handoverVariant,
         title: handoverTitle,
         number: fullHandoverNumber,
+        status: docStatus,
         kap: handoverKap,
         document_date: handoverDate,
         first_party_employee_id: handoverFirstEmployeeId || null,
@@ -1208,8 +1446,16 @@ export default function BmnReportsPage() {
           receipt_clause: handoverReceiptClause,
           signer_count: handoverSignerCount,
         },
-      });
-      toast.success("Riwayat BA Serah Terima berhasil disimpan.");
+      };
+
+      if (editingDocument?.type === "handover") {
+        await api.put(`/bmn/handover-agreements/${editingDocument.id}`, payload);
+        toast.success(isDraft ? "Draf BA Serah Terima berhasil diperbarui." : "Perubahan BA Serah Terima berhasil disimpan.");
+        setEditingDocument(null);
+      } else {
+        await api.post("/bmn/handover-agreements", payload);
+        toast.success(isDraft ? "Draf BA Serah Terima berhasil disimpan." : "Riwayat BA Serah Terima berhasil disimpan.");
+      }
       await refetchDocumentHistory();
     } catch {
       toast.error("Gagal menyimpan riwayat BA Serah Terima.");
@@ -1290,11 +1536,6 @@ export default function BmnReportsPage() {
 
   const saveCoveringLetter = async () => {
     const validItems = coveringItems.filter((it) => it.title.trim() !== "");
-    const finalNumber = coveringHeaderMode === "with-number" ? fullCoveringNumber : "-";
-    if (coveringHeaderMode === "with-number" && !coveringSequence.trim()) {
-      toast.error("Nomor urut Surat Pengantar wajib diisi.");
-      return;
-    }
     if (coveringHeaderMode !== "none" && !coveringRegarding.trim()) {
       toast.error("Hal Surat Pengantar wajib diisi.");
       return;
@@ -1304,10 +1545,24 @@ export default function BmnReportsPage() {
       return;
     }
 
+    let finalNumber = "-";
+    let docStatus = "draft";
+    if (coveringHeaderMode === "with-number") {
+      finalNumber = fullCoveringNumber;
+      docStatus = coveringSequence.trim() ? "published" : "draft";
+    } else if (coveringHeaderMode === "dash") {
+      finalNumber = "-";
+      docStatus = "published";
+    } else {
+      finalNumber = "-";
+      docStatus = "draft";
+    }
+
     setSavingCoveringLetter(true);
     try {
-      await api.post("/bmn/covering-letters", {
+      const payload = {
         number: finalNumber,
+        status: docStatus,
         regarding: coveringHeaderMode === "none" ? (coveringRegarding.trim() || "-") : coveringRegarding,
         document_date: coveringDate,
         recipient_title: coveringRecipientTitle,
@@ -1327,8 +1582,16 @@ export default function BmnReportsPage() {
           receiver_include_phone: coveringReceiverIncludePhone,
           receiver_phone: coveringReceiverPhone,
         },
-      });
-      toast.success("Riwayat Surat Pengantar berhasil disimpan.");
+      };
+
+      if (editingDocument?.type === "covering_letter") {
+        await api.put(`/bmn/covering-letters/${editingDocument.id}`, payload);
+        toast.success(docStatus === "draft" ? "Draf Surat Pengantar berhasil diperbarui." : "Perubahan Surat Pengantar berhasil disimpan.");
+        setEditingDocument(null);
+      } else {
+        await api.post("/bmn/covering-letters", payload);
+        toast.success(docStatus === "draft" ? "Draf Surat Pengantar berhasil disimpan." : "Riwayat Surat Pengantar berhasil disimpan.");
+      }
       await refetchDocumentHistory();
     } catch {
       toast.error("Gagal menyimpan riwayat Surat Pengantar.");
@@ -1560,6 +1823,40 @@ export default function BmnReportsPage() {
           </aside>
 
           <div className="space-y-5">
+            {editingDocument && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 px-5 py-3.5 text-amber-900 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold">
+                        Mode Edit: {editingDocument.titleOrNumber}
+                      </span>
+                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                        editingDocument.status === "draft"
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300"
+                          : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
+                      }`}>
+                        Status: {editingDocument.status === "draft" ? "Draf" : "Terbit"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
+                      Anda sedang menyunting dokumen yang tersimpan di riwayat. Kosongkan nomor urut jika ingin menyimpan sebagai Draf.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl border-amber-300 bg-white text-xs font-medium text-amber-900 hover:bg-amber-100 dark:border-amber-600 dark:bg-zinc-800 dark:text-amber-200"
+                  onClick={cancelEditMode}
+                >
+                  Batal Edit
+                </Button>
+              </div>
+            )}
+
             {activeDocumentType === "usage" && (
               <>
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
@@ -1570,7 +1867,9 @@ export default function BmnReportsPage() {
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <Button variant="outline" className="rounded-xl gap-2" onClick={saveUsageAgreement} disabled={savingUsageAgreement || !selectedEmployee || !canGenerate}>
                   {savingUsageAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Simpan Riwayat
+                  {editingDocument?.type === "usage"
+                    ? (baSequence.trim() ? "Simpan Perubahan" : "Simpan Perubahan (Draf)")
+                    : (!baSequence.trim() ? "Simpan Draf" : "Simpan Riwayat")}
                 </Button>
                 <Button className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500" onClick={() => handlePrintUsageAgreement()} disabled={!selectedEmployee}>
                   <Printer className="w-4 h-4" />
@@ -1647,6 +1946,16 @@ export default function BmnReportsPage() {
                               <td className="px-3 py-2 text-zinc-500">{item.generator?.name || "-"}</td>
                               <td className="px-3 py-2">
                                 <div className="flex justify-end gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 rounded-lg border-emerald-200 px-2 text-xs text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+                                    onClick={() => editUsageAgreement(item)}
+                                  >
+                                    <Pencil className="mr-1 h-3.5 w-3.5" />
+                                    Edit
+                                  </Button>
                                   <Button
                                     type="button"
                                     variant="outline"
@@ -1842,7 +2151,9 @@ export default function BmnReportsPage() {
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     <Button variant="outline" className="rounded-xl gap-2" onClick={saveHandoverAgreement} disabled={savingHandoverAgreement || !canGenerate}>
                       {savingHandoverAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                      Simpan Riwayat
+                      {editingDocument?.type === "handover"
+                        ? (handoverSequence.trim() ? "Simpan Perubahan" : "Simpan Perubahan (Draf)")
+                        : (!handoverSequence.trim() ? "Simpan Draf" : "Simpan Riwayat")}
                     </Button>
                     <Button className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500" onClick={() => handlePrintHandoverAgreement()}>
                       <Printer className="w-4 h-4" />
@@ -2409,7 +2720,9 @@ export default function BmnReportsPage() {
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     <Button variant="outline" className="rounded-xl gap-2" onClick={savePowerOfAttorney} disabled={savingPowerOfAttorney || !selectedEmployee || !canGenerate}>
                       {savingPowerOfAttorney ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                      Simpan Riwayat
+                      {editingDocument?.type === "power_of_attorney"
+                        ? (poaSequence.trim() ? "Simpan Perubahan" : "Simpan Perubahan (Draf)")
+                        : (!poaSequence.trim() ? "Simpan Draf" : "Simpan Riwayat")}
                     </Button>
                     <Button className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500" onClick={() => handlePrintPowerOfAttorney()} disabled={!selectedEmployee}>
                       <Printer className="w-4 h-4" />
@@ -2486,6 +2799,16 @@ export default function BmnReportsPage() {
                                   <td className="px-3 py-2 text-zinc-500">{item.generator?.name || "-"}</td>
                                   <td className="px-3 py-2">
                                     <div className="flex justify-end gap-2">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 rounded-lg border-emerald-200 px-2 text-xs text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+                                        onClick={() => editPowerOfAttorney(item)}
+                                      >
+                                        <Pencil className="mr-1 h-3.5 w-3.5" />
+                                        Edit
+                                      </Button>
                                       <Button
                                         type="button"
                                         variant="outline"
@@ -2767,7 +3090,9 @@ export default function BmnReportsPage() {
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     <Button variant="outline" className="rounded-xl gap-2" onClick={saveCoveringLetter} disabled={savingCoveringLetter || !canGenerate}>
                       {savingCoveringLetter ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                      Simpan Riwayat
+                      {editingDocument?.type === "covering_letter"
+                        ? (coveringSequence.trim() || coveringHeaderMode !== "with-number" ? "Simpan Perubahan" : "Simpan Perubahan (Draf)")
+                        : (!coveringSequence.trim() && coveringHeaderMode === "with-number" ? "Simpan Draf" : "Simpan Riwayat")}
                     </Button>
                     <Button className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500" onClick={() => handlePrintCoveringLetter()}>
                       <Printer className="w-4 h-4" />
@@ -3386,6 +3711,7 @@ export default function BmnReportsPage() {
                   <tr>
                     <th className="px-3 py-2">Jenis</th>
                     <th className="px-3 py-2">Nomor</th>
+                    <th className="px-3 py-2">Status</th>
                     <th className="px-3 py-2">Tanggal</th>
                     <th className="px-3 py-2">Pegawai / Pihak</th>
                     <th className="px-3 py-2">Barang / Berkas</th>
@@ -3395,7 +3721,7 @@ export default function BmnReportsPage() {
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                   {documentHistoryItems.length === 0 ? (
-                    <tr><td colSpan={7} className="px-3 py-8 text-center text-zinc-500">Belum ada riwayat dokumen yang sesuai filter.</td></tr>
+                    <tr><td colSpan={8} className="px-3 py-8 text-center text-zinc-500">Belum ada riwayat dokumen yang sesuai filter.</td></tr>
                   ) : documentHistoryItems.map((item) => (
                     <tr
                       key={item.id}
@@ -3421,13 +3747,42 @@ export default function BmnReportsPage() {
                           {documentTypeLabel(item)}
                         </span>
                       </td>
-                      <td className="px-3 py-2 font-semibold">{item.number}</td>
+                      <td className="px-3 py-2 font-semibold">
+                        {isDraftNumber(item.number) ? (
+                          <div>
+                            <span className="font-mono text-xs text-zinc-700 dark:text-zinc-300">{item.number}</span>
+                            <span className="block text-[10px] font-medium text-amber-600 dark:text-amber-400">Belum ada nomor</span>
+                          </div>
+                        ) : (
+                          item.number
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                          item.status === "draft" || isDraftNumber(item.number)
+                            ? "border border-amber-200/60 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400"
+                            : "border border-emerald-200/60 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        }`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${item.status === "draft" || isDraftNumber(item.number) ? "bg-amber-500" : "bg-emerald-500"}`} />
+                          {item.status === "draft" || isDraftNumber(item.number) ? "Draf" : "Terbit"}
+                        </span>
+                      </td>
                       <td className="px-3 py-2 text-zinc-500">{formatDate(item.document_date)}</td>
                       <td className="px-3 py-2 text-zinc-500">{documentPartiesLabel(item)}</td>
                       <td className="px-3 py-2 text-zinc-500">{documentItemCountLabel(item)}</td>
                       <td className="px-3 py-2 text-zinc-500">{item.generator?.name || "-"}</td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-lg border-emerald-200 px-2 text-xs text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+                            onClick={() => editDocument(item)}
+                          >
+                            <Pencil className="mr-1 h-3.5 w-3.5" />
+                            Edit
+                          </Button>
                           <Button
                             type="button"
                             variant="outline"

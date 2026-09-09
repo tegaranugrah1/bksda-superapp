@@ -18,6 +18,7 @@ class CoveringLetterResource extends JsonResource
             'id' => $this->id,
             'document_type' => 'covering_letter',
             'number' => $this->number,
+            'status' => $this->status ?? 'draft',
             'regarding' => $this->regarding,
             'document_date' => $this->document_date?->format('Y-m-d'),
             'recipient_title' => $this->recipient_title,

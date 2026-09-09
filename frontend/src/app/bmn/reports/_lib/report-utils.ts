@@ -70,3 +70,25 @@ export function employeeToHandoverParty(employee?: EmployeeOption | null): Hando
 export function emptyGeneralItem(): HandoverItem {
   return { name: "", merk_tipe: "", quantity: 1, nup: "" };
 }
+
+export function isDraftNumber(num?: string | null): boolean {
+  if (!num || num === "-" || num.trim() === "") return true;
+  if (num.includes("\u00A0") || /^(?:BA|KS|SP)\.\s*\//i.test(num)) return true;
+  return false;
+}
+
+export function extractDocumentSequence(num?: string | null): string {
+  if (!num || isDraftNumber(num)) return "";
+  const match = num.match(/^(?:BA|KS|SP)\.([^\/]+)\//i);
+  if (match) {
+    const seq = match[1].replace(/\u00A0/g, "").trim();
+    return seq;
+  }
+  return "";
+}
+
+export function extractDocumentKap(num?: string | null): string | null {
+  if (!num) return null;
+  const match = num.match(/^(?:BA|KS|SP)\.[^\/]+\/K\.18\/TU\/([^\/]+)\//i);
+  return match ? match[1] : null;
+}

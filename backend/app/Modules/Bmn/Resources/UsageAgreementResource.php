@@ -13,6 +13,7 @@ class UsageAgreementResource extends JsonResource
             'id' => $this->id,
             'employee_id' => $this->employee_id,
             'number' => $this->number,
+            'status' => $this->status ?? 'draft',
             'kap' => $this->kap,
             'document_date' => $this->document_date?->toDateString(),
             'first_party_snapshot' => $this->first_party_snapshot,

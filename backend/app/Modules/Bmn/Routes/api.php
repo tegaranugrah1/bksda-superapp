@@ -44,21 +44,25 @@ Route::get('document-histories', [DocumentHistoryController::class, 'index'])->m
 // 4b. BERITA ACARA PEMAKAIAN BMN
 Route::get('usage-agreements', [UsageAgreementController::class, 'index'])->middleware('permission:bmn.document.history.view');
 Route::post('usage-agreements', [UsageAgreementController::class, 'store'])->middleware('permission:bmn.document.generate');
+Route::match(['put', 'patch'], 'usage-agreements/{agreement}', [UsageAgreementController::class, 'update'])->middleware('permission:bmn.document.generate');
 Route::get('usage-agreements/{agreement}', [UsageAgreementController::class, 'show'])->middleware('permission:bmn.document.history.view');
 
 // 4c. BERITA ACARA SERAH TERIMA BMN
 Route::get('handover-agreements', [HandoverAgreementController::class, 'index'])->middleware('permission:bmn.document.history.view');
 Route::post('handover-agreements', [HandoverAgreementController::class, 'store'])->middleware('permission:bmn.document.generate');
+Route::match(['put', 'patch'], 'handover-agreements/{agreement}', [HandoverAgreementController::class, 'update'])->middleware('permission:bmn.document.generate');
 Route::get('handover-agreements/{agreement}', [HandoverAgreementController::class, 'show'])->middleware('permission:bmn.document.history.view');
 
 // 4d. SURAT KUASA KENDARAAN BMN
 Route::get('power-of-attorneys', [PowerOfAttorneyController::class, 'index'])->middleware('permission:bmn.document.history.view');
 Route::post('power-of-attorneys', [PowerOfAttorneyController::class, 'store'])->middleware('permission:bmn.document.generate');
+Route::match(['put', 'patch'], 'power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'update'])->middleware('permission:bmn.document.generate');
 Route::get('power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'show'])->middleware('permission:bmn.document.history.view');
 
 // 4e. SURAT PENGANTAR BMN
 Route::get('covering-letters', [CoveringLetterController::class, 'index'])->middleware('permission:bmn.document.history.view');
 Route::post('covering-letters', [CoveringLetterController::class, 'store'])->middleware('permission:bmn.document.generate');
+Route::match(['put', 'patch'], 'covering-letters/{letter}', [CoveringLetterController::class, 'update'])->middleware('permission:bmn.document.generate');
 Route::get('covering-letters/{letter}', [CoveringLetterController::class, 'show'])->middleware('permission:bmn.document.history.view');
 
 // 1. JALUR MASTER ASET (Didefinisikan manual agar granular)

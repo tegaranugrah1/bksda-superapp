@@ -7,6 +7,7 @@ use App\Modules\Bmn\Models\CoveringLetter;
 use App\Modules\Bmn\Resources\CoveringLetterResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CoveringLetterController extends Controller
 {
@@ -37,10 +38,25 @@ class CoveringLetterController extends Controller
         return response()->json(['data' => new CoveringLetterResource($model)]);
     }
 
+    protected function determineStatus(?string $number, ?string $explicitStatus = null): string
+    {
+        if ($explicitStatus && in_array($explicitStatus, ['draft', 'published'], true)) {
+            return $explicitStatus;
+        }
+        if (empty($number) || trim($number) === '' || trim($number) === '-') {
+            return 'draft';
+        }
+        if (str_contains($number, "\u{00A0}") || preg_match('/^(?:BA|KS|SP)\.\s*\//i', $number)) {
+            return 'draft';
+        }
+        return 'published';
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'number' => ['required', 'string', 'max:120'],
+            'number' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'string', Rule::in(['draft', 'published'])],
             'regarding' => ['required', 'string', 'max:255'],
             'document_date' => ['required', 'date'],
             'recipient_title' => ['required', 'string', 'max:255'],
@@ -65,10 +81,13 @@ class CoveringLetterController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $status = $this->determineStatus($validated['number'] ?? null, $validated['status'] ?? null);
+
         $letter = CoveringLetter::create([
             'sender_employee_id' => $validated['sender_employee_id'] ?? null,
             'generated_by' => $request->user()?->id,
-            'number' => $validated['number'],
+            'number' => $validated['number'] ?? '-',
+            'status' => $status,
             'regarding' => $validated['regarding'],
             'document_date' => $validated['document_date'],
             'recipient_title' => $validated['recipient_title'],
@@ -89,6 +108,67 @@ class CoveringLetterController extends Controller
             'message' => 'Surat Pengantar berhasil disimpan.',
             'data' => new CoveringLetterResource($letter),
         ], 201);
+    }
+
+    public function update(Request $request, CoveringLetter|string $letter): JsonResponse
+    {
+        $model = $letter instanceof CoveringLetter
+            ? $letter
+            : CoveringLetter::findOrFail($letter);
+
+        $validated = $request->validate([
+            'number' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'string', Rule::in(['draft', 'published'])],
+            'regarding' => ['required', 'string', 'max:255'],
+            'document_date' => ['required', 'date'],
+            'recipient_title' => ['required', 'string', 'max:255'],
+            'recipient_location' => ['required', 'string', 'max:255'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.title' => ['required', 'string'],
+            'items.*.quantity' => ['nullable', 'string', 'max:100'],
+            'items.*.description' => ['nullable', 'string', 'max:255'],
+            'closing_phrase' => ['required', 'string'],
+            'received_date' => ['nullable', 'date'],
+            'show_signatures' => ['boolean'],
+            'sender_employee_id' => ['nullable', 'integer', 'exists:kpg_employees,id'],
+            'sender' => ['required', 'array'],
+            'sender.name' => ['required', 'string', 'max:255'],
+            'sender.nip' => ['nullable', 'string', 'max:100'],
+            'sender.role' => ['nullable', 'string', 'max:255'],
+            'receiver' => ['nullable', 'array'],
+            'receiver.name' => ['nullable', 'string', 'max:255'],
+            'receiver.nip' => ['nullable', 'string', 'max:100'],
+            'receiver.role' => ['nullable', 'string', 'max:255'],
+            'metadata' => ['nullable', 'array'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $status = $this->determineStatus($validated['number'] ?? null, $validated['status'] ?? null);
+
+        $model->update([
+            'sender_employee_id' => $validated['sender_employee_id'] ?? null,
+            'number' => $validated['number'] ?? $model->number,
+            'status' => $status,
+            'regarding' => $validated['regarding'],
+            'document_date' => $validated['document_date'],
+            'recipient_title' => $validated['recipient_title'],
+            'recipient_location' => $validated['recipient_location'],
+            'items_snapshot' => $validated['items'],
+            'closing_phrase' => $validated['closing_phrase'],
+            'received_date' => $validated['received_date'] ?? null,
+            'show_signatures' => $validated['show_signatures'] ?? true,
+            'sender_snapshot' => $validated['sender'],
+            'receiver_snapshot' => $validated['receiver'] ?? null,
+            'metadata' => $validated['metadata'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        $model->load(['senderEmployee', 'generator']);
+
+        return response()->json([
+            'message' => 'Surat Pengantar berhasil diperbarui.',
+            'data' => new CoveringLetterResource($model),
+        ]);
     }
 
     public function destroy(CoveringLetter|string $letter): JsonResponse
