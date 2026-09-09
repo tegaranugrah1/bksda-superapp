@@ -9,8 +9,12 @@ import type { Employee } from "./types";
  */
 export function extractPlhWilayahFromPosition(position?: string | null) {
   const text = (position || "").trim();
-  const match = text.match(/Seksi\s+KSDA\s+Wilayah\s+(.+)$/i);
-  return match?.[1]?.trim() || text;
+  const match = text.match(/Seksi\s+(?:Konservasi\s+Sumber\s+Daya\s+Alam|KSDA)?\s*Wilayah\s+([^()]+)/i);
+  if (match?.[1]?.trim()) {
+    return match[1].trim();
+  }
+  const fallbackMatch = text.match(/Seksi\s+KSDA\s+Wilayah\s+(.+)$/i);
+  return fallbackMatch?.[1]?.trim() || text;
 }
 
 /**

@@ -57,7 +57,7 @@ export default function STCreatePremiumPage() {
 
   // --- Form State ---
   const [stNumber, setStNumber] = useState("");
-  const [klasifikasi, setKlasifikasi] = useState("KSA.0X.0X");
+  const [klasifikasi, setKlasifikasi] = useState(initialTemplate === "plh" ? "PEG.09.01" : "KSA.0X.0X");
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const currentYear = new Date().getFullYear().toString();
 
@@ -70,9 +70,9 @@ export default function STCreatePremiumPage() {
     { id: "2", text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.` },
   ]);
 
-  const [sumberDana, setSumberDana] = useState("dipa");
+  const [sumberDana, setSumberDana] = useState(initialTemplate === "plh" ? "dl1" : "dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
-  const [templateType, setTemplateType] = useState<string | null>(null);
+  const [templateType, setTemplateType] = useState<string | null>(initialTemplate || null);
   const [dynamicTemplates, setDynamicTemplates] = useState<StTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const selectedDynamicTemplate = dynamicTemplates.find((template) => templateType === `db_${template.id}`);
@@ -411,7 +411,7 @@ export default function STCreatePremiumPage() {
       ? formatDateIndonesian(parentSt.tanggal_surat.split("T")[0])
       : "...";
     const parentLeadEmployee = parentSt?.employees?.[0];
-    setPlhWilayah(extractPlhWilayahFromPosition(parentLeadEmployee?.jabatan || parentLeadEmployee?.position || ""));
+    setPlhWilayah(extractPlhWilayahFromPosition(parentLeadEmployee?.satuan_kerja || parentLeadEmployee?.jabatan || parentLeadEmployee?.position || ""));
     setPlhKegiatanKasi(cleanPlhKegiatanKasi(parentSt?.maksud_tujuan));
 
     setMenimbangItems([
@@ -530,15 +530,13 @@ export default function STCreatePremiumPage() {
     if (initialTemplate !== "plh") return;
     templateAppliedRef.current = true;
 
-    const parentStId = searchParams.get("parent_st_id");
-    if (!parentStId) {
-      // Apply tanpa data induk
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      applyPlhTemplate();
-      return;
-    }
+    // Apply template boilerplate immediately
+    applyPlhTemplate();
 
-    // Fetch parent ST data, then apply template with parent info
+    const parentStId = searchParams.get("parent_st_id");
+    if (!parentStId) return;
+
+    // Fetch parent ST data, then re-apply with parent info & lead employee
     (async () => {
       try {
         const res = await api.get(`/surat-tugas/${parentStId}`);
@@ -551,14 +549,12 @@ export default function STCreatePremiumPage() {
             tanggal_selesai: parentData?.tanggal_selesai,
             tempat_tujuan: parentData?.tempat_tujuan,
             maksud_tujuan: parentData?.maksud_tujuan,
-            employees: parentData?.employees || [],
+            employees: parentData?.employees || parentData?.personel || [],
           },
           parentData?.nama_plh,
         );
       } catch (err) {
         console.error("Failed to fetch parent ST:", err);
-        toast.error("Gagal memuat data ST induk. Template PLH diterapkan tanpa data referensi.");
-        applyPlhTemplate();
       }
     })();
   }, [initialTemplate, searchParams, applyPlhTemplate]);
@@ -960,16 +956,33 @@ export default function STCreatePremiumPage() {
               </div>
             </div>
             <select
-              value={templateType ?? ""}
+              value={
+                isPlhTemplate
+                  ? "plh"
+                  : isBmnTemplate
+                  ? "bmn-pemeriksaan"
+                  : isBedaHariTemplate
+                  ? "beda-hari"
+                  : (templateType ?? "")
+              }
               onChange={(e) => handleTemplateChange(e.target.value)}
               className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 outline-none transition focus:ring-2 focus:ring-orange-500/20 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300"
             >
               <option value="">Default (Manual)</option>
-              {dynamicTemplates.map((t) => (
-                <option key={t.id} value={`db_${t.id}`}>
-                  {t.name}
-                </option>
-              ))}
+              <option value="bmn-pemeriksaan">Penghapusan BMN</option>
+              <option value="beda-hari">Beda Hari (Daftar Lampiran)</option>
+              <option value="plh">PLH (Pelaksana Harian Kepala Seksi)</option>
+              {dynamicTemplates
+                .filter(
+                  (t) =>
+                    !["bmn", "plh", "beda_hari", "standard"].includes(t.type) &&
+                    !["bmn-penghapusan", "beda-hari", "plh", "default"].includes(t.code || "")
+                )
+                .map((t) => (
+                  <option key={t.id} value={`db_${t.id}`}>
+                    {t.name}
+                  </option>
+                ))}
             </select>
             {isBedaHariTemplate && (
               <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">

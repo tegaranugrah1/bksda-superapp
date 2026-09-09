@@ -10,6 +10,8 @@ export interface Employee {
   jabatan: string;
   department?: string;
   position?: string;
+  satuan_kerja?: string;
+  unit_kerja?: string;
 }
 
 export interface DasarItem {
