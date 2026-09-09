@@ -43,3 +43,31 @@ export interface AssignmentLetter {
   created_at: string;
   employees: InboxEmployee[];
 }
+
+export interface PaginationMeta {
+  current_page: number;
+  from: number | null;
+  last_page: number;
+  per_page: number;
+  to: number | null;
+  total: number;
+}
+
+export interface StatusCounts {
+  all: number;
+  draft: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  trashed: number;
+}
+
+export interface AdvancedFilters {
+  nomor_surat?: string;
+  pegawai?: string;
+  tempat_tujuan?: string;
+  date_from?: string;
+  date_to?: string;
+  sumber_dana?: string;
+  template_type?: string;
+}

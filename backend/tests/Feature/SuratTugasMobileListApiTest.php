@@ -73,6 +73,17 @@ class SuratTugasMobileListApiTest extends TestCase
             $table->timestamps();
             $table->unique(['assignment_letter_id', 'employee_id'], 'st_al_employee_unique');
         });
+
+        Schema::create('audit_logs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable();
+            $table->string('method', 10)->nullable();
+            $table->string('url')->nullable();
+            $table->string('ip_address', 45)->nullable();
+            $table->integer('status_code')->nullable();
+            $table->json('payload')->nullable();
+            $table->timestamps();
+        });
     }
 
     public function test_management_list_returns_mobile_friendly_paginated_items(): void
@@ -287,4 +298,56 @@ class SuratTugasMobileListApiTest extends TestCase
             ->assertForbidden()
             ->assertJsonPath('message', 'Anda tidak memiliki akses ke Surat Tugas ini.');
     }
+
+    public function test_management_status_counts_and_bulk_trash_restore(): void
+    {
+        $user = User::factory()->create([
+            'username' => '198501012010011002',
+            'role' => 'admin',
+            'access_modules' => ['surat_tugas', 'kepegawaian'],
+        ]);
+
+        $letter1 = AssignmentLetter::create([
+            'nomor_surat' => 'ST.101/BKSDA/2026',
+            'maksud_tujuan' => 'Tugas pertama',
+            'tanggal_mulai' => '2026-07-01',
+            'tanggal_selesai' => '2026-07-02',
+            'status' => 'pending',
+            'created_by' => $user->id,
+        ]);
+        $letter2 = AssignmentLetter::create([
+            'nomor_surat' => 'ST.102/BKSDA/2026',
+            'maksud_tujuan' => 'Tugas kedua',
+            'tanggal_mulai' => '2026-07-03',
+            'tanggal_selesai' => '2026-07-04',
+            'status' => 'approved',
+            'created_by' => $user->id,
+        ]);
+
+        Sanctum::actingAs($user);
+
+        // Test status counts
+        $this->getJson('/api/surat-tugas/status-counts')
+            ->assertOk()
+            ->assertJsonStructure(['all', 'draft', 'pending', 'approved', 'rejected', 'trashed'])
+            ->assertJsonPath('pending', 1)
+            ->assertJsonPath('approved', 1);
+
+        // Test bulk trash
+        $this->postJson('/api/surat-tugas/bulk-trash', ['ids' => [$letter1->id, $letter2->id]])
+            ->assertOk()
+            ->assertJsonPath('message', '2 dokumen dipindahkan ke Arsip Sampah.');
+
+        $this->assertSoftDeleted('st_assignment_letters', ['id' => $letter1->id]);
+        $this->assertSoftDeleted('st_assignment_letters', ['id' => $letter2->id]);
+
+        // Test bulk restore
+        $this->postJson('/api/surat-tugas/bulk-restore', ['ids' => [$letter1->id]])
+            ->assertOk()
+            ->assertJsonPath('message', '1 dokumen berhasil dipulihkan.');
+
+        $this->assertNotSoftDeleted('st_assignment_letters', ['id' => $letter1->id]);
+        $this->assertSoftDeleted('st_assignment_letters', ['id' => $letter2->id]);
+    }
 }
+

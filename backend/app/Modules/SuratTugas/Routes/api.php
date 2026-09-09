@@ -24,6 +24,9 @@ Route::middleware(['auth:sanctum', 'module.access:surat_tugas,kepegawaian'])->gr
     Route::post('/{id}/restore', [AssignmentLetterController::class, 'restore']);
 
     Route::get('/', [AssignmentLetterController::class, 'index']);
+    Route::get('/status-counts', [AssignmentLetterController::class, 'statusCounts']);
+    Route::post('/bulk-trash', [AssignmentLetterController::class, 'bulkTrash']);
+    Route::post('/bulk-restore', [AssignmentLetterController::class, 'bulkRestore']);
     Route::get('/utils/next-number', [AssignmentLetterController::class, 'getNextNumber']);
     Route::get('/{id}', [AssignmentLetterController::class, 'show']);
     Route::put('/{id}', [AssignmentLetterController::class, 'update']);

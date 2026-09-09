@@ -146,6 +146,22 @@ class AssignmentLetterController extends Controller
             $query->where('status', $status);
         }
 
+        if ($templateType = $request->query('template_type')) {
+            $query->where('template_type', $templateType);
+        }
+
+        if ($sumberDana = $request->query('sumber_dana')) {
+            $query->where('sumber_dana', $sumberDana);
+        }
+
+        if ($dateFrom = $request->query('date_from')) {
+            $query->whereDate('tanggal_mulai', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->query('date_to')) {
+            $query->whereDate('tanggal_selesai', '<=', $dateTo);
+        }
+
         if ($employeeId = $request->query('employee_id')) {
             $query->whereHas('employees', function ($q) use ($employeeId) {
                 $q->where('kpg_employees.id', $employeeId);
@@ -257,6 +273,8 @@ class AssignmentLetterController extends Controller
             'status' => $letter->status,
             'sumber_dana' => $letter->sumber_dana,
             'template_type' => $letter->template_type,
+            'nama_plh' => $letter->nama_plh,
+            'has_seksi_employee' => (bool) $letter->has_seksi_employee,
             'menimbang' => $letter->menimbang,
             'dasar' => $letter->dasar,
             'tembusan' => $letter->tembusan,
@@ -264,12 +282,26 @@ class AssignmentLetterController extends Controller
             'penandatangan_nip' => $letter->penandatangan_nip,
             'has_file' => ! empty($letter->file_surat_path),
             'file_surat_path' => $letter->file_surat_path,
-            'personel' => $letter->employees->map(fn ($employee) => [
+            'employees' => $letter->employees->map(fn ($employee) => [
                 'id' => $employee->id,
                 'name' => $employee->nama_lengkap,
+                'nama_lengkap' => $employee->nama_lengkap,
                 'nip' => $employee->nip,
                 'jabatan' => $employee->jabatan,
                 'unit_kerja' => $employee->satuan_kerja,
+                'satuan_kerja' => $employee->satuan_kerja,
+                'pangkat_golongan' => $employee->pangkat_golongan,
+                'peran' => $employee->pivot?->peran,
+            ])->values(),
+            'personel' => $letter->employees->map(fn ($employee) => [
+                'id' => $employee->id,
+                'name' => $employee->nama_lengkap,
+                'nama_lengkap' => $employee->nama_lengkap,
+                'nip' => $employee->nip,
+                'jabatan' => $employee->jabatan,
+                'unit_kerja' => $employee->satuan_kerja,
+                'satuan_kerja' => $employee->satuan_kerja,
+                'pangkat_golongan' => $employee->pangkat_golongan,
                 'peran' => $employee->pivot?->peran,
             ])->values(),
             'file' => [
@@ -478,6 +510,15 @@ class AssignmentLetterController extends Controller
             if ($request->has('status')) {
                 $updateData['status'] = $request->input('status');
             }
+            if ($request->has('nama_plh')) {
+                $updateData['nama_plh'] = $request->input('nama_plh');
+            }
+            if ($request->has('has_seksi_employee')) {
+                $updateData['has_seksi_employee'] = (bool) $request->input('has_seksi_employee');
+            }
+            if ($request->has('tanda_setuju')) {
+                $updateData['tanda_setuju'] = $request->input('tanda_setuju');
+            }
 
             $surat->update($updateData);
 
@@ -574,6 +615,45 @@ class AssignmentLetterController extends Controller
         $surat->forceDelete();
 
         return response()->json(['message' => 'Dokumen dihapus permanen dari arsip.']);
+    }
+
+    public function statusCounts()
+    {
+        $counts = AssignmentLetter::selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $trashed = AssignmentLetter::onlyTrashed()->count();
+        $total = AssignmentLetter::count();
+
+        return response()->json([
+            'all' => $total,
+            'draft' => (int) ($counts['draft'] ?? 0),
+            'pending' => (int) ($counts['pending'] ?? 0),
+            'approved' => (int) ($counts['approved'] ?? 0),
+            'rejected' => (int) ($counts['rejected'] ?? 0),
+            'trashed' => $trashed,
+        ]);
+    }
+
+    public function bulkTrash(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (!empty($ids) && is_array($ids)) {
+            AssignmentLetter::whereIn('id', $ids)->delete();
+        }
+
+        return response()->json(['message' => count($ids) . ' dokumen dipindahkan ke Arsip Sampah.']);
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (!empty($ids) && is_array($ids)) {
+            AssignmentLetter::onlyTrashed()->whereIn('id', $ids)->restore();
+        }
+
+        return response()->json(['message' => count($ids) . ' dokumen berhasil dipulihkan.']);
     }
 
     private function authorizeAccess(AssignmentLetter $surat, Request $request): bool
