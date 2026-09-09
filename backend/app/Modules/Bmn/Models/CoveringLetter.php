@@ -19,6 +19,7 @@ class CoveringLetter extends Model
         'sender_employee_id',
         'generated_by',
         'number',
+        'status',
         'regarding',
         'document_date',
         'recipient_title',

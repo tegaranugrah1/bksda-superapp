@@ -20,6 +20,7 @@ class HandoverAgreement extends Model
         'generated_by',
         'title',
         'number',
+        'status',
         'kap',
         'document_date',
         'first_party_snapshot',

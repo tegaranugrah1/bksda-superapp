@@ -46,12 +46,27 @@ class HandoverAgreementController extends Controller
         return response()->json(['data' => new HandoverAgreementResource($agreement)]);
     }
 
+    protected function determineStatus(?string $number, ?string $explicitStatus = null): string
+    {
+        if ($explicitStatus && in_array($explicitStatus, ['draft', 'published'], true)) {
+            return $explicitStatus;
+        }
+        if (empty($number) || trim($number) === '' || trim($number) === '-') {
+            return 'draft';
+        }
+        if (str_contains($number, "\u{00A0}") || preg_match('/^(?:BA|KS|SP)\.\s*\//i', $number)) {
+            return 'draft';
+        }
+        return 'published';
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'variant' => ['required', Rule::in(['general_goods', 'vehicle'])],
             'title' => ['required', 'string', 'max:180'],
-            'number' => ['required', 'string', 'max:120'],
+            'number' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'string', Rule::in(['draft', 'published'])],
             'kap' => ['nullable', 'string', 'max:30'],
             'document_date' => ['required', 'date'],
             'first_party_employee_id' => ['nullable', 'integer', 'exists:kpg_employees,id'],
@@ -106,13 +121,16 @@ class HandoverAgreementController extends Controller
             return response()->json(['message' => 'Minimal satu barang harus dicatat.'], 422);
         }
 
+        $status = $this->determineStatus($validated['number'] ?? null, $validated['status'] ?? null);
+
         $agreement = HandoverAgreement::create([
             'variant' => $variant,
             'first_party_employee_id' => $validated['first_party_employee_id'] ?? null,
             'second_party_employee_id' => $validated['second_party_employee_id'] ?? null,
             'generated_by' => $request->user()?->id,
             'title' => $validated['title'],
-            'number' => $validated['number'],
+            'number' => $validated['number'] ?? '-',
+            'status' => $status,
             'kap' => $validated['kap'] ?? 'KAP.03.02',
             'document_date' => $validated['document_date'],
             'first_party_snapshot' => $this->partySnapshot($validated['first_party']),
@@ -128,6 +146,95 @@ class HandoverAgreementController extends Controller
             'message' => 'BA Serah Terima berhasil disimpan.',
             'data' => new HandoverAgreementResource($agreement->load(['firstPartyEmployee', 'secondPartyEmployee', 'generator'])),
         ], 201);
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $agreement = HandoverAgreement::findOrFail($id);
+
+        $validated = $request->validate([
+            'variant' => ['required', Rule::in(['general_goods', 'vehicle'])],
+            'title' => ['required', 'string', 'max:180'],
+            'number' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'string', Rule::in(['draft', 'published'])],
+            'kap' => ['nullable', 'string', 'max:30'],
+            'document_date' => ['required', 'date'],
+            'first_party_employee_id' => ['nullable', 'integer', 'exists:kpg_employees,id'],
+            'second_party_employee_id' => ['nullable', 'integer', 'exists:kpg_employees,id'],
+            'first_party' => ['required', 'array'],
+            'first_party.name' => ['required', 'string', 'max:255'],
+            'first_party.idType' => ['nullable', 'string', 'max:20'],
+            'first_party.nip' => ['nullable', 'string', 'max:60'],
+            'first_party.rank' => ['nullable', 'string', 'max:120'],
+            'first_party.position' => ['nullable', 'string', 'max:255'],
+            'first_party.address' => ['nullable', 'string', 'max:255'],
+            'second_party' => ['required', 'array'],
+            'second_party.name' => ['required', 'string', 'max:255'],
+            'second_party.idType' => ['nullable', 'string', 'max:20'],
+            'second_party.nip' => ['nullable', 'string', 'max:60'],
+            'second_party.rank' => ['nullable', 'string', 'max:120'],
+            'second_party.position' => ['nullable', 'string', 'max:255'],
+            'second_party.address' => ['nullable', 'string', 'max:255'],
+            'witness' => ['nullable', 'array'],
+            'witness.name' => ['nullable', 'string', 'max:255'],
+            'witness.nip' => ['nullable', 'string', 'max:60'],
+            'witness.position' => ['nullable', 'string', 'max:255'],
+            'witness.label' => ['nullable', 'string', 'max:160'],
+            'items' => ['required_if:variant,general_goods', 'array'],
+            'items.*.asset_id' => ['nullable', 'uuid', Rule::exists('bmn_assets', 'id')->whereNull('deleted_at')],
+            'items.*.name' => ['required_if:variant,general_goods', 'string', 'max:255'],
+            'items.*.merk_tipe' => ['nullable', 'string', 'max:255'],
+            'items.*.quantity' => ['required_if:variant,general_goods'],
+            'items.*.nup' => ['nullable', 'string', 'max:80'],
+            'items.*.foto_depan_url' => ['nullable', 'string'],
+            'items.*.foto_belakang_url' => ['nullable', 'string'],
+            'items.*.foto_kiri_url' => ['nullable', 'string'],
+            'items.*.foto_kanan_url' => ['nullable', 'string'],
+            'items.*.foto_geotag_url' => ['nullable', 'string'],
+            'items.*.foto_url' => ['nullable', 'string'],
+            'items.*.photos' => ['nullable', 'array'],
+            'asset_ids' => ['required_if:variant,vehicle', 'array'],
+            'asset_ids.*' => ['uuid', Rule::exists('bmn_assets', 'id')->whereNull('deleted_at')],
+            'metadata' => ['nullable', 'array'],
+            'metadata.description' => ['nullable', 'string', 'max:500'],
+            'metadata.receipt_clause' => ['nullable', 'string', 'max:5000'],
+            'metadata.signer_count' => ['nullable', 'integer', Rule::in([2, 3])],
+            'notes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $variant = $validated['variant'];
+        $items = $variant === 'vehicle'
+            ? $this->vehicleItems($validated['asset_ids'] ?? [])
+            : $this->generalItems($validated['items'] ?? []);
+
+        if (empty($items)) {
+            return response()->json(['message' => 'Minimal satu barang harus dicatat.'], 422);
+        }
+
+        $status = $this->determineStatus($validated['number'] ?? null, $validated['status'] ?? null);
+
+        $agreement->update([
+            'variant' => $variant,
+            'first_party_employee_id' => $validated['first_party_employee_id'] ?? null,
+            'second_party_employee_id' => $validated['second_party_employee_id'] ?? null,
+            'title' => $validated['title'],
+            'number' => $validated['number'] ?? $agreement->number,
+            'status' => $status,
+            'kap' => $validated['kap'] ?? $agreement->kap,
+            'document_date' => $validated['document_date'],
+            'first_party_snapshot' => $this->partySnapshot($validated['first_party']),
+            'second_party_snapshot' => $this->partySnapshot($validated['second_party']),
+            'witness_snapshot' => $this->witnessSnapshot($validated['witness'] ?? null),
+            'items_snapshot' => $items,
+            'asset_ids' => $variant === 'vehicle' ? array_values($validated['asset_ids'] ?? []) : null,
+            'metadata' => $request->input('metadata', $agreement->metadata),
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'BA Serah Terima berhasil diperbarui.',
+            'data' => new HandoverAgreementResource($agreement->fresh(['firstPartyEmployee', 'secondPartyEmployee', 'generator'])),
+        ]);
     }
 
     public function destroy(string $id): JsonResponse
