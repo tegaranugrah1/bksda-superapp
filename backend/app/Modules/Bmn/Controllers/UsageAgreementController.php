@@ -48,11 +48,26 @@ class UsageAgreementController extends Controller
         ]);
     }
 
+    protected function determineStatus(?string $number, ?string $explicitStatus = null): string
+    {
+        if ($explicitStatus && in_array($explicitStatus, ['draft', 'published'], true)) {
+            return $explicitStatus;
+        }
+        if (empty($number) || trim($number) === '' || trim($number) === '-') {
+            return 'draft';
+        }
+        if (str_contains($number, "\u{00A0}") || preg_match('/^(?:BA|KS|SP)\.\s*\//i', $number)) {
+            return 'draft';
+        }
+        return 'published';
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'employee_id' => ['required', 'integer', 'exists:kpg_employees,id'],
-            'number' => ['required', 'string', 'max:120'],
+            'number' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'string', Rule::in(['draft', 'published'])],
             'kap' => ['nullable', 'string', 'max:30'],
             'document_date' => ['required', 'date'],
             'first_party' => ['required', 'array'],
@@ -74,10 +89,13 @@ class UsageAgreementController extends Controller
             ], 422);
         }
 
+        $status = $this->determineStatus($validated['number'] ?? null, $validated['status'] ?? null);
+
         $agreement = UsageAgreement::create([
             'employee_id' => $employee->id,
             'generated_by' => $request->user()?->id,
-            'number' => $validated['number'],
+            'number' => $validated['number'] ?? '-',
+            'status' => $status,
             'kap' => $validated['kap'] ?? 'KAP.03.02',
             'document_date' => $validated['document_date'],
             'first_party_snapshot' => [
@@ -96,6 +114,61 @@ class UsageAgreementController extends Controller
             'message' => 'BA Pemakaian BMN berhasil disimpan.',
             'data' => new UsageAgreementResource($agreement->load(['employee', 'generator'])),
         ], 201);
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $agreement = UsageAgreement::findOrFail($id);
+
+        $validated = $request->validate([
+            'employee_id' => ['required', 'integer', 'exists:kpg_employees,id'],
+            'number' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'string', Rule::in(['draft', 'published'])],
+            'kap' => ['nullable', 'string', 'max:30'],
+            'document_date' => ['required', 'date'],
+            'first_party' => ['required', 'array'],
+            'first_party.name' => ['required', 'string', 'max:255'],
+            'first_party.nip' => ['nullable', 'string', 'max:60'],
+            'first_party.rank' => ['nullable', 'string', 'max:120'],
+            'first_party.position' => ['nullable', 'string', 'max:255'],
+            'asset_ids' => ['nullable', 'array'],
+            'asset_ids.*' => ['uuid', Rule::exists('bmn_assets', 'id')->whereNull('deleted_at')],
+            'notes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $employee = Employee::findOrFail($validated['employee_id']);
+        $assets = $this->resolveEmployeeAssets($employee, $validated['asset_ids'] ?? null);
+
+        if ($assets->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada aset BMN yang dapat dicatat untuk pegawai ini.',
+            ], 422);
+        }
+
+        $status = $this->determineStatus($validated['number'] ?? null, $validated['status'] ?? null);
+
+        $agreement->update([
+            'employee_id' => $employee->id,
+            'number' => $validated['number'] ?? $agreement->number,
+            'status' => $status,
+            'kap' => $validated['kap'] ?? $agreement->kap,
+            'document_date' => $validated['document_date'],
+            'first_party_snapshot' => [
+                'name' => $validated['first_party']['name'],
+                'nip' => $validated['first_party']['nip'] ?? null,
+                'rank' => $validated['first_party']['rank'] ?? null,
+                'position' => $validated['first_party']['position'] ?? null,
+            ],
+            'second_party_snapshot' => $this->employeeSnapshot($employee),
+            'assets_snapshot' => $assets->map(fn (Asset $asset) => $this->assetSnapshot($asset))->values()->all(),
+            'asset_ids' => $assets->pluck('id')->values()->all(),
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'BA Pemakaian BMN berhasil diperbarui.',
+            'data' => new UsageAgreementResource($agreement->fresh(['employee', 'generator'])),
+        ]);
     }
 
     private function resolveEmployeeAssets(Employee $employee, ?array $assetIds)

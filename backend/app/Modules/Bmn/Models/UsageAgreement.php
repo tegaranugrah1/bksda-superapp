@@ -17,6 +17,7 @@ class UsageAgreement extends Model
         'employee_id',
         'generated_by',
         'number',
+        'status',
         'kap',
         'document_date',
         'first_party_snapshot',
