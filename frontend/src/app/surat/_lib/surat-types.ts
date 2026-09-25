@@ -40,6 +40,9 @@ export interface SuratKeluar {
   perihal: string;
   sifat?: string;
   lampiran?: string;
+  template_type?: string | null;
+  status?: string;
+  document_payload?: any;
   file_path?: string;
   penandatangan_id?: number | string | null;
   penandatangan?: any;

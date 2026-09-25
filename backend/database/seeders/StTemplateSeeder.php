@@ -25,8 +25,12 @@ class StTemplateSeeder extends Seeder
                     ['id' => 'default-d2', 'text' => 'Surat Pengesahan DIPA Tahun Anggaran {tahun} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/{tahun} tanggal 24 April 2026.'],
                 ],
                 'configuration' => [
+                    'default_jenis_tugas' => 'Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )',
                     'biaya_text' => 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran {tahun};',
                     'nomor_surat_format' => '/K.18/TU/{klasifikasi}/B/{bulan}/{tahun}',
+                    'untuk' => [
+                        ['id' => 'default-u1', 'text' => 'Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.'],
+                    ],
                 ],
                 'is_system' => true,
                 'is_default' => true,
@@ -50,7 +54,14 @@ class StTemplateSeeder extends Seeder
                     ['id' => 'bmn-d7', 'text' => 'Peraturan Menteri Keuangan Nomor 181/PMK.06/2016 tentang Penatausahaan Barang Milik Negara;'],
                     ['id' => 'bmn-d8', 'text' => 'Peraturan Menteri Lingkungan Hidup dan Kehutanan Nomor P.11/MENLHK/SETJEN/KAP.3/4/2018 tentang Tata Cara Pelaksanaan Pemindahtanganan Barang Milik Negara Lingkup Kementerian Lingkungan Hidup dan Kehutanan.'],
                 ],
-                'configuration' => ['klasifikasi' => 'KAP.05', 'sumber_dana' => 'dl1'],
+                'configuration' => [
+                    'default_jenis_tugas' => 'Menugaskan Staf',
+                    'klasifikasi' => 'KAP.05',
+                    'sumber_dana' => 'dl1',
+                    'untuk' => [
+                        ['id' => 'bmn-u1', 'text' => 'Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut.'],
+                    ],
+                ],
                 'is_system' => true,
             ],
             [
@@ -58,6 +69,12 @@ class StTemplateSeeder extends Seeder
                 'code' => 'beda-hari',
                 'description' => 'Template Surat Tugas dengan tanggal per pegawai.',
                 'type' => StTemplateType::BEDA_HARI->value,
+                'configuration' => [
+                    'default_jenis_tugas' => 'Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )',
+                    'untuk' => [
+                        ['id' => 'beda-hari-u1', 'text' => 'Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.'],
+                    ],
+                ],
                 'is_system' => true,
             ],
             [
@@ -66,13 +83,22 @@ class StTemplateSeeder extends Seeder
                 'description' => 'Template Pelaksana Harian Kepala Seksi.',
                 'type' => StTemplateType::PLH->value,
                 'menimbang' => [
-                    ['id' => 'plh-m1', 'text' => 'bahwa Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah} akan melaksanakan {kegiatan Kepala Seksi};'],
+                    ['id' => 'plh-m1', 'text' => 'bahwa Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah} akan {kegiatan Kepala Seksi};'],
                     ['id' => 'plh-m2', 'text' => 'bahwa sehubungan dengan hal tersebut di atas untuk kelancaran pelaksanaan tugas sehari-hari maka perlu ada pejabat sementara yang menggantikan tugas Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}.'],
                 ],
                 'dasar' => [
                     ['id' => 'plh-d1', 'text' => 'Surat Tugas Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor : {nomor surat induk} tanggal {tanggal surat induk}.'],
                 ],
-                'configuration' => ['klasifikasi' => 'PEG.09.01', 'sumber_dana' => 'dl1'],
+                'configuration' => [
+                    'default_jenis_tugas' => 'Menugaskan Staf',
+                    'default_mode_kegiatan' => 'manual',
+                    'default_kegiatan' => 'Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}',
+                    'klasifikasi' => 'PEG.09.01',
+                    'sumber_dana' => 'dl1',
+                    'untuk' => [
+                        ['id' => 'plh-u1', 'text' => 'Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai.'],
+                    ],
+                ],
                 'is_system' => true,
             ],
         ];

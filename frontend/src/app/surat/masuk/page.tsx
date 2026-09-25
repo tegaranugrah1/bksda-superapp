@@ -8,18 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { SuratMasuk } from "../_lib/surat-types";
 import { ExportSuratMasukModal } from "./_components/ExportSuratMasukModal";
 
 function formatDisplayDate(dateStr?: string | null): string {
   if (!dateStr) return "-";
-  const str = String(dateStr).trim();
-  const rawDate = str.includes("T") ? str.split("T")[0] : str.includes(" ") ? str.split(" ")[0] : str;
-  const parts = rawDate.split("-");
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  }
-  return rawDate;
+  const [y, m, d] = String(dateStr).split(/[T ]/)[0].split("-");
+  return y && m && d ? `${d}/${m}/${y}` : String(dateStr);
 }
 
 const PER_PAGE_OPTIONS = ["10", "20", "50", "all"] as const;
@@ -40,6 +36,7 @@ function getInitialSuratList(): SuratMasuk[] {
 
 export default function SuratMasukListPage() {
   const router = useRouter();
+  const confirm = useConfirm();
   const [search, setSearch] = useState("");
   const [suratList, setSuratList] = useState<SuratMasuk[]>(getInitialSuratList);
   const [loading, setLoading] = useState<boolean>(() => {
@@ -54,7 +51,6 @@ export default function SuratMasukListPage() {
     return true;
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [deleteItem, setDeleteItem] = useState<SuratMasuk | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Pagination states
@@ -152,6 +148,28 @@ export default function SuratMasukListPage() {
   }, [loadData]);
 
   const handleDeleteSurat = async (item: SuratMasuk) => {
+    const ok = await confirm({
+      title: "Hapus Surat Masuk",
+      description: (
+        <div className="space-y-3 pt-1">
+          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+            Apakah Anda yakin ingin menghapus data surat masuk ini?
+          </p>
+          <div className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 text-xs font-mono font-semibold text-zinc-800 dark:text-zinc-200 break-all text-center select-all">
+            {item.no_surat ? `${item.no_surat}` : `Agenda #${item.no_agenda}`}
+          </div>
+          <p className="text-xs text-rose-500 font-medium">
+            Tindakan ini permanen dan data tidak dapat dipulihkan.
+          </p>
+        </div>
+      ),
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (!ok) return;
+
     try {
       if (item.id) {
         await api.delete(`/api/surat-masuk/${item.id}`).catch(() => {});
@@ -178,7 +196,6 @@ export default function SuratMasukListPage() {
       }
     }
     toast.success(`Surat Masuk (Agenda ${item.no_agenda}) berhasil dihapus.`);
-    setDeleteItem(null);
   };
 
   const filtered = useMemo(() => {

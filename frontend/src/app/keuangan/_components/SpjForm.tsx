@@ -6,11 +6,22 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowRightLeft,
+  AlertTriangle,
+  Building2,
   Banknote,
   Check,
   ChevronDown,
+  Leaf,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useRole } from "@/hooks/useRole";
 import api from "@/lib/api";
 import {
@@ -50,12 +62,16 @@ import {
   calculateDipaTotal,
   calculateRinbaTotal,
   cleanNip,
+  computeDipaMak,
+  DEFAULT_DIPA_KLASIFIKASI_MAK,
   extractActivityNameFromMaksud,
   extractOriginFromMaksud,
   formatFullDateIndonesia,
   formatNip,
   getRomanMonth,
   isSameEmployee,
+  buildDefaultSptjbUraian,
+  formatMaksudSpd,
 } from "@/app/keuangan/_components/templates/shared";
 import { Step0IdentitasSt } from "@/app/keuangan/_components/steps/Step0IdentitasSt";
 import { Step1RincianBiaya } from "@/app/keuangan/_components/steps/Step1RincianBiaya";
@@ -119,19 +135,21 @@ const initialRecipient = (
 
 export function SpjForm({ spjId }: { spjId?: string | number }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const isEditMode = Boolean(spjId);
 
   const { canWrite } = useRole();
   const [step, setStep] = useState(0);
   const [tipeAnggaran, setTipeAnggaran] = useState<"FOLU" | "DIPA">("FOLU");
+  const [pendingSwitchType, setPendingSwitchType] = useState<"FOLU" | "DIPA" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDownloadingExcel, setIsDownloadingExcel] = useState(false);
   const [spjName, setSpjName] = useState(DEFAULT_FOLU_ACTIVITY_NAME);
-  const [nomorSpj, setNomorSpj] = useState("SPJ.001/K.18/TU/FOLU-NC-23/KSA.02.01/B/07/2026");
   const [source, setSource] = useState<"linked" | "manual">("linked");
   const [foluLetters, setFoluLetters] = useState<ApiSuratTugas[]>([]);
   const [isLoadingLetters, setIsLoadingLetters] = useState(true);
   const [selectedStId, setSelectedStId] = useState<string>("");
-  const [sptNumber, setSptNumber] = useState("ST.685/K.18/TU/FOLU-NC-23/KSA.02.01/B/07/2026");
+  const [sptNumber, setSptNumber] = useState("");
   const [sptSearch, setSptSearch] = useState("");
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [sptEmployees, setSptEmployees] = useState<FinanceEmployee[]>([]);
@@ -168,20 +186,34 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
   const [kwitansiConfig, setKwitansiConfig] = useState<KwitansiConfig>({
     sudahTerimaDari: DEFAULT_KWITANSI_SUDAH_TERIMA_DARI,
   });
-  const [activeDipaTab, setActiveDipaTab] = useState<"nominatif" | "sptb" | "rinba" | "spby" | "spd">("nominatif");
+  const [activeDipaTab, setActiveDipaTab] = useState<"nominatif" | "sptb" | "rinba" | "dpril" | "spby" | "spd">("nominatif");
   const [activeFoluTab, setActiveFoluTab] = useState<"rekap" | "spb" | "kwitansi" | "rinba" | "spd">("rekap");
   const [dipaConfig, setDipaConfig] = useState<DipaConfig>({
     kodeSatker: "143.04.16.693614",
     namaSatker: "Balai Konservasi Sumber Daya Alam Kalimantan Timur",
     noSpDipa: "No. SP DIPA- 143.04.2.693614/2025 Tanggal 23 Desember 2025",
-    klasifikasiMak: "7271.REA.001.524111",
-    kodeMak: "051.F.077",
+    klasifikasiMak: DEFAULT_DIPA_KLASIFIKASI_MAK,
+    kodeMak: "",
     akun: "524111",
     transportMode: "Kendaraan Dinas",
     stDate: "",
     spdDate: "",
+    spbyDate: "",
+    sptjbDate: "",
+    rinbaDate: "",
+    nominatifDate: "",
+    dpRilDate: "",
     cityDateText: "Samarinda,",
     uraianSptjb: "",
+    buktiSptjb: `/${getRomanMonth()}/${new Date().getFullYear()}`,
+    spbyNo: "",
+    spbyMonth: getRomanMonth(),
+    spbyYear: new Date().getFullYear().toString(),
+    spbyKuitansi: "",
+    spbyNota: "",
+    rinbaSpdNo: "",
+    rinbaSpdSuffix: "",
+    nominatifSpd: "",
   });
   const [defaultEvidenceSuffix, setDefaultEvidenceSuffix] = useState(DEFAULT_SUFFIX);
   const [recipients, setRecipients] = useState<RecipientRow[]>([]);
@@ -284,6 +316,19 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
         maksudTujuan: letterMaksud,
         stDate: formatFullDateIndonesia(startDate),
         spdDate: formatFullDateIndonesia(startDate),
+        spbyDate: prev.spbyDate || "",
+        sptjbDate: prev.sptjbDate || "",
+        rinbaDate: prev.rinbaDate || "",
+        nominatifDate: prev.nominatifDate || "",
+        dpRilDate: prev.dpRilDate || "",
+        buktiSptjb: prev.buktiSptjb || `/${getRomanMonth()}/${new Date().getFullYear()}`,
+        spbyNo: prev.spbyNo || "",
+        spbyMonth: prev.spbyMonth || getRomanMonth(startDate),
+        spbyYear: prev.spbyYear || (startDate ? new Date(startDate).getFullYear().toString() : new Date().getFullYear().toString()),
+        spbyKuitansi: prev.spbyKuitansi || "",
+        spbyNota: prev.spbyNota || "",
+        rinbaSpdNo: prev.rinbaSpdNo || "",
+        rinbaSpdSuffix: prev.rinbaSpdSuffix || computedSpdSuffix,
       }));
     }
 
@@ -406,7 +451,14 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
         const data = res.data?.data;
         if (!data) return;
 
-        if (data.nomor_spj) setNomorSpj(data.nomor_spj);
+        if (data.nomor_spj) {
+          const match = String(data.nomor_spj).match(/^([^/]+)(\/.*)$/);
+          if (match) {
+            setSpbNumber({ no: match[1], suffix: match[2] });
+          } else {
+            setSpbNumber((prev) => ({ ...prev, no: data.nomor_spj }));
+          }
+        }
         if (data.tipe_anggaran) setTipeAnggaran(data.tipe_anggaran);
         if (data.nama_kegiatan) {
           setSpjName(data.nama_kegiatan);
@@ -455,6 +507,12 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
           if (emps.length > 0) {
             setSelectedEmployees(emps);
           }
+        }
+        if (data.dipaConfig) {
+          setDipaConfig((prev) => ({
+            ...prev,
+            ...data.dipaConfig,
+          }));
         }
         toast.info(`Mode Edit: Memuat data SPJ #${spjId}`);
       } catch (err) {
@@ -544,20 +602,21 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
   const handleSwitchTipeAnggaran = (type: "FOLU" | "DIPA") => {
     if (type === tipeAnggaran) return;
 
-    const hasEnteredData = recipients.length > 0 || !!selectedStId || !!sptNumber;
+    const hasEnteredData = recipients.length > 0 || !!selectedStId || !!sptNumber || step > 0;
     if (hasEnteredData) {
-      const confirmSwitch = window.confirm(
-        `Beralih sumber dana ke format ${
-          type === "DIPA" ? "DIPA Balai KSDA" : "FOLU Net Sink 2030"
-        } akan mereset data form saat ini. Apakah Anda yakin ingin melanjutkan?`
-      );
-      if (!confirmSwitch) return;
+      setPendingSwitchType(type);
+    } else {
+      executeSwitchBudget(type);
     }
+  };
 
+  const executeSwitchBudget = (type: "FOLU" | "DIPA") => {
     setTipeAnggaran(type);
     setStep(0);
     setSelectedStId("");
     setSptNumber("");
+    setSptSearch("");
+    setEmployeeSearch("");
     setSptEmployees([]);
     setSelectedEmployees([]);
     setRecipients([]);
@@ -566,7 +625,6 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
       setPpk(OFFICIALS_DIPA[0]);
       setPdo(OFFICIALS_DIPA[1]);
       setSelectedDocument("spby-dipa");
-      setNomorSpj("SPJ.001/K.18/TU/KEU/VIII/2026");
       setSpdNumber({ no: "", suffix: "/K.18-TU/KEU/01/2026" });
       setSpbNumber({ no: "", suffix: "/K.18-TU/KEU/01/2026" });
       const romanMonth = getRomanMonth(travel.startDate);
@@ -577,12 +635,13 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
         name: "Perjalanan Dinas dalam rangka tugas operasional balai",
       });
       setSpjName("Perjalanan Dinas dalam rangka tugas operasional balai");
-      toast.info("Beralih ke format SPJ DIPA. Silakan pilih Surat Tugas DIPA.");
+      toast.success("Beralih ke Format SPJ DIPA Balai KSDA", {
+        description: "Formulir telah disesuaikan. Silakan pilih Surat Tugas DIPA Balai.",
+      });
     } else {
       setPpk(OFFICIALS[0]);
       setPdo(OFFICIALS[1]);
       setSelectedDocument("sptjb");
-      setNomorSpj("SPJ.001/K.18/TU/FOLU-NC-23/VIII/2026");
       setSpdNumber({ no: "", suffix: "/K.18-TU/FOLU.NC-23/04/2026" });
       setSpbNumber({ no: "", suffix: "/SPB/K.18/FOLU-NC23/05/2026" });
       setDefaultEvidenceSuffix(DEFAULT_SUFFIX);
@@ -591,8 +650,11 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
         name: DEFAULT_FOLU_ACTIVITY_NAME,
       });
       setSpjName(DEFAULT_FOLU_ACTIVITY_NAME);
-      toast.info("Beralih ke format SPJ FOLU. Silakan pilih Surat Tugas FOLU.");
+      toast.success("Beralih ke Format SPJ FOLU Net Sink 2030", {
+        description: "Formulir telah disesuaikan. Silakan pilih Surat Tugas FOLU NC 2&3.",
+      });
     }
+    setPendingSwitchType(null);
   };
 
   const syncRecipients = (employees: FinanceEmployee[]) =>
@@ -650,10 +712,14 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
       return;
     }
 
+    const fullSpbOrSpby = spbNumber.no?.trim()
+      ? `${spbNumber.no.trim()}${spbNumber.suffix?.trim() || ""}`
+      : null;
+
     setIsSubmitting(true);
     try {
       const payload = {
-        nomor_spj: nomorSpj.trim() || undefined,
+        nomor_spj: fullSpbOrSpby,
         nama_kegiatan: finalSpjName,
         tipe_anggaran: tipeAnggaran,
         nomor_spt: sptNumber,
@@ -673,6 +739,11 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
         total_anggaran: total,
         employee_count: recipients.length,
         status: statusToSave,
+        dipa_config: tipeAnggaran === "DIPA" ? {
+          ...dipaConfig,
+          klasifikasiMak: dipaConfig.klasifikasiMak || DEFAULT_DIPA_KLASIFIKASI_MAK,
+          kodeMak: dipaConfig.kodeMak?.trim() ? dipaConfig.kodeMak : computeDipaMak(recipients, travel).kodeMak,
+        } : undefined,
       };
 
       if (isEditMode && spjId) {
@@ -699,6 +770,94 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
     }
   };
 
+  const handleDownloadExcel = async () => {
+    const finalSpjName = spjName.trim() || activity.name.trim();
+    const fullSpbOrSpby = spbNumber.no?.trim()
+      ? `${spbNumber.no.trim()}${spbNumber.suffix?.trim() || ""}`
+      : null;
+
+    const payload = {
+      nomor_spj: fullSpbOrSpby,
+      nama_kegiatan: finalSpjName,
+      tipe_anggaran: tipeAnggaran,
+      nomor_spt: sptNumber,
+      surat_tugas_id: selectedStId || null,
+      sumber_dana: tipeAnggaran === "FOLU" ? "FOLU-NC-23" : "DIPA",
+      kode_awp: activity.awpCode,
+      satuan_kerja: SATUAN_KERJA,
+      asal: travel.origin,
+      tujuan: travel.destination,
+      tanggal_mulai: travel.startDate,
+      tanggal_selesai: travel.endDate,
+      pejabat_ppk: ppk,
+      pejabat_pdo: pdo,
+      pejabat_verifikator: verifikator,
+      pejabat_kasubbag: OFFICIALS[3],
+      recipients,
+      total_anggaran: total,
+      employee_count: recipients.length,
+      spbNumber,
+      spdNumber,
+      spbConfig,
+      spdConfig,
+      kwitansiConfig,
+      dipaConfig: {
+        ...dipaConfig,
+        klasifikasiMak: dipaConfig.klasifikasiMak || DEFAULT_DIPA_KLASIFIKASI_MAK,
+        kodeMak: dipaConfig.kodeMak?.trim() ? dipaConfig.kodeMak : computeDipaMak(recipients, travel).kodeMak,
+        maksudTujuan: formatMaksudSpd(dipaConfig.maksudTujuan || activity.name, travel),
+        uraianSptjb: dipaConfig.uraianSptjb?.trim()
+          ? dipaConfig.uraianSptjb
+          : buildDefaultSptjbUraian(travel, recipients.length, dipaConfig.maksudTujuan || activity.name),
+      },
+    };
+
+    setIsDownloadingExcel(true);
+    try {
+      const response = await api.post("/api/keuangan/spj/export-excel", payload, {
+        responseType: "blob",
+        timeout: 60000,
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const cleanSpt = (sptNumber || "SPJ").replace(/[^a-zA-Z0-9_-]/g, "_");
+      link.setAttribute("download", `SPJ_${tipeAnggaran}_${cleanSpt}_${travel.startDate || "2026"}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success(`File Excel SPJ ${tipeAnggaran} berhasil diunduh!`);
+    } catch (err: unknown) {
+      console.error("Export Excel error:", err);
+      toast.error("Gagal mengunduh file Excel SPJ.");
+    } finally {
+      setIsDownloadingExcel(false);
+    }
+  };
+
+  const handleBackToSpjList = async (e: React.MouseEvent) => {
+    const hasEnteredData = recipients.length > 0 || !!selectedStId || !!sptNumber || step > 0;
+    if (hasEnteredData) {
+      e.preventDefault();
+      const confirmed = await confirm({
+        title: "Tinggalkan Pembuatan SPJ?",
+        description: "Data yang telah diisi pada formulir ini belum disimpan. Apakah Anda yakin ingin kembali ke daftar SPJ?",
+        confirmText: "Ya, Tinggalkan",
+        cancelText: "Tetap Mengisi",
+        variant: "warning",
+      });
+      if (confirmed) {
+        router.push("/keuangan/spj");
+      }
+    }
+  };
+
   if (!canWrite) {
     return (
       <div className="p-10">
@@ -718,8 +877,15 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
     <div className="space-y-7 p-5 md:p-10 print:p-0">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
         <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="icon" className="rounded-xl">
-            <Link href="/keuangan/spj" aria-label="Kembali">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="rounded-xl"
+            onClick={handleBackToSpjList}
+            asChild
+          >
+            <Link href="/keuangan/spj" aria-label="Kembali" onClick={handleBackToSpjList}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -828,8 +994,6 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
           tipeAnggaran={tipeAnggaran}
           spjName={spjName}
           setSpjName={setSpjName}
-          nomorSpj={nomorSpj}
-          setNomorSpj={setNomorSpj}
           source={source}
           setSource={setSource}
           sptSearch={sptSearch}
@@ -906,15 +1070,19 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
           total={total}
           spbNumber={spbNumber}
           spdNumber={spdNumber}
+          setSpdNumber={setSpdNumber}
           spbConfig={spbConfig}
           spdConfig={spdConfig}
           kwitansiConfig={kwitansiConfig}
           tipeAnggaran={tipeAnggaran}
           dipaConfig={dipaConfig}
+          setDipaConfig={setDipaConfig}
           handleSaveSpj={handleSaveSpj}
           isSubmitting={isSubmitting}
           isEditMode={isEditMode}
           printDocument={printDocument}
+          handleDownloadExcel={handleDownloadExcel}
+          isDownloadingExcel={isDownloadingExcel}
         />
       )}
 
@@ -933,6 +1101,184 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
           </Button>
         )}
       </div>
+
+      {/* MODAL KONFIRMASI GANTI SUMBER DANA */}
+      <Dialog
+        open={!!pendingSwitchType}
+        onOpenChange={(open) => {
+          if (!open) setPendingSwitchType(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[490px] p-0 overflow-hidden rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/15 dark:shadow-black/70 gap-0">
+          <div className="relative overflow-hidden pt-7 px-6 pb-2">
+            {/* Ambient dynamic glow */}
+            <div
+              className={`absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-32 blur-3xl pointer-events-none rounded-full transition-all ${
+                pendingSwitchType === "DIPA"
+                  ? "bg-gradient-to-b from-blue-500/25 via-indigo-500/15 to-transparent"
+                  : "bg-gradient-to-b from-emerald-500/25 via-teal-500/15 to-transparent"
+              }`}
+            />
+
+            {/* Interchange floating badge */}
+            <div className="relative mx-auto mb-4 flex items-center justify-center">
+              <div className="flex items-center gap-2 rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-lg shadow-slate-200/60 backdrop-blur-md dark:border-slate-800 dark:bg-slate-800/95 dark:shadow-black/40">
+                {/* Format Asal */}
+                <div
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${
+                    tipeAnggaran === "FOLU"
+                      ? "border-emerald-200/80 bg-emerald-50 text-emerald-600 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400"
+                      : "border-blue-200/80 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-400"
+                  }`}
+                  title={tipeAnggaran === "FOLU" ? "FOLU Net Sink" : "DIPA Balai"}
+                >
+                  {tipeAnggaran === "FOLU" ? (
+                    <Leaf className="h-5 w-5" />
+                  ) : (
+                    <Building2 className="h-5 w-5" />
+                  )}
+                </div>
+
+                {/* Transition Arrow */}
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400">
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </div>
+
+                {/* Format Tujuan */}
+                <div
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl font-bold text-white shadow-md transition-all ${
+                    pendingSwitchType === "DIPA"
+                      ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30"
+                      : "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/30"
+                  }`}
+                  title={pendingSwitchType === "DIPA" ? "DIPA Balai KSDA" : "FOLU Net Sink 2030"}
+                >
+                  {pendingSwitchType === "DIPA" ? (
+                    <Building2 className="h-5 w-5" />
+                  ) : (
+                    <Leaf className="h-5 w-5" />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Header Text */}
+            <div className="text-center space-y-1.5">
+              <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Ganti Format Sumber Dana?
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+                Beralih ke format pengisian{" "}
+                <span
+                  className={`font-semibold ${
+                    pendingSwitchType === "DIPA"
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-emerald-600 dark:text-emerald-400"
+                  }`}
+                >
+                  {pendingSwitchType === "DIPA"
+                    ? "SPJ Dana DIPA Balai KSDA"
+                    : "SPJ Dana FOLU Net Sink 2030"}
+                </span>
+              </DialogDescription>
+            </div>
+          </div>
+
+          {/* Cards Comparison */}
+          <div className="px-6 py-4">
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Asal */}
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5 text-left dark:border-slate-800 dark:bg-slate-800/40">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                  Format Asal
+                </div>
+                <div className="mt-1 font-bold text-xs text-slate-800 dark:text-slate-200 truncate">
+                  {tipeAnggaran === "FOLU" ? "FOLU Net Sink" : "DIPA Balai KSDA"}
+                </div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                  {tipeAnggaran === "FOLU" ? "Format Hibah / SPB" : "Rupiah Murni / SPBy"}
+                </div>
+              </div>
+
+              {/* Tujuan */}
+              <div
+                className={`rounded-2xl border-2 p-3.5 text-left relative overflow-hidden transition-all ${
+                  pendingSwitchType === "DIPA"
+                    ? "border-blue-500/50 bg-blue-50/70 dark:border-blue-500/40 dark:bg-blue-950/30"
+                    : "border-emerald-500/50 bg-emerald-50/70 dark:border-emerald-500/40 dark:bg-emerald-950/30"
+                }`}
+              >
+                <div
+                  className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${
+                    pendingSwitchType === "DIPA"
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-emerald-600 dark:text-emerald-400"
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full animate-pulse ${
+                      pendingSwitchType === "DIPA" ? "bg-blue-600" : "bg-emerald-600"
+                    }`}
+                  />
+                  Format Baru
+                </div>
+                <div className="mt-1 font-bold text-xs text-slate-900 dark:text-white truncate">
+                  {pendingSwitchType === "DIPA" ? "DIPA Balai KSDA" : "FOLU Net Sink 2030"}
+                </div>
+                <div
+                  className={`text-[11px] font-medium mt-0.5 truncate ${
+                    pendingSwitchType === "DIPA"
+                      ? "text-blue-700 dark:text-blue-300"
+                      : "text-emerald-700 dark:text-emerald-300"
+                  }`}
+                >
+                  {pendingSwitchType === "DIPA" ? "SPBy DIPA & ST Balai" : "SPB FOLU & ST NC 2&3"}
+                </div>
+              </div>
+            </div>
+
+            {/* Warning Callout */}
+            <div className="mt-3.5 rounded-2xl border border-amber-200/90 bg-amber-50/80 p-3.5 flex items-start gap-2.5 text-left dark:border-amber-900/50 dark:bg-amber-950/25">
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 mt-0.5">
+                <AlertTriangle className="h-3.5 w-3.5" />
+              </div>
+              <div className="text-xs space-y-0.5 min-w-0">
+                <p className="font-semibold text-amber-900 dark:text-amber-200">
+                  Formulir input saat ini akan di-reset
+                </p>
+                <p className="text-[11px] leading-relaxed text-amber-700/90 dark:text-amber-400/90">
+                  Pilihan Surat Tugas, personil, dan nominal rincian biaya akan dikosongkan untuk menyesuaikan template {pendingSwitchType}.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Footer */}
+          <div className="px-6 py-4 bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setPendingSwitchType(null)}
+              className="h-10 px-4 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 text-xs font-semibold transition-all"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              onClick={() => pendingSwitchType && executeSwitchBudget(pendingSwitchType)}
+              className={`h-10 px-5 rounded-xl font-bold text-xs text-white shadow-md transition-all active:scale-[0.98] flex items-center gap-2 ${
+                pendingSwitchType === "DIPA"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/25"
+                  : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/25"
+              }`}
+            >
+              <span>Ya, Beralih ke {pendingSwitchType}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

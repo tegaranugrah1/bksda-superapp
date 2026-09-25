@@ -38,7 +38,7 @@ export function TembusanSection({ items, onChange, disabled = false }: TembusanS
           <div key={idx} className="flex items-center gap-1">
             <span className="text-[10px] text-slate-400 w-4">{idx + 1}.</span>
             <input
-              value={item}
+              value={item ?? ""}
               disabled={disabled}
               onChange={(e) => {
                 const updated = [...items];

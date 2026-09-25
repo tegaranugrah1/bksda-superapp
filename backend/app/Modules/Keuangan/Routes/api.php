@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->prefix('keuangan/spj')->group(function () {
     Route::get('/', [SpjController::class, 'index']);
     Route::post('/', [SpjController::class, 'store']);
+    Route::post('/export-excel', [SpjController::class, 'exportExcel']);
+    Route::get('/{id}/export-excel', [SpjController::class, 'exportExcelById']);
     Route::get('/{id}', [SpjController::class, 'show']);
     Route::put('/{id}', [SpjController::class, 'update']);
     Route::delete('/{id}', [SpjController::class, 'destroy']);

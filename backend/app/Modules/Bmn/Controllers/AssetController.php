@@ -26,7 +26,7 @@ class AssetController extends Controller
 
     public function index(Request $request)
     {
-        $query = Asset::with(['penanggungJawab', 'loans' => function ($q) {
+        $query = Asset::with(['penanggungJawab', 'tags', 'loans' => function ($q) {
             $q->active()->with('borrower')->latest('tanggal_pinjam');
         }])->latest();
 
@@ -37,17 +37,23 @@ class AssetController extends Controller
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
             $likePattern = "%{$search}%";
+            $cleanSearch = ltrim($search, '#');
+            $cleanLikePattern = "%{$cleanSearch}%";
             $isPgSql = config('database.default') === 'pgsql';
             $likeOp = $isPgSql ? 'ilike' : 'like';
 
-            $query->where(function ($q) use ($likePattern, $likeOp) {
+            $query->where(function ($q) use ($likePattern, $cleanLikePattern, $likeOp) {
                 $q->where('nama_barang', $likeOp, $likePattern)
                     ->orWhere('kode_barang', $likeOp, $likePattern)
                     ->orWhere('merk', $likeOp, $likePattern)
                     ->orWhere('merk_tipe', $likeOp, $likePattern)
                     ->orWhere('tipe', $likeOp, $likePattern)
                     ->orWhere('nup', $likeOp, $likePattern)
-                    ->orWhere('no_polisi', $likeOp, $likePattern);
+                    ->orWhere('no_polisi', $likeOp, $likePattern)
+                    ->orWhereHas('tags', function ($tq) use ($cleanLikePattern, $likeOp) {
+                        $tq->where('name', $likeOp, $cleanLikePattern)
+                            ->orWhere('label', $likeOp, $cleanLikePattern);
+                    });
             });
         }
 
@@ -113,6 +119,16 @@ class AssetController extends Controller
             $query->whereRaw('LOWER(lokasi_ruang) LIKE ?', ["%{$lokasiRuang}%"]);
         }
 
+        $rawTags = $request->input('tag_ids', $request->input('tag_id'));
+        if ($rawTags && $rawTags !== 'Semua') {
+            $tagIds = is_array($rawTags) ? $rawTags : explode(',', (string) $rawTags);
+            foreach (array_filter($tagIds) as $tId) {
+                if ($tId !== 'Semua') {
+                    $query->whereHas('tags', fn ($q) => $q->where('bmn_tags.id', $tId));
+                }
+            }
+        }
+
         $perPage = $this->resolvePerPage($request, default: 10, mobileMax: 100, webMax: 2000);
         return AssetResource::collection($query->paginate($perPage));
     }
@@ -138,7 +154,7 @@ class AssetController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $asset = Asset::with(['penanggungJawab', 'loans.borrower', 'maintenances', 'historyUpdates.author'])
+        $asset = Asset::with(['penanggungJawab', 'tags', 'loans.borrower', 'maintenances', 'historyUpdates.author'])
             ->findOrFail($id);
 
         return response()->json(['data' => new AssetResource($asset)]);

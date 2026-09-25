@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Mail,
   Inbox,
   Send,
   Plus,
@@ -12,45 +11,22 @@ import {
   Building2,
   ChevronRight,
   Calendar,
-  FileText,
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { SuratMasuk, SuratKeluar } from "../_lib/surat-types";
 
-export interface SuratMasukItem {
-  id?: string | number;
-  no_agenda?: string;
-  tanggal_agenda?: string;
-  no_surat?: string;
-  tanggal_surat?: string;
-  asal_surat?: string;
-  isi_ringkas?: string;
+export interface SuratMasukItem extends Partial<SuratMasuk> {
   perihal?: string;
   tanggal_terima?: string;
-  status_disposisi?: string;
   sifat?: string;
-  sifat_json?: string[];
 }
-
-export interface SuratKeluarItem {
-  id?: string | number;
-  no_surat?: string;
-  tanggal_surat?: string;
-  tujuan_surat?: string;
-  perihal?: string;
-  sifat?: string;
-  status?: string;
-}
+export type SuratKeluarItem = Partial<SuratKeluar>;
 
 function formatDisplayDate(dateStr?: string | null): string {
   if (!dateStr) return "-";
-  const str = String(dateStr).trim();
-  const rawDate = str.includes("T") ? str.split("T")[0] : str.includes(" ") ? str.split(" ")[0] : str;
-  const parts = rawDate.split("-");
-  if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  }
-  return rawDate;
+  const [y, m, d] = String(dateStr).split(/[T ]/)[0].split("-");
+  return y && m && d ? `${d}/${m}/${y}` : String(dateStr);
 }
 
 export function HeaderBanner() {
@@ -105,107 +81,87 @@ export function BentoStatCards({
   totalSuratMasuk: number;
   totalSuratKeluar: number;
 }) {
+  const stats = [
+    {
+      label: "Surat Masuk",
+      subLabel: "Agenda Aktif",
+      desc: "Disposisi & Teragendakan",
+      value: totalSuratMasuk,
+      icon: Inbox,
+      iconBg: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300",
+      badgeClass: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-900/60",
+      subBadgeClass: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50",
+      hoverBorder: "hover:border-emerald-500/40",
+    },
+    {
+      label: "Surat Keluar",
+      subLabel: "Terarsip",
+      desc: "Penomoran Naskah Resmi",
+      value: totalSuratKeluar,
+      icon: Send,
+      iconBg: "bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300",
+      badgeClass: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200/60 dark:border-blue-900/60",
+      subBadgeClass: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50",
+      hoverBorder: "hover:border-blue-500/40",
+    },
+    {
+      label: "Disposisi Cetak",
+      subLabel: "Standar",
+      desc: "2 Lembar Disposisi per Halaman",
+      value: "2-Up Letter",
+      valueClass: "text-xl md:text-2xl",
+      icon: FileCheck,
+      iconBg: "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300",
+      badgeClass: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-200/60 dark:border-amber-900/60",
+      subBadgeClass: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50",
+      hoverBorder: "hover:border-amber-500/40",
+    },
+    {
+      label: "Tata Kelola",
+      subLabel: "Terdata",
+      desc: "Penatausahaan Naskah Resmi",
+      value: "100%",
+      icon: CheckCircle2,
+      iconBg: "bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300",
+      badgeClass: "bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300 border-teal-200/60 dark:border-teal-900/60",
+      subBadgeClass: "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50",
+      hoverBorder: "hover:border-teal-500/40",
+    },
+  ];
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-      {/* Card 1: Total Surat Masuk */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between">
-        <div className="flex items-center justify-between">
-          <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
-            <Inbox className="w-4.5 h-4.5" />
+      {stats.map((card) => {
+        const Icon = card.icon;
+        return (
+          <div
+            key={card.label}
+            className={`bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs transition-all flex flex-col justify-between ${card.hoverBorder}`}
+          >
+            <div className="flex items-center justify-between">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${card.iconBg}`}>
+                <Icon className="w-4.5 h-4.5" />
+              </div>
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${card.badgeClass}`}>
+                {card.label}
+              </span>
+            </div>
+            <div className="mt-3">
+              <div className="flex items-baseline gap-2">
+                <p className={`font-bold text-zinc-900 dark:text-white tracking-tight ${card.valueClass || "text-2xl md:text-3xl"}`}>
+                  {card.value}
+                </p>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${card.subBadgeClass}`}>
+                  {card.subLabel}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
+                {card.desc}
+              </p>
+            </div>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/60">
-            Surat Masuk
-          </span>
-        </div>
-        <div className="mt-3">
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
-              {totalSuratMasuk}
-            </p>
-            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded">
-              Agenda Aktif
-            </span>
-          </div>
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
-            Disposisi & Teragendakan
-          </p>
-        </div>
-      </div>
-
-      {/* Card 2: Total Surat Keluar */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:border-blue-500/40 transition-all flex flex-col justify-between">
-        <div className="flex items-center justify-between">
-          <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 flex items-center justify-center">
-            <Send className="w-4.5 h-4.5" />
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/60">
-            Surat Keluar
-          </span>
-        </div>
-        <div className="mt-3">
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
-              {totalSuratKeluar}
-            </p>
-            <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded">
-              Terarsip
-            </span>
-          </div>
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
-            Penomoran Naskah Resmi
-          </p>
-        </div>
-      </div>
-
-      {/* Card 3: Lembar Disposisi 2-Up */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:border-amber-500/40 transition-all flex flex-col justify-between">
-        <div className="flex items-center justify-between">
-          <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center">
-            <FileCheck className="w-4.5 h-4.5" />
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/60">
-            Disposisi Cetak
-          </span>
-        </div>
-        <div className="mt-3">
-          <div className="flex items-baseline gap-2">
-            <p className="text-xl md:text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
-              2-Up Letter
-            </p>
-            <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded">
-              Standar
-            </span>
-          </div>
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
-            2 Lembar Disposisi per Halaman
-          </p>
-        </div>
-      </div>
-
-      {/* Card 4: Penatausahaan */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl shadow-xs hover:border-teal-500/40 transition-all flex flex-col justify-between">
-        <div className="flex items-center justify-between">
-          <div className="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center">
-            <CheckCircle2 className="w-4.5 h-4.5" />
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300 border border-teal-200/60 dark:border-teal-900/60">
-            Tata Kelola
-          </span>
-        </div>
-        <div className="mt-3">
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
-              100%
-            </p>
-            <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50 px-1.5 py-0.5 rounded">
-              Terdata
-            </span>
-          </div>
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">
-            Penatausahaan Naskah Resmi
-          </p>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }
@@ -260,7 +216,7 @@ export function RecentSuratWidget({
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-                {suratMasukList.slice(0, 5).map((item) => {
+                {suratMasukList.map((item) => {
                   const perihalText = item.isi_ringkas || item.perihal || "-";
                   const sifatText = (item.sifat_json && item.sifat_json[0]) || item.sifat || "Biasa";
                   return (
@@ -362,7 +318,7 @@ export function RecentSuratWidget({
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-                {suratKeluarList.slice(0, 5).map((item) => (
+                {suratKeluarList.map((item) => (
                   <tr
                     key={item.id || item.no_surat}
                     className="hover:bg-zinc-50/70 dark:hover:bg-zinc-900/50 transition-colors"

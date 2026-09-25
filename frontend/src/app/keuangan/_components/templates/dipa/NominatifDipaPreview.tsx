@@ -6,6 +6,8 @@ import {
   formatNip,
   calculateDays,
   formatFullDateIndonesia,
+  formatIndoDateOptional,
+  getDipaTransportBreakdown,
 } from "../shared";
 
 export function NominatifDipaPreview({
@@ -21,35 +23,46 @@ export function NominatifDipaPreview({
   const days = calculateDays(travel.startDate, travel.endDate);
   const startStr = formatFullDateIndonesia(travel.startDate);
   const endStr = formatFullDateIndonesia(travel.endDate);
+  const tanggalNominatif = formatIndoDateOptional(dipaConfig?.nominatifDate);
+  const spdNo = (dipaConfig?.nominatifSpdNo !== undefined ? dipaConfig.nominatifSpdNo : "")?.trim();
+  const spdSuffix = (dipaConfig?.nominatifSpdSuffix !== undefined ? dipaConfig.nominatifSpdSuffix : "")?.trim();
+  const nominatifSpd = (
+    dipaConfig?.nominatifSpd !== undefined
+      ? dipaConfig.nominatifSpd
+      : (spdNo || spdSuffix ? `${spdNo ? `${spdNo} ` : ""}${spdSuffix}` : "")
+  )?.trim();
 
   const totals = recipients.reduce(
     (acc, r) => {
       const dailyRate = r.dipa?.uangHarianRate || 360000;
       const uangHarian = (r.dipa?.uangHarianDays || days) * dailyRate;
-      const transportUdara = r.dipa?.transportUdara || 0;
-      const taksiPp = r.dipa?.taksiPp || 0;
-      const transportSubtotal = transportUdara + taksiPp;
-      const penginapan = (r.dipa?.penginapanRate || 0) * (r.dipa?.penginapanNights || 0);
+      const breakdown = getDipaTransportBreakdown(r.dipa);
+      const transportUdara = breakdown.udara;
       const extraItems = r.dipa?.extraItems || [];
       const extraTotal = extraItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-      const rowTotal = r.amount || (uangHarian + transportSubtotal + penginapan + extraTotal);
+      const taksiPp = breakdown.darat + extraTotal;
+      const transportSubtotal = transportUdara + taksiPp;
+      const penginapan = (r.dipa?.penginapanRate || 0) * (r.dipa?.penginapanNights || 0);
+      const rowTotal = r.amount || (uangHarian + transportSubtotal + penginapan);
 
       return {
+        transportUdara: acc.transportUdara + transportUdara,
+        taksiPp: acc.taksiPp + taksiPp,
         transport: acc.transport + transportSubtotal,
         uangHarian: acc.uangHarian + uangHarian,
         penginapan: acc.penginapan + penginapan,
         grandTotal: acc.grandTotal + rowTotal,
       };
     },
-    { transport: 0, uangHarian: 0, penginapan: 0, grandTotal: 0 }
+    { transportUdara: 0, taksiPp: 0, transport: 0, uangHarian: 0, penginapan: 0, grandTotal: 0 }
   );
 
   return (
-    <div id="nominatif-dipa-print-root" className="nominatif-dipa-print-root font-['Figtree',sans-serif]">
+    <div id="nominatif-dipa-print-root" className="nominatif-dipa-print-root font-['Arial_Narrow',Arial,sans-serif]">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&display=swap');
         .nominatif-dipa-print-root, .nominatif-dipa-paper, .nominatif-dipa-paper * {
-          font-family: 'Figtree', sans-serif !important;
+          font-family: 'Arial Narrow', 'PT Sans Narrow', Arial, 'Liberation Sans Narrow', sans-serif !important;
         }
         @media print {
           @page {
@@ -84,6 +97,7 @@ export function NominatifDipaPreview({
             margin: 0 !important;
             box-shadow: none !important;
             border: none !important;
+            font-size: 11pt !important;
           }
           table.nominatif-dipa-table {
             display: table !important;
@@ -96,15 +110,20 @@ export function NominatifDipaPreview({
           }
         }
       `}</style>
-      <div className="nominatif-dipa-paper mx-auto w-full max-w-[297mm] bg-white p-6 text-slate-950 shadow-md border border-slate-200 rounded-sm print:p-0 print:border-none print:shadow-none font-['Figtree',sans-serif]">
+      <div className="nominatif-dipa-paper mx-auto w-full max-w-[297mm] bg-white p-6 text-slate-950 shadow-md border border-slate-200 rounded-sm print:p-0 print:border-none print:shadow-none text-[11pt]">
         {/* Title */}
         <div className="text-center">
           <h1 className="text-[11pt] font-bold uppercase tracking-wider">
             DAFTAR NOMINATIF PERJALANAN DINAS
           </h1>
-          <p className="text-[9.5pt] mt-0.5 font-normal">
-            Nomor SPD : {spdNumber?.no ? `SPD. ${spdNumber.no}${spdNumber.suffix || ""}` : ""}
-          </p>
+          <div className="text-[11pt] mt-0.5 font-normal inline-flex items-center justify-center font-mono">
+            <span>Nomor SPD :&nbsp;</span>
+            {nominatifSpd ? (
+              <span>{nominatifSpd}</span>
+            ) : (
+              <span className="inline-block w-36">&nbsp;</span>
+            )}
+          </div>
         </div>
 
         {/* 10 Column Table */}
@@ -116,9 +135,9 @@ export function NominatifDipaPreview({
                 <th className="border border-black p-1.5 w-44" rowSpan={2}>Nama/NIP/Surat Tugas Pelaksana Kegiatan</th>
                 <th className="border border-black p-1.5 w-28" rowSpan={2}>Lokasi Tujuan</th>
                 <th className="border border-black p-1.5 w-28" rowSpan={2}>Tgl Pelaksanaan</th>
-                <th className="border border-black p-1" colSpan={3}>077</th>
-                <th className="border border-black p-1.5 w-20" rowSpan={2}>Uang Harian</th>
-                <th className="border border-black p-1.5 w-20" rowSpan={2}>Penginapan</th>
+                <th className="border border-black p-1" colSpan={3}>772</th>
+                <th className="border border-black p-1 w-20">770</th>
+                <th className="border border-black p-1 w-20">771</th>
                 <th className="border border-black p-1.5 w-24" rowSpan={2}>JUMLAH BIAYA</th>
                 <th className="border border-black p-1.5 w-24" rowSpan={2}>Tanda Tangan</th>
               </tr>
@@ -126,6 +145,8 @@ export function NominatifDipaPreview({
                 <th className="border border-black p-1 w-16">Transport Udara</th>
                 <th className="border border-black p-1 w-20">Taksi bandara/ stasiun PP</th>
                 <th className="border border-black p-1 w-16">Jumlah</th>
+                <th className="border border-black p-1 w-20">Uang Harian</th>
+                <th className="border border-black p-1 w-20">Penginapan</th>
               </tr>
               <tr className="bg-slate-100 text-center text-[7pt] font-semibold">
                 <th className="border border-black p-0.5">1</th>
@@ -138,20 +159,21 @@ export function NominatifDipaPreview({
                 <th className="border border-black p-0.5">8</th>
                 <th className="border border-black p-0.5">9</th>
                 <th className="border border-black p-0.5">10 = 7+8+9</th>
-                <th className="border border-black p-0.5"></th>
+                <th className="border border-black p-0.5">11</th>
               </tr>
             </thead>
             <tbody>
               {recipients.map((r, idx) => {
                 const dailyRate = r.dipa?.uangHarianRate || 360000;
                 const uangHarian = (r.dipa?.uangHarianDays || days) * dailyRate;
-                const transportUdara = r.dipa?.transportUdara || 0;
-                const taksiPp = r.dipa?.taksiPp || 0;
-                const transportSubtotal = transportUdara + taksiPp;
-                const penginapan = (r.dipa?.penginapanRate || 0) * (r.dipa?.penginapanNights || 0);
+                const breakdown = getDipaTransportBreakdown(r.dipa);
+                const transportUdara = breakdown.udara;
                 const extraItems = r.dipa?.extraItems || [];
                 const extraTotal = extraItems.reduce((acc, item) => acc + (item.amount || 0), 0);
-                const rowTotal = r.amount || (uangHarian + transportSubtotal + penginapan + extraTotal);
+                const taksiPp = breakdown.darat + extraTotal;
+                const transportSubtotal = transportUdara + taksiPp;
+                const penginapan = (r.dipa?.penginapanRate || 0) * (r.dipa?.penginapanNights || 0);
+                const rowTotal = r.amount || (uangHarian + transportSubtotal + penginapan);
 
                 return (
                   <tr key={r.id || idx}>
@@ -159,7 +181,13 @@ export function NominatifDipaPreview({
                     <td className="border border-black p-1.5 align-top">
                       <p className="font-bold uppercase">{r.name}</p>
                       <p className="text-[7.5pt] text-slate-700">NIP. {formatNip(r.nip || r.id)}</p>
-                      <p className="text-[7.5pt] text-slate-700">ST. {sptNumber}</p>
+                      {sptNumber && (
+                        <p className="text-[7.5pt] text-slate-700">
+                          {sptNumber.trim().startsWith("ST.") || sptNumber.trim().startsWith("ST ")
+                            ? sptNumber.trim()
+                            : `ST. ${sptNumber.trim()}`}
+                        </p>
+                      )}
                     </td>
                     <td className="border border-black p-1.5 align-top">{travel.destination}</td>
                     <td className="border border-black p-1.5 align-top text-center text-[7.5pt]">
@@ -181,9 +209,11 @@ export function NominatifDipaPreview({
               })}
               {/* Total Row */}
               <tr className="font-bold bg-slate-50 text-[8pt]">
-                <td className="border border-black p-1.5 text-center" colSpan={6}>
+                <td className="border border-black p-1.5 text-center" colSpan={4}>
                   TOTAL BIAYA
                 </td>
+                <td className="border border-black p-1.5 text-right font-mono">{totals.transportUdara > 0 ? formatNumber(totals.transportUdara) : "-"}</td>
+                <td className="border border-black p-1.5 text-right font-mono">{totals.taksiPp > 0 ? formatNumber(totals.taksiPp) : "-"}</td>
                 <td className="border border-black p-1.5 text-right font-mono">{totals.transport > 0 ? formatNumber(totals.transport) : "-"}</td>
                 <td className="border border-black p-1.5 text-right font-mono">{formatNumber(totals.uangHarian)}</td>
                 <td className="border border-black p-1.5 text-right font-mono">{totals.penginapan > 0 ? formatNumber(totals.penginapan) : "-"}</td>
@@ -195,15 +225,15 @@ export function NominatifDipaPreview({
         </div>
 
         {/* Signatures */}
-        <div className="mt-6 grid grid-cols-2 gap-8 text-[9pt]">
+        <div className="mt-6 grid grid-cols-2 gap-8 text-[11pt]">
           <div className="text-left">
             <p className="font-semibold">Pejabat Pembuat Komitmen,</p>
             <div className="h-14" />
             <p className="font-bold uppercase">{ppk.name || "RUSMANTO, S.Hut"}</p>
             <p>NIP. {formatNip(ppk.nik || "19810907 200012 1 004")}</p>
           </div>
-          <div className="text-left">
-            <p>{dipaConfig?.cityDateText || "Samarinda,"} {dipaConfig?.spdDate || ""}</p>
+          <div className="text-left pl-24 sm:pl-32">
+            <p>{dipaConfig?.cityDateText || "Samarinda,"} {tanggalNominatif || ""}</p>
             <p className="font-semibold">Bendahara Pengeluaran,</p>
             <div className="h-14" />
             <p className="font-bold uppercase">{bendahara.name}</p>

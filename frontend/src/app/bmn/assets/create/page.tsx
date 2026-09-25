@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Loader2, CheckCircle2, Camera } from "lucide-react";
 import Link from "next/link";
@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
-const JENIS_BMN_OPTIONS = [
+const DEFAULT_JENIS_BMN_OPTIONS = [
   "ALAT ANGKUTAN BERMOTOR",
   "ALAT BESAR",
   "ALAT PERSENJATAAN",
@@ -23,7 +24,7 @@ const JENIS_BMN_OPTIONS = [
 
 const KONDISI_OPTIONS = ["Baik", "Rusak Ringan", "Rusak Berat"];
 
-const LOKASI_RUANG_OPTIONS = [
+const DEFAULT_LOKASI_RUANG_OPTIONS = [
   // Kantor Balai
   "Kantor Balai KSDA Kalimantan Timur",
   "Urusan Umum dan Perlengkapan",
@@ -78,13 +79,6 @@ const STEPS = [
 
 type FormData = Record<string, string | number | null>;
 
-function getMode(jenis: string): "kendaraan" | "tanah" | "bangunan" | "peralatan" {
-  if (jenis === "ALAT ANGKUTAN BERMOTOR") return "kendaraan";
-  if (jenis === "TANAH") return "tanah";
-  if (["BANGUNAN DAN GEDUNG", "RUMAH NEGARA", "BANGUNAN AIR"].includes(jenis)) return "bangunan";
-  return "peralatan";
-}
-
 function isRumahNegara(jenis: string) { return jenis === "RUMAH NEGARA"; }
 function hasTipe(jenis: string) { return ["ALAT BESAR", "MESIN PERALATAN NON TIK", "BANGUNAN DAN GEDUNG", "RUMAH NEGARA"].includes(jenis); }
 
@@ -92,6 +86,45 @@ export default function BmnCreateAssetPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+
+  const { data: dbAssetTypes = [] } = useQuery<{ name: string; category_mode: "kendaraan" | "tanah" | "bangunan" | "peralatan" }[]>({
+    queryKey: ["bmn-asset-types"],
+    queryFn: async () => {
+      const res = await api.get("/bmn/asset-types");
+      return res.data.data || [];
+    },
+  });
+
+  const { data: dbLocations = [] } = useQuery<{ name: string; unit_kerja: string }[]>({
+    queryKey: ["bmn-locations"],
+    queryFn: async () => {
+      const res = await api.get("/bmn/locations");
+      return res.data.data || [];
+    },
+  });
+
+  const jenisBmnOptions = useMemo(() => {
+    if (dbAssetTypes && dbAssetTypes.length > 0) {
+      return dbAssetTypes.map((t) => t.name);
+    }
+    return DEFAULT_JENIS_BMN_OPTIONS;
+  }, [dbAssetTypes]);
+
+  const lokasiRuangOptions = useMemo(() => {
+    if (dbLocations && dbLocations.length > 0) {
+      return dbLocations.map((l) => l.name);
+    }
+    return DEFAULT_LOKASI_RUANG_OPTIONS;
+  }, [dbLocations]);
+
+  const getMode = (jenis: string): "kendaraan" | "tanah" | "bangunan" | "peralatan" => {
+    const found = dbAssetTypes.find((t) => t.name === jenis);
+    if (found?.category_mode) return found.category_mode;
+    if (jenis === "ALAT ANGKUTAN BERMOTOR") return "kendaraan";
+    if (jenis === "TANAH") return "tanah";
+    if (["BANGUNAN DAN GEDUNG", "RUMAH NEGARA", "BANGUNAN AIR"].includes(jenis)) return "bangunan";
+    return "peralatan";
+  };
   const [form, setForm] = useState<FormData>({
     jenis_bmn: "",
     kode_barang: "",
@@ -262,7 +295,7 @@ export default function BmnCreateAssetPage() {
         {step === 0 && (
           <div className="space-y-5">
             <h2 className="text-sm font-bold text-slate-700 mb-4">Identitas Aset</h2>
-            <Field label="Jenis BMN *" value={form.jenis_bmn as string} onChange={v => set("jenis_bmn", v)} type="select" options={JENIS_BMN_OPTIONS} />
+            <Field label="Jenis BMN *" value={form.jenis_bmn as string} onChange={v => set("jenis_bmn", v)} type="select" options={jenisBmnOptions} />
             <div className="grid grid-cols-2 gap-4">
               <Field label="Kode Barang *" value={form.kode_barang as string} onChange={v => set("kode_barang", v)} placeholder="3010312003" />
               <Field label="NUP *" value={form.nup as string} onChange={v => set("nup", v)} placeholder="1" />
@@ -397,7 +430,7 @@ export default function BmnCreateAssetPage() {
               <Field label="Provinsi" value={form.provinsi as string} onChange={v => set("provinsi", v)} />
               <Field label="Kode Pos" value={form.kode_pos as string} onChange={v => set("kode_pos", v)} />
             </div>
-            <Field label="Lokasi Ruang" value={form.lokasi_ruang as string} onChange={v => set("lokasi_ruang", v)} type="select" options={LOKASI_RUANG_OPTIONS} />
+            <Field label="Lokasi Ruang" value={form.lokasi_ruang as string} onChange={v => set("lokasi_ruang", v)} type="select" options={lokasiRuangOptions} />
           </div>
         )}
 

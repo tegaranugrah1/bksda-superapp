@@ -231,9 +231,15 @@ class EmployeeController extends Controller
                 return [
                     'id' => $emp->id,
                     'name' => $emp->nama_lengkap,
+                    'nama_lengkap' => $emp->nama_lengkap,
+                    'nama' => $emp->nama_lengkap,
                     'nip' => $emp->nip,
                     'department' => $emp->satuan_kerja,
+                    'satuan_kerja' => $emp->satuan_kerja,
                     'position' => $emp->jabatan,
+                    'jabatan' => $emp->jabatan,
+                    'is_seksi' => $emp->is_seksi,
+                    'seksi_wilayah' => $emp->seksi_wilayah,
                 ];
             }),
         ]);

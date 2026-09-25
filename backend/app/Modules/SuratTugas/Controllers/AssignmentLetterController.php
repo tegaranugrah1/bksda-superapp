@@ -151,7 +151,12 @@ class AssignmentLetterController extends Controller
         }
 
         if ($sumberDana = $request->query('sumber_dana')) {
-            $query->where('sumber_dana', $sumberDana);
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            if (in_array(strtolower($sumberDana), ['dipa', 'folu'])) {
+                $query->where('sumber_dana', $likeOp, "%{$sumberDana}%");
+            } else {
+                $query->where('sumber_dana', $sumberDana);
+            }
         }
 
         if ($dateFrom = $request->query('date_from')) {

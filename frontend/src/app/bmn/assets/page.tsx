@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Plus, Loader2, Eye, Trash2, Package, Download } from "lucide-react";
+import { Search, Plus, Loader2, Eye, Trash2, Package, Download, Tag as TagIcon, X } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { AssetImportDialog } from "@/app/bmn/_components/AssetImportDialog";
 import { useRole } from "@/hooks/useRole";
@@ -14,6 +14,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { formatRupiah, deduplicateMerkTipe, shortenLokasi } from "@/app/bmn/_lib/asset-utils";
+import { TagAssignmentDialog } from "@/app/bmn/_components/TagAssignmentDialog";
+import { TagFilterCombobox } from "@/app/bmn/_components/TagFilterCombobox";
+import { AssetTagsList } from "@/app/bmn/_components/AssetTagsList";
+import { type IBmnTag, getTagColorClasses } from "@/app/bmn/_lib/tag-utils";
 
 interface IAsset {
   id: string;
@@ -34,6 +38,7 @@ interface IAsset {
   tanggal_ganti_plat?: string;
   penanggung_jawab?: { nama_lengkap: string };
   active_loan?: { id: string; borrower_name: string; borrower_nip?: string; loan_date: string; due_date?: string; status: string } | null;
+  tags?: IBmnTag[];
 }
 
 interface IResponse { data: IAsset[]; last_page: number; total?: number }
@@ -53,7 +58,15 @@ export default function BmnAssetsPage() {
   const [kondisiFilter, setKondisiFilter] = useState(searchParams.get("kondisi") || "Semua");
   const [jenisFilter, setJenisFilter] = useState(searchParams.get("jenis_bmn") || "Semua");
   const [lokasiFilter, setLokasiFilter] = useState(searchParams.get("lokasi_ruang") || "Semua");
+  const initialTagParam = searchParams.get("tag_ids") || searchParams.get("tag_id") || "";
+  const initialTagIds = useMemo(() => {
+    if (!initialTagParam || initialTagParam === "Semua") return [];
+    return initialTagParam.split(",").filter(Boolean);
+  }, [initialTagParam]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(initialTagIds);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkTagDialog, setShowBulkTagDialog] = useState(false);
+  const [editingAssetForTags, setEditingAssetForTags] = useState<IAsset | null>(null);
   const debouncedSearch = useDebounce(searchTerm, 400);
   const debouncedNup = useDebounce(nupTerm, 400);
   const { hasPermission } = useRole();
@@ -64,14 +77,40 @@ export default function BmnAssetsPage() {
   const canWrite = canCreate || canUpdate || canDispose || canImport;
   const queryClient = useQueryClient();
 
+  const { data: tagsList = [] } = useQuery<IBmnTag[]>({
+    queryKey: ["bmn-tags"],
+    queryFn: async () => {
+      const res = await api.get("/bmn/tags");
+      return res.data.data || [];
+    },
+  });
+
+  const { data: assetTypes = [] } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ["bmn-asset-types"],
+    queryFn: async () => {
+      const res = await api.get("/bmn/asset-types");
+      return res.data.data || [];
+    },
+  });
+
+  const { data: locations = [] } = useQuery<{ id: string; name: string; unit_kerja: string }[]>({
+    queryKey: ["bmn-locations"],
+    queryFn: async () => {
+      const res = await api.get("/bmn/locations");
+      return res.data.data || [];
+    },
+  });
+
   const updateUrl = (overrides: Record<string, string | number>) => {
     const params = new URLSearchParams();
-    const state = { page, per_page: perPage, kondisi: kondisiFilter, jenis_bmn: jenisFilter, lokasi_ruang: lokasiFilter, search: searchTerm, nup: nupTerm, ...overrides };
+    const tagIdsStr = selectedTagIds.join(",");
+    const state = { page, per_page: perPage, kondisi: kondisiFilter, jenis_bmn: jenisFilter, lokasi_ruang: lokasiFilter, tag_ids: tagIdsStr, search: searchTerm, nup: nupTerm, ...overrides };
     if (state.page && state.page !== 1) params.set("page", String(state.page));
     if (state.per_page && state.per_page !== 10) params.set("per_page", String(state.per_page));
     if (state.kondisi && state.kondisi !== "Semua") params.set("kondisi", String(state.kondisi));
     if (state.jenis_bmn && state.jenis_bmn !== "Semua") params.set("jenis_bmn", String(state.jenis_bmn));
     if (state.lokasi_ruang && state.lokasi_ruang !== "Semua") params.set("lokasi_ruang", String(state.lokasi_ruang));
+    if (state.tag_ids && state.tag_ids !== "Semua" && state.tag_ids !== "") params.set("tag_ids", String(state.tag_ids));
     if (state.search) params.set("search", String(state.search));
     if (state.nup) params.set("nup", String(state.nup));
     const qs = params.toString();
@@ -91,7 +130,7 @@ export default function BmnAssetsPage() {
   };
 
   const { data: response, isLoading, isFetching } = useQuery<IResponse>({
-    queryKey: ["bmn-assets", debouncedSearch, debouncedNup, page, perPage, kondisiFilter, jenisFilter, lokasiFilter],
+    queryKey: ["bmn-assets", debouncedSearch, debouncedNup, page, perPage, kondisiFilter, jenisFilter, lokasiFilter, selectedTagIds],
     queryFn: async () => {
       const params: Record<string, string | number | undefined> = { page, per_page: perPage === 0 ? 9999 : perPage };
       if (debouncedSearch) params.search = debouncedSearch;
@@ -99,11 +138,30 @@ export default function BmnAssetsPage() {
       if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
       if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
       if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
+      if (selectedTagIds.length > 0) params.tag_ids = selectedTagIds.join(",");
       const res = await api.get("/bmn/assets", { params });
       return res.data;
     },
     placeholderData: (prev) => prev,
   });
+
+  const selectedActiveTags = useMemo(() => {
+    if (selectedIds.size === 0 || !response?.data) return [];
+    const tagCountMap = new Map<string, { tag: IBmnTag; count: number }>();
+    response.data.forEach((asset) => {
+      if (selectedIds.has(asset.id) && asset.tags) {
+        asset.tags.forEach((tag) => {
+          const current = tagCountMap.get(tag.id);
+          if (current) {
+            current.count += 1;
+          } else {
+            tagCountMap.set(tag.id, { tag, count: 1 });
+          }
+        });
+      }
+    });
+    return Array.from(tagCountMap.values());
+  }, [selectedIds, response?.data]);
 
   const handleExport = async (includeNupLama: boolean) => {
     try {
@@ -113,6 +171,7 @@ export default function BmnAssetsPage() {
       if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
       if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
       if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
+      if (selectedTagIds.length > 0) params.tag_ids = selectedTagIds.join(",");
       const res = await api.get("/bmn/assets/export", { responseType: "blob", params, timeout: 60000 });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
@@ -273,34 +332,109 @@ export default function BmnAssetsPage() {
         <select
           value={jenisFilter}
           onChange={(e) => { setJenisFilter(e.target.value); setPageState(1); updateUrl({ jenis_bmn: e.target.value, page: 1 }); }}
-          className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 max-w-[200px]"
         >
           <option value="Semua">Semua Jenis BMN</option>
-          <option value="ALAT ANGKUTAN BERMOTOR">Alat Angkutan Bermotor</option>
-          <option value="ALAT BESAR">Alat Besar</option>
-          <option value="ALAT PERSENJATAAN">Alat Persenjataan</option>
-          <option value="BANGUNAN AIR">Bangunan Air</option>
-          <option value="BANGUNAN DAN GEDUNG">Bangunan dan Gedung</option>
-          <option value="MESIN PERALATAN KHUSUS TIK">Mesin Peralatan TIK</option>
-          <option value="MESIN PERALATAN NON TIK">Mesin Peralatan Non TIK</option>
-          <option value="RUMAH NEGARA">Rumah Negara</option>
-          <option value="TANAH">Tanah</option>
+          {assetTypes && assetTypes.length > 0 ? (
+            assetTypes.map((t) => (
+              <option key={t.id} value={t.name}>{t.name}</option>
+            ))
+          ) : (
+            <>
+              <option value="ALAT ANGKUTAN BERMOTOR">Alat Angkutan Bermotor</option>
+              <option value="ALAT BESAR">Alat Besar</option>
+              <option value="ALAT PERSENJATAAN">Alat Persenjataan</option>
+              <option value="BANGUNAN AIR">Bangunan Air</option>
+              <option value="BANGUNAN DAN GEDUNG">Bangunan dan Gedung</option>
+              <option value="MESIN PERALATAN KHUSUS TIK">Mesin Peralatan TIK</option>
+              <option value="MESIN PERALATAN NON TIK">Mesin Peralatan Non TIK</option>
+              <option value="RUMAH NEGARA">Rumah Negara</option>
+              <option value="TANAH">Tanah</option>
+            </>
+          )}
         </select>
         <select
           value={lokasiFilter}
           onChange={(e) => { setLokasiFilter(e.target.value); setPageState(1); updateUrl({ lokasi_ruang: e.target.value, page: 1 }); }}
-          className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 max-w-[220px]"
         >
           <option value="Semua">Semua Lokasi</option>
-          <option value="Kantor Balai KSDA Kalimantan Timur">Kantor Balai</option>
-          <option value="Seksi KSDA Wilayah I (Berau)">Wilayah I (Berau)</option>
-          <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
-          <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
+          {locations && locations.length > 0 ? (
+            locations.map((l) => (
+              <option key={l.id} value={l.name}>{l.name} ({l.unit_kerja})</option>
+            ))
+          ) : (
+            <>
+              <option value="Kantor Balai KSDA Kalimantan Timur">Kantor Balai</option>
+              <option value="Seksi KSDA Wilayah I (Berau)">Wilayah I (Berau)</option>
+              <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
+              <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
+            </>
+          )}
         </select>
-        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua" || searchTerm || nupTerm) && (
+        <TagFilterCombobox
+          tags={tagsList}
+          selectedTagIds={selectedTagIds}
+          onToggleTag={(id) => {
+            const next = selectedTagIds.includes(id)
+              ? selectedTagIds.filter((x) => x !== id)
+              : [...selectedTagIds, id];
+            setSelectedTagIds(next);
+            setPageState(1);
+            updateUrl({ tag_ids: next.join(",") || "Semua", page: 1 });
+          }}
+          onClearAll={() => {
+            setSelectedTagIds([]);
+            setPageState(1);
+            updateUrl({ tag_ids: "Semua", page: 1 });
+          }}
+        />
+        {selectedTagIds.length > 1 &&
+          selectedTagIds.map((id) => {
+            const t = tagsList.find((x) => x.id === id);
+            if (!t) return null;
+            const colorTheme = getTagColorClasses(t.color);
+            return (
+              <span
+                key={t.id}
+                className={cn(
+                  "h-9 px-2.5 text-xs font-semibold rounded-lg border flex items-center gap-1.5 shadow-xs shrink-0 animate-in fade-in zoom-in-95",
+                  colorTheme.bg,
+                  colorTheme.text,
+                  colorTheme.border
+                )}
+              >
+                <TagIcon className="w-3.5 h-3.5" />
+                <span className="truncate max-w-[130px]">{t.label}</span>
+                <button
+                  type="button"
+                  title={`Hapus filter ${t.label}`}
+                  onClick={() => {
+                    const next = selectedTagIds.filter((x) => x !== id);
+                    setSelectedTagIds(next);
+                    setPageState(1);
+                    updateUrl({ tag_ids: next.join(",") || "Semua", page: 1 });
+                  }}
+                  className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors ml-0.5 cursor-pointer"
+                >
+                  <X className="w-3 h-3 opacity-75 hover:opacity-100" />
+                </button>
+              </span>
+            );
+          })}
+        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua" || selectedTagIds.length > 0 || searchTerm || nupTerm) && (
           <button
-            onClick={() => { setJenisFilter("Semua"); setLokasiFilter("Semua"); setKondisiFilter("Semua"); setSearchTerm(""); setNupTerm(""); setPageState(1); updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", search: "", nup: "", page: 1 }); }}
-            className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg hover:bg-red-100"
+            onClick={() => {
+              setJenisFilter("Semua");
+              setLokasiFilter("Semua");
+              setKondisiFilter("Semua");
+              setSelectedTagIds([]);
+              setSearchTerm("");
+              setNupTerm("");
+              setPageState(1);
+              updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", tag_ids: "Semua", search: "", nup: "", page: 1 });
+            }}
+            className="h-9 px-3 text-xs font-medium text-red-600 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg hover:bg-red-100 cursor-pointer"
           >
             Reset Filter
           </button>
@@ -309,36 +443,46 @@ export default function BmnAssetsPage() {
 
       {/* Bulk Action Bar */}
       {canWrite && selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl">
+        <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl flex-wrap">
           <span className="text-sm font-semibold text-red-700 dark:text-red-400">{selectedIds.size} aset dipilih</span>
           {canUpdate && (
-            <select
-              onChange={async (e) => {
-                const newKondisi = e.target.value;
-                if (!newKondisi) return;
-                const ok = await confirm({
-                  title: "Ubah Kondisi",
-                  description: `Ubah kondisi ${selectedIds.size} aset terpilih menjadi "${newKondisi}"?`,
-                  confirmText: "Ya, Ubah",
-                  variant: "warning",
-                });
-                if (!ok) { e.target.value = ""; return; }
-                try {
-                  await api.post("/bmn/assets/bulk-update-kondisi", { ids: Array.from(selectedIds), kondisi: newKondisi });
-                  toast.success(`${selectedIds.size} aset diubah ke ${newKondisi}.`);
-                  setSelectedIds(new Set());
-                  queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
-                } catch { toast.error("Gagal mengubah kondisi."); }
-                e.target.value = "";
-              }}
-              className="h-8 px-2 text-xs border border-amber-300 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
-              defaultValue=""
-            >
-              <option value="" disabled>Ubah Kondisi...</option>
-              <option value="Baik">Baik</option>
-              <option value="Rusak Ringan">Rusak Ringan</option>
-              <option value="Rusak Berat">Rusak Berat</option>
-            </select>
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 rounded-lg gap-1.5 text-xs border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 bg-white dark:bg-slate-900"
+                onClick={() => setShowBulkTagDialog(true)}
+              >
+                <TagIcon className="w-3.5 h-3.5" /> Kelola Tag
+              </Button>
+              <select
+                onChange={async (e) => {
+                  const newKondisi = e.target.value;
+                  if (!newKondisi) return;
+                  const ok = await confirm({
+                    title: "Ubah Kondisi",
+                    description: `Ubah kondisi ${selectedIds.size} aset terpilih menjadi "${newKondisi}"?`,
+                    confirmText: "Ya, Ubah",
+                    variant: "warning",
+                  });
+                  if (!ok) { e.target.value = ""; return; }
+                  try {
+                    await api.post("/bmn/assets/bulk-update-kondisi", { ids: Array.from(selectedIds), kondisi: newKondisi });
+                    toast.success(`${selectedIds.size} aset diubah ke ${newKondisi}.`);
+                    setSelectedIds(new Set());
+                    queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+                  } catch { toast.error("Gagal mengubah kondisi."); }
+                  e.target.value = "";
+                }}
+                className="h-8 px-2 text-xs border border-amber-300 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+                defaultValue=""
+              >
+                <option value="" disabled>Ubah Kondisi...</option>
+                <option value="Baik">Baik</option>
+                <option value="Rusak Ringan">Rusak Ringan</option>
+                <option value="Rusak Berat">Rusak Berat</option>
+              </select>
+            </>
           )}
           {canDispose && (
             <Button size="sm" variant="destructive" className="rounded-lg gap-1 text-xs" onClick={handleBulkDispose}>
@@ -402,6 +546,26 @@ export default function BmnAssetsPage() {
                         {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && asset.no_polisi !== "-" ? ` • ${asset.no_polisi}` : ""}
                         {" • "}{asset.tahun_perolehan || "-"}
                       </p>
+                      {asset.tags && asset.tags.length > 0 ? (
+                        <AssetTagsList
+                          tags={asset.tags}
+                          maxVisible={2}
+                          onManageTags={canUpdate ? () => setEditingAssetForTags(asset) : undefined}
+                        />
+                      ) : canUpdate ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingAssetForTags(asset);
+                          }}
+                          className="inline-flex items-center gap-1 mt-1 text-[10px] text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
+                          title="Kelola tag untuk aset ini"
+                        >
+                          <TagIcon className="w-2.5 h-2.5 opacity-60" />
+                          <span>+ Tag</span>
+                        </button>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3">
                       <span className={cn(
@@ -464,6 +628,56 @@ export default function BmnAssetsPage() {
           </div>
         </div>
       </div>
+
+      {/* Dialog Kelola Tag Massal */}
+      <TagAssignmentDialog
+        isOpen={showBulkTagDialog}
+        onClose={() => setShowBulkTagDialog(false)}
+        title={`Kelola Tag untuk ${selectedIds.size} Aset Terpilih`}
+        description="Tambah, lepas, atau gantikan tag pada seluruh aset yang sedang dicentang."
+        activeTags={selectedActiveTags}
+        totalSelectedAssets={selectedIds.size}
+        isBulk={true}
+        onSave={async (tagIds, action) => {
+          try {
+            const res = await api.post("/bmn/tags/bulk-assign", {
+              asset_ids: Array.from(selectedIds),
+              tag_ids: tagIds,
+              action,
+            });
+            toast.success(res.data?.message || "Tag aset berhasil diperbarui.");
+            setSelectedIds(new Set());
+            queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+            queryClient.invalidateQueries({ queryKey: ["bmn-tags"] });
+          } catch {
+            toast.error("Gagal memperbarui tag aset terpilih.");
+          }
+        }}
+      />
+
+      {/* Dialog Kelola Tag Single Aset (klik badge dari baris tabel) */}
+      {editingAssetForTags && (
+        <TagAssignmentDialog
+          isOpen={Boolean(editingAssetForTags)}
+          onClose={() => setEditingAssetForTags(null)}
+          title={`Kelola Tag: ${editingAssetForTags.nama_barang}`}
+          description={`NUP: ${editingAssetForTags.nup} • Pilih tag yang ingin dipasang atau dilepas.`}
+          initialTagIds={editingAssetForTags.tags?.map((t) => t.id) || []}
+          totalSelectedAssets={1}
+          isBulk={false}
+          onSave={async (tagIds) => {
+            try {
+              await api.post(`/bmn/assets/${editingAssetForTags.id}/tags`, { tag_ids: tagIds });
+              toast.success("Tag aset berhasil diperbarui.");
+              setEditingAssetForTags(null);
+              queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+              queryClient.invalidateQueries({ queryKey: ["bmn-tags"] });
+            } catch {
+              toast.error("Gagal memperbarui tag aset.");
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

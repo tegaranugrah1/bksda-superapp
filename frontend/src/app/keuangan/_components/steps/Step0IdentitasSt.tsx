@@ -14,6 +14,7 @@ import {
 import {
   ApiSuratTugas,
   isSameEmployee,
+  isSuratTugasForBudget,
 } from "@/app/keuangan/_components/templates/shared";
 import { FinanceEmployee } from "@/app/keuangan/_components/finance-data";
 
@@ -21,8 +22,6 @@ export interface Step0IdentitasStProps {
   tipeAnggaran: "FOLU" | "DIPA";
   spjName: string;
   setSpjName: (v: string) => void;
-  nomorSpj: string;
-  setNomorSpj: (v: string) => void;
   source: "linked" | "manual";
   setSource: (v: "linked" | "manual") => void;
   sptSearch: string;
@@ -46,8 +45,6 @@ export function Step0IdentitasSt({
   tipeAnggaran,
   spjName,
   setSpjName,
-  nomorSpj,
-  setNomorSpj,
   source,
   setSource,
   sptSearch,
@@ -67,6 +64,8 @@ export function Step0IdentitasSt({
   onRefreshSuratTugas,
 }: Step0IdentitasStProps) {
   const filteredFoluLetters = foluLetters.filter((letter) => {
+    if (!isSuratTugasForBudget(letter, tipeAnggaran)) return false;
+
     if (!sptSearch.trim()) return true;
     const q = sptSearch.toLowerCase();
     const noMatch = (letter.nomor_surat || "").toLowerCase().includes(q);
@@ -78,51 +77,32 @@ export function Step0IdentitasSt({
 
   return (
     <section className="space-y-6 print:hidden">
-      {/* Identitas SPJ: Nama SPJ dan Nomor SPJ Berdampingan */}
+      {/* Identitas SPJ: Nama SPJ */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4">
           <h2 className="text-base font-bold">Identitas SPJ</h2>
           <p className="mt-0.5 text-xs text-slate-500">
-            Nama kegiatan dan nomor SPJ yang akan tercantum pada seluruh berkas pertanggungjawaban belanja.
+            Nama kegiatan yang akan tercantum pada seluruh berkas pertanggungjawaban belanja.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-xs font-semibold">
-              Nama SPJ <span className="text-red-500">*</span>
-            </label>
-            <Input
-              value={spjName || ""}
-              onChange={(e) => setSpjName(e.target.value)}
-              className="mt-1.5 rounded-xl bg-white font-medium text-xs"
-              placeholder={
-                tipeAnggaran === "DIPA"
-                  ? "Contoh: Perjalanan Dinas dalam rangka tugas operasional balai"
-                  : "Contoh: Smart Patrol di Suaka Marga Satwa Kelian"
-              }
-            />
-            <span className="mt-1 block text-[11px] text-slate-400 font-normal">
-              Nama SPJ utama yang akan tersimpan saat di-save.
-            </span>
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold flex items-center justify-between">
-              <span>Nomor SPJ</span>
-              <span className="text-[10px] text-amber-600 font-normal">Dapat diedit</span>
-            </label>
-            <Input
-              value={nomorSpj || ""}
-              onChange={(e) => setNomorSpj(e.target.value)}
-              className="mt-1.5 rounded-xl font-mono text-xs font-bold text-amber-800 dark:text-amber-300"
-              placeholder={
-                tipeAnggaran === "DIPA"
-                  ? "SPJ.001/K.18/TU/KEU/VIII/2026"
-                  : "SPJ.001/K.18/TU/FOLU-NC-23/VIII/2026"
-              }
-            />
-          </div>
+        <div>
+          <label className="text-xs font-semibold">
+            Nama SPJ <span className="text-red-500">*</span>
+          </label>
+          <Input
+            value={spjName || ""}
+            onChange={(e) => setSpjName(e.target.value)}
+            className="mt-1.5 rounded-xl bg-white font-medium text-xs max-w-2xl"
+            placeholder={
+              tipeAnggaran === "DIPA"
+                ? "Contoh: Perjalanan Dinas dalam rangka tugas operasional balai"
+                : "Contoh: Smart Patrol di Suaka Marga Satwa Kelian"
+            }
+          />
+          <span className="mt-1 block text-[11px] text-slate-400 font-normal">
+            Nama SPJ utama yang akan tersimpan saat di-save.
+          </span>
         </div>
       </div>
 
@@ -163,7 +143,7 @@ export function Step0IdentitasSt({
 
           <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
             {([
-              ["linked", "Pilih dari Database FOLU"],
+              ["linked", tipeAnggaran === "DIPA" ? "Pilih dari Database DIPA" : "Pilih dari Database FOLU"],
               ["manual", "Isi manual"],
             ] as const).map(([value, label]) => (
               <button
@@ -235,16 +215,28 @@ export function Step0IdentitasSt({
                             <FileCheck2 className="h-4 w-4 shrink-0 text-amber-600" />
                             <span className="truncate">{letter.nomor_surat}</span>
                           </div>
-                          <Badge
-                            variant="outline"
-                            className={
-                              letter.status === "approved"
-                                ? "border-emerald-300 bg-emerald-50 text-emerald-700 shrink-0 text-[10px]"
-                                : "border-amber-300 bg-amber-50 text-amber-700 shrink-0 text-[10px]"
-                            }
-                          >
-                            {letter.status === "approved" ? "Disetujui" : letter.status}
-                          </Badge>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <Badge
+                              variant="outline"
+                              className={
+                                tipeAnggaran === "DIPA"
+                                  ? "border-blue-300 bg-blue-50 text-blue-700 text-[10px]"
+                                  : "border-emerald-300 bg-emerald-50 text-emerald-700 text-[10px]"
+                              }
+                            >
+                              {tipeAnggaran === "DIPA" ? "DIPA" : "FOLU"}
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className={
+                                letter.status === "approved"
+                                  ? "border-emerald-300 bg-emerald-50 text-emerald-700 shrink-0 text-[10px]"
+                                  : "border-amber-300 bg-amber-50 text-amber-700 shrink-0 text-[10px]"
+                              }
+                            >
+                              {letter.status === "approved" ? "Disetujui" : letter.status}
+                            </Badge>
+                          </div>
                         </div>
 
                         <p className="mt-2 font-medium line-clamp-2 text-slate-700 dark:text-slate-300 leading-snug">
@@ -278,7 +270,7 @@ export function Step0IdentitasSt({
               value={sptNumber || ""}
               onChange={(event) => setSptNumber(event.target.value)}
               className="mt-1.5 rounded-xl font-mono text-xs"
-              placeholder="ST.685/K.18/TU/..."
+              placeholder={tipeAnggaran === "DIPA" ? "ST.23/K.18/TU/..." : "ST.685/K.18/TU/FOLU-NC-23/..."}
             />
           </div>
         </div>

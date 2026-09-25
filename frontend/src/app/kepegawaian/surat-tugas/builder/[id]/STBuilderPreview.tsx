@@ -1,12 +1,65 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   formatDateIndonesian,
   formatNIP,
   indexToLetter,
 } from "@/lib/letter-utils";
 import STLampiranBedaHari, { type EmployeeDateRange } from "./STLampiranBedaHari";
+
+function HalamanDivider({ 
+  pageNumber = 2, 
+  label,
+  spacerHeightMm = 0
+}: { 
+  pageNumber?: number; 
+  label?: string;
+  spacerHeightMm?: number;
+}) {
+  return (
+    <div 
+      className="halaman-divider print:hidden select-none my-0" 
+      style={{ 
+        marginLeft: "-2.0cm", 
+        marginRight: "-1.55cm",
+        width: "calc(100% + 3.55cm)",
+      }}
+    >
+      {/* 1. Spacer pendorong halaman agar halaman sebelumnya genap ~297mm seperti fisik A4 */}
+      {spacerHeightMm > 0 && (
+        <div style={{ height: `${spacerHeightMm}mm` }} />
+      )}
+
+      {/* 2. Ruang Kosong Footer BSrE 2.5 cm untuk halaman sebelumnya */}
+      <div
+        style={{
+          height: "25mm",
+          padding: "0 1.55cm 4mm 2.0cm",
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "center",
+          boxSizing: "border-box",
+        }}
+      >
+        <div className="text-[7.5pt] text-zinc-400 dark:text-zinc-500 italic text-center leading-tight select-none pointer-events-none">
+          Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik<br />
+          yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN).
+        </div>
+      </div>
+
+      {/* 3. Bilah HALAMAN X persis seperti yang disukai user */}
+      <div className="h-8 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center shadow-inner my-1 w-full">
+        <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest uppercase">
+          {label || `HALAMAN ${pageNumber}`}
+        </span>
+      </div>
+
+      {/* 4. Spacer atas halaman berikutnya (15mm, setara thead pada print) */}
+      <div style={{ height: "15mm" }} />
+    </div>
+  );
+}
 
 interface Employee {
   id: string;
@@ -93,6 +146,31 @@ export default function STBuilderPreview({
     ? untukItems.map((item) => item.text)
     : fallbackUntukItems;
 
+  const { isMultiPage, page1SpacerMm } = React.useMemo(() => {
+    // Estimasi tinggi isi surat (dalam mm)
+    // Tinggi A4 printable adalah ~268mm
+    const mLines = menimbangItems.reduce((acc, m) => acc + Math.max(1, Math.ceil((m.text?.length || 0) / 75)), 0);
+    const dLines = dasarItems.reduce((acc, d) => acc + Math.max(1, Math.ceil((d.text?.length || 0) / 75)), 0);
+    const empCount = Math.max(1, selectedEmployees.length);
+    const uCount = Math.max(2, additionalUntukItems.filter(Boolean).length);
+
+    // Part 1: Kop (33mm) + Judul/Nomor/Kepala Balai (28mm) = 61mm + Menimbang + Dasar
+    const part1Mm = 61 + (mLines * 5.5) + (dLines * 5.5);
+    // Part 2: MEMBERI TUGAS (10mm) + Kepada + Untuk + Penutup (12mm) + TTD (45mm) + Tembusan
+    const part2Mm = 10 + (empCount * 22) + (uCount * 12) + 12 + 45 + (visibleTembusanItems.length > 0 ? 15 : 0);
+
+    const isMulti = (part1Mm + part2Mm) > 230;
+    // Tinggi A4 = 297mm. Dikurangi footer 25mm, divider 8mm, padding atas 4mm = 260mm.
+    const spacer = isMulti ? Math.max(15, Math.min(180, 260 - part1Mm)) : 0;
+
+    return { isMultiPage: isMulti, page1SpacerMm: spacer };
+  }, [menimbangItems, dasarItems, selectedEmployees, additionalUntukItems, visibleTembusanItems]);
+
+  const menimbangOverflows = React.useMemo(() => {
+    const mLines = menimbangItems.reduce((acc, m) => acc + Math.max(1, Math.ceil((m.text?.length || 0) / 75)), 0);
+    return mLines > 16;
+  }, [menimbangItems]);
+
   return (
     <div
       className="w-full selection:bg-blue-100"
@@ -111,8 +189,15 @@ export default function STBuilderPreview({
         <thead className="hidden print:table-header-group">
           <tr><td style={{ height: "15mm", border: "none", padding: 0 }}></td></tr>
         </thead>
-        <tfoot className="hidden print:table-footer-group">
-          <tr><td style={{ height: "15mm", border: "none", padding: 0 }}></td></tr>
+        <tfoot className="print:table-footer-group">
+          <tr>
+            <td style={{ height: "25mm", verticalAlign: "bottom", border: "none", padding: "0 1.55cm 4mm 2.0cm" }}>
+              <div className="bsre-placeholder print:hidden text-[7.5pt] text-zinc-400 dark:text-zinc-500 italic text-center leading-tight select-none pointer-events-none">
+                Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik<br />
+                yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN).
+              </div>
+            </td>
+          </tr>
         </tfoot>
         <tbody>
           <tr className="print:break-inside-auto" style={{ breakInside: "auto", pageBreakInside: "auto" }}>
@@ -121,7 +206,7 @@ export default function STBuilderPreview({
               <div className="kop-surat" style={{ width: "100%", marginBottom: "4mm", textAlign: "center" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/header.png"
+                  src="/header-st.png"
                   alt="Kop Surat"
                   style={{ width: "188mm", maxWidth: "188mm", height: "auto", display: "block", margin: "0 auto" }}
                 />
@@ -206,12 +291,23 @@ export default function STBuilderPreview({
               </table>
 
               {/* === MEMBERI TUGAS === */}
-              <p className="print:break-after-avoid break-after-avoid" style={{ textAlign: "center", fontWeight: "bold", margin: "10px 0 2px", pageBreakAfter: "avoid", breakAfter: "avoid" }}>MEMBERI TUGAS,</p>
+              <p 
+                className="print:break-after-avoid break-after-avoid" 
+                style={{ 
+                  textAlign: "center", 
+                  fontWeight: "bold", 
+                  margin: "10px 0 2px", 
+                  pageBreakAfter: "avoid", 
+                  breakAfter: "avoid" 
+                }}
+              >
+                MEMBERI TUGAS,
+              </p>
 
               {/* === KEPADA === */}
               <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "6px", marginLeft: "0", tableLayout: "fixed" }}>
                 <tbody>
-                  <tr>
+                  <tr style={{ breakInside: "auto", pageBreakInside: "auto" }}>
                     <td style={{ width: "110px", verticalAlign: "top", padding: "1px 0" }}>Kepada</td>
                     <td style={{ width: "12px", verticalAlign: "top", padding: "1px 0" }}>:</td>
                     <td style={{ verticalAlign: "top", padding: "1px 0" }}>
@@ -225,28 +321,30 @@ export default function STBuilderPreview({
                         <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                           <tbody>
                             {selectedEmployees.map((emp, idx) => (
-                              <tr key={emp.id} style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0 0 1px" : "1px 0" }}>{idx + 1}.</td>
-                                <td style={{ verticalAlign: "top", padding: idx === 0 ? "0 0 1px" : "1px 0" }}>
-                                  <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                                    <tbody>
-                                      <tr>
-                                        <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>Nama</td>
-                                        <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
-                                        <td style={{ padding: "0", lineHeight: 1.15, fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
-                                      </tr>
-                                      <tr>
-                                        <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>NIP</td>
-                                        <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
-                                        <td style={{ padding: "0", lineHeight: 1.15 }}>{formatNIP(emp.nip)}</td>
-                                      </tr>
-                                      <tr>
-                                        <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>Jabatan</td>
-                                        <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
-                                        <td style={{ padding: "0", lineHeight: 1.15 }}>{emp.jabatan}</td>
-                                      </tr>
-                                    </tbody>
-                                  </table>
+                              <tr key={emp.id} className="employee-entry" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0 0 1px" : "1px 0", breakInside: "avoid", pageBreakInside: "avoid" }}>{idx + 1}.</td>
+                                <td style={{ verticalAlign: "top", padding: idx === 0 ? "0 0 1px" : "1px 0", breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                  <div style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                    <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                      <tbody style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                        <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                          <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>Nama</td>
+                                          <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
+                                          <td style={{ padding: "0", lineHeight: 1.15, fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
+                                        </tr>
+                                        <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                          <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>NIP</td>
+                                          <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
+                                          <td style={{ padding: "0", lineHeight: 1.15 }}>{formatNIP(emp.nip)}</td>
+                                        </tr>
+                                        <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                          <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>Jabatan</td>
+                                          <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
+                                          <td style={{ padding: "0", lineHeight: 1.15 }}>{emp.jabatan}</td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </div>
                                 </td>
                               </tr>
                             ))}
@@ -261,7 +359,7 @@ export default function STBuilderPreview({
               {/* === UNTUK === */}
               <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "4px", marginLeft: "0", tableLayout: "fixed" }}>
                 <tbody>
-                  <tr>
+                  <tr style={{ breakInside: "auto", pageBreakInside: "auto" }}>
                     <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Untuk</td>
                     <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
                     <td style={{ verticalAlign: "top", padding: "2px 0" }}>
@@ -273,7 +371,7 @@ export default function STBuilderPreview({
                           ]
                             .filter(item => item && item.trim())
                             .map((item, idx) => (
-                            <tr key={idx} style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                            <tr key={idx} className="untuk-entry" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
                               <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{item}</td>
                             </tr>
@@ -286,7 +384,7 @@ export default function STBuilderPreview({
               </table>
 
               {/* === PENUTUP + TTD + TEMBUSAN — keep together so TTD never breaks alone === */}
-              <div className="penutup-ttd-group print:break-inside-avoid break-inside-avoid" style={{ display: 'block', breakInside: "avoid", pageBreakInside: "avoid" }}>
+              <div data-break-candidate="penutup-ttd" className="penutup-ttd-group print:break-inside-avoid break-inside-avoid" style={{ display: 'block', breakInside: "avoid", pageBreakInside: "avoid" }}>
                 {isFolu ? (
                   <p className="penutup-surat" style={{ margin: "16px 0 0", textAlign: "justify" }}>
                     Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.
@@ -396,6 +494,10 @@ export default function STBuilderPreview({
             paddingTop: "0.2cm",
           }}
         >
+          <HalamanDivider 
+            pageNumber={isMultiPage ? (menimbangOverflows ? 4 : 3) : 2} 
+            label="HALAMAN LAMPIRAN" 
+          />
           <STLampiranBedaHari
             stNumber={stNumber}
             stCode={stCode}

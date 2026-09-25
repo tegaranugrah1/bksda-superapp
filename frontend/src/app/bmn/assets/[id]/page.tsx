@@ -5,12 +5,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Package, FileText, Banknote, MapPin, Building2, Car, Landmark, UserCheck, History } from "lucide-react";
+import { ArrowLeft, Loader2, Package, FileText, Banknote, MapPin, Building2, Car, Landmark, UserCheck, History, Tag as TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DetailSection, DetailRow, EditableRow, EditableSelectRow, EditableEmployeeRow, CurrencyRow, EditableCurrencyRow, AreaRow, BadgeRow } from "./_components/DetailSection";
 import { PhotoGallery } from "./_components/PhotoGallery";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "sonner";
+import { TagBadge } from "@/app/bmn/_components/TagBadge";
+import { TagAssignmentDialog } from "@/app/bmn/_components/TagAssignmentDialog";
+import { type IBmnTag } from "@/app/bmn/_lib/tag-utils";
 
 const LOKASI_RUANG_OPTIONS = [
   "Kantor Balai KSDA Kalimantan Timur",
@@ -82,6 +85,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
   });
 
   const [activeTab, setActiveTab] = useState("identitas");
+  const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
 
   const handleFieldSave = useCallback(async (field: string, value: string) => {
     try {
@@ -199,6 +203,32 @@ function AssetDetail({ assetId }: { assetId: string }) {
               )}
             </div>
           )}
+
+          {/* Tags Section */}
+          <div className="flex items-center justify-between gap-4 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+                <TagIcon className="w-3.5 h-3.5 text-emerald-600" /> Tag:
+              </span>
+              {asset.tags && asset.tags.length > 0 ? (
+                asset.tags.map((tag: IBmnTag) => (
+                  <TagBadge key={tag.id} tag={tag} size="sm" />
+                ))
+              ) : (
+                <span className="text-xs text-slate-400 italic">Belum ada tag</span>
+              )}
+            </div>
+            {canWrite && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1.5 rounded-lg text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
+                onClick={() => setIsTagDialogOpen(true)}
+              >
+                <TagIcon className="w-3.5 h-3.5" /> Atur Tag
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -465,6 +495,27 @@ function AssetDetail({ assetId }: { assetId: string }) {
         <HistoryTab updates={asset.history_updates || []} />
       )}
       </div>
+
+      {/* Dialog Atur Tag */}
+      <TagAssignmentDialog
+        isOpen={isTagDialogOpen}
+        onClose={() => setIsTagDialogOpen(false)}
+        title={`Atur Tag: ${asset.nama_barang}`}
+        description="Pilih tag yang ingin dipasang pada aset ini."
+        initialTagIds={asset.tags?.map((t: IBmnTag) => t.id) || []}
+        isBulk={false}
+        onSave={async (tagIds) => {
+          try {
+            await api.post(`/bmn/assets/${assetId}/tags`, { tag_ids: tagIds });
+            toast.success("Tag aset berhasil diperbarui.");
+            queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
+            queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+            queryClient.invalidateQueries({ queryKey: ["bmn-tags"] });
+          } catch {
+            toast.error("Gagal memperbarui tag aset.");
+          }
+        }}
+      />
     </div>
   );
 }

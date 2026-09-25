@@ -270,9 +270,11 @@ export default function SpjListPage() {
                     {record.nama_kegiatan}
                   </h2>
                   <div className="flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
-                    <span className="font-mono font-semibold text-amber-700 dark:text-amber-400">
-                      {record.nomor_spj || "Belum ada nomor"}
-                    </span>
+                    {record.nomor_spj ? (
+                      <span className="font-mono font-semibold text-amber-700 dark:text-amber-400">
+                        {record.nomor_spj}
+                      </span>
+                    ) : null}
                     {record.nomor_spt && (
                       <span>SPT: <span className="font-mono">{record.nomor_spt}</span></span>
                     )}

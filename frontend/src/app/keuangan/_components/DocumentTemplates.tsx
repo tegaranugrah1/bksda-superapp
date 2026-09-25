@@ -12,6 +12,7 @@ import { SptjbDipaPreview } from "./templates/dipa/SptjbDipaPreview";
 import { RinbaDipaPreview } from "./templates/dipa/RinbaDipaPreview";
 import { SpbyDipaPreview } from "./templates/dipa/SpbyDipaPreview";
 import { SpdDepanDipaPreview } from "./templates/dipa/SpdDepanDipaPreview";
+import { DpRilDipaPreview } from "./templates/dipa/DpRilDipaPreview";
 
 // Re-export shared types & helpers for full backward compatibility
 export * from "./templates/shared";
@@ -29,6 +30,7 @@ export {
   RinbaDipaPreview,
   SpbyDipaPreview,
   SpdDepanDipaPreview,
+  DpRilDipaPreview,
 };
 
 export function DocumentTemplates(props: Props) {
@@ -60,6 +62,9 @@ export function DocumentTemplates(props: Props) {
   }
   if (doc === "rinba-dipa") {
     return <RinbaDipaPreview {...props} />;
+  }
+  if (doc === "dp-ril-dipa" || doc.includes("dp-ril") || doc.includes("riil")) {
+    return <DpRilDipaPreview {...props} />;
   }
   if (doc === "nominatif-dipa" || doc.includes("nominatif")) {
     return <NominatifDipaPreview {...props} />;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   FileText,
   GripVertical,
@@ -40,6 +40,8 @@ import {
   buildBiayaTextFor,
   cleanPlhKegiatanKasi,
   extractPlhWilayahFromPosition,
+  formatPlhKegiatanForTemplate,
+  replacePlhAllPlaceholders,
   getDefaultUntukItems,
   isGeneratedBiayaItem,
   isSingleDayActivityPrefix,
@@ -50,6 +52,7 @@ import {
   printSuratTugas,
   type DasarItem,
   type Employee,
+  type StTemplate,
   type StExpenseTemplate,
 } from "../../_lib";
 import { FormSection } from "../../_components/FormSection";
@@ -83,9 +86,11 @@ export default function STBuilderPage() {
   const [sumberDana, setSumberDana] = useState("dipa");
   const [sumberDanaOther, setSumberDanaOther] = useState("");
   const [templateType, setTemplateType] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [headerTitle, setHeaderTitle] = useState("KEPALA BALAI,");
   const [namaKegiatan, setNamaKegiatan] = useState("");
   const [activityPrefix, setActivityPrefix] = useState("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+  const [inputModeKegiatan, setInputModeKegiatan] = useState<"structured" | "manual">("structured");
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
@@ -93,6 +98,10 @@ export default function STBuilderPage() {
   const [tempatKegiatan, setTempatKegiatan] = useState("");
   const [plhWilayah, setPlhWilayah] = useState("");
   const [plhKegiatanKasi, setPlhKegiatanKasi] = useState("");
+  const [parentStInfo, setParentStInfo] = useState<{
+    nomorInduk?: string | null;
+    tanggalInduk?: string | null;
+  }>({});
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
   // Beda Hari template: tanggal per pegawai
   const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
@@ -127,6 +136,14 @@ export default function STBuilderPage() {
     },
   });
 
+  const { data: dynamicTemplates = [] } = useQuery<StTemplate[]>({
+    queryKey: ["st-templates-builder"],
+    queryFn: async () => {
+      const res = await api.get("/kepegawaian/st-templates");
+      return (res.data?.data || []) as StTemplate[];
+    },
+  });
+
   const availableSumberDanaOptions = useMemo(() => {
     if (expenseTemplates.length === 0) return SUMBER_DANA_OPTIONS;
     const mapped = expenseTemplates.map((t) => ({
@@ -153,11 +170,12 @@ export default function STBuilderPage() {
 
   const replacePlhPlaceholders = (value: string) => {
     if (templateType !== "plh") return value;
-    return value
-      .split(PLH_WILAYAH_PLACEHOLDER)
-      .join(plhWilayah.trim() || "...")
-      .split(PLH_KEGIATAN_KASI_PLACEHOLDER)
-      .join(plhKegiatanKasi.trim() || "...");
+    return replacePlhAllPlaceholders(value, {
+      wilayah: plhWilayah,
+      kegiatanKasi: plhKegiatanKasi,
+      nomorInduk: parentStInfo.nomorInduk,
+      tanggalInduk: parentStInfo.tanggalInduk,
+    });
   };
 
   const getPreviewMenimbangItems = () =>
@@ -165,14 +183,56 @@ export default function STBuilderPage() {
       ? menimbangItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
       : menimbangItems;
 
+  const getPreviewDasarItems = () =>
+    templateType === "plh"
+      ? dasarItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
+      : dasarItems;
+
   const getPreviewUntukItems = () =>
     templateType === "plh"
       ? untukItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
       : untukItems;
 
+  const assembleStructuredActivityText = useCallback((): string => {
+    if (activityPrefix.includes("Perjalanan Dinas")) {
+      let t = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
+      if (namaKegiatan) {
+        t += ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatan)}`;
+      }
+      if (tempatKegiatan) {
+        t += ` di ${tempatKegiatan}`;
+      }
+      return t;
+    } else if (activityPrefix.includes("Melaksanakan Kegiatan")) {
+      const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
+      let t = `Melaksanakan Kegiatan ${cleanNama || "..."}`;
+      if (tempatKegiatan) t += ` pada ${tempatKegiatan}`;
+      if (kotaTujuan) t += ` di ${kotaTujuan}`;
+      return t;
+    } else {
+      let t = `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatan) || "..."}`;
+      if (tempatKegiatan) t += ` pada ${tempatKegiatan}`;
+      if (kotaTujuan) t += ` di ${kotaTujuan}`;
+      return t;
+    }
+  }, [activityPrefix, kotaAsal, kotaTujuan, namaKegiatan, tempatKegiatan]);
+
+  const handleSwitchToManual = () => {
+    if (inputModeKegiatan === "structured") {
+      const assembled = assembleStructuredActivityText();
+      if (assembled && !assembled.includes("...")) {
+        setNamaKegiatan(assembled);
+      }
+      setInputModeKegiatan("manual");
+    }
+  };
+
   const getTempatTujuanForPayload = () => {
     if (templateType === "plh") {
       return plhWilayah.trim() || kotaTujuan.trim() || tempatKegiatan.trim();
+    }
+    if (inputModeKegiatan === "manual") {
+      return kotaTujuan.trim() || tempatKegiatan.trim() || "Kalimantan Timur";
     }
     return kotaTujuan.trim();
   };
@@ -217,13 +277,14 @@ export default function STBuilderPage() {
       return text;
     }
 
-    // PLH template: durasi tampil di bagian Untuk, bukan di kegiatan Kepala Seksi.
-    if (isPlhTemplate) {
+    // PLH template atau mode Tulis Manual: durasi tampil di bagian Untuk secara otomatis
+    if (isPlhTemplate || inputModeKegiatan === "manual") {
       text = replacePlhPlaceholders(namaKegiatan || "...");
+      const prefixSep = text.trim().endsWith(",") ? " " : ", ";
       if (days === 1 || effectiveMulai === effectiveSelesai) {
-        text += ` selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+        text += `${prefixSep}selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
       } else if (days > 1) {
-        text += ` selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
+        text += `${prefixSep}selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
       } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
         text += ".";
       }
@@ -457,11 +518,12 @@ export default function STBuilderPage() {
     setTempatKegiatan("");
     setNamaKegiatan("Melaksanakan pemeriksaan Barang Milik Negara berupa Alat Angkutan Bermotor pada tanggal " + formatDateIndonesian(today));
     setUntukItems(getDefaultUntukItems("bmn-pemeriksaan"));
+    setInputModeKegiatan("manual");
 
     setTembusanItems([]);
   };
 
-  // Apply Beda Hari template â€” Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
+  // Apply Beda Hari template — Kepada jadi "Daftar nama terlampir." + halaman lampiran auto-generate
   const applyBedaHariTemplate = () => {
     setTemplateType("beda-hari");
     setUntukItems(getDefaultUntukItems("beda-hari", buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, "beda-hari")));
@@ -477,43 +539,75 @@ export default function STBuilderPage() {
     });
   };
 
-  // Apply PLH template â€” pelaksana harian Kepala Seksi
-  const applyPlhTemplate = () => {
+  // Apply PLH template — pelaksana harian Kepala Seksi
+  const applyPlhTemplate = (passedTemplate?: StTemplate | null) => {
+    const plhTemplate = passedTemplate || dynamicTemplates.find((t) => t.code === "plh" || t.type === "plh");
+
     setTemplateType("plh");
     setHeaderTitle("KEPALA BALAI,");
-    setKlasifikasi("PEG.09.01");
-    setSumberDana("dl1");
+    setKlasifikasi(typeof plhTemplate?.configuration?.klasifikasi === "string" ? plhTemplate.configuration.klasifikasi : "PEG.09.01");
+    setSumberDana(typeof plhTemplate?.configuration?.sumber_dana === "string" ? plhTemplate.configuration.sumber_dana : "dl1");
 
     setPlhWilayah("");
     setPlhKegiatanKasi("");
 
-    setMenimbangItems([
-      {
-        id: "plh-m1",
-        text: `bahwa Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER} akan melaksanakan ${PLH_KEGIATAN_KASI_PLACEHOLDER};`,
-      },
-      {
-        id: "plh-m2",
-        text: `bahwa sehubungan dengan hal tersebut di atas untuk kelancaran pelaksanaan tugas sehari-hari maka perlu ada pejabat sementara yang menggantikan tugas Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}.`,
-      },
-    ]);
+    if (plhTemplate?.menimbang && plhTemplate.menimbang.length > 0) {
+      setMenimbangItems(
+        plhTemplate.menimbang.map((item) => ({
+          ...item,
+          text: (item.text || "").replace(/{tahun}/g, currentYear),
+        })),
+      );
+    } else {
+      setMenimbangItems([
+        {
+          id: "plh-m1",
+          text: `bahwa Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER} akan ${PLH_KEGIATAN_KASI_PLACEHOLDER};`,
+        },
+        {
+          id: "plh-m2",
+          text: `bahwa sehubungan dengan hal tersebut di atas untuk kelancaran pelaksanaan tugas sehari-hari maka perlu ada pejabat sementara yang menggantikan tugas Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}.`,
+        },
+      ]);
+    }
 
-    setDasarItems([
-      {
-        id: "plh-d1",
-        text: "Surat Tugas Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor : {nomor_st_induk} tanggal {tanggal_st_induk}.",
-      },
-    ]);
+    if (plhTemplate?.dasar && plhTemplate.dasar.length > 0) {
+      setDasarItems(
+        plhTemplate.dasar.map((item) => ({
+          ...item,
+          text: (item.text || "").replace(/{tahun}/g, currentYear),
+        })),
+      );
+    } else {
+      setDasarItems([
+        {
+          id: "plh-d1",
+          text: "Surat Tugas Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor : {nomor surat induk} tanggal {tanggal surat induk}.",
+        },
+      ]);
+    }
 
-    // Freeform "Untuk" mode
-    setActivityPrefix("");
+    // Mode penugasan dari template
+    const config = plhTemplate?.configuration || {};
+    const defaultJenis = typeof config.default_jenis_tugas === "string" && config.default_jenis_tugas.trim()
+      ? config.default_jenis_tugas
+      : "Menugaskan Staf";
+    setActivityPrefix(defaultJenis);
     setKotaAsal("");
     setKotaTujuan("");
     setTempatKegiatan("");
-    setNamaKegiatan(
-      `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`,
-    );
-    setUntukItems(getDefaultUntukItems("plh"));
+
+    const polaKegiatan = typeof config.default_kegiatan === "string" && config.default_kegiatan.trim()
+      ? config.default_kegiatan
+      : `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`;
+    setNamaKegiatan(polaKegiatan);
+    setInputModeKegiatan("manual");
+
+    if (Array.isArray(config.untuk) && config.untuk.length > 0) {
+      setUntukItems(config.untuk);
+    } else {
+      setUntukItems(getDefaultUntukItems("plh"));
+    }
 
     setTembusanItems([
       "Direktur Jenderal KSDAE;",
@@ -521,17 +615,92 @@ export default function STBuilderPage() {
     ]);
   };
 
-  // Generic template handler: dropdown 4 pilihan
+  const formatYearInItems = (items: DasarItem[]) =>
+    (items || []).map((item) => ({
+      ...item,
+      text: (item.text || "").replace(/{tahun}/g, currentYear),
+    }));
+
+  // Generic template handler: dropdown 4 pilihan + dynamic
   const handleTemplateChange = (value: string) => {
     if (value === "bmn-pemeriksaan") {
+      setSelectedTemplateId(null);
       applyBmnTemplate();
+      const bmnTemplate = dynamicTemplates.find((t) => t.code === "bmn-penghapusan" || t.type === "bmn");
+      if (bmnTemplate?.configuration?.default_jenis_tugas) {
+        setActivityPrefix(bmnTemplate.configuration.default_jenis_tugas);
+      }
+      if (bmnTemplate?.configuration?.default_mode_kegiatan) {
+        setInputModeKegiatan(bmnTemplate.configuration.default_mode_kegiatan);
+      }
+      if (Array.isArray(bmnTemplate?.configuration?.untuk) && bmnTemplate.configuration.untuk.length > 0) {
+        setUntukItems(bmnTemplate.configuration.untuk);
+      }
     } else if (value === "beda-hari") {
+      setSelectedTemplateId(null);
       applyBedaHariTemplate();
+      const bedaHariTemplate = dynamicTemplates.find((t) => t.code === "beda-hari" || t.type === "beda_hari");
+      if (bedaHariTemplate?.configuration?.default_jenis_tugas) {
+        setActivityPrefix(bedaHariTemplate.configuration.default_jenis_tugas);
+      }
+      if (bedaHariTemplate?.configuration?.default_mode_kegiatan) {
+        setInputModeKegiatan(bedaHariTemplate.configuration.default_mode_kegiatan);
+      }
+      if (Array.isArray(bedaHariTemplate?.configuration?.untuk) && bedaHariTemplate.configuration.untuk.length > 0) {
+        setUntukItems(getDefaultUntukItems("beda-hari", buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, "beda-hari"), bedaHariTemplate.configuration.untuk));
+      }
     } else if (value === "plh") {
-      applyPlhTemplate();
+      setSelectedTemplateId(null);
+      const plhDbTemplate = dynamicTemplates.find((t) => t.code === "plh" || t.type === "plh");
+      applyPlhTemplate(plhDbTemplate);
+    } else if (value.startsWith("db_")) {
+      const id = parseInt(value.replace("db_", ""), 10);
+      const template = dynamicTemplates.find((t) => t.id === id);
+      if (template) {
+        setSelectedTemplateId(id);
+        setTemplateType(value);
+        if (template.type === "custom") {
+          setMenimbangItems(formatYearInItems(template.menimbang || []));
+          setDasarItems(formatYearInItems(template.dasar || []));
+        } else if (template.type === "plh") {
+          applyPlhTemplate(template);
+          setTemplateType(value);
+          setMenimbangItems(formatYearInItems(template.menimbang || []));
+          setDasarItems(formatYearInItems(template.dasar || []));
+        }
+
+        const configuration = template.configuration || {};
+        if (typeof configuration.default_jenis_tugas === "string") {
+          setActivityPrefix(configuration.default_jenis_tugas);
+        }
+        if (typeof configuration.default_kegiatan === "string" && configuration.default_kegiatan.trim()) {
+          setNamaKegiatan(configuration.default_kegiatan);
+        }
+        if (configuration.default_mode_kegiatan === "manual" || template.type === "plh") {
+          setInputModeKegiatan("manual");
+        } else if (configuration.default_mode_kegiatan === "structured") {
+          setInputModeKegiatan("structured");
+        }
+        if (typeof configuration.klasifikasi === "string") setKlasifikasi(configuration.klasifikasi);
+        if (typeof configuration.sumber_dana === "string") setSumberDana(configuration.sumber_dana);
+        if (Array.isArray(configuration.untuk) && configuration.untuk.length > 0) {
+          setUntukItems(configuration.untuk);
+        }
+      }
     } else {
+      setSelectedTemplateId(null);
       setTemplateType(null);
-      setUntukItems(getDefaultUntukItems(null, buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, null)));
+      const defaultTpl = dynamicTemplates.find((t) => t.code === "default" || t.is_default);
+      if (defaultTpl?.configuration?.default_jenis_tugas) {
+        setActivityPrefix(defaultTpl.configuration.default_jenis_tugas);
+      }
+      if (defaultTpl?.configuration?.default_mode_kegiatan) {
+        setInputModeKegiatan(defaultTpl.configuration.default_mode_kegiatan);
+      } else {
+        setInputModeKegiatan("structured");
+      }
+      const defaultUntuk = Array.isArray(defaultTpl?.configuration?.untuk) ? defaultTpl.configuration.untuk : null;
+      setUntukItems(getDefaultUntukItems(null, buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, null), defaultUntuk));
     }
   };
 
@@ -646,6 +815,7 @@ export default function STBuilderPage() {
         const match = cleanedActivity.match(regex);
 
         if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match)) {
+          setInputModeKegiatan("structured");
           setActivityPrefix("Melaksanakan Kegiatan ( 1 Hari )");
           setKotaAsal("");
           
@@ -671,6 +841,7 @@ export default function STBuilderPage() {
           setTempatKegiatan(parsedTempat);
           setNamaKegiatan(cleanMelaksanakanKegiatanPrefix(parsedNama));
         } else if (match) {
+          setInputModeKegiatan("structured");
           setActivityPrefix(match[1]);
           setKotaAsal(match[2].trim());
           setKotaTujuan(match[3].trim());
@@ -685,12 +856,13 @@ export default function STBuilderPage() {
             setNamaKegiatan(rest.replace(/[;,.]$/, '').trim());
           }
         } else {
-          // Text doesn't match structured pattern â€” put entire text as namaKegiatan
-          // and clear prefix/kota so buildUntukText just outputs namaKegiatan directly
-          setActivityPrefix("");
+          // Text doesn't match structured pattern — default to "Menugaskan Staf" for PLH/BMN/internal tasks
+          const isInternalTask = data.template_type === "plh" || data.template_type === "bmn-pemeriksaan" || !singleDayActivity.toLowerCase().includes("perjalanan dinas");
+          setActivityPrefix(isInternalTask ? "Menugaskan Staf" : "");
           setKotaAsal("");
           setKotaTujuan("");
           setNamaKegiatan(cleanedActivity);
+          setInputModeKegiatan("manual");
         }
 
         // Only update Dasar from funding if no saved dasar
@@ -828,7 +1000,7 @@ export default function STBuilderPage() {
         sumber_dana_other: sumberDanaOther,
         template_type: templateType,
         menimbang: getPreviewMenimbangItems(),
-        dasar: dasarItems,
+        dasar: getPreviewDasarItems(),
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
@@ -892,7 +1064,7 @@ export default function STBuilderPage() {
         sumber_dana_other: sumberDanaOther,
         template_type: templateType,
         menimbang: getPreviewMenimbangItems(),
-        dasar: dasarItems,
+        dasar: getPreviewDasarItems(),
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
@@ -935,7 +1107,7 @@ export default function STBuilderPage() {
         sumber_dana_other: sumberDanaOther,
         template_type: templateType,
         menimbang: getPreviewMenimbangItems(),
-        dasar: dasarItems,
+        dasar: getPreviewDasarItems(),
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
@@ -1012,6 +1184,17 @@ export default function STBuilderPage() {
               <option value="bmn-pemeriksaan">Penghapusan BMN</option>
               <option value="beda-hari">Beda Hari (Daftar Lampiran)</option>
               <option value="plh">PLH (Pelaksana Harian Kepala Seksi)</option>
+              {dynamicTemplates
+                .filter(
+                  (t) =>
+                    !["bmn", "plh", "beda_hari", "standard"].includes(t.type) &&
+                    !["bmn-penghapusan", "beda-hari", "plh", "default"].includes(t.code || "")
+                )
+                .map((t) => (
+                  <option key={t.id} value={`db_${t.id}`}>
+                    {t.name}
+                  </option>
+                ))}
             </select>
             {templateType === "beda-hari" && (
               <p className="mt-2 text-[10px] text-orange-700 dark:text-orange-300">
@@ -1232,7 +1415,7 @@ export default function STBuilderPage() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-blue-700 uppercase dark:text-blue-300">Kegiatan Kepala Seksi</label>
                     <textarea
-                      value={plhKegiatanKasi}
+                      value={plhKegiatanKasi ?? ""}
                       disabled={isPublished}
                       onChange={(e) => setPlhKegiatanKasi(e.target.value)}
                       placeholder="Kegiatan Kepala Seksi yang menjadi dasar PLH"
@@ -1241,71 +1424,147 @@ export default function STBuilderPage() {
                   </div>
                 </div>
               )}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-zinc-400 uppercase">Jenis Tugas</label>
-                <select 
-                  value={activityPrefix} 
+              {/* Mode Toggle: Detail Terstruktur vs Tulis Manual */}
+              <div className="flex items-center justify-between bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-xl border border-zinc-200/80 dark:border-zinc-700">
+                <button
+                  type="button"
                   disabled={isPublished}
-                  onChange={e => handleActivityPrefixChange(e.target.value)} 
-                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none cursor-pointer text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                  onClick={() => setInputModeKegiatan("structured")}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    inputModeKegiatan === "structured"
+                      ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-xs"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  } disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
-                  <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )</option>
-                  <option value="Melaksanakan Kegiatan ( 1 Hari )">Melaksanakan Kegiatan ( 1 Hari )</option>
-                  <option value="Menugaskan Staf">Menugaskan Staf</option>
-                </select>
+                  Detail Terstruktur (Otomatis)
+                </button>
+                <button
+                  type="button"
+                  disabled={isPublished}
+                  onClick={handleSwitchToManual}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    inputModeKegiatan === "manual"
+                      ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-xs"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  } disabled:opacity-60 disabled:cursor-not-allowed`}
+                >
+                  Tulis Manual (Butir 1)
+                </button>
               </div>
 
-              {activityPrefix.includes("Perjalanan Dinas") ? (
+              {inputModeKegiatan === "manual" ? (
                 <>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Uraian Tugas / Penugasan (Butir 1) *</label>
+                      <span className="text-[10px] text-blue-500 font-medium">Format durasi tanggal otomatis di akhir</span>
+                    </div>
+                    <textarea
+                      value={namaKegiatan ?? ""}
+                      disabled={isPublished}
+                      onChange={(e) => handleNamaKegiatanChange(e.target.value)}
+                      placeholder="Contoh: Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi..."
+                      className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[72px] outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Dari ( Kota / Lokasi Asal ) *</label>
-                      <input value={kotaAsal} disabled={isPublished} onChange={e => setKotaAsal(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Tempat / Lokasi Spesifik (Opsional)</label>
+                      <input
+                        value={tempatKegiatan}
+                        disabled={isPublished}
+                        onChange={(e) => {
+                          const nextPlace = e.target.value;
+                          setTempatKegiatan(nextPlace);
+                          if (sumberDana === "folu") {
+                            updateFoluMenimbang(namaKegiatan, nextPlace);
+                          }
+                        }}
+                        placeholder="Contoh: Kantor Balai / TN / TWA"
+                        className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                      />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Ke ( Kota / Kabupaten Tujuan ) *</label>
-                      <input value={kotaTujuan} disabled={isPublished} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Kutai Barat" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Kota / Kabupaten Tujuan (Opsional)</label>
+                      <input
+                        value={kotaTujuan}
+                        disabled={isPublished}
+                        onChange={(e) => setKotaTujuan(e.target.value)}
+                        placeholder="Contoh: Samarinda"
+                        className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                      />
                     </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-zinc-400 uppercase">Dalam Rangka *</label>
-                    <textarea value={namaKegiatan} disabled={isPublished} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi..." className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-zinc-400 uppercase">Di ( Tempat Spesifik / Opsional )</label>
-                    <input value={tempatKegiatan} disabled={isPublished} onChange={e => {
-                      const nextPlace = e.target.value;
-                      setTempatKegiatan(nextPlace);
-                      if (sumberDana === "folu") {
-                        updateFoluMenimbang(namaKegiatan, nextPlace);
-                      }
-                    }} placeholder="Contoh: Suaka Margasatwa Kelian" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
                   </div>
                 </>
               ) : (
                 <>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-zinc-400 uppercase">
-                      {activityPrefix.includes("Melaksanakan Kegiatan") ? "Melaksanakan Kegiatan ( 1 Hari ) *" : "Menugaskan Staf *"}
-                    </label>
-                    <textarea value={namaKegiatan} disabled={isPublished} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={activityPrefix.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase">Jenis Tugas</label>
+                    <select 
+                      value={activityPrefix || (templateType === "plh" || templateType === "bmn-pemeriksaan" ? "Menugaskan Staf" : "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )")} 
+                      disabled={isPublished}
+                      onChange={e => handleActivityPrefixChange(e.target.value)} 
+                      className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold outline-none cursor-pointer text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )</option>
+                      <option value="Melaksanakan Kegiatan ( 1 Hari )">Melaksanakan Kegiatan ( 1 Hari )</option>
+                      <option value="Menugaskan Staf">Menugaskan Staf</option>
+                    </select>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Pada ( Tempat / Unit / Lokasi )</label>
-                      <input value={tempatKegiatan} disabled={isPublished} onChange={e => {
-                        const nextPlace = e.target.value;
-                        setTempatKegiatan(nextPlace);
-                        if (sumberDana === "folu") {
-                          updateFoluMenimbang(namaKegiatan, nextPlace);
-                        }
-                      }} placeholder="Contoh: Kantor Balai / tempat kegiatannya" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Di ( Kota / Kabupaten ) *</label>
-                      <input value={kotaTujuan} disabled={isPublished} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
-                    </div>
-                  </div>
+
+                  {activityPrefix.includes("Perjalanan Dinas") ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase">Dari ( Kota / Lokasi Asal ) *</label>
+                          <input value={kotaAsal} disabled={isPublished} onChange={e => setKotaAsal(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase">Ke ( Kota / Kabupaten Tujuan ) *</label>
+                          <input value={kotaTujuan} disabled={isPublished} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Kutai Barat" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase">Dalam Rangka *</label>
+                        <textarea value={namaKegiatan ?? ""} disabled={isPublished} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi..." className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase">Di ( Tempat Spesifik / Opsional )</label>
+                        <input value={tempatKegiatan} disabled={isPublished} onChange={e => {
+                          const nextPlace = e.target.value;
+                          setTempatKegiatan(nextPlace);
+                          if (sumberDana === "folu") {
+                            updateFoluMenimbang(namaKegiatan, nextPlace);
+                          }
+                        }} placeholder="Contoh: Suaka Margasatwa Kelian" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-zinc-400 uppercase">
+                          {activityPrefix.includes("Melaksanakan Kegiatan") ? "Melaksanakan Kegiatan ( 1 Hari ) *" : "Menugaskan Staf *"}
+                        </label>
+                        <textarea value={namaKegiatan ?? ""} disabled={isPublished} onChange={e => handleNamaKegiatanChange(e.target.value)} placeholder={activityPrefix.includes("Melaksanakan Kegiatan") ? "opname fisik (stok opname) barang persediaan" : "verifikasi berkas administrasi persediaan"} className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm min-h-[60px] outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase">Pada ( Tempat / Unit / Lokasi )</label>
+                          <input value={tempatKegiatan} disabled={isPublished} onChange={e => {
+                            const nextPlace = e.target.value;
+                            setTempatKegiatan(nextPlace);
+                            if (sumberDana === "folu") {
+                              updateFoluMenimbang(namaKegiatan, nextPlace);
+                            }
+                          }} placeholder="Contoh: Kantor Balai / tempat kegiatannya" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-zinc-400 uppercase">Di ( Kota / Kabupaten ) *</label>
+                          <input value={kotaTujuan} disabled={isPublished} onChange={e => setKotaTujuan(e.target.value)} placeholder="Contoh: Samarinda" className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed" />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
               {isSingleDayActivity ? (
@@ -1363,7 +1622,7 @@ export default function STBuilderPage() {
                         </span>
                       )}
                       <textarea
-                        value={item.text}
+                        value={item.text ?? ""}
                         disabled={isPublished}
                         onChange={e => {
                           const nextItems = [...untukItems];
@@ -1430,7 +1689,7 @@ export default function STBuilderPage() {
             id="surat-preview-doc"
             className="w-[210mm] bg-white shadow-2xl selection:bg-blue-100"
             style={{
-              padding: "0.4cm 1cm 1cm 3cm",
+              padding: "0.4cm 0 1.5cm 0",
               fontFamily: "'Bookman Old Style', 'Georgia', serif",
               fontSize: "11pt",
               lineHeight: "1.25",
@@ -1442,7 +1701,7 @@ export default function STBuilderPage() {
           >
             <STBuilderPreview 
               stNumber={stNumber} stCode={`K.18/TU/${klasifikasi}/B`} currentMonth={currentMonth} currentYear={currentYear}
-              menimbangItems={getPreviewMenimbangItems()} dasarItems={dasarItems} untukItems={getPreviewUntukItems()} selectedEmployees={selectedEmployees}
+              menimbangItems={getPreviewMenimbangItems()} dasarItems={getPreviewDasarItems()} untukItems={getPreviewUntukItems()} selectedEmployees={selectedEmployees}
               buildUntukText={buildUntukText}
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               tembusanItems={tembusanItems}
@@ -1453,15 +1712,32 @@ export default function STBuilderPage() {
               judulLampiranBedaHari={judulLampiranBedaHari}
             />
           </div>
-          {/* Page break indicators */}
-          <div className="absolute left-0 right-0 pointer-events-none" style={{ top: "297mm" }}>
+
+          {/* Page break indicators & Footer BSrE Zone (Screen Preview Only) */}
+          <div className="absolute left-0 right-0 pointer-events-none print:hidden select-none" style={{ top: "272mm" }}>
+            <div className="h-[25mm] flex items-end justify-center pb-2 px-8">
+              <div className="text-[7.5pt] text-zinc-400 dark:text-zinc-500 italic text-center leading-tight">
+                Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik<br />
+                yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN).
+              </div>
+            </div>
             <div className="h-8 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center shadow-inner">
-              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest">HALAMAN 2</span>
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest uppercase">
+                HALAMAN 2
+              </span>
             </div>
           </div>
-          <div className="absolute left-0 right-0 pointer-events-none" style={{ top: "calc(297mm * 2 + 32px)" }}>
+          <div className="absolute left-0 right-0 pointer-events-none print:hidden select-none" style={{ top: "calc(272mm * 2 + 32px)" }}>
+            <div className="h-[25mm] flex items-end justify-center pb-2 px-8">
+              <div className="text-[7.5pt] text-zinc-400 dark:text-zinc-500 italic text-center leading-tight">
+                Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik<br />
+                yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN).
+              </div>
+            </div>
             <div className="h-8 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center shadow-inner">
-              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest">HALAMAN 3</span>
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-widest uppercase">
+                HALAMAN 3
+              </span>
             </div>
           </div>
         </div>

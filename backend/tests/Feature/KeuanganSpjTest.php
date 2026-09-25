@@ -127,4 +127,36 @@ class KeuanganSpjTest extends TestCase
 
         $this->assertSoftDeleted('keuangan_spj', ['id' => $spj->id]);
     }
+
+    public function test_can_export_spj_excel_workbook(): void
+    {
+        $payload = [
+            'tipe_anggaran' => 'FOLU',
+            'nomor_spt' => 'ST.980/K.18/TU/FOLU.NC-23/KSA.02.01/B/09/2026',
+            'nama_kegiatan' => 'Operasionalisasi SMART Patrol Test',
+            'kode_awp' => 'C.1.1.2',
+            'satuan_kerja' => 'Balai Konservasi Sumber Daya Alam Kalimantan Timur',
+            'tanggal_mulai' => '2026-09-10',
+            'tanggal_selesai' => '2026-09-17',
+            'pejabat_ppk' => ['name' => 'Ahmad Hidayat', 'nip' => '198203012000121001'],
+            'pejabat_pdo' => ['name' => 'Dilemma Ferti', 'nip' => '198701302010122005'],
+            'recipients' => [
+                [
+                    'name' => 'Menik Tjahyoningrum',
+                    'nip' => '19811215 200501 2 014',
+                    'type' => 'pegawai',
+                    'amount' => 3900000,
+                ],
+            ],
+            'total_anggaran' => 3900000,
+            'employee_count' => 1,
+        ];
+
+        $response = $this->postJson('/api/keuangan/spj/export-excel', $payload);
+        $response->assertStatus(200);
+        $this->assertTrue(str_contains(
+            $response->headers->get('content-type') ?? '',
+            'spreadsheetml'
+        ));
+    }
 }

@@ -44,8 +44,8 @@ export interface Step1RincianBiayaProps {
   recipients: RecipientRow[];
   setRecipients: React.Dispatch<React.SetStateAction<RecipientRow[]>>;
   travel: { origin: string; destination: string; startDate: string; endDate: string };
-  activeDipaTab: "nominatif" | "sptb" | "rinba" | "spby" | "spd";
-  setActiveDipaTab: (t: "nominatif" | "sptb" | "rinba" | "spby" | "spd") => void;
+  activeDipaTab: "nominatif" | "sptb" | "rinba" | "dpril" | "spby" | "spd";
+  setActiveDipaTab: (t: "nominatif" | "sptb" | "rinba" | "dpril" | "spby" | "spd") => void;
   activeFoluTab: "rekap" | "spb" | "kwitansi" | "rinba" | "spd";
   setActiveFoluTab: (t: "rekap" | "spb" | "kwitansi" | "rinba" | "spd") => void;
   total: number;

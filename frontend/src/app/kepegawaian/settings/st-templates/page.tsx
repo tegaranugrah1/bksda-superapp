@@ -63,6 +63,10 @@ export default function StSettingsPage() {
   const [templateBiayaText, setTemplateBiayaText] = useState("");
   const [nomorSuratFormat, setNomorSuratFormat] = useState(DEFAULT_NOMOR_SURAT_FORMAT);
   const [nomorFormatMode, setNomorFormatMode] = useState<"default" | "manual">("default");
+  const [defaultJenisTugas, setDefaultJenisTugas] = useState<string>("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+  const [defaultModeKegiatan, setDefaultModeKegiatan] = useState<"structured" | "manual">("structured");
+  const [defaultKegiatan, setDefaultKegiatan] = useState<string>("");
+  const [untukItems, setUntukItems] = useState<DasarItem[]>([]);
   const [templateConfiguration, setTemplateConfiguration] = useState<Record<string, unknown>>({});
 
   // ==========================================
@@ -145,6 +149,10 @@ export default function StSettingsPage() {
     setTemplateBiayaText("");
     setNomorSuratFormat(DEFAULT_NOMOR_SURAT_FORMAT);
     setNomorFormatMode("default");
+    setDefaultJenisTugas("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+    setDefaultModeKegiatan("structured");
+    setDefaultKegiatan("");
+    setUntukItems([]);
     setTemplateConfiguration({});
     setIsTemplateFormOpen(false);
   };
@@ -169,6 +177,22 @@ export default function StSettingsPage() {
     const existingNomorFormat = typeof config.nomor_surat_format === "string" ? config.nomor_surat_format : DEFAULT_NOMOR_SURAT_FORMAT;
     setNomorSuratFormat(existingNomorFormat);
     setNomorFormatMode(existingNomorFormat === DEFAULT_NOMOR_SURAT_FORMAT ? "default" : "manual");
+
+    const existingJenisTugas = typeof config.default_jenis_tugas === "string"
+      ? config.default_jenis_tugas
+      : "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )";
+    setDefaultJenisTugas(existingJenisTugas);
+
+    const existingMode = config.default_mode_kegiatan === "manual" ? "manual" : "structured";
+    setDefaultModeKegiatan(existingMode);
+
+    const existingKegiatan = typeof config.default_kegiatan === "string"
+      ? config.default_kegiatan
+      : "";
+    setDefaultKegiatan(existingKegiatan);
+
+    const existingUntuk = Array.isArray(config.untuk) ? config.untuk : [];
+    setUntukItems(existingUntuk);
 
     setIsTemplateFormOpen(true);
   };
@@ -196,6 +220,10 @@ export default function StSettingsPage() {
       is_default: templateIsDefault,
       configuration: {
         ...templateConfiguration,
+        default_jenis_tugas: defaultJenisTugas,
+        default_mode_kegiatan: defaultModeKegiatan,
+        default_kegiatan: defaultKegiatan.trim() || null,
+        untuk: untukItems.filter((i) => i.text.trim()),
         biaya_text: templateBiayaText.trim() || null,
         nomor_surat_format: nomorFormatMode === "manual" && nomorSuratFormat.trim() ? nomorSuratFormat.trim() : DEFAULT_NOMOR_SURAT_FORMAT,
       },
@@ -536,7 +564,48 @@ export default function StSettingsPage() {
                     ))}
                   </select>
                 </label>
+                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                  Default Jenis Tugas
+                  <select
+                    value={defaultJenisTugas}
+                    onChange={(event) => setDefaultJenisTugas(event.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white font-medium"
+                  >
+                    <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">
+                      Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )
+                    </option>
+                    <option value="Melaksanakan Kegiatan ( 1 Hari )">
+                      Melaksanakan Kegiatan ( 1 Hari )
+                    </option>
+                    <option value="Menugaskan Staf">Menugaskan Staf</option>
+                  </select>
+                </label>
+                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                  Mode Input Butir 1 Bawaan
+                  <select
+                    value={defaultModeKegiatan}
+                    onChange={(event) => setDefaultModeKegiatan(event.target.value as "structured" | "manual")}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white font-medium"
+                  >
+                    <option value="structured">Detail Terstruktur (Dari, Ke, Dalam Rangka)</option>
+                    <option value="manual">Tulis Manual (Uraian Tugas Bebas)</option>
+                  </select>
+                </label>
               </div>
+
+              <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                Default Uraian Tugas / Pola Butir 1 (Opsional)
+                <span className="block text-xs font-normal text-slate-400">
+                  Teks awal tugas pokok pada formulir penugasan. Untuk template PLH, mendukung placeholder {"{wilayah}"} (contoh: Wilayah I Berau).
+                </span>
+                <textarea
+                  value={defaultKegiatan}
+                  onChange={(event) => setDefaultKegiatan(event.target.value)}
+                  rows={2}
+                  placeholder="Contoh: Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white text-sm"
+                />
+              </label>
 
               <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
                 Deskripsi
@@ -563,6 +632,17 @@ export default function StSettingsPage() {
                   onChange={setDasarItems}
                   marker="number"
                 />
+              </div>
+              <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
+                <EditableItemListSection
+                  title="Default Butir Tambahan (Untuk)"
+                  items={untukItems}
+                  onChange={setUntukItems}
+                  marker="number"
+                />
+                <p className="mt-2 text-xs text-slate-400">
+                  Klausul penugasan tambahan pada bagian &apos;Untuk&apos; (mulai butir 2 dst, seperti kewajiban konsultasi atau laporan tertulis). Butir 1 tetap otomatis dirakit dari uraian tugas dan durasi tanggal.
+                </p>
               </div>
 
               <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">

@@ -68,6 +68,65 @@ class Employee extends Model
         'is_active' => 'boolean',
     ];
 
+    protected $appends = [
+        'is_seksi',
+        'seksi_wilayah',
+    ];
+
+    /**
+     * Accessor: Cek apakah pegawai bertugas di Seksi Konservasi Wilayah (I, II, atau III)
+     */
+    public function getIsSeksiAttribute(): bool
+    {
+        if (empty($this->satuan_kerja)) {
+            return false;
+        }
+
+        $sk = strtolower($this->satuan_kerja);
+
+        // Jika Kantor Balai KSDA -> Bukan Seksi
+        if (str_contains($sk, 'kantor balai') || str_contains($sk, 'balai')) {
+            return false;
+        }
+
+        // Jika memuat seksi / skw / wilayah / berau / tenggarong / balikpapan
+        return str_contains($sk, 'seksi')
+            || str_contains($sk, 'skw')
+            || str_contains($sk, 'wilayah')
+            || str_contains($sk, 'berau')
+            || str_contains($sk, 'tenggarong')
+            || str_contains($sk, 'balikpapan');
+    }
+
+    /**
+     * Accessor: Nomor romawi Seksi Wilayah ('I', 'II', 'III', atau null)
+     */
+    public function getSeksiWilayahAttribute(): ?string
+    {
+        if (! $this->is_seksi) {
+            return null;
+        }
+
+        $sk = strtolower($this->satuan_kerja);
+
+        // Periksa Wilayah III / Balikpapan terlebih dahulu untuk menghindari collision substring
+        if (str_contains($sk, 'wilayah iii') || str_contains($sk, 'wil iii') || str_contains($sk, 'balikpapan') || str_contains($sk, 'seksi 3') || str_contains($sk, 'seksi iii')) {
+            return 'III';
+        }
+
+        // Periksa Wilayah II / Tenggarong
+        if (str_contains($sk, 'wilayah ii') || str_contains($sk, 'wil ii') || str_contains($sk, 'tenggarong') || str_contains($sk, 'seksi 2') || str_contains($sk, 'seksi ii')) {
+            return 'II';
+        }
+
+        // Periksa Wilayah I / Berau
+        if (str_contains($sk, 'wilayah i') || str_contains($sk, 'wil i') || str_contains($sk, 'berau') || str_contains($sk, 'seksi 1') || str_contains($sk, 'seksi i')) {
+            return 'I';
+        }
+
+        return null;
+    }
+
     /**
      * Exclude administrator pusat from employee listings globally
      */

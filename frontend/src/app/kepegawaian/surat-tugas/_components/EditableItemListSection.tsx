@@ -57,7 +57,7 @@ export function EditableItemListSection({
               {marker === "letter" ? indexToLetter(idx) : `${idx + 1}.`}
             </span>
             <textarea
-              value={item.text}
+              value={item.text ?? ""}
               disabled={disabled}
               onChange={(e) => updateItem(idx, e.target.value)}
               className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-700 outline-none min-h-[60px] text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"

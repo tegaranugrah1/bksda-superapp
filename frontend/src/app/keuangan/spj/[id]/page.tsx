@@ -189,7 +189,9 @@ export default function SpjDetailPage() {
               </Badge>
             </div>
             <h1 className="mt-1 text-2xl font-bold tracking-tight">{spj.nama_kegiatan}</h1>
-            <p className="font-mono text-xs text-slate-500 mt-0.5">{spj.nomor_spj}</p>
+            {spj.nomor_spj && (
+              <p className="font-mono text-xs text-slate-500 mt-0.5">{spj.nomor_spj}</p>
+            )}
           </div>
         </div>
 

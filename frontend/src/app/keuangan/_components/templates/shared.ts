@@ -12,6 +12,13 @@ export interface RinbaDetails {
   transportItems: TransportItem[];
 }
 
+export interface DipaTransportItem {
+  id: string;
+  category: "udara" | "darat"; // "udara" -> Kolom 5 Nominatif, "darat" -> Kolom 6 Nominatif (Taksi/Darat/Laut PP)
+  label: string;
+  amount: number;
+}
+
 export interface DipaDetails {
   uangHarianRate?: number;
   uangHarianDays?: number;
@@ -19,7 +26,62 @@ export interface DipaDetails {
   penginapanNights?: number;
   transportUdara?: number;
   taksiPp?: number;
+  transportItems?: DipaTransportItem[];
   extraItems?: TransportItem[];
+  dpRilEnabled?: boolean;
+  dpRilHotelStandardRate?: number;
+  dpRilProvince?: string;
+  dpRilDescription?: string;
+  dpRilItems?: { label: string; amount: number }[];
+}
+
+export interface SbmRatePreset {
+  key: string;
+  label: string;
+  provinceName: string;
+  gol123: number;
+  gol4: number;
+}
+
+export const SBM_HOTEL_PRESETS: SbmRatePreset[] = [
+  {
+    key: "kaltim",
+    label: "Kaltim dan Kaltara",
+    provinceName: "Provinsi Kalimantan Timur",
+    gol123: 804000,
+    gol4: 1507000,
+  },
+  {
+    key: "jabar",
+    label: "Jawa Barat",
+    provinceName: "Provinsi Jawa Barat",
+    gol123: 570000,
+    gol4: 1201000,
+  },
+  {
+    key: "jakarta",
+    label: "DKI Jakarta",
+    provinceName: "DKI Jakarta",
+    gol123: 730000,
+    gol4: 992000,
+  },
+];
+
+export function isGolongan4(rank?: string): boolean {
+  if (!rank) return false;
+  const upper = rank.toUpperCase();
+  return (
+    upper.includes("IV") ||
+    upper.includes("PEMBINA") ||
+    upper.includes("GOLONGAN 4") ||
+    upper.includes("GOL 4") ||
+    upper.includes("GOL. 4")
+  );
+}
+
+export function getSbmStandardRate(presetKey: string, rank?: string): number {
+  const preset = SBM_HOTEL_PRESETS.find((p) => p.key === presetKey) || SBM_HOTEL_PRESETS[0];
+  return isGolongan4(rank) ? preset.gol4 : preset.gol123;
 }
 
 export interface Recipient {
@@ -71,6 +133,8 @@ export interface DipaConfig {
   noSpDipa?: string;
   klasifikasiMak?: string;
   kodeMak?: string;
+  makDescription?: string;
+  makItems?: DipaMakItem[];
   akun?: string;
   bendahara?: Official;
   maksudTujuan?: string;
@@ -81,6 +145,23 @@ export interface DipaConfig {
   spdDate?: string;
   spbyKepada?: string;
   spbyUraian?: string;
+  spbyDate?: string;
+  sptjbDate?: string;
+  rinbaDate?: string;
+  nominatifDate?: string;
+  dpRilDate?: string;
+  buktiSptjb?: string;
+  noSpby?: string;
+  spbyNo?: string;
+  spbyMonth?: string;
+  spbyYear?: string;
+  spbyKuitansi?: string;
+  spbyNota?: string;
+  rinbaSpdNo?: string;
+  rinbaSpdSuffix?: string;
+  nominatifSpd?: string;
+  nominatifSpdNo?: string;
+  nominatifSpdSuffix?: string;
 }
 
 export interface Official {
@@ -471,6 +552,46 @@ export function formatFullDateIndonesia(dateStr?: string): string {
   }
 }
 
+export function formatIndoDateOptional(dateStr?: string): string {
+  if (!dateStr || !dateStr.trim()) return "";
+  try {
+    const trimmed = dateStr.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const d = new Date(`${trimmed}T00:00:00`);
+      if (!isNaN(d.getTime())) {
+        const months = [
+          "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+          "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+        return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      }
+    }
+    return trimmed;
+  } catch {
+    return dateStr;
+  }
+}
+
+export function toIsoDateString(dateStr?: string): string {
+  if (!dateStr || !dateStr.trim()) return "";
+  const trimmed = dateStr.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const months: Record<string, string> = {
+    januari: "01", februari: "02", maret: "03", april: "04", mei: "05", juni: "06",
+    juli: "07", agustus: "08", september: "09", oktober: "10", november: "11", desember: "12"
+  };
+  const parts = trimmed.split(/\s+/);
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, "0");
+    const m = months[parts[1].toLowerCase()];
+    const year = parts[2];
+    if (m && /^\d{4}$/.test(year) && /^\d{2}$/.test(day)) {
+      return `${year}-${m}-${day}`;
+    }
+  }
+  return "";
+}
+
 const angkaArray = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
 
 export function terbilangNumber(n: number): string {
@@ -485,6 +606,22 @@ export function getRomanMonth(dateInput?: string | Date): string {
   const month = isNaN(d.getTime()) ? new Date().getMonth() + 1 : d.getMonth() + 1;
   const romanMonths = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
   return romanMonths[month - 1] || "IX";
+}
+
+export function formatSpbyNumber(dipaConfig?: DipaConfig, fallbackSpbNumber?: { no?: string; suffix?: string }): string {
+  if (dipaConfig?.noSpby && !dipaConfig.spbyNo && !dipaConfig.spbyMonth && !dipaConfig.spbyYear) {
+    return dipaConfig.noSpby;
+  }
+  const currentRomanMonth = getRomanMonth(new Date());
+  const currentYear = new Date().getFullYear().toString();
+  const no = dipaConfig?.spbyNo?.trim() ?? "";
+  const month = dipaConfig?.spbyMonth !== undefined && dipaConfig.spbyMonth !== "" ? dipaConfig.spbyMonth : currentRomanMonth;
+  const year = dipaConfig?.spbyYear !== undefined && dipaConfig.spbyYear !== "" ? dipaConfig.spbyYear : currentYear;
+
+  if (no) {
+    return `${no} / ${month} / ${year}`;
+  }
+  return `      /  ${month}  / ${year}`;
 }
 
 export function buildDefaultSptjbUraian(
@@ -539,6 +676,29 @@ export interface ApiSuratTugas {
     pangkat_golongan?: string;
   }>;
 }
+
+export function isSuratTugasForBudget(letter: ApiSuratTugas, tipeAnggaran: "FOLU" | "DIPA"): boolean {
+  const sumber = (letter.sumber_dana || "").toLowerCase().trim();
+  const nomor = (letter.nomor_surat || "").toLowerCase().trim();
+
+  const isFolu = sumber.includes("folu") || nomor.includes("folu");
+
+  if (tipeAnggaran === "FOLU") {
+    return isFolu;
+  }
+
+  // Tipe anggaran DIPA:
+  // Harus bukan FOLU, bukan DL1 (non-biaya), dan bukan dana kemitraan/kerjasama pihak ketiga
+  const isDl1 = sumber.includes("dl1") || sumber.includes("tidak ada") || sumber.includes("non-biaya");
+  const isKerjasama = sumber.includes("kerjasama") || sumber.includes("mitra") || sumber.includes("swadaya");
+
+  if (isFolu || isDl1 || isKerjasama) {
+    return false;
+  }
+
+  return sumber.includes("dipa") || nomor.includes("dipa") || !sumber;
+}
+
 
 export const DEFAULT_SPD_ANGGARAN_HEADER =
   "Proyek FOLU Net Sink 2030 RBC Norwegia Tahap II dan III (FOLU NC 2&3) pada AWP KSDAE - TA 2026";
@@ -707,7 +867,65 @@ export function buildDefaultDipa(
     penginapanNights: 0,
     transportUdara: 0,
     taksiPp: 0,
+    transportItems: [],
     extraItems: [],
+  };
+}
+
+export function getDipaTransportBreakdown(dipa?: DipaDetails): {
+  udara: number;
+  darat: number;
+  total: number;
+  items: DipaTransportItem[];
+} {
+  if (!dipa) {
+    return { udara: 0, darat: 0, total: 0, items: [] };
+  }
+
+  // If transportItems is explicitly defined (even as an empty array []), respect it!
+  if (Array.isArray(dipa.transportItems)) {
+    let udara = 0;
+    let darat = 0;
+    for (const item of dipa.transportItems) {
+      if (item.category === "udara") {
+        udara += item.amount || 0;
+      } else {
+        darat += item.amount || 0;
+      }
+    }
+    return {
+      udara,
+      darat,
+      total: udara + darat,
+      items: dipa.transportItems,
+    };
+  }
+
+  // Fallback ONLY for legacy data where dipa.transportItems property was not defined
+  const udara = dipa.transportUdara || 0;
+  const darat = dipa.taksiPp || 0;
+  const fallbackItems: DipaTransportItem[] = [];
+  if (udara > 0) {
+    fallbackItems.push({
+      id: "legacy-udara",
+      category: "udara",
+      label: "Transportasi Udara PP",
+      amount: udara,
+    });
+  }
+  if (darat > 0) {
+    fallbackItems.push({
+      id: "legacy-darat",
+      category: "darat",
+      label: "Taksi Bandara / Stasiun PP",
+      amount: darat,
+    });
+  }
+  return {
+    udara,
+    darat,
+    total: udara + darat,
+    items: fallbackItems,
   };
 }
 
@@ -715,8 +933,191 @@ export function calculateDipaTotal(dipa: DipaDetails): number {
   const days = dipa.uangHarianDays || 1;
   const rate = dipa.uangHarianRate || 0;
   const uangHarian = days * rate;
-  const transport = (dipa.transportUdara || 0) + (dipa.taksiPp || 0);
+  const transport = getDipaTransportBreakdown(dipa).total;
   const hotel = (dipa.penginapanNights || 0) * (dipa.penginapanRate || 0);
   const extra = (dipa.extraItems || []).reduce((acc, it) => acc + (it.amount || 0), 0);
   return uangHarian + transport + hotel + extra;
 }
+
+export function formatMaksudSpd(raw?: string, travel?: { origin: string; destination: string }): string {
+  if (!raw) {
+    if (travel?.origin && travel?.destination) {
+      return `Perjalanan Dinas dari ${travel.origin} ke ${travel.destination}`;
+    }
+    return "-";
+  }
+  let text = raw.trim();
+
+  // Find the earliest occurrence of stop words/phrases:
+  // "selama", "terhitung mulai", "membuat laporan", "segala biaya"
+  const stopWordRegex = /[,;.]?\s*(?:\r?\n\s*)*\b(selama\s+\d+|selama\s+\(|selama\b|terhitung\s+mulai|membuat\s+laporan|segala\s+biaya)\b/i;
+  const match = text.match(stopWordRegex);
+  if (match && match.index !== undefined) {
+    text = text.slice(0, match.index);
+  }
+
+  // Remove leading "Melaksanakan " if present
+  text = text.replace(/^melaksanakan\s+/i, "");
+
+  // Capitalize "Perjalanan Dinas" if at the start
+  text = text.replace(/^perjalanan\s+dinas/i, "Perjalanan Dinas");
+
+  // If text doesn't contain "Perjalanan Dinas" and we have travel info
+  if (!text.toLowerCase().includes("perjalanan dinas") && travel?.origin && travel?.destination) {
+    text = `Perjalanan Dinas dari ${travel.origin} ke ${travel.destination} dalam rangka ${text}`;
+  }
+
+  // Clean trailing punctuation
+  text = text.replace(/[,;.\s]+$/, "").trim();
+
+  return text;
+}
+
+export const DEFAULT_DIPA_KLASIFIKASI_MAK = "7273.REA.003.524111";
+export const DEFAULT_DIPA_KODE_MAK = "051.E.770.771.772";
+
+export interface DipaMakItem {
+  kodeMak: string;
+  description: string;
+  hasUangHarian: boolean;
+  hasPenginapan: boolean;
+  hasTransport: boolean;
+}
+
+export function computeRecipientDipaMak(
+  d?: DipaDetails,
+  travelDays: number = 1
+): DipaMakItem {
+  const uhDays = d?.uangHarianDays ?? travelDays;
+  const uhRate = d?.uangHarianRate ?? 360000;
+  const hasUangHarian = uhDays > 0 && uhRate > 0;
+
+  const pNights = d?.penginapanNights ?? 0;
+  const pRate = d?.penginapanRate ?? 0;
+  const hasPenginapan = pNights > 0 && pRate > 0;
+
+  const tb = getDipaTransportBreakdown(d);
+  const extras = (d?.extraItems || []).reduce((acc, it) => acc + (it.amount || 0), 0);
+  const hasTransport =
+    tb.total + extras > 0 ||
+    (d?.transportUdara ?? 0) > 0 ||
+    (d?.taksiPp ?? 0) > 0;
+
+  const parts: string[] = [];
+  const descParts: string[] = [];
+
+  if (hasUangHarian) {
+    parts.push("770");
+    descParts.push("Uang Harian");
+  }
+  if (hasPenginapan) {
+    parts.push("771");
+    descParts.push("Penginapan");
+  }
+  if (hasTransport) {
+    parts.push("772");
+    descParts.push("Transportasi");
+  }
+
+  const kodeMak = parts.length > 0 ? `051.E.${parts.join(".")}` : DEFAULT_DIPA_KODE_MAK;
+  const description = descParts.length > 0 ? descParts.join(", ") : "Uang Harian, Penginapan, Transportasi";
+
+  return {
+    kodeMak,
+    description,
+    hasUangHarian,
+    hasPenginapan,
+    hasTransport,
+  };
+}
+
+export function computeDipaMak(
+  recipients?: Array<{ dipa?: DipaDetails; amount?: number }>,
+  travel?: { startDate?: string; endDate?: string }
+): {
+  kodeMak: string;
+  hasUangHarian: boolean;
+  hasPenginapan: boolean;
+  hasTransport: boolean;
+  description: string;
+  items: DipaMakItem[];
+} {
+  const days = calculateDays(travel?.startDate, travel?.endDate);
+  const hasRecipients = recipients && recipients.length > 0;
+
+  // Union across all recipients: if ANY recipient has that component, the SPJ classification includes it
+  const hasUangHarian =
+    !hasRecipients ||
+    recipients.some((r) => {
+      const d = r.dipa;
+      const uhDays = d?.uangHarianDays ?? days;
+      const uhRate = d?.uangHarianRate ?? 360000;
+      return uhDays > 0 && uhRate > 0;
+    });
+
+  const hasPenginapan =
+    !hasRecipients ||
+    recipients.some((r) => {
+      const d = r.dipa;
+      const pNights = d?.penginapanNights ?? 0;
+      const pRate = d?.penginapanRate ?? 0;
+      return pNights > 0 && pRate > 0;
+    });
+
+  const hasTransport =
+    !hasRecipients ||
+    recipients.some((r) => {
+      const d = r.dipa;
+      const tb = getDipaTransportBreakdown(d);
+      const extras = (d?.extraItems || []).reduce((acc, it) => acc + (it.amount || 0), 0);
+      return (
+        tb.total + extras > 0 ||
+        (d?.transportUdara ?? 0) > 0 ||
+        (d?.taksiPp ?? 0) > 0
+      );
+    });
+
+  const parts: string[] = [];
+  const descParts: string[] = [];
+
+  if (hasUangHarian) {
+    parts.push("770");
+    descParts.push("Uang Harian");
+  }
+  if (hasPenginapan) {
+    parts.push("771");
+    descParts.push("Penginapan");
+  }
+  if (hasTransport) {
+    parts.push("772");
+    descParts.push("Transportasi");
+  }
+
+  const kodeMak = parts.length > 0 ? `051.E.${parts.join(".")}` : DEFAULT_DIPA_KODE_MAK;
+  const description = descParts.length > 0 ? descParts.join(", ") : "Uang Harian, Penginapan, Transportasi";
+
+  const singleItem: DipaMakItem = {
+    kodeMak,
+    description,
+    hasUangHarian,
+    hasPenginapan,
+    hasTransport,
+  };
+
+  return {
+    kodeMak,
+    hasUangHarian,
+    hasPenginapan,
+    hasTransport,
+    description,
+    items: [singleItem],
+  };
+}
+
+export function computeDipaMakList(
+  recipients?: Array<{ dipa?: DipaDetails; amount?: number }>,
+  travel?: { startDate?: string; endDate?: string }
+): DipaMakItem[] {
+  return computeDipaMak(recipients, travel).items;
+}
+

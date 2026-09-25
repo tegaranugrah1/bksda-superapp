@@ -14,10 +14,11 @@ import { AlertTriangle, Trash2, Loader2 } from "lucide-react";
 
 interface ConfirmOptions {
   title?: string;
-  description: string;
+  description: string | ReactNode;
   confirmText?: string;
   cancelText?: string;
-  variant?: "danger" | "warning" | "default";
+  variant?: "danger" | "warning" | "default" | "info";
+  icon?: ReactNode;
 }
 
 interface ConfirmDialogContextType {
@@ -66,36 +67,42 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
   const variant = options?.variant || "danger";
 
   const iconColorMap = {
-    danger: "bg-rose-100 text-rose-600 ring-rose-200",
-    warning: "bg-amber-100 text-amber-600 ring-amber-200",
-    default: "bg-blue-100 text-blue-600 ring-blue-200",
+    danger: "bg-rose-100 text-rose-600 ring-rose-200 dark:bg-rose-950/60 dark:text-rose-400 dark:ring-rose-800",
+    warning: "bg-amber-100 text-amber-600 ring-amber-200 dark:bg-amber-950/60 dark:text-amber-400 dark:ring-amber-800",
+    default: "bg-blue-100 text-blue-600 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:ring-blue-800",
+    info: "bg-emerald-100 text-emerald-600 ring-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:ring-emerald-800",
   };
 
   const buttonColorMap = {
-    danger: "bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-200/50",
-    warning: "bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-200/50",
-    default: "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200/50",
+    danger: "bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-200/50 dark:shadow-rose-950/50",
+    warning: "bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-200/50 dark:shadow-amber-950/50",
+    default: "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200/50 dark:shadow-blue-950/50",
+    info: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200/50 dark:shadow-emerald-950/50",
   };
 
   return (
     <ConfirmDialogContext.Provider value={{ confirm }}>
       {children}
       <Dialog open={open} onOpenChange={(v) => { if (!v) handleCancel(); }}>
-        <DialogContent className="sm:max-w-[420px] rounded-2xl border border-white/40 bg-white/95 backdrop-blur-2xl shadow-2xl shadow-gray-300/40 p-0 gap-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[420px] rounded-2xl border border-white/40 bg-white/95 backdrop-blur-2xl shadow-2xl shadow-gray-300/40 p-0 gap-0 overflow-hidden dark:bg-slate-900/95 dark:border-slate-800 dark:shadow-black/50">
           <div className="px-6 pt-6 pb-4">
             <DialogHeader className="flex flex-col items-center text-center gap-3">
               <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ring-1 ${iconColorMap[variant]}`}>
-                {variant === "danger" ? (
+                {options?.icon ? (
+                  options.icon
+                ) : variant === "danger" ? (
                   <Trash2 className="h-7 w-7" />
                 ) : (
                   <AlertTriangle className="h-7 w-7" />
                 )}
               </div>
-              <DialogTitle className="text-lg font-bold text-slate-800">
+              <DialogTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">
                 {options?.title || "Konfirmasi"}
               </DialogTitle>
-              <DialogDescription className="text-sm text-slate-500 leading-relaxed">
-                {options?.description}
+              <DialogDescription asChild>
+                <div className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                  {options?.description}
+                </div>
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -103,7 +110,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
             <Button
               variant="outline"
               onClick={handleCancel}
-              className="flex-1 h-11 rounded-xl font-bold text-sm border-slate-200 hover:bg-slate-50 text-slate-600"
+              className="flex-1 h-11 rounded-xl font-bold text-sm border-slate-200 hover:bg-slate-50 text-slate-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
               disabled={loading}
             >
               {options?.cancelText || "Batal"}
@@ -116,7 +123,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : null}
-              {options?.confirmText || "Ya, Hapus"}
+              {options?.confirmText || (variant === "danger" ? "Ya, Hapus" : "Lanjutkan")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -14,6 +14,9 @@ use App\Modules\Bmn\Controllers\MaintenanceController;
 use App\Modules\Bmn\Controllers\PowerOfAttorneyController;
 use App\Modules\Bmn\Controllers\UsageAgreementController;
 use App\Modules\Bmn\Controllers\AuctionBatchController;
+use App\Modules\Bmn\Controllers\TagController;
+use App\Modules\Bmn\Controllers\LocationController;
+use App\Modules\Bmn\Controllers\AssetTypeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -93,6 +96,26 @@ Route::post('assets/bulk-dispose', [AssetController::class, 'bulkDispose'])->mid
 Route::post('assets/bulk-restore', [AssetController::class, 'bulkRestore'])->middleware('permission:bmn.asset.dispose');
 Route::post('assets/bulk-force-delete', [AssetController::class, 'bulkForceDelete'])->middleware('permission:bmn.asset.force_delete');
 Route::post('assets/bulk-update-kondisi', [AssetController::class, 'bulkUpdateKondisi'])->middleware('permission:bmn.asset.update');
+
+// 7. TAG MANAGEMENT
+Route::get('tags', [TagController::class, 'index'])->middleware('permission:bmn.view');
+Route::post('tags', [TagController::class, 'store'])->middleware('permission:bmn.asset.update');
+Route::match(['put', 'patch'], 'tags/{tag}', [TagController::class, 'update'])->middleware('permission:bmn.asset.update');
+Route::delete('tags/{tag}', [TagController::class, 'destroy'])->middleware('permission:bmn.asset.update');
+Route::post('tags/bulk-assign', [TagController::class, 'bulkAssign'])->middleware('permission:bmn.asset.update');
+Route::post('assets/{asset}/tags', [TagController::class, 'syncAssetTags'])->middleware('permission:bmn.asset.update');
+
+// 8. MASTER LOKASI & RUANGAN BMN
+Route::get('locations', [LocationController::class, 'index'])->middleware('permission:bmn.view');
+Route::post('locations', [LocationController::class, 'store'])->middleware('permission:bmn.asset.update');
+Route::match(['put', 'patch'], 'locations/{location}', [LocationController::class, 'update'])->middleware('permission:bmn.asset.update');
+Route::delete('locations/{location}', [LocationController::class, 'destroy'])->middleware('permission:bmn.asset.update');
+
+// 9. MASTER JENIS BMN
+Route::get('asset-types', [AssetTypeController::class, 'index'])->middleware('permission:bmn.view');
+Route::post('asset-types', [AssetTypeController::class, 'store'])->middleware('permission:bmn.asset.update');
+Route::match(['put', 'patch'], 'asset-types/{assetType}', [AssetTypeController::class, 'update'])->middleware('permission:bmn.asset.update');
+Route::delete('asset-types/{assetType}', [AssetTypeController::class, 'destroy'])->middleware('permission:bmn.asset.update');
 
 Route::prefix('import-review')->group(function () {
     Route::post('/upload', [ImportReviewController::class, 'upload'])->middleware('permission:bmn.import.review');

@@ -222,33 +222,46 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
       <head>
         <title>BA Serah Terima BMN</title>
         <style>
-          @page { size: A4 portrait; margin: 0; }
-          * { box-sizing: border-box; }
-          body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
+          @page { size: A4 portrait; margin: 0 !important; }
+          * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif !important; font-size: 10.5pt; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body * { font-family: Arial, Helvetica, sans-serif !important; visibility: visible !important; }
           p { margin: 0; }
           .handover-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 10mm; }
           .handover-header { margin: 0 -12mm; text-align: center; }
           .handover-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          .handover-title { margin-top: 3.5mm; text-align: center; font-weight: 700; white-space: pre-wrap; }
-          .handover-body { margin-top: 3.5mm; text-align: justify; }
-          .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 2.5mm 0; }
-          .handover-rows { display: grid; grid-template-columns: 26mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.5mm; }
+          .handover-title { margin-top: 2.5mm; text-align: center; font-weight: 700; font-size: 11.5pt; white-space: pre-wrap; }
+          .handover-body { margin-top: 2.5mm; text-align: justify; font-size: 10.5pt; line-height: 1.25; }
+          .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 1.5mm 0; }
+          .handover-rows { display: grid; grid-template-columns: 28mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.3mm; }
           .handover-colon { text-align: center; }
           .handover-val { text-align: left; word-break: break-word; overflow-wrap: break-word; line-height: 1.25; }
-          .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 3mm 0 2mm; font-size: 8.4pt; text-align: center; }
-          .handover-table th, .handover-table td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; overflow-wrap: anywhere; }
+
+          .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2mm 0 1.5mm; font-size: 9.5pt; text-align: center; }
+          .handover-table th, .handover-table td { border: 1px solid #000; padding: 2.5px 3.5px; vertical-align: middle; overflow-wrap: anywhere; }
           .handover-table td.handover-cell-left { text-align: left; }
           .handover-table td.handover-cell-center { text-align: center; }
-          .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
+          .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.5pt; }
           .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 5mm; text-align: left; }
+
+          .page-continuation-spacer { height: 0 !important; margin: 0 !important; padding: 0 !important; page-break-before: always !important; break-before: page !important; }
+
+          .handover-closing-table { width: 100% !important; border: none !important; border-collapse: collapse !important; margin-top: 2.5mm !important; }
+          .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 4mm; text-align: left; }
           .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 48%; }
           .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 52%; }
           .handover-sig-left p, .handover-sig-right p, .handover-signature-name { white-space: nowrap; }
           .handover-signature-name { margin-top: 28mm; font-weight: 700; white-space: nowrap; }
-          .handover-witness-block { margin-top: 8mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
-          .page-continuation-spacer { height: 0; margin: 0; padding: 0; page-break-before: always; break-before: page; }
-          .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+          .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+          .avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
+
+          /* Master Table for repeating Kop Surat on multi-page print */
+          .handover-master-table { width: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0; }
+          .handover-master-thead { display: table-header-group !important; }
+          .handover-master-thead-cell { border: none !important; padding: 3.5mm 0 2mm 0 !important; margin: 0 !important; vertical-align: top; }
+          .handover-master-tfoot { display: table-footer-group !important; }
+          .handover-master-tfoot-cell { border: none !important; height: 5mm; padding: 0 !important; margin: 0 !important; }
+          .handover-master-body-cell { border: none !important; padding: 0 !important; margin: 0 !important; vertical-align: top; }
 
           /* Lampiran Foto Styles */
           .photo-lampiran-page {
@@ -304,7 +317,27 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           }
         </style>
       </head>
-      <body>${printContent.innerHTML}</body>
+      <body>
+        <div id="${documentId}" class="handover-preview">
+          ${(() => {
+            if (typeof window === "undefined") return printContent.innerHTML;
+            const container = document.createElement("div");
+            container.innerHTML = printContent.innerHTML;
+            const styles = container.getElementsByTagName("style");
+            while (styles.length > 0) {
+              styles[0].parentNode?.removeChild(styles[0]);
+            }
+            const imgs = container.getElementsByTagName("img");
+            for (let i = 0; i < imgs.length; i++) {
+              const src = imgs[i].getAttribute("src");
+              if (src && !/^https?:\/\//i.test(src) && !src.startsWith("data:")) {
+                imgs[i].setAttribute("src", `${window.location.origin}${src.startsWith("/") ? "" : "/"}${src}`);
+              }
+            }
+            return container.innerHTML;
+          })()}
+        </div>
+      </body>
     </html>
   `);
   printWindow.document.close();
@@ -347,7 +380,7 @@ function PartyBlock({ index, party, label }: { index: number; party: HandoverPar
         <div className="handover-rows"><span>{idLabel}</span><span className="handover-colon">:</span><span className="handover-val">{party.idType === "NIK" ? fallback(party.nip) : formatNip(party.nip)}</span></div>
         <div className="handover-rows"><span>{positionLabel}</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.position)}</span></div>
         <div className="handover-rows"><span>Alamat</span><span className="handover-colon">:</span><span className="handover-val">{fallback(party.address)}</span></div>
-        <p style={{ marginTop: "1mm" }}>Selanjutnya disebut <strong>{label}</strong></p>
+        <p style={{ marginTop: "0.5mm" }}>Selanjutnya disebut <strong>{label}</strong></p>
       </div>
     </div>
   );
@@ -380,8 +413,11 @@ export function HandoverAgreementDocument({
   const itemCountText = `${itemCount} (${spellNumber(itemCount).toLocaleLowerCase("id-ID")})`;
   const itemDescription = (description || (variant === "vehicle" ? "kendaraan" : "barang")).trim();
 
-  // Dynamic pagination threshold
-  const PAGE_1_MAX_ITEMS = signerCount === 3 ? 12 : 17;
+  // Dynamic pagination:
+  // Page 1 comfortably fits up to 22 items when closing block moves to Page 2.
+  // If items <= 22, all items render on Page 1 without continuation.
+  // If items > 22, Page 1 renders first 22 items, and Page 2 renders the rest with continuation table & number row (1, 2, 3, 4, 5).
+  const PAGE_1_MAX_ITEMS = 22;
   const isMultiPage = items.length > PAGE_1_MAX_ITEMS;
   const page1Items = isMultiPage ? items.slice(0, PAGE_1_MAX_ITEMS) : items;
   const page2Items = isMultiPage ? items.slice(PAGE_1_MAX_ITEMS) : [];
@@ -395,32 +431,62 @@ export function HandoverAgreementDocument({
   return (
     <div id={documentId}>
       <style jsx global>{`
-        .handover-preview .handover-page { width: 210mm; max-width: 100%; margin: 0 auto; padding: 3.5mm 20mm 10mm; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.22; }
+        .handover-preview .handover-page,
+        .handover-preview .handover-page * {
+          font-family: Arial, Helvetica, sans-serif !important;
+        }
+        .handover-preview .handover-page { width: 210mm; max-width: 100%; margin: 0 auto; padding: 3.5mm 20mm 10mm; background: white; color: black; font-size: 10.5pt; line-height: 1.25; }
         .handover-preview p { margin: 0; }
         .handover-preview .handover-header { margin: 0 -12mm; text-align: center; }
         .handover-preview .handover-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .handover-preview .handover-title { margin-top: 3.5mm; text-align: center; font-weight: 700; white-space: pre-wrap; }
-        .handover-preview .handover-body { margin-top: 3.5mm; text-align: justify; }
-        .handover-preview .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 2.5mm 0; }
-        .handover-preview .handover-rows { display: grid; grid-template-columns: 26mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.5mm; }
+        .handover-preview .handover-master-table { width: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0; }
+        .handover-preview .handover-master-thead { display: table-header-group; }
+        .handover-preview .handover-master-thead-cell { border: none !important; padding: 3.5mm 0 2mm 0 !important; margin: 0 !important; vertical-align: top; }
+        .handover-preview .handover-master-tfoot { display: table-footer-group; }
+        .handover-preview .handover-master-tfoot-cell { border: none !important; height: 5mm; padding: 0 !important; margin: 0 !important; }
+        .handover-preview .handover-master-body-cell { border: none !important; padding: 0 !important; margin: 0 !important; vertical-align: top; }
+        .handover-preview .handover-title { margin-top: 2.5mm; text-align: center; font-weight: 700; font-size: 11.5pt; white-space: pre-wrap; }
+        .handover-preview .handover-body { margin-top: 2.5mm; text-align: justify; font-size: 10.5pt; line-height: 1.25; }
+        .handover-preview .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 1.5mm 0; }
+        .handover-preview .handover-rows { display: grid; grid-template-columns: 28mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.3mm; }
         .handover-preview .handover-colon { text-align: center; }
         .handover-preview .handover-val { text-align: left; word-break: break-word; overflow-wrap: break-word; line-height: 1.25; }
-        .handover-preview .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 3mm 0 2mm; font-size: 8.4pt; text-align: center; }
+
+        .handover-preview .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2mm 0 1.5mm; font-size: 9.5pt; text-align: center; }
         .handover-preview .handover-table th,
-        .handover-preview .handover-table td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; overflow-wrap: anywhere; }
+        .handover-preview .handover-table td { border: 1px solid #000; padding: 2.5px 3.5px; vertical-align: middle; overflow-wrap: anywhere; }
         .handover-preview .handover-table td.handover-cell-left { text-align: left; }
         .handover-preview .handover-table td.handover-cell-center { text-align: center; }
-        .handover-preview .handover-table thead { display: table-header-group; }
-        .handover-preview .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.4pt; }
+        .handover-preview .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.5pt; }
         .handover-preview .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-        .handover-preview .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 5mm; text-align: left; }
+
+        .handover-preview .page-continuation-spacer {
+          height: 10mm;
+          margin: 6mm 0 4mm 0;
+          border-top: 2px dashed #cbd5e1;
+          position: relative;
+          page-break-before: always;
+          break-before: page;
+        }
+        .handover-preview .page-continuation-spacer::after {
+          content: "Halaman 2 (Lanjutan)";
+          position: absolute;
+          top: -9px;
+          right: 0;
+          font-size: 8pt;
+          color: #94a3b8;
+          background: #fff;
+          padding: 0 6px;
+        }
+
+        .handover-preview .handover-closing-table { width: 100% !important; border: none !important; border-collapse: collapse !important; margin-top: 2.5mm !important; }
+        .handover-preview .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 4mm; text-align: left; }
         .handover-preview .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 48%; }
         .handover-preview .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 52%; }
         .handover-preview .handover-sig-left p, .handover-preview .handover-sig-right p, .handover-preview .handover-signature-name { white-space: nowrap; }
         .handover-preview .handover-signature-name { margin-top: 28mm; font-weight: 700; white-space: nowrap; }
-        .handover-preview .handover-witness-block { margin-top: 8mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
-        .handover-preview .page-continuation-spacer { height: 0; margin: 0; padding: 0; page-break-before: always; break-before: page; }
-        .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+        .handover-preview .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+        .avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
 
         /* Lampiran Foto Styles */
         .handover-preview .photo-lampiran-page {
@@ -477,132 +543,231 @@ export function HandoverAgreementDocument({
           font-size: 8.5pt;
         }
         @media print {
-          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
-          @page :first { margin-top: 0; }
-          body * { visibility: hidden; }
-          #ba-serah-terima-print-root, #ba-serah-terima-print-root * { visibility: visible; }
-          #ba-serah-terima-print-root { position: absolute; inset: 0 auto auto 0; width: 100%; }
-          .handover-page { box-shadow: none !important; }
-          .photo-lampiran-page { box-shadow: none !important; }
-          .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+          @page { size: A4 portrait; margin: 0 !important; }
+          .handover-page { box-shadow: none !important; margin: 0 auto !important; padding: 0 20mm 10mm !important; }
+          .photo-lampiran-page { box-shadow: none !important; margin: 0 auto !important; padding: 3.5mm 20mm 10mm !important; }
+          .avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
+          .handover-master-table { width: 100% !important; border-collapse: collapse !important; border: none !important; }
+          .handover-master-thead { display: table-header-group !important; }
+          .handover-master-thead-cell { border: none !important; padding: 2.5mm 0 2mm 0 !important; }
+          .handover-master-tfoot { display: table-footer-group !important; }
+          .handover-master-tfoot-cell { border: none !important; height: 5mm !important; }
+          .handover-master-body-cell { border: none !important; padding: 0 !important; }
+          .handover-table thead { display: table-header-group !important; }
+          .page-continuation-spacer { height: 0 !important; margin: 0 !important; padding: 0 !important; page-break-before: always !important; break-before: page !important; }
         }
       `}</style>
       <div className="handover-preview">
         <article className="handover-page shadow-xl ring-1 ring-zinc-200">
-          <div className="handover-header">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/header-paling-baru.png" alt="Kop Surat" />
-          </div>
+          <table className="handover-master-table">
+            <thead className="handover-master-thead">
+              <tr>
+                <td className="handover-master-thead-cell">
+                  <div className="handover-header">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/header-paling-baru.png" alt="Kop Surat" />
+                  </div>
+                </td>
+              </tr>
+            </thead>
+            <tfoot className="handover-master-tfoot">
+              <tr>
+                <td className="handover-master-tfoot-cell"></td>
+              </tr>
+            </tfoot>
+            <tbody>
+              <tr>
+                <td className="handover-master-body-cell">
+                  <div className="handover-title">
+                    <p>{title.toLocaleUpperCase("id-ID")}</p>
+                    <p>NOMOR : {number || "BA.\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0/K.18/TU/KAP.03.02/B/__/____"}</p>
+                  </div>
 
-          <div className="handover-title">
-            <p>{title.toLocaleUpperCase("id-ID")}</p>
-            <p>NOMOR : {number || "BA.\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0/K.18/TU/KAP.03.02/B/__/____"}</p>
-          </div>
+                  <div className="handover-body">
+                    <p>Pada hari ini {day} tanggal {dateText} bulan {month} tahun {yearText}, yang bertanda tangan di bawah ini:</p>
+                    <PartyBlock index={1} party={firstParty} label="PIHAK KESATU" />
+                    <PartyBlock index={2} party={secondParty} label="PIHAK KEDUA" />
 
-          <div className="handover-body">
-            <p>Pada hari ini {day} tanggal {dateText} bulan {month} tahun {yearText}, yang bertanda tangan di bawah ini:</p>
-            <PartyBlock index={1} party={firstParty} label="PIHAK KESATU" />
-            <PartyBlock index={2} party={secondParty} label="PIHAK KEDUA" />
+                    <p style={{ marginTop: "1.5mm" }}>
+                      <strong>PIHAK KESATU</strong> telah menyerahkan barang kepada <strong>PIHAK KEDUA</strong> berupa {itemCountText} unit {itemDescription} sebagai berikut:
+                    </p>
 
-            <p><strong>PIHAK KESATU</strong> telah menyerahkan barang kepada <strong>PIHAK KEDUA</strong> berupa {itemCountText} unit {itemDescription} sebagai berikut:</p>
+                    {/* Page 1 Table (Clean, NO number row, NO mask, NO empty table box) */}
+                    {variant === "vehicle" ? (
+                      <table className="handover-table">
+                        <colgroup>
+                          <col style={{ width: "6%" }} />
+                          <col style={{ width: "32%" }} />
+                          <col style={{ width: "16%" }} />
+                          <col style={{ width: "20%" }} />
+                          <col style={{ width: "26%" }} />
+                        </colgroup>
+                        <thead>
+                          <tr><th>No</th><th>Jenis Kendaraan</th><th>No. Polisi</th><th>No. Mesin</th><th>No. Rangka</th></tr>
+                        </thead>
+                        <tbody>
+                          {page1Items.map((item, index) => (
+                            <tr key={`${item.vehicle_type || item.merk_tipe}-${index}`}>
+                              <td>{index + 1}</td>
+                              {dataCell(item.merk_tipe || item.vehicle_type)}
+                              {dataCell(item.no_polisi)}
+                              {dataCell(item.no_mesin)}
+                              {dataCell(item.no_rangka)}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <table className="handover-table">
+                        <colgroup>
+                          <col style={{ width: "6%" }} />
+                          <col style={{ width: "36%" }} />
+                          <col style={{ width: "30%" }} />
+                          <col style={{ width: "14%" }} />
+                          <col style={{ width: "14%" }} />
+                        </colgroup>
+                        <thead>
+                          <tr><th>No</th><th>Nama Barang</th><th>Merk / Tipe</th><th>Jumlah</th><th>NUP</th></tr>
+                        </thead>
+                        <tbody>
+                          {page1Items.map((item, index) => (
+                            <tr key={`${item.name}-${index}`}>
+                              <td>{index + 1}</td>
+                              {dataCell(item.name)}
+                              {dataCell(item.merk_tipe)}
+                              {dataCell(item.quantity)}
+                              {dataCell(item.nup)}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
 
-            {/* Table */}
-            {variant === "vehicle" ? (
-              <table className="handover-table">
-                <colgroup>
-                  <col style={{ width: "6%" }} />
-                  <col style={{ width: "32%" }} />
-                  <col style={{ width: "16%" }} />
-                  <col style={{ width: "20%" }} />
-                  <col style={{ width: "26%" }} />
-                </colgroup>
-                <thead>
-                  <tr><th>No</th><th>Jenis Kendaraan</th><th>No. Polisi</th><th>No. Mesin</th><th>No. Rangka</th></tr>
-                </thead>
-                <tbody>
-                  {items.map((item, index) => (
-                    <tr key={`${item.vehicle_type || item.merk_tipe}-${index}`}>
-                      <td>{index + 1}</td>
-                      {dataCell(item.merk_tipe || item.vehicle_type)}
-                      {dataCell(item.no_polisi)}
-                      {dataCell(item.no_mesin)}
-                      {dataCell(item.no_rangka)}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <table className="handover-table">
-                <colgroup>
-                  <col style={{ width: "6%" }} />
-                  <col style={{ width: "36%" }} />
-                  <col style={{ width: "30%" }} />
-                  <col style={{ width: "14%" }} />
-                  <col style={{ width: "14%" }} />
-                </colgroup>
-                <thead>
-                  <tr><th>No</th><th>Nama Barang</th><th>Merk / Tipe</th><th>Jumlah</th><th>NUP</th></tr>
-                </thead>
-                <tbody>
-                  {items.map((item, index) => (
-                    <tr key={`${item.name}-${index}`}>
-                      <td>{index + 1}</td>
-                      {dataCell(item.name)}
-                      {dataCell(item.merk_tipe)}
-                      {dataCell(item.quantity)}
-                      {dataCell(item.nup)}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                    {/* Page 2 Continuation Table (ONLY if items > 22) */}
+                    {isMultiPage && page2Items.length > 0 && (
+                      <>
+                        <div className="page-continuation-spacer" />
+                        {variant === "vehicle" ? (
+                          <table className="handover-table">
+                            <colgroup>
+                              <col style={{ width: "6%" }} />
+                              <col style={{ width: "32%" }} />
+                              <col style={{ width: "16%" }} />
+                              <col style={{ width: "20%" }} />
+                              <col style={{ width: "26%" }} />
+                            </colgroup>
+                            <thead>
+                              <tr className="table-number-row">
+                                <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+                              </tr>
+                              <tr><th>No</th><th>Jenis Kendaraan</th><th>No. Polisi</th><th>No. Mesin</th><th>No. Rangka</th></tr>
+                            </thead>
+                            <tbody>
+                              {page2Items.map((item, index) => (
+                                <tr key={`${item.vehicle_type || item.merk_tipe}-${index}`}>
+                                  <td>{PAGE_1_MAX_ITEMS + index + 1}</td>
+                                  {dataCell(item.merk_tipe || item.vehicle_type)}
+                                  {dataCell(item.no_polisi)}
+                                  {dataCell(item.no_mesin)}
+                                  {dataCell(item.no_rangka)}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <table className="handover-table">
+                            <colgroup>
+                              <col style={{ width: "6%" }} />
+                              <col style={{ width: "36%" }} />
+                              <col style={{ width: "30%" }} />
+                              <col style={{ width: "14%" }} />
+                              <col style={{ width: "14%" }} />
+                            </colgroup>
+                            <thead>
+                              <tr className="table-number-row">
+                                <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+                              </tr>
+                              <tr><th>No</th><th>Nama Barang</th><th>Merk / Tipe</th><th>Jumlah</th><th>NUP</th></tr>
+                            </thead>
+                            <tbody>
+                              {page2Items.map((item, index) => (
+                                <tr key={`${item.name}-${index}`}>
+                                  <td>{PAGE_1_MAX_ITEMS + index + 1}</td>
+                                  {dataCell(item.name)}
+                                  {dataCell(item.merk_tipe)}
+                                  {dataCell(item.quantity)}
+                                  {dataCell(item.nup)}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </>
+                    )}
 
-            <p style={{ marginTop: "3mm" }}>
-              {renderFormattedClause(receiptClause)}
-            </p>
+                    {/* Receipt Clause: Sits cleanly right under the table, fitting on Page 1 when space allows */}
+                    <p style={{ marginTop: "2mm", textAlign: "justify", lineHeight: 1.25 }}>
+                      {renderFormattedClause(receiptClause)}
+                    </p>
 
-            {/* Signature Block (Always keeps closing text TOGETHER with signatures on the same page) */}
-            <div className="handover-signature-block avoid-break">
-              <p style={{ marginTop: "3mm" }}>
-                Demikian {(() => {
-                  const cleanTitle = (title || (variant === "vehicle" ? "Berita Acara Serah Terima Kendaraan" : "Berita Acara Serah Terima Barang")).trim();
-                  if (/^berita acara/i.test(cleanTitle)) {
-                    return cleanTitle;
-                  }
-                  return `Berita Acara ${cleanTitle}`;
-                })()} ini dibuat dengan sebenarnya, ditandatangani masing-masing kedua belah pihak pada tanggal tersebut di atas untuk dipergunakan sebagaimana mestinya.
-              </p>
-              <div className="handover-signatures">
-                <div className="handover-sig-left">
-                  <p><strong>PIHAK KEDUA,</strong></p>
-                  <p className="handover-signature-name">{signatureName(secondParty.name)}</p>
-                  <p>{secondPartyIdPrefix} {secondParty.idType === "NIK" ? fallback(secondParty.nip) : formatNip(secondParty.nip)}</p>
-                </div>
-                <div className="handover-sig-right">
-                  <p><strong>PIHAK KESATU,</strong></p>
-                  <p className="handover-signature-name">{signatureName(firstParty.name)}</p>
-                  <p>{firstPartyIdPrefix} {firstParty.idType === "NIK" ? fallback(firstParty.nip) : formatNip(firstParty.nip)}</p>
-                </div>
-              </div>
+                    {/* ATOMIC CLOSING BLOCK: Demikian + Signatures move together as 1 set if space runs out */}
+                    <table
+                      className="handover-closing-table avoid-break"
+                      style={{ width: "100%", border: "none", borderCollapse: "collapse", marginTop: "2.5mm", pageBreakInside: "avoid", breakInside: "avoid" }}
+                    >
+                      <thead className="avoid-break" style={{ pageBreakInside: "avoid", breakInside: "avoid" }}>
+                        <tr className="avoid-break">
+                          <td style={{ border: "none", padding: 0 }}>
+                            <div className="handover-signature-block avoid-break">
+                              <p style={{ marginTop: "2mm", textAlign: "justify", lineHeight: 1.25 }}>
+                                Demikian {(() => {
+                                  const cleanTitle = (title || (variant === "vehicle" ? "Berita Acara Serah Terima Kendaraan" : "Berita Acara Serah Terima Barang")).trim();
+                                  if (/^berita acara/i.test(cleanTitle)) {
+                                    return cleanTitle;
+                                  }
+                                  return `Berita Acara ${cleanTitle}`;
+                                })()} ini dibuat dengan sebenarnya, ditandatangani masing-masing kedua belah pihak pada tanggal tersebut di atas untuk dipergunakan sebagaimana mestinya.
+                              </p>
 
-              {signerCount === 3 && (
-                <div className="handover-witness-block">
-                  <p>{witness?.label || "Mengetahui,"}</p>
-                  <p style={{ maxWidth: "85mm", margin: "0 auto" }}>
-                    {(() => {
-                      const pos = (witness?.position || "KEPALA BALAI,").trim();
-                      if (/^kepala balai konservasi sumber daya alam/i.test(pos)) {
-                        return "KEPALA BALAI,";
-                      }
-                      return pos.endsWith(",") ? pos : `${pos},`;
-                    })()}
-                  </p>
-                  <p className="handover-signature-name" style={{ marginTop: "24mm" }}>{signatureName(witness?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}</p>
-                  <p>NIP. {formatNip(witness?.nip || "19740514 199903 1 001")}</p>
-                </div>
-              )}
-            </div>
-          </div>
+                              <div className="handover-signatures" style={{ marginTop: "4mm" }}>
+                                <div className="handover-sig-left">
+                                  <p><strong>PIHAK KEDUA,</strong></p>
+                                  <p className="handover-signature-name" style={{ marginTop: "28mm", fontWeight: 700 }}>{signatureName(secondParty.name)}</p>
+                                  <p>{secondPartyIdPrefix} {secondParty.idType === "NIK" ? fallback(secondParty.nip) : formatNip(secondParty.nip)}</p>
+                                </div>
+                                <div className="handover-sig-right">
+                                  <p><strong>PIHAK KESATU,</strong></p>
+                                  <p className="handover-signature-name" style={{ marginTop: "28mm", fontWeight: 700 }}>{signatureName(firstParty.name)}</p>
+                                  <p>{firstPartyIdPrefix} {firstParty.idType === "NIK" ? fallback(firstParty.nip) : formatNip(firstParty.nip)}</p>
+                                </div>
+                              </div>
+
+                              {signerCount === 3 && (
+                                <div className="handover-witness-block" style={{ marginTop: "6mm" }}>
+                                  <p>{witness?.label || "Mengetahui,"}</p>
+                                  <p style={{ maxWidth: "85mm", margin: "0 auto" }}>
+                                    {(() => {
+                                      const pos = (witness?.position || "KEPALA BALAI,").trim();
+                                      if (/^kepala balai konservasi sumber daya alam/i.test(pos)) {
+                                        return "KEPALA BALAI,";
+                                      }
+                                      return pos.endsWith(",") ? pos : `${pos},`;
+                                    })()}
+                                  </p>
+                                  <p className="handover-signature-name" style={{ marginTop: "24mm", fontWeight: 700 }}>{signatureName(witness?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}</p>
+                                  <p>NIP. {formatNip(witness?.nip || "19740514 199903 1 001")}</p>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      </thead>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </article>
 
         {/* Halaman Baru Lampiran Dokumentasi Foto Aset BMN (3 Aset per Halaman Memenuhi Layar) */}

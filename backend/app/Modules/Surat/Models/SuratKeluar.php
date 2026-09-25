@@ -23,6 +23,9 @@ class SuratKeluar extends Model
         'perihal',
         'sifat',
         'lampiran',
+        'template_type',
+        'status',
+        'document_payload',
         'file_path',
         'penandatangan_id',
         'created_by',
@@ -30,6 +33,7 @@ class SuratKeluar extends Model
 
     protected $casts = [
         'tanggal_surat' => 'date:Y-m-d',
+        'document_payload' => 'array',
     ];
 
     public function penandatangan(): BelongsTo

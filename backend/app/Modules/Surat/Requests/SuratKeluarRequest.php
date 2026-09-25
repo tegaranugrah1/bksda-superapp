@@ -21,6 +21,9 @@ class SuratKeluarRequest extends FormRequest
             'perihal' => 'required|string',
             'sifat' => 'nullable|string|max:100',
             'lampiran' => 'nullable|string|max:255',
+            'template_type' => 'nullable|string|max:100',
+            'status' => 'nullable|string|max:50',
+            'document_payload' => 'nullable',
             'penandatangan_id' => 'nullable|exists:kpg_employees,id',
             'file_surat' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|extensions:pdf,jpg,jpeg,png,webp|max:10240',
         ];

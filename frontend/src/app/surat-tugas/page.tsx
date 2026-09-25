@@ -74,42 +74,67 @@ export default function SuratTugasForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Helper: Dapatkan kota penempatan untuk seorang pegawai
+  const getEmployeeCity = (emp: Employee): string => {
+    // 1. Prioritaskan flag resmi backend seksi_wilayah
+    if (emp.seksi_wilayah === "I") return "Berau";
+    if (emp.seksi_wilayah === "II") return "Tenggarong";
+    if (emp.seksi_wilayah === "III") return "Balikpapan";
+
+    // 2. Fallback pencocokan string satuan_kerja / department
+    // Urutkan III -> II -> I untuk menghindari tabrakan substring romawi
+    const dept = (emp.department || "").toLowerCase();
+
+    if (
+      dept.includes("wilayah iii") ||
+      dept.includes("wil iii") ||
+      dept.includes("seksi iii") ||
+      dept.includes("skw iii") ||
+      dept.includes("seksi 3") ||
+      dept.includes("balikpapan")
+    ) {
+      return "Balikpapan";
+    }
+
+    if (
+      dept.includes("wilayah ii") ||
+      dept.includes("wil ii") ||
+      dept.includes("seksi ii") ||
+      dept.includes("skw ii") ||
+      dept.includes("seksi 2") ||
+      dept.includes("tenggarong")
+    ) {
+      return "Tenggarong";
+    }
+
+    if (
+      dept.includes("wilayah i") ||
+      dept.includes("wil i") ||
+      dept.includes("seksi i") ||
+      dept.includes("skw i") ||
+      dept.includes("seksi 1") ||
+      dept.includes("berau")
+    ) {
+      return "Berau";
+    }
+
+    return "Samarinda";
+  };
+
+  // Helper: Format gabungan nama kota unik, contoh: "Samarinda dan Tenggarong"
+  const formatKotaAsal = (cities: string[]): string => {
+    const uniqueCities = Array.from(new Set(cities.filter(Boolean)));
+    if (uniqueCities.length === 0) return "Samarinda";
+    if (uniqueCities.length === 1) return uniqueCities[0];
+    if (uniqueCities.length === 2) return `${uniqueCities[0]} dan ${uniqueCities[1]}`;
+    return `${uniqueCities.slice(0, -1).join(", ")} dan ${uniqueCities[uniqueCities.length - 1]}`;
+  };
+
   // Deteksi otomatis Kota Asal berdasarkan Penempatan Satker Pegawai
   const detectDefaultKotaAsal = useCallback((employees: Employee[]) => {
     if (!employees || employees.length === 0) return "Samarinda";
-    const depts = employees.map((e) => (e.department || "").toLowerCase());
-
-    const isAllSeksi1 = depts.every(
-      (d) =>
-        d.includes("seksi i") ||
-        d.includes("seksi 1") ||
-        d.includes("wilayah i") ||
-        d.includes("berau") ||
-        d.includes("skw i")
-    );
-    if (isAllSeksi1) return "Berau";
-
-    const isAllSeksi2 = depts.every(
-      (d) =>
-        d.includes("seksi ii") ||
-        d.includes("seksi 2") ||
-        d.includes("wilayah ii") ||
-        d.includes("tenggarong") ||
-        d.includes("skw ii")
-    );
-    if (isAllSeksi2) return "Tenggarong";
-
-    const isAllSeksi3 = depts.every(
-      (d) =>
-        d.includes("seksi iii") ||
-        d.includes("seksi 3") ||
-        d.includes("wilayah iii") ||
-        d.includes("balikpapan") ||
-        d.includes("skw iii")
-    );
-    if (isAllSeksi3) return "Balikpapan";
-
-    return "Samarinda";
+    const cities = employees.map(getEmployeeCity);
+    return formatKotaAsal(cities);
   }, []);
 
   useEffect(() => {
@@ -132,8 +157,18 @@ export default function SuratTugasForm() {
 
   // Deteksi apakah ada pegawai dari Seksi (bukan Kantor Balai)
   const hasSeksiEmployee = selectedEmployees.some((emp) => {
+    if (typeof emp.is_seksi === "boolean") {
+      return emp.is_seksi;
+    }
     const dept = (emp.department || "").toLowerCase();
-    return dept.includes("seksi konservasi");
+    return (
+      dept.includes("seksi") ||
+      dept.includes("skw") ||
+      dept.includes("wilayah") ||
+      dept.includes("berau") ||
+      dept.includes("tenggarong") ||
+      dept.includes("balikpapan")
+    ) && !dept.includes("kantor balai") && !dept.includes("balai");
   });
 
   useEffect(() => {
@@ -195,6 +230,11 @@ export default function SuratTugasForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (hasSeksiEmployee && !tandaSetuju) {
+      toast.error("Silakan pilih status persetujuan Kepala Seksi terlebih dahulu.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {

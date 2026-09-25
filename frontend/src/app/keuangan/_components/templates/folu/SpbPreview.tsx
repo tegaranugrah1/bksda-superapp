@@ -216,7 +216,7 @@ export function SpbPreview({
             </div>
 
             {/* Bottom 3-Column Signatures */}
-            <div className="mt-5 grid grid-cols-3 gap-2 text-center text-[8.5pt]">
+            <div className="mt-5 grid grid-cols-3 gap-2 text-left text-[8.5pt]">
               {/* Kolom 1: Verifikator Keuangan */}
               <div className="flex flex-col justify-between">
                 <div>

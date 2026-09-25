@@ -663,7 +663,7 @@ export function CoveringLetterDocument({
       <article className="covering-page shadow-xl ring-1 ring-zinc-200">
         <div className="covering-header">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header.png" alt="Kop Surat" />
+          <img src="/header-paling-baru.png" alt="Kop Surat" />
         </div>
 
         {showNumberAndRegarding ? (
@@ -843,7 +843,7 @@ export function CoveringLetterDocument({
         <article className="covering-page">
           <div className="covering-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/header.png" alt="" />
+            <img src="/header-paling-baru.png" alt="" />
           </div>
 
           {showNumberAndRegarding ? (

@@ -46,13 +46,40 @@ const PRINT_STYLE = `
   .surat-content {
     width: 210mm !important;
     margin: 0 auto !important;
-    padding: 0 1.55cm 1.5cm 2.0cm !important;
+    padding: 0 1.55cm 0 2.0cm !important;
     box-sizing: border-box !important;
   }
   
   .field-section, .kepada-section, .kepada-list, .untuk-section, .untuk-list { break-inside: auto !important; page-break-inside: auto !important; }
-  .employee-entry, .untuk-entry, .penutup-ttd-group { break-inside: avoid !important; page-break-inside: avoid !important; }
-  div[style*="page-break-inside"] { page-break-inside: avoid; }
+  tbody > tr:not(.employee-entry):not(.untuk-entry) { break-inside: auto; page-break-inside: auto; }
+  .employee-entry, 
+  .employee-entry td, 
+  .employee-entry div, 
+  .employee-entry table, 
+  .employee-entry tbody, 
+  .employee-entry tr, 
+  .untuk-entry, 
+  .penutup-ttd-group { 
+    break-inside: avoid !important; 
+    page-break-inside: avoid !important; 
+  }
+  
+  tfoot {
+    display: table-footer-group !important;
+    height: 25mm !important;
+  }
+  tfoot td {
+    height: 25mm !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  .bsre-placeholder,
+  .page-break-indicator,
+  .halaman-divider,
+  .print\\:hidden {
+    display: none !important;
+  }
   
   .st-lampiran-page-wrapper {
     page: st-lampiran-beda-hari;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Inbox,
@@ -24,7 +24,6 @@ const QUICK_LINKS = [
     description: "Penatausahaan & Disposisi",
     href: "/surat/masuk",
     icon: Inbox,
-    gradient: "from-emerald-500/20 via-emerald-500/10 to-transparent",
     iconStyle:
       "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
   },
@@ -33,7 +32,6 @@ const QUICK_LINKS = [
     description: "Register Agenda & Disposisi",
     href: "/surat/masuk/create",
     icon: Plus,
-    gradient: "from-teal-500/20 via-teal-500/10 to-transparent",
     iconStyle:
       "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300",
   },
@@ -42,7 +40,6 @@ const QUICK_LINKS = [
     description: "Pengagendaan Naskah Keluar",
     href: "/surat/keluar",
     icon: Send,
-    gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
     iconStyle:
       "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
   },
@@ -51,112 +48,68 @@ const QUICK_LINKS = [
     description: "Form Penomoran Surat Keluar",
     href: "/surat/keluar/create",
     icon: Plus,
-    gradient: "from-sky-500/20 via-sky-500/10 to-transparent",
     iconStyle:
       "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
   },
 ];
 
-function getInitialMasuk(): SuratMasukItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const saved = localStorage.getItem("bksda_saved_surat_masuk");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch {}
-  return [];
-}
-
 export default function SuratHubPage() {
-  const initialMasuk = useMemo(() => getInitialMasuk(), []);
-  const [totalSuratMasuk, setTotalSuratMasuk] = useState<number>(initialMasuk.length);
+  const [totalSuratMasuk, setTotalSuratMasuk] = useState<number>(0);
   const [totalSuratKeluar, setTotalSuratKeluar] = useState<number>(0);
-  const [suratMasukList, setSuratMasukList] = useState<SuratMasukItem[]>(initialMasuk.slice(0, 5));
+  const [suratMasukList, setSuratMasukList] = useState<SuratMasukItem[]>([]);
   const [suratKeluarList, setSuratKeluarList] = useState<SuratKeluarItem[]>([]);
 
   useEffect(() => {
     async function loadData() {
-      // 1. Load Surat Masuk (from API + localStorage fallback)
-      let localMasukItems: SuratMasukItem[] = [];
-      if (typeof window !== "undefined") {
-        const savedMasuk = localStorage.getItem("bksda_saved_surat_masuk");
-        if (savedMasuk) {
-          try {
-            const parsed = JSON.parse(savedMasuk);
-            if (Array.isArray(parsed)) {
-              localMasukItems = parsed;
-            }
-          } catch (e) {}
-        }
-      }
-
-      let combinedMasuk: SuratMasukItem[] = [...localMasukItems];
-
       try {
-        const resMasuk = await api.get("/surat-masuk?per_page=all");
-        const apiData = resMasuk.data?.data || resMasuk.data || [];
-        if (Array.isArray(apiData) && apiData.length > 0) {
-          const apiFormatted = apiData.map((d: any) => ({
-            id: d.id,
-            no_agenda: d.no_agenda || "",
-            tanggal_agenda: d.tanggal_agenda || "",
-            no_surat: d.no_surat || "",
-            tanggal_surat: d.tanggal_surat || "",
-            asal_surat: d.asal_surat || "",
-            isi_ringkas: d.isi_ringkas || "",
-            perihal: d.isi_ringkas || "",
-            sifat_json: d.sifat_json || ["Biasa"],
-          }));
+        const [resMasuk, resKeluar] = await Promise.allSettled([
+          api.get("/surat-masuk?per_page=5"),
+          api.get("/surat-keluar?per_page=5"),
+        ]);
 
-          apiFormatted.forEach((apiItem: SuratMasukItem) => {
-            const existingIdx = combinedMasuk.findIndex(
-              (item) => String(item.no_agenda) === String(apiItem.no_agenda)
+        if (resMasuk.status === "fulfilled") {
+          const apiRes = resMasuk.value.data;
+          const apiData = apiRes?.data || apiRes || [];
+          const totalMasuk = apiRes?.meta?.total ?? apiRes?.total ?? (Array.isArray(apiData) ? apiData.length : 0);
+
+          if (Array.isArray(apiData)) {
+            let localMasuk: SuratMasukItem[] = [];
+            try {
+              const saved = localStorage.getItem("bksda_saved_surat_masuk");
+              if (saved) localMasuk = JSON.parse(saved) || [];
+            } catch {}
+
+            const map = new Map<string, SuratMasukItem>();
+            localMasuk.forEach((item) => {
+              if (item.no_agenda) map.set(String(item.no_agenda), item);
+            });
+            apiData.forEach((d: any) => {
+              map.set(String(d.no_agenda || d.id), {
+                ...d,
+                perihal: d.isi_ringkas || d.perihal || "",
+              });
+            });
+
+            const list = Array.from(map.values()).sort(
+              (a, b) => (Number(b.no_agenda) || Number(b.id) || 0) - (Number(a.no_agenda) || Number(a.id) || 0)
             );
-            if (existingIdx === -1) {
-              combinedMasuk.push(apiItem);
-            } else {
-              combinedMasuk[existingIdx] = apiItem;
-            }
-          });
+            setTotalSuratMasuk(Math.max(totalMasuk, list.length));
+            setSuratMasukList(list.slice(0, 5));
+          }
         }
-      } catch (err) {}
 
-      // Sort descending by no_agenda / id (newest first)
-      combinedMasuk.sort((a, b) => {
-        const numA = parseInt(a.no_agenda || "0", 10);
-        const numB = parseInt(b.no_agenda || "0", 10);
-        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
-          return numB - numA;
-        }
-        return (Number(b.id) || 0) - (Number(a.id) || 0);
-      });
+        if (resKeluar.status === "fulfilled") {
+          const apiRes = resKeluar.value.data;
+          const keluarData = apiRes?.data || apiRes || [];
+          const totalKeluar = apiRes?.meta?.total ?? apiRes?.total ?? (Array.isArray(keluarData) ? keluarData.length : 0);
 
-      setTotalSuratMasuk(combinedMasuk.length);
-      setSuratMasukList(combinedMasuk.slice(0, 5));
-
-      // 2. Load Surat Keluar
-      try {
-        const resKeluar = await api.get("/surat-keluar?per_page=all");
-        const keluarData = resKeluar.data?.data || resKeluar.data || [];
-        if (Array.isArray(keluarData)) {
-          const formattedKeluar = keluarData.map((d: any) => ({
-            id: d.id,
-            no_surat: d.no_surat || "",
-            tanggal_surat: d.tanggal_surat || "",
-            tujuan_surat: d.tujuan_surat || "",
-            perihal: d.perihal || "",
-            sifat: d.sifat || "Biasa",
-            status: "Terarsip",
-          }));
-
-          setTotalSuratKeluar(formattedKeluar.length);
-          setSuratKeluarList(formattedKeluar.slice(0, 5));
+          if (Array.isArray(keluarData)) {
+            setTotalSuratKeluar(totalKeluar);
+            setSuratKeluarList(keluarData.slice(0, 5));
+          }
         }
       } catch (err) {
-        setTotalSuratKeluar(0);
-        setSuratKeluarList([]);
+        console.error("Gagal memuat ringkasan surat:", err);
       }
     }
 

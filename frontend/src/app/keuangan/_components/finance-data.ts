@@ -79,6 +79,7 @@ export const DOCUMENT_LABELS_DIPA = [
   { key: "spby-dipa", label: "SPBy", description: "Surat Perintah Bayar (3 Kolom TTD)" },
   { key: "sptjb-dipa", label: "SPTJB DIPA", description: "Surat Pernyataan Tanggung Jawab Belanja Satker 693614" },
   { key: "rinba-dipa", label: "Rinba & Rampung", description: "Rincian Biaya Perjalanan Dinas & Perhitungan SPD Rampung" },
+  { key: "dp-ril-dipa", label: "DP Ril", description: "Daftar Pengeluaran Riil (Penginapan 30% / Transport Riil)" },
   { key: "nominatif-dipa", label: "Nominatif PD", description: "Daftar Nominatif Perjalanan Dinas (Tabel 10 Kolom)" },
   { key: "spd-dipa", label: "SPD Depan", description: "Surat Perjalanan Dinas (Lembar Muka 10 Butir)" },
 ] as const;

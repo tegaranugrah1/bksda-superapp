@@ -65,6 +65,13 @@ class SuratKeluarController extends Controller
             $validated['file_path'] = $file->storeAs('surat/keluar', $filename, 'private');
         }
 
+        if (isset($validated['document_payload']) && is_string($validated['document_payload'])) {
+            $decoded = json_decode($validated['document_payload'], true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $validated['document_payload'] = $decoded;
+            }
+        }
+
         $validated['created_by'] = $request->user()?->id;
 
         $suratKeluar = SuratKeluar::create($validated);
@@ -98,6 +105,13 @@ class SuratKeluarController extends Controller
             $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
             $filename = uniqid('surat_keluar_') . '.' . $ext;
             $validated['file_path'] = $file->storeAs('surat/keluar', $filename, 'private');
+        }
+
+        if (isset($validated['document_payload']) && is_string($validated['document_payload'])) {
+            $decoded = json_decode($validated['document_payload'], true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $validated['document_payload'] = $decoded;
+            }
         }
 
         $suratKeluar->update($validated);

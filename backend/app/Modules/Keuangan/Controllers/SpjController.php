@@ -4,6 +4,8 @@ namespace App\Modules\Keuangan\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Keuangan\Models\Spj;
+use App\Modules\Keuangan\Services\SpjFoluExcelService;
+use App\Modules\Keuangan\Services\SpjDipaExcelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -92,15 +94,8 @@ class SpjController extends Controller
         $totalAnggaran = $validated['total_anggaran'] ?? $calculatedTotal;
         $employeeCount = $validated['employee_count'] ?? count($recipients);
 
-        // Auto-generate nomor_spj if empty
-        $nomorSpj = $validated['nomor_spj'] ?? null;
-        if (empty($nomorSpj)) {
-            $now = Carbon::now();
-            $monthRoman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][$now->month - 1];
-            $count = Spj::whereYear('created_at', $now->year)->count() + 1;
-            $suffix = $tipeAnggaran === 'FOLU' ? 'FOLU-NC-23' : 'DIPA';
-            $nomorSpj = sprintf('SPJ.%03d/K.18/TU/%s/%s/%s', $count, $suffix, $monthRoman, $now->year);
-        }
+        // Save nomor_spj as provided or null if empty
+        $nomorSpj = !empty($validated['nomor_spj']) ? trim($validated['nomor_spj']) : null;
 
         $spj = Spj::create([
             'nomor_spj' => $nomorSpj,
@@ -225,5 +220,69 @@ class SpjController extends Controller
             'message' => "Status SPJ diperbarui menjadi {$request->status}.",
             'data' => $spj,
         ]);
+    }
+
+    /**
+     * Export SPJ to full Excel workbook.
+     */
+    public function exportExcel(Request $request)
+    {
+        $payload = $request->all();
+        $tipeAnggaran = strtoupper($payload['tipe_anggaran'] ?? 'FOLU');
+
+        try {
+            if ($tipeAnggaran === 'DIPA') {
+                $service = new SpjDipaExcelService();
+            } else {
+                $service = new SpjFoluExcelService();
+            }
+            $filePath = $service->generate($payload);
+
+            $spt = $payload['nomor_spt'] ?? $payload['sptNumber'] ?? 'SPJ';
+            $sptClean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $spt);
+            $date = $payload['tanggal_mulai'] ?? $payload['travel']['startDate'] ?? date('Y-m-d');
+            $filename = "SPJ_{$tipeAnggaran}_{$sptClean}_{$date}.xlsx";
+
+            return response()->download($filePath, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal membuat file Excel: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Export existing SPJ by ID.
+     */
+    public function exportExcelById($id)
+    {
+        $spj = Spj::findOrFail($id);
+        $payload = $spj->toArray();
+        $payload['nomor_spt'] = $spj->nomor_spt;
+        $payload['sptNumber'] = $spj->nomor_spt;
+        $payload['spjName'] = $spj->nama_kegiatan;
+        $payload['activity'] = [
+            'awpCode' => $spj->kode_awp,
+            'name' => $spj->nama_kegiatan,
+        ];
+        $payload['travel'] = [
+            'origin' => $spj->asal,
+            'destination' => $spj->tujuan,
+            'startDate' => $spj->tanggal_mulai,
+            'endDate' => $spj->tanggal_selesai,
+        ];
+        $payload['spbNumber'] = [
+            'no' => $spj->nomor_spj ?? '',
+            'suffix' => '',
+        ];
+        $payload['spdNumber'] = [
+            'no' => '',
+            'suffix' => '/K.18-TU/FOLU.NC-23/09/2026',
+        ];
+
+        return $this->exportExcel(new Request($payload));
     }
 }

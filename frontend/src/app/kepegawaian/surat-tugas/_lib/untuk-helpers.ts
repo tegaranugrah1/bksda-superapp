@@ -18,15 +18,24 @@ export function getDefaultUntukItem(templateType?: string | null) {
 }
 
 /**
- * Set default Untuk items: 1 item default + 1 item biaya (kalau ada).
+ * Set default Untuk items: item template/default + 1 item biaya (kalau ada).
  */
 export function getDefaultUntukItems(
   templateType?: string | null,
   biayaText = "",
+  templateUntukItems?: DasarItem[] | null,
 ): DasarItem[] {
-  const items: DasarItem[] = [
-    { id: "untuk-default", text: getDefaultUntukItem(templateType) },
-  ];
+  let items: DasarItem[] = [];
+  if (templateUntukItems && templateUntukItems.length > 0) {
+    items = templateUntukItems.map((item, idx) => ({
+      id: item.id || `untuk-${idx}`,
+      text: item.text,
+    }));
+  } else {
+    items = [
+      { id: "untuk-default", text: getDefaultUntukItem(templateType) },
+    ];
+  }
   if (biayaText.trim()) {
     items.push({ id: "untuk-biaya", text: biayaText });
   }

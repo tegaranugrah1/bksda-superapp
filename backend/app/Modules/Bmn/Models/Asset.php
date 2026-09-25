@@ -83,6 +83,12 @@ class Asset extends Model
         return $this->hasMany(AssetUpdate::class, 'asset_id');
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'bmn_asset_tag', 'asset_id', 'tag_id')
+            ->withTimestamps();
+    }
+
     public function auctionBatches()
     {
         return $this->belongsToMany(AuctionBatch::class, 'bmn_asset_auction_batch', 'bmn_asset_id', 'bmn_auction_batch_id')

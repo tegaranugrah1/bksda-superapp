@@ -54,12 +54,12 @@ export function handlePrintPermohonanKpknl() {
           .pkpknl-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 0; page: pkpknl-portrait; }
           .pkpknl-page-landscape { width: 297mm; margin: 0 auto; padding: 10mm 16mm 20mm; page: pkpknl-landscape; page-break-before: always; break-before: page; }
           .pkpknl-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 6px; text-align: center; }
-          .pkpknl-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
-          .pkpknl-meta-grid { width: 166mm; margin: 14px auto 0; display: grid; grid-template-columns: 1fr auto; gap: 16mm; }
-          .pkpknl-meta-left { line-height: 1.5; }
-          .pkpknl-meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); align-items: start; }
+          .pkpknl-meta-grid { width: 166mm; margin: 14px auto 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6mm; }
+          .pkpknl-meta-left { line-height: 1.5; min-width: 0; }
+          .pkpknl-meta-row { display: grid; grid-template-columns: 21mm 4mm minmax(0, 1fr); align-items: start; }
+          .pkpknl-meta-nomor { white-space: pre !important; display: inline-block; }
           .pkpknl-meta-colon { text-align: center; }
-          .pkpknl-meta-tanggal { text-align: right; line-height: 1.5; }
+          .pkpknl-meta-tanggal { text-align: right; line-height: 1.5; white-space: nowrap; flex-shrink: 0; }
           .pkpknl-yth { width: 166mm; margin: 18px auto 0; }
           .pkpknl-yth p { margin: 0; line-height: 1.4; }
           .pkpknl-edit { outline: none; border-bottom: none !important; }
@@ -135,11 +135,12 @@ export function PermohonanKpknlDocument({
         .permohonan-kpknl-print-root p { margin: 0; padding: 0; }
         .permohonan-kpknl-print-root .pkpknl-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 6px; text-align: center; }
         .permohonan-kpknl-print-root .pkpknl-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
-        .permohonan-kpknl-print-root .pkpknl-meta-grid { width: 166mm; margin: 14px auto 0; display: grid; grid-template-columns: 1fr auto; gap: 16mm; }
-        .permohonan-kpknl-print-root .pkpknl-meta-left { line-height: 1.6; }
-        .permohonan-kpknl-print-root .pkpknl-meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); align-items: start; }
+        .permohonan-kpknl-print-root .pkpknl-meta-grid { width: 166mm; margin: 14px auto 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6mm; }
+        .permohonan-kpknl-print-root .pkpknl-meta-left { line-height: 1.6; min-width: 0; }
+        .permohonan-kpknl-print-root .pkpknl-meta-row { display: grid; grid-template-columns: 21mm 4mm minmax(0, 1fr); align-items: start; }
+        .permohonan-kpknl-print-root .pkpknl-meta-nomor { white-space: pre !important; display: inline-block; }
         .permohonan-kpknl-print-root .pkpknl-meta-colon { text-align: center; }
-        .permohonan-kpknl-print-root .pkpknl-meta-tanggal { text-align: right; line-height: 1.6; }
+        .permohonan-kpknl-print-root .pkpknl-meta-tanggal { text-align: right; line-height: 1.6; white-space: nowrap; flex-shrink: 0; }
         .permohonan-kpknl-print-root .pkpknl-yth { width: 166mm; margin: 18px auto 0; }
         .permohonan-kpknl-print-root .pkpknl-yth p { margin: 0; line-height: 1.4; }
         .permohonan-kpknl-print-root .pkpknl-body { width: 166mm; margin: 14px auto 0; text-align: justify; text-justify: inter-word; }
@@ -190,7 +191,7 @@ export function PermohonanKpknlDocument({
       >
         <div className="pkpknl-kop -mx-18 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/header.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
+          <img src="/header-paling-baru.png" alt="Kop Surat" style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }} />
         </div>
 
         <div className="pkpknl-meta-grid">
@@ -198,7 +199,7 @@ export function PermohonanKpknlDocument({
             <div className="pkpknl-meta-row">
               <span>Nomor</span>
               <span className="pkpknl-meta-colon">:</span>
-              <span contentEditable suppressContentEditableWarning className="pkpknl-edit">{nomorText}</span>
+              <span contentEditable suppressContentEditableWarning className="pkpknl-edit pkpknl-meta-nomor">{nomorText}</span>
             </div>
             <div className="pkpknl-meta-row">
               <span>Sifat</span>

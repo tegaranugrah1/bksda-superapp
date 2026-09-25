@@ -32,6 +32,18 @@ export interface KepalaBalaiInfo {
   employeeId?: string | number;
 }
 
+export interface StTemplateConfiguration {
+  default_jenis_tugas?: string;
+  default_mode_kegiatan?: "structured" | "manual";
+  default_kegiatan?: string;
+  klasifikasi?: string;
+  sumber_dana?: string;
+  biaya_text?: string | null;
+  nomor_surat_format?: string;
+  untuk?: DasarItem[];
+  [key: string]: unknown;
+}
+
 export interface StTemplate {
   id: number;
   name: string;
@@ -49,7 +61,7 @@ export interface StTemplate {
     nip: string;
     jabatan?: string | null;
   } | null;
-  configuration?: Record<string, unknown>;
+  configuration?: StTemplateConfiguration;
   is_system: boolean;
   is_active: boolean;
   is_default: boolean;

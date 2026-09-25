@@ -11,6 +11,8 @@ export interface Employee {
   nip: string;
   department: string;
   position?: string;
+  is_seksi?: boolean;
+  seksi_wilayah?: string | null;
 }
 
 interface EmployeeSelectionStepProps {
