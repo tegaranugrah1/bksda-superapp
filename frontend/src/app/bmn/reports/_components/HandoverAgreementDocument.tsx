@@ -244,7 +244,15 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.5pt; }
           .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
 
-          .page-continuation-spacer { height: 0 !important; margin: 0 !important; padding: 0 !important; page-break-before: always !important; break-before: page !important; }
+          .page-continuation-spacer {
+            display: block !important;
+            height: 18mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            page-break-before: always !important;
+            break-before: page !important;
+          }
 
           .handover-closing-table { width: 100% !important; border: none !important; border-collapse: collapse !important; margin-top: 2.5mm !important; }
           .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 4mm; text-align: left; }
@@ -254,14 +262,6 @@ export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print
           .handover-signature-name { margin-top: 28mm; font-weight: 700; white-space: nowrap; }
           .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
           .avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
-
-          /* Master Table for repeating Kop Surat on multi-page print */
-          .handover-master-table { width: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0; }
-          .handover-master-thead { display: table-header-group !important; }
-          .handover-master-thead-cell { border: none !important; padding: 3.5mm 0 2mm 0 !important; margin: 0 !important; vertical-align: top; }
-          .handover-master-tfoot { display: table-footer-group !important; }
-          .handover-master-tfoot-cell { border: none !important; height: 5mm; padding: 0 !important; margin: 0 !important; }
-          .handover-master-body-cell { border: none !important; padding: 0 !important; margin: 0 !important; vertical-align: top; }
 
           /* Lampiran Foto Styles */
           .photo-lampiran-page {
@@ -439,12 +439,7 @@ export function HandoverAgreementDocument({
         .handover-preview p { margin: 0; }
         .handover-preview .handover-header { margin: 0 -12mm; text-align: center; }
         .handover-preview .handover-header img { width: 188mm; max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .handover-preview .handover-master-table { width: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0; }
-        .handover-preview .handover-master-thead { display: table-header-group; }
-        .handover-preview .handover-master-thead-cell { border: none !important; padding: 3.5mm 0 2mm 0 !important; margin: 0 !important; vertical-align: top; }
-        .handover-preview .handover-master-tfoot { display: table-footer-group; }
-        .handover-preview .handover-master-tfoot-cell { border: none !important; height: 5mm; padding: 0 !important; margin: 0 !important; }
-        .handover-preview .handover-master-body-cell { border: none !important; padding: 0 !important; margin: 0 !important; vertical-align: top; }
+
         .handover-preview .handover-title { margin-top: 2.5mm; text-align: center; font-weight: 700; font-size: 11.5pt; white-space: pre-wrap; }
         .handover-preview .handover-body { margin-top: 2.5mm; text-align: justify; font-size: 10.5pt; line-height: 1.25; }
         .handover-preview .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 1.5mm 0; }
@@ -469,7 +464,7 @@ export function HandoverAgreementDocument({
           break-before: page;
         }
         .handover-preview .page-continuation-spacer::after {
-          content: "Halaman 2 (Lanjutan)";
+          content: "Halaman 2 (Lanjutan - Tanpa Kop Surat)";
           position: absolute;
           top: -9px;
           right: 0;
@@ -544,40 +539,27 @@ export function HandoverAgreementDocument({
         }
         @media print {
           @page { size: A4 portrait; margin: 0 !important; }
-          .handover-page { box-shadow: none !important; margin: 0 auto !important; padding: 0 20mm 10mm !important; }
+          .handover-page { box-shadow: none !important; margin: 0 auto !important; padding: 3.5mm 20mm 10mm !important; }
           .photo-lampiran-page { box-shadow: none !important; margin: 0 auto !important; padding: 3.5mm 20mm 10mm !important; }
           .avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
-          .handover-master-table { width: 100% !important; border-collapse: collapse !important; border: none !important; }
-          .handover-master-thead { display: table-header-group !important; }
-          .handover-master-thead-cell { border: none !important; padding: 2.5mm 0 2mm 0 !important; }
-          .handover-master-tfoot { display: table-footer-group !important; }
-          .handover-master-tfoot-cell { border: none !important; height: 5mm !important; }
-          .handover-master-body-cell { border: none !important; padding: 0 !important; }
           .handover-table thead { display: table-header-group !important; }
-          .page-continuation-spacer { height: 0 !important; margin: 0 !important; padding: 0 !important; page-break-before: always !important; break-before: page !important; }
+          .page-continuation-spacer {
+            display: block !important;
+            height: 18mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            page-break-before: always !important;
+            break-before: page !important;
+          }
         }
       `}</style>
       <div className="handover-preview">
         <article className="handover-page shadow-xl ring-1 ring-zinc-200">
-          <table className="handover-master-table">
-            <thead className="handover-master-thead">
-              <tr>
-                <td className="handover-master-thead-cell">
-                  <div className="handover-header">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/header-paling-baru.png" alt="Kop Surat" />
-                  </div>
-                </td>
-              </tr>
-            </thead>
-            <tfoot className="handover-master-tfoot">
-              <tr>
-                <td className="handover-master-tfoot-cell"></td>
-              </tr>
-            </tfoot>
-            <tbody>
-              <tr>
-                <td className="handover-master-body-cell">
+          <div className="handover-header">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/header-paling-baru.png" alt="Kop Surat" />
+          </div>
                   <div className="handover-title">
                     <p>{title.toLocaleUpperCase("id-ID")}</p>
                     <p>NOMOR : {number || "BA.\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0/K.18/TU/KAP.03.02/B/__/____"}</p>
@@ -764,10 +746,6 @@ export function HandoverAgreementDocument({
                       </thead>
                     </table>
                   </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </article>
 
         {/* Halaman Baru Lampiran Dokumentasi Foto Aset BMN (3 Aset per Halaman Memenuhi Layar) */}

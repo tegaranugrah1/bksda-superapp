@@ -99,3 +99,18 @@ export const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
     biayaText: "",
   },
 ];
+
+export function resolveKopImageUrl(kopUrl?: string | null): string {
+  if (!kopUrl || kopUrl === "default") {
+    return "/header-st.png";
+  }
+  if (kopUrl.startsWith("http://") || kopUrl.startsWith("https://") || kopUrl.startsWith("blob:") || kopUrl.startsWith("data:")) {
+    return kopUrl;
+  }
+  const cleanPath = kopUrl.startsWith("/") ? kopUrl : `/${kopUrl}`;
+  const apiUrl = typeof window !== "undefined"
+    ? (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api")
+    : (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api");
+  const backendBase = apiUrl.replace(/\/api\/?$/, "");
+  return `${backendBase}${cleanPath}`;
+}

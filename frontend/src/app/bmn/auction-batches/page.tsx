@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { getBatches, AuctionBatch } from "./_lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getBatches, deleteBatch, AuctionBatch } from "./_lib/api";
 import { getStatusLabel, getStatusColorClass } from "./_lib/status";
 import { formatRupiah } from "../auction-candidates/_lib/auction-helpers";
 import {
@@ -16,10 +16,13 @@ import {
   Calendar,
   Layers,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 
 export default function BmnAuctionBatchesListPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,6 +30,33 @@ export default function BmnAuctionBatchesListPage() {
   const [page, setPage] = useState(1);
   const [perPage] = useState(15);
   const [triggerSearch, setTriggerSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const confirm = useConfirm();
+  const queryClient = useQueryClient();
+
+  const handleDelete = async (batch: AuctionBatch) => {
+    const ok = await confirm({
+      title: "Hapus Paket Lelang",
+      description: `Apakah Anda yakin ingin menghapus paket "${batch.name}" (${batch.batch_number})? Sebanyak ${batch.assets_count} aset di dalamnya akan dikembalikan ke daftar kandidat lelang.`,
+      confirmText: "Hapus Paket",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (!ok) return;
+
+    try {
+      setDeletingId(batch.id);
+      await deleteBatch(batch.id);
+      toast.success("Paket lelang berhasil dihapus.");
+      queryClient.invalidateQueries({ queryKey: ["bmn-auction-batches"] });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal menghapus paket lelang.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,16 +289,35 @@ export default function BmnAuctionBatchesListPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-center align-middle">
-                      <Link href={`/bmn/auction-batches/${batch.id}`}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg text-xs font-semibold flex items-center gap-1 mx-auto"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          Lihat
-                        </Button>
-                      </Link>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Link href={`/bmn/auction-batches/${batch.id}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg text-xs font-semibold flex items-center gap-1"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            Lihat
+                          </Button>
+                        </Link>
+                        {(batch.status === "DRAFT" || batch.status === "BATAL") && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={deletingId === batch.id}
+                            onClick={() => handleDelete(batch)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-xs font-semibold flex items-center gap-1"
+                            title="Hapus paket lelang"
+                          >
+                            {deletingId === batch.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin text-red-600" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
+                            Hapus
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

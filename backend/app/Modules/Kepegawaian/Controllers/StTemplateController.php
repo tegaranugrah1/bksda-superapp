@@ -12,6 +12,7 @@ use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Str;
 
 class StTemplateController extends Controller
 {
@@ -109,5 +110,23 @@ class StTemplateController extends Controller
         } catch (DomainException $exception) {
             return response()->json(['message' => $exception->getMessage()], 422);
         }
+    }
+
+    public function uploadKop(Request $request): JsonResponse
+    {
+        $request->validate([
+            'kop' => ['required', 'file', 'image', 'mimes:png,jpg,jpeg,webp', 'max:5120'],
+        ]);
+
+        $file = $request->file('kop');
+        $extension = $file->getClientOriginalExtension() ?: 'png';
+        $filename = 'kop_' . time() . '_' . Str::random(8) . '.' . $extension;
+        $path = $file->storeAs('kop-surat', $filename, 'public');
+
+        return response()->json([
+            'success' => true,
+            'path' => '/storage/' . $path,
+            'url' => asset('storage/' . $path),
+        ]);
     }
 }

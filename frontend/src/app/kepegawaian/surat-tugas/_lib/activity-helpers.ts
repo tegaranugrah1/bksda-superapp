@@ -15,11 +15,36 @@ export function isSingleDayActivityPrefix(prefix: string) {
 export function cleanMelaksanakanKegiatanPrefix(text: string): string {
   if (!text) return "";
   let trimmed = text.trim();
-  if (/^melaksanakan\s+kegiatan/i.test(trimmed)) {
-    trimmed = trimmed.replace(/^melaksanakan\s+kegiatan\s*/i, "").trim();
+
+  // Recursively remove nested "Melaksanakan Perjalanan Dinas dari ... ke ... dalam rangka "
+  const pdPattern = /^Melaksanakan\s+Perjalanan\s+Dinas\s+dari\s+.*?\s+ke\s+.*?\s+dalam\s+rangka\s+/i;
+  while (pdPattern.test(trimmed)) {
+    trimmed = trimmed.replace(pdPattern, "").trim();
   }
-  return trimmed;
+
+  // Recursively remove nested "Melaksanakan Kegiatan ... [pada/di] ..."
+  const mkPattern = /^Melaksanakan\s+Kegiatan\s+/i;
+  while (mkPattern.test(trimmed)) {
+    trimmed = trimmed.replace(mkPattern, "").trim();
+  }
+
+  // Recursively remove nested "Menugaskan Staf untuk "
+  const msPattern = /^Menugaskan\s+Staf\s+untuk\s+/i;
+  while (msPattern.test(trimmed)) {
+    trimmed = trimmed.replace(msPattern, "").trim();
+  }
+
+  return cleanRepeatingLocations(trimmed);
 }
+
+/**
+ * Bersihkan pengulangan frasa lokasi yang tidak sengaja terduplikasi (e.g. "di Paser di Paser di Paser")
+ */
+export function cleanRepeatingLocations(text: string): string {
+  if (!text) return "";
+  return text.replace(/(\s+(?:di|pada)\s+[^,;]+?)(?:\1)+/gi, "$1");
+}
+
 
 /**
  * Tentukan apakah ST harus dirender sebagai kegiatan single-day:

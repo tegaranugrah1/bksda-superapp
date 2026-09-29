@@ -1014,4 +1014,65 @@ class AuctionBatchTest extends TestCase
         $this->assertTrue($warningOld['requires_revaluation_review']);
         $this->assertNotNull($warningOld['message']);
     }
+
+    public function test_destroy_draft_batch_success(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-DRAFT-DEL',
+            'name' => 'Draft Batch to Delete',
+            'status' => AuctionBatchStatus::DRAFT,
+        ]);
+
+        $asset = $this->createAsset();
+        $batch->assets()->attach($asset->id, [
+            'id' => \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-DEL',
+            'nilai_taksiran' => 1000000,
+        ]);
+
+        $this->assertDatabaseHas('bmn_asset_auction_batch', [
+            'bmn_auction_batch_id' => $batch->id,
+            'bmn_asset_id' => $asset->id,
+        ]);
+
+        $response = $this->deleteJson("/api/bmn/auction-batches/{$batch->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('message', 'Paket lelang berhasil dihapus.');
+
+        $this->assertSoftDeleted('bmn_auction_batches', ['id' => $batch->id]);
+        $this->assertDatabaseMissing('bmn_asset_auction_batch', [
+            'bmn_auction_batch_id' => $batch->id,
+            'bmn_asset_id' => $asset->id,
+        ]);
+    }
+
+    public function test_destroy_batal_batch_success(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-BATAL-DEL',
+            'name' => 'Batal Batch to Delete',
+            'status' => AuctionBatchStatus::BATAL,
+        ]);
+
+        $response = $this->deleteJson("/api/bmn/auction-batches/{$batch->id}");
+
+        $response->assertStatus(200);
+        $this->assertSoftDeleted('bmn_auction_batches', ['id' => $batch->id]);
+    }
+
+    public function test_destroy_active_batch_rejected(): void
+    {
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-ACTIVE-DEL',
+            'name' => 'Active Batch Cannot Delete',
+            'status' => AuctionBatchStatus::DIAJUKAN,
+        ]);
+
+        $response = $this->deleteJson("/api/bmn/auction-batches/{$batch->id}");
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['status']);
+    }
 }
+

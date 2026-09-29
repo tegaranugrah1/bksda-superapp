@@ -30,6 +30,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::patch('/st-templates/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'toggleActive']);
         Route::post('/st-templates/{id}/duplicate', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'duplicate']);
         Route::delete('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'destroy']);
+        Route::post('/st-templates/upload-kop', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'uploadKop']);
     });
 
     // --- TEMPLATE BIAYA / SUMBER DANA ---

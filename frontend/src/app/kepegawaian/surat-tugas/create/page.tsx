@@ -18,7 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAxiosError } from "axios";
 import STBuilderPreview from "../builder/[id]/STBuilderPreview";
-import { cleanMelaksanakanKegiatanPrefix } from "../_lib/activity-helpers";
+import { cleanMelaksanakanKegiatanPrefix, cleanRepeatingLocations } from "../_lib/activity-helpers";
 import {
   formatDateIndonesian,
   formatNIP,
@@ -107,6 +107,14 @@ export default function STCreatePremiumPage() {
   const [tanggalSurat, setTanggalSurat] = useState(new Date().toISOString().substring(0, 10));
   const [kotaSurat, setKotaSurat] = useState("Samarinda");
   const [tembusanItems, setTembusanItems] = useState<string[]>([]);
+  const [headerTitle, setHeaderTitle] = useState("KEPALA BALAI,");
+  const [penutupText, setPenutupText] = useState("Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+  const [dateFormatStyle, setDateFormatStyle] = useState<"inline" | "tabular">("inline");
+  const [signerAuthorityMandate, setSignerAuthorityMandate] = useState<string | null>(null);
+  const [signerTitle, setSignerTitle] = useState("Kepala Balai,");
+  const [tembusanPosition, setTembusanPosition] = useState<"beside" | "bottom">("beside");
+  const [tembusanLabel, setTembusanLabel] = useState("Tembusan:");
+  const [kopImageUrl, setKopImageUrl] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -385,26 +393,33 @@ export default function STCreatePremiumPage() {
   };
 
   const assembleStructuredActivityText = useCallback((): string => {
+    let cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
+    if (tempatKegiatan && cleanNama.toLowerCase().endsWith(` di ${tempatKegiatan.toLowerCase()}`)) {
+      cleanNama = cleanNama.slice(0, -(` di ${tempatKegiatan}`.length)).trim();
+    }
+    if (kotaTujuan && cleanNama.toLowerCase().endsWith(` di ${kotaTujuan.toLowerCase()}`)) {
+      cleanNama = cleanNama.slice(0, -(` di ${kotaTujuan}`.length)).trim();
+    }
+
     if (activityPrefix.includes("Perjalanan Dinas")) {
       let t = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
-      if (namaKegiatan) {
-        t += ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatan)}`;
+      if (cleanNama) {
+        t += ` dalam rangka ${cleanNama}`;
       }
       if (tempatKegiatan) {
         t += ` di ${tempatKegiatan}`;
       }
-      return t;
+      return cleanRepeatingLocations(t);
     } else if (activityPrefix.includes("Melaksanakan Kegiatan")) {
-      const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
       let t = `Melaksanakan Kegiatan ${cleanNama || "..."}`;
       if (tempatKegiatan) t += ` pada ${tempatKegiatan}`;
       if (kotaTujuan) t += ` di ${kotaTujuan}`;
-      return t;
+      return cleanRepeatingLocations(t);
     } else {
-      let t = `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatan) || "..."}`;
+      let t = `Menugaskan Staf untuk ${cleanNama || "..."}`;
       if (tempatKegiatan) t += ` pada ${tempatKegiatan}`;
       if (kotaTujuan) t += ` di ${kotaTujuan}`;
-      return t;
+      return cleanRepeatingLocations(t);
     }
   }, [activityPrefix, kotaAsal, kotaTujuan, namaKegiatan, tempatKegiatan]);
 
@@ -415,6 +430,20 @@ export default function STCreatePremiumPage() {
         setNamaKegiatan(assembled);
       }
       setInputModeKegiatan("manual");
+    }
+  };
+
+  const handleSwitchToStructured = () => {
+    if (inputModeKegiatan === "manual") {
+      let cleaned = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
+      if (tempatKegiatan && cleaned.toLowerCase().endsWith(` di ${tempatKegiatan.toLowerCase()}`)) {
+        cleaned = cleaned.slice(0, -(` di ${tempatKegiatan}`.length)).trim();
+      }
+      if (kotaTujuan && cleaned.toLowerCase().endsWith(` di ${kotaTujuan.toLowerCase()}`)) {
+        cleaned = cleaned.slice(0, -(` di ${kotaTujuan}`.length)).trim();
+      }
+      setNamaKegiatan(cleaned);
+      setInputModeKegiatan("structured");
     }
   };
 
@@ -637,6 +666,29 @@ export default function STCreatePremiumPage() {
         }
         if (typeof configuration.klasifikasi === "string") setKlasifikasi(configuration.klasifikasi);
         if (typeof configuration.sumber_dana === "string") setSumberDana(configuration.sumber_dana);
+        if (typeof configuration.header_title === "string") {
+          setHeaderTitle(configuration.header_title);
+        } else {
+          setHeaderTitle("KEPALA BALAI,");
+        }
+        if (typeof configuration.penutup_text === "string") {
+          setPenutupText(configuration.penutup_text);
+        } else {
+          setPenutupText("Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+        }
+        if (configuration.date_format_style === "tabular" || configuration.date_format_style === "inline") {
+          setDateFormatStyle(configuration.date_format_style);
+        } else {
+          setDateFormatStyle("inline");
+        }
+        setSignerAuthorityMandate(typeof configuration.signer_authority_mandate === "string" ? configuration.signer_authority_mandate : null);
+        setSignerTitle(typeof configuration.signer_title === "string" ? configuration.signer_title : "Kepala Balai,");
+        if (Array.isArray(configuration.tembusan_items) && configuration.tembusan_items.length > 0) {
+          setTembusanItems(configuration.tembusan_items);
+        }
+        setTembusanPosition(configuration.tembusan_position === "bottom" ? "bottom" : "beside");
+        setTembusanLabel(typeof configuration.tembusan_label === "string" ? configuration.tembusan_label : "Tembusan:");
+        setKopImageUrl(typeof configuration.kop_image_url === "string" ? configuration.kop_image_url : null);
         if (template.default_signer_name && template.default_signer_nip) {
           setKepalaBalai({
             employeeId: template.default_signer_employee_id || undefined,
@@ -655,6 +707,17 @@ export default function STCreatePremiumPage() {
       const defaultTpl = dynamicTemplates.find((t) => t.code === "default" || t.is_default);
       if (defaultTpl?.configuration?.default_jenis_tugas) {
         setActivityPrefix(defaultTpl.configuration.default_jenis_tugas);
+      }
+      setHeaderTitle(defaultTpl?.configuration?.header_title || "KEPALA BALAI,");
+      setPenutupText(defaultTpl?.configuration?.penutup_text || "Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+      setDateFormatStyle((defaultTpl?.configuration?.date_format_style as any) || "inline");
+      setSignerAuthorityMandate((defaultTpl?.configuration?.signer_authority_mandate as any) || null);
+      setSignerTitle(defaultTpl?.configuration?.signer_title || "Kepala Balai,");
+      setTembusanPosition((defaultTpl?.configuration?.tembusan_position as any) || "beside");
+      setTembusanLabel(defaultTpl?.configuration?.tembusan_label || "Tembusan:");
+      setKopImageUrl((defaultTpl?.configuration?.kop_image_url as string) || null);
+      if (Array.isArray(defaultTpl?.configuration?.tembusan_items)) {
+        setTembusanItems(defaultTpl.configuration.tembusan_items);
       }
       // Reset to default empty items if reverting to default manual
       setMenimbangItems([]);
@@ -848,6 +911,11 @@ export default function STCreatePremiumPage() {
   const isFundingDasarText = (text?: string | null) => {
     if (!text) return false;
     const lower = text.toLowerCase();
+    const matchedCustom = expenseTemplates.some(
+      (t) => t.dasar_text && lower.includes(t.dasar_text.replace(/{tahun}/g, "").trim().toLowerCase().substring(0, 25))
+    );
+    if (matchedCustom) return true;
+
     return (
       lower.includes("surat pengesahan dipa") ||
       lower.includes("sp dipa") ||
@@ -867,8 +935,12 @@ export default function STCreatePremiumPage() {
   // Function to update Dasar items based on Funding
   const updateDasarFromFunding = (fundingId: string, date: string) => {
     const tahun = date ? new Date(date).getFullYear().toString() : new Date().getFullYear().toString();
+    const dynExpense = expenseTemplates.find(
+      o => o.code === fundingId || o.name.toLowerCase() === fundingId.toLowerCase() || String(o.id) === fundingId
+    );
     const opt = availableSumberDanaOptions.find(o => o.id === fundingId) || SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
-    const fundingText = opt?.dasarText ? opt.dasarText.replace(/{tahun}/g, tahun).trim() : "";
+    const rawDasar = dynExpense?.dasar_text ?? opt?.dasarText ?? "";
+    const fundingText = rawDasar ? rawDasar.replace(/{tahun}/g, tahun).trim() : "";
 
     setDasarItems(prev => {
       const newItems = [...prev];
@@ -902,6 +974,13 @@ export default function STCreatePremiumPage() {
       return newItems;
     });
   };
+
+  // Auto-sync funding dasar when expenseTemplates are loaded or funding changed
+  useEffect(() => {
+    if (sumberDana && expenseTemplates.length > 0) {
+      updateDasarFromFunding(sumberDana, tanggalSurat);
+    }
+  }, [expenseTemplates, sumberDana, tanggalSurat]);
 
   // Auto-fill klasifikasi & menimbang based on nama kegiatan keywords
   const updateFoluMenimbang = (activity: string, place: string) => {
@@ -1402,7 +1481,7 @@ export default function STCreatePremiumPage() {
               <div className="flex items-center justify-between bg-slate-100 dark:bg-zinc-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-zinc-700">
                 <button
                   type="button"
-                  onClick={() => setInputModeKegiatan("structured")}
+                  onClick={handleSwitchToStructured}
                   className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                     inputModeKegiatan === "structured"
                       ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-xs"
@@ -1587,11 +1666,19 @@ export default function STCreatePremiumPage() {
               menimbangItems={getPreviewMenimbangItems()} dasarItems={getPreviewDasarItems()} selectedEmployees={selectedEmployees}
               buildUntukText={buildUntukText} buildBiayaText={buildBiayaText}
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
+              headerTitle={headerTitle}
+              penutupText={penutupText}
+              dateFormatStyle={dateFormatStyle}
+              signerAuthorityMandate={signerAuthorityMandate}
+              signerTitle={signerTitle}
+              tembusanPosition={tembusanPosition}
+              tembusanLabel={tembusanLabel}
               sumberDana={sumberDana}
               templateType={templateType}
               employeeDates={employeeDates}
               judulLampiranBedaHari={judulLampiranBedaHari}
               tembusanItems={tembusanItems}
+              kopImageUrl={kopImageUrl}
             />
           </div>
 

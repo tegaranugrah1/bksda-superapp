@@ -6,6 +6,7 @@ import {
   formatNIP,
   indexToLetter,
 } from "@/lib/letter-utils";
+import { resolveKopImageUrl } from "../../_lib";
 import STLampiranBedaHari, { type EmployeeDateRange } from "./STLampiranBedaHari";
 
 function HalamanDivider({ 
@@ -61,6 +62,40 @@ function HalamanDivider({
   );
 }
 
+function renderHeaderTitleContent(title: string = "KEPALA BALAI,") {
+  const lines = (title || "KEPALA BALAI,").split("\n");
+  const regex = /(\*[^*]+\*|IMPLEMENTING PARTNER|Implementing Partner)/g;
+
+  return (
+    <div style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px", fontSize: "11pt", lineHeight: "1.35" }}>
+      {lines.map((line, i) => {
+        const parts = line.split(regex);
+        return (
+          <p key={i} style={{ margin: 0 }}>
+            {parts.map((part, j) => {
+              if (part.startsWith("*") && part.endsWith("*") && part.length > 1) {
+                return (
+                  <span key={j} style={{ fontStyle: "italic" }}>
+                    {part.slice(1, -1)}
+                  </span>
+                );
+              }
+              if (part.toUpperCase() === "IMPLEMENTING PARTNER") {
+                return (
+                  <span key={j} style={{ fontStyle: "italic" }}>
+                    {part}
+                  </span>
+                );
+              }
+              return <React.Fragment key={j}>{part}</React.Fragment>;
+            })}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 interface Employee {
   id: string;
   nama_lengkap: string;
@@ -90,10 +125,17 @@ interface PreviewProps {
   kepalaBalai: { name: string; nip: string };
   tembusanItems?: string[];
   headerTitle?: string;
+  penutupText?: string;
+  dateFormatStyle?: "inline" | "tabular";
+  signerAuthorityMandate?: string | null;
+  signerTitle?: string;
+  tembusanPosition?: "beside" | "bottom";
+  tembusanLabel?: string;
   sumberDana?: string;
   templateType?: string | null;
   employeeDates?: Record<string, EmployeeDateRange>;
   judulLampiranBedaHari?: string;
+  kopImageUrl?: string | null;
 }
 
 export default function STBuilderPreview({
@@ -112,12 +154,28 @@ export default function STBuilderPreview({
   kepalaBalai,
   tembusanItems = [],
   headerTitle = "KEPALA BALAI,",
+  penutupText,
+  dateFormatStyle,
+  signerAuthorityMandate,
+  signerTitle = "Kepala Balai,",
+  tembusanPosition,
+  tembusanLabel,
   sumberDana = "dipa",
   templateType = null,
   employeeDates = {},
   judulLampiranBedaHari = "DAFTAR PEGAWAI MENGIKUTI PATROLI",
+  kopImageUrl = null,
 }: PreviewProps) {
   const isFolu = sumberDana === "folu";
+  const activeDateFormat = dateFormatStyle || (isFolu ? "tabular" : "inline");
+  const activeTembusanPosition = tembusanPosition || (isFolu ? "bottom" : "beside");
+  const activeTembusanLabel = tembusanLabel || (isFolu ? "Tembusan Kepada :" : "Tembusan:");
+  const activePenutup = penutupText || (isFolu 
+    ? "Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas."
+    : "Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+  const activeMandate = signerAuthorityMandate !== undefined 
+    ? signerAuthorityMandate 
+    : (isFolu ? "a.n. Sekretaris Direktorat Jenderal KSDAE\nselaku Koordinator Kegiatan Implementing\nPartner FOLU NC 2&3" : null);
   const isBmnTemplate = templateType === "bmn-pemeriksaan";
   const isBedaHariTemplate = templateType === "beda-hari";
   const isPlhTemplate = templateType === "plh";
@@ -206,7 +264,7 @@ export default function STBuilderPreview({
               <div className="kop-surat" style={{ width: "100%", marginBottom: "4mm", textAlign: "center" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/header-st.png"
+                  src={resolveKopImageUrl(kopImageUrl)}
                   alt="Kop Surat"
                   style={{ width: "188mm", maxWidth: "188mm", height: "auto", display: "block", margin: "0 auto" }}
                 />
@@ -220,27 +278,8 @@ export default function STBuilderPreview({
                 Nomor : ST.{stNumber || "..."}/{stCode || "..."}/{currentMonth}/{currentYear}
               </p>
 
-              {/* === KEPALA BALAI / HEADER === */}
-              {headerTitle.includes("\n") ? (
-                <div style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>
-                  {headerTitle.split("\n").map((line, i) => (
-                    <p key={i} style={{ margin: 0 }}>
-                      {line.includes("IMPLEMENTING PARTNER") ? (
-                        <>
-                          {line.split("IMPLEMENTING PARTNER").map((part, j) => (
-                            <React.Fragment key={j}>
-                              {j > 0 && <span style={{ fontStyle: "italic" }}>IMPLEMENTING PARTNER</span>}
-                              {part}
-                            </React.Fragment>
-                          ))}
-                        </>
-                      ) : line}
-                    </p>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>{headerTitle}</p>
-              )}
+              {/* === KEPALA BALAI / HEADER MODULAR === */}
+              {renderHeaderTitleContent(headerTitle)}
 
               {/* === MENIMBANG === */}
               <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
@@ -385,38 +424,54 @@ export default function STBuilderPreview({
 
               {/* === PENUTUP + TTD + TEMBUSAN — keep together so TTD never breaks alone === */}
               <div data-break-candidate="penutup-ttd" className="penutup-ttd-group print:break-inside-avoid break-inside-avoid" style={{ display: 'block', breakInside: "avoid", pageBreakInside: "avoid" }}>
-                {isFolu ? (
-                  <p className="penutup-surat" style={{ margin: "16px 0 0", textAlign: "justify" }}>
-                    Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.
-                  </p>
-                ) : (
-                  <p className="penutup-surat" style={{ margin: "16px 0 0" }}>Demikian untuk dilaksanakan dengan penuh tanggung jawab.</p>
-                )}
+                <p className="penutup-surat" style={{ margin: "16px 0 0", textAlign: isFolu || activePenutup.length > 80 ? "justify" : "left" }}>
+                  {activePenutup}
+                </p>
 
                 {/* === TANDA TANGAN + TEMBUSAN === */}
                 <div className="ttd-tembusan-wrapper print:break-inside-avoid break-inside-avoid" style={{ display: 'block', breakInside: "avoid", pageBreakInside: "avoid" }}>
-                {isFolu ? (
+                {activeTembusanPosition === "bottom" ? (
                   <>
-                    {/* === FOLU TTD Layout — Dikeluarkan sejajar a.n., rata kanan === */}
+                    {/* === TTD Layout Tabular / Full Width (seperti FOLU) === */}
                     <div style={{ marginTop: "8px", paddingLeft: "50%" }}>
-                      <table style={{ borderCollapse: "collapse" }}>
-                        <tbody>
-                          <tr>
-                            <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
-                            <td style={{ padding: "1px 0", width: "14px" }}>:</td>
-                            <td style={{ padding: "1px 0" }}>{kotaSurat || "..."}</td>
-                          </tr>
-                          <tr>
-                            <td style={{ padding: "1px 0" }}>Pada tanggal</td>
-                            <td style={{ padding: "1px 0" }}>:</td>
-                            <td style={{ padding: "1px 0" }}>{tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                      <p style={{ margin: "4px 0 0" }}>a.n. Sekretaris Direktorat Jenderal KSDAE</p>
-                      <p style={{ margin: 0 }}>selaku Koordinator Kegiatan <span style={{ fontStyle: "italic" }}>Implementing</span></p>
-                      <p style={{ margin: 0 }}><span style={{ fontStyle: "italic" }}>Partner</span> FOLU NC 2&amp;3</p>
-                      <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
+                      {activeDateFormat === "tabular" ? (
+                        <table style={{ borderCollapse: "collapse" }}>
+                          <tbody>
+                            <tr>
+                              <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
+                              <td style={{ padding: "1px 0", width: "14px" }}>:</td>
+                              <td style={{ padding: "1px 0" }}>{kotaSurat || "..."}</td>
+                            </tr>
+                            <tr>
+                              <td style={{ padding: "1px 0" }}>Pada tanggal</td>
+                              <td style={{ padding: "1px 0" }}>:</td>
+                              <td style={{ padding: "1px 0" }}>{tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      ) : (
+                        <p style={{ margin: 0 }}>
+                          {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
+                        </p>
+                      )}
+
+                      {activeMandate && activeMandate.split("\n").map((line, idx) => (
+                        <p key={idx} style={{ margin: idx === 0 ? "4px 0 0" : 0 }}>
+                          {line.includes("Implementing") || line.includes("Partner") ? (
+                            line.split(/(Implementing|Partner)/gi).map((part, pIdx) =>
+                              /^(Implementing|Partner)$/i.test(part) ? (
+                                <span key={pIdx} style={{ fontStyle: "italic" }}>{part}</span>
+                              ) : (
+                                part
+                              )
+                            )
+                          ) : (
+                            line
+                          )}
+                        </p>
+                      ))}
+
+                      <p style={{ margin: "0 0 0" }}>{signerTitle || "Kepala Balai,"}</p>
                       <p className="ttd-placeholder" style={signaturePlaceholderStyle}>
                         ${"{ttd_pengirim}"}
                       </p>
@@ -424,10 +479,10 @@ export default function STBuilderPreview({
                       <p style={{ margin: 0 }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
-                    {/* === FOLU Tembusan — di bawah NIP, full width === */}
+                    {/* === Tembusan Bawah (di bawah NIP, full width) === */}
                     {visibleTembusanItems.length > 0 && (
                       <div className="tembusan-block" style={{ marginTop: "16px" }}>
-                        <p style={{ margin: "0 0 4px" }}>Tembusan Kepada :</p>
+                        <p style={{ margin: "0 0 4px" }}>{activeTembusanLabel}</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
                             {visibleTembusanItems.map((item, idx) => (
@@ -443,12 +498,36 @@ export default function STBuilderPreview({
                   </>
                 ) : (
                   <>
-                    {/* === Default TTD (kanan) — all in one block === */}
+                    {/* === Default TTD Layout (kanan, dengan tembusan di kiri bawah) === */}
                     <div style={{ marginTop: "8px", marginLeft: "9.2cm", textAlign: "left" }}>
-                      <p style={{ margin: 0 }}>
-                        {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
-                      </p>
-                      <p style={{ margin: "0 0 0" }}>Kepala Balai,</p>
+                      {activeDateFormat === "tabular" ? (
+                        <table style={{ borderCollapse: "collapse" }}>
+                          <tbody>
+                            <tr>
+                              <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
+                              <td style={{ padding: "1px 0", width: "14px" }}>:</td>
+                              <td style={{ padding: "1px 0" }}>{kotaSurat || "..."}</td>
+                            </tr>
+                            <tr>
+                              <td style={{ padding: "1px 0" }}>Pada tanggal</td>
+                              <td style={{ padding: "1px 0" }}>:</td>
+                              <td style={{ padding: "1px 0" }}>{tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      ) : (
+                        <p style={{ margin: 0 }}>
+                          {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
+                        </p>
+                      )}
+
+                      {activeMandate && activeMandate.split("\n").map((line, idx) => (
+                        <p key={idx} style={{ margin: idx === 0 ? "4px 0 0" : 0 }}>
+                          {line}
+                        </p>
+                      ))}
+
+                      <p style={{ margin: "0 0 0" }}>{signerTitle || "Kepala Balai,"}</p>
                       <p className="ttd-placeholder" style={signaturePlaceholderStyle}>
                         ${"{ttd_pengirim}"}
                       </p>
@@ -456,10 +535,10 @@ export default function STBuilderPreview({
                       <p style={{ margin: 0 }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
-                    {/* === Tembusan (kiri) sejajar NIP === */}
+                    {/* === Tembusan Samping (kiri sejajar NIP) === */}
                     {visibleTembusanItems.length > 0 && (
                       <div className="tembusan-block" style={{ marginTop: "-22px", maxWidth: "9.4cm" }}>
-                        <p style={{ margin: "0 0 4px" }}>Tembusan:</p>
+                        <p style={{ margin: "0 0 4px" }}>{activeTembusanLabel}</p>
                         <table style={{ borderCollapse: "collapse" }}>
                           <tbody>
                             {visibleTembusanItems.map((item, idx) => (

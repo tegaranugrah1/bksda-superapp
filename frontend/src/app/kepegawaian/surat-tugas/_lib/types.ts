@@ -33,6 +33,15 @@ export interface KepalaBalaiInfo {
 }
 
 export interface StTemplateConfiguration {
+  kop_image_url?: string | null;
+  header_title?: string;
+  penutup_text?: string;
+  date_format_style?: "inline" | "tabular";
+  signer_authority_mandate?: string | null;
+  signer_title?: string;
+  tembusan_items?: string[];
+  tembusan_position?: "beside" | "bottom";
+  tembusan_label?: string;
   default_jenis_tugas?: string;
   default_mode_kegiatan?: "structured" | "manual";
   default_kegiatan?: string;

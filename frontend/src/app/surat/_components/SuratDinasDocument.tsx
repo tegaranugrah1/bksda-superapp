@@ -648,7 +648,7 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
         templateType: "perjanjian",
         nomor,
         kotaTanggal: baseDate,
-        judulPerjanjian: "PERJANJIAN KERJA SAMA ANTARA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR DENGAN ALIANSI LESTARI RIMBA TERPADU (ALERT) TENTANG PENGUATAN FUNGSI KONSERVASI SUAKA MARGASATWA KELIAN",
+        judulPerjanjian: "PENGUATAN FUNGSI KONSERVASI SUAKA MARGASATWA KELIAN",
         hariTanggalAcara: "Jumat, tanggal dua puluh lima bulan September tahun dua ribu dua puluh enam (25-09-2026)",
         lokasiDibuat: "Samarinda",
         pihakPertama: {
@@ -659,6 +659,7 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
         },
         pihakKedua: {
           nama: "DR. INDRA HERMAWAN",
+          instansi: "ALIANSI LESTARI RIMBA TERPADU (ALERT)",
           jabatan: "Direktur Eksekutif Aliansi Lestari Rimba Terpadu (ALeRT), bertindak untuk dan atas nama ALeRT Indonesia",
           alamat: "Jl. Raya Pajajaran No. 88 Bogor",
         },
@@ -722,8 +723,8 @@ export const SURAT_DINAS_BASE_CSS = `
   * { box-sizing: border-box; }
   body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #000; background: #fff; }
   h1, h2, h3, h4, p { margin: 0; padding: 0; }
-  .pkpknl-page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 4mm 20mm 20mm 25mm; font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #000; }
-  .pkpknl-kop { margin-top: 0; margin-left: -25mm; margin-right: -20mm; margin-bottom: 6px; text-align: center; }
+  .pkpknl-page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 4mm 20mm 20mm 20mm; font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #000; }
+  .pkpknl-kop { margin-top: 0; margin-left: -20mm; margin-right: -20mm; margin-bottom: 6px; text-align: center; }
   .pkpknl-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
   .pkpknl-meta-container { width: 100%; margin: 14px 0 0; line-height: 1.5; }
   .pkpknl-meta-row { width: 100%; margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 6mm; line-height: 1.5; }
@@ -741,6 +742,7 @@ export const SURAT_DINAS_BASE_CSS = `
   .pkpknl-yth-tempat { padding-left: 1.25rem; }
   .pkpknl-body { width: 100%; margin: 14px 0 0; text-align: justify; text-justify: inter-word; }
   .pkpknl-body p { margin-bottom: 0.85rem; text-indent: 2.5em; line-height: 1.5; }
+  .pkpknl-body p.no-indent { text-indent: 0 !important; }
   .penutup-ttd-group { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; }
   .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
   .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.15; }
@@ -867,8 +869,8 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           body * { visibility: hidden; }
           .surat-dinas-print-root, .surat-dinas-print-root * { visibility: visible; }
           .surat-dinas-print-root { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; }
-          .pkpknl-page { box-shadow: none !important; padding: 4mm 20mm 20mm 25mm !important; border: none !important; }
-          .pkpknl-kop { margin-top: 0 !important; margin-left: -25mm !important; margin-right: -20mm !important; }
+          .pkpknl-page { box-shadow: none !important; padding: 4mm 20mm 20mm 20mm !important; border: none !important; }
+          .pkpknl-kop { margin-top: 0 !important; margin-left: -20mm !important; margin-right: -20mm !important; }
           .pkpknl-edit { background: none !important; }
           .pkpknl-meta-nomor { white-space: pre !important; }
           .pkpknl-meta-nomor-long { font-size: 10pt !important; letter-spacing: -0.2px; }
@@ -879,11 +881,11 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
       {/* ─── Halaman 1: Dokumen Naskah Dinas (A4 Portrait) ─────────────────────── */}
       <article
-        className="pkpknl-page mx-auto max-w-[210mm] bg-white pt-4 pb-9 text-black shadow-xl ring-1 ring-zinc-200 rounded-sm"
-        style={{ padding: "4mm 20mm 20mm 25mm" }}
+        className="pkpknl-page mx-auto w-[210mm] max-w-[210mm] bg-white text-black shadow-xl ring-1 ring-zinc-200 rounded-sm"
+        style={{ padding: "4mm 20mm 20mm 20mm" }}
       >
         {/* Kop Surat Kementerian Kehutanan & BKSDA Kaltim (Kecuali Sertifikat/Piagam yang memiliki layout tersendiri) */}
-        <div className="pkpknl-kop text-center" style={{ marginLeft: "-25mm", marginRight: "-20mm" }}>
+        <div className="pkpknl-kop text-center" style={{ marginLeft: "-20mm", marginRight: "-20mm" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/header-paling-baru.png"
@@ -1160,23 +1162,25 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           <div className="w-full mt-4 text-center">
             {currentTemplate === "surat_edaran" && (
               <>
-                <div className="text-left mb-3">
+                <div className="text-left mb-4 text-[10.5pt] leading-normal">
                   <p>Yth.</p>
-                  <pre className="font-sans text-xs pl-4 whitespace-pre-wrap">{tujuanKepada}</pre>
+                  <pre className="font-sans text-[10.5pt] pl-4 whitespace-pre-wrap m-0 leading-normal">{tujuanKepada}</pre>
                 </div>
                 <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">SURAT EDARAN</h2>
                 <p className="text-[11pt] font-normal leading-snug m-0 mt-0.5 mb-2">NOMOR : {nomorText}</p>
                 <p className="font-bold text-[10.5pt] leading-snug m-0 mb-1">TENTANG</p>
-                <h3 className="font-bold text-[11pt] uppercase max-w-lg mx-auto leading-snug m-0 mb-4">{judulEdaran || perihal}</h3>
+                <h3 className="font-bold text-[11pt] uppercase leading-snug m-0 mb-4">{judulEdaran || perihal}</h3>
               </>
             )}
 
             {currentTemplate === "instruksi" && (
               <>
-                <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">INSTRUKSI KEPALA BALAI KSDA KALIMANTAN TIMUR</h2>
+                <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">
+                  INSTRUKSI KEPALA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR
+                </h2>
                 <p className="text-[11pt] font-normal leading-snug m-0 mt-0.5 mb-2">NOMOR : {nomorText}</p>
                 <p className="font-bold text-[10.5pt] leading-snug m-0 mb-1">TENTANG</p>
-                <h3 className="font-bold text-[11pt] uppercase max-w-lg mx-auto leading-snug m-0 mb-3">{judulInstruksi || perihal}</h3>
+                <h3 className="font-bold text-[11pt] uppercase leading-snug m-0 mb-3">{judulInstruksi || perihal}</h3>
                 <div className="text-left my-3 space-y-1.5">
                   <p className="font-semibold">Kepada :</p>
                   {(instruksiKepada || []).map((kpd, idx) => (
@@ -1188,10 +1192,15 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
             {currentTemplate === "keputusan" && (
               <>
-                <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">KEPUTUSAN KEPALA BALAI KSDA KALIMANTAN TIMUR</h2>
+                <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">
+                  KEPUTUSAN KEPALA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR
+                </h2>
                 <p className="text-[11pt] font-normal leading-snug m-0 mt-0.5 mb-2">NOMOR : {nomorText}</p>
                 <p className="font-bold text-[10.5pt] leading-snug m-0 mb-1">TENTANG</p>
-                <h3 className="font-bold text-[11pt] uppercase max-w-lg mx-auto leading-snug m-0 mb-4">{judulKeputusan || perihal}</h3>
+                <h3 className="font-bold text-[11pt] uppercase leading-snug m-0 mb-3">{judulKeputusan || perihal}</h3>
+                <p className="font-bold text-[10.5pt] uppercase leading-snug m-0 mb-4">
+                  KEPALA BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR,
+                </p>
 
                 <div className="text-left space-y-2 mb-4">
                   <div className="flex">
@@ -1238,10 +1247,10 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           <div className="w-full mt-4">
             <div className="text-center mb-3">
               <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">
-                {currentTemplate === "telaah_staf" ? "TELAAH STAF" : "LAPORAN KEDINASAN"}
+                {currentTemplate === "telaah_staf" ? "TELAAH STAF" : "LAPORAN"}
               </h2>
               <p className="font-bold text-[10.5pt] leading-snug m-0 mt-1 mb-1">TENTANG</p>
-              <h3 className="font-bold text-[11pt] uppercase max-w-lg mx-auto leading-snug m-0 mb-4">
+              <h3 className="font-bold text-[11pt] uppercase leading-snug m-0 mb-4">
                 {judulTelaah || judulLaporan || perihal}
               </h3>
             </div>
@@ -1271,10 +1280,24 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         {/* ─── 8. PERJANJIAN KERJA SAMA (PKS) (Hal 54-58) ──────────────────── */}
         {currentTemplate === "perjanjian" && (
           <div className="w-full mt-4 text-center">
-            <h2 className="font-bold text-[11.5pt] uppercase max-w-lg mx-auto leading-snug m-0">
-              {judulPerjanjian || "PERJANJIAN KERJA SAMA"}
+            <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">
+              PERJANJIAN KERJA SAMA
             </h2>
-            <p className="text-[10.5pt] font-normal leading-snug m-0 mt-0.5 mb-3">NOMOR : {nomorText}</p>
+            <p className="font-bold text-[10.5pt] leading-snug m-0 mt-1 mb-1">ANTARA</p>
+            <p className="font-bold text-[10.5pt] uppercase leading-snug m-0">
+              BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR
+            </p>
+            <p className="font-bold text-[10.5pt] leading-snug m-0 my-1">DENGAN</p>
+            <p className="font-bold text-[10.5pt] uppercase leading-snug m-0 mb-2">
+              {pihakKedua?.instansi || pihakKedua?.nama || "MITRA KERJA SAMA"}
+            </p>
+            <p className="text-[10.5pt] font-normal leading-snug m-0 mb-2">NOMOR : {nomorText}</p>
+            <p className="font-bold text-[10.5pt] leading-snug m-0 mb-1">TENTANG</p>
+            <h3 className="font-bold text-[11pt] uppercase leading-snug m-0 mb-4">
+              {(judulPerjanjian || perihal || "KERJA SAMA PENGELOLAAN DAN KONSERVASI SUMBER DAYA ALAM")
+                .replace(/^PERJANJIAN KERJA SAMA\s+(ANTARA[\s\S]*?TENTANG\s+)?/i, "")
+                .replace(/^TENTANG\s+/i, "")}
+            </h3>
 
             <div className="text-left text-justify space-y-2 mb-4 text-[10.5pt]">
               <p>Pada hari ini, {hariTanggalAcara || "..."} bertempat di {lokasiDibuat || "Samarinda"}, kami masing-masing:</p>
@@ -1348,10 +1371,10 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
         {currentTemplate === "pengumuman" && (
           <div className="w-full mt-4 text-center">
-            <h2 className="font-bold text-[13pt] uppercase tracking-widest leading-snug m-0">PENGUMUMAN</h2>
+            <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">PENGUMUMAN</h2>
             <p className="text-[11pt] font-normal leading-snug m-0 mt-0.5 mb-2">NOMOR : {nomorText}</p>
-            <p className="font-bold text-[11pt] tracking-wider leading-snug m-0 mb-1">TENTANG</p>
-            <h3 className="font-bold text-[11.5pt] uppercase max-w-lg mx-auto leading-snug m-0 mb-5 border-b border-zinc-200 pb-2">
+            <p className="font-bold text-[11pt] leading-snug m-0 mb-1">TENTANG</p>
+            <h3 className="font-bold text-[11pt] uppercase leading-snug m-0 mb-5">
               {judulPengumuman || perihal}
             </h3>
           </div>
@@ -1425,7 +1448,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   key={idx}
                   contentEditable
                   suppressContentEditableWarning
-                  className="pkpknl-edit"
+                  className={`pkpknl-edit ${/^[A-Z0-9]+[.)]\s/i.test(pText.trim()) ? "no-indent" : ""}`}
                   onBlur={(e) => {
                     const newParas = [...paragraf];
                     newParas[idx] = e.currentTarget.innerText;
@@ -1449,7 +1472,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                 <p
                   contentEditable
                   suppressContentEditableWarning
-                  className="pkpknl-edit"
+                  className={`pkpknl-edit ${/^[A-Z0-9]+[.)]\s/i.test(paragraf[paragraf.length - 1].trim()) ? "no-indent" : ""}`}
                   onBlur={(e) => {
                     const newParas = [...paragraf];
                     newParas[newParas.length - 1] = e.currentTarget.innerText;

@@ -28,7 +28,9 @@ node_modules/
 *.xls
 *.csv
 *.sql
+*.zip
 *_dump.json
+*_dump.zip
 raw_*.txt
 employees_export.json
 

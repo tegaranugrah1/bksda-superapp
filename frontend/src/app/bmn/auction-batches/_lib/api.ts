@@ -212,6 +212,11 @@ export async function getBatch(id: string): Promise<{ data: AuctionBatch }> {
   return res.data;
 }
 
+export async function deleteBatch(id: string): Promise<{ message: string }> {
+  const res = await api.delete(`/bmn/auction-batches/${id}`);
+  return res.data;
+}
+
 export async function getChecklist(id: string): Promise<ChecklistResponse> {
   const res = await api.get(`/bmn/auction-batches/${id}/checklist`);
   return res.data;

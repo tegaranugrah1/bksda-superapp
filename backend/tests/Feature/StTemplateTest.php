@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Models\StTemplate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class StTemplateTest extends TestCase
@@ -119,6 +121,24 @@ class StTemplateTest extends TestCase
             ->deleteJson("/api/kepegawaian/st-templates/{$template->id}")
             ->assertStatus(422)
             ->assertJsonPath('message', 'Template sistem tidak dapat dihapus. Nonaktifkan template jika tidak digunakan.');
+    }
+
+    public function test_superadmin_can_upload_kop_image(): void
+    {
+        Storage::fake('public');
+
+        $file = UploadedFile::fake()->image('custom_kop.png', 1200, 200);
+
+        $response = $this->actingAs($this->superadmin, 'sanctum')
+            ->postJson('/api/kepegawaian/st-templates/upload-kop', [
+                'kop' => $file,
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true);
+
+        $path = str_replace('/storage/', '', $response->json('path'));
+        Storage::disk('public')->assertExists($path);
     }
 
     private function payload(): array

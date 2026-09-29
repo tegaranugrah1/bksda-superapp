@@ -101,12 +101,13 @@ class AuctionBatchController extends Controller
     {
         $batch = AuctionBatch::findOrFail($id);
 
-        if (!$batch->isDraft()) {
+        if (!$batch->isDraft() && $batch->status !== AuctionBatchStatus::BATAL) {
             throw ValidationException::withMessages([
-                'status' => 'Hanya paket lelang berstatus DRAFT yang dapat dihapus.',
+                'status' => 'Hanya paket lelang berstatus DRAFT atau BATAL yang dapat dihapus.',
             ]);
         }
 
+        $batch->assets()->detach();
         $batch->delete();
 
         return response()->json([

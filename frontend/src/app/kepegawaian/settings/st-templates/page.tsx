@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
-import { Check, Copy, Loader2, Pencil, Plus, Save, ToggleLeft, Trash2, X, FileText, Banknote, Search, Sparkles, AlertCircle } from "lucide-react";
+import React, { useCallback, useEffect, useState, useMemo, useRef } from "react";
+import { Check, Copy, Loader2, Pencil, Plus, Save, ToggleLeft, Trash2, X, FileText, Banknote, Search, Sparkles, AlertCircle, Settings, Upload, Image as ImageIcon, RotateCcw, ZoomIn, ZoomOut, Italic } from "lucide-react";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { EditableItemListSection } from "../../surat-tugas/_components/EditableItemListSection";
-import type { DasarItem, Employee, StTemplate, StExpenseTemplate } from "../../surat-tugas/_lib";
+import STBuilderPreview from "../../surat-tugas/builder/[id]/STBuilderPreview";
+import { resolveKopImageUrl, isFundingDasarText, type DasarItem, type Employee, type StTemplate, type StExpenseTemplate } from "../../surat-tugas/_lib";
 
 type TemplateKind = StTemplate["type"];
 
@@ -68,6 +69,57 @@ export default function StSettingsPage() {
   const [defaultKegiatan, setDefaultKegiatan] = useState<string>("");
   const [untukItems, setUntukItems] = useState<DasarItem[]>([]);
   const [templateConfiguration, setTemplateConfiguration] = useState<Record<string, unknown>>({});
+  const [headerTitle, setHeaderTitle] = useState("KEPALA BALAI,");
+  const [penutupText, setPenutupText] = useState("Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+  const [dateFormatStyle, setDateFormatStyle] = useState<"inline" | "tabular">("inline");
+  const [signerAuthorityMandate, setSignerAuthorityMandate] = useState("");
+  const [signerTitle, setSignerTitle] = useState("Kepala Balai,");
+  const [tembusanItems, setTembusanItems] = useState<string[]>([]);
+  const [tembusanPosition, setTembusanPosition] = useState<"beside" | "bottom">("beside");
+  const [tembusanLabel, setTembusanLabel] = useState("Tembusan:");
+  const [defaultSumberDana, setDefaultSumberDana] = useState("");
+  const [kopImageUrl, setKopImageUrl] = useState<string | null>(null);
+  const [kopMode, setKopMode] = useState<"default" | "custom">("default");
+  const [isUploadingKop, setIsUploadingKop] = useState(false);
+  const [previewScale, setPreviewScale] = useState<number>(0.7);
+  const headerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const applyItalicToHeader = () => {
+    const textarea = headerTextareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = headerTitle;
+
+    if (start !== end) {
+      const selected = text.slice(start, end);
+      if (selected.startsWith("*") && selected.endsWith("*") && selected.length >= 2) {
+        const unwrapped = selected.slice(1, -1);
+        const nextText = text.slice(0, start) + unwrapped + text.slice(end);
+        setHeaderTitle(nextText);
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(start, start + unwrapped.length);
+        }, 0);
+      } else {
+        const wrapped = `*${selected}*`;
+        const nextText = text.slice(0, start) + wrapped + text.slice(end);
+        setHeaderTitle(nextText);
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(start, start + wrapped.length);
+        }, 0);
+      }
+    } else {
+      const placeholder = "*teks miring*";
+      const nextText = text.slice(0, start) + placeholder + text.slice(end);
+      setHeaderTitle(nextText);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 1, start + placeholder.length - 1);
+      }, 0);
+    }
+  };
 
   // ==========================================
   // 2. STATE: TEMPLATE BIAYA / SUMBER DANA
@@ -154,6 +206,17 @@ export default function StSettingsPage() {
     setDefaultKegiatan("");
     setUntukItems([]);
     setTemplateConfiguration({});
+    setHeaderTitle("KEPALA BALAI,");
+    setPenutupText("Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+    setDateFormatStyle("inline");
+    setSignerAuthorityMandate("");
+    setSignerTitle("Kepala Balai,");
+    setTembusanItems([]);
+    setTembusanPosition("beside");
+    setTembusanLabel("Tembusan:");
+    setDefaultSumberDana("");
+    setKopImageUrl(null);
+    setKopMode("default");
     setIsTemplateFormOpen(false);
   };
 
@@ -194,7 +257,56 @@ export default function StSettingsPage() {
     const existingUntuk = Array.isArray(config.untuk) ? config.untuk : [];
     setUntukItems(existingUntuk);
 
+    setHeaderTitle(typeof config.header_title === "string" ? config.header_title : "KEPALA BALAI,");
+    setPenutupText(typeof config.penutup_text === "string" ? config.penutup_text : "Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+    setDateFormatStyle(config.date_format_style === "tabular" ? "tabular" : "inline");
+    setSignerAuthorityMandate(typeof config.signer_authority_mandate === "string" ? config.signer_authority_mandate : "");
+    setSignerTitle(typeof config.signer_title === "string" ? config.signer_title : "Kepala Balai,");
+    setTembusanItems(Array.isArray(config.tembusan_items) ? config.tembusan_items : []);
+    setTembusanPosition(config.tembusan_position === "bottom" ? "bottom" : "beside");
+    setTembusanLabel(typeof config.tembusan_label === "string" ? config.tembusan_label : "Tembusan:");
+    setDefaultSumberDana(typeof config.sumber_dana === "string" ? config.sumber_dana : "");
+    const existingKop = typeof config.kop_image_url === "string" ? config.kop_image_url : null;
+    setKopImageUrl(existingKop);
+    setKopMode(existingKop ? "custom" : "default");
+
     setIsTemplateFormOpen(true);
+  };
+
+  const handleUploadKop = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File harus berupa gambar (PNG, JPG, WebP)");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 5MB");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("kop", file);
+
+    try {
+      setIsUploadingKop(true);
+      const res = await api.post("/kepegawaian/st-templates/upload-kop", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (res.data?.path) {
+        setKopImageUrl(res.data.path);
+        setKopMode("custom");
+        toast.success("Kop surat berhasil diupload");
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Gagal mengupload kop surat";
+      toast.error(msg);
+    } finally {
+      setIsUploadingKop(false);
+      if (e.target) e.target.value = "";
+    }
   };
 
   const handleTemplateSubmit = async () => {
@@ -220,6 +332,16 @@ export default function StSettingsPage() {
       is_default: templateIsDefault,
       configuration: {
         ...templateConfiguration,
+        kop_image_url: kopMode === "custom" && kopImageUrl ? kopImageUrl : null,
+        header_title: headerTitle.trim() || "KEPALA BALAI,",
+        penutup_text: penutupText.trim() || "Demikian untuk dilaksanakan dengan penuh tanggung jawab.",
+        date_format_style: dateFormatStyle,
+        signer_authority_mandate: signerAuthorityMandate.trim() || null,
+        signer_title: signerTitle.trim() || "Kepala Balai,",
+        tembusan_position: tembusanPosition,
+        tembusan_label: tembusanLabel.trim() || "Tembusan:",
+        tembusan_items: tembusanItems.filter((t) => t.trim()),
+        sumber_dana: defaultSumberDana.trim() || null,
         default_jenis_tugas: defaultJenisTugas,
         default_mode_kegiatan: defaultModeKegiatan,
         default_kegiatan: defaultKegiatan.trim() || null,
@@ -423,20 +545,25 @@ export default function StSettingsPage() {
   }, [expenseTemplates, expenseSearch, expenseCategoryFilter]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-zinc-800 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Pengaturan Surat Tugas</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <Settings className="w-5 h-5" />
+            </span>
+            Pengaturan Surat Tugas
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Kelola template dokumen Surat Tugas dan pengaturan sumber dana / klausul pembebanan biaya.
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
           {activeTab === "st_templates" && !isTemplateFormOpen && (
             <button
               onClick={() => setIsTemplateFormOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition"
+              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
             >
               <Plus className="h-4 w-4" /> Buat Template ST
             </button>
@@ -447,7 +574,7 @@ export default function StSettingsPage() {
                 resetExpenseForm();
                 setIsExpenseFormOpen(true);
               }}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 transition"
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
             >
               <Plus className="h-4 w-4" /> Tambah Template Biaya
             </button>
@@ -455,23 +582,23 @@ export default function StSettingsPage() {
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex gap-2 border-b border-slate-200 dark:border-zinc-800">
+      {/* Tabs Switcher */}
+      <div className="flex border-b border-slate-200 dark:border-zinc-800 gap-6 overflow-x-auto">
         <button
           type="button"
           onClick={() => {
             setActiveTab("st_templates");
             resetExpenseForm();
           }}
-          className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-semibold transition ${
+          className={`pb-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
             activeTab === "st_templates"
               ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-              : "border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white"
+              : "border-transparent text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
           }`}
         >
-          <FileText className="h-4 w-4" />
+          <FileText className="w-4 h-4" />
           Template Surat Tugas
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 font-bold ml-1">
             {templates.length}
           </span>
         </button>
@@ -482,15 +609,15 @@ export default function StSettingsPage() {
             setActiveTab("expense_templates");
             resetTemplateForm();
           }}
-          className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-semibold transition ${
+          className={`pb-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
             activeTab === "expense_templates"
               ? "border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400"
-              : "border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white"
+              : "border-transparent text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
           }`}
         >
-          <Banknote className="h-4 w-4" />
+          <Banknote className="w-4 h-4" />
           Template Biaya &amp; Sumber Dana
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold ml-1">
             {expenseTemplates.length}
           </span>
         </button>
@@ -500,11 +627,12 @@ export default function StSettingsPage() {
       {/* TAB 1: TEMPLATE SURAT TUGAS */}
       {/* ========================================================================= */}
       {activeTab === "st_templates" && (
-        <>
+        <div className="animate-in fade-in duration-300 space-y-6">
           {isTemplateFormOpen ? (
-            <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-zinc-800">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
+            <div className="grid gap-6 xl:grid-cols-2 items-start">
+              <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-zinc-800">
+                  <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
                   {editTemplateId ? "Edit Template Surat Tugas" : "Buat Template Surat Tugas Baru"}
                 </h2>
                 <button onClick={resetTemplateForm} className="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-zinc-800">
@@ -591,6 +719,163 @@ export default function StSettingsPage() {
                     <option value="manual">Tulis Manual (Uraian Tugas Bebas)</option>
                   </select>
                 </label>
+                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300 md:col-span-2">
+                  Sumber Dana Default
+                  <select
+                    value={defaultSumberDana}
+                    onChange={(event) => setDefaultSumberDana(event.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white font-medium"
+                  >
+                    <option value="">Pilih Sumber Dana Default (Opsional)</option>
+                    {expenseTemplates.map((exp) => (
+                      <option key={exp.id} value={exp.code}>
+                        {exp.name} ({exp.category.toUpperCase()})
+                      </option>
+                    ))}
+                  </select>
+                  <span className="block text-xs font-normal text-slate-400">
+                    Jika dipilih, sumber dana ini otomatis terpilih saat template ST ini digunakan.
+                  </span>
+                </label>
+              </div>
+
+              {/* PENGATURAN KOP SURAT */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-zinc-700/60 dark:bg-zinc-800/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-800 dark:text-zinc-200 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      Kop Surat
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                      Pilih kop standar Balai atau upload kop khusus untuk template ini.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-0.5 text-xs font-medium dark:border-zinc-700 dark:bg-zinc-800">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setKopMode("default");
+                        setKopImageUrl(null);
+                      }}
+                      className={`rounded-md px-2.5 py-1 transition-all ${
+                        kopMode === "default"
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                      }`}
+                    >
+                      Standar (BKSDA)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setKopMode("custom")}
+                      className={`rounded-md px-2.5 py-1 transition-all ${
+                        kopMode === "custom"
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                      }`}
+                    >
+                      Upload Kop Khusus
+                    </button>
+                  </div>
+                </div>
+
+                {kopMode === "custom" && (
+                  <div className="mt-3 space-y-3 pt-3 border-t border-slate-200/60 dark:border-zinc-700/60">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-1">
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-blue-500 bg-white dark:bg-zinc-900 dark:border-zinc-700 hover:bg-blue-50/20 transition-all">
+                          <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                          <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                            {isUploadingKop ? "Mengunggah..." : "Pilih file gambar Kop"}
+                          </span>
+                          <span className="text-[11px] text-slate-400 mt-0.5">
+                            PNG, JPG, WEBP (Max 5MB, resolusi tinggi)
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            disabled={isUploadingKop}
+                            onChange={handleUploadKop}
+                          />
+                        </label>
+                      </div>
+                      {kopImageUrl && (
+                        <div className="flex flex-col items-center gap-1.5 shrink-0">
+                          <div className="relative w-44 h-16 border rounded-lg overflow-hidden bg-white shadow-sm p-1 flex items-center justify-center">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={resolveKopImageUrl(kopImageUrl)}
+                              alt="Kop Preview"
+                              className="max-h-full max-w-full object-contain"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setKopImageUrl(null);
+                              setKopMode("default");
+                            }}
+                            className="text-[11px] text-red-600 hover:underline flex items-center gap-1"
+                          >
+                            <RotateCcw className="w-3 h-3" /> Hapus / Gunakan Standar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="text-sm font-medium text-slate-700 dark:text-zinc-300">
+                    Header Atas Surat (di bawah Nomor, sebelum Menimbang)
+                  </label>
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <button
+                      type="button"
+                      onClick={applyItalicToHeader}
+                      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-serif text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                      title="Blok teks lalu klik ini atau tekan Ctrl+I untuk memiringkan (*kata*)"
+                    >
+                      <Italic className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                      <span className="italic font-bold">Miringkan (*I*)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setHeaderTitle(
+                          "KEPALA UPT SELAKU\nPELAKSANA SATUAN KERJA *IMPLEMENTING PARTNER* FOLU NC 2&3"
+                        )
+                      }
+                      className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      title="Salin contoh format FOLU"
+                    >
+                      + Contoh FOLU
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  Judul pejabat/kegiatan. Gunakan tanda bintang <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-blue-600 dark:bg-zinc-800 dark:text-blue-400">*kata miring*</code> atau tombol <strong>Miringkan (Ctrl+I)</strong> untuk tulisan miring. Istilah asing seperti <em>IMPLEMENTING PARTNER</em> otomatis dicetak miring.
+                </p>
+
+                <textarea
+                  ref={headerTextareaRef}
+                  value={headerTitle}
+                  onChange={(event) => setHeaderTitle(event.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                      e.preventDefault();
+                      applyItalicToHeader();
+                    }
+                  }}
+                  rows={2}
+                  placeholder="KEPALA BALAI,"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-bold text-sm tracking-wide outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                />
               </div>
 
               <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -617,32 +902,59 @@ export default function StSettingsPage() {
                 />
               </label>
 
-              <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
-                <EditableItemListSection
-                  title="Default Menimbang"
-                  items={menimbangItems}
-                  onChange={setMenimbangItems}
-                  marker="letter"
-                />
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
+                  <EditableItemListSection
+                    title="Default Menimbang"
+                    items={menimbangItems}
+                    onChange={setMenimbangItems}
+                    marker="letter"
+                  />
+                </div>
+                <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
+                  <EditableItemListSection
+                    title="Default Dasar"
+                    items={dasarItems}
+                    onChange={setDasarItems}
+                    marker="number"
+                    getItemBadge={(item) => {
+                      if (isFundingDasarText(item.text, expenseTemplates)) {
+                        return (
+                          <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
+                            <Sparkles className="w-3 h-3 text-amber-500" />
+                            <span>Otomatis Sinkron Sumber Dana</span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                    description={
+                      <p className="text-[11px] text-slate-400">
+                        Butir dasar anggaran (DIPA/PKS/FOLU) ditandai dengan badge dan akan otomatis digantikan oleh <em>dasar</em> dari Template Sumber Dana yang dipilih saat surat tugas dibuat (atau otomatis hilang jika DL 1 / Tanpa Biaya).
+                      </p>
+                    }
+                  />
+                </div>
               </div>
-              <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
-                <EditableItemListSection
-                  title="Default Dasar"
-                  items={dasarItems}
-                  onChange={setDasarItems}
-                  marker="number"
-                />
-              </div>
+
               <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
                 <EditableItemListSection
                   title="Default Butir Tambahan (Untuk)"
                   items={untukItems}
                   onChange={setUntukItems}
                   marker="number"
+                  startIndex={1}
+                  description={
+                    <div className="text-xs text-slate-500 dark:text-zinc-400 space-y-1">
+                      <p>
+                        Klausul penugasan tambahan mulai <strong>butir ke-2</strong> (contoh: kewajiban konsultasi atau laporan tertulis).
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        * Catatan: Butir <strong>nomor 1</strong> selalu otomatis berupa uraian tugas &amp; durasi dinas dari form pembuatan surat, dan butir <strong>terakhir</strong> adalah pembebanan biaya dari Template Sumber Dana (otomatis ditiadakan jika DL 1 / Tanpa Biaya).
+                      </p>
+                    </div>
+                  }
                 />
-                <p className="mt-2 text-xs text-slate-400">
-                  Klausul penugasan tambahan pada bagian &apos;Untuk&apos; (mulai butir 2 dst, seperti kewajiban konsultasi atau laporan tertulis). Butir 1 tetap otomatis dirakit dari uraian tugas dan durasi tanggal.
-                </p>
               </div>
 
               <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -721,6 +1033,237 @@ export default function StSettingsPage() {
                 )}
               </section>
 
+              {/* Kalimat Penutup & Format Kaki Surat (Tanda Tangan) */}
+              <section className="space-y-4 rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Kalimat Penutup & Kaki Surat (Tanda Tangan)</h3>
+                    <p className="text-xs font-normal text-slate-400">
+                      Sesuaikan kalimat penutup, gaya tanggal surat, jabatan, dan mandat pelimpahan wewenang penandatangan.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                      Kalimat Penutup Surat
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPenutupText("Demikian untuk dilaksanakan dengan penuh tanggung jawab.")}
+                        className="text-[11px] font-medium text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        Reset Standar BKSDA
+                      </button>
+                      <span className="text-slate-300 dark:text-zinc-600">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setPenutupText("Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.")}
+                        className="text-[11px] font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+                      >
+                        Gunakan Standar FOLU
+                      </button>
+                    </div>
+                  </div>
+                  <textarea
+                    value={penutupText}
+                    onChange={(e) => setPenutupText(e.target.value)}
+                    rows={2}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white leading-relaxed"
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                      Gaya Format Tanggal Surat
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label
+                        className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-xs ${
+                          dateFormatStyle === "inline"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+                            : "border-slate-200 dark:border-zinc-700"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="settings-date-format-style"
+                          checked={dateFormatStyle === "inline"}
+                          onChange={() => setDateFormatStyle("inline")}
+                        />
+                        <span>
+                          <strong>Biasa (Inline)</strong>
+                          <br />
+                          <span className="text-[10px] text-slate-500">Samarinda, 28 September {currentYear}</span>
+                        </span>
+                      </label>
+                      <label
+                        className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-xs ${
+                          dateFormatStyle === "tabular"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+                            : "border-slate-200 dark:border-zinc-700"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="settings-date-format-style"
+                          checked={dateFormatStyle === "tabular"}
+                          onChange={() => setDateFormatStyle("tabular")}
+                        />
+                        <span>
+                          <strong>Tabular (FOLU)</strong>
+                          <br />
+                          <span className="text-[10px] text-slate-500">Dikeluarkan di / Pada tanggal</span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                      Jabatan Penandatangan
+                    </label>
+                    <input
+                      value={signerTitle}
+                      onChange={(e) => setSignerTitle(e.target.value)}
+                      placeholder="Kepala Balai,"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                    />
+                    <span className="block text-[10px] text-slate-400">
+                      Default: Kepala Balai, (atau Plh. Kepala Balai,, dll)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                      Teks Mandat / Pelimpahan Wewenang (a.n. ...)
+                    </label>
+                    <span className="text-[10px] text-slate-400">Opsional, kosongkan jika penandatangan langsung Kepala Balai</span>
+                  </div>
+                  <textarea
+                    value={signerAuthorityMandate}
+                    onChange={(e) => setSignerAuthorityMandate(e.target.value)}
+                    rows={2}
+                    placeholder="Contoh: a.n. Sekretaris Direktorat Jenderal KSDAE&#10;selaku Koordinator Kegiatan Implementing Partner FOLU NC 2&3"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                  />
+                </div>
+              </section>
+
+              {/* Default Tembusan */}
+              <section className="space-y-4 rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Default Tembusan</h3>
+                    <p className="text-xs font-normal text-slate-400">
+                      Daftar tembusan bawaan dan tata letak cetak pada template ini.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTembusanItems([...tembusanItems, ""])}
+                    className="flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Tambah Tembusan
+                  </button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                      Posisi Layout Tembusan
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label
+                        className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2 text-xs ${
+                          tembusanPosition === "beside"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+                            : "border-slate-200 dark:border-zinc-700"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="settings-tembusan-position"
+                          checked={tembusanPosition === "beside"}
+                          onChange={() => setTembusanPosition("beside")}
+                        />
+                        <span>
+                          <strong>Samping TTD</strong>
+                          <br />
+                          <span className="text-[10px] text-slate-500">Sejajar kiri NIP</span>
+                        </span>
+                      </label>
+                      <label
+                        className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2 text-xs ${
+                          tembusanPosition === "bottom"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+                            : "border-slate-200 dark:border-zinc-700"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="settings-tembusan-position"
+                          checked={tembusanPosition === "bottom"}
+                          onChange={() => setTembusanPosition("bottom")}
+                        />
+                        <span>
+                          <strong>Bawah TTD (FOLU)</strong>
+                          <br />
+                          <span className="text-[10px] text-slate-500">Full-width di bawah NIP</span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                      Judul / Label Tembusan
+                    </label>
+                    <input
+                      value={tembusanLabel}
+                      onChange={(e) => setTembusanLabel(e.target.value)}
+                      placeholder="Tembusan: atau Tembusan Kepada :"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                {tembusanItems.length > 0 ? (
+                  <div className="space-y-2">
+                    {tembusanItems.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="w-5 text-right text-xs font-semibold text-slate-400">{idx + 1}.</span>
+                        <input
+                          value={item}
+                          onChange={(e) => {
+                            const next = [...tembusanItems];
+                            next[idx] = e.target.value;
+                            setTembusanItems(next);
+                          }}
+                          placeholder={`Tembusan ${idx + 1}`}
+                          className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setTembusanItems(tembusanItems.filter((_, i) => i !== idx))}
+                          className="p-1.5 text-slate-400 hover:text-red-500"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs italic text-slate-400">Belum ada tembusan default untuk template ini.</p>
+                )}
+              </section>
+
               <div className="flex flex-wrap gap-5 text-sm text-slate-700 dark:text-zinc-300">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -757,7 +1300,174 @@ export default function StSettingsPage() {
                 </button>
               </div>
             </section>
-          ) : (
+
+            {/* KOLOM KANAN: LIVE PREVIEW LEMBAR A4 */}
+            <div className="sticky top-6 space-y-3">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                      Live Preview (Lembar A4)
+                    </span>
+                  </div>
+                  {/* Word-like Zoom Controls */}
+                  <div className="flex items-center gap-2 bg-slate-100 dark:bg-zinc-800 rounded-lg px-2 py-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewScale((prev) => Math.max(0.4, Number((prev - 0.05).toFixed(2))))}
+                      className="p-1 hover:bg-white dark:hover:bg-zinc-700 rounded text-slate-600 dark:text-zinc-300 transition-colors"
+                      title="Perkecil"
+                    >
+                      <ZoomOut className="w-3.5 h-3.5" />
+                    </button>
+                    <input
+                      type="range"
+                      min="0.4"
+                      max="1.2"
+                      step="0.05"
+                      value={previewScale}
+                      onChange={(e) => setPreviewScale(parseFloat(e.target.value))}
+                      className="w-16 sm:w-24 accent-blue-600 cursor-pointer h-1.5 bg-slate-200 dark:bg-zinc-700 rounded-lg"
+                      title="Zoom Slider"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setPreviewScale((prev) => Math.min(1.2, Number((prev + 0.05).toFixed(2))))}
+                      className="p-1 hover:bg-white dark:hover:bg-zinc-700 rounded text-slate-600 dark:text-zinc-300 transition-colors"
+                      title="Perbesar"
+                    >
+                      <ZoomIn className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="font-semibold text-slate-700 dark:text-zinc-200 min-w-[38px] text-right">
+                      {Math.round(previewScale * 100)}%
+                    </span>
+                    <div className="hidden sm:flex items-center gap-1 border-l border-slate-200 dark:border-zinc-700 pl-2 ml-1">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewScale(0.7)}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                          previewScale === 0.7
+                            ? "bg-blue-600 text-white"
+                            : "hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-400"
+                        }`}
+                      >
+                        Pas (70%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewScale(1.0)}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                          previewScale === 1.0
+                            ? "bg-blue-600 text-white"
+                            : "hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-400"
+                        }`}
+                      >
+                        100%
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wrapper Scroll & Scaled Preview Container (Word-like Canvas) */}
+                <div className="overflow-x-auto max-h-[calc(100vh-160px)] overflow-y-auto p-4 sm:p-6 flex justify-center bg-slate-200/80 dark:bg-zinc-950 rounded-xl border border-slate-300/80 dark:border-zinc-800 shadow-inner">
+                  <div
+                    style={{
+                      width: `${210 * previewScale}mm`,
+                      minHeight: `${297 * previewScale}mm`,
+                      transition: "width 0.15s ease, min-height 0.15s ease",
+                    }}
+                    className="shrink-0 flex justify-center my-1"
+                  >
+                    <div
+                      style={{
+                        transform: `scale(${previewScale})`,
+                        transformOrigin: "top center",
+                        width: "210mm",
+                      }}
+                    >
+                      <div
+                        id="surat-preview-doc"
+                        className="w-[210mm] bg-white shadow-2xl selection:bg-blue-100 ring-1 ring-slate-900/10"
+                        style={{
+                          padding: "0.4cm 0 1.5cm 0",
+                          fontFamily: "'Bookman Old Style', 'Georgia', serif",
+                          fontSize: "11pt",
+                          lineHeight: "1.25",
+                          color: "#000",
+                          textAlign: "justify",
+                          boxSizing: "border-box",
+                          minHeight: "297mm",
+                        }}
+                      >
+                        <STBuilderPreview
+                          stNumber="001"
+                          stCode={
+                            nomorFormatMode === "manual" && nomorSuratFormat
+                              ? nomorSuratFormat
+                                  .replace("{klasifikasi}", "KSA.02.01")
+                                  .replace("{bulan}", "09")
+                                  .replace("{tahun}", currentYear)
+                              : `K.18/TU/KSA.02.01/B`
+                          }
+                          currentMonth="09"
+                          currentYear={currentYear}
+                          menimbangItems={
+                            menimbangItems.length > 0
+                              ? menimbangItems
+                              : [{ id: "preview-1", text: "bahwa dalam rangka pelaksanaan tugas..." }]
+                          }
+                          dasarItems={
+                            dasarItems.length > 0
+                              ? dasarItems
+                              : [{ id: "preview-d1", text: `DIPA Balai KSDA Kalimantan Timur Tahun Anggaran ${currentYear}` }]
+                          }
+                          untukItems={untukItems}
+                          selectedEmployees={[
+                            {
+                              id: "emp-sample-1",
+                              nama_lengkap: "Contoh Pelaksana Tugas, S.Hut.",
+                              name: "Contoh Pelaksana Tugas, S.Hut.",
+                              nip: "19850101 201001 1 001",
+                              jabatan: "Pengendali Ekosistem Hutan",
+                            },
+                          ]}
+                          buildUntukText={() =>
+                            defaultKegiatan.trim() ||
+                            "Melaksanakan koordinasi dan verifikasi teknis lapangan perlindungan kawasan konservasi."
+                          }
+                          buildBiayaText={() =>
+                            templateBiayaText ? templateBiayaText.replace(/{tahun}/g, currentYear) : ""
+                          }
+                          kotaSurat="Samarinda"
+                          tanggalSurat={`28 September ${currentYear}`}
+                          kepalaBalai={{
+                            name:
+                              employees.find((e) => String(e.id) === signerId)?.nama_lengkap ||
+                              employees.find((e) => String(e.id) === signerId)?.name ||
+                              "M. Ari Wibawanto, S.Hut., M.Sc.",
+                            nip:
+                              employees.find((e) => String(e.id) === signerId)?.nip || "19740514 199903 1 001",
+                          }}
+                          headerTitle={headerTitle}
+                          penutupText={penutupText}
+                          dateFormatStyle={dateFormatStyle}
+                          signerAuthorityMandate={signerAuthorityMandate}
+                          signerTitle={signerTitle}
+                          tembusanPosition={tembusanPosition}
+                          tembusanLabel={tembusanLabel}
+                          tembusanItems={tembusanItems.filter(Boolean)}
+                          sumberDana={defaultSumberDana || "dipa"}
+                          kopImageUrl={kopImageUrl}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
             <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               {isLoadingTemplates ? (
                 <div className="flex justify-center p-12">
@@ -786,7 +1496,7 @@ export default function StSettingsPage() {
                               {template.code || "tanpa-kode"} · v{template.version}{" "}
                               {template.is_system ? "· Sistem" : "· Custom"}
                             </div>
-                            <div className="mt-1 max-w-sm text-xs text-slate-500 line-clamp-2">
+                            <div className="mt-1 max-w-2xl text-xs text-slate-500 line-clamp-2">
                               {template.description || "Tidak ada deskripsi"}
                             </div>
                           </td>
@@ -864,14 +1574,14 @@ export default function StSettingsPage() {
               )}
             </section>
           )}
-        </>
+        </div>
       )}
 
       {/* ========================================================================= */}
       {/* TAB 2: TEMPLATE BIAYA / SUMBER DANA */}
       {/* ========================================================================= */}
       {activeTab === "expense_templates" && (
-        <>
+        <div className="animate-in fade-in duration-300 space-y-6">
           {isExpenseFormOpen ? (
             <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-zinc-800">
@@ -939,38 +1649,40 @@ export default function StSettingsPage() {
                 </label>
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300">
-                  Teks Klausul Pembebanan Biaya (Bagian "Untuk") {expenseCategory !== "dl1" ? <span className="text-red-500">*</span> : <span className="text-xs text-slate-400 font-normal">(Opsional untuk DL 1)</span>}
-                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
-                    {expenseCategory === "dl1"
-                      ? "Khusus kategori DL 1 / Tanpa Biaya, kosongkan jika pada bagian 'Untuk' Surat Tugas tidak perlu dicantumkan klausul pembebanan biaya."
-                      : <>Gunakan tag <code className="rounded bg-slate-100 px-1 py-0.5 text-emerald-700 dark:bg-zinc-800">{"{tahun}"}</code> agar tahun otomatis dinamis mengikuti tanggal surat tugas.</>}
-                  </span>
-                </label>
-                <textarea
-                  value={expenseBiayaText}
-                  onChange={(event) => setExpenseBiayaText(event.target.value)}
-                  rows={3}
-                  placeholder={expenseCategory === "dl1" ? "Kosongkan jika tanpa kalimat biaya..." : "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran {tahun};"}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 outline-none focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white text-xs font-mono leading-relaxed"
-                />
-              </div>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300">
+                    Teks Klausul Pembebanan Biaya (Bagian &quot;Untuk&quot;) {expenseCategory !== "dl1" ? <span className="text-red-500">*</span> : <span className="text-xs text-slate-400 font-normal">(Opsional untuk DL 1)</span>}
+                    <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                      {expenseCategory === "dl1"
+                        ? "Khusus kategori DL 1 / Tanpa Biaya, kosongkan jika pada bagian 'Untuk' Surat Tugas tidak perlu dicantumkan klausul pembebanan biaya."
+                        : <>Gunakan tag <code className="rounded bg-slate-100 px-1 py-0.5 text-emerald-700 dark:bg-zinc-800">{"{tahun}"}</code> agar tahun otomatis dinamis mengikuti tanggal surat tugas.</>}
+                    </span>
+                  </label>
+                  <textarea
+                    value={expenseBiayaText}
+                    onChange={(event) => setExpenseBiayaText(event.target.value)}
+                    rows={4}
+                    placeholder={expenseCategory === "dl1" ? "Kosongkan jika tanpa kalimat biaya..." : "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran {tahun};"}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 outline-none focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white text-xs font-mono leading-relaxed"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300">
-                  Teks Dasar Hukum / PKS / DIPA (Bagian "Dasar" Poin 2) <span className="text-xs text-slate-400 font-normal">(Opsional)</span>
-                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
-                    Teks ini akan otomatis menggantikan atau mengisi poin nomor 2 di bagian Dasar Surat Tugas saat sumber dana ini dipilih.
-                  </span>
-                </label>
-                <textarea
-                  value={expenseDasarText}
-                  onChange={(event) => setExpenseDasarText(event.target.value)}
-                  rows={3}
-                  placeholder="Contoh: Perjanjian Kerja Sama Antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dan ... Nomor: ... tanggal ..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 outline-none focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white text-xs font-mono leading-relaxed"
-                />
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300">
+                    Teks Dasar Hukum / PKS / DIPA (Bagian &quot;Dasar&quot; Poin 2) <span className="text-xs text-slate-400 font-normal">(Opsional)</span>
+                    <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                      Teks ini akan otomatis menggantikan atau mengisi poin nomor 2 di bagian Dasar Surat Tugas saat sumber dana ini dipilih.
+                    </span>
+                  </label>
+                  <textarea
+                    value={expenseDasarText}
+                    onChange={(event) => setExpenseDasarText(event.target.value)}
+                    rows={4}
+                    placeholder="Contoh: Perjanjian Kerja Sama Antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dan ... Nomor: ... tanggal ..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 outline-none focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white text-xs font-mono leading-relaxed"
+                  />
+                </div>
               </div>
 
               {/* Live Preview Card */}
@@ -1099,7 +1811,7 @@ export default function StSettingsPage() {
                               <td className="px-5 py-4 text-center font-mono text-xs text-slate-400">
                                 {expense.sort_order || index + 1}
                               </td>
-                              <td className="px-5 py-4 max-w-md">
+                              <td className="px-5 py-4">
                                 <div className="flex items-center gap-2">
                                   <span className="font-semibold text-zinc-900 dark:text-white">
                                     {expense.name}
@@ -1196,7 +1908,7 @@ export default function StSettingsPage() {
               </section>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

@@ -1532,7 +1532,7 @@ function GenerateSuratDinasContent() {
               </Button>
             </div>
 
-            <div className="flex justify-center">
+            <div className="w-fit mx-auto">
               <SuratDinasDocument data={deferredData} onUpdateField={updateField} />
             </div>
           </div>

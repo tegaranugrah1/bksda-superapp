@@ -2,8 +2,9 @@
 
 import React, { use, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getBatch, getChecklist, AuctionBatch } from "../_lib/api";
+import { getBatch, deleteBatch, getChecklist, AuctionBatch } from "../_lib/api";
 import { getStatusLabel, getStatusColorClass, isReadOnly, AuctionBatchStatus } from "../_lib/status";
 import { formatRupiah } from "../../auction-candidates/_lib/auction-helpers";
 import { cn } from "@/lib/utils";
@@ -16,10 +17,13 @@ import {
   DollarSign,
   AlertCircle,
   Check,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 import { getBlockedReason, getWorkflowTabs } from "./_lib/workflow-tabs";
 
 // Lazy-loaded or imported tab components (stubbed for compile stability)
@@ -38,8 +42,11 @@ interface PageProps {
 export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const batchId = resolvedParams.id;
+  const router = useRouter();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("assets");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load batch data
   const { data: response, isLoading, error, refetch } = useQuery({
@@ -115,6 +122,30 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
     return "inactive";
   };
 
+  const handleDeleteBatch = async () => {
+    if (!batch) return;
+    const ok = await confirm({
+      title: "Hapus Paket Lelang",
+      description: `Apakah Anda yakin ingin menghapus paket "${batch.name}" (${batch.batch_number})? Sebanyak ${batch.assets_count} aset di dalamnya akan dikembalikan ke daftar kandidat lelang.`,
+      confirmText: "Hapus Paket",
+      cancelText: "Batal",
+      variant: "danger",
+    });
+
+    if (!ok) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteBatch(batch.id);
+      toast.success("Paket lelang berhasil dihapus.");
+      queryClient.invalidateQueries({ queryKey: ["bmn-auction-batches"] });
+      router.push("/bmn/auction-batches");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal menghapus paket lelang.");
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full min-h-screen bg-zinc-50 dark:bg-zinc-950">
       {/* Sticky Header Panel */}
@@ -159,6 +190,23 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
                 Total Taksiran: <strong className="text-zinc-900 dark:text-zinc-100">{formatRupiah(batch.nilai_taksiran_total)}</strong>
               </span>
             </div>
+            {(batch.status === "DRAFT" || batch.status === "BATAL") && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isDeleting}
+                onClick={handleDeleteBatch}
+                className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-950/20 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+                title="Hapus paket lelang ini"
+              >
+                {isDeleting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-red-600" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
+                Hapus Paket
+              </Button>
+            )}
           </div>
         </div>
 

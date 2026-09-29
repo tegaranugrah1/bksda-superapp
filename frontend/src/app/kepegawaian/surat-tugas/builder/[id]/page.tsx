@@ -23,7 +23,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAxiosError } from "axios";
 import STBuilderPreview from "./STBuilderPreview";
-import { cleanMelaksanakanKegiatanPrefix } from "../../_lib/activity-helpers";
+import { cleanMelaksanakanKegiatanPrefix, cleanRepeatingLocations } from "../../_lib/activity-helpers";
 import {
   formatDateIndonesian,
   formatNIP,
@@ -88,6 +88,13 @@ export default function STBuilderPage() {
   const [templateType, setTemplateType] = useState<string | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [headerTitle, setHeaderTitle] = useState("KEPALA BALAI,");
+  const [penutupText, setPenutupText] = useState("Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+  const [dateFormatStyle, setDateFormatStyle] = useState<"inline" | "tabular">("inline");
+  const [signerAuthorityMandate, setSignerAuthorityMandate] = useState<string | null>(null);
+  const [signerTitle, setSignerTitle] = useState("Kepala Balai,");
+  const [tembusanPosition, setTembusanPosition] = useState<"beside" | "bottom">("beside");
+  const [tembusanLabel, setTembusanLabel] = useState("Tembusan:");
+  const [kopImageUrl, setKopImageUrl] = useState<string | null>(null);
   const [namaKegiatan, setNamaKegiatan] = useState("");
   const [activityPrefix, setActivityPrefix] = useState("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
   const [inputModeKegiatan, setInputModeKegiatan] = useState<"structured" | "manual">("structured");
@@ -194,26 +201,33 @@ export default function STBuilderPage() {
       : untukItems;
 
   const assembleStructuredActivityText = useCallback((): string => {
+    let cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
+    if (tempatKegiatan && cleanNama.toLowerCase().endsWith(` di ${tempatKegiatan.toLowerCase()}`)) {
+      cleanNama = cleanNama.slice(0, -(` di ${tempatKegiatan}`.length)).trim();
+    }
+    if (kotaTujuan && cleanNama.toLowerCase().endsWith(` di ${kotaTujuan.toLowerCase()}`)) {
+      cleanNama = cleanNama.slice(0, -(` di ${kotaTujuan}`.length)).trim();
+    }
+
     if (activityPrefix.includes("Perjalanan Dinas")) {
       let t = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
-      if (namaKegiatan) {
-        t += ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatan)}`;
+      if (cleanNama) {
+        t += ` dalam rangka ${cleanNama}`;
       }
       if (tempatKegiatan) {
         t += ` di ${tempatKegiatan}`;
       }
-      return t;
+      return cleanRepeatingLocations(t);
     } else if (activityPrefix.includes("Melaksanakan Kegiatan")) {
-      const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
       let t = `Melaksanakan Kegiatan ${cleanNama || "..."}`;
       if (tempatKegiatan) t += ` pada ${tempatKegiatan}`;
       if (kotaTujuan) t += ` di ${kotaTujuan}`;
-      return t;
+      return cleanRepeatingLocations(t);
     } else {
-      let t = `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatan) || "..."}`;
+      let t = `Menugaskan Staf untuk ${cleanNama || "..."}`;
       if (tempatKegiatan) t += ` pada ${tempatKegiatan}`;
       if (kotaTujuan) t += ` di ${kotaTujuan}`;
-      return t;
+      return cleanRepeatingLocations(t);
     }
   }, [activityPrefix, kotaAsal, kotaTujuan, namaKegiatan, tempatKegiatan]);
 
@@ -224,6 +238,20 @@ export default function STBuilderPage() {
         setNamaKegiatan(assembled);
       }
       setInputModeKegiatan("manual");
+    }
+  };
+
+  const handleSwitchToStructured = () => {
+    if (inputModeKegiatan === "manual") {
+      let cleaned = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
+      if (tempatKegiatan && cleaned.toLowerCase().endsWith(` di ${tempatKegiatan.toLowerCase()}`)) {
+        cleaned = cleaned.slice(0, -(` di ${tempatKegiatan}`.length)).trim();
+      }
+      if (kotaTujuan && cleaned.toLowerCase().endsWith(` di ${kotaTujuan.toLowerCase()}`)) {
+        cleaned = cleaned.slice(0, -(` di ${kotaTujuan}`.length)).trim();
+      }
+      setNamaKegiatan(cleaned);
+      setInputModeKegiatan("structured");
     }
   };
 
@@ -352,13 +380,13 @@ export default function STBuilderPage() {
   const handleSumberDanaChange = (newFunding: string) => {
     setSumberDana(newFunding);
     updateDasarFromFunding(newFunding, tanggalSurat);
-    syncBiayaUntukItem(buildBiayaTextFor(newFunding, sumberDanaOther, tanggalSurat, templateType));
+    syncBiayaUntukItem(buildBiayaTextFor(newFunding, sumberDanaOther, tanggalSurat, templateType, expenseTemplates));
   };
 
   const handleSumberDanaOtherChange = (value: string) => {
     setSumberDanaOther(value);
     if (sumberDana === "other") {
-      syncBiayaUntukItem(buildBiayaTextFor("other", value, tanggalSurat, templateType));
+      syncBiayaUntukItem(buildBiayaTextFor("other", value, tanggalSurat, templateType, expenseTemplates));
     }
   };
 
@@ -376,9 +404,20 @@ export default function STBuilderPage() {
   const updateDasarFromFunding = (fundingId: string, date: string) => {
     const tahun = date ? new Date(date).getFullYear().toString() : new Date().getFullYear().toString();
 
+    // Check if the current template is a custom/database template that specifies its own header
+    const currentTemplate = selectedTemplateId 
+      ? dynamicTemplates.find(t => t.id === selectedTemplateId)
+      : dynamicTemplates.find(t => t.code === templateType || `db_${t.id}` === templateType);
+    const templateHeader = currentTemplate?.configuration?.header_title;
+
     // FOLU has a completely different template
-    if (fundingId === 'folu') {
+    if (fundingId === 'folu' && !templateHeader) {
       setHeaderTitle("KEPALA UPT SELAKU\nPELAKSANA SATUAN KERJA IMPLEMENTING PARTNER FOLU NC 2&3");
+      setDateFormatStyle("tabular");
+      setPenutupText("Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.");
+      setSignerAuthorityMandate("a.n. Sekretaris Direktorat Jenderal KSDAE\nselaku Koordinator Kegiatan Implementing\nPartner FOLU NC 2&3");
+      setTembusanPosition("bottom");
+      setTembusanLabel("Tembusan Kepada :");
       // Auto-set klasifikasi with FOLU.NC-23 prefix
       setKlasifikasi(prev => prev.startsWith("FOLU.NC-23/") ? prev : "FOLU.NC-23/" + prev);
       setMenimbangItems([
@@ -401,8 +440,23 @@ export default function STBuilderPage() {
       return;
     }
 
-    // Reset header for non-FOLU
-    setHeaderTitle("KEPALA BALAI,");
+    if (templateHeader) {
+      setHeaderTitle(templateHeader);
+      setDateFormatStyle(currentTemplate?.configuration?.date_format_style === "tabular" ? "tabular" : "inline");
+      setPenutupText(currentTemplate?.configuration?.penutup_text || "Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+      setSignerAuthorityMandate((currentTemplate?.configuration?.signer_authority_mandate as string) || null);
+      setSignerTitle(currentTemplate?.configuration?.signer_title || "Kepala Balai,");
+      setTembusanPosition(currentTemplate?.configuration?.tembusan_position === "bottom" ? "bottom" : "beside");
+      setTembusanLabel(currentTemplate?.configuration?.tembusan_label || "Tembusan:");
+    } else if (fundingId !== 'folu') {
+      setHeaderTitle("KEPALA BALAI,");
+      setDateFormatStyle("inline");
+      setPenutupText("Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+      setSignerAuthorityMandate(null);
+      setSignerTitle("Kepala Balai,");
+      setTembusanPosition("beside");
+      setTembusanLabel("Tembusan:");
+    }
 
     // Remove FOLU.NC-23 prefix from klasifikasi if present
     setKlasifikasi(prev => prev.replace(/^FOLU\.NC-23\//, ""));
@@ -429,6 +483,11 @@ export default function STBuilderPage() {
     const isFundingDasarText = (text?: string | null) => {
       if (!text) return false;
       const lower = text.toLowerCase();
+      const matchedCustom = expenseTemplates.some(
+        (t) => t.dasar_text && lower.includes(t.dasar_text.replace(/{tahun}/g, "").trim().toLowerCase().substring(0, 25))
+      );
+      if (matchedCustom) return true;
+
       return (
         lower.includes("surat pengesahan dipa") ||
         lower.includes("sp dipa") ||
@@ -445,8 +504,12 @@ export default function STBuilderPage() {
       );
     };
 
+    const dynExpense = expenseTemplates.find(
+      o => o.code === fundingId || o.name.toLowerCase() === fundingId.toLowerCase() || String(o.id) === fundingId
+    );
     const opt = availableSumberDanaOptions.find(o => o.id === fundingId) || SUMBER_DANA_OPTIONS.find(o => o.id === fundingId);
-    const fundingText = opt?.dasarText ? opt.dasarText.replace(/{tahun}/g, tahun).trim() : "";
+    const rawDasar = dynExpense?.dasar_text ?? opt?.dasarText ?? "";
+    const fundingText = rawDasar ? rawDasar.replace(/{tahun}/g, tahun).trim() : "";
 
     setDasarItems(prev => {
       let currentItems = [...prev];
@@ -482,6 +545,14 @@ export default function STBuilderPage() {
       return currentItems;
     });
   };
+
+  // Auto-sync funding dasar when expenseTemplates are loaded or funding changed
+  useEffect(() => {
+    if (sumberDana && expenseTemplates.length > 0) {
+      updateDasarFromFunding(sumberDana, tanggalSurat);
+    }
+  }, [expenseTemplates, sumberDana, tanggalSurat]);
+
 
   // Apply BMN Penghapusan template: one-click preset for ST Pemeriksaan BMN
   const applyBmnTemplate = () => {
@@ -683,6 +754,35 @@ export default function STBuilderPage() {
         }
         if (typeof configuration.klasifikasi === "string") setKlasifikasi(configuration.klasifikasi);
         if (typeof configuration.sumber_dana === "string") setSumberDana(configuration.sumber_dana);
+        if (typeof configuration.header_title === "string") {
+          setHeaderTitle(configuration.header_title);
+        } else {
+          setHeaderTitle("KEPALA BALAI,");
+        }
+        if (typeof configuration.penutup_text === "string") {
+          setPenutupText(configuration.penutup_text);
+        } else {
+          setPenutupText("Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+        }
+        if (configuration.date_format_style === "tabular" || configuration.date_format_style === "inline") {
+          setDateFormatStyle(configuration.date_format_style);
+        } else {
+          setDateFormatStyle("inline");
+        }
+        setSignerAuthorityMandate(typeof configuration.signer_authority_mandate === "string" ? configuration.signer_authority_mandate : null);
+        setSignerTitle(typeof configuration.signer_title === "string" ? configuration.signer_title : "Kepala Balai,");
+        if (Array.isArray(configuration.tembusan_items) && configuration.tembusan_items.length > 0) {
+          setTembusanItems(configuration.tembusan_items);
+        }
+        setTembusanPosition(configuration.tembusan_position === "bottom" ? "bottom" : "beside");
+        setTembusanLabel(typeof configuration.tembusan_label === "string" ? configuration.tembusan_label : "Tembusan:");
+        setKopImageUrl(typeof configuration.kop_image_url === "string" ? configuration.kop_image_url : null);
+        if (template.default_signer_name && template.default_signer_nip) {
+          setKepalaBalai({
+            name: template.default_signer_name,
+            nip: formatNIP(template.default_signer_nip),
+          });
+        }
         if (Array.isArray(configuration.untuk) && configuration.untuk.length > 0) {
           setUntukItems(configuration.untuk);
         }
@@ -698,6 +798,17 @@ export default function STBuilderPage() {
         setInputModeKegiatan(defaultTpl.configuration.default_mode_kegiatan);
       } else {
         setInputModeKegiatan("structured");
+      }
+      setHeaderTitle(defaultTpl?.configuration?.header_title || "KEPALA BALAI,");
+      setPenutupText(defaultTpl?.configuration?.penutup_text || "Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
+      setDateFormatStyle((defaultTpl?.configuration?.date_format_style as any) || "inline");
+      setSignerAuthorityMandate((defaultTpl?.configuration?.signer_authority_mandate as any) || null);
+      setSignerTitle(defaultTpl?.configuration?.signer_title || "Kepala Balai,");
+      setTembusanPosition((defaultTpl?.configuration?.tembusan_position as any) || "beside");
+      setTembusanLabel(defaultTpl?.configuration?.tembusan_label || "Tembusan:");
+      setKopImageUrl((defaultTpl?.configuration?.kop_image_url as string) || null);
+      if (Array.isArray(defaultTpl?.configuration?.tembusan_items)) {
+        setTembusanItems(defaultTpl.configuration.tembusan_items);
       }
       const defaultUntuk = Array.isArray(defaultTpl?.configuration?.untuk) ? defaultTpl.configuration.untuk : null;
       setUntukItems(getDefaultUntukItems(null, buildBiayaTextFor(sumberDana, sumberDanaOther, tanggalSurat, null), defaultUntuk));
@@ -744,7 +855,7 @@ export default function STBuilderPage() {
         setTanggalMulai(loadedTanggalMulai);
         setTanggalSelesai(loadedTanggalSelesai);
         
-        const funding = normalizeSumberDana(data.sumber_dana);
+        const funding = normalizeSumberDana(data.sumber_dana, expenseTemplates);
         setSumberDana(funding);
         if (data.sumber_dana_other) setSumberDanaOther(data.sumber_dana_other);
 
@@ -790,13 +901,52 @@ export default function STBuilderPage() {
           setTembusanItems(parsedTembusan);
         }
 
+        // Parse template snapshot configuration if available
+        const snapshotConfig = (data.template_snapshot?.configuration || {}) as Record<string, unknown>;
+        if (typeof snapshotConfig.header_title === "string") {
+          setHeaderTitle(snapshotConfig.header_title);
+        } else if (funding === "folu") {
+          setHeaderTitle("KEPALA UPT SELAKU\nPELAKSANA SATUAN KERJA IMPLEMENTING PARTNER FOLU NC 2&3");
+        }
+        if (typeof snapshotConfig.penutup_text === "string") {
+          setPenutupText(snapshotConfig.penutup_text);
+        } else if (funding === "folu") {
+          setPenutupText("Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas.");
+        }
+        if (snapshotConfig.date_format_style === "tabular" || (funding === "folu" && !snapshotConfig.date_format_style)) {
+          setDateFormatStyle("tabular");
+        } else {
+          setDateFormatStyle("inline");
+        }
+        if (typeof snapshotConfig.signer_authority_mandate === "string") {
+          setSignerAuthorityMandate(snapshotConfig.signer_authority_mandate);
+        } else if (funding === "folu") {
+          setSignerAuthorityMandate("a.n. Sekretaris Direktorat Jenderal KSDAE\nselaku Koordinator Kegiatan Implementing\nPartner FOLU NC 2&3");
+        }
+        if (typeof snapshotConfig.signer_title === "string") {
+          setSignerTitle(snapshotConfig.signer_title);
+        }
+        if (snapshotConfig.tembusan_position === "bottom" || (funding === "folu" && !snapshotConfig.tembusan_position)) {
+          setTembusanPosition("bottom");
+        } else {
+          setTembusanPosition("beside");
+        }
+        if (typeof snapshotConfig.tembusan_label === "string") {
+          setTembusanLabel(snapshotConfig.tembusan_label);
+        } else if (funding === "folu") {
+          setTembusanLabel("Tembusan Kepada :");
+        }
+        if (typeof snapshotConfig.kop_image_url === "string") {
+          setKopImageUrl(snapshotConfig.kop_image_url);
+        }
+
         const storedUntukLines = splitStoredUntukItems(data.maksud_tujuan);
         const storedAdditionalUntuk = storedUntukLines
           .slice(1);
         setUntukItems(
           storedAdditionalUntuk.length > 0
             ? toDasarItems(storedAdditionalUntuk, "stored-untuk")
-            : getDefaultUntukItems(data.template_type, buildBiayaTextFor(funding, data.sumber_dana_other || "", new Date().toISOString().substring(0, 10), data.template_type)),
+            : getDefaultUntukItems(data.template_type, buildBiayaTextFor(funding, data.sumber_dana_other || "", new Date().toISOString().substring(0, 10), data.template_type, expenseTemplates)),
         );
 
         const activityStr = storedUntukLines[0] || data.maksud_tujuan || "";
@@ -1255,7 +1405,7 @@ export default function STBuilderPage() {
                 onChange={e => handleSumberDanaChange(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm outline-none cursor-pointer text-zinc-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {SUMBER_DANA_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                {availableSumberDanaOptions.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
               </select>
               {sumberDana === 'other' && (
                 <input 
@@ -1429,7 +1579,7 @@ export default function STBuilderPage() {
                 <button
                   type="button"
                   disabled={isPublished}
-                  onClick={() => setInputModeKegiatan("structured")}
+                  onClick={handleSwitchToStructured}
                   className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                     inputModeKegiatan === "structured"
                       ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-xs"
@@ -1706,10 +1856,17 @@ export default function STBuilderPage() {
               kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} kepalaBalai={kepalaBalai}
               tembusanItems={tembusanItems}
               headerTitle={headerTitle}
+              penutupText={penutupText}
+              dateFormatStyle={dateFormatStyle}
+              signerAuthorityMandate={signerAuthorityMandate}
+              signerTitle={signerTitle}
+              tembusanPosition={tembusanPosition}
+              tembusanLabel={tembusanLabel}
               sumberDana={sumberDana}
               templateType={templateType}
               employeeDates={employeeDates}
               judulLampiranBedaHari={judulLampiranBedaHari}
+              kopImageUrl={kopImageUrl}
             />
           </div>
 
