@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useRole } from "@/hooks/useRole";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,8 @@ import {
 export default function BmnAuctionCandidatesPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { hasPermission } = useRole();
+  const canCreateBatch = hasPermission("bmn.auction.create");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
@@ -176,14 +179,16 @@ export default function BmnAuctionCandidatesPage() {
             Pilih aset-aset dengan kondisi Rusak Berat untuk dikelompokkan ke dalam paket dokumen lelang BMN.
           </p>
         </div>
-        <Button
-          onClick={handleOpenCreateDialog}
-          disabled={selectedIds.size === 0}
-          className="bg-red-600 hover:bg-red-700 text-white font-semibold flex items-center gap-2 rounded-xl transition duration-200"
-        >
-          <Plus className="h-4 w-4" />
-          Buat Paket Lelang ({selectedIds.size})
-        </Button>
+        {canCreateBatch && (
+          <Button
+            onClick={handleOpenCreateDialog}
+            disabled={selectedIds.size === 0}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold flex items-center gap-2 rounded-xl transition duration-200"
+          >
+            <Plus className="h-4 w-4" />
+            Buat Paket Lelang ({selectedIds.size})
+          </Button>
+        )}
       </div>
 
       {/* Summary Tiles */}
@@ -244,13 +249,15 @@ export default function BmnAuctionCandidatesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-zinc-100 bg-zinc-50/75 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <th className="w-12 px-4 py-3 text-center">
-                  <Checkbox
-                    checked={allEligibleSelectedOnPage}
-                    onCheckedChange={toggleSelectAllOnPage}
-                    disabled={eligibleAssetsOnPage.length === 0}
-                  />
-                </th>
+                {canCreateBatch && (
+                  <th className="w-12 px-4 py-3 text-center">
+                    <Checkbox
+                      checked={allEligibleSelectedOnPage}
+                      onCheckedChange={toggleSelectAllOnPage}
+                      disabled={eligibleAssetsOnPage.length === 0}
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   Identitas Aset
                 </th>
@@ -271,14 +278,14 @@ export default function BmnAuctionCandidatesPage() {
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="p-12 text-center">
+                  <td colSpan={canCreateBatch ? 6 : 5} className="p-12 text-center">
                     <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-red-500" />
                     <p className="text-sm text-zinc-400">Memuat kandidat aset...</p>
                   </td>
                 </tr>
               ) : assets.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-12 text-center">
+                  <td colSpan={canCreateBatch ? 6 : 5} className="p-12 text-center">
                     <Package className="mx-auto mb-2 h-10 w-10 text-zinc-300 dark:text-zinc-700" />
                     <p className="text-sm text-zinc-400">Tidak ada aset kandidat lelang yang ditemukan.</p>
                   </td>
@@ -298,13 +305,15 @@ export default function BmnAuctionCandidatesPage() {
                           isSelected ? "bg-red-50/20 dark:bg-red-500/5" : ""
                         } ${!isEligible ? "opacity-60 bg-zinc-50/20 dark:bg-zinc-900/10" : ""}`}
                       >
-                        <td className="px-4 py-4 text-center align-middle">
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => toggleSelect(asset.id)}
-                            disabled={!isEligible}
-                          />
-                        </td>
+                        {canCreateBatch && (
+                          <td className="px-4 py-4 text-center align-middle">
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleSelect(asset.id)}
+                              disabled={!isEligible}
+                            />
+                          </td>
+                        )}
                         <td className="px-4 py-4">
                           <div className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
                             {asset.nama_barang}

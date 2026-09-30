@@ -120,4 +120,52 @@ class BmnMasterDataTest extends TestCase
 
         $this->assertDatabaseMissing('bmn_asset_types', ['id' => $type->id]);
     }
+
+    public function test_admin_cannot_create_location_with_new_unit_kerja(): void
+    {
+        $admin = User::factory()->create([
+            'username' => 'admin_bmn_' . uniqid(),
+            'role' => 'admin',
+            'access_modules' => ['bmn'],
+        ]);
+        Sanctum::actingAs($admin);
+
+        $res = $this->postJson('/api/bmn/locations', [
+            'unit_kerja' => 'Unit Kerja Baru Yang Belum Pernah Ada',
+            'name' => 'Ruang Baru 1',
+        ]);
+
+        $res->assertStatus(403);
+    }
+
+    public function test_admin_can_create_location_with_existing_unit_kerja(): void
+    {
+        $admin = User::factory()->create([
+            'username' => 'admin_bmn_' . uniqid(),
+            'role' => 'admin',
+            'access_modules' => ['bmn'],
+        ]);
+        Sanctum::actingAs($admin);
+
+        $res = $this->postJson('/api/bmn/locations', [
+            'unit_kerja' => 'Kantor Balai KSDA Kalimantan Timur',
+            'name' => 'Ruang Rapat Meranti',
+        ]);
+
+        $res->assertStatus(201)
+            ->assertJsonPath('data.name', 'Ruang Rapat Meranti');
+    }
+
+    public function test_super_admin_can_create_location_with_new_unit_kerja(): void
+    {
+        Sanctum::actingAs($this->user); // super_admin
+
+        $res = $this->postJson('/api/bmn/locations', [
+            'unit_kerja' => 'Seksi Baru Mandiri',
+            'name' => 'Pos Pantau Baru',
+        ]);
+
+        $res->assertStatus(201)
+            ->assertJsonPath('data.unit_kerja', 'Seksi Baru Mandiri');
+    }
 }

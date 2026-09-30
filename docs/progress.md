@@ -1,3 +1,45 @@
+# Progress - Phase 222: Granular RBAC Modul BMN (Admin Unit Kerja Restriksi, Super Admin Force Delete, User Biasa Read-Only)
+
+> Document updated: 2026-09-30
+> Branch: `development`
+> Status: SELESAI (Restriksi pembuatan Unit Kerja baru hanya untuk Super Admin, restriksi hard delete bmn.asset.force_delete untuk Super Admin, full read-only mode untuk user biasa di seluruh modul BMN, perbaikan fallback useRole.ts & User.php, dan proteksi middleware transisi lelang).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Wewenang Admin BMN)**: Admin BMN harus dapat mengelola master data Tag Aset dan Ruangan/Lokasi secara mandiri, namun **TIDAK BISA** menambah Unit Kerja baru (hanya Super Admin).
+- **Kebutuhan 2 (Hapus Permanen Aset)**: Admin BMN hanya dapat melakukan pemutihan/soft delete aset (`bmn.asset.dispose`). Aksi hapus permanen (`bmn.asset.force_delete`) wajib dikunci murni untuk Super Admin.
+- **Kebutuhan 3 (Mode Read-Only User Biasa)**: Pengguna dengan role `user` dapat melihat seluruh data aset, riwayat peminjaman, master data, dan lelang kantor Balai, tetapi seluruh aksi manipulasi (tambah/edit/hapus/mutasi) harus tersembunyi dan diblokir (403).
+
+## 2. Perubahan yang Dilakukan
+- **`backend/app/Models/User.php` & `frontend/src/hooks/useRole.ts`**:
+  - `bmn.asset.force_delete` dikunci langsung: selalu return `false` jika role bukan `super_admin`.
+  - Fallback permission diperbaiki: menangani kasus `permissions` null maupun array kosong `[]`, sehingga Admin BMN otomatis memiliki akses operasional BMN tanpa perlu mencentang checkbox granular manual.
+  - Untuk role `user`, fallback hanya mengizinkan permission baca (`bmn.view`, `bmn.document.history.view`, `bmn.auction.view`).
+- **`backend/app/Modules/Bmn/Controllers/LocationController.php`**:
+  - Menambahkan metode proteksi `ensureUnitKerjaAllowed()` pada aksi `store()` dan `update()`.
+  - Jika user bukan `super_admin`, nilai `unit_kerja` divalidasi harus berada di dalam daftar unit kerja standar KSDA atau unit kerja yang sudah eksis di database. Percobaan memasukkan unit kerja baru ditolak dengan respon HTTP 403 Forbidden.
+- **`backend/app/Modules/Bmn/Routes/api.php`**:
+  - Menambahkan middleware `permission:bmn.auction.update` pada rute `POST /auction-batches/{id}/transition`.
+- **`frontend/src/app/bmn/settings/page.tsx`**:
+  - Opsi `+ Tambah Unit Kerja Baru (Ketik Manual)...` pada form ruangan hanya dirender jika `isSuperAdmin`.
+  - Tombol Tambah, Edit, Hapus untuk Tag, Lokasi, dan Jenis BMN disembunyikan untuk user biasa (`canManage`).
+- **`frontend/src/app/bmn/loans/page.tsx`**:
+  - Kolom & tombol aksi (Kembalikan, Edit, Hapus) disembunyikan untuk user biasa (`canManage`).
+- **`frontend/src/app/bmn/auction-candidates/page.tsx`**:
+  - Tombol "Buat Paket Lelang" dan kolom checkbox seleksi disembunyikan untuk user biasa (`canCreateBatch`).
+- **`frontend/src/app/bmn/auction-batches/page.tsx`**:
+  - Tombol "Buat Paket Baru" dan tombol "Hapus" disembunyikan untuk user biasa (`canCreate`, `canDelete`).
+- **`frontend/src/app/bmn/auction-batches/[id]/page.tsx`**:
+  - Detail paket lelang otomatis mengaktifkan mode `readOnly = true` jika user tidak memiliki izin `bmn.auction.update`.
+
+## 3. Validasi & Pengujian
+- **Unit Test**: `tests/Unit/UserPermissionFallbackTest.php` (9/9 pass, 28 assertions).
+- **Feature Test**: `tests/Feature/BmnMasterDataTest.php` (7/7 pass, 23 assertions).
+- **Frontend Typecheck**: `npx tsc --noEmit` (0 error).
+
+---
+
 # Progress - Phase 221: Optimasi Request Storming, In-Flight Deduplication, & Cooldown Throttling (Issue #581)
 
 > Document updated: 2026-08-24

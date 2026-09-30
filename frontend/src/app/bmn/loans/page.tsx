@@ -18,6 +18,7 @@ import { Plus, Pencil, Trash2, Loader2, RotateCcw, Package, AlertTriangle, Calen
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/hooks/useRole";
 import { ReturnLoanModal } from "./_components/ReturnLoanModal";
 
 interface Loan {
@@ -59,6 +60,8 @@ const formatDate = (dateStr: string | null) => {
 export default function LoansPage() {
     const router = useRouter();
     const queryClient = useQueryClient();
+    const { hasPermission } = useRole();
+    const canManage = hasPermission("bmn.asset.update");
     const [records, setRecords] = useState<Loan[]>([]);
     const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
     const [loading, setLoading] = useState(true);
@@ -239,20 +242,22 @@ export default function LoansPage() {
                                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Tgl Pinjam</th>
                                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Jatuh Tempo</th>
                                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-center">Status</th>
-                                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-center w-32">Aksi</th>
+                                {canManage && (
+                                    <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-center w-32">Aksi</th>
+                                )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={8} className="text-center py-20">
+                                    <td colSpan={canManage ? 8 : 7} className="text-center py-20">
                                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-emerald-600 mb-2" />
                                         <p className="text-zinc-500 dark:text-zinc-400 text-sm">Memuat data peminjaman...</p>
                                     </td>
                                 </tr>
                             ) : records.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="text-center py-20">
+                                    <td colSpan={canManage ? 8 : 7} className="text-center py-20">
                                         <Package className="w-12 h-12 mx-auto mb-3 text-zinc-300 dark:text-zinc-700" />
                                         <p className="text-zinc-900 dark:text-zinc-100 font-medium">Belum ada data peminjaman</p>
                                         <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Sesuai dengan filter pencarian</p>
@@ -312,22 +317,24 @@ export default function LoansPage() {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex gap-1 justify-center">
-                                                {r.status !== 'dikembalikan' && (
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:bg-emerald-500/10" title="Kembalikan"
-                                                        onClick={() => openReturnModal(r)}>
-                                                        <RotateCcw className="h-4 w-4" />
+                                        {canManage && (
+                                            <td className="px-4 py-3">
+                                                <div className="flex gap-1 justify-center">
+                                                    {r.status !== 'dikembalikan' && (
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:bg-emerald-500/10" title="Kembalikan"
+                                                            onClick={() => openReturnModal(r)}>
+                                                            <RotateCcw className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:bg-amber-500/10" onClick={() => openEditModal(r)} disabled={r.status === 'dikembalikan'} title="Edit">
+                                                        <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                )}
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:bg-amber-500/10" onClick={() => openEditModal(r)} disabled={r.status === 'dikembalikan'} title="Edit">
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:bg-rose-500/10" title="Hapus" onClick={() => { setDeletingRecord(r); setIsDeleteModalOpen(true); }}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </td>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:bg-rose-500/10" title="Hapus" onClick={() => { setDeletingRecord(r); setIsDeleteModalOpen(true); }}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}

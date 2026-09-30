@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
+import { useRole } from "@/hooks/useRole";
 import { getBlockedReason, getWorkflowTabs } from "./_lib/workflow-tabs";
 
 // Lazy-loaded or imported tab components (stubbed for compile stability)
@@ -86,7 +87,9 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
     );
   }
 
-  const readOnly = isReadOnly(batch.status);
+  const { hasPermission } = useRole();
+  const canUpdate = hasPermission("bmn.auction.update");
+  const readOnly = isReadOnly(batch.status) || !canUpdate;
   const refetchAll = () => {
     refetch();
     refetchChecklist();

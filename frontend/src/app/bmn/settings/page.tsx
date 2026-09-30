@@ -69,7 +69,7 @@ export default function BmnSettingsPage() {
 
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const { hasPermission } = useRole();
+  const { hasPermission, isSuperAdmin } = useRole();
   const canManage = hasPermission("bmn.asset.update");
 
   // ==========================================
@@ -276,7 +276,7 @@ export default function BmnSettingsPage() {
   const handleOpenEditLocation = (loc: IBmnLocation) => {
     setEditingLocation(loc);
     const isKnown = availableUnits.includes(loc.unit_kerja);
-    if (isKnown) {
+    if (isKnown || !isSuperAdmin) {
       setIsCustomUnit(false);
       setCustomUnitInput("");
       setLocationUnitKerja(loc.unit_kerja);
@@ -292,7 +292,7 @@ export default function BmnSettingsPage() {
 
   const handleSubmitLocation = async (e: React.FormEvent) => {
     e.preventDefault();
-    const finalUnit = isCustomUnit ? customUnitInput.trim() : locationUnitKerja.trim();
+    const finalUnit = (isSuperAdmin && isCustomUnit) ? customUnitInput.trim() : locationUnitKerja.trim();
     if (!locationName.trim() || !finalUnit) {
       toast.error("Unit kerja dan nama ruangan wajib diisi.");
       return;
@@ -1558,6 +1558,7 @@ export default function BmnSettingsPage() {
                   value={isCustomUnit ? "__custom__" : locationUnitKerja}
                   onChange={(e) => {
                     if (e.target.value === "__custom__") {
+                      if (!isSuperAdmin) return;
                       setIsCustomUnit(true);
                       setCustomUnitInput("");
                     } else {
@@ -1572,10 +1573,12 @@ export default function BmnSettingsPage() {
                       {u}
                     </option>
                   ))}
-                  <option value="__custom__">+ Tambah Unit Kerja Baru (Ketik Manual)...</option>
+                  {isSuperAdmin && (
+                    <option value="__custom__">+ Tambah Unit Kerja Baru (Ketik Manual)...</option>
+                  )}
                 </select>
 
-                {isCustomUnit && (
+                {isSuperAdmin && isCustomUnit && (
                   <div className="mt-2 space-y-1 animate-in fade-in zoom-in-95">
                     <input
                       type="text"

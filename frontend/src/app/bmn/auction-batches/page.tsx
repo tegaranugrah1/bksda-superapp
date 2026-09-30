@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
+import { useRole } from "@/hooks/useRole";
 
 export default function BmnAuctionBatchesListPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +35,9 @@ export default function BmnAuctionBatchesListPage() {
 
   const confirm = useConfirm();
   const queryClient = useQueryClient();
+  const { hasPermission } = useRole();
+  const canCreate = hasPermission("bmn.auction.create");
+  const canDelete = hasPermission("bmn.auction.delete");
 
   const handleDelete = async (batch: AuctionBatch) => {
     const ok = await confirm({
@@ -129,12 +133,14 @@ export default function BmnAuctionBatchesListPage() {
             Daftar paket dokumen lelang BMN yang sedang diproses maupun yang telah terealisasi.
           </p>
         </div>
-        <Link href="/bmn/auction-candidates">
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 rounded-xl transition duration-200">
-            <Plus className="h-4 w-4" />
-            Buat Paket Baru
-          </Button>
-        </Link>
+        {canCreate && (
+          <Link href="/bmn/auction-candidates">
+            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 rounded-xl transition duration-200">
+              <Plus className="h-4 w-4" />
+              Buat Paket Baru
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Filters and Search */}
@@ -300,7 +306,7 @@ export default function BmnAuctionBatchesListPage() {
                             Lihat
                           </Button>
                         </Link>
-                        {(batch.status === "DRAFT" || batch.status === "BATAL") && (
+                        {(batch.status === "DRAFT" || batch.status === "BATAL") && canDelete && (
                           <Button
                             variant="ghost"
                             size="sm"

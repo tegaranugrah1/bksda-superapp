@@ -19,11 +19,17 @@ export function useRole() {
     hasPermission: (permission: string) => {
       if (role === "super_admin") return true;
 
-      // Fallback untuk backward compatibility jika data permissions tidak ada
-      if (user?.permissions === undefined || user?.permissions === null) {
+      // bmn.asset.force_delete strictly super_admin
+      if (permission === "bmn.asset.force_delete") return false;
+
+      // Fallback untuk backward compatibility jika data permissions tidak ada atau kosong []
+      if (!user?.permissions || user.permissions.length === 0) {
         if (permission.startsWith("bmn.")) {
           if (permission.startsWith("bmn.auction.")) {
-            return permission === "bmn.auction.view" && (user?.access_modules?.includes("bmn") || false);
+            if (permission === "bmn.auction.view") {
+              return user?.access_modules?.includes("bmn") || false;
+            }
+            return role === "admin" && (user?.access_modules?.includes("bmn") || false);
           }
 
           const isReadPermission = ["bmn.view", "bmn.document.history.view"].includes(permission);
@@ -32,6 +38,26 @@ export function useRole() {
           }
           return role === "admin" && (user?.access_modules?.includes("bmn") || false);
         }
+
+        if (permission.startsWith("kepegawaian.")) {
+          const isReadPermission = ["kepegawaian.view"].includes(permission);
+          if (isReadPermission) {
+            return user?.access_modules?.includes("kepegawaian") || false;
+          }
+          return role === "admin" && (user?.access_modules?.includes("kepegawaian") || false);
+        }
+
+        if (permission.startsWith("surat_tugas.")) {
+          const isReadPermission = ["surat_tugas.view"].includes(permission);
+          const hasModuleAccess =
+            (user?.access_modules?.includes("surat_tugas") || false) ||
+            (user?.access_modules?.includes("kepegawaian") || false);
+          if (isReadPermission) {
+            return hasModuleAccess;
+          }
+          return role === "admin" && hasModuleAccess;
+        }
+
         return false;
       }
 

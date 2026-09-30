@@ -94,5 +94,42 @@ class UserPermissionFallbackTest extends TestCase
         $this->assertFalse($user->hasPermission('bmn.asset.update'));
         $this->assertFalse($user->hasPermission('bmn.asset.dispose'));
     }
+
+    public function test_admin_cannot_force_delete(): void
+    {
+        $admin = new User([
+            'role' => 'admin',
+            'access_modules' => ['bmn'],
+            'permissions' => null,
+        ]);
+
+        $this->assertFalse($admin->hasPermission('bmn.asset.force_delete'));
+
+        $adminWithPerm = new User([
+            'role' => 'admin',
+            'access_modules' => ['bmn'],
+            'permissions' => ['bmn.asset.force_delete'],
+        ]);
+
+        $this->assertFalse($adminWithPerm->hasPermission('bmn.asset.force_delete'));
+    }
+
+    public function test_admin_with_bmn_access_can_manage_operational_bmn(): void
+    {
+        $admin = new User([
+            'role' => 'admin',
+            'access_modules' => ['bmn'],
+            'permissions' => [],
+        ]);
+
+        $this->assertTrue($admin->hasPermission('bmn.view'));
+        $this->assertTrue($admin->hasPermission('bmn.asset.create'));
+        $this->assertTrue($admin->hasPermission('bmn.asset.update'));
+        $this->assertTrue($admin->hasPermission('bmn.asset.dispose'));
+        $this->assertTrue($admin->hasPermission('bmn.document.generate'));
+        $this->assertTrue($admin->hasPermission('bmn.auction.create'));
+        $this->assertTrue($admin->hasPermission('bmn.auction.update'));
+        $this->assertFalse($admin->hasPermission('bmn.asset.force_delete'));
+    }
 }
 

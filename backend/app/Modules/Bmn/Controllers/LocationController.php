@@ -34,6 +34,8 @@ class LocationController extends Controller
             'name.unique' => 'Lokasi atau ruangan dengan nama ini sudah ada.',
         ]);
 
+        $this->ensureUnitKerjaAllowed($request, $validated['unit_kerja']);
+
         $location = Location::create($validated);
         $location->loadCount('assets');
 
@@ -56,6 +58,8 @@ class LocationController extends Controller
             'name.required' => 'Nama lokasi/ruangan wajib diisi.',
             'name.unique' => 'Lokasi atau ruangan dengan nama ini sudah ada.',
         ]);
+
+        $this->ensureUnitKerjaAllowed($request, $validated['unit_kerja']);
 
         $oldName = $location->name;
         $location->update($validated);
@@ -88,5 +92,26 @@ class LocationController extends Controller
         return response()->json([
             'message' => "Lokasi '{$location->name}' berhasil dihapus.",
         ]);
+    }
+
+    private function ensureUnitKerjaAllowed(Request $request, string $unitKerja): void
+    {
+        $user = $request->user();
+        if ($user && $user->role !== 'super_admin') {
+            $standardUnits = [
+                'Kantor Balai KSDA Kalimantan Timur',
+                'Seksi KSDA Wilayah I (Berau)',
+                'Seksi KSDA Wilayah II (Tenggarong)',
+                'Seksi KSDA Wilayah III (Balikpapan)',
+            ];
+            $existingUnits = Location::distinct()->pluck('unit_kerja')->toArray();
+            $allowedUnits = array_unique(array_merge($standardUnits, $existingUnits));
+
+            if (!in_array($unitKerja, $allowedUnits, true)) {
+                abort(response()->json([
+                    'message' => 'Hanya Super Admin yang diizinkan menambahkan unit kerja baru. Silakan pilih unit kerja yang sudah ada.',
+                ], 403));
+            }
+        }
     }
 }
