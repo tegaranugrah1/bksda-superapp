@@ -5,9 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Wrench, Loader2, Calendar, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const formatRupiah = (angka: number) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
+import { formatRupiah } from "@/app/bmn/_lib/asset-utils";
 
 interface IMaintenance {
   id: string;

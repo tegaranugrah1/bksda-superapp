@@ -46,6 +46,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   const router = useRouter();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
+  const { hasPermission } = useRole();
   const [activeTab, setActiveTab] = useState("assets");
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -87,7 +88,6 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
     );
   }
 
-  const { hasPermission } = useRole();
   const canUpdate = hasPermission("bmn.auction.update");
   const readOnly = isReadOnly(batch.status) || !canUpdate;
   const refetchAll = () => {

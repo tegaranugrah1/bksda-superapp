@@ -321,4 +321,145 @@ class BmnTagTest extends TestCase
             'alasan_perubahan' => 'Penambahan tag massal',
         ]);
     }
+
+    public function test_can_create_sub_tag_under_main_tag(): void
+    {
+        $mainTag = Tag::create([
+            'name' => 'alat-kebakaran',
+            'label' => '#alat-kebakaran',
+            'color' => 'red',
+        ]);
+
+        $res = $this->postJson('/api/bmn/tags', [
+            'name' => 'kendaraan-kebakaran',
+            'color' => 'orange',
+            'parent_id' => $mainTag->id,
+            'description' => 'Mobil pemadam dan sejenisnya',
+        ]);
+
+        $res->assertStatus(201)
+            ->assertJsonPath('data.name', 'kendaraan-kebakaran')
+            ->assertJsonPath('data.is_main_tag', false)
+            ->assertJsonPath('data.is_sub_tag', true)
+            ->assertJsonPath('data.parent.id', $mainTag->id);
+
+        $this->assertDatabaseHas('bmn_tags', [
+            'name' => 'kendaraan-kebakaran',
+            'parent_id' => $mainTag->id,
+        ]);
+    }
+
+    public function test_cannot_nest_sub_tags_beyond_one_level(): void
+    {
+        $mainTag = Tag::create([
+            'name' => 'alat-kebakaran',
+            'label' => '#alat-kebakaran',
+            'color' => 'red',
+        ]);
+
+        $subTag = Tag::create([
+            'name' => 'kendaraan-kebakaran',
+            'label' => '#kendaraan-kebakaran',
+            'color' => 'orange',
+            'parent_id' => $mainTag->id,
+        ]);
+
+        // Attempt to create a 3rd level tag using $subTag as parent
+        $res = $this->postJson('/api/bmn/tags', [
+            'name' => 'truk-damkar',
+            'color' => 'red',
+            'parent_id' => $subTag->id,
+        ]);
+
+        $res->assertStatus(422)
+            ->assertJsonValidationErrors(['parent_id']);
+    }
+
+    public function test_cannot_delete_main_tag_with_sub_tags(): void
+    {
+        $mainTag = Tag::create([
+            'name' => 'it-gear',
+            'label' => '#it-gear',
+            'color' => 'blue',
+        ]);
+
+        Tag::create([
+            'name' => 'laptop',
+            'label' => '#laptop',
+            'color' => 'indigo',
+            'parent_id' => $mainTag->id,
+        ]);
+
+        $res = $this->deleteJson("/api/bmn/tags/{$mainTag->id}");
+        $res->assertStatus(422)
+            ->assertJsonPath('message', "Tag {$mainTag->label} tidak dapat dihapus karena masih memiliki 1 sub-tag. Hapus atau pindahkan sub-tag terlebih dahulu.");
+
+        $this->assertDatabaseHas('bmn_tags', ['id' => $mainTag->id]);
+    }
+
+    public function test_syncing_sub_tag_auto_links_parent_tag_and_avoids_double_counting(): void
+    {
+        $mainTag = Tag::create([
+            'name' => 'sarpras',
+            'label' => '#sarpras',
+            'color' => 'emerald',
+        ]);
+
+        $subTag = Tag::create([
+            'name' => 'genset',
+            'label' => '#genset',
+            'color' => 'amber',
+            'parent_id' => $mainTag->id,
+        ]);
+
+        $asset = Asset::create([
+            'kode_barang' => '3010101099',
+            'nup' => '99',
+            'nama_barang' => 'Genset Silent 5kVA',
+            'kondisi' => 'Baik',
+            'nilai_perolehan' => 15000000,
+        ]);
+
+        // When user only assigns the sub-tag
+        $res = $this->postJson("/api/bmn/assets/{$asset->id}/tags", [
+            'tag_ids' => [$subTag->id],
+        ]);
+
+        $res->assertStatus(200);
+
+        // Both sub-tag and main tag should be attached in database
+        $this->assertDatabaseHas('bmn_asset_tag', ['asset_id' => $asset->id, 'tag_id' => $subTag->id]);
+        $this->assertDatabaseHas('bmn_asset_tag', ['asset_id' => $asset->id, 'tag_id' => $mainTag->id]);
+
+        // Distinct asset count test on Tag index:
+        // Main tag must count this asset as 1 (not 2)
+        $listRes = $this->getJson('/api/bmn/tags');
+        $listRes->assertStatus(200);
+
+        $tagsData = collect($listRes->json('data'));
+        $mainTagInList = $tagsData->firstWhere('id', $mainTag->id);
+        $subTagInList = $tagsData->firstWhere('id', $subTag->id);
+
+        $this->assertEquals(1, $mainTagInList['assets_count'], 'Main tag assets_count should be 1, not duplicated');
+        $this->assertEquals(1, $subTagInList['assets_count'], 'Sub tag assets_count should be 1');
+    }
+
+    public function test_filter_assets_by_main_tag_includes_sub_tag_assets(): void
+    {
+        $mainTag = Tag::create(['name' => 'peralatan-lapangan', 'label' => '#peralatan-lapangan']);
+        $subTag = Tag::create(['name' => 'tenda-dome', 'label' => '#tenda-dome', 'parent_id' => $mainTag->id]);
+
+        $asset1 = Asset::create(['kode_barang' => '3010101100', 'nup' => '100', 'nama_barang' => 'Tenda Regu', 'kondisi' => 'Baik', 'nilai_perolehan' => 5000000]);
+        $asset2 = Asset::create(['kode_barang' => '3010101101', 'nup' => '101', 'nama_barang' => 'Tenda Dome 4P', 'kondisi' => 'Baik', 'nilai_perolehan' => 1500000]);
+
+        // Asset 1 only has main tag
+        $asset1->tags()->sync([$mainTag->id]);
+        // Asset 2 only has subTag (e.g. legacy or direct query)
+        $asset2->tags()->sync([$subTag->id]);
+
+        // Filtering by main tag should return BOTH assets
+        $res = $this->getJson("/api/bmn/assets?tag_id={$mainTag->id}");
+        $res->assertStatus(200)
+            ->assertJsonCount(2, 'data');
+    }
 }

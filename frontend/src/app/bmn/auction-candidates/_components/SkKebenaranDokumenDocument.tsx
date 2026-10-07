@@ -1,9 +1,11 @@
 "use client";
 
 import { toast } from "sonner";
+import { printDocumentWindow, SK_KEBENARAN_PRINT_CSS } from "../_lib/print-helpers";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 import { formatDateLong, parseDocDate, EMPTY_DOC_NUMBER_GAP } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
+import type { PernyataanDocumentContent } from "../../auction-batches/_lib/document-content-defaults";
 
 interface SkKebenaranDokumenDocumentProps {
   number: string;
@@ -11,6 +13,7 @@ interface SkKebenaranDokumenDocumentProps {
   date?: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
+  content?: PernyataanDocumentContent;
 }
 
 function buildNomorText(number: string, kap: string, today: Date) {
@@ -23,58 +26,15 @@ function getOwnershipDocumentNumber(asset: AuctionAsset) {
 }
 
 export function handlePrintSkKebenaran() {
-  const printContent = document.getElementById("sk-kebenaran-print-root");
-  if (!printContent) {
-    toast.error("Tidak ada dokumen Surat Keterangan Kebenaran Fotokopi untuk dicetak.");
-    return;
-  }
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Surat Keterangan Kebenaran Fotokopi Dokumen Kepemilikan</title>
-        <style>
-          @page { size: A4; margin: 20mm 0 28mm 0; }
-          @page :first { margin-top: 0; }
-          * { box-sizing: border-box; }
-          body {
-            margin: 0; padding: 0; background: white; color: black;
-            font-family: 'Bookman Old Style', Georgia, serif;
-            font-size: 11pt; line-height: 1.4;
-          }
-          p { margin: 0; padding: 0; }
-          article { margin: 0; }
-          .doc-page { width: 210mm; box-sizing: border-box; margin: 0 auto; padding: 5mm 20mm 0; }
-          .doc-header { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; text-align: center; }
-          .doc-header img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
-          .doc-body { width: 166mm; margin-left: auto; margin-right: auto; text-align: justify; text-justify: inter-word; }
-          .doc-body p { text-align: justify; text-justify: inter-word; }
-          .doc-title { margin-top: 0.75rem; text-align: center; font-weight: 700; line-height: 1.3; }
-          .doc-title p { margin: 0; }
-          .doc-text-block { margin-top: 1rem; }
-          .doc-text-block > * + * { margin-top: 0.85rem; }
-          .doc-identity { display: grid; grid-template-columns: 28mm 5mm minmax(0, 1fr); row-gap: 0.2rem; }
-          .doc-identity .colon { text-align: center; }
-          table.kebenaran-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; }
-          table.kebenaran-table th, table.kebenaran-table td { border: 1px solid #000; padding: 6px; vertical-align: middle; }
-          table.kebenaran-table thead th { font-weight: bold; }
-          .signature { width: 20rem; margin-left: auto; margin-top: 1.5rem; break-inside: avoid; page-break-inside: avoid; }
-          .signature p { margin: 0; padding: 0; line-height: 1.3; }
-          .ttd-placeholder { box-sizing: border-box; height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-          .doc-editable { outline: none; border-bottom: none !important; }
-        </style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+  printDocumentWindow({
+    rootId: "sk-kebenaran-print-root",
+    title: "Surat Keterangan Kebenaran Fotokopi Dokumen Kepemilikan",
+    emptyMessage: "Tidak ada dokumen Surat Keterangan Kebenaran Fotokopi untuk dicetak.",
+    styles: SK_KEBENARAN_PRINT_CSS,
+  });
 }
 
-export function SkKebenaranDokumenDocument({ number, kap, date, assets, kepalaBalai }: SkKebenaranDokumenDocumentProps) {
+export function SkKebenaranDokumenDocument({ number, kap, date, assets, kepalaBalai, content }: SkKebenaranDokumenDocumentProps) {
   const docDate = parseDocDate(date);
   const nomorText = buildNomorText(number, kap, docDate);
 
@@ -143,7 +103,7 @@ export function SkKebenaranDokumenDocument({ number, kap, date, assets, kepalaBa
             <span contentEditable suppressContentEditableWarning className="doc-editable">Kepala Balai KSDA Kalimantan Timur</span>
           </div>
           <p contentEditable suppressContentEditableWarning className="doc-editable">
-            Dengan ini menerangkan bahwa :
+            {content?.pembuka || "Dengan ini menerangkan bahwa :"}
           </p>
           <p contentEditable suppressContentEditableWarning className="doc-editable">
             Fotokopi dokumen kepemilikan Kendaraan Bermotor atau dokumen lain yang setara dengan bukti kepemilikan :
@@ -186,8 +146,8 @@ export function SkKebenaranDokumenDocument({ number, kap, date, assets, kepalaBa
             Adalah benar sesuai dengan aslinya.
           </p>
           <div className="break-inside-avoid" style={{ pageBreakInside: 'avoid' }}>
-            <p contentEditable suppressContentEditableWarning className="doc-editable">
-              Demikian keterangan ini kami buat dengan sebenar-benarnya dalam rangka permohonan Persetujuan Pemindahtanganan BMN dengan Penjualan.
+            <p contentEditable suppressContentEditableWarning className="doc-editable whitespace-pre-line">
+              {content?.penutup || "Demikian keterangan ini kami buat dengan sebenar-benarnya dalam rangka permohonan Persetujuan Pemindahtanganan BMN dengan Penjualan."}
             </p>
 
             <div className="signature mt-4 ml-auto w-80">

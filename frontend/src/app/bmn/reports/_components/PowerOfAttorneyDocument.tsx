@@ -1,7 +1,14 @@
 "use client";
 
-import { toast } from "sonner";
 import { resolveApiUrl } from "@/lib/api";
+import {
+  formatIndonesianDate,
+  fallback,
+  displayName,
+  signatureName,
+  formatNip,
+  printReportDocumentWindow,
+} from "../_lib/report-utils";
 
 export interface PowerOfAttorneyAsset {
   id: string;
@@ -45,147 +52,72 @@ interface PowerOfAttorneyDocumentProps {
   ktpUrl?: string | null;
 }
 
-const MONTHS = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
-
-function parseDate(value: string) {
-  const date = value ? new Date(`${value}T00:00:00`) : new Date();
-  return Number.isNaN(date.getTime()) ? new Date() : date;
-}
-
-function formatDateIndo(value: string) {
-  const date = parseDate(value);
-  return `${date.getDate().toString().padStart(2, "0")} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-function fallback(value?: string | null) {
-  const text = `${value ?? ""}`.trim();
-  return text || "-";
-}
-
-function displayName(value?: string | null) {
-  const text = fallback(value);
-  if (text === "-") return text;
-  if (/[a-z]/.test(text)) return text;
-
-  return text
-    .toLocaleLowerCase("id-ID")
-    .replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase("id-ID"))
-    .replace(/\bS\.hut\./gi, "S.Hut.")
-    .replace(/\bM\.sc\./gi, "M.Sc.")
-    .replace(/\bA\.md\.kom\./gi, "A.Md.Kom.")
-    .replace(/\bIi\b/g, "II")
-    .replace(/\bIii\b/g, "III")
-    .replace(/\bIv\b/g, "IV");
-}
-
-function signatureName(value?: string | null) {
-  const name = displayName(value);
-  if (name === "-") return name;
-  const [mainName, ...suffix] = name.split(",");
-  const upperMain = mainName.trim().toLocaleUpperCase("id-ID");
-  return suffix.length > 0 ? `${upperMain},${suffix.join(",")}` : upperMain;
-}
-
-function formatNip(nip?: string | null) {
-  if (!nip) return "-";
-  const clean = nip.replace(/\s+/g, "");
-  if (clean.length === 18) {
-    return `${clean.substring(0, 8)} ${clean.substring(8, 14)} ${clean.substring(14, 15)} ${clean.substring(15)}`;
-  }
-  return nip;
-}
-
 function assetMerkTipe(asset: PowerOfAttorneyAsset) {
   return fallback(asset.merk_tipe || [asset.merk, asset.tipe].filter(Boolean).join(" "));
 }
 
-export function handlePrintPowerOfAttorney(documentId = "power-of-attorney-print-root") {
-  const printContent = document.getElementById(documentId);
-  if (!printContent) {
-    toast.error("Tidak ada dokumen Surat Kuasa untuk dicetak.");
-    return;
+const POA_PRINT_STYLES = `
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: black;
+    font-family: "Bookman Old Style", Georgia, Garamond, serif;
+    font-size: 11pt;
+    line-height: 1.25;
   }
+  p { margin: 0; }
+  .poa-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 14mm; }
+  .poa-header { margin: 0 -12mm; text-align: center; }
+  .poa-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
+  .poa-title { margin-top: 6mm; text-align: center; }
+  .poa-title-text { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; }
+  .poa-number-text { margin-top: 2px; white-space: pre-wrap; }
+  .poa-body { margin-top: 6mm; text-align: justify; }
+  .poa-party { margin: 3mm 0 3mm 0; }
+  .poa-gap-before { margin-top: 4mm; }
+  .poa-row { display: grid; grid-template-columns: 35mm 5mm minmax(0, 1fr); margin-bottom: 2px; }
+  .poa-colon { text-align: center; }
+  .poa-table { width: 100%; border-collapse: collapse; table-layout: auto; margin: 4mm 0 4mm; font-size: 9.5pt; text-align: center; }
+  .poa-table th, .poa-table td { border: 1px solid #000; padding: 4px 6px; vertical-align: middle; }
+  .poa-table th:nth-child(1), .poa-table td:nth-child(1) { white-space: nowrap; }
+  .poa-table th:nth-child(3), .poa-table td:nth-child(3) { white-space: nowrap; }
+  .poa-table th:nth-child(4), .poa-table td:nth-child(4) { white-space: nowrap; }
+  .poa-table th:nth-child(5), .poa-table td:nth-child(5) { white-space: nowrap; }
+  .poa-table th { font-weight: bold; }
+  .poa-table thead { display: table-header-group; }
+  .poa-table tfoot { display: table-footer-group; }
+  .poa-table tr { break-inside: avoid; page-break-inside: avoid; }
+  .poa-signature-block { break-inside: avoid; page-break-inside: avoid; margin-top: 8mm; }
+  .poa-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }
+  .poa-sig-col { display: flex; flex-direction: column; align-items: flex-start; padding-left: 5mm; }
+  .poa-sig-col p { white-space: nowrap; }
+  .poa-sig-col.right { align-items: flex-end; padding-left: 0; padding-right: 5mm; }
+  .poa-sig-wrapper { display: inline-block; text-align: left; }
+  .poa-date-line { margin-bottom: 4mm; }
+  .poa-date-spacer { margin-bottom: 4mm; }
+  .signature-name { margin-top: 30mm; }
+  .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+  .poa-ktp-page { page-break-before: always; break-before: page; margin-top: 10mm; text-align: center; }
+  @page landscape-page { size: A4 landscape; margin: 10mm; }
+  .poa-ktp-container { display: block; width: 138mm; max-width: 100%; border: 1px dashed #ccc; padding: 4mm; margin: 0 auto; background: white; }
+  .poa-ktp-container img { width: 100%; height: auto; display: block; }
+  .poa-stnk-page { page: landscape-page; margin: 0; text-align: center; }
+  .poa-stnk-page + .poa-stnk-page { page-break-before: always; break-before: page; }
+  .poa-stnk-container { display: block; width: 100%; margin: 0 auto; }
+  .poa-stnk-container img { width: 100%; max-width: 270mm; max-height: 170mm; height: auto; object-fit: contain; display: block; margin: 0 auto; }
+`;
 
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Surat Kuasa Kendaraan</title>
-        <style>
-          @page { size: A4 portrait; margin: 0; }
-          * { box-sizing: border-box; }
-          body {
-            margin: 0;
-            padding: 0;
-            background: white;
-            color: black;
-            font-family: "Bookman Old Style", Georgia, Garamond, serif;
-            font-size: 11pt;
-            line-height: 1.25;
-          }
-          p { margin: 0; }
-          .poa-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 14mm; }
-          .poa-header { margin: 0 -12mm; text-align: center; }
-          .poa-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          .poa-title { margin-top: 6mm; text-align: center; }
-          .poa-title-text { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; }
-          .poa-number-text { margin-top: 2px; white-space: pre-wrap; }
-          .poa-body { margin-top: 6mm; text-align: justify; }
-          .poa-party { margin: 3mm 0 3mm 0; }
-          .poa-gap-before { margin-top: 4mm; }
-          .poa-row { display: grid; grid-template-columns: 35mm 5mm minmax(0, 1fr); margin-bottom: 2px; }
-          .poa-colon { text-align: center; }
-          .poa-table { width: 100%; border-collapse: collapse; table-layout: auto; margin: 4mm 0 4mm; font-size: 9.5pt; text-align: center; }
-          .poa-table th, .poa-table td { border: 1px solid #000; padding: 4px 6px; vertical-align: middle; }
-          .poa-table th:nth-child(1), .poa-table td:nth-child(1) { white-space: nowrap; }
-          .poa-table th:nth-child(3), .poa-table td:nth-child(3) { white-space: nowrap; }
-          .poa-table th:nth-child(4), .poa-table td:nth-child(4) { white-space: nowrap; }
-          .poa-table th:nth-child(5), .poa-table td:nth-child(5) { white-space: nowrap; }
-          .poa-table th { font-weight: bold; }
-          .poa-table thead { display: table-header-group; }
-          .poa-table tfoot { display: table-footer-group; }
-          .poa-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .poa-signature-block { break-inside: avoid; page-break-inside: avoid; margin-top: 8mm; }
-          .poa-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }
-          .poa-sig-col { display: flex; flex-direction: column; align-items: flex-start; padding-left: 5mm; }
-          .poa-sig-col p { white-space: nowrap; }
-          .poa-sig-col.right { align-items: flex-end; padding-left: 0; padding-right: 5mm; }
-          .poa-sig-wrapper { display: inline-block; text-align: left; }
-          .poa-date-line { margin-bottom: 4mm; }
-          .poa-date-spacer { margin-bottom: 4mm; }
-          .signature-name { margin-top: 30mm; }
-          .avoid-break { break-inside: avoid; page-break-inside: avoid; }
-          .poa-ktp-page { page-break-before: always; break-before: page; margin-top: 10mm; text-align: center; }
-          @page landscape-page { size: A4 landscape; margin: 10mm; }
-          .poa-ktp-container { display: block; width: 138mm; max-width: 100%; border: 1px dashed #ccc; padding: 4mm; margin: 0 auto; background: white; }
-          .poa-ktp-container img { width: 100%; height: auto; display: block; }
-          .poa-stnk-page { page: landscape-page; margin: 0; text-align: center; }
-          .poa-stnk-page + .poa-stnk-page { page-break-before: always; break-before: page; }
-          .poa-stnk-container { display: block; width: 100%; margin: 0 auto; }
-          .poa-stnk-container img { width: 100%; max-width: 270mm; max-height: 170mm; height: auto; object-fit: contain; display: block; margin: 0 auto; }
-        </style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+export function handlePrintPowerOfAttorney(documentId = "power-of-attorney-print-root") {
+  printReportDocumentWindow({
+    rootId: documentId,
+    title: "Surat Kuasa Kendaraan",
+    emptyMessage: "Tidak ada dokumen Surat Kuasa untuk dicetak.",
+    styles: POA_PRINT_STYLES,
+    withAutoCloseScript: false,
+  });
 }
 
 export function PowerOfAttorneyDocument({
@@ -198,7 +130,7 @@ export function PowerOfAttorneyDocument({
   notes,
   ktpUrl,
 }: PowerOfAttorneyDocumentProps) {
-  const formattedDate = formatDateIndo(documentDate);
+  const formattedDate = formatIndonesianDate(documentDate);
   const isHardi =
     firstParty?.nip?.replace(/\s+/g, "") === "197202011997031008" ||
     firstParty?.name?.toLowerCase().includes("hardi");

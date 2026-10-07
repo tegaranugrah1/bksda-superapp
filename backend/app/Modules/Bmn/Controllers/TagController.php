@@ -10,16 +10,42 @@ use App\Modules\Bmn\Resources\AssetResource;
 use App\Modules\Bmn\Resources\TagResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class TagController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $tags = Tag::withCount('assets')
+        $tags = Tag::with(['parent', 'subTags'])
+            ->withCount(['assets as direct_assets_count', 'subTags'])
             ->orderBy('label', 'asc')
             ->get();
+
+        // Calculate distinct asset counts (parent tag includes its own assets + sub-tag assets without duplicates)
+        $tagAssetMap = DB::table('bmn_asset_tag')
+            ->select('tag_id', 'asset_id')
+            ->get()
+            ->groupBy('tag_id');
+
+        foreach ($tags as $tag) {
+            if ($tag->isMainTag()) {
+                $familyIds = array_merge([$tag->id], $tag->subTags->pluck('id')->toArray());
+                $distinctAssetIds = [];
+                foreach ($familyIds as $fId) {
+                    if (isset($tagAssetMap[$fId])) {
+                        foreach ($tagAssetMap[$fId] as $row) {
+                            $distinctAssetIds[$row->asset_id] = true;
+                        }
+                    }
+                }
+                $tag->assets_count = count($distinctAssetIds);
+            } else {
+                $tag->assets_count = isset($tagAssetMap[$tag->id]) ? $tagAssetMap[$tag->id]->count() : 0;
+            }
+        }
 
         return response()->json([
             'data' => TagResource::collection($tags),
@@ -35,20 +61,37 @@ class TagController extends Controller
 
         $validated = $request->validate([
             'clean_name' => ['required', 'string', 'min:1', 'max:50', Rule::unique('bmn_tags', 'name')],
+            'parent_id' => ['nullable', 'string', 'exists:bmn_tags,id'],
             'color' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:500'],
         ], [
             'clean_name.required' => 'Nama tag wajib diisi.',
             'clean_name.unique' => 'Tag dengan nama ini sudah ada.',
             'clean_name.max' => 'Nama tag maksimal 50 karakter.',
+            'parent_id.exists' => 'Main tag induk yang dipilih tidak valid.',
         ]);
+
+        $parentId = $validated['parent_id'] ?? null;
+
+        // Ensure parent tag is not itself a sub-tag (enforce max 1-level depth)
+        if ($parentId) {
+            $parentTag = Tag::find($parentId);
+            if ($parentTag && $parentTag->isSubTag()) {
+                throw ValidationException::withMessages([
+                    'parent_id' => 'Tag induk yang dipilih tidak boleh merupakan sub-tag. Sistem hanya mendukung hierarki Main Tag dan Sub Tag.',
+                ]);
+            }
+        }
 
         $tag = Tag::create([
             'name' => $cleanName,
             'label' => '#' . $cleanName,
+            'parent_id' => $parentId,
             'color' => $validated['color'] ?? 'emerald',
             'description' => $validated['description'] ?? null,
         ]);
+
+        $tag->load('parent');
 
         return response()->json([
             'message' => "Tag {$tag->label} berhasil dibuat.",
@@ -67,20 +110,50 @@ class TagController extends Controller
 
         $validated = $request->validate([
             'clean_name' => ['required', 'string', 'min:1', 'max:50', Rule::unique('bmn_tags', 'name')->ignore($tag->id)],
+            'parent_id' => ['nullable', 'string', 'exists:bmn_tags,id'],
             'color' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:500'],
         ], [
             'clean_name.required' => 'Nama tag wajib diisi.',
             'clean_name.unique' => 'Tag dengan nama ini sudah ada.',
             'clean_name.max' => 'Nama tag maksimal 50 karakter.',
+            'parent_id.exists' => 'Main tag induk yang dipilih tidak valid.',
         ]);
+
+        $parentId = array_key_exists('parent_id', $validated) ? $validated['parent_id'] : $tag->parent_id;
+
+        if ($parentId) {
+            if ($parentId === $tag->id) {
+                throw ValidationException::withMessages([
+                    'parent_id' => 'Tag tidak dapat menjadi induk bagi dirinya sendiri.',
+                ]);
+            }
+
+            // A tag with existing sub-tags cannot be subordinated
+            if ($tag->subTags()->exists()) {
+                throw ValidationException::withMessages([
+                    'parent_id' => 'Tag ini memiliki sub-tag, sehingga tidak dapat dijadikan sebagai sub-tag dari tag lain.',
+                ]);
+            }
+
+            // Parent tag cannot be a sub-tag
+            $parentTag = Tag::find($parentId);
+            if ($parentTag && $parentTag->isSubTag()) {
+                throw ValidationException::withMessages([
+                    'parent_id' => 'Tag induk yang dipilih tidak boleh merupakan sub-tag.',
+                ]);
+            }
+        }
 
         $tag->update([
             'name' => $cleanName,
             'label' => '#' . $cleanName,
+            'parent_id' => $parentId,
             'color' => $validated['color'] ?? $tag->color,
             'description' => $validated['description'] ?? $tag->description,
         ]);
+
+        $tag->load('parent');
 
         return response()->json([
             'message' => "Tag {$tag->label} berhasil diperbarui.",
@@ -91,6 +164,15 @@ class TagController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $tag = Tag::findOrFail($id);
+
+        // Deletion protection for Main Tags that have Sub Tags
+        if ($tag->subTags()->exists()) {
+            $subCount = $tag->subTags()->count();
+            return response()->json([
+                'message' => "Tag {$tag->label} tidak dapat dihapus karena masih memiliki {$subCount} sub-tag. Hapus atau pindahkan sub-tag terlebih dahulu.",
+            ], 422);
+        }
+
         $affectedAssetsCount = $tag->assets()->count();
 
         // Detach from all assets
@@ -114,7 +196,20 @@ class TagController extends Controller
 
         $oldTagsStr = $asset->tags->pluck('label')->sort()->values()->implode(', ');
 
-        $asset->tags()->sync($validated['tag_ids']);
+        // Auto-attach parent Main Tag if any Sub Tag is selected
+        $tagIds = $validated['tag_ids'];
+        if (!empty($tagIds)) {
+            $chosenTags = Tag::whereIn('id', $tagIds)->get();
+            $expandedIds = $tagIds;
+            foreach ($chosenTags as $t) {
+                if ($t->parent_id && !in_array($t->parent_id, $expandedIds, true)) {
+                    $expandedIds[] = $t->parent_id;
+                }
+            }
+            $tagIds = array_values(array_unique($expandedIds));
+        }
+
+        $asset->tags()->sync($tagIds);
         $asset->load(['tags', 'penanggungJawab']);
 
         $newTagsStr = $asset->tags->pluck('label')->sort()->values()->implode(', ');
@@ -150,6 +245,20 @@ class TagController extends Controller
         $action = $validated['action'] ?? 'attach';
         $userId = $request->user()?->id;
 
+        $targetTagIds = $validated['tag_ids'] ?? [];
+
+        // In attach or replace mode, auto-include parent Main Tags for any selected Sub Tags
+        if (in_array($action, ['attach', 'replace']) && !empty($targetTagIds)) {
+            $chosenTags = Tag::whereIn('id', $targetTagIds)->get();
+            $expandedIds = $targetTagIds;
+            foreach ($chosenTags as $t) {
+                if ($t->parent_id && !in_array($t->parent_id, $expandedIds, true)) {
+                    $expandedIds[] = $t->parent_id;
+                }
+            }
+            $targetTagIds = array_values(array_unique($expandedIds));
+        }
+
         $alasan = match ($action) {
             'clear_all' => 'Pengosongan seluruh tag massal',
             'detach' => 'Pelepasan tag massal',
@@ -163,11 +272,11 @@ class TagController extends Controller
             if ($action === 'clear_all') {
                 $asset->tags()->detach();
             } elseif ($action === 'detach') {
-                $asset->tags()->detach($validated['tag_ids'] ?? []);
+                $asset->tags()->detach($targetTagIds);
             } elseif ($action === 'replace') {
-                $asset->tags()->sync($validated['tag_ids'] ?? []);
+                $asset->tags()->sync($targetTagIds);
             } else {
-                $asset->tags()->syncWithoutDetaching($validated['tag_ids'] ?? []);
+                $asset->tags()->syncWithoutDetaching($targetTagIds);
             }
 
             $asset->load('tags');

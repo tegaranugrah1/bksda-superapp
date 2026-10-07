@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { formatDateLong, parseDocDate, EMPTY_DOC_NUMBER_GAP } from "../_lib/auction-helpers";
+import { printDocumentWindow, SK_PANITIA_PRINT_CSS } from "../_lib/print-helpers";
 import { runSkPagination } from "../_lib/sk-print";
 import type {
   SkBuilderItem,
@@ -55,159 +56,25 @@ function renderKeduaText(text: string) {
 }
 
 export function handlePrintSkPanitia() {
-  const printContent = document.getElementById("sk-panitia-print-root");
-  if (!printContent) {
-    toast.error("Tidak ada dokumen SK Panitia untuk dicetak.");
-    return;
-  }
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>SK Panitia Penghapusan BMN</title>
-        <style>
-          @page { size: A4; margin: 0; }
-          @page skp-main { size: A4; margin: 0; }
-          @page skp-main:first { size: A4; margin: 0; }
-          * { box-sizing: border-box; }
-          body {
-            margin: 0; padding: 0; background: white; color: black;
-            font-family: 'Bookman Old Style', Georgia, serif;
-            font-size: 11pt; line-height: 1.25;
-          }
-          p { margin: 0; padding: 0; }
-          .skp-page {
-            width: 210mm;
-            margin: 0 auto; padding: 5mm 20mm 0;
-          }
-          .skp-main-document { page: skp-main; position: relative; }
-          .skp-print-root .skp-page.skp-main-document.skp-main-paginated {
-            height: 297mm !important;
-            min-height: 297mm !important;
-            padding: 5mm 20mm 28mm !important;
-            overflow: hidden !important;
-            position: relative !important;
-            box-shadow: none !important;
-          }
-          .skp-print-root .skp-page.skp-main-document.skp-main-paginated.skp-main-continuation-page {
-            padding-top: 18mm !important;
-          }
-          .skp-print-root .skp-main-document.skp-main-page-break {
-            page-break-after: always;
-            break-after: page;
-          }
-          .skp-main-flow { width: 100%; }
-          .skp-main-paginated .skp-paginated-field-section + .skp-paginated-field-section { margin-top: 0 !important; }
-          .skp-main-paginated .skp-paginated-field-section.skp-section-start { margin-top: 0.5rem !important; }
-          .skp-page-ttd { padding-bottom: 0; }
-          article { margin: 0; }
-          .skp-page-break { page-break-after: always; break-after: always; }
-          /* KOP */
-          .skp-kop {
-            margin-top: -5mm; margin-left: -16mm; margin-right: -16mm;
-            margin-bottom: 6px; text-align: center;
-          }
-          .skp-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
-          /* Judul SK */
-          .skp-title {
-            width: 166mm; margin-left: auto; margin-right: auto;
-            margin-top: 10px; text-align: center; font-weight: bold; line-height: 1.3;
-          }
-          .skp-title-nomor { font-weight: normal; }
-          .skp-title-tentang { margin-top: 10px; }
-          /* Sub-judul */
-          .skp-subtitle {
-            width: 166mm; margin-left: auto; margin-right: auto;
-            margin-top: 16px;
-          }
-          .skp-subtitle > p { text-align: center; font-weight: bold; }
-          .skp-subtitle > p + p { margin-top: 6px; }
-          /* Body */
-          .skp-body { width: 166mm; margin-left: auto; margin-right: auto; }
-          table { border-collapse: collapse; width: 100%; }
-          td { vertical-align: top; padding: 0; }
-          /* Menimbang/Mengingat */
-          .skp-field-section {
-            display: grid;
-            grid-template-columns: 28mm 8mm minmax(0, 1fr);
-            break-inside: auto !important;
-            page-break-inside: auto !important;
-          }
-          .skp-field-section + .skp-field-section { margin-top: 0.5rem; }
-          .skp-field-label, .skp-field-colon { padding: 0; }
-          .skp-field-colon { text-align: center; }
-          .skp-mengingat-list {
-            break-inside: auto !important;
-            page-break-inside: auto !important;
-          }
-          .skp-mengingat-item {
-            display: grid;
-            grid-template-columns: 9mm minmax(0, 1fr);
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
-            padding-top: 0;
-          }
-          .skp-mengingat-item:first-child { padding-top: 0; }
-          .skp-mengingat-text { text-align: justify; }
-          /* Memutuskan */
-          .skp-memutuskan { text-align: center; font-weight: bold; margin-bottom: 8px; }
-          /* TTD block */
-          .skp-ttd { width: 20rem; margin-left: auto; margin-top: 1.25rem; }
-          .skp-ttd, .skp-ttd p { font-weight: normal !important; text-align: left !important; }
-          .skp-ttd p { margin: 0; padding: 0; line-height: 1.25; }
-          .skp-ttd-meta { display: grid !important; grid-template-columns: max-content auto 1fr; column-gap: 0.4rem; line-height: 1.3; }
-          .skp-ttd-meta span { font-weight: normal !important; text-align: left !important; }
-          .skp-ketiga-group { break-inside: avoid !important; page-break-inside: avoid !important; }
-          .skp-signature-name { font-weight: normal !important; }
-          .skp-ttd-placeholder { height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-          .skp-continuation-word { position: absolute; right: 23mm; bottom: 31mm; width: 163mm; height: 0; line-height: 11pt; overflow: visible; white-space: nowrap; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 20; }
-          /* Tembusan */
-          .skp-tembusan { margin-top: 1rem; }
-          .skp-tembusan, .skp-tembusan p { font-weight: normal !important; text-align: left !important; }
-          .skp-tembusan p { margin: 0; padding: 0; line-height: 1.3; }
-          /* pre-wrap for KEDUA */
-          .skp-kedua-text { display: grid; row-gap: 0; white-space: normal; }
-          .skp-kedua-line { text-align: justify; }
-          .skp-kedua-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); column-gap: 0; text-align: left; }
-          .skp-kedua-subitem { margin-left: 8mm; }
-          .skp-kedua-marker { text-align: left; }
-          .skp-kedua-item-text { text-align: justify; }
-          /* Lampiran */
-          .skp-lampiran {
-            width: 210mm;
-            margin: 0 auto;
-            padding: 12mm 20mm 28mm;
-            page-break-before: always;
-            break-before: page;
-          }
-          .skp-attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
-          .skp-attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
-          .skp-attachment-meta .meta-label { white-space: nowrap; }
-          .skp-attachment-meta .meta-colon { text-align: center; }
-          .skp-lampiran-title { text-align: center; font-weight: bold; line-height: 1.3; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-          .skp-panitia-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-          .skp-panitia-table th, .skp-panitia-table td { border: 1px solid #000; padding: 0.5rem; }
-          .skp-panitia-table td { vertical-align: middle; }
-        </style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(
-    () =>
-      runSkPagination(printWindow, {
-        prefix: "skp",
-        sectionStartMarginTop: "0.5rem",
-        decisionRowLabels: ["KESATU.....", "KEDUA....."],
-        finalGroupClass: "skp-ketiga-group",
-        finalGroupLabel: "KETIGA.....",
-      }),
-    600,
-  );
+  printDocumentWindow({
+    rootId: "sk-panitia-print-root",
+    title: "SK Panitia Penghapusan BMN",
+    emptyMessage: "Tidak ada dokumen SK Panitia untuk dicetak.",
+    styles: SK_PANITIA_PRINT_CSS,
+    onWindowReady: (printWindow) => {
+      setTimeout(
+        () =>
+          runSkPagination(printWindow, {
+            prefix: "skp",
+            sectionStartMarginTop: "0.5rem",
+            decisionRowLabels: ["KESATU.....", "KEDUA....."],
+            finalGroupClass: "skp-ketiga-group",
+            finalGroupLabel: "KETIGA.....",
+          }),
+        600,
+      );
+    },
+  });
 }
 
 

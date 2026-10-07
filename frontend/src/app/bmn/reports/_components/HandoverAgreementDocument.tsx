@@ -55,86 +55,22 @@ interface HandoverAgreementDocumentProps {
   witness?: HandoverWitness | null;
 }
 
-const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-const SMALL_NUMBERS = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
-
-function spellNumber(value: number): string {
-  if (value < 12) return SMALL_NUMBERS[value];
-  if (value < 20) return `${spellNumber(value - 10)} Belas`;
-  if (value < 100) {
-    const tens = Math.floor(value / 10);
-    const rest = value % 10;
-    return `${spellNumber(tens)} Puluh${rest ? ` ${spellNumber(rest)}` : ""}`;
-  }
-  if (value < 200) return `Seratus${value > 100 ? ` ${spellNumber(value - 100)}` : ""}`;
-  if (value < 1000) {
-    const hundreds = Math.floor(value / 100);
-    const rest = value % 100;
-    return `${spellNumber(hundreds)} Ratus${rest ? ` ${spellNumber(rest)}` : ""}`;
-  }
-  if (value < 2000) return `Seribu${value > 1000 ? ` ${spellNumber(value - 1000)}` : ""}`;
-  const thousands = Math.floor(value / 1000);
-  const rest = value % 1000;
-  return `${spellNumber(thousands)} Ribu${rest ? ` ${spellNumber(rest)}` : ""}`;
-}
-
-function parseDate(value: string) {
-  const date = value ? new Date(`${value}T00:00:00`) : new Date();
-  return Number.isNaN(date.getTime()) ? new Date() : date;
-}
-
-function formatSpelledDate(value: string) {
-  const date = parseDate(value);
-  return {
-    day: DAYS[date.getDay()],
-    dateText: spellNumber(date.getDate()),
-    month: MONTHS[date.getMonth()],
-    yearText: spellNumber(date.getFullYear()),
-  };
-}
-
-function fallback(value?: string | number | null) {
-  const text = `${value ?? ""}`.trim();
-  return text || "-";
-}
+import {
+  fallback,
+  formatNip,
+  spellNumber,
+  displayName,
+  signatureName,
+  formatSpelledDate,
+  resolvePhotoUrl as resolveSharedPhotoUrl,
+  chunkPhotoAssets as chunkPhotoItems,
+  printReportDocumentWindow,
+  PHOTO_LAMPIRAN_PRINT_STYLES,
+} from "../_lib/report-utils";
 
 function dataCell(value?: string | number | null) {
   const text = fallback(value);
   return <td className={text === "-" ? "handover-cell-center" : "handover-cell-left"}>{text}</td>;
-}
-
-function formatNip(nip?: string | null) {
-  if (!nip) return "-";
-  const trimmed = nip.trim();
-  if (trimmed === "" || trimmed === "-") return "-";
-  if (trimmed.startsWith("MMP-")) return "-";
-  const digits = trimmed.replace(/\D/g, "");
-  if (digits.length === 18) {
-    return `${digits.slice(0, 8)} ${digits.slice(8, 14)} ${digits.slice(14, 15)} ${digits.slice(15, 18)}`;
-  }
-  return trimmed;
-}
-
-function displayName(value?: string | null) {
-  const text = fallback(value);
-  if (text === "-") return text;
-  if (/[a-z]/.test(text)) return text;
-  return text
-    .toLocaleLowerCase("id-ID")
-    .replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase("id-ID"))
-    .replace(/\bS\.hut\./gi, "S.Hut.")
-    .replace(/\bM\.sc\./gi, "M.Sc.")
-    .replace(/\bM\.t\./gi, "M.T.")
-    .replace(/\bM\.p\./gi, "M.P.");
-}
-
-function signatureName(value?: string | null) {
-  const name = displayName(value);
-  if (name === "-") return name;
-  const [mainName, ...suffix] = name.split(",");
-  const upperMain = mainName.trim().toLocaleUpperCase("id-ID");
-  return suffix.length > 0 ? `${upperMain},${suffix.join(",")}` : upperMain;
 }
 
 function renderFormattedClause(text: string) {
@@ -153,32 +89,8 @@ function renderFormattedClause(text: string) {
   );
 }
 
-function convertDriveUrl(url: string): string {
-  if (!url.includes("drive.google.com") && !url.includes("docs.google.com")) {
-    return url;
-  }
-  const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-  if (fileIdMatch && fileIdMatch[1]) {
-    return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w800`;
-  }
-  return url;
-}
-
 function resolvePhotoUrl(url?: string | null): string | null {
-  if (!url || typeof url !== "string") return null;
-  const trimmed = url.trim();
-  if (!trimmed) return null;
-
-  const driveConverted = convertDriveUrl(trimmed);
-  if (driveConverted !== trimmed) {
-    return driveConverted;
-  }
-
-  if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
-    return trimmed;
-  }
-
-  return resolveApiUrl(trimmed) || trimmed;
+  return resolveSharedPhotoUrl(url, resolveApiUrl);
 }
 
 function getItemPrintPhotos(item: HandoverItem): string[] {
@@ -198,175 +110,58 @@ function getItemPrintPhotos(item: HandoverItem): string[] {
   return resolved.slice(0, 2);
 }
 
-function chunkPhotoItems<T>(array: T[], size = 3): T[][] {
-  if (array.length === 0) return [];
-  const chunks: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
+const HANDOVER_PRINT_STYLES = `
+  @page { size: A4 portrait; margin: 0 !important; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif !important; font-size: 10.5pt; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body * { font-family: Arial, Helvetica, sans-serif !important; visibility: visible !important; }
+  p { margin: 0; }
+  .handover-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 10mm; }
+  .handover-header { margin: 0 -12mm; text-align: center; }
+  .handover-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
+  .handover-title { margin-top: 2.5mm; text-align: center; font-weight: 700; font-size: 11.5pt; white-space: pre-wrap; }
+  .handover-body { margin-top: 2.5mm; text-align: justify; font-size: 10.5pt; line-height: 1.25; }
+  .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 1.5mm 0; }
+  .handover-rows { display: grid; grid-template-columns: 28mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.3mm; }
+  .handover-colon { text-align: center; }
+  .handover-val { text-align: left; word-break: break-word; overflow-wrap: break-word; line-height: 1.25; }
+
+  .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2mm 0 1.5mm; font-size: 9.5pt; text-align: center; }
+  .handover-table th, .handover-table td { border: 1px solid #000; padding: 2.5px 3.5px; vertical-align: middle; overflow-wrap: anywhere; }
+  .handover-table td.handover-cell-left { text-align: left; }
+  .handover-table td.handover-cell-center { text-align: center; }
+  .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.5pt; }
+  .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
+
+  .page-continuation-spacer {
+    display: block !important;
+    height: 18mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    page-break-before: always !important;
+    break-before: page !important;
   }
-  return chunks;
-}
+
+  .handover-closing-table { width: 100% !important; border: none !important; border-collapse: collapse !important; margin-top: 2.5mm !important; }
+  .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 4mm; text-align: left; }
+  .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 48%; }
+  .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 52%; }
+  .handover-sig-left p, .handover-sig-right p, .handover-signature-name { white-space: nowrap; }
+  .handover-signature-name { margin-top: 28mm; font-weight: 700; white-space: nowrap; }
+  .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+  .avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
+  ${PHOTO_LAMPIRAN_PRINT_STYLES}
+`;
 
 export function handlePrintHandoverAgreement(documentId = "ba-serah-terima-print-root") {
-  const printContent = document.getElementById(documentId);
-  if (!printContent) {
-    toast.error("Tidak ada dokumen BA Serah Terima untuk dicetak.");
-    return;
-  }
-
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>BA Serah Terima BMN</title>
-        <style>
-          @page { size: A4 portrait; margin: 0 !important; }
-          * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif !important; font-size: 10.5pt; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          body * { font-family: Arial, Helvetica, sans-serif !important; visibility: visible !important; }
-          p { margin: 0; }
-          .handover-page { width: 210mm; margin: 0 auto; padding: 3.5mm 20mm 10mm; }
-          .handover-header { margin: 0 -12mm; text-align: center; }
-          .handover-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          .handover-title { margin-top: 2.5mm; text-align: center; font-weight: 700; font-size: 11.5pt; white-space: pre-wrap; }
-          .handover-body { margin-top: 2.5mm; text-align: justify; font-size: 10.5pt; line-height: 1.25; }
-          .handover-party { display: grid; grid-template-columns: 7mm 1fr; column-gap: 4mm; margin: 1.5mm 0; }
-          .handover-rows { display: grid; grid-template-columns: 28mm 5mm minmax(0, 1fr); align-items: flex-start; margin-bottom: 0.3mm; }
-          .handover-colon { text-align: center; }
-          .handover-val { text-align: left; word-break: break-word; overflow-wrap: break-word; line-height: 1.25; }
-
-          .handover-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2mm 0 1.5mm; font-size: 9.5pt; text-align: center; }
-          .handover-table th, .handover-table td { border: 1px solid #000; padding: 2.5px 3.5px; vertical-align: middle; overflow-wrap: anywhere; }
-          .handover-table td.handover-cell-left { text-align: left; }
-          .handover-table td.handover-cell-center { text-align: center; }
-          .handover-table thead tr.table-number-row th { font-weight: 400; padding: 1px 0; font-size: 8.5pt; }
-          .handover-table tr { break-inside: avoid; page-break-inside: avoid; }
-
-          .page-continuation-spacer {
-            display: block !important;
-            height: 18mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            page-break-before: always !important;
-            break-before: page !important;
-          }
-
-          .handover-closing-table { width: 100% !important; border: none !important; border-collapse: collapse !important; margin-top: 2.5mm !important; }
-          .handover-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 4mm; text-align: left; }
-          .handover-sig-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 48%; }
-          .handover-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; min-width: 65mm; max-width: 52%; }
-          .handover-sig-left p, .handover-sig-right p, .handover-signature-name { white-space: nowrap; }
-          .handover-signature-name { margin-top: 28mm; font-weight: 700; white-space: nowrap; }
-          .handover-witness-block { margin-top: 6mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
-          .avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
-
-          /* Lampiran Foto Styles */
-          .photo-lampiran-page {
-            page-break-before: always;
-            break-before: page;
-            width: 210mm;
-            margin: 0 auto;
-            padding: 3.5mm 20mm 10mm;
-          }
-          .photo-lampiran-title {
-            margin-top: 3mm;
-            margin-bottom: 5mm;
-            text-align: center;
-            font-weight: 700;
-            font-size: 10pt;
-          }
-          .photo-asset-block {
-            break-inside: avoid;
-            page-break-inside: avoid;
-            margin-bottom: 8mm;
-            text-align: center;
-          }
-          .photo-asset-title {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 10pt;
-            font-weight: 400;
-            margin-bottom: 3mm;
-            text-align: center;
-          }
-          .photo-grid-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8mm;
-          }
-          .photo-img {
-            width: 82mm;
-            height: 60mm;
-            object-fit: contain;
-            background-color: transparent;
-            border: none;
-          }
-          .photo-placeholder {
-            width: 82mm;
-            height: 60mm;
-            border: 1px dashed #ccc;
-            background: #f9fafb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #9ca3af;
-            font-size: 8.5pt;
-          }
-        </style>
-      </head>
-      <body>
-        <div id="${documentId}" class="handover-preview">
-          ${(() => {
-            if (typeof window === "undefined") return printContent.innerHTML;
-            const container = document.createElement("div");
-            container.innerHTML = printContent.innerHTML;
-            const styles = container.getElementsByTagName("style");
-            while (styles.length > 0) {
-              styles[0].parentNode?.removeChild(styles[0]);
-            }
-            const imgs = container.getElementsByTagName("img");
-            for (let i = 0; i < imgs.length; i++) {
-              const src = imgs[i].getAttribute("src");
-              if (src && !/^https?:\/\//i.test(src) && !src.startsWith("data:")) {
-                imgs[i].setAttribute("src", `${window.location.origin}${src.startsWith("/") ? "" : "/"}${src}`);
-              }
-            }
-            return container.innerHTML;
-          })()}
-        </div>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
-
-  const images = printWindow.document.getElementsByTagName("img");
-  let loaded = 0;
-  const total = images.length;
-  const doPrint = () => {
-    printWindow.focus();
-    printWindow.print();
-  };
-
-  if (total === 0) {
-    setTimeout(doPrint, 300);
-  } else {
-    for (let i = 0; i < total; i++) {
-      if (images[i].complete) {
-        loaded++;
-      } else {
-        images[i].onload = images[i].onerror = () => {
-          loaded++;
-          if (loaded >= total) doPrint();
-        };
-      }
-    }
-    if (loaded >= total) {
-      setTimeout(doPrint, 300);
-    }
-  }
+  printReportDocumentWindow({
+    rootId: documentId,
+    title: "BA Serah Terima BMN",
+    emptyMessage: "Tidak ada dokumen BA Serah Terima untuk dicetak.",
+    styles: HANDOVER_PRINT_STYLES,
+    waitForImages: true,
+  });
 }
 
 function PartyBlock({ index, party, label }: { index: number; party: HandoverParty; label: string }) {

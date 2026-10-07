@@ -455,6 +455,13 @@ class AuctionBatchService
                 );
             }
 
+            if (array_key_exists('document_contents', $payload)) {
+                $metadata['document_contents'] = array_replace(
+                    $metadata['document_contents'] ?? [],
+                    $payload['document_contents'] ?? []
+                );
+            }
+
             if (isset($payload['workflow']['documents']) && is_array($payload['workflow']['documents'])) {
                 $workflow = $metadata['workflow'] ?? [];
                 $workflow['version'] = $workflow['version'] ?? 1;

@@ -7,6 +7,7 @@ use App\Modules\Bmn\Exports\AssetExport;
 use App\Modules\Bmn\Imports\AssetImport;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetUpdate;
+use App\Modules\Bmn\Models\Tag;
 use App\Modules\Bmn\Requests\DisposeAssetRequest;
 use App\Modules\Bmn\Requests\StoreAssetRequest;
 use App\Modules\Bmn\Requests\UpdateAssetRequest;
@@ -104,27 +105,22 @@ class AssetController extends Controller
             });
         }
 
-        if ($request->filled('kondisi')) {
-            $kondisi = mb_strtolower(trim((string) $request->kondisi));
-            $query->whereRaw('LOWER(kondisi) LIKE ?', ["%{$kondisi}%"]);
-        }
-
-        if ($request->filled('jenis_bmn')) {
-            $jenisBmn = mb_strtolower(trim((string) $request->jenis_bmn));
-            $query->whereRaw('LOWER(jenis_bmn) LIKE ?', ["%{$jenisBmn}%"]);
-        }
-
-        if ($request->filled('lokasi_ruang')) {
-            $lokasiRuang = mb_strtolower(trim((string) $request->lokasi_ruang));
-            $query->whereRaw('LOWER(lokasi_ruang) LIKE ?', ["%{$lokasiRuang}%"]);
+        foreach (['kondisi', 'jenis_bmn', 'lokasi_ruang'] as $field) {
+            if ($request->filled($field)) {
+                $val = mb_strtolower(trim((string) $request->input($field)));
+                $query->whereRaw("LOWER({$field}) LIKE ?", ["%{$val}%"]);
+            }
         }
 
         $rawTags = $request->input('tag_ids', $request->input('tag_id'));
         if ($rawTags && $rawTags !== 'Semua') {
             $tagIds = is_array($rawTags) ? $rawTags : explode(',', (string) $rawTags);
-            foreach (array_filter($tagIds) as $tId) {
-                if ($tId !== 'Semua') {
-                    $query->whereHas('tags', fn ($q) => $q->where('bmn_tags.id', $tId));
+            $cleanTagIds = array_filter($tagIds, fn ($id) => $id !== 'Semua' && !empty($id));
+            if (!empty($cleanTagIds)) {
+                $tagsModels = Tag::with('subTags')->whereIn('id', $cleanTagIds)->get();
+                foreach ($tagsModels as $tModel) {
+                    $familyIds = $tModel->getFamilyTagIds();
+                    $query->whereHas('tags', fn ($q) => $q->whereIn('bmn_tags.id', $familyIds));
                 }
             }
         }

@@ -127,22 +127,55 @@ export function TagAssignmentDialog({
     return tags;
   }, [tags, bulkMode, effectiveActiveTags]);
 
-  // Filter display tags further by user search query (matching name or description)
+  // Filter and sort hierarchically: Main Tags first, then Sub Tags indented under parent
   const filteredTags = useMemo(() => {
-    if (!searchQuery.trim()) return displayTags;
-    const q = searchQuery.toLowerCase().trim();
-    return displayTags.filter(
-      (t) =>
-        t.name.toLowerCase().includes(q) ||
-        (t.description && t.description.toLowerCase().includes(q))
-    );
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      return displayTags.filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          (t.description && t.description.toLowerCase().includes(q))
+      );
+    }
+
+    const mainList = displayTags.filter((t) => !t.parent_id);
+    const subMap = new Map<string, IBmnTag[]>();
+    displayTags.forEach((t) => {
+      if (t.parent_id) {
+        const list = subMap.get(t.parent_id) || [];
+        list.push(t);
+        subMap.set(t.parent_id, list);
+      }
+    });
+
+    const ordered: IBmnTag[] = [];
+    mainList.forEach((main) => {
+      ordered.push(main);
+      const subs = subMap.get(main.id) || [];
+      subs.forEach((s) => ordered.push(s));
+    });
+
+    displayTags.forEach((t) => {
+      if (t.parent_id && !mainList.some((m) => m.id === t.parent_id)) {
+        ordered.push(t);
+      }
+    });
+
+    return ordered;
   }, [displayTags, searchQuery]);
 
-  const toggleTag = (id: string) => {
+  const toggleTag = (tag: IBmnTag) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(tag.id)) {
+        next.delete(tag.id);
+      } else {
+        next.add(tag.id);
+        // Automatically link parent Main Tag when selecting a Sub Tag in non-detach mode
+        if (tag.parent_id && bulkMode !== "detach") {
+          next.add(tag.parent_id);
+        }
+      }
       return next;
     });
   };
@@ -340,15 +373,17 @@ export function TagAssignmentDialog({
                     const tagCount = activeCountMap.get(tag.id) || 0;
                     const isFullyAttached = isBulk && bulkMode === "attach" && tagCount >= assetCount && assetCount > 0;
                     const isPartiallyAttached = isBulk && bulkMode === "attach" && tagCount > 0 && tagCount < assetCount;
+                    const isSub = Boolean(tag.parent_id);
 
                     return (
                       <button
                         key={tag.id}
                         type="button"
                         disabled={isFullyAttached}
-                        onClick={() => !isFullyAttached && toggleTag(tag.id)}
+                        onClick={() => !isFullyAttached && toggleTag(tag)}
                         className={cn(
                           "w-full flex items-center justify-between p-2.5 rounded-xl border transition-all text-left",
+                          isSub && "pl-5 sm:pl-6 bg-slate-50/40 dark:bg-slate-900/30",
                           isFullyAttached
                             ? "border-slate-200/60 dark:border-slate-800/60 bg-slate-50/70 dark:bg-slate-800/30 opacity-70 cursor-not-allowed"
                             : isChecked
@@ -358,10 +393,18 @@ export function TagAssignmentDialog({
                               : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer"
                         )}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                          {isSub && (
+                            <span className="font-mono text-slate-400 text-xs font-bold shrink-0 select-none">↳</span>
+                          )}
                           <TagBadge tag={tag} size="md" />
+                          {isSub && (
+                            <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0">
+                              Sub-tag
+                            </span>
+                          )}
                           {tag.description && (
-                            <span className="text-xs text-slate-400 truncate max-w-[170px]">
+                            <span className="text-xs text-slate-400 truncate max-w-[150px]">
                               {tag.description}
                             </span>
                           )}
