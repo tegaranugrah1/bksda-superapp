@@ -7,15 +7,7 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
-
-interface Employee {
-  id: string;
-  nip: string;
-  nama_lengkap: string;
-  jabatan: string | null;
-  satuan_kerja: string | null;
-  is_active: boolean;
-}
+import type { Employee } from "../_lib";
 
 interface ApiResponse {
   data: Employee[];

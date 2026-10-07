@@ -8,6 +8,7 @@ import { Calendar, Save, Award, Info, AlertCircle, CheckCircle2, ShieldCheck, Cl
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { isAxiosError } from "axios";
 
 interface EmployeeLeaveData {
   id?: number;
@@ -122,8 +123,12 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
       toast.success("Saldo & Hak Cuti Pegawai berhasil diperbarui!");
       queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Gagal menyimpan saldo cuti.");
+    onError: (err: unknown) => {
+      let msg = "Gagal menyimpan saldo cuti.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      toast.error(msg);
     },
   });
 
@@ -137,7 +142,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
             <h3 className="text-base font-bold text-slate-900">Manajemen Hak Cuti PNS</h3>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Penghitungan otomatis hak cuti tahunan sesuai <span className="font-semibold text-slate-700">Peraturan BKN No. 24 Tahun 2017 & No. 7 Tahun 2021</span>.
+            Penghitungan otomatis hak cuti tahunan sesuai{" "}
+            <span className="font-semibold text-slate-700">Peraturan BKN No. 24 Tahun 2017 & No. 7 Tahun 2021</span>.
           </p>
         </div>
 

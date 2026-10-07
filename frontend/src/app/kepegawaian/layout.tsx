@@ -50,7 +50,7 @@ export default function KepegawaianLayout({
         <Menu className="w-6 h-6" />
       </button>
 
-      <div className="flex min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 relative overflow-hidden">
+      <div className="flex h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 relative overflow-hidden">
         {/* Layar Gelap (Backdrop) saat laci ditarik di layar HP */}
         {isOpen && (
           <div
@@ -128,7 +128,7 @@ export default function KepegawaianLayout({
             <LogoutButton />
           </div>
         </aside>
-        <main className="flex-1 overflow-auto bg-zinc-50 dark:bg-black">
+        <main className="flex-1 h-full overflow-y-auto bg-zinc-50 dark:bg-black">
           {children}
         </main>
       </div>

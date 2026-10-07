@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { calculateMasaKerja } from "@/app/portal/_components/FormulirCutiPrint";
+import { calculateMasaKerja } from "../_lib/employee-helpers";
 import {
   LeaveRequestItem,
   EditLeaveModal,
@@ -21,6 +21,14 @@ import {
 export default function InboxSuratCutiPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   // Modals state
   const [printItem, setPrintItem] = useState<LeaveRequestItem | null>(null);
@@ -39,9 +47,11 @@ export default function InboxSuratCutiPage() {
   });
 
   const { data: responseData, isLoading } = useQuery({
-    queryKey: ["inboxLeaveRequests", search],
+    queryKey: ["inboxLeaveRequests", debouncedSearch],
     queryFn: async () => {
-      const { data } = await api.get(`/kepegawaian/leave-requests?search=${search}`);
+      const { data } = await api.get(`/kepegawaian/leave-requests`, {
+        params: { search: debouncedSearch || undefined },
+      });
       return data;
     },
   });
@@ -59,7 +69,7 @@ export default function InboxSuratCutiPage() {
       } else {
         toast.info("Status pengajuan cuti dikembalikan ke PENGAJUAN.");
       }
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
     },
     onError: () => {
       toast.error("Gagal mengubah status pengajuan.");
@@ -74,7 +84,7 @@ export default function InboxSuratCutiPage() {
     },
     onSuccess: () => {
       toast.success("Pengajuan Cuti berhasil diperbarui!");
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
       setEditItem(null);
     },
     onError: () => {
@@ -90,7 +100,7 @@ export default function InboxSuratCutiPage() {
     },
     onSuccess: () => {
       toast.success("Pengajuan Cuti berhasil dihapus!");
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
       setDeleteItem(null);
     },
     onError: () => {

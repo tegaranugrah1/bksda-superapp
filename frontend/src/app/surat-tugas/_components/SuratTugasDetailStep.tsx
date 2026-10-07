@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Employee } from "./EmployeeSelectionStep";
 import { cleanMelaksanakanKegiatanPrefix } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import api from "@/lib/api";
 
 export type JenisTugasType =
   | "Perjalanan Dinas ( Lebih dari 1 Hari )"
@@ -110,9 +111,9 @@ export function SuratTugasDetailStep({
   ]);
 
   React.useEffect(() => {
-    fetch("/api/kepegawaian/st-expense-templates/public?active_only=true")
-      .then((res) => res.json())
-      .then((data) => {
+    api.get("/kepegawaian/st-expense-templates/public?active_only=true")
+      .then((res) => {
+        const data = res.data;
         if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
           const list = data.data.map((item: { name: string; code: string }) => ({
             id: item.name,

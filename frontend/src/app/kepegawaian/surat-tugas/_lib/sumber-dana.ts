@@ -29,16 +29,21 @@ export function normalizeSumberDana(
   );
   if (exactLabel) return exactLabel.id;
 
-  if (normalized.includes("folu")) return "folu";
-  if (normalized.includes("dipa")) return "dipa";
-  if (normalized.includes("kja")) return "kja";
-  if (normalized.includes("mja")) return "mja";
-  if (normalized.includes("cop")) return "cop";
-  if (normalized.includes("tjiwi")) return "tjiwi_kimia";
-  if (normalized.includes("bosf")) return "bosf";
-  if (normalized.includes("can")) return "can";
-  if (normalized.includes("alert")) return "alert";
-  if (normalized.includes("dl 1") || normalized.includes("tidak ada biaya")) return "dl1";
+  const KEYWORD_MAP: Array<[string, string]> = [
+    ["folu", "folu"],
+    ["dipa", "dipa"],
+    ["kja", "kja"],
+    ["mja", "mja"],
+    ["cop", "cop"],
+    ["tjiwi", "tjiwi_kimia"],
+    ["bosf", "bosf"],
+    ["can", "can"],
+    ["alert", "alert"],
+    ["dl 1", "dl1"],
+    ["tidak ada biaya", "dl1"],
+  ];
+  const matchedKey = KEYWORD_MAP.find(([keyword]) => normalized.includes(keyword));
+  if (matchedKey) return matchedKey[1];
 
   // 3. Preserve custom code if it's a slug or alphanumeric identifier (not generic sentence)
   if (value && value !== "other" && !value.includes(" ") && value.length < 50) {
@@ -61,21 +66,20 @@ export function isFundingDasarText(
     if (matchedCustom) return true;
   }
 
-  return (
-    lower.includes("surat pengesahan dipa") ||
-    lower.includes("sp dipa") ||
-    lower.includes("perjanjian kerjasama") ||
-    lower.includes("perjanjian kerja sama") ||
-    lower.includes("pks.") ||
-    lower.includes("kideco") ||
-    lower.includes("jayantara") ||
-    lower.includes("orangutan protection") ||
-    lower.includes("tjiwi kimia") ||
-    lower.includes("bosf") ||
-    lower.includes("alert") ||
-    lower.includes("conservation action network") ||
-    lower.includes("folu net sink") ||
-    lower.includes("hibah")
-  );
+  const STATIC_FUNDING_KEYWORDS = [
+    "dipa",
+    "perjanjian kerja",
+    "pks.",
+    "kideco",
+    "jayantara",
+    "orangutan protection",
+    "tjiwi kimia",
+    "bosf",
+    "alert",
+    "conservation action network",
+    "folu net sink",
+    "hibah",
+  ];
+  return STATIC_FUNDING_KEYWORDS.some((keyword) => lower.includes(keyword));
 }
 

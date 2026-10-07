@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { FileText, Calendar, MapPin, Eye, Plus } from "lucide-react";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
+import { formatDateIndonesian } from "@/lib/letter-utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
@@ -57,14 +56,14 @@ interface AssignmentLetterPreviewData {
 }
 
 interface Meta {
-    current_page: number;
-    last_page: number;
-    total: number;
+  current_page: number;
+  last_page: number;
+  total: number;
 }
 
 interface ApiResponse {
-    data: AssignmentLetter[];
-    meta: Meta;
+  data: AssignmentLetter[];
+  meta: Meta;
 }
 
 export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) {
@@ -89,9 +88,13 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
   };
 
   if (isLoading) {
-    return <div className="space-y-3">
-        {[1,2,3].map(i => <div key={i} className="h-20 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-xl" />)}
-    </div>;
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-20 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-xl" />
+        ))}
+      </div>
+    );
   }
 
   const assignments = data?.data || [];
@@ -102,10 +105,10 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
         <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Riwayat Penugasan</h3>
         {canWrite && (
           <Link href={`/kepegawaian/surat-tugas/create?employee_id=${employeeId}`}>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
-                  <Plus className="w-4 h-4" />
-                  Buat Surat Tugas
-              </Button>
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
+              <Plus className="w-4 h-4" />
+              Buat Surat Tugas
+            </Button>
           </Link>
         )}
       </div>
@@ -118,7 +121,10 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
       ) : (
         <div className="grid gap-3">
           {assignments.map((st) => (
-            <div key={st.id} className="group p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-blue-500/50 transition-all shadow-sm">
+            <div
+              key={st.id}
+              className="group p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-blue-500/50 transition-all shadow-sm"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <p className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
@@ -130,15 +136,21 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5" />
-                      {st.tanggal_mulai ? format(new Date(st.tanggal_mulai), "dd MMM yyyy", { locale: id }) : '-'} - {st.tanggal_selesai ? format(new Date(st.tanggal_selesai), "dd MMM yyyy", { locale: id }) : '-'}
+                      {st.tanggal_mulai ? formatDateIndonesian(st.tanggal_mulai) : "-"} -{" "}
+                      {st.tanggal_selesai ? formatDateIndonesian(st.tanggal_selesai) : "-"}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5" />
-                      {st.tempat_tujuan || '-'}
+                      {st.tempat_tujuan || "-"}
                     </span>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-blue-500" onClick={() => handleView(st.id)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-zinc-400 hover:text-blue-500"
+                  onClick={() => handleView(st.id)}
+                >
                   <Eye className="w-4 h-4" />
                 </Button>
               </div>

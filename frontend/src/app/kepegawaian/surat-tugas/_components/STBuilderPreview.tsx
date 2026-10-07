@@ -6,7 +6,7 @@ import {
   formatNIP,
   indexToLetter,
 } from "@/lib/letter-utils";
-import { resolveKopImageUrl } from "../../_lib";
+import { resolveKopImageUrl } from "../_lib";
 import STLampiranBedaHari, { type EmployeeDateRange } from "./STLampiranBedaHari";
 
 function HalamanDivider({ 

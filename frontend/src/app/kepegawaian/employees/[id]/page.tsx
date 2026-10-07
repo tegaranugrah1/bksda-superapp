@@ -6,61 +6,17 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, User, FileText, Shield, Briefcase, Building2, BadgeCheck, Hash, ChevronDown, Pencil, Save, X, KeyRound, Calendar } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { AssignmentLetterHistory } from "../../_components/AssignmentLetterHistory";
+import { AssignmentLetterHistory } from "../_components/AssignmentLetterHistory";
 import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
-import { EmployeeLeaveTab } from "../../_components/EmployeeLeaveTab";
-import { calculateMasaKerja } from "@/app/portal/_components/FormulirCutiPrint";
+import { EmployeeLeaveTab } from "../_components/EmployeeLeaveTab";
+import { calculateMasaKerja } from "../../_lib/employee-helpers";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-interface Employee {
-  id: string;
-  nip: string;
-  nama_lengkap: string;
-  jabatan: string | null;
-  pangkat_golongan: string | null;
-  satuan_kerja: string | null;
-  is_active: boolean;
-  foto_url: string | null;
-  resor: string | null;
-}
-
-const PANGKAT_OPTIONS = [
-  "- (Tidak ada pangkat)",
-  "Juru Muda (I/a)", "Juru Muda Tingkat I (I/b)", "Juru (I/c)", "Juru Tingkat I (I/d)",
-  "Pengatur Muda (II/a)", "Pengatur Muda Tingkat I (II/b)", "Pengatur (II/c)", "Pengatur Tingkat I (II/d)",
-  "Penata Muda (III/a)", "Penata Muda Tingkat I (III/b)", "Penata (III/c)", "Penata Tingkat I (III/d)",
-  "Pembina (IV/a)", "Pembina Tingkat I (IV/b)", "Pembina Utama Muda (IV/c)", "Pembina Utama Madya (IV/d)", "Pembina Utama (IV/e)",
-  "PPPK Golongan I", "PPPK Golongan II", "PPPK Golongan III", "PPPK Golongan IV",
-  "PPPK Golongan V", "PPPK Golongan VI", "PPPK Golongan VII", "PPPK Golongan VIII",
-  "PPPK Golongan IX", "PPPK Golongan X", "PPPK Golongan XI", "PPPK Golongan XII",
-  "PPPK Golongan XIII", "PPPK Golongan XIV", "PPPK Golongan XV", "PPPK Golongan XVI",
-  "PPPK Golongan XVII",
-];
-
-const UNIT_KERJA_OPTIONS = [
-  "Kantor Balai KSDA Kalimantan Timur",
-  "Seksi KSDA Wilayah I Berau",
-  "Seksi KSDA Wil I - Resor 01. Berau",
-  "Seksi KSDA Wil I - Resor 02. Pulau Semama dan Pulau Sangalaki",
-  "Seksi KSDA Wil I - Resor 03. Tanjung Selor",
-  "Seksi KSDA Wil I - Resor 04. Tarakan",
-  "Seksi KSDA Wilayah II Tenggarong",
-  "Seksi KSDA Wil II - Resor 05. Samarinda",
-  "Seksi KSDA Wil II - Resor 06. Padang Luway",
-  "Seksi KSDA Wil II - Resor 07. Muara Kaman Sedulang",
-  "Seksi KSDA Wil II - Resor 08. Sangatta",
-  "Seksi KSDA Wil II - Resor 09. Suaka Badak Kelian",
-  "Seksi KSDA Wilayah III Balikpapan",
-  "Seksi KSDA Wil III - Resor 10. Balikpapan",
-  "Seksi KSDA Wil III - Resor 11. Teluk Adang",
-  "Seksi KSDA Wil III - Resor 12. Teluk Apar",
-  "Seksi KSDA Wil III - Resor 13. Paser",
-  "Seksi KSDA Wil III - Resor 14. Ibu Kota Nusantara",
-];
+import { PANGKAT_OPTIONS, SATUAN_KERJA_OPTIONS as UNIT_KERJA_OPTIONS } from "../../_lib/employee-constants";
+import type { Employee } from "../../_lib";
 
 export default function EmployeeDetailPage() {
   const { id } = useParams();
@@ -250,15 +206,21 @@ export default function EmployeeDetailPage() {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      if (file.size > 10 * 1024 * 1024) { alert("Maksimal 10MB"); return; }
+                      if (file.size > 10 * 1024 * 1024) {
+                        toast.error("Ukuran foto maksimal 10MB");
+                        return;
+                      }
                       const fd = new FormData();
                       fd.append("foto", file);
                       try {
                         await api.post(`/kepegawaian/employees/${id}/photo`, fd, {
                           headers: { "Content-Type": "multipart/form-data" },
                         });
-                        window.location.reload();
-                      } catch { alert("Gagal mengupload foto."); }
+                        toast.success("Foto profil berhasil diperbarui!");
+                        queryClient.invalidateQueries({ queryKey: ["employee", id] });
+                      } catch {
+                        toast.error("Gagal mengupload foto.");
+                      }
                     }}
                   />
                 </label>

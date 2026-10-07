@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { formatDateIndonesian } from "@/lib/letter-utils";
 import { Printer, Trash2, Filter, FileText, RefreshCcw, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { cleanMelaksanakanKegiatanPrefix } from "../../_lib/activity-helpers";
 
 interface SuratTugasItem {
     id: string;
@@ -37,14 +38,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function cleanMaksudTujuan(text?: string | null): string {
-    if (!text) return '-';
-    let clean = text.split("\n")[0].trim();
-    const parts = clean.split(/(?=Membuat laporan|Segala biaya)/i);
-    if (parts.length > 0) {
-        clean = parts[0].trim();
-    }
-    clean = clean.replace(/[,;]?\s*selama\s+.*$/i, '').trim().replace(/;$/, '').trim();
-    return clean || text;
+    return text ? cleanMelaksanakanKegiatanPrefix(text) || '-' : '-';
 }
 
 export function AssignmentHistoryTab() {
