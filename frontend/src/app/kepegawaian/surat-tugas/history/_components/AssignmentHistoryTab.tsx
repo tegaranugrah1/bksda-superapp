@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { formatDateIndonesian } from "@/lib/letter-utils";
+import { formatDateIndonesian, formatDateRangeIndonesian } from "@/lib/letter-utils";
 import { Printer, Trash2, Filter, FileText, RefreshCcw, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cleanMelaksanakanKegiatanPrefix } from "../../_lib/activity-helpers";
@@ -189,7 +189,7 @@ export function AssignmentHistoryTab() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="space-y-1">
-                                                <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-wider">{formatDateIndonesian(item.tanggal_mulai)}</p>
+                                                <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-wider">{formatDateRangeIndonesian(item.tanggal_mulai, item.tanggal_selesai)}</p>
                                                 <p className="text-zinc-400 dark:text-zinc-500 text-[11px] italic">{item.tempat_tujuan}</p>
                                             </div>
                                         </td>

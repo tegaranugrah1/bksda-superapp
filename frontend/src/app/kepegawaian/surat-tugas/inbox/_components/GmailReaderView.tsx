@@ -31,7 +31,7 @@ import {
   cleanMaksudTujuan,
   formatFormalSumberDana,
 } from "../_lib/status-helpers";
-import { formatDateIndonesian } from "@/lib/letter-utils";
+import { formatDateIndonesian, formatDateRangeIndonesian } from "@/lib/letter-utils";
 
 interface GmailReaderViewProps {
   letter: AssignmentLetter;
@@ -302,8 +302,11 @@ export function GmailReaderView({
               <Calendar className="w-4 h-4 text-purple-500 shrink-0" />
               <div>
                 <p className="text-[10px] text-slate-400 font-bold uppercase">Tanggal Tugas</p>
-                <p className="font-bold truncate">
-                  {letter.tanggal_mulai ? formatDateIndonesian(letter.tanggal_mulai) : "-"}
+                <p
+                  className="font-bold truncate"
+                  title={formatDateRangeIndonesian(letter.tanggal_mulai, letter.tanggal_selesai)}
+                >
+                  {formatDateRangeIndonesian(letter.tanggal_mulai, letter.tanggal_selesai)}
                 </p>
               </div>
             </div>

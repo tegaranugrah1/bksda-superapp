@@ -13,6 +13,58 @@ export function formatDateIndonesian(dateStr: string | null | undefined): string
     }
 }
 
+const INDO_MONTHS = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
+function parseDateParts(dateStr: string) {
+    const cleaned = String(dateStr).split("T")[0].trim();
+    const parts = cleaned.split("-").map(Number);
+    if (parts.length === 3 && !parts.some(isNaN)) {
+        return { y: parts[0], m: parts[1] - 1, d: parts[2] };
+    }
+    const dt = new Date(dateStr);
+    return isNaN(dt.getTime()) ? null : { y: dt.getFullYear(), m: dt.getMonth(), d: dt.getDate() };
+}
+
+/**
+ * Format rentang tanggal tugas ringkas dalam bahasa Indonesia:
+ * - 1 hari / sama: "29 September 2026"
+ * - Bulan & tahun sama: "24 s/d 27 Agustus 2026"
+ * - Beda bulan, tahun sama: "28 Agustus s/d 02 September 2026"
+ * - Beda tahun: "28 Desember 2025 s/d 02 Januari 2026"
+ */
+export function formatDateRangeIndonesian(
+    startDate?: string | null,
+    endDate?: string | null
+): string {
+    if (!startDate && !endDate) return "-";
+    if (startDate && !endDate) return formatDateIndonesian(startDate);
+    if (!startDate && endDate) return formatDateIndonesian(endDate);
+
+    const s = parseDateParts(startDate!);
+    const e = parseDateParts(endDate!);
+
+    if (!s || !e) {
+        return `${formatDateIndonesian(startDate)} s/d ${formatDateIndonesian(endDate)}`;
+    }
+
+    if (s.y === e.y && s.m === e.m && s.d === e.d) {
+        return `${s.d} ${INDO_MONTHS[s.m]} ${s.y}`;
+    }
+
+    if (s.y === e.y && s.m === e.m) {
+        return `${s.d} s/d ${e.d} ${INDO_MONTHS[s.m]} ${s.y}`;
+    }
+
+    if (s.y === e.y) {
+        return `${s.d} ${INDO_MONTHS[s.m]} s/d ${e.d} ${INDO_MONTHS[e.m]} ${s.y}`;
+    }
+
+    return `${s.d} ${INDO_MONTHS[s.m]} ${s.y} s/d ${e.d} ${INDO_MONTHS[e.m]} ${e.y}`;
+}
+
 /**
  * Angka ke terbilang (untuk durasi hari di Surat Tugas).
  * numberToWords(7) → "tujuh"

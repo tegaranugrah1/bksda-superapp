@@ -2345,8 +2345,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/create/page.tsx": {
-    "mtime": 1791371242.1918843,
-    "ast_hash": "e02bd53c4683d0c1d51da639ae907028",
+    "mtime": 1791374757.2521663,
+    "ast_hash": "2e3cb70aa5b721aaae03a155e2d09432",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/layout.tsx": {
@@ -2770,8 +2770,8 @@
     "semantic_hash": "2e57578c5277fa2195628a110576f9de"
   },
   "frontend/src/lib/letter-utils.ts": {
-    "mtime": 1791371288.760251,
-    "ast_hash": "30ba8a8c220d1e63c16c154076f54dd4",
+    "mtime": 1791377231.6662195,
+    "ast_hash": "32794092c1af5db70d9b63744f6a5a6e",
     "semantic_hash": ""
   },
   "frontend/src/lib/utils.ts": {
@@ -6180,8 +6180,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/GmailReaderView.tsx": {
-    "mtime": 1788917895.6655023,
-    "ast_hash": "af055d79a3f42a7681203ad00671835f",
+    "mtime": 1791377255.9530022,
+    "ast_hash": "9890d6595cdb51647dd2a9be4ae3e561",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/GmailRowItem.tsx": {
@@ -6555,8 +6555,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/history/_components/AssignmentHistoryTab.tsx": {
-    "mtime": 1791374351.7917638,
-    "ast_hash": "343218ed747e093bdc3484954908f0f1",
+    "mtime": 1791377285.1636646,
+    "ast_hash": "5f2a3e8c604d04bb11b252350eb97a1e",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-types.ts": {
