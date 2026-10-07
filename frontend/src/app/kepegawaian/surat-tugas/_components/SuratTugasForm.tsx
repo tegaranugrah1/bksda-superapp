@@ -1275,13 +1275,13 @@ export function SuratTugasForm({
       if (mode === "create") {
         await api.post("/surat-tugas", payload);
         toast.success("Surat Tugas berhasil diterbitkan!");
-        router.push("/kepegawaian/surat-tugas/history");
+        router.push("/kepegawaian/surat-tugas/inbox");
       } else if (mode === "edit" && letterId) {
         await api.put(`/surat-tugas/${letterId}/approve`, payload);
         toast.success("Surat Tugas berhasil diterbitkan!");
         await queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
         await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
-        router.push("/kepegawaian/surat-tugas/history");
+        router.push("/kepegawaian/surat-tugas/inbox");
       }
     } catch (err: unknown) {
       console.error(err);
@@ -1324,7 +1324,7 @@ export function SuratTugasForm({
       toast.success("Surat Tugas berhasil diajukan! Menunggu persetujuan.");
       await queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
       await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
-      router.push("/kepegawaian/surat-tugas/history");
+      router.push("/kepegawaian/surat-tugas/inbox");
     } catch (err: unknown) {
       let errorMessage = "Gagal mengajukan ST.";
       if (isAxiosError<{ message?: string }>(err)) {

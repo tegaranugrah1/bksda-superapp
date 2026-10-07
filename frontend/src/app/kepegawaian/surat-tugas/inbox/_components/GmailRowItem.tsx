@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Eye, Download, Pencil, Trash2, Undo2, Users, MapPin, CheckSquare, Square } from "lucide-react";
+import { Eye, Download, Pencil, Trash2, Undo2, Users, MapPin, CheckSquare, Square, CheckCircle2 } from "lucide-react";
 import type { AssignmentLetter } from "../_lib/types";
 import {
   getStatusStyle,
@@ -19,6 +19,7 @@ interface GmailRowItemProps {
   onToggleSelect: (id: string) => void;
   onClick: (letter: AssignmentLetter) => void;
   onQuickDownload?: (letter: AssignmentLetter) => void;
+  onQuickApprove?: (letter: AssignmentLetter) => void;
   onQuickEdit?: (letter: AssignmentLetter) => void;
   onQuickDelete?: (id: string) => void;
   onQuickRestore?: (id: string) => void;
@@ -32,6 +33,7 @@ export function GmailRowItem({
   onToggleSelect,
   onClick,
   onQuickDownload,
+  onQuickApprove,
   onQuickEdit,
   onQuickDelete,
   onQuickRestore,
@@ -206,6 +208,19 @@ export function GmailRowItem({
           >
             <Eye className="w-3.5 h-3.5" />
           </button>
+
+          {onQuickApprove && !isTrashView && letter.status === "pending" && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickApprove(letter);
+              }}
+              className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded text-emerald-600 dark:text-emerald-400 transition-colors"
+              title="Setujui & Terbitkan Surat Tugas"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+            </button>
+          )}
 
           {onQuickDownload && (
             <button

@@ -140,8 +140,8 @@ export function GmailReaderView({
 
         {/* Right: Workflow Actions & Destructive Action Separated */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Approve / Publish Button (Hanya tampil jika sudah ada nomor surat) */}
-          {onApprove && !isTrashView && letter.status !== "approved" && Boolean(letter.nomor_surat && letter.nomor_surat.trim() && letter.nomor_surat.toLowerCase() !== "belum terbit") && (
+          {/* Approve / Publish Button (Hanya tampil jika status Menunggu Persetujuan / pending) */}
+          {onApprove && !isTrashView && letter.status === "pending" && (
             <button
               disabled={updatingStatus}
               onClick={() => onApprove(letter)}
@@ -149,7 +149,7 @@ export function GmailReaderView({
               title="Setujui & Terbitkan Surat Tugas"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Terbitkan</span>
+              <span>Setujui & Terbitkan</span>
             </button>
           )}
 

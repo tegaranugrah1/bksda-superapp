@@ -600,6 +600,7 @@ export default function SuratTugasInbox() {
                     onToggleSelect={handleToggleSelect}
                     onClick={(clicked) => setSelectedLetter(clicked)}
                     onQuickDownload={handleDownload}
+                    onQuickApprove={handleApprove}
                     onQuickEdit={handleEdit}
                     onQuickDelete={handleDelete}
                     onQuickRestore={handleRestore}

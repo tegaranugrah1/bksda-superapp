@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, UserPlus, Inbox, FileText, History, Menu, Calendar, LayoutDashboard, Settings } from "lucide-react";
+import { Users, UserPlus, Inbox, FileText, Menu, Calendar, LayoutDashboard, Settings } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
@@ -19,7 +19,6 @@ const SIDEBAR_ITEMS = [
   { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox, minRole: "admin" as const },
   { href: "/kepegawaian/cuti", label: "Inbox Surat Cuti", icon: Calendar, minRole: "admin" as const },
   { href: "/kepegawaian/surat-tugas/create", label: "Buat Surat Tugas", icon: FileText, minRole: "admin" as const },
-  { href: "/kepegawaian/surat-tugas/history", label: "Riwayat Surat Tugas", icon: History, minRole: "user" as const },
   { href: "/kepegawaian/settings/st-templates", label: "Pengaturan Surat Tugas", icon: Settings, minRole: "super_admin" as const },
 ];
 
