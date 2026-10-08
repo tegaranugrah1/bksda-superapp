@@ -91,7 +91,7 @@ const PRINT_STYLE = `
   .st-lampiran-page {
     width: 210mm !important;
     margin: 0 auto !important;
-    padding: 0 1.55cm 0 2.0cm !important;
+    padding: 1.5cm 1.55cm 2.0cm 2.0cm !important;
     box-sizing: border-box !important;
     line-height: 1.25 !important;
   }

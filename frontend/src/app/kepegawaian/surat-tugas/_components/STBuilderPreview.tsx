@@ -570,7 +570,6 @@ export default function STBuilderPreview({
           style={{
             pageBreakBefore: "always",
             breakBefore: "page",
-            paddingTop: "0.2cm",
           }}
         >
           <HalamanDivider 

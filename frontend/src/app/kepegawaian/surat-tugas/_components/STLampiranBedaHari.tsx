@@ -76,8 +76,8 @@ export default function STLampiranBedaHari({
         fontSize: "11pt",
         lineHeight: "1.25",
         color: "#000",
-        marginLeft: "1.25cm",
-        width: "calc(100% - 2.2cm)",
+        padding: "0 1.55cm 2.5cm 2.0cm",
+        width: "100%",
         boxSizing: "border-box",
       }}
     >
