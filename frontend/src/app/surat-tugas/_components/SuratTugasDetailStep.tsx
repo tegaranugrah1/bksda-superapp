@@ -62,6 +62,10 @@ interface SuratTugasDetailStepProps {
   selectedFile: File | null;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isSubmitting: boolean;
+  isBedaHari: boolean;
+  setIsBedaHari: (val: boolean) => void;
+  employeeDates: Record<string, { mulai: string; selesai: string }>;
+  setEmployeeDates: React.Dispatch<React.SetStateAction<Record<string, { mulai: string; selesai: string }>>>;
 }
 
 export function SuratTugasDetailStep({
@@ -95,6 +99,10 @@ export function SuratTugasDetailStep({
   selectedFile,
   handleFileChange,
   isSubmitting,
+  isBedaHari,
+  setIsBedaHari,
+  employeeDates,
+  setEmployeeDates,
 }: SuratTugasDetailStepProps) {
   const [expenseOptions, setExpenseOptions] = React.useState<Array<{ id: string; label: string }>>([
     { id: "DIPA", label: "DIPA Balai KSDA Kalimantan Timur" },
@@ -348,44 +356,172 @@ export function SuratTugasDetailStep({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Mulai Tanggal <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  <input
-                    type="date"
-                    required
-                    value={formData.tanggal_mulai}
-                    onClick={(e) => e.currentTarget.showPicker?.()}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tanggal_mulai: e.target.value })
-                    }
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
-                  />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Mulai Tanggal <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      required
+                      value={formData.tanggal_mulai}
+                      onClick={(e) => e.currentTarget.showPicker?.()}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tanggal_mulai: e.target.value })
+                      }
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Sampai Tanggal <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      required
+                      min={formData.tanggal_mulai}
+                      value={formData.tanggal_selesai}
+                      onClick={(e) => e.currentTarget.showPicker?.()}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tanggal_selesai: e.target.value })
+                      }
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Sampai Tanggal <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  <input
-                    type="date"
-                    required
-                    min={formData.tanggal_mulai}
-                    value={formData.tanggal_selesai}
-                    onClick={(e) => e.currentTarget.showPicker?.()}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tanggal_selesai: e.target.value })
-                    }
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
-                  />
+
+              {/* Toggle Jadwal Personel Berbeda Hari */}
+              {selectedEmployees.length > 1 && (
+                <div className="p-4 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-amber-950 dark:text-amber-200">
+                        Jadwal Personel Berbeda Hari?
+                      </p>
+                      <p className="text-[11px] text-amber-700/90 dark:text-amber-400/90 mt-0.5">
+                        Aktifkan jika masing-masing pegawai memiliki tanggal tugas berbeda (Template Beda Hari).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextVal = !isBedaHari;
+                        setIsBedaHari(nextVal);
+                        if (nextVal) {
+                          setEmployeeDates((prev) => {
+                            const nextDates = { ...prev };
+                            selectedEmployees.forEach((emp) => {
+                              if (!nextDates[emp.id]?.mulai && formData.tanggal_mulai) {
+                                nextDates[emp.id] = {
+                                  mulai: formData.tanggal_mulai,
+                                  selesai: formData.tanggal_selesai || formData.tanggal_mulai,
+                                };
+                              }
+                            });
+                            return nextDates;
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                        isBedaHari ? "bg-amber-600" : "bg-slate-300 dark:bg-zinc-700"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                          isBedaHari ? "translate-x-5" : "translate-x-0"
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  {isBedaHari && (
+                    <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40 space-y-2.5 animate-in fade-in duration-200">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                        Rincian Tanggal Tugas Per Personel:
+                      </p>
+                      <div className="space-y-2">
+                        {selectedEmployees.map((emp, idx) => {
+                          const dates = employeeDates[emp.id] || {
+                            mulai: formData.tanggal_mulai || "",
+                            selesai: formData.tanggal_selesai || "",
+                          };
+                          return (
+                            <div
+                              key={emp.id}
+                              className="p-3 bg-white dark:bg-zinc-900 border border-amber-200/80 dark:border-amber-800/40 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-slate-800 dark:text-zinc-200 truncate">
+                                  {idx + 1}. {emp.name}
+                                </p>
+                                <p className="text-[10px] text-slate-400 truncate">
+                                  {emp.nip ? `NIP. ${emp.nip}` : "Non-NIP"} • {emp.position || emp.department || "-"}
+                                </p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 w-full md:w-auto shrink-0">
+                                <div>
+                                  <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                    Mulai
+                                  </label>
+                                  <input
+                                    type="date"
+                                    required={isBedaHari}
+                                    value={dates.mulai}
+                                    onClick={(e) => e.currentTarget.showPicker?.()}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setEmployeeDates((prev) => ({
+                                        ...prev,
+                                        [emp.id]: {
+                                          mulai: val,
+                                          selesai: prev[emp.id]?.selesai || val,
+                                        },
+                                      }));
+                                    }}
+                                    className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                    Selesai
+                                  </label>
+                                  <input
+                                    type="date"
+                                    required={isBedaHari}
+                                    min={dates.mulai}
+                                    value={dates.selesai}
+                                    onClick={(e) => e.currentTarget.showPicker?.()}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setEmployeeDates((prev) => ({
+                                        ...prev,
+                                        [emp.id]: {
+                                          mulai: prev[emp.id]?.mulai || val,
+                                          selesai: val,
+                                        },
+                                      }));
+                                    }}
+                                    className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
           )}
 

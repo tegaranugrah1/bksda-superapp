@@ -76,7 +76,7 @@ class AssignmentLetter extends Model
             'employee_id'
         )
             ->using(AssignmentLetterEmployee::class)
-            ->withPivot('peran')
+            ->withPivot(['peran', 'tanggal_mulai', 'tanggal_selesai'])
             ->withTimestamps();
     }
 }

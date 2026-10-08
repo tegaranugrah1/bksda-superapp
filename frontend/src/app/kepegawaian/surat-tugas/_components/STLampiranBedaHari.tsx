@@ -147,7 +147,8 @@ export default function STLampiranBedaHari({
             </tr>
           ) : (
             selectedEmployees.map((emp, idx) => {
-              const range = employeeDates[emp.id] || { mulai: "", selesai: "" };
+              const range =
+                employeeDates[String(emp.id)] || employeeDates[emp.id] || { mulai: "", selesai: "" };
               const namaLengkap = emp.nama_lengkap || emp.name || "";
               const formattedNip = formatNIP(emp.nip || "");
               const tanggalRange = formatDateRange(range.mulai, range.selesai);

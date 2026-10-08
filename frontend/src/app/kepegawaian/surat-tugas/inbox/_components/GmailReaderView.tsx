@@ -21,6 +21,7 @@ import {
   Clock,
   ShieldCheck,
   Eye,
+  StickyNote,
 } from "lucide-react";
 import type { AssignmentLetter } from "../_lib/types";
 import {
@@ -79,23 +80,21 @@ export function GmailReaderView({
   const tujuan = getResolvedTempatTujuan(letter);
   const mainTitle = extractDalamRangka(letter.maksud_tujuan);
   const cleanedContext = cleanMaksudTujuan(letter.maksud_tujuan);
-  const isKepalaAssigned = employees.some(
-    (e) =>
-      e.jabatan?.toLowerCase().includes("kepala balai") ||
-      e.nama_lengkap?.toLowerCase().includes("ari wibawanto")
-  );
+
+  // Deteksi pejabat struktural yang mewajibkan penunjukan PLH:
+  // Wajib jika Kasubbag TU atau Kepala Seksi yang melaksanakan perjalanan dinas (Kepala Balai tidak perlu PLH)
   const hasPejabatStruktural = employees.some((e) => {
     const pos = (e.jabatan || "").toLowerCase();
-    const name = (e.nama_lengkap || "").toLowerCase();
     return (
       pos.includes("kepala seksi") ||
       pos.includes("kepala subbagian") ||
-      pos.includes("kasubag") ||
-      pos.includes("kepala balai") ||
-      name.includes("ari wibawanto")
+      pos.includes("kasubag")
     );
   });
-  const hasPlhInfo = Boolean(letter.nama_plh || hasPejabatStruktural || isKepalaAssigned);
+  const hasPlhInfo = Boolean(letter.nama_plh || hasPejabatStruktural);
+  const hasBedaHari =
+    letter.template_type === "beda-hari" ||
+    employees.some((e) => Boolean(e.tanggal_mulai && e.tanggal_selesai));
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 overflow-hidden select-text">
@@ -343,6 +342,7 @@ export function GmailReaderView({
                   <th className="py-2 px-3">Nama Pegawai</th>
                   <th className="py-2 px-3">NIP</th>
                   <th className="py-2 px-3">Jabatan / Satker</th>
+                  {hasBedaHari && <th className="py-2 px-3">Jadwal Tugas</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
@@ -356,6 +356,13 @@ export function GmailReaderView({
                     <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">
                       {emp.jabatan || "-"} {emp.satuan_kerja ? `(${emp.satuan_kerja})` : ""}
                     </td>
+                    {hasBedaHari && (
+                      <td className="py-2.5 px-3 font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap text-xs">
+                        {emp.tanggal_mulai && emp.tanggal_selesai
+                          ? formatDateRangeIndonesian(emp.tanggal_mulai, emp.tanggal_selesai)
+                          : "-"}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -363,10 +370,39 @@ export function GmailReaderView({
           </div>
         </div>
 
-        {/* Bottom Section: 3 Sejajar (PLH, Dokumen Dasar Surat, dan 1 Group Edit/Lihat/Tolak/Arsipkan) */}
-        <div className={`grid grid-cols-1 gap-4 ${hasPlhInfo ? "lg:grid-cols-3" : "lg:grid-cols-3"}`}>
-          {/* 1. Card Pelaksana Harian (PLH) */}
-          {hasPlhInfo && (
+        {/* Card Keterangan (Tampil full-width jika ada PLH Kasubbag TU/Kasi agar leluasa dibaca) */}
+        {hasPlhInfo && (
+          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                <StickyNote className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 block">
+                  Catatan & Keterangan
+                </span>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 truncate mt-0.5">
+                  Keterangan Surat Tugas
+                </h4>
+              </div>
+            </div>
+
+            {letter.keterangan && letter.keterangan.trim() ? (
+              <div className="text-xs text-slate-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed bg-slate-50/80 dark:bg-zinc-800/50 p-3.5 rounded-xl border border-slate-100 dark:border-zinc-800 font-medium">
+                {letter.keterangan}
+              </div>
+            ) : (
+              <div className="py-2.5 px-3 bg-slate-50/60 dark:bg-zinc-800/40 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 text-xs italic">
+                Tidak ada catatan atau keterangan tambahan
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Bottom Section: 3 Sejajar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* 1. Card Pelaksana Harian (PLH) ATAU Card Keterangan jika tanpa PLH */}
+          {hasPlhInfo ? (
             <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -385,7 +421,7 @@ export function GmailReaderView({
 
                 <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
                   {hasPejabatStruktural
-                    ? "Pejabat struktural melaksanakan tugas dinas. Penunjukan PLH diperlukan untuk operasional harian."
+                    ? "Kasubbag TU atau Kepala Seksi melaksanakan perjalanan dinas. Penunjukan PLH diperlukan untuk operasional harian."
                     : "Petugas yang ditunjuk sebagai pelaksana tugas harian selama dinas berlangsung."}
                 </p>
 
@@ -423,14 +459,38 @@ export function GmailReaderView({
                 <div className="h-10" />
               )}
             </div>
+          ) : (
+            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                    <StickyNote className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 block">
+                      Catatan & Keterangan
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 truncate mt-0.5">
+                      Keterangan Surat Tugas
+                    </h4>
+                  </div>
+                </div>
+
+                {letter.keterangan && letter.keterangan.trim() ? (
+                  <div className="text-xs text-slate-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed bg-slate-50/80 dark:bg-zinc-800/50 p-3 rounded-xl border border-slate-100 dark:border-zinc-800 font-medium max-h-48 overflow-y-auto custom-scrollbar">
+                    {letter.keterangan}
+                  </div>
+                ) : (
+                  <div className="py-3 px-3 bg-slate-50/60 dark:bg-zinc-800/40 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 text-xs italic">
+                    Tidak ada catatan atau keterangan tambahan
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {/* 2. Card Dokumen Dasar Surat */}
-          <div
-            className={`p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4 ${
-              !hasPlhInfo ? "lg:col-span-2" : ""
-            }`}
-          >
+          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">

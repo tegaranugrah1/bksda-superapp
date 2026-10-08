@@ -6180,8 +6180,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/GmailReaderView.tsx": {
-    "mtime": 1791380568.4043078,
-    "ast_hash": "e4ed7bc2b1a8c669e30dd6a2c777b478",
+    "mtime": 1791384763.4036748,
+    "ast_hash": "97aed68d5671248b9806bfb961f5ce88",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/GmailRowItem.tsx": {
@@ -6535,8 +6535,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx": {
-    "mtime": 1791380695.7066877,
-    "ast_hash": "a286cd139701411500c9b03a098efe22",
+    "mtime": 1791384845.953874,
+    "ast_hash": "725e235fdf11efe3b4dead5b599ba38e",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-helpers.ts": {

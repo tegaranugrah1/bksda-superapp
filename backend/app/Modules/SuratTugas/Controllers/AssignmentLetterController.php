@@ -233,6 +233,9 @@ class AssignmentLetterController extends Controller
                 'jabatan' => $e->jabatan,
                 'pangkat_golongan' => $e->pangkat_golongan,
                 'unit_kerja' => $e->satuan_kerja,
+                'peran' => $e->pivot?->peran,
+                'tanggal_mulai' => $e->pivot?->tanggal_mulai ? (is_string($e->pivot->tanggal_mulai) ? substr($e->pivot->tanggal_mulai, 0, 10) : $e->pivot->tanggal_mulai->toDateString()) : null,
+                'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->toDateString()) : null,
             ])->values(),
             'personel' => $employees->map(fn ($e) => [
                 'id' => $e->id,
@@ -242,6 +245,9 @@ class AssignmentLetterController extends Controller
                 'jabatan' => $e->jabatan,
                 'pangkat_golongan' => $e->pangkat_golongan,
                 'unit_kerja' => $e->satuan_kerja,
+                'peran' => $e->pivot?->peran,
+                'tanggal_mulai' => $e->pivot?->tanggal_mulai ? (is_string($e->pivot->tanggal_mulai) ? substr($e->pivot->tanggal_mulai, 0, 10) : $e->pivot->tanggal_mulai->toDateString()) : null,
+                'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->toDateString()) : null,
             ])->values(),
             'has_file' => ! empty($letter->file_surat_path),
             'file_surat_path' => $letter->file_surat_path,
@@ -297,6 +303,8 @@ class AssignmentLetterController extends Controller
                 'satuan_kerja' => $employee->satuan_kerja,
                 'pangkat_golongan' => $employee->pangkat_golongan,
                 'peran' => $employee->pivot?->peran,
+                'tanggal_mulai' => $employee->pivot?->tanggal_mulai ? (is_string($employee->pivot->tanggal_mulai) ? substr($employee->pivot->tanggal_mulai, 0, 10) : $employee->pivot->tanggal_mulai->toDateString()) : null,
+                'tanggal_selesai' => $employee->pivot?->tanggal_selesai ? (is_string($employee->pivot->tanggal_selesai) ? substr($employee->pivot->tanggal_selesai, 0, 10) : $employee->pivot->tanggal_selesai->toDateString()) : null,
             ])->values(),
             'personel' => $letter->employees->map(fn ($employee) => [
                 'id' => $employee->id,
@@ -308,6 +316,8 @@ class AssignmentLetterController extends Controller
                 'satuan_kerja' => $employee->satuan_kerja,
                 'pangkat_golongan' => $employee->pangkat_golongan,
                 'peran' => $employee->pivot?->peran,
+                'tanggal_mulai' => $employee->pivot?->tanggal_mulai ? (is_string($employee->pivot->tanggal_mulai) ? substr($employee->pivot->tanggal_mulai, 0, 10) : $employee->pivot->tanggal_mulai->toDateString()) : null,
+                'tanggal_selesai' => $employee->pivot?->tanggal_selesai ? (is_string($employee->pivot->tanggal_selesai) ? substr($employee->pivot->tanggal_selesai, 0, 10) : $employee->pivot->tanggal_selesai->toDateString()) : null,
             ])->values(),
             'file' => [
                 'available' => ! empty($letter->file_surat_path),
@@ -399,7 +409,11 @@ class AssignmentLetterController extends Controller
                 $pivotData = [];
                 foreach ($validated['employees'] as $emp) {
                     if (isset($emp['id'])) {
-                        $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+                        $pivotData[$emp['id']] = [
+                            'peran' => $emp['peran'] ?? null,
+                            'tanggal_mulai' => $emp['tanggal_mulai'] ?? null,
+                            'tanggal_selesai' => $emp['tanggal_selesai'] ?? null,
+                        ];
                     }
                 }
                 $surat->employees()->sync($pivotData);
@@ -524,6 +538,13 @@ class AssignmentLetterController extends Controller
             if ($request->has('tanda_setuju')) {
                 $updateData['tanda_setuju'] = $request->input('tanda_setuju');
             }
+            if ($request->has('keterangan')) {
+                $updateData['keterangan'] = $request->input('keterangan');
+            }
+            if ($request->has('template_snapshot') && is_array($request->input('template_snapshot'))) {
+                $baseSnapshot = $updateData['template_snapshot'] ?? $surat->template_snapshot ?? [];
+                $updateData['template_snapshot'] = array_replace_recursive($baseSnapshot, $request->input('template_snapshot'));
+            }
 
             $surat->update($updateData);
 
@@ -531,7 +552,11 @@ class AssignmentLetterController extends Controller
                 $pivotData = [];
                 foreach ($validated['employees'] as $emp) {
                     if (isset($emp['id'])) {
-                        $pivotData[$emp['id']] = ['peran' => $emp['peran'] ?? null];
+                        $pivotData[$emp['id']] = [
+                            'peran' => $emp['peran'] ?? null,
+                            'tanggal_mulai' => $emp['tanggal_mulai'] ?? null,
+                            'tanggal_selesai' => $emp['tanggal_selesai'] ?? null,
+                        ];
                     }
                 }
                 $surat->employees()->sync($pivotData);
@@ -783,9 +808,28 @@ class AssignmentLetterController extends Controller
                 }
             }
 
+            if ($request->has('keterangan')) {
+                $updateData['keterangan'] = $request->input('keterangan');
+            }
+            if ($request->has('template_snapshot') && is_array($request->input('template_snapshot'))) {
+                $updateData['template_snapshot'] = array_replace_recursive($surat->template_snapshot ?? [], $request->input('template_snapshot'));
+            }
+
             $surat->update($updateData);
 
-            if ($request->has('employee_ids') && is_array($request->employee_ids)) {
+            if ($request->has('employees') && is_array($request->employees)) {
+                $pivotData = [];
+                foreach ($request->employees as $emp) {
+                    if (isset($emp['id'])) {
+                        $pivotData[$emp['id']] = [
+                            'peran' => $emp['peran'] ?? null,
+                            'tanggal_mulai' => $emp['tanggal_mulai'] ?? null,
+                            'tanggal_selesai' => $emp['tanggal_selesai'] ?? null,
+                        ];
+                    }
+                }
+                $surat->employees()->sync($pivotData);
+            } elseif ($request->has('employee_ids') && is_array($request->employee_ids)) {
                 $surat->employees()->sync($request->employee_ids);
             }
 

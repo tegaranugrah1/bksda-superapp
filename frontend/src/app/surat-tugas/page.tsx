@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { cleanMelaksanakanKegiatanPrefix } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import { formatDateRangeIndonesian } from "@/lib/letter-utils";
 import {
   EmployeeSelectionStep,
   Employee,
@@ -73,6 +74,8 @@ export default function SuratTugasForm() {
   const [tandaSetuju, setTandaSetuju] = useState<"sudah" | "belum" | "">("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isBedaHari, setIsBedaHari] = useState(false);
+  const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
 
   // Helper: Dapatkan kota penempatan untuk seorang pegawai
   const getEmployeeCity = (emp: Employee): string => {
@@ -236,6 +239,17 @@ export default function SuratTugasForm() {
       return;
     }
 
+    if (isBedaHari) {
+      const missingDates = selectedEmployees.some((emp) => {
+        const d = employeeDates[emp.id];
+        return !d?.mulai || !d?.selesai;
+      });
+      if (missingDates) {
+        toast.error("Lengkapi tanggal mulai dan selesai untuk semua personel pada jadwal berbeda hari.");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       let finalNamaKegiatan = `${jenisTugas}`;
@@ -272,12 +286,29 @@ export default function SuratTugasForm() {
       submitData.append("tanggal_mulai", formData.tanggal_mulai);
       submitData.append("tanggal_selesai", formData.tanggal_selesai);
       submitData.append("sumber_dana", formData.sumber_dana);
+      submitData.append("template_type", isBedaHari ? "beda-hari" : "standard");
 
       if (formData.sumber_dana === "other") {
         submitData.append("sumber_dana_other", formData.sumber_dana_other);
       }
-      if (formData.keterangan)
-        submitData.append("keterangan", formData.keterangan);
+      
+      let finalKeterangan = formData.keterangan?.trim() || "";
+      if (isBedaHari) {
+        const scheduleLines = selectedEmployees.map((emp, index) => {
+          const dates = employeeDates[emp.id] || {
+            mulai: formData.tanggal_mulai,
+            selesai: formData.tanggal_selesai,
+          };
+          const rangeText = formatDateRangeIndonesian(dates.mulai, dates.selesai);
+          return `${index + 1}. ${emp.name} (${emp.nip ? `NIP. ${emp.nip}` : "Non-NIP"}): ${rangeText}`;
+        });
+        const scheduleBlock = `[Jadwal Personel Berbeda Hari]:\n${scheduleLines.join("\n")}`;
+        finalKeterangan = finalKeterangan ? `${finalKeterangan}\n\n${scheduleBlock}` : scheduleBlock;
+      }
+      if (finalKeterangan) {
+        submitData.append("keterangan", finalKeterangan);
+      }
+
       if (namaPlh) submitData.append("nama_plh", namaPlh);
       if (tandaSetuju) submitData.append("tanda_setuju", tandaSetuju);
       submitData.append("has_seksi_employee", hasSeksiEmployee ? "1" : "0");
@@ -288,6 +319,10 @@ export default function SuratTugasForm() {
 
       selectedEmployees.forEach((emp, index) => {
         submitData.append(`employees[${index}][id]`, emp.id);
+        if (isBedaHari && employeeDates[emp.id]) {
+          submitData.append(`employees[${index}][tanggal_mulai]`, employeeDates[emp.id].mulai);
+          submitData.append(`employees[${index}][tanggal_selesai]`, employeeDates[emp.id].selesai);
+        }
       });
 
       await api.post("/surat-tugas/submit", submitData, {
@@ -376,6 +411,10 @@ export default function SuratTugasForm() {
             selectedFile={selectedFile}
             handleFileChange={handleFileChange}
             isSubmitting={isSubmitting}
+            isBedaHari={isBedaHari}
+            setIsBedaHari={setIsBedaHari}
+            employeeDates={employeeDates}
+            setEmployeeDates={setEmployeeDates}
           />
         )}
         {step === 3 && <SuratTugasSuccessStep />}

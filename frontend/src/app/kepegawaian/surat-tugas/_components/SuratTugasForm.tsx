@@ -14,6 +14,7 @@ import {
   Shield,
   Eye,
   GripVertical,
+  Calendar,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ import STBuilderPreview from "./STBuilderPreview";
 import { cleanMelaksanakanKegiatanPrefix, cleanRepeatingLocations } from "../_lib/activity-helpers";
 import {
   formatDateIndonesian,
+  formatDateRangeIndonesian,
   formatNIP,
   daysBetween,
   numberToWords,
@@ -148,6 +150,19 @@ export function SuratTugasForm({
   const [pendingPlhEmployeeName, setPendingPlhEmployeeName] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
 
+  // Template PLH hanya boleh dipilih jika pegawai yang ditugaskan mencakup Kasubbag TU atau Kepala Seksi (atau surat ini sudah berjenis PLH)
+  const canSelectPlh = useMemo(() => {
+    if (isPlhTemplate) return true;
+    return selectedEmployees.some((emp) => {
+      const pos = (emp.jabatan || emp.position || "").toLowerCase();
+      return (
+        pos.includes("kepala seksi") ||
+        pos.includes("kepala subbagian") ||
+        pos.includes("kasubag")
+      );
+    });
+  }, [selectedEmployees, isPlhTemplate]);
+
   // Beda Hari template: tanggal per pegawai
   const [employeeDates, setEmployeeDates] = useState<
     Record<string, { mulai: string; selesai: string }>
@@ -155,6 +170,7 @@ export function SuratTugasForm({
   const [judulLampiranBedaHari, setJudulLampiranBedaHari] = useState(
     "DAFTAR PEGAWAI MENGIKUTI PATROLI"
   );
+  const [keterangan, setKeterangan] = useState("");
   const [kepalaBalai, setKepalaBalai] = useState(DEFAULT_KEPALA_BALAI);
   const [tanggalSurat, setTanggalSurat] = useState(new Date().toISOString().substring(0, 10));
   const [kotaSurat, setKotaSurat] = useState("Samarinda");
@@ -374,7 +390,66 @@ export function SuratTugasForm({
           });
         }
 
-        setSelectedEmployees(data.employees || data.personel || []);
+        if (data.keterangan) {
+          setKeterangan(data.keterangan);
+        }
+
+        const loadedEmployees = data.employees || data.personel || [];
+        setSelectedEmployees(loadedEmployees);
+
+        // Hydrate employeeDates:
+        const initialDates: Record<string, { mulai: string; selesai: string }> = {};
+        loadedEmployees.forEach((emp: any) => {
+          const empMulai = emp.tanggal_mulai || emp.pivot?.tanggal_mulai;
+          const empSelesai = emp.tanggal_selesai || emp.pivot?.tanggal_selesai;
+          if (empMulai && empSelesai) {
+            initialDates[String(emp.id)] = {
+              mulai: String(empMulai).substring(0, 10),
+              selesai: String(empSelesai).substring(0, 10),
+            };
+          }
+        });
+
+        // Fallback: jika template beda-hari dan ada pegawai belum punya tanggal di pivot, parse dari keterangan
+        if (data.keterangan && data.keterangan.includes("[Jadwal Personel Berbeda Hari]")) {
+          loadedEmployees.forEach((emp: any) => {
+            if (!initialDates[String(emp.id)]) {
+              const nameEscaped = (emp.nama_lengkap || emp.name || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              const nipEscaped = (emp.nip || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              const regex = new RegExp(`(?:${nameEscaped}|${nipEscaped})[^:]*:\\s*(\\d{1,2})\\s*s\\/d\\s*(\\d{1,2})\\s+([A-Za-z]+)\\s+(\\d{4})`, "i");
+              const match = data.keterangan.match(regex);
+              if (match) {
+                const day1 = match[1].padStart(2, "0");
+                const day2 = match[2].padStart(2, "0");
+                const monthName = match[3].toLowerCase();
+                const year = match[4];
+                const monthMap: Record<string, string> = {
+                  januari: "01", februari: "02", maret: "03", april: "04", mei: "05", juni: "06",
+                  juli: "07", agustus: "08", september: "09", oktober: "10", november: "11", desember: "12"
+                };
+                const month = monthMap[monthName] || "01";
+                initialDates[String(emp.id)] = {
+                  mulai: `${year}-${month}-${day1}`,
+                  selesai: `${year}-${month}-${day2}`,
+                };
+              }
+            }
+          });
+        }
+
+        // Fallback default jika masih kosong pada template beda-hari
+        if (data.template_type === "beda-hari") {
+          loadedEmployees.forEach((emp: any) => {
+            if (!initialDates[String(emp.id)] && loadedTanggalMulai && loadedTanggalSelesai) {
+              initialDates[String(emp.id)] = {
+                mulai: loadedTanggalMulai,
+                selesai: loadedTanggalSelesai,
+              };
+            }
+          });
+        }
+
+        setEmployeeDates(initialDates);
         setKotaTujuan(data.tempat_tujuan || "");
 
         if (data.menimbang && Array.isArray(data.menimbang) && data.menimbang.length > 0) {
@@ -399,6 +474,19 @@ export function SuratTugasForm({
           string,
           unknown
         >;
+        if (typeof snapshotConfig.judul_lampiran_beda_hari === "string") {
+          setJudulLampiranBedaHari(snapshotConfig.judul_lampiran_beda_hari);
+        }
+        if (
+          snapshotConfig.employee_dates &&
+          typeof snapshotConfig.employee_dates === "object" &&
+          !Array.isArray(snapshotConfig.employee_dates)
+        ) {
+          setEmployeeDates((prev) => ({
+            ...snapshotConfig.employee_dates as Record<string, { mulai: string; selesai: string }>,
+            ...prev,
+          }));
+        }
         if (typeof snapshotConfig.header_title === "string") {
           setHeaderTitle(snapshotConfig.header_title);
         }
@@ -594,8 +682,9 @@ export function SuratTugasForm({
     setEmployeeDates((prev) => {
       const next = { ...prev };
       selectedEmployees.forEach((emp) => {
-        if (!next[emp.id]) {
-          next[emp.id] = { mulai: tanggalMulai || "", selesai: tanggalSelesai || "" };
+        const empKey = String(emp.id);
+        if (!next[empKey] && !next[emp.id]) {
+          next[empKey] = { mulai: tanggalMulai || "", selesai: tanggalSelesai || "" };
         }
       });
       return next;
@@ -770,6 +859,12 @@ export function SuratTugasForm({
         setInputModeKegiatan(bedaHariTemplate.configuration.default_mode_kegiatan);
       }
     } else if (value === "plh") {
+      if (!canSelectPlh) {
+        toast.error(
+          "Template PLH hanya dapat dipilih jika pegawai yang ditugaskan adalah Kasubbag TU atau Kepala Seksi."
+        );
+        return;
+      }
       const plhDbTemplate = dynamicTemplates.find((t) => t.code === "plh" || t.type === "plh");
       applyPlhTemplate(undefined, undefined, plhDbTemplate);
     } else if (value.startsWith("db_")) {
@@ -792,6 +887,12 @@ export function SuratTugasForm({
           setMenimbangItems(formatYearInItems(template.menimbang || []));
           setDasarItems(formatYearInItems(template.dasar || []));
         } else if (template.type === "plh") {
+          if (!canSelectPlh) {
+            toast.error(
+              "Template PLH hanya dapat dipilih jika pegawai yang ditugaskan adalah Kasubbag TU atau Kepala Seksi."
+            );
+            return;
+          }
           applyPlhTemplate(undefined, undefined, template);
           setTemplateType(value);
         }
@@ -1162,6 +1263,68 @@ export function SuratTugasForm({
       .replace(/{tahun}/g, currentYear)}`;
   };
 
+  const getBedaHariData = () => {
+    let effectiveMulai = tanggalMulai;
+    let effectiveSelesai = tanggalSelesai;
+    if (isBedaHariTemplate) {
+      const allMulai = selectedEmployees
+        .map((emp) => employeeDates[String(emp.id)]?.mulai || employeeDates[emp.id]?.mulai)
+        .filter((d): d is string => Boolean(d));
+      const allSelesai = selectedEmployees
+        .map((emp) => employeeDates[String(emp.id)]?.selesai || employeeDates[emp.id]?.selesai)
+        .filter((d): d is string => Boolean(d));
+      if (allMulai.length > 0) {
+        effectiveMulai = allMulai.reduce((min, d) => (d < min ? d : min), allMulai[0]);
+      }
+      if (allSelesai.length > 0) {
+        effectiveSelesai = allSelesai.reduce((max, d) => (d > max ? d : max), allSelesai[0]);
+      }
+    }
+
+    let updatedKeterangan = keterangan;
+    if (isBedaHariTemplate) {
+      const baseKeterangan = (keterangan || "").replace(/\[Jadwal Personel Berbeda Hari\]:[\s\S]*$/, "").trim();
+      const scheduleLines = selectedEmployees.map((emp, index) => {
+        const dates = employeeDates[String(emp.id)] || employeeDates[emp.id] || {
+          mulai: effectiveMulai,
+          selesai: effectiveSelesai,
+        };
+        const rangeText = formatDateRangeIndonesian(dates.mulai, dates.selesai);
+        const nipText = emp.nip ? `NIP. ${emp.nip}` : "Non-NIP";
+        return `${index + 1}. ${emp.nama_lengkap || emp.name} (${nipText}): ${rangeText}`;
+      });
+      const scheduleBlock = `[Jadwal Personel Berbeda Hari]:\n${scheduleLines.join("\n")}`;
+      updatedKeterangan = baseKeterangan ? `${baseKeterangan}\n\n${scheduleBlock}` : scheduleBlock;
+    }
+
+    const employeesPayload = selectedEmployees.map((employee) => ({
+      id: employee.id,
+      tanggal_mulai: isBedaHariTemplate
+        ? (employeeDates[String(employee.id)]?.mulai || employeeDates[employee.id]?.mulai || effectiveMulai)
+        : effectiveMulai,
+      tanggal_selesai: isBedaHariTemplate
+        ? (employeeDates[String(employee.id)]?.selesai || employeeDates[employee.id]?.selesai || effectiveSelesai)
+        : effectiveSelesai,
+    }));
+
+    const templateSnapshotPayload = isBedaHariTemplate
+      ? {
+          configuration: {
+            judul_lampiran_beda_hari: judulLampiranBedaHari,
+            employee_dates: employeeDates,
+          },
+        }
+      : undefined;
+
+    return {
+      effectiveMulai,
+      effectiveSelesai,
+      updatedKeterangan,
+      employeesPayload,
+      templateSnapshotPayload,
+    };
+  };
+
   // Actions
   const handleSaveDraft = async () => {
     if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
@@ -1188,13 +1351,21 @@ export function SuratTugasForm({
         ? buildNomorSurat(stNumber.trim(), klasifikasi.trim())
         : null;
 
+      const {
+        effectiveMulai,
+        effectiveSelesai,
+        updatedKeterangan,
+        employeesPayload,
+        templateSnapshotPayload,
+      } = getBedaHariData();
+
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: klasifikasi.trim() ? `K.18/TU/${klasifikasi.trim()}/B` : null,
         tanggal_surat: tanggalSurat || null,
         maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
-        tanggal_mulai: tanggalMulai,
-        tanggal_selesai: tanggalSelesai,
+        tanggal_mulai: effectiveMulai,
+        tanggal_selesai: effectiveSelesai,
         tempat_tujuan: tempatTujuanPayload,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
@@ -1205,7 +1376,9 @@ export function SuratTugasForm({
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
-        employees: selectedEmployees.map((employee) => ({ id: employee.id })),
+        employees: employeesPayload,
+        keterangan: updatedKeterangan,
+        template_snapshot: templateSnapshotPayload,
       };
 
       if (mode === "create") {
@@ -1250,13 +1423,21 @@ export function SuratTugasForm({
 
     try {
       const fullNomorSurat = buildNomorSurat(stNumber, klasifikasi);
+      const {
+        effectiveMulai,
+        effectiveSelesai,
+        updatedKeterangan,
+        employeesPayload,
+        templateSnapshotPayload,
+      } = getBedaHariData();
+
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: `K.18/TU/${klasifikasi}/B`,
         tanggal_surat: tanggalSurat || null,
         maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
-        tanggal_mulai: tanggalMulai,
-        tanggal_selesai: tanggalSelesai,
+        tanggal_mulai: effectiveMulai,
+        tanggal_selesai: effectiveSelesai,
         tempat_tujuan: tempatTujuanPayload,
         sumber_dana: sumberDana,
         sumber_dana_other: sumberDanaOther,
@@ -1267,8 +1448,10 @@ export function SuratTugasForm({
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
-        employees: selectedEmployees.map((employee) => ({ id: employee.id })),
+        employees: employeesPayload,
         employee_ids: selectedEmployees.map((e) => e.id),
+        keterangan: updatedKeterangan,
+        template_snapshot: templateSnapshotPayload,
         status: "approved",
       };
 
@@ -1301,6 +1484,14 @@ export function SuratTugasForm({
 
     try {
       const fullNomorSurat = buildNomorSurat(stNumber, klasifikasi);
+      const {
+        effectiveMulai,
+        effectiveSelesai,
+        updatedKeterangan,
+        employeesPayload,
+        templateSnapshotPayload,
+      } = getBedaHariData();
+
       const payload = {
         nomor_surat: fullNomorSurat,
         kode_surat: `K.18/TU/${klasifikasi}/B`,
@@ -1315,9 +1506,12 @@ export function SuratTugasForm({
         tembusan: tembusanItems.length > 0 ? tembusanItems : null,
         penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
         penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
+        employees: employeesPayload,
         employee_ids: selectedEmployees.map((e) => e.id),
-        tanggal_mulai: tanggalMulai,
-        tanggal_selesai: tanggalSelesai,
+        tanggal_mulai: effectiveMulai,
+        tanggal_selesai: effectiveSelesai,
+        keterangan: updatedKeterangan,
+        template_snapshot: templateSnapshotPayload,
         status: "pending",
       };
       await api.put(`/surat-tugas/${letterId}/approve`, payload);
@@ -1432,7 +1626,13 @@ export function SuratTugasForm({
               <option value="">Default (Manual)</option>
               <option value="bmn-pemeriksaan">Penghapusan BMN</option>
               <option value="beda-hari">Beda Hari (Daftar Lampiran)</option>
-              <option value="plh">PLH (Pelaksana Harian Kepala Seksi)</option>
+              <option
+                value="plh"
+                disabled={!canSelectPlh}
+                title={!canSelectPlh ? "Hanya dapat dipilih jika pegawai adalah Kasubbag TU atau Kepala Seksi" : undefined}
+              >
+                PLH (Pelaksana Harian Kepala Seksi / Kasubbag TU){!canSelectPlh ? " (Perlu Kasubbag TU / Kasi)" : ""}
+              </option>
               {dynamicTemplates
                 .filter(
                   (t) =>
@@ -1524,6 +1724,15 @@ export function SuratTugasForm({
                               ...prev,
                               normalizeEmployeeForSelection(emp),
                             ]);
+                            if (isBedaHariTemplate) {
+                              setEmployeeDates((prev) => ({
+                                ...prev,
+                                [String(emp.id)]: {
+                                  mulai: tanggalMulai || new Date().toISOString().substring(0, 10),
+                                  selesai: tanggalSelesai || new Date().toISOString().substring(0, 10),
+                                },
+                              }));
+                            }
                           }
                           setSearchQuery("");
                           setShowDropdown(false);
@@ -1542,34 +1751,121 @@ export function SuratTugasForm({
                 )}
               </div>
 
+              {/* Judul Lampiran Beda Hari */}
+              {isBedaHariTemplate && (
+                <div className="space-y-1.5 p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-200/80 dark:border-blue-900/50">
+                  <label className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Judul Lampiran Beda Hari
+                  </label>
+                  <input
+                    type="text"
+                    value={judulLampiranBedaHari}
+                    disabled={isPublished}
+                    onChange={(e) => setJudulLampiranBedaHari(e.target.value)}
+                    placeholder="DAFTAR PEGAWAI MENGIKUTI PATROLI"
+                    className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs font-semibold outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                  />
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                    Judul tabel lampiran untuk jadwal masing-masing personel.
+                  </p>
+                </div>
+              )}
+
               {/* Selected Employees Table */}
               <div className="space-y-2">
-                {selectedEmployees.map((emp, index) => (
-                  <div
-                    key={emp.id}
-                    className="p-2.5 bg-slate-50 dark:bg-zinc-800/60 rounded-xl border border-slate-200 dark:border-zinc-700 flex items-center justify-between gap-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                        {index + 1}. {emp.nama_lengkap || emp.name}
-                      </p>
-                      <p className="text-[10px] text-zinc-400 truncate">
-                        {emp.jabatan || emp.position || "-"}
-                      </p>
+                {selectedEmployees.map((emp, index) => {
+                  const empKey = String(emp.id);
+                  const curDates = employeeDates[empKey] || employeeDates[emp.id] || {
+                    mulai: tanggalMulai || "",
+                    selesai: tanggalSelesai || "",
+                  };
+
+                  return (
+                    <div
+                      key={emp.id}
+                      className="p-2.5 bg-slate-50 dark:bg-zinc-800/60 rounded-xl border border-slate-200 dark:border-zinc-700 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                            {index + 1}. {emp.nama_lengkap || emp.name}
+                          </p>
+                          <p className="text-[10px] text-zinc-400 truncate">
+                            {emp.nip ? `NIP. ${emp.nip} • ` : ""}{emp.jabatan || emp.position || "-"}
+                          </p>
+                        </div>
+                        {!isPublished && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedEmployees((prev) => prev.filter((e) => e.id !== emp.id));
+                              setEmployeeDates((prev) => {
+                                const next = { ...prev };
+                                delete next[empKey];
+                                delete next[emp.id];
+                                return next;
+                              });
+                            }}
+                            className="p-1 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-500 rounded-lg transition-colors shrink-0"
+                            title="Hapus Pegawai"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {isBedaHariTemplate && (
+                        <div className="pt-2 border-t border-slate-200/70 dark:border-zinc-700/70 grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
+                              <Calendar className="w-2.5 h-2.5 text-blue-500" />
+                              Tgl Mulai
+                            </label>
+                            <input
+                              type="date"
+                              value={curDates.mulai || ""}
+                              disabled={isPublished}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setEmployeeDates((prev) => ({
+                                  ...prev,
+                                  [empKey]: {
+                                    mulai: val,
+                                    selesai: curDates.selesai || val,
+                                  },
+                                }));
+                              }}
+                              className="w-full px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
+                              <Calendar className="w-2.5 h-2.5 text-blue-500" />
+                              Tgl Selesai
+                            </label>
+                            <input
+                              type="date"
+                              value={curDates.selesai || ""}
+                              disabled={isPublished}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setEmployeeDates((prev) => ({
+                                  ...prev,
+                                  [empKey]: {
+                                    mulai: curDates.mulai || val,
+                                    selesai: val,
+                                  },
+                                }));
+                              }}
+                              className="w-full px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {!isPublished && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedEmployees((prev) => prev.filter((e) => e.id !== emp.id))
-                        }
-                        className="p-1 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-500 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </FormSection>
@@ -1617,6 +1913,12 @@ export function SuratTugasForm({
                   />
                 </div>
               </div>
+
+              {isBedaHariTemplate && (
+                <div className="p-2 bg-blue-50/60 dark:bg-blue-950/30 rounded-lg border border-blue-200/50 dark:border-blue-900/40 text-[10px] text-blue-700 dark:text-blue-300">
+                  <span className="font-semibold">Info:</span> Pada template Beda Hari, rentang tanggal utama surat tugas otomatis disesuaikan dengan rentang tanggal keseluruhan (paling awal s/d paling akhir) dari daftar pegawai saat disimpan.
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
