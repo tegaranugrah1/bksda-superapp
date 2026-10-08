@@ -425,7 +425,7 @@ export function CoveringLetterTab({
                       value={item.title}
                       onChange={(e) => updateCoveringItem(index, "title", e.target.value)}
                       placeholder="Rincian berkas dokumen yang dikirim..."
-                      className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white p-2.5 text-xs leading-relaxed outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 min-h-[90px] resize-y"
+                      className="mt-0.5 w-full rounded-lg border border-zinc-200 bg-white p-2.5 text-xs leading-relaxed outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 min-h-22.5 resize-y"
                     />
                   </label>
                   <div className="grid grid-cols-2 gap-2">

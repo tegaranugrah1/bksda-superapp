@@ -794,7 +794,7 @@ export function HandoverAgreementTab({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[min(680px,95vw)] p-0 shadow-xl" align="start">
-                      <div className="flex max-h-[500px] flex-col">
+                      <div className="flex max-h-125 flex-col">
                         <div className="flex items-center border-b px-3 py-2.5">
                           <Search className="mr-2 h-4 w-4 shrink-0 text-zinc-400" />
                           <Input
@@ -832,7 +832,7 @@ export function HandoverAgreementTab({
                           </div>
                         )}
 
-                        <div className="flex-1 overflow-y-auto p-1.5 divide-y divide-zinc-100 dark:divide-zinc-800/60 max-h-[340px]">
+                        <div className="flex-1 overflow-y-auto p-1.5 divide-y divide-zinc-100 dark:divide-zinc-800/60 max-h-85">
                           {loadingGeneralAssetOptions && (
                             <div className="py-8 text-center text-sm text-zinc-500">
                               <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-emerald-600" />

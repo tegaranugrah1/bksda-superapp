@@ -324,7 +324,7 @@ export function DocumentHistoryTab({
           )}
         </div>
         <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-          <table className="w-full min-w-[1040px] text-left text-xs">
+          <table className="w-full min-w-260 text-left text-xs">
             <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
               <tr>
                 <th className="px-3 py-2">Jenis</th>

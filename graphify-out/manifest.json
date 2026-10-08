@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1791454341.5590882,
-    "ast_hash": "d8c8c24c7513f6b44d8c55a7795e7791",
+    "mtime": 1791459098.5975637,
+    "ast_hash": "faf3009f683ac047f5a8732b5ed1130f",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {
@@ -1130,8 +1130,8 @@
     "semantic_hash": "1bb19620a1e7dcdc0200316269e7bef1"
   },
   "backend/app/Modules/SuratTugas/Routes/api.php": {
-    "mtime": 1788917895.6565044,
-    "ast_hash": "1712becd8f41fd9a86e68e8c6a014b2c",
+    "mtime": 1791459078.415352,
+    "ast_hash": "0870e6491f5b213e5134d8a9cbcd083e",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/SuratTugasServiceProvider.php": {
@@ -1840,8 +1840,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SkPanitiaDocument.tsx": {
-    "mtime": 1791173839.9005022,
-    "ast_hash": "cbce152d08506ff46253c985f54823a4",
+    "mtime": 1791459538.447199,
+    "ast_hash": "eac309ca5cb09084027deef020f3d4a3",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx": {
@@ -2445,8 +2445,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/page.tsx": {
-    "mtime": 1791380611.1347945,
-    "ast_hash": "17522110da96df4f9885ec5f8a82ecf1",
+    "mtime": 1791459588.690945,
+    "ast_hash": "bdfdce71e2b0848535ef1ea0337be11f",
     "semantic_hash": ""
   },
   "frontend/src/app/lapor/page.tsx": {
@@ -2500,8 +2500,8 @@
     "semantic_hash": "ca69e9168daff5d0ace2e153b61aa77c"
   },
   "frontend/src/app/surat-tugas/page.tsx": {
-    "mtime": 1791457523.8009803,
-    "ast_hash": "b0b6489ac18fd8564304ff82094448bd",
+    "mtime": 1791459618.0863268,
+    "ast_hash": "2dd42331dec1898170419ae635c35448",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/LembarDisposisi2UpPrint.tsx": {
@@ -5575,13 +5575,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportPrint.tsx": {
-    "mtime": 1788917877.779696,
-    "ast_hash": "6d9ea90e9ae26260400c517cbcb1323e",
+    "mtime": 1791459611.9122298,
+    "ast_hash": "58335b66c5c92d7d75a13914c8c2e31d",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportInlineForm.tsx": {
-    "mtime": 1788917877.7786975,
-    "ast_hash": "88057ba3e197109eb02e051533eee520",
+    "mtime": 1791459595.6073272,
+    "ast_hash": "93c496ea08add202fd569a599ac1b05d",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/StTemplateController.php": {
@@ -6180,8 +6180,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/GmailReaderView.tsx": {
-    "mtime": 1791454945.4521432,
-    "ast_hash": "9d52e6cdd7fec22e57075afd671ac65d",
+    "mtime": 1791459579.6460204,
+    "ast_hash": "68b057f7bb29084b3495e9407ffd2b8c",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/GmailRowItem.tsx": {
@@ -6430,8 +6430,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/RecentDocumentTable.tsx": {
-    "mtime": 1791170396.410657,
-    "ast_hash": "b8e06b5b60af026f28a3f25587d31411",
+    "mtime": 1791459545.1865902,
+    "ast_hash": "30d44422b95b4e6a9d35737faaa756f5",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_lib/report-actions.ts": {
@@ -6445,13 +6445,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/CoveringLetterTab.tsx": {
-    "mtime": 1791171528.0735428,
-    "ast_hash": "a78d98e3e15d5d68698d671889169e8f",
+    "mtime": 1791459551.6338906,
+    "ast_hash": "76ebde0db5fb280e429801542898372e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/DocumentHistoryTab.tsx": {
-    "mtime": 1791171656.533925,
-    "ast_hash": "d6c9159bf297eb5a8325fd56c3921519",
+    "mtime": 1791459556.59602,
+    "ast_hash": "1da84b55916e44f1509032aca1ecf52f",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/ExportReportsTab.tsx": {
@@ -6460,8 +6460,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/HandoverAgreementTab.tsx": {
-    "mtime": 1791171632.224128,
-    "ast_hash": "bca45bca65016bf7e76553c519e55bf9",
+    "mtime": 1791459563.431268,
+    "ast_hash": "508ee75654d62e3a75a69125a5b7828a",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/PowerOfAttorneyTab.tsx": {
@@ -6485,13 +6485,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_tabs/AssetTypeManagementTab.tsx": {
-    "mtime": 1791171959.2995741,
-    "ast_hash": "de8636085356f9a486339cc7e1bac998",
+    "mtime": 1791459568.678301,
+    "ast_hash": "1626b553f7f65ec6763e0bb77de27e0d",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_tabs/LocationManagementTab.tsx": {
-    "mtime": 1791171936.89143,
-    "ast_hash": "6786c7e6a18ec922c1eb543cb2312454",
+    "mtime": 1791459573.7759216,
+    "ast_hash": "d2e814dd37f39f4ad9fa3619364f0ed7",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_tabs/TagManagementTab.tsx": {
@@ -6535,8 +6535,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx": {
-    "mtime": 1791457538.1669223,
-    "ast_hash": "abc3df75afcd9d102530480704b021c1",
+    "mtime": 1791459061.4907706,
+    "ast_hash": "cd897ab472518bcd160b3e0ecb168aad",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-helpers.ts": {

@@ -443,7 +443,7 @@ export default function SuratTugasInbox() {
   if (!splitView && selectedLetter) {
     return (
       <div className="p-6 space-y-6 animate-in fade-in duration-200">
-        <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden h-[calc(100vh-140px)] min-h-[700px] flex flex-col">
+        <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden h-[calc(100vh-140px)] min-h-175 flex flex-col">
           <GmailReaderView
             letter={selectedLetter}
             onBack={() => setSelectedLetter(null)}
@@ -518,7 +518,7 @@ export default function SuratTugasInbox() {
       />
 
       {/* Main Gmail Box Container */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[640px] h-[calc(100vh-240px)]">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-160 h-[calc(100vh-240px)]">
         {/* Horizontal Status Tabs ala Gmail */}
         <GmailStatusTabs
           activeTab={activeTab}
@@ -563,7 +563,7 @@ export default function SuratTugasInbox() {
           {/* Table / List View */}
           <div
             className={`flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar ${
-              splitView ? "max-w-[420px] lg:max-w-[480px] border-r border-slate-200 dark:border-zinc-800" : ""
+              splitView ? "max-w-105 lg:max-w-120 border-r border-slate-200 dark:border-zinc-800" : ""
             }`}
           >
             {loading ? (

@@ -96,7 +96,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
   }
 
   return (
-    <div className="print-report-wrapper bg-white text-black font-sans font-['Arial',sans-serif] text-[12pt] leading-relaxed max-w-[210mm] mx-auto p-0">
+    <div className="print-report-wrapper bg-white text-black font-sans text-[12pt] leading-relaxed max-w-[210mm] mx-auto p-0">
       {/* 
         MASTER PRINT ENGINE:
         Menggunakan teknik Master Table (thead/tfoot) untuk memaksa margin atas dan bawah pada SETIAP halaman 
@@ -164,7 +164,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
       {/* ==================== PAGE 1: COVER ==================== */}
       {isCustomImageCover ? (
         /* MODE COVER MANUAL: FULL-PAGE UPLOADED COVER IMAGE */
-        <div className="w-full min-h-[800px] print:min-h-0 print:h-[297mm] flex flex-col items-center justify-center p-0 m-0 overflow-hidden border-none page-break-after relative bg-white">
+        <div className="w-full min-h-200 print:min-h-0 print:h-[297mm] flex flex-col items-center justify-center p-0 m-0 overflow-hidden border-none page-break-after relative bg-white">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={data.custom_cover_image_url}
@@ -174,7 +174,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
         </div>
       ) : (
         /* MODE COVER STANDAR & CUSTOM SUB-UNIT COVER */
-        <div className="w-full min-h-[800px] print:min-h-0 print:h-[297mm] flex flex-col justify-between items-center text-center py-8 print:pt-[15mm] print:pb-[15mm] px-8 print:px-[20mm] border-none overflow-hidden page-break-after bg-white box-border">
+        <div className="w-full min-h-200 print:min-h-0 print:h-[297mm] flex flex-col justify-between items-center text-center py-8 print:pt-[15mm] print:pb-[15mm] px-8 print:px-[20mm] border-none overflow-hidden page-break-after bg-white box-border">
           {/* TOP TITLE BLOCK */}
           <div className="w-full space-y-2 pt-4">
             <h1 className="text-[17.5pt] font-bold tracking-wider uppercase font-sans">
@@ -295,15 +295,15 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                 <div className="space-y-2">
                   <h3 className="text-[12pt] font-bold uppercase">D. PELAKSANA KEGIATAN</h3>
                   <div className="pl-4 overflow-x-visible">
-                    <div className="relative pt-[28px]">
+                    <div className="relative pt-7">
                       {/* MAGIC HACK: Cover up the 1 | 2 | 3 row ONLY on the first page to perfectly match MS Word behavior! */}
-                      <div className="absolute top-0 left-0 right-0 h-[28px] bg-gray-50 print:bg-white border-b border-black z-10 box-border"></div>
-                      <table className="w-full border-collapse border border-black text-[12pt] mt-[-28px] relative z-0">
+                      <div className="absolute top-0 left-0 right-0 h-7 bg-gray-50 print:bg-white border-b border-black z-10 box-border"></div>
+                      <table className="w-full border-collapse border border-black text-[12pt] -mt-7 relative z-0">
                         <thead className="content-table-head">
-                          <tr className="bg-slate-50 print:bg-white text-center text-[10pt] font-normal content-table-row h-[28px]">
-                            <th className="border border-black p-0 w-12 h-[28px] font-normal">1</th>
-                            <th className="border border-black p-0 h-[28px] font-normal">2</th>
-                            <th className="border border-black p-0 h-[28px] font-normal">3</th>
+                          <tr className="bg-slate-50 print:bg-white text-center text-[10pt] font-normal content-table-row h-7">
+                            <th className="border border-black p-0 w-12 h-7 font-normal">1</th>
+                            <th className="border border-black p-0 h-7 font-normal">2</th>
+                            <th className="border border-black p-0 h-7 font-normal">3</th>
                           </tr>
                           <tr className="bg-slate-100 print:bg-white text-center font-normal content-table-row">
                             <th className="border border-black px-3 py-1.5 w-12 font-normal">No.</th>
@@ -368,7 +368,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                         </p>
 
                         <div className="pt-2 flex justify-end">
-                          <div className="min-w-[280px] max-w-[340px] text-left space-y-0.5 text-[12pt]">
+                          <div className="min-w-70 max-w-85 text-left space-y-0.5 text-[12pt]">
                             <p className="font-normal">{data.kota_laporan || "Samarinda"}, {tanggalFormat}</p>
                             <p className="font-normal">Pelaksana Kegiatan,</p>
 

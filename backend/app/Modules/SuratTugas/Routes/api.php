@@ -31,7 +31,6 @@ Route::middleware(['auth:sanctum', 'module.access:surat_tugas,kepegawaian'])->gr
     Route::get('/{id}', [AssignmentLetterController::class, 'show']);
     Route::put('/{id}', [AssignmentLetterController::class, 'update']);
     Route::put('/{id}/approve', [AssignmentLetterController::class, 'approve']);
-    Route::post('/direct', [AssignmentLetterController::class, 'directStore']);
     Route::delete('/{id}/force', [AssignmentLetterController::class, 'forceDestroy']);
     Route::get('/{id}/download', [AssignmentLetterController::class, 'downloadPdf']);
 });

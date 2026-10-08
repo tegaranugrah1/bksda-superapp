@@ -514,7 +514,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   variant="outline"
                   role="combobox"
                   aria-expanded={stPopoverOpen}
-                  className="w-full justify-between p-2.5 h-auto min-h-[44px] rounded-xl bg-white dark:bg-zinc-800 border border-emerald-300 dark:border-emerald-700 text-xs font-semibold text-slate-800 dark:text-slate-200"
+                  className="w-full justify-between p-2.5 h-auto min-h-11 rounded-xl bg-white dark:bg-zinc-800 border border-emerald-300 dark:border-emerald-700 text-xs font-semibold text-slate-800 dark:text-slate-200"
                 >
                   <span className="truncate whitespace-normal text-left line-clamp-1 flex-1 pr-2">
                     {selectedSTId
@@ -528,8 +528,8 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[80vw] md:w-[600px] p-0" align="start">
-                <div className="flex flex-col max-h-[350px]">
+              <PopoverContent className="w-[80vw] md:w-150 p-0" align="start">
+                <div className="flex flex-col max-h-87.5">
                   <div className="flex items-center border-b px-3">
                     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                     <Input

@@ -129,8 +129,6 @@ export function SuratTugasForm({
   const isPlhTemplate =
     templateType === "plh" || selectedDynamicTemplate?.type === "plh";
 
-  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
-  const [newTemplateName, setNewTemplateName] = useState("");
   const [namaKegiatan, setNamaKegiatan] = useState("");
   const [activityPrefix, setActivityPrefix] = useState(
     "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )"
@@ -193,7 +191,6 @@ export function SuratTugasForm({
   // Status & Edit Builder Specific States
   const [isInitializing, setIsInitializing] = useState(mode === "edit");
   const [suratStatus, setSuratStatus] = useState<string>("");
-  const [draggedUntukIndex, setDraggedUntukIndex] = useState<number | null>(null);
 
   const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
   const isPublished = ["diterbitkan", "approved", "completed", "published"].includes(
@@ -1260,7 +1257,7 @@ export function SuratTugasForm({
       .replace(/{tahun}/g, currentYear)}`;
   };
 
-  const getBedaHariData = () => {
+  const buildPayload = (status?: string) => {
     let effectiveMulai = tanggalMulai;
     let effectiveSelesai = tanggalSelesai;
     if (isBedaHariTemplate) {
@@ -1312,20 +1309,39 @@ export function SuratTugasForm({
         }
       : undefined;
 
+    const fullNomorSurat = stNumber.trim() && klasifikasi.trim()
+      ? buildNomorSurat(stNumber.trim(), klasifikasi.trim())
+      : null;
+
     return {
-      effectiveMulai,
-      effectiveSelesai,
-      updatedKeterangan,
-      employeesPayload,
-      templateSnapshotPayload,
+      nomor_surat: fullNomorSurat,
+      kode_surat: klasifikasi.trim() ? `K.18/TU/${klasifikasi.trim()}/B` : null,
+      tanggal_surat: tanggalSurat || null,
+      maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
+      tanggal_mulai: effectiveMulai,
+      tanggal_selesai: effectiveSelesai,
+      tempat_tujuan: getTempatTujuanForPayload() || null,
+      sumber_dana: sumberDana,
+      sumber_dana_other: sumberDanaOther,
+      template_type: templateType,
+      template_id: selectedTemplateId,
+      menimbang: getPreviewMenimbangItems(),
+      dasar: getPreviewDasarItems(),
+      tembusan: tembusanItems.length > 0 ? tembusanItems : null,
+      penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
+      penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
+      employees: employeesPayload,
+      employee_ids: selectedEmployees.map((e) => e.id),
+      keterangan: updatedKeterangan,
+      template_snapshot: templateSnapshotPayload,
+      ...(status ? { status } : {}),
     };
   };
 
   // Actions
   const handleSaveDraft = async () => {
     if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
-    const tempatTujuanPayload = getTempatTujuanForPayload();
-    if (!tempatTujuanPayload) {
+    if (!getTempatTujuanForPayload()) {
       return toast.error(
         isPlhTemplate ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi."
       );
@@ -1343,40 +1359,7 @@ export function SuratTugasForm({
     if (!confirmed) return;
 
     try {
-      const fullNomorSurat = stNumber.trim() && klasifikasi.trim()
-        ? buildNomorSurat(stNumber.trim(), klasifikasi.trim())
-        : null;
-
-      const {
-        effectiveMulai,
-        effectiveSelesai,
-        updatedKeterangan,
-        employeesPayload,
-        templateSnapshotPayload,
-      } = getBedaHariData();
-
-      const payload = {
-        nomor_surat: fullNomorSurat,
-        kode_surat: klasifikasi.trim() ? `K.18/TU/${klasifikasi.trim()}/B` : null,
-        tanggal_surat: tanggalSurat || null,
-        maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
-        tanggal_mulai: effectiveMulai,
-        tanggal_selesai: effectiveSelesai,
-        tempat_tujuan: tempatTujuanPayload,
-        sumber_dana: sumberDana,
-        sumber_dana_other: sumberDanaOther,
-        template_type: templateType,
-        template_id: selectedTemplateId,
-        menimbang: getPreviewMenimbangItems(),
-        dasar: getPreviewDasarItems(),
-        tembusan: tembusanItems.length > 0 ? tembusanItems : null,
-        penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
-        penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
-        employees: employeesPayload,
-        keterangan: updatedKeterangan,
-        template_snapshot: templateSnapshotPayload,
-      };
-
+      const payload = buildPayload();
       if (mode === "create") {
         await api.post("/surat-tugas", payload);
         toast.success("Draft Surat Tugas berhasil disimpan.");
@@ -1400,8 +1383,7 @@ export function SuratTugasForm({
   const handleApprove = async () => {
     if (!stNumber) return toast.error("Nomor surat harus diisi.");
     if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
-    const tempatTujuanPayload = getTempatTujuanForPayload();
-    if (!tempatTujuanPayload) {
+    if (!getTempatTujuanForPayload()) {
       return toast.error(
         isPlhTemplate ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi."
       );
@@ -1418,39 +1400,7 @@ export function SuratTugasForm({
     if (!confirmed) return;
 
     try {
-      const fullNomorSurat = buildNomorSurat(stNumber, klasifikasi);
-      const {
-        effectiveMulai,
-        effectiveSelesai,
-        updatedKeterangan,
-        employeesPayload,
-        templateSnapshotPayload,
-      } = getBedaHariData();
-
-      const payload = {
-        nomor_surat: fullNomorSurat,
-        kode_surat: `K.18/TU/${klasifikasi}/B`,
-        tanggal_surat: tanggalSurat || null,
-        maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
-        tanggal_mulai: effectiveMulai,
-        tanggal_selesai: effectiveSelesai,
-        tempat_tujuan: tempatTujuanPayload,
-        sumber_dana: sumberDana,
-        sumber_dana_other: sumberDanaOther,
-        template_type: templateType,
-        template_id: selectedTemplateId,
-        menimbang: getPreviewMenimbangItems(),
-        dasar: getPreviewDasarItems(),
-        tembusan: tembusanItems.length > 0 ? tembusanItems : null,
-        penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
-        penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
-        employees: employeesPayload,
-        employee_ids: selectedEmployees.map((e) => e.id),
-        keterangan: updatedKeterangan,
-        template_snapshot: templateSnapshotPayload,
-        status: "approved",
-      };
-
+      const payload = buildPayload("approved");
       if (mode === "create") {
         await api.post("/surat-tugas", payload);
         toast.success("Surat Tugas berhasil diterbitkan!");
@@ -1479,37 +1429,7 @@ export function SuratTugasForm({
     if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
 
     try {
-      const fullNomorSurat = buildNomorSurat(stNumber, klasifikasi);
-      const {
-        effectiveMulai,
-        effectiveSelesai,
-        updatedKeterangan,
-        employeesPayload,
-        templateSnapshotPayload,
-      } = getBedaHariData();
-
-      const payload = {
-        nomor_surat: fullNomorSurat,
-        kode_surat: `K.18/TU/${klasifikasi}/B`,
-        maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
-        tempat_tujuan: getTempatTujuanForPayload() || null,
-        tanggal_surat: tanggalSurat,
-        sumber_dana: sumberDana,
-        sumber_dana_other: sumberDanaOther,
-        template_type: templateType,
-        menimbang: getPreviewMenimbangItems(),
-        dasar: getPreviewDasarItems(),
-        tembusan: tembusanItems.length > 0 ? tembusanItems : null,
-        penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
-        penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
-        employees: employeesPayload,
-        employee_ids: selectedEmployees.map((e) => e.id),
-        tanggal_mulai: effectiveMulai,
-        tanggal_selesai: effectiveSelesai,
-        keterangan: updatedKeterangan,
-        template_snapshot: templateSnapshotPayload,
-        status: "pending",
-      };
+      const payload = buildPayload("pending");
       await api.put(`/surat-tugas/${letterId}/approve`, payload);
       toast.success("Surat Tugas berhasil diajukan! Menunggu persetujuan.");
       await queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });

@@ -588,7 +588,7 @@ export function GmailReaderView({
                   {letter.status === "pending" ? (
                     <button
                       onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${letter.id}`)}
-                      className="h-12 w-full rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 font-black text-xs tracking-wider uppercase transition-all active:scale-95"
+                      className="h-12 w-full rounded-xl bg-linear-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 font-black text-xs tracking-wider uppercase transition-all active:scale-95"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Otorisasi ST</span>

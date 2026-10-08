@@ -356,7 +356,7 @@ export default function SuratTugasForm() {
   return (
     <>
       {isSearching && (
-        <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
+        <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-100 flex flex-col items-center justify-center">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-sm font-bold text-slate-700">
             Tunggu sebentar, memuat pegawai...
