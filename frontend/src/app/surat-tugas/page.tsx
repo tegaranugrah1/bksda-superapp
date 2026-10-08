@@ -300,7 +300,7 @@ export default function SuratTugasForm() {
             selesai: formData.tanggal_selesai,
           };
           const rangeText = formatDateRangeIndonesian(dates.mulai, dates.selesai);
-          return `${index + 1}. ${emp.name} (${emp.nip ? `NIP. ${emp.nip}` : "Non-NIP"}): ${rangeText}`;
+          return `${index + 1}. ${emp.name}: ${rangeText}`;
         });
         const scheduleBlock = `[Jadwal Personel Berbeda Hari]:\n${scheduleLines.join("\n")}`;
         finalKeterangan = finalKeterangan ? `${finalKeterangan}\n\n${scheduleBlock}` : scheduleBlock;

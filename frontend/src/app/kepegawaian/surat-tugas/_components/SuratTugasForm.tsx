@@ -250,6 +250,43 @@ export function SuratTugasForm({
       text: (item.text || "").replace(/{tahun}/g, currentYear),
     }));
 
+  const updateDasarFromFunding = (fundingId: string, date: string) => {
+    const tahun = date
+      ? new Date(date).getFullYear().toString()
+      : new Date().getFullYear().toString();
+    const dynExpense = expenseTemplates.find(
+      (o) =>
+        o.code === fundingId ||
+        o.name.toLowerCase() === fundingId.toLowerCase() ||
+        String(o.id) === fundingId
+    );
+    const opt =
+      availableSumberDanaOptions.find((o) => o.id === fundingId) ||
+      SUMBER_DANA_OPTIONS.find((o) => o.id === fundingId);
+    const rawDasar = dynExpense?.dasar_text ?? opt?.dasarText ?? "";
+    const fundingText = rawDasar ? rawDasar.replace(/{tahun}/g, tahun).trim() : "";
+
+    setDasarItems((prev) => {
+      const newItems = [...prev];
+      const existingIdx = newItems.findIndex(
+        (item) => item.id === "funding-dasar" || (item.text && item.text.toLowerCase().includes("dipa"))
+      );
+      if (fundingText) {
+        if (existingIdx !== -1) {
+          newItems[existingIdx] = {
+            id: newItems[existingIdx].id || "funding-dasar",
+            text: fundingText,
+          };
+        } else {
+          newItems.push({ id: "funding-dasar", text: fundingText });
+        }
+      } else if (existingIdx !== -1) {
+        newItems.splice(existingIdx, 1);
+      }
+      return newItems;
+    });
+  };
+
   const fetchDynamicTemplates = async (selectDefault = false) => {
     try {
       const res = await api.get("/kepegawaian/st-templates");
@@ -692,9 +729,8 @@ export function SuratTugasForm({
   };
 
   // Apply PLH template
-  const applyPlhTemplate = useCallback(
-    (
-      parentSt?: {
+  const applyPlhTemplate = (
+    parentSt?: {
         nomor_surat?: string | null;
         tanggal_surat?: string | null;
         tanggal_mulai?: string | null;
@@ -758,7 +794,7 @@ export function SuratTugasForm({
 
       if (plhTemplate?.menimbang && plhTemplate.menimbang.length > 0) {
         const formattedMenimbang = plhTemplate.menimbang.map((item) => {
-          let text = (item.text || "").replace(/{tahun}/g, currentYear);
+          const text = (item.text || "").replace(/{tahun}/g, currentYear);
           return {
             ...item,
             text: replacePlhAllPlaceholders(text, {
@@ -774,7 +810,7 @@ export function SuratTugasForm({
 
       if (plhTemplate?.dasar && plhTemplate.dasar.length > 0) {
         const formattedDasar = plhTemplate.dasar.map((item) => {
-          let text = (item.text || "").replace(/{tahun}/g, currentYear);
+          const text = (item.text || "").replace(/{tahun}/g, currentYear);
           return {
             ...item,
             text: replacePlhAllPlaceholders(text, {
@@ -828,9 +864,7 @@ export function SuratTugasForm({
       if (plhName?.trim()) {
         setPendingPlhEmployeeName(plhName.trim());
       }
-    },
-    [dynamicTemplates, currentYear]
-  );
+    };
 
   // Template switch handler
   const handleTemplateChange = (value: string) => {
@@ -1017,7 +1051,7 @@ export function SuratTugasForm({
         }
       })();
     }
-  }, [initialTemplate, initialParentStId, mode, applyPlhTemplate]);
+  }, [initialTemplate, initialParentStId, mode]);
 
   // Text builders
   const replacePlhPlaceholders = useCallback(
@@ -1166,43 +1200,6 @@ export function SuratTugasForm({
     return "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;";
   };
 
-  const updateDasarFromFunding = (fundingId: string, date: string) => {
-    const tahun = date
-      ? new Date(date).getFullYear().toString()
-      : new Date().getFullYear().toString();
-    const dynExpense = expenseTemplates.find(
-      (o) =>
-        o.code === fundingId ||
-        o.name.toLowerCase() === fundingId.toLowerCase() ||
-        String(o.id) === fundingId
-    );
-    const opt =
-      availableSumberDanaOptions.find((o) => o.id === fundingId) ||
-      SUMBER_DANA_OPTIONS.find((o) => o.id === fundingId);
-    const rawDasar = dynExpense?.dasar_text ?? opt?.dasarText ?? "";
-    const fundingText = rawDasar ? rawDasar.replace(/{tahun}/g, tahun).trim() : "";
-
-    setDasarItems((prev) => {
-      const newItems = [...prev];
-      const existingIdx = newItems.findIndex(
-        (item) => item.id === "funding-dasar" || (item.text && item.text.toLowerCase().includes("dipa"))
-      );
-      if (fundingText) {
-        if (existingIdx !== -1) {
-          newItems[existingIdx] = {
-            id: newItems[existingIdx].id || "funding-dasar",
-            text: fundingText,
-          };
-        } else {
-          newItems.push({ id: "funding-dasar", text: fundingText });
-        }
-      } else if (existingIdx !== -1) {
-        newItems.splice(existingIdx, 1);
-      }
-      return newItems;
-    });
-  };
-
   useEffect(() => {
     if (sumberDana && expenseTemplates.length > 0) {
       updateDasarFromFunding(sumberDana, tanggalSurat);
@@ -1290,8 +1287,7 @@ export function SuratTugasForm({
           selesai: effectiveSelesai,
         };
         const rangeText = formatDateRangeIndonesian(dates.mulai, dates.selesai);
-        const nipText = emp.nip ? `NIP. ${emp.nip}` : "Non-NIP";
-        return `${index + 1}. ${emp.nama_lengkap || emp.name} (${nipText}): ${rangeText}`;
+        return `${index + 1}. ${emp.nama_lengkap || emp.name}: ${rangeText}`;
       });
       const scheduleBlock = `[Jadwal Personel Berbeda Hari]:\n${scheduleLines.join("\n")}`;
       updatedKeterangan = baseKeterangan ? `${baseKeterangan}\n\n${scheduleBlock}` : scheduleBlock;
