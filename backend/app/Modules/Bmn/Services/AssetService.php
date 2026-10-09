@@ -28,9 +28,22 @@ class AssetService
                 $oldValue = $asset->{$field};
                 
                 // Normalize for comparison
-                $oldNorm = is_null($oldValue) ? '' : (string) $oldValue;
-                $newNorm = is_null($newValue) ? '' : (string) $newValue;
+                $oldNorm = is_null($oldValue) ? '' : trim((string) $oldValue);
+                $newNorm = is_null($newValue) ? '' : trim((string) $newValue);
                 
+                // Skip if both are empty/null
+                if ($oldNorm === '' && $newNorm === '') continue;
+
+                // Check numeric equality (e.g. 143678570.00 == 143678570)
+                if (is_numeric($oldNorm) && is_numeric($newNorm) && (float) $oldNorm == (float) $newNorm) {
+                    continue;
+                }
+
+                // Check date equality (e.g. 2028-10-06 00:00:00 == 2028-10-06)
+                if (strlen($oldNorm) >= 10 && strlen($newNorm) === 10 && substr($oldNorm, 0, 10) === $newNorm) {
+                    continue;
+                }
+
                 if ($oldNorm !== $newNorm) {
                     AssetUpdate::create([
                         'asset_id' => $asset->id,

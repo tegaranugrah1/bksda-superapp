@@ -160,6 +160,7 @@ class AssetController extends Controller
     {
         try {
             $asset = $this->assetService->updateAsset($id, $request->validated(), $request->user()->id);
+            $asset->load(['penanggungJawab', 'tags', 'loans.borrower', 'maintenances', 'historyUpdates.author']);
 
             return response()->json(['message' => 'Perubahan aset berhasil direkam.', 'data' => new AssetResource($asset)]);
         } catch (Exception $e) {

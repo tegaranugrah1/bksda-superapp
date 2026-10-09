@@ -1,63 +1,62 @@
 "use client";
 
-import React, { use, useState, useCallback } from "react";
+import React, { use, useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Package, FileText, Banknote, MapPin, Building2, Car, Landmark, UserCheck, History, Tag as TagIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Package,
+  FileText,
+  Banknote,
+  MapPin,
+  Building2,
+  Car,
+  Landmark,
+  UserCheck,
+  History,
+  Tag as TagIcon,
+  Maximize2,
+  Warehouse,
+  Pencil,
+  Check,
+  X,
+  ChevronRight,
+  Camera,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DetailSection, DetailRow, EditableRow, EditableSelectRow, EditableEmployeeRow, CurrencyRow, EditableCurrencyRow, AreaRow, BadgeRow } from "./_components/DetailSection";
-import { PhotoGallery } from "./_components/PhotoGallery";
+import {
+  DetailSection,
+  DetailRow,
+  FormInputRow,
+  FormSelectRow,
+  FormCurrencyRow,
+  FormEmployeeRow,
+  AreaRow,
+} from "./_components/DetailSection";
+import { PhotoGallery, PhotoGalleryRef, driveToThumbnail } from "./_components/PhotoGallery";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "sonner";
 import { TagBadge } from "@/app/bmn/_components/TagBadge";
 import { TagAssignmentDialog } from "@/app/bmn/_components/TagAssignmentDialog";
 import { type IBmnTag } from "@/app/bmn/_lib/tag-utils";
+import { ALL_LOKASI_RUANG_OPTIONS } from "@/app/bmn/_lib/location-options";
+import { cn } from "@/lib/utils";
 
-const LOKASI_RUANG_OPTIONS = [
-  "Kantor Balai KSDA Kalimantan Timur",
-  "Urusan Umum dan Perlengkapan",
-  "Urusan Kepegawaian",
-  "Urusan Program dan Perencanaan",
-  "Urusan Keuangan",
-  "Urusan Evlab",
-  "Urusan Teknis",
-  "Urusan Perlindungan",
-  "Urusan IKN",
-  "Seksi KSDA Wilayah I (Berau)",
-  "Resor 01. Berau",
-  "Resor 02. Pulau Semama dan Pulau Sangalaki",
-  "Resor 03. Tanjung Selor",
-  "Resor 04. Tarakan",
-  "Seksi KSDA Wilayah II (Tenggarong)",
-  "Resor 05. Samarinda",
-  "Resor 06. Padang Luway",
-  "Resor 07. Muara Kaman Sedulang",
-  "Resor 08. Sangatta",
-  "Resor 09. Suaka Badak Kelian",
-  "Seksi KSDA Wilayah III (Balikpapan)",
-  "Resor 10. Balikpapan",
-  "Resor 11. Teluk Adang",
-  "Resor 12. Teluk Apar",
-  "Resor 13. Paser",
-  "Resor 14. Ibu Kota Nusantara",
-];
+const LOKASI_RUANG_OPTIONS = ALL_LOKASI_RUANG_OPTIONS;
+const KONDISI_OPTIONS = ["Baik", "Rusak Ringan", "Rusak Berat"];
 
 export default function BmnAssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
   if (id === "create") {
-    return <CreateRedirect />;
+    redirect("/bmn/assets/create");
   }
 
   return <AssetDetail assetId={id} />;
-}
-
-function CreateRedirect() {
-  const router = useRouter();
-  React.useEffect(() => { router.replace("/bmn/assets/create"); }, [router]);
-  return null;
 }
 
 function AssetDetail({ assetId }: { assetId: string }) {
@@ -65,6 +64,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
   const router = useRouter();
   const { hasPermission } = useRole();
   const canWrite = hasPermission("bmn.asset.update");
+  const galleryRef = useRef<PhotoGalleryRef>(null);
+
   const { data: asset, isLoading, isError, refetch } = useQuery({
     queryKey: ["bmn-asset", assetId],
     queryFn: async () => {
@@ -86,415 +87,1049 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
   const [activeTab, setActiveTab] = useState("identitas");
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState<Record<string, any>>({});
 
-  const handleFieldSave = useCallback(async (field: string, value: string) => {
+  // Synchronize local form draft with asset when asset loads or changes
+  useEffect(() => {
+    if (asset && !isEditMode) {
+      setFormData(asset);
+    }
+  }, [asset, isEditMode]);
+
+  const updateField = (field: string, value: any) => {
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "pengguna") next.nama_pengguna = value;
+      if (field === "nama_pengguna") next.pengguna = value;
+      return next;
+    });
+  };
+
+  const startEditMode = () => {
+    if (asset) {
+      setFormData({ ...asset });
+    }
+    setIsEditMode(true);
+    toast.info("Mode Edit Aktif: Ubah data pada tab di bawah, lalu klik 'Simpan Perubahan'.");
+  };
+
+  const handleCancelEdit = () => {
+    if (asset) {
+      setFormData({ ...asset });
+    }
+    setIsEditMode(false);
+    toast.info("Perubahan dibatalkan.");
+  };
+
+  const handleSaveAll = async () => {
+    setIsSaving(true);
     try {
-      // Sync pengguna <-> nama_pengguna
-      const payload: Record<string, string | null> = { [field]: value || null };
-      if (field === "pengguna") payload.nama_pengguna = value || null;
-      if (field === "nama_pengguna") payload.pengguna = value || null;
+      const payload: Record<string, any> = {};
+      const editableKeys = [
+        "status_bmn",
+        "merk",
+        "tipe",
+        "nama",
+        "kondisi",
+        "no_polisi",
+        "no_bpkp",
+        "no_stnk",
+        "no_mesin",
+        "no_rangka",
+        "tanggal_pajak_stnk",
+        "tanggal_ganti_plat",
+        "status_sertifikasi",
+        "jenis_sertipikat",
+        "no_sertifikat",
+        "nilai_perolehan_pertama",
+        "nilai_mutasi",
+        "nilai_perolehan",
+        "nilai_penyusutan",
+        "nilai_buku",
+        "status_sbsn",
+        "status_bmn_idle",
+        "status_kemitraan",
+        "bpybds",
+        "usulan_barang_hilang",
+        "usulan_barang_rb",
+        "usul_hapus",
+        "hibah_dktp",
+        "konsensi_jasa",
+        "properti_investasi",
+        "jenis_dokumen",
+        "no_dokumen",
+        "status_penggunaan",
+        "no_psp",
+        "tanggal_psp",
+        "status_pmk",
+        "alamat",
+        "rt_rw",
+        "kelurahan_desa",
+        "kecamatan",
+        "kab_kota",
+        "provinsi",
+        "kode_pos",
+        "lokasi_ruang",
+        "sbsk",
+        "optimalisasi",
+        "penghuni",
+        "pengguna",
+        "nama_pengguna",
+      ];
+
+      editableKeys.forEach((key) => {
+        if (formData[key] !== undefined) {
+          const val = formData[key] === "" ? null : formData[key];
+          const oldVal = (asset as any)?.[key] === "" ? null : (asset as any)?.[key];
+
+          const valNorm = val === null || val === undefined ? "" : String(val).trim();
+          const oldNorm = oldVal === null || oldVal === undefined ? "" : String(oldVal).trim();
+
+          const isNumeric = valNorm !== "" && oldNorm !== "" && !isNaN(Number(valNorm)) && !isNaN(Number(oldNorm));
+          const isDifferent = isNumeric ? Number(valNorm) !== Number(oldNorm) : valNorm !== oldNorm;
+
+          if (isDifferent) {
+            payload[key] = val;
+          }
+        }
+      });
+
+      if (payload.pengguna && payload.pengguna !== asset.pengguna) {
+        payload.nama_pengguna = payload.pengguna;
+      }
+      if (payload.nama_pengguna && payload.nama_pengguna !== asset.nama_pengguna) {
+        payload.pengguna = payload.nama_pengguna;
+      }
+
+      if (Object.keys(payload).length === 0) {
+        toast.info("Tidak ada perubahan data yang disimpan.");
+        setIsEditMode(false);
+        return;
+      }
 
       await api.put(`/bmn/assets/${assetId}`, payload);
-      toast.success("Field berhasil diperbarui.");
-      queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
-      queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+      toast.success("Perubahan data aset berhasil disimpan.");
+      setIsEditMode(false);
+      await refetch();
+      await queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
+      await queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
     } catch {
-      toast.error("Gagal menyimpan perubahan.");
-      throw new Error("save failed");
+      toast.error("Gagal menyimpan perubahan aset.");
+    } finally {
+      setIsSaving(false);
     }
-  }, [assetId, queryClient]);
+  };
 
   if (isLoading) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-3" />
-        <p className="text-sm text-zinc-400">Memuat data aset...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-3" />
+        <p className="text-sm text-slate-500 dark:text-zinc-400">Memuat data aset...</p>
       </div>
     );
   }
 
   if (isError || !asset) {
     return (
-      <div className="p-8 text-center">
-        <Package className="w-12 h-12 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" />
-        <p className="text-slate-500 dark:text-slate-400 mb-3">Aset tidak ditemukan</p>
-        <Link href="/bmn/assets"><Button variant="outline" size="sm">Kembali</Button></Link>
+      <div className="p-8 text-center max-w-md mx-auto mt-12">
+        <Package className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-zinc-600" />
+        <h3 className="text-base font-bold text-slate-800 dark:text-zinc-200 mb-1">Aset tidak ditemukan</h3>
+        <p className="text-xs text-slate-500 dark:text-zinc-400 mb-4">Aset mungkin telah dipindahkan atau dihapus dari sistem.</p>
+        <Link href="/bmn/assets">
+          <Button variant="outline" size="sm" className="rounded-lg gap-2">
+            <ArrowLeft className="w-4 h-4" /> Kembali ke Katalog
+          </Button>
+        </Link>
       </div>
     );
   }
 
-  const kondisiVariant = asset.kondisi === "Baik" ? "success" : asset.kondisi === "Rusak Ringan" ? "warning" : "danger";
-  const kondisiColor = asset.kondisi === "Baik" ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200" : asset.kondisi === "Rusak Ringan" ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-200" : "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 ring-red-200";
-  const formatCurrency = (v: number) => v ? new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(v) : "-";
+  const currentData = isEditMode ? formData : asset;
+
+  const formatCurrency = (v: number | string | null | undefined) => {
+    const num = Number(v) || 0;
+    return num
+      ? new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num)
+      : "-";
+  };
+
+  // Subtitle rule:
+  // "diganti jadi merk atau tipe, tetapi jika merk dan tipe sama, maka hanya merk saja"
+  const getMerkTipeSubtitle = () => {
+    const merk = currentData.merk?.trim();
+    const tipe = currentData.tipe?.trim();
+
+    if (!merk && !tipe) return "Tidak ada keterangan merk/tipe";
+    if (!tipe) return merk;
+    if (!merk) return tipe;
+    if (merk.toLowerCase() === tipe.toLowerCase()) return merk;
+    return `${merk} / ${tipe}`;
+  };
+
+  // Hero Photo Fallback Hierarchy:
+  // 1. Geotag -> 2. Depan -> 3. Belakang -> 4. Kiri -> 5. Kanan
+  const resolvedGeotagUrl = asset.foto_geotag_path || asset.foto_geotag_url;
+  const heroPhotoCandidate = resolvedGeotagUrl
+    ? { url: resolvedGeotagUrl, label: "Foto Utama Geotag", key: "geotag", isGeotag: true }
+    : asset.foto_depan_url
+    ? { url: asset.foto_depan_url, label: "Foto Tampak Depan", key: "depan", isGeotag: false }
+    : asset.foto_belakang_url
+    ? { url: asset.foto_belakang_url, label: "Foto Tampak Belakang", key: "belakang", isGeotag: false }
+    : asset.foto_kiri_url
+    ? { url: asset.foto_kiri_url, label: "Foto Tampak Kiri", key: "kiri", isGeotag: false }
+    : asset.foto_kanan_url
+    ? { url: asset.foto_kanan_url, label: "Foto Tampak Kanan", key: "kanan", isGeotag: false }
+    : null;
+
+  const heroDisplayUrl =
+    heroPhotoCandidate?.url && !asset.foto_geotag_path && heroPhotoCandidate.isGeotag
+      ? driveToThumbnail(heroPhotoCandidate.url)?.replace("sz=w400", "sz=w1200") || heroPhotoCandidate.url
+      : heroPhotoCandidate?.url;
 
   const tabs = [
-    { key: "identitas", label: "Identitas" },
-    { key: "finansial", label: "Finansial" },
-    { key: "dokumen", label: "Dokumen" },
-    { key: "lokasi", label: "Lokasi" },
-    { key: "organisasi", label: "Organisasi" },
-    { key: "riwayat", label: "Riwayat" },
+    { key: "identitas", label: "Identitas", icon: <FileText className="w-4 h-4" /> },
+    { key: "finansial", label: "Finansial & Akuntansi", icon: <Banknote className="w-4 h-4" /> },
+    { key: "dokumen", label: "Dokumen Legalitas", icon: <Landmark className="w-4 h-4" /> },
+    { key: "lokasi", label: "Lokasi & Penanggung Jawab", icon: <MapPin className="w-4 h-4" /> },
+    { key: "organisasi", label: "Organisasi", icon: <UserCheck className="w-4 h-4" /> },
+    {
+      key: "riwayat",
+      label: "Riwayat Perubahan Data",
+      icon: <History className="w-4 h-4" />,
+      count: asset.history_updates?.length || 0,
+    },
   ];
 
-  return (
-    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="max-w-6xl mx-auto space-y-6">
-      {/* Back */}
-      <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-600 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Kembali ke Katalog
-      </button>
+  const calculateAge = () => {
+    const currentYear = new Date().getFullYear();
+    const tahun = currentData.tahun_perolehan
+      ? Number(currentData.tahun_perolehan)
+      : currentData.tanggal_perolehan
+      ? new Date(currentData.tanggal_perolehan).getFullYear()
+      : null;
 
-      {/* Hero Card */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm ring-1 ring-zinc-200/60 dark:ring-zinc-800 overflow-hidden">
-        <div className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Package className="w-7 h-7 text-emerald-600" />
+    if (tahun && !isNaN(tahun)) {
+      const age = currentYear - tahun;
+      return age >= 0 ? `${age} Tahun` : "-";
+    }
+
+    if (currentData.umur_aset) return `${currentData.umur_aset} Tahun`;
+    return "-";
+  };
+
+  const allLokasiRuangOptions = Array.from(
+    new Set([
+      ...(currentData.lokasi_ruang ? [currentData.lokasi_ruang] : []),
+      ...LOKASI_RUANG_OPTIONS,
+    ])
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50/60 dark:bg-zinc-950">
+      {/* ==================== TOP OPERATIONAL COCKPIT BAR ==================== */}
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md px-6 lg:px-10 py-3.5 flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 shadow-xs">
+        {/* Navigation & Breadcrumbs */}
+        <div className="flex items-center gap-3 text-xs flex-wrap">
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-1.5 font-semibold text-slate-600 dark:text-zinc-400 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Kembali ke Katalog</span>
+          </button>
+          <span className="text-slate-300 dark:text-zinc-700">/</span>
+          <span className="uppercase tracking-wider font-semibold text-slate-500 dark:text-zinc-500 truncate max-w-[200px] sm:max-w-xs">
+            {asset.jenis_bmn || "Aset BMN"}
+          </span>
+          <span className="text-slate-300 dark:text-zinc-700">/</span>
+          <span className="font-mono font-semibold text-slate-600 dark:text-zinc-300">
+            {asset.kode_barang}
+          </span>
+          <span className="text-slate-300 dark:text-zinc-700">/</span>
+          <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">
+            NUP {asset.nup}
+          </span>
+        </div>
+
+        {/* Right Header Actions */}
+        <div className="flex items-center gap-2">
+          {canWrite && !isEditMode && (
+            <button
+              onClick={startEditMode}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              <span>Edit Aset</span>
+            </button>
+          )}
+
+          {canWrite && isEditMode && (
+            <>
+              <button
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Batal</span>
+              </button>
+              <button
+                onClick={handleSaveAll}
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                <span>Simpan Perubahan</span>
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* ==================== MAIN WORKSPACE ==================== */}
+      <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full flex flex-col gap-6">
+        {/* ==================== SECTION 1: EXECUTIVE OPERATIONS COCKPIT (BENTO MATRIX) ==================== */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          {/* TILE 1: Primary Geotag Visual Hero Box (Col 5) */}
+          <div className="lg:col-span-5 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow">
+            {heroDisplayUrl ? (
+              <div className="relative group rounded-xl overflow-hidden border border-slate-200/60 dark:border-zinc-800 bg-slate-900 flex-1 min-h-[360px] flex flex-col justify-between">
+                {/* Asset Hero Image */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={heroDisplayUrl}
+                  alt={asset.nama_barang}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  referrerPolicy={heroDisplayUrl.includes("drive.google.com") ? "no-referrer" : undefined}
+                />
+
+                {/* Dark Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
+
+                {/* Interactive Corner Top Bar */}
+                <div className="relative z-10 p-3 flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold border border-white/10">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    {heroPhotoCandidate?.label || "Foto Utama"}
+                  </span>
+
+                  <button
+                    onClick={() => heroPhotoCandidate && galleryRef.current?.openLightbox(heroPhotoCandidate.key)}
+                    className="w-8 h-8 rounded-lg bg-black/50 backdrop-blur-md text-white hover:bg-black/75 flex items-center justify-center transition-colors"
+                    title="Perbesar Tampilan Foto"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Interactive Corner Bottom Bar */}
+                <div className="relative z-10 p-3.5 text-white flex flex-col gap-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-300">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{currentData.lokasi_ruang || "Lokasi belum ditentukan"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-300 border-t border-white/15 pt-1.5">
+                    <span>
+                      {asset.verified_at
+                        ? `Diverifikasi: ${new Date(asset.verified_at).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}`
+                        : "Belum diverifikasi BMN"}
+                    </span>
+                    <span className="font-mono text-[10px] bg-white/20 px-1.5 py-0.5 rounded backdrop-blur-xs">
+                      KD: {asset.kode_barang}
+                    </span>
+                  </div>
+                </div>
               </div>
+            ) : (
+              /* Fallback Placeholder when NO photos uploaded */
+              <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/20 flex-1 min-h-[360px] flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-3">
+                  <Camera className="w-7 h-7" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-200">Belum ada Foto Fisik</h4>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-xs leading-relaxed">
+                  Foto fisik dan geotag belum diunggah untuk aset ini. Silakan unggah foto pada seksi dokumentasi di bawah.
+                </p>
+              </div>
+            )}
+
+            {/* Quick Action Under-Image Strip */}
+            <div className="flex items-center justify-between mt-3 px-1 text-xs text-slate-500 dark:text-zinc-400">
+              <span className="flex items-center gap-1 font-medium">
+                <Camera className="w-3.5 h-3.5" />
+                <span>NUP: {asset.nup}</span>
+              </span>
+              {heroDisplayUrl && (
+                <button
+                  type="button"
+                  onClick={() => heroPhotoCandidate && galleryRef.current?.openLightbox(heroPhotoCandidate.key)}
+                  className="text-emerald-700 dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1"
+                >
+                  Lihat Resolusi Penuh
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* TILE 2: Core Asset Identity & Metric Cluster (Col 7) */}
+          <div className="lg:col-span-7 flex flex-col gap-5">
+            {/* Sub-Tile 2A: Asset Title, Classification & Badges */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 flex flex-col justify-between flex-1 shadow-xs hover:shadow-md transition-shadow">
               <div>
-                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{asset.nama_barang}</h1>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md ring-1 ring-emerald-200/50">{asset.kode_barang}</span>
-                  <span className="text-xs text-slate-400">NUP: {asset.nup}</span>
-                  {asset.jenis_bmn && <span className="text-xs text-slate-400">• {asset.jenis_bmn}</span>}
+                {/* Top Row: Code Badge, Status Flags */}
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 text-xs font-mono font-bold">
+                      #{asset.kode_barang}
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-zinc-400">
+                      NUP: <span className="font-semibold text-slate-800 dark:text-zinc-200">{asset.nup}</span>
+                    </span>
+                    {asset.jenis_bmn && (
+                      <>
+                        <span className="text-slate-300 dark:text-zinc-700">•</span>
+                        <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-zinc-400 truncate max-w-xs">
+                          {asset.jenis_bmn}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {asset.active_loan && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold">
+                        <span className="w-2 h-2 rounded-full bg-blue-500" />
+                        Dipinjam
+                      </span>
+                    )}
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border",
+                        currentData.kondisi === "Baik"
+                          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
+                          : currentData.kondisi === "Rusak Ringan"
+                          ? "bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800"
+                          : "bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "w-2 h-2 rounded-full",
+                          currentData.kondisi === "Baik"
+                            ? "bg-emerald-500"
+                            : currentData.kondisi === "Rusak Ringan"
+                            ? "bg-amber-500"
+                            : "bg-rose-500"
+                        )}
+                      />
+                      {currentData.kondisi}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 text-xs font-bold">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      {currentData.status_bmn || "Aktif"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Asset Headline */}
+                <div className="flex items-start gap-3.5 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5">
+                    {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" ? (
+                      <Car className="w-6 h-6" />
+                    ) : asset.jenis_bmn === "BANGUNAN DAN GEDUNG" ? (
+                      <Building2 className="w-6 h-6" />
+                    ) : (
+                      <Package className="w-6 h-6" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
+                        {asset.nama_barang}
+                      </h2>
+                      {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" &&
+                        currentData.no_polisi &&
+                        currentData.no_polisi.trim() !== "" &&
+                        currentData.no_polisi.trim() !== "-" && (
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-900 dark:bg-zinc-950 text-white font-mono font-bold text-xs tracking-wider border border-slate-700/80 dark:border-zinc-700 shadow-xs select-all"
+                            title={`Nomor Polisi: ${currentData.no_polisi}`}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
+                            {currentData.no_polisi.toUpperCase()}
+                          </span>
+                        )}
+                    </div>
+                    {/* Merk & Tipe formatted according to user request */}
+                    <p className="text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1 leading-relaxed">
+                      {getMerkTipeSubtitle()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tags Bar */}
+              <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between flex-wrap gap-2 mt-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500 flex items-center gap-1">
+                    <TagIcon className="w-3.5 h-3.5 text-emerald-600" />
+                    Tag Aset:
+                  </span>
+                  {asset.tags && asset.tags.length > 0 ? (
+                    asset.tags.map((tag: IBmnTag) => <TagBadge key={tag.id} tag={tag} size="sm" />)
+                  ) : (
+                    <span className="text-xs text-slate-400 dark:text-zinc-500 italic">Belum ada tag</span>
+                  )}
+                </div>
+                {canWrite && (
+                  <button
+                    onClick={() => setIsTagDialogOpen(true)}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors"
+                  >
+                    <span>+ Atur Tag</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Sub-Tile 2B: Financial & Lifecycle Bento Matrix (3 Interconnected Metric Micro-Tiles) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+                <div className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                  NILAI PEROLEHAN
+                </div>
+                <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 my-1 truncate">
+                  {formatCurrency(currentData.nilai_perolehan)}
+                </div>
+                <div className="text-[11px] text-slate-500 dark:text-zinc-400">Harga Awal Pengadaan</div>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+                <div className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                  NILAI BUKU
+                </div>
+                <div className="text-base sm:text-lg font-bold text-emerald-700 dark:text-emerald-400 my-1 truncate">
+                  {formatCurrency(currentData.nilai_buku)}
+                </div>
+                <div className="text-[11px] text-slate-500 dark:text-zinc-400">Sisa Nilai Akuntansi</div>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+                <div className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                  TAHUN PEROLEHAN
+                </div>
+                <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 my-1">
+                  {currentData.tahun_perolehan || "-"}
+                </div>
+                <div className="text-[11px] text-slate-500 dark:text-zinc-400">Usia: {calculateAge()}</div>
+              </div>
+            </div>
+
+            {/* Sub-Tile 2C: Physical Location & Warehouse Custodian Bento Tile */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3 shadow-xs">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0">
+                  <Warehouse className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 tracking-wider">
+                    LOKASI PENYIMPANAN FISIK
+                  </div>
+                  <div className="text-sm font-semibold text-slate-800 dark:text-zinc-200 flex items-center gap-2 mt-0.5">
+                    <span>{currentData.lokasi_ruang || "Belum ditentukan"}</span>
+                    {(currentData.pengguna || currentData.nama_pengguna) && (
+                      <>
+                        <span className="text-slate-300 dark:text-zinc-700">•</span>
+                        <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">
+                          Pengguna: {currentData.pengguna || currentData.nama_pengguna}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              <div className="flex items-center gap-2">
-                {asset.active_loan && (
-                  <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold ring-1 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200 shadow-sm">
-                    Dipinjam
+          </div>
+        </div>
+
+        {/* ==================== SECTION 2: PANORAMIC 5-POINT AUDIT PHOTO DOCUMENTATION DECK ==================== */}
+        <PhotoGallery
+          ref={galleryRef}
+          assetId={assetId}
+          assetName={asset.nama_barang}
+          nup={asset.nup}
+          fotoGeotagUrl={asset.foto_geotag_url}
+          fotoGeotagPath={asset.foto_geotag_path}
+          fotoDepanUrl={asset.foto_depan_url}
+          fotoBelakangUrl={asset.foto_belakang_url}
+          fotoKiriUrl={asset.foto_kiri_url}
+          fotoKananUrl={asset.foto_kanan_url}
+          frontLocationNote={asset.lokasi_spesifik || ""}
+          onSaveFrontLocation={async (value) => {
+            await api.put(`/bmn/assets/${assetId}`, { lokasi_spesifik: value });
+            await refetch();
+          }}
+          fotoBpkb1Url={asset.foto_bpkb_1_url}
+          fotoBpkb2Url={asset.foto_bpkb_2_url}
+          fotoBpkb3Url={asset.foto_bpkb_3_url}
+          fotoBpkb4Url={asset.foto_bpkb_4_url}
+          fotoStnk1Url={asset.foto_stnk_1_url}
+          fotoStnk2Url={asset.foto_stnk_2_url}
+          bpkbDocument={asset.bpkb_document}
+          stnkDocument={asset.stnk_document}
+          isVehicle={asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-"}
+          verifiedAt={asset.verified_at}
+          verifiedByName={asset.verified_by_name}
+          onRefresh={refetch}
+        />
+
+        {/* ==================== SECTION 3: TECHNICAL & COMPLIANCE BENTO PANEL ==================== */}
+        <section className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-6 shadow-xs hover:shadow-md transition-shadow">
+          {/* Tab Navigation Bar */}
+          <div className="flex items-center gap-1.5 border-b border-slate-200/80 dark:border-zinc-800 overflow-x-auto pb-3">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all",
+                  activeTab === tab.key
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                )}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+                {typeof tab.count === "number" && tab.count > 0 && (
+                  <span
+                    className={cn(
+                      "px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none",
+                      activeTab === tab.key
+                        ? "bg-emerald-700/70 text-white"
+                        : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800"
+                    )}
+                  >
+                    {tab.count}
                   </span>
                 )}
-                <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ring-1 ${kondisiColor} shadow-sm`}>{asset.kondisi}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Active Content */}
+          <div className="mt-6">
+            {activeTab === "identitas" && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <DetailSection title="IDENTITAS BMN" icon={<FileText className="w-4 h-4" />}>
+                  <DetailRow label="Jenis BMN" value={currentData.jenis_bmn} />
+                  <DetailRow label="Kode Barang" value={currentData.kode_barang} />
+                  <DetailRow label="NUP" value={currentData.nup} />
+                  <DetailRow label="NUP Lama" value={currentData.nup_lama} />
+                  <DetailRow label="Nama Barang" value={currentData.nama_barang} />
+                  <FormInputRow
+                    label="Status BMN"
+                    value={currentData.status_bmn}
+                    onChange={(val) => updateField("status_bmn", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormInputRow
+                    label="Merk"
+                    value={currentData.merk}
+                    onChange={(val) => updateField("merk", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormInputRow
+                    label="Tipe"
+                    value={currentData.tipe}
+                    onChange={(val) => updateField("tipe", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormInputRow
+                    label="Nama"
+                    value={currentData.nama}
+                    onChange={(val) => updateField("nama", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormSelectRow
+                    label="Kondisi"
+                    value={currentData.kondisi}
+                    onChange={(val) => updateField("kondisi", val)}
+                    isEditMode={isEditMode}
+                    options={KONDISI_OPTIONS}
+                  />
+                  <DetailRow label="Umur Aset" value={calculateAge()} />
+                  <DetailRow label="Tahun Perolehan" value={currentData.tahun_perolehan} />
+                  <DetailRow label="Intra/Extra" value={currentData.intra_extra} />
+                  <DetailRow label="Henti Guna" value={currentData.henti_guna} />
+                </DetailSection>
+
+                <DetailSection title="KENDARAAN & SERTIFIKAT" icon={<Car className="w-4 h-4" />}>
+                  <FormInputRow
+                    label="No Polisi"
+                    value={currentData.no_polisi}
+                    onChange={(val) => updateField("no_polisi", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormInputRow
+                    label="No BPKB"
+                    value={currentData.no_bpkp}
+                    onChange={(val) => updateField("no_bpkp", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormInputRow
+                    label="No STNK"
+                    value={currentData.no_stnk}
+                    onChange={(val) => updateField("no_stnk", val)}
+                    isEditMode={isEditMode}
+                  />
+                  {currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!currentData.no_polisi && currentData.no_polisi.trim() !== "-" && (
+                    <>
+                      <FormInputRow
+                        label="No Mesin"
+                        value={currentData.no_mesin}
+                        onChange={(val) => updateField("no_mesin", val)}
+                        isEditMode={isEditMode}
+                      />
+                      <FormInputRow
+                        label="No Rangka"
+                        value={currentData.no_rangka}
+                        onChange={(val) => updateField("no_rangka", val)}
+                        isEditMode={isEditMode}
+                      />
+                    </>
+                  )}
+                  <FormInputRow
+                    label="Tanggal Pajak STNK"
+                    value={currentData.tanggal_pajak_stnk}
+                    onChange={(val) => updateField("tanggal_pajak_stnk", val)}
+                    isEditMode={isEditMode}
+                    type="date"
+                    badge={currentData.tanggal_pajak_stnk ? <StnkCountdown tanggal={currentData.tanggal_pajak_stnk} label="Pajak" /> : undefined}
+                  />
+                  <FormInputRow
+                    label="Tanggal Ganti Plat"
+                    value={currentData.tanggal_ganti_plat}
+                    onChange={(val) => updateField("tanggal_ganti_plat", val)}
+                    isEditMode={isEditMode}
+                    type="date"
+                    badge={currentData.tanggal_ganti_plat ? <StnkCountdown tanggal={currentData.tanggal_ganti_plat} label="Ganti Plat" /> : undefined}
+                  />
+                  <FormInputRow
+                    label="Status Sertifikasi"
+                    value={currentData.status_sertifikasi}
+                    onChange={(val) => updateField("status_sertifikasi", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormInputRow
+                    label="Jenis Sertipikat"
+                    value={currentData.jenis_sertipikat}
+                    onChange={(val) => updateField("jenis_sertipikat", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormInputRow
+                    label="No Sertifikat"
+                    value={currentData.no_sertifikat}
+                    onChange={(val) => updateField("no_sertifikat", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <DetailRow label="Jenis Identitas" value={currentData.jenis_identitas} />
+                  <DetailRow label="No Identitas" value={currentData.no_identitas} />
+                  <DetailRow
+                    label="Status Foto Geotag"
+                    value={
+                      asset.foto_geotag_path || asset.foto_geotag_url
+                        ? "Tersedia (Terverifikasi)"
+                        : currentData.status_foto_geotag || "Belum Ada"
+                    }
+                  />
+                  <DetailRow
+                    label="Jumlah Foto"
+                    value={
+                      Math.max(
+                        Number(currentData.jumlah_foto) || 0,
+                        [
+                          asset.foto_geotag_path || asset.foto_geotag_url,
+                          asset.foto_depan_url,
+                          asset.foto_belakang_url,
+                          asset.foto_kiri_url,
+                          asset.foto_kanan_url,
+                        ].filter(Boolean).length
+                      ) || "-"
+                    }
+                  />
+                </DetailSection>
               </div>
-              {asset.active_loan && asset.active_loan.borrower_name && (
-                <span className="text-[10px] font-medium text-blue-600 bg-blue-50/50 px-2 py-0.5 rounded-md mt-0.5 flex items-center gap-1">
-                  👤 {asset.active_loan.borrower_name}
-                </span>
-              )}
-            </div>
-          </div>
+            )}
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800">
-            <QuickStat label="Nilai Perolehan" value={formatCurrency(asset.nilai_perolehan)} />
-            <QuickStat label="Nilai Buku" value={formatCurrency(asset.nilai_buku)} />
-            <QuickStat label="Tahun" value={asset.tahun_perolehan || "-"} />
-            <QuickStat label="Status" value={asset.status_bmn || "Aktif"} />
-          </div>
+            {activeTab === "finansial" && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <DetailSection title="NILAI & FINANSIAL" icon={<Banknote className="w-4 h-4" />}>
+                  <FormCurrencyRow
+                    label="Nilai Perolehan Pertama"
+                    value={currentData.nilai_perolehan_pertama}
+                    onChange={(val) => updateField("nilai_perolehan_pertama", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormCurrencyRow
+                    label="Nilai Mutasi"
+                    value={currentData.nilai_mutasi}
+                    onChange={(val) => updateField("nilai_mutasi", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormCurrencyRow
+                    label="Nilai Perolehan"
+                    value={currentData.nilai_perolehan}
+                    onChange={(val) => updateField("nilai_perolehan", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormCurrencyRow
+                    label="Nilai Penyusutan"
+                    value={currentData.nilai_penyusutan}
+                    onChange={(val) => updateField("nilai_penyusutan", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <FormCurrencyRow
+                    label="Nilai Buku"
+                    value={currentData.nilai_buku}
+                    onChange={(val) => updateField("nilai_buku", val)}
+                    isEditMode={isEditMode}
+                  />
+                  <DetailRow label="Tanggal Perolehan" value={currentData.tanggal_perolehan} />
+                  <DetailRow label="Tanggal Buku Pertama" value={currentData.tanggal_buku_pertama} />
+                  <DetailRow label="Tanggal Penghapusan" value={currentData.tanggal_pengapusan} />
+                </DetailSection>
 
-          {/* Extra Info: Lokasi, Pengguna, Kendaraan */}
-          {(asset.lokasi_ruang || asset.pengguna || asset.nama_pengguna || asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR") && (
-            <div className="flex flex-wrap gap-x-6 gap-y-1 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-              {asset.lokasi_ruang && (
-                <span className="text-xs text-zinc-500 dark:text-zinc-400"><span className="font-semibold text-zinc-700 dark:text-zinc-300">Lokasi:</span> {asset.lokasi_ruang}</span>
-              )}
-              {(asset.pengguna || asset.nama_pengguna) && (
-                <span className="text-xs text-zinc-500 dark:text-zinc-400"><span className="font-semibold text-zinc-700 dark:text-zinc-300">Pengguna:</span> {asset.pengguna || asset.nama_pengguna}</span>
-              )}
-              {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
-                <span className="text-xs text-zinc-500 dark:text-zinc-400"><span className="font-semibold text-zinc-700 dark:text-zinc-300">No Polisi:</span> {asset.no_polisi}</span>
-              )}
-              {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.tanggal_pajak_stnk && (
-                <span className="text-xs text-zinc-500 dark:text-zinc-400"><span className="font-semibold text-zinc-700 dark:text-zinc-300">Pajak STNK:</span> {asset.tanggal_pajak_stnk}</span>
-              )}
-            </div>
-          )}
+                <DetailSection title="DIMENSI & LUAS" icon={<Building2 className="w-4 h-4" />}>
+                  <AreaRow label="Luas Tanah Seluruhnya" value={currentData.luas_tanah_seluruhnya} />
+                  <AreaRow label="Luas Tanah Bangunan" value={currentData.luas_tanah_bangunan} />
+                  <AreaRow label="Luas Tanah Sarana" value={currentData.luas_tanah_sarana} />
+                  <AreaRow label="Luas Lahan Kosong" value={currentData.luas_lahan_kosong} />
+                  <AreaRow label="Luas Bangunan" value={currentData.luas_bangunan} />
+                  <AreaRow label="Luas Tapak Bangunan" value={currentData.luas_tapak_bangunan} />
+                  <AreaRow label="Luas Pemanfaatan" value={currentData.luas_pemanfaatan} />
+                  <DetailRow label="Jumlah Lantai" value={currentData.jumlah_lantai} />
+                </DetailSection>
+              </div>
+            )}
 
-          {/* Tags Section */}
-          <div className="flex items-center justify-between gap-4 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-                <TagIcon className="w-3.5 h-3.5 text-emerald-600" /> Tag:
-              </span>
-              {asset.tags && asset.tags.length > 0 ? (
-                asset.tags.map((tag: IBmnTag) => (
-                  <TagBadge key={tag.id} tag={tag} size="sm" />
-                ))
-              ) : (
-                <span className="text-xs text-slate-400 italic">Belum ada tag</span>
-              )}
-            </div>
-            {canWrite && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs gap-1.5 rounded-lg text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
-                onClick={() => setIsTagDialogOpen(true)}
-              >
-                <TagIcon className="w-3.5 h-3.5" /> Atur Tag
-              </Button>
+            {activeTab === "dokumen" && (
+              <DetailSection title="STATUS & DOKUMEN LEGALITAS" icon={<Landmark className="w-4 h-4" />}>
+                <FormInputRow
+                  label="Status SBSN"
+                  value={currentData.status_sbsn}
+                  onChange={(val) => updateField("status_sbsn", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Status BMN Idle"
+                  value={currentData.status_bmn_idle}
+                  onChange={(val) => updateField("status_bmn_idle", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Status Kemitraan"
+                  value={currentData.status_kemitraan}
+                  onChange={(val) => updateField("status_kemitraan", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="BPYBDS"
+                  value={currentData.bpybds}
+                  onChange={(val) => updateField("bpybds", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Usulan Barang Hilang"
+                  value={currentData.usulan_barang_hilang}
+                  onChange={(val) => updateField("usulan_barang_hilang", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Usulan Barang RB"
+                  value={currentData.usulan_barang_rb}
+                  onChange={(val) => updateField("usulan_barang_rb", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Usul Hapus"
+                  value={currentData.usul_hapus}
+                  onChange={(val) => updateField("usul_hapus", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Hibah DKTP"
+                  value={currentData.hibah_dktp}
+                  onChange={(val) => updateField("hibah_dktp", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Konsensi Jasa"
+                  value={currentData.konsensi_jasa}
+                  onChange={(val) => updateField("konsensi_jasa", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Properti Investasi"
+                  value={currentData.properti_investasi}
+                  onChange={(val) => updateField("properti_investasi", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Jenis Dokumen"
+                  value={currentData.jenis_dokumen}
+                  onChange={(val) => updateField("jenis_dokumen", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="No Dokumen"
+                  value={currentData.no_dokumen}
+                  onChange={(val) => updateField("no_dokumen", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Status Penggunaan"
+                  value={currentData.status_penggunaan}
+                  onChange={(val) => updateField("status_penggunaan", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="No PSP"
+                  value={currentData.no_psp}
+                  onChange={(val) => updateField("no_psp", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Tanggal PSP"
+                  value={currentData.tanggal_psp}
+                  onChange={(val) => updateField("tanggal_psp", val)}
+                  isEditMode={isEditMode}
+                  type="date"
+                />
+                <FormInputRow
+                  label="Status PMK"
+                  value={currentData.status_pmk}
+                  onChange={(val) => updateField("status_pmk", val)}
+                  isEditMode={isEditMode}
+                />
+              </DetailSection>
+            )}
+
+            {activeTab === "lokasi" && (
+              <DetailSection title="LOKASI & PENANGGUNG JAWAB" icon={<MapPin className="w-4 h-4" />}>
+                <FormInputRow
+                  label="Alamat"
+                  value={currentData.alamat}
+                  onChange={(val) => updateField("alamat", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="RT/RW"
+                  value={currentData.rt_rw}
+                  onChange={(val) => updateField("rt_rw", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Kelurahan/Desa"
+                  value={currentData.kelurahan_desa}
+                  onChange={(val) => updateField("kelurahan_desa", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Kecamatan"
+                  value={currentData.kecamatan}
+                  onChange={(val) => updateField("kecamatan", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Kab/Kota"
+                  value={currentData.kab_kota}
+                  onChange={(val) => updateField("kab_kota", val)}
+                  isEditMode={isEditMode}
+                />
+                <DetailRow label="Kode Kab/Kota" value={currentData.kode_kab_kota} />
+                <FormInputRow
+                  label="Provinsi"
+                  value={currentData.provinsi}
+                  onChange={(val) => updateField("provinsi", val)}
+                  isEditMode={isEditMode}
+                />
+                <DetailRow label="Kode Provinsi" value={currentData.kode_provinsi} />
+                <FormInputRow
+                  label="Kode Pos"
+                  value={currentData.kode_pos}
+                  onChange={(val) => updateField("kode_pos", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormSelectRow
+                  label="Lokasi Ruang"
+                  value={currentData.lokasi_ruang}
+                  onChange={(val) => updateField("lokasi_ruang", val)}
+                  isEditMode={isEditMode}
+                  options={allLokasiRuangOptions}
+                />
+                <FormInputRow
+                  label="SBSK"
+                  value={currentData.sbsk}
+                  onChange={(val) => updateField("sbsk", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormInputRow
+                  label="Optimalisasi"
+                  value={currentData.optimalisasi}
+                  onChange={(val) => updateField("optimalisasi", val)}
+                  isEditMode={isEditMode}
+                />
+                <FormEmployeeRow
+                  label="Penghuni"
+                  value={currentData.penghuni}
+                  onChange={(val) => updateField("penghuni", val)}
+                  isEditMode={isEditMode}
+                  employees={employees}
+                />
+                <FormEmployeeRow
+                  label="Pengguna"
+                  value={currentData.pengguna}
+                  onChange={(val) => updateField("pengguna", val)}
+                  isEditMode={isEditMode}
+                  employees={employees}
+                />
+                <FormEmployeeRow
+                  label="Nama Pengguna"
+                  value={currentData.nama_pengguna}
+                  onChange={(val) => updateField("nama_pengguna", val)}
+                  isEditMode={isEditMode}
+                  employees={employees}
+                />
+              </DetailSection>
+            )}
+
+            {activeTab === "organisasi" && (
+              <DetailSection title="ORGANISASI" icon={<UserCheck className="w-4 h-4" />}>
+                <DetailRow label="Kode Satker" value={currentData.kode_satker} />
+                <DetailRow label="Nama Satker" value={currentData.nama_satker} />
+                <DetailRow label="Kode KPKNL" value={currentData.kode_kpknl} />
+                <DetailRow label="Uraian KPKNL" value={currentData.uraian_kpknl} />
+                <DetailRow label="Uraian Kanwil DJKN" value={currentData.uraian_kanwil_djkn} />
+                <DetailRow label="Nama K/L" value={currentData.nama_kl} />
+                <DetailRow label="Nama E1" value={currentData.nama_e1} />
+                <DetailRow label="Nama Korwil" value={currentData.nama_korwil} />
+                <DetailRow label="Kode Register" value={currentData.kode_register} />
+              </DetailSection>
+            )}
+
+            {activeTab === "riwayat" && (
+              <HistoryTab updates={asset.history_updates || []} isEditMode={isEditMode} />
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Photo Gallery */}
-      <PhotoGallery
-        assetId={assetId}
-        assetName={asset.nama_barang}
-        nup={asset.nup}
-        fotoGeotagUrl={asset.foto_geotag_url}
-        fotoGeotagPath={asset.foto_geotag_path}
-        fotoDepanUrl={asset.foto_depan_url}
-        fotoBelakangUrl={asset.foto_belakang_url}
-        fotoKiriUrl={asset.foto_kiri_url}
-        fotoKananUrl={asset.foto_kanan_url}
-        frontLocationNote={asset.lokasi_spesifik || ""}
-        onSaveFrontLocation={(value) => handleFieldSave("lokasi_spesifik", value)}
-        fotoBpkb1Url={asset.foto_bpkb_1_url}
-        fotoBpkb2Url={asset.foto_bpkb_2_url}
-        fotoBpkb3Url={asset.foto_bpkb_3_url}
-        fotoBpkb4Url={asset.foto_bpkb_4_url}
-        fotoStnk1Url={asset.foto_stnk_1_url}
-        fotoStnk2Url={asset.foto_stnk_2_url}
-        bpkbDocument={asset.bpkb_document}
-        stnkDocument={asset.stnk_document}
-        isVehicle={asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-"}
-        verifiedAt={asset.verified_at}
-        verifiedByName={asset.verified_by_name}
-        onRefresh={refetch}
-      />
-
-      {/* Tab Navigation */}
-      <div className="flex items-center gap-1 bg-white dark:bg-zinc-900 rounded-xl ring-1 ring-zinc-200/60 dark:ring-zinc-800 p-1 overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === tab.key ? "bg-emerald-600 text-white shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"}`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === "identitas" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DetailSection title="Identitas BMN" icon={<FileText className="w-4 h-4" />}>
-            <DetailRow label="Jenis BMN" value={asset.jenis_bmn} />
-            <DetailRow label="Kode Barang" value={asset.kode_barang} />
-            <DetailRow label="NUP" value={asset.nup} />
-            <DetailRow label="NUP Lama" value={asset.nup_lama} />
-            <DetailRow label="Nama Barang" value={asset.nama_barang} />
-            {canWrite ? (
-              <>
-                <EditableRow label="Status BMN" value={asset.status_bmn} field="status_bmn" onSave={handleFieldSave} />
-                <EditableRow label="Merk" value={asset.merk} field="merk" onSave={handleFieldSave} />
-                <EditableRow label="Tipe" value={asset.tipe} field="tipe" onSave={handleFieldSave} />
-                <EditableRow label="Nama" value={asset.nama} field="nama" onSave={handleFieldSave} />
-              </>
-            ) : (
-              <>
-                <DetailRow label="Status BMN" value={asset.status_bmn} />
-                <DetailRow label="Merk" value={asset.merk} />
-                <DetailRow label="Tipe" value={asset.tipe} />
-                <DetailRow label="Nama" value={asset.nama} />
-              </>
-            )}
-            {canWrite ? (
-              <EditableSelectRow label="Kondisi" value={asset.kondisi} field="kondisi" onSave={handleFieldSave} options={["Baik", "Rusak Ringan", "Rusak Berat"]} />
-            ) : (
-              <BadgeRow label="Kondisi" value={asset.kondisi} variant={kondisiVariant} />
-            )}
-            <DetailRow label="Umur Aset" value={asset.umur_aset ? `${asset.umur_aset} tahun` : null} />
-            <DetailRow label="Tahun Perolehan" value={asset.tahun_perolehan} />
-            <DetailRow label="Intra/Extra" value={asset.intra_extra} />
-            <DetailRow label="Henti Guna" value={asset.henti_guna} />
-          </DetailSection>
-
-            <DetailSection title="Kendaraan & Sertifikat" icon={<Car className="w-4 h-4" />}>
-              {canWrite ? (
-                <>
-                  <EditableRow label="No Polisi" value={asset.no_polisi} field="no_polisi" onSave={handleFieldSave} />
-                  <EditableRow label="No BPKB" value={asset.no_bpkp} field="no_bpkp" onSave={handleFieldSave} />
-                  <EditableRow label="No STNK" value={asset.no_stnk} field="no_stnk" onSave={handleFieldSave} />
-                  {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
-                    <EditableRow label="No Mesin" value={asset.no_mesin} field="no_mesin" onSave={handleFieldSave} />
-                  )}
-                  {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
-                    <EditableRow label="No Rangka" value={asset.no_rangka} field="no_rangka" onSave={handleFieldSave} />
-                  )}
-                  <EditableRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} field="tanggal_pajak_stnk" onSave={handleFieldSave} type="date" badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
-                  <EditableRow label="Tanggal Ganti Plat" value={asset.tanggal_ganti_plat} field="tanggal_ganti_plat" onSave={handleFieldSave} type="date" badge={asset.tanggal_ganti_plat ? <StnkCountdown tanggal={asset.tanggal_ganti_plat} label="Ganti Plat" /> : undefined} />
-                  <EditableRow label="Status Sertifikasi" value={asset.status_sertifikasi} field="status_sertifikasi" onSave={handleFieldSave} />
-                  <EditableRow label="Jenis Sertipikat" value={asset.jenis_sertipikat} field="jenis_sertipikat" onSave={handleFieldSave} />
-                  <EditableRow label="No Sertifikat" value={asset.no_sertifikat} field="no_sertifikat" onSave={handleFieldSave} />
-                  <EditableRow label="Nama" value={asset.nama} field="nama" onSave={handleFieldSave} />
-                </>
-              ) : (
-                <>
-                  <DetailRow label="No Polisi" value={asset.no_polisi} />
-                  <DetailRow label="No BPKB" value={asset.no_bpkp} />
-                  <DetailRow label="No STNK" value={asset.no_stnk} />
-                  {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
-                    <DetailRow label="No Mesin" value={asset.no_mesin} />
-                  )}
-                  {(asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-") && (
-                    <DetailRow label="No Rangka" value={asset.no_rangka} />
-                  )}
-                  <DetailRow label="Tanggal Pajak STNK" value={asset.tanggal_pajak_stnk} badge={asset.tanggal_pajak_stnk ? <StnkCountdown tanggal={asset.tanggal_pajak_stnk} label="Pajak" /> : undefined} />
-                  <DetailRow label="Tanggal Ganti Plat" value={asset.tanggal_ganti_plat} badge={asset.tanggal_ganti_plat ? <StnkCountdown tanggal={asset.tanggal_ganti_plat} label="Ganti Plat" /> : undefined} />
-                <DetailRow label="Status Sertifikasi" value={asset.status_sertifikasi} />
-                <DetailRow label="Jenis Sertipikat" value={asset.jenis_sertipikat} />
-                <DetailRow label="No Sertifikat" value={asset.no_sertifikat} />
-                <DetailRow label="Nama" value={asset.nama} />
-              </>
-            )}
-            <DetailRow label="Jenis Identitas" value={asset.jenis_identitas} />
-            <DetailRow label="No Identitas" value={asset.no_identitas} />
-            <DetailRow label="Status Foto Geotag" value={asset.status_foto_geotag} />
-            <DetailRow label="Jumlah Foto" value={asset.jumlah_foto} />
-          </DetailSection>
-        </div>
-      )}
-
-      {activeTab === "finansial" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DetailSection title="Nilai & Finansial" icon={<Banknote className="w-4 h-4" />}>
-            {canWrite ? (
-              <>
-                <EditableCurrencyRow label="Nilai Perolehan Pertama" value={asset.nilai_perolehan_pertama} field="nilai_perolehan_pertama" onSave={handleFieldSave} />
-                <EditableCurrencyRow label="Nilai Mutasi" value={asset.nilai_mutasi} field="nilai_mutasi" onSave={handleFieldSave} />
-                <EditableCurrencyRow label="Nilai Perolehan" value={asset.nilai_perolehan} field="nilai_perolehan" onSave={handleFieldSave} />
-                <EditableCurrencyRow label="Nilai Penyusutan" value={asset.nilai_penyusutan} field="nilai_penyusutan" onSave={handleFieldSave} />
-                <EditableCurrencyRow label="Nilai Buku" value={asset.nilai_buku} field="nilai_buku" onSave={handleFieldSave} />
-              </>
-            ) : (
-              <>
-                <CurrencyRow label="Nilai Perolehan Pertama" value={asset.nilai_perolehan_pertama} />
-                <CurrencyRow label="Nilai Mutasi" value={asset.nilai_mutasi} />
-                <CurrencyRow label="Nilai Perolehan" value={asset.nilai_perolehan} />
-                <CurrencyRow label="Nilai Penyusutan" value={asset.nilai_penyusutan} />
-                <CurrencyRow label="Nilai Buku" value={asset.nilai_buku} />
-              </>
-            )}
-            <DetailRow label="Tanggal Perolehan" value={asset.tanggal_perolehan} />
-            <DetailRow label="Tanggal Buku Pertama" value={asset.tanggal_buku_pertama} />
-            <DetailRow label="Tanggal Penghapusan" value={asset.tanggal_pengapusan} />
-          </DetailSection>
-
-          <DetailSection title="Dimensi & Luas" icon={<Building2 className="w-4 h-4" />}>
-            <AreaRow label="Luas Tanah Seluruhnya" value={asset.luas_tanah_seluruhnya} />
-            <AreaRow label="Luas Tanah Bangunan" value={asset.luas_tanah_bangunan} />
-            <AreaRow label="Luas Tanah Sarana" value={asset.luas_tanah_sarana} />
-            <AreaRow label="Luas Lahan Kosong" value={asset.luas_lahan_kosong} />
-            <AreaRow label="Luas Bangunan" value={asset.luas_bangunan} />
-            <AreaRow label="Luas Tapak Bangunan" value={asset.luas_tapak_bangunan} />
-            <AreaRow label="Luas Pemanfaatan" value={asset.luas_pemanfaatan} />
-            <DetailRow label="Jumlah Lantai" value={asset.jumlah_lantai} />
-          </DetailSection>
-        </div>
-      )}
-
-      {activeTab === "dokumen" && (
-        <DetailSection title="Status & Dokumen" icon={<Landmark className="w-4 h-4" />}>
-          {canWrite ? (
-            <>
-              <EditableRow label="Status SBSN" value={asset.status_sbsn} field="status_sbsn" onSave={handleFieldSave} />
-              <EditableRow label="Status BMN Idle" value={asset.status_bmn_idle} field="status_bmn_idle" onSave={handleFieldSave} />
-              <EditableRow label="Status Kemitraan" value={asset.status_kemitraan} field="status_kemitraan" onSave={handleFieldSave} />
-              <EditableRow label="BPYBDS" value={asset.bpybds} field="bpybds" onSave={handleFieldSave} />
-              <EditableRow label="Usulan Barang Hilang" value={asset.usulan_barang_hilang} field="usulan_barang_hilang" onSave={handleFieldSave} />
-              <EditableRow label="Usulan Barang RB" value={asset.usulan_barang_rb} field="usulan_barang_rb" onSave={handleFieldSave} />
-              <EditableRow label="Usul Hapus" value={asset.usul_hapus} field="usul_hapus" onSave={handleFieldSave} />
-              <EditableRow label="Hibah DKTP" value={asset.hibah_dktp} field="hibah_dktp" onSave={handleFieldSave} />
-              <EditableRow label="Konsensi Jasa" value={asset.konsensi_jasa} field="konsensi_jasa" onSave={handleFieldSave} />
-              <EditableRow label="Properti Investasi" value={asset.properti_investasi} field="properti_investasi" onSave={handleFieldSave} />
-              <EditableRow label="Jenis Dokumen" value={asset.jenis_dokumen} field="jenis_dokumen" onSave={handleFieldSave} />
-              <EditableRow label="No Dokumen" value={asset.no_dokumen} field="no_dokumen" onSave={handleFieldSave} />
-              <EditableRow label="Status Penggunaan" value={asset.status_penggunaan} field="status_penggunaan" onSave={handleFieldSave} />
-              <EditableRow label="No PSP" value={asset.no_psp} field="no_psp" onSave={handleFieldSave} />
-              <EditableRow label="Tanggal PSP" value={asset.tanggal_psp} field="tanggal_psp" onSave={handleFieldSave} type="date" />
-              <EditableRow label="Status PMK" value={asset.status_pmk} field="status_pmk" onSave={handleFieldSave} />
-            </>
-          ) : (
-            <>
-              <DetailRow label="Status SBSN" value={asset.status_sbsn} />
-              <DetailRow label="Status BMN Idle" value={asset.status_bmn_idle} />
-              <DetailRow label="Status Kemitraan" value={asset.status_kemitraan} />
-              <DetailRow label="BPYBDS" value={asset.bpybds} />
-              <DetailRow label="Usulan Barang Hilang" value={asset.usulan_barang_hilang} />
-              <DetailRow label="Usulan Barang RB" value={asset.usulan_barang_rb} />
-              <DetailRow label="Usul Hapus" value={asset.usul_hapus} />
-              <DetailRow label="Hibah DKTP" value={asset.hibah_dktp} />
-              <DetailRow label="Konsensi Jasa" value={asset.konsensi_jasa} />
-              <DetailRow label="Properti Investasi" value={asset.properti_investasi} />
-              <DetailRow label="Jenis Dokumen" value={asset.jenis_dokumen} />
-              <DetailRow label="No Dokumen" value={asset.no_dokumen} />
-              <DetailRow label="Status Penggunaan" value={asset.status_penggunaan} />
-              <DetailRow label="No PSP" value={asset.no_psp} />
-              <DetailRow label="Tanggal PSP" value={asset.tanggal_psp} />
-              <DetailRow label="Status PMK" value={asset.status_pmk} />
-            </>
-          )}
-        </DetailSection>
-      )}
-
-      {activeTab === "lokasi" && (
-        <DetailSection title="Lokasi" icon={<MapPin className="w-4 h-4" />}>
-          {canWrite ? (
-            <>
-              <EditableRow label="Alamat" value={asset.alamat} field="alamat" onSave={handleFieldSave} />
-              <EditableRow label="RT/RW" value={asset.rt_rw} field="rt_rw" onSave={handleFieldSave} />
-              <EditableRow label="Kelurahan/Desa" value={asset.kelurahan_desa} field="kelurahan_desa" onSave={handleFieldSave} />
-              <EditableRow label="Kecamatan" value={asset.kecamatan} field="kecamatan" onSave={handleFieldSave} />
-              <EditableRow label="Kab/Kota" value={asset.kab_kota} field="kab_kota" onSave={handleFieldSave} />
-              <DetailRow label="Kode Kab/Kota" value={asset.kode_kab_kota} />
-              <EditableRow label="Provinsi" value={asset.provinsi} field="provinsi" onSave={handleFieldSave} />
-              <DetailRow label="Kode Provinsi" value={asset.kode_provinsi} />
-              <EditableRow label="Kode Pos" value={asset.kode_pos} field="kode_pos" onSave={handleFieldSave} />
-              <EditableSelectRow label="Lokasi Ruang" value={asset.lokasi_ruang} field="lokasi_ruang" onSave={handleFieldSave} options={LOKASI_RUANG_OPTIONS} />
-              <EditableRow label="SBSK" value={asset.sbsk} field="sbsk" onSave={handleFieldSave} />
-              <EditableRow label="Optimalisasi" value={asset.optimalisasi} field="optimalisasi" onSave={handleFieldSave} />
-              <EditableEmployeeRow label="Penghuni" value={asset.penghuni} field="penghuni" onSave={handleFieldSave} employees={employees} />
-              <EditableEmployeeRow label="Pengguna" value={asset.pengguna} field="pengguna" onSave={handleFieldSave} employees={employees} />
-              <EditableEmployeeRow label="Nama Pengguna" value={asset.nama_pengguna} field="nama_pengguna" onSave={handleFieldSave} employees={employees} />
-            </>
-          ) : (
-            <>
-              <DetailRow label="Alamat" value={asset.alamat} />
-              <DetailRow label="RT/RW" value={asset.rt_rw} />
-              <DetailRow label="Kelurahan/Desa" value={asset.kelurahan_desa} />
-              <DetailRow label="Kecamatan" value={asset.kecamatan} />
-              <DetailRow label="Kab/Kota" value={asset.kab_kota} />
-              <DetailRow label="Kode Kab/Kota" value={asset.kode_kab_kota} />
-              <DetailRow label="Provinsi" value={asset.provinsi} />
-              <DetailRow label="Kode Provinsi" value={asset.kode_provinsi} />
-              <DetailRow label="Kode Pos" value={asset.kode_pos} />
-              <DetailRow label="Lokasi Ruang" value={asset.lokasi_ruang} />
-              <DetailRow label="SBSK" value={asset.sbsk} />
-              <DetailRow label="Optimalisasi" value={asset.optimalisasi} />
-              <DetailRow label="Penghuni" value={asset.penghuni} />
-              <DetailRow label="Pengguna" value={asset.pengguna} />
-              <DetailRow label="Nama Pengguna" value={asset.nama_pengguna} />
-            </>
-          )}
-        </DetailSection>
-      )}
-
-      {activeTab === "organisasi" && (
-        <DetailSection title="Organisasi" icon={<UserCheck className="w-4 h-4" />}>
-          <DetailRow label="Kode Satker" value={asset.kode_satker} />
-          <DetailRow label="Nama Satker" value={asset.nama_satker} />
-          <DetailRow label="Kode KPKNL" value={asset.kode_kpknl} />
-          <DetailRow label="Uraian KPKNL" value={asset.uraian_kpknl} />
-          <DetailRow label="Uraian Kanwil DJKN" value={asset.uraian_kanwil_djkn} />
-          <DetailRow label="Nama K/L" value={asset.nama_kl} />
-          <DetailRow label="Nama E1" value={asset.nama_e1} />
-          <DetailRow label="Nama Korwil" value={asset.nama_korwil} />
-          <DetailRow label="Kode Register" value={asset.kode_register} />
-        </DetailSection>
-      )}
-
-      {activeTab === "riwayat" && (
-        <HistoryTab updates={asset.history_updates || []} />
-      )}
-      </div>
+        </section>
+      </main>
 
       {/* Dialog Atur Tag */}
       <TagAssignmentDialog
@@ -516,15 +1151,6 @@ function AssetDetail({ assetId }: { assetId: string }) {
           }
         }}
       />
-    </div>
-  );
-}
-
-function QuickStat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="p-3 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/50">
-      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{label}</p>
-      <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mt-0.5 truncate">{String(value)}</p>
     </div>
   );
 }
@@ -573,49 +1199,74 @@ interface HistoryUpdate {
   author?: { id: number; name: string };
 }
 
-function HistoryTab({ updates }: { updates: HistoryUpdate[] }) {
-  if (updates.length === 0) {
-    return (
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 text-center">
-        <History className="w-10 h-10 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" />
-        <p className="text-sm text-zinc-400">Belum ada riwayat perubahan untuk aset ini.</p>
-        <p className="text-xs text-zinc-300 dark:text-zinc-500 mt-1">Perubahan akan tercatat saat field diedit.</p>
-      </div>
-    );
-  }
-
+function HistoryTab({ updates, isEditMode }: { updates: HistoryUpdate[]; isEditMode?: boolean }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
-      <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 dark:from-zinc-800/50 to-white dark:to-zinc-900 flex items-center gap-2.5">
-        <span className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600"><History className="w-4 h-4" /></span>
-        <h3 className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Riwayat Perubahan</h3>
-        <span className="ml-auto text-[10px] text-zinc-400">{updates.length} perubahan</span>
-      </div>
-      <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50 max-h-[400px] overflow-y-auto">
-        {updates.map((update) => (
-          <div key={update.id} className="px-5 py-3 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-500/10 px-1.5 py-0.5 rounded">{update.field_changed}</span>
-                  <span className="text-[9px] text-zinc-400">oleh {update.author?.name || "System"}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-red-500 line-through wrap-break-word whitespace-pre-wrap max-w-full">{update.old_value || "—"}</span>
-                  <span className="text-zinc-300 dark:text-zinc-600">→</span>
-                  <span className="text-emerald-600 font-medium wrap-break-word whitespace-pre-wrap max-w-full">{update.new_value || "—"}</span>
-                </div>
-                {update.alasan_perubahan && (
-                  <p className="text-[10px] text-zinc-400 mt-1 italic">{update.alasan_perubahan}</p>
-                )}
-              </div>
-              <span className="text-[9px] text-zinc-400 shrink-0">
-                {new Date(update.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-              </span>
-            </div>
+    <div className="space-y-4">
+      {isEditMode && (
+        <div className="p-3.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl flex items-center gap-3 text-amber-800 dark:text-amber-300 text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <span className="font-bold">Mode Edit Sedang Aktif:</span> Perubahan data yang sedang diedit tersimpan dalam draft. Klik tombol <strong>&ldquo;Simpan Perubahan&rdquo;</strong> di header atas untuk menyimpan perubahan dan mencatatnya ke riwayat ini.
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {updates.length === 0 ? (
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-8 text-center">
+          <History className="w-10 h-10 mx-auto mb-3 text-slate-300 dark:text-zinc-600" />
+          <p className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Belum ada riwayat perubahan data</p>
+          <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">
+            Setiap kali data aset diperbarui dan disimpan, log kronologis riwayat perubahan (Asset Data Change History) akan otomatis tercatat di sini.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
+          <div className="px-5 py-3.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/40 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-emerald-600" />
+              <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider">
+                Riwayat Perubahan Data Aset (Asset Data Change History)
+              </h4>
+            </div>
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">{updates.length} log perubahan</span>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-zinc-800/60 max-h-[420px] overflow-y-auto">
+            {updates.map((update) => (
+              <div key={update.id} className="px-5 py-3 hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                        {update.field_changed}
+                      </span>
+                      <span className="text-[10px] text-slate-400 dark:text-zinc-500">oleh {update.author?.name || "System"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-rose-600 line-through truncate max-w-[200px]">{update.old_value || "—"}</span>
+                      <span className="text-slate-300 dark:text-zinc-600">→</span>
+                      <span className="text-emerald-700 dark:text-emerald-400 font-medium truncate max-w-[200px]">
+                        {update.new_value || "—"}
+                      </span>
+                    </div>
+                    {update.alasan_perubahan && (
+                      <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1 italic">{update.alasan_perubahan}</p>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500 shrink-0">
+                    {new Date(update.created_at).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

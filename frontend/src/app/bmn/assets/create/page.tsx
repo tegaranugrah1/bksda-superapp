@@ -24,38 +24,9 @@ const DEFAULT_JENIS_BMN_OPTIONS = [
 
 const KONDISI_OPTIONS = ["Baik", "Rusak Ringan", "Rusak Berat"];
 
-const DEFAULT_LOKASI_RUANG_OPTIONS = [
-  // Kantor Balai
-  "Kantor Balai KSDA Kalimantan Timur",
-  "Urusan Umum dan Perlengkapan",
-  "Urusan Kepegawaian",
-  "Urusan Program dan Perencanaan",
-  "Urusan Keuangan",
-  "Urusan Evlab",
-  "Urusan Teknis",
-  "Urusan Perlindungan",
-  "Urusan IKN",
-  // Wilayah I
-  "Seksi KSDA Wilayah I (Berau)",
-  "Resor 01. Berau",
-  "Resor 02. Pulau Semama dan Pulau Sangalaki",
-  "Resor 03. Tanjung Selor",
-  "Resor 04. Tarakan",
-  // Wilayah II
-  "Seksi KSDA Wilayah II (Tenggarong)",
-  "Resor 05. Samarinda",
-  "Resor 06. Padang Luway",
-  "Resor 07. Muara Kaman Sedulang",
-  "Resor 08. Sangatta",
-  "Resor 09. Suaka Badak Kelian",
-  // Wilayah III
-  "Seksi KSDA Wilayah III (Balikpapan)",
-  "Resor 10. Balikpapan",
-  "Resor 11. Teluk Adang",
-  "Resor 12. Teluk Apar",
-  "Resor 13. Paser",
-  "Resor 14. Ibu Kota Nusantara",
-];
+import { ALL_LOKASI_RUANG_OPTIONS } from "@/app/bmn/_lib/location-options";
+
+const DEFAULT_LOKASI_RUANG_OPTIONS = ALL_LOKASI_RUANG_OPTIONS;
 
 // Locked org fields
 const ORG_DEFAULTS = {
@@ -112,7 +83,7 @@ export default function BmnCreateAssetPage() {
 
   const lokasiRuangOptions = useMemo(() => {
     if (dbLocations && dbLocations.length > 0) {
-      return dbLocations.map((l) => l.name);
+      return Array.from(new Set([...DEFAULT_LOKASI_RUANG_OPTIONS, ...dbLocations.map((l) => l.name)]));
     }
     return DEFAULT_LOKASI_RUANG_OPTIONS;
   }, [dbLocations]);

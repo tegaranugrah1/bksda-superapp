@@ -75,8 +75,8 @@
     "semantic_hash": "e911315a1d8be9e2b66b7ce045aaed35"
   },
   "backend/app/Modules/Bmn/Controllers/AssetController.php": {
-    "mtime": 1791365036.5145347,
-    "ast_hash": "e221801b6982fcc2521d4e790634fad6",
+    "mtime": 1791537955.763245,
+    "ast_hash": "d4a621995a92d8b6e0398cf6b89e416a",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetDocumentController.php": {
@@ -405,9 +405,9 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Requests/UpdateAssetRequest.php": {
-    "mtime": 1779428962.0664096,
-    "ast_hash": "bbbdaed2fcd354e94cb1172ab8207ffc",
-    "semantic_hash": "bbbdaed2fcd354e94cb1172ab8207ffc"
+    "mtime": 1791537940.1353712,
+    "ast_hash": "b17a5502cb9072547304ae6370a0c344",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Requests/UpdateAuctionAssetOrderRequest.php": {
     "mtime": 1782113599.6010506,
@@ -475,9 +475,9 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/AssetService.php": {
-    "mtime": 1778835788.9667587,
-    "ast_hash": "8cf29e2ed4f0459d55de0eb8775fcf15",
-    "semantic_hash": "8cf29e2ed4f0459d55de0eb8775fcf15"
+    "mtime": 1791538005.6385484,
+    "ast_hash": "50596383076d6259a2d52488e3ff255c",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/AuctionAssetDocumentReadinessService.php": {
     "mtime": 1787548978.4689865,
@@ -1660,23 +1660,23 @@
     "semantic_hash": "d86853207f5638d34386ac07b88b9ccb"
   },
   "frontend/src/app/bmn/assets/[id]/_components/DetailSection.tsx": {
-    "mtime": 1778913561.3253696,
-    "ast_hash": "5d982c7fbdc2ef4fd204cdbd513e0cf5",
-    "semantic_hash": "5d982c7fbdc2ef4fd204cdbd513e0cf5"
+    "mtime": 1791541116.9644208,
+    "ast_hash": "b4462b50a96dece53bb0bcf37495cb1e",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx": {
-    "mtime": 1782093386.7781122,
-    "ast_hash": "3d91512f627d98ed780b9db98a931138",
-    "semantic_hash": "3d91512f627d98ed780b9db98a931138"
+    "mtime": 1791541028.1829886,
+    "ast_hash": "962c9f3ab977c28c0e8101af2fad15e3",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1790324134.9161978,
-    "ast_hash": "54fc4bfaea1d1dc60b84f8f8eabcab08",
+    "mtime": 1791541165.2438228,
+    "ast_hash": "d5689da88c4aa54e78dbb1e52775e54a",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/create/page.tsx": {
-    "mtime": 1790324134.9171996,
-    "ast_hash": "1a190d47340851a823a8b6a1bf009b74",
+    "mtime": 1791541187.164788,
+    "ast_hash": "2136935a713fe5dc4d8f6108ab2871ea",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
@@ -1685,8 +1685,8 @@
     "semantic_hash": "e67d5c5c17a7a1813c22b2998deb0fdb"
   },
   "frontend/src/app/bmn/assets/page.tsx": {
-    "mtime": 1790324134.9182017,
-    "ast_hash": "e5b2924ef4ecd1e4ba8d40b7e1781a58",
+    "mtime": 1791541201.9218295,
+    "ast_hash": "fa1e2561799bef8a4dd1fe1a89fd6fc2",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/AssetsLotTab.tsx": {
@@ -6582,6 +6582,11 @@
   "backend/app/Modules/SuratTugas/Migrations/2026_10_07_000001_add_dates_to_st_assignment_letter_employees_table.php": {
     "mtime": 1791385653.6208541,
     "ast_hash": "78cb2c2e0965dbe4a02dbbfbc53e3c3b",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/bmn/_lib/location-options.ts": {
+    "mtime": 1791541000.4286242,
+    "ast_hash": "20cdf72eec5ec2a57b7760c8bcde0d04",
     "semantic_hash": ""
   }
 }

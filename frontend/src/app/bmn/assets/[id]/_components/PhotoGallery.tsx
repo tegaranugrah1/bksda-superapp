@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Camera, Download, Eye, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck, FileText } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import { Camera, Download, Eye, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck, FileText, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,11 @@ import { useRole } from "@/hooks/useRole";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
-interface PhotoGalleryProps {
+export interface PhotoGalleryRef {
+  openLightbox: (key: string) => void;
+}
+
+export interface PhotoGalleryProps {
   assetId: string;
   assetName: string;
   nup: string;
@@ -35,7 +39,7 @@ interface PhotoGalleryProps {
   onRefresh: () => void | Promise<unknown>;
 }
 
-interface VehicleDocument {
+export interface VehicleDocument {
   path: string;
   mime?: string | null;
   original_name?: string | null;
@@ -47,11 +51,11 @@ interface VehicleDocument {
 }
 
 const PHOTO_SLOTS = [
-  { key: "geotag", label: "Foto Geotag", type: "hybrid" },
-  { key: "depan", label: "Tampak Depan", type: "upload" },
-  { key: "belakang", label: "Tampak Belakang", type: "upload" },
-  { key: "kiri", label: "Tampak Kiri", type: "upload" },
-  { key: "kanan", label: "Tampak Kanan", type: "upload" },
+  { key: "geotag", label: "Foto Geotag", shortLabel: "GEOTAG", type: "hybrid" },
+  { key: "depan", label: "Tampak Depan", shortLabel: "DEPAN", type: "upload" },
+  { key: "belakang", label: "Tampak Belakang", shortLabel: "BELAKANG", type: "upload" },
+  { key: "kiri", label: "Tampak Kiri", shortLabel: "KIRI", type: "upload" },
+  { key: "kanan", label: "Tampak Kanan", shortLabel: "KANAN", type: "upload" },
 ] as const;
 
 const DOC_SLOTS = [
@@ -63,7 +67,7 @@ const PHOTO_ACCEPT = "image/*";
 const DOCUMENT_ACCEPT = ".pdf,application/pdf,image/jpeg,image/png,image/webp";
 
 /** Convert Google Drive share link to embeddable thumbnail URL */
-function driveToThumbnail(url: string): string | null {
+export function driveToThumbnail(url: string): string | null {
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
   if (!match) return null;
   return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
@@ -96,7 +100,34 @@ function getDocumentPreviewPages(document?: VehicleDocument | null): string[] {
   return urls.map((url) => resolveApiUrl(url)).filter(Boolean) as string[];
 }
 
-export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeotagPath, fotoDepanUrl, fotoBelakangUrl, fotoKiriUrl, fotoKananUrl, frontLocationNote, onSaveFrontLocation, fotoBpkb1Url, fotoBpkb2Url, fotoBpkb3Url, fotoBpkb4Url, fotoStnk1Url, fotoStnk2Url, bpkbDocument, stnkDocument, isVehicle, verifiedAt, verifiedByName, onRefresh }: PhotoGalleryProps) {
+export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(function PhotoGallery(
+  {
+    assetId,
+    assetName,
+    nup,
+    fotoGeotagUrl,
+    fotoGeotagPath,
+    fotoDepanUrl,
+    fotoBelakangUrl,
+    fotoKiriUrl,
+    fotoKananUrl,
+    frontLocationNote,
+    onSaveFrontLocation,
+    fotoBpkb1Url,
+    fotoBpkb2Url,
+    fotoBpkb3Url,
+    fotoBpkb4Url,
+    fotoStnk1Url,
+    fotoStnk2Url,
+    bpkbDocument,
+    stnkDocument,
+    isVehicle,
+    verifiedAt,
+    verifiedByName,
+    onRefresh,
+  },
+  ref
+) {
   const { hasPermission } = useRole();
   const canUpdate = hasPermission("bmn.asset.update");
   const [uploading, setUploading] = useState<string | null>(null);
@@ -137,6 +168,9 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
   const hasAnyDocument = Object.values(documents).some(Boolean);
   const confirm = useConfirm();
 
+  // Count filled photos among 5 standard slots
+  const filledCount = PHOTO_SLOTS.filter((s) => Boolean(photos[s.key])).length;
+
   const handleVerify = async () => {
     const ok = await confirm({
       title: "Verifikasi BMN",
@@ -155,8 +189,7 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
   };
 
   // Get all available photos for navigation
-  const allSlots = PHOTO_SLOTS;
-  const availablePhotos = allSlots.map((slot) => {
+  const availablePhotos = PHOTO_SLOTS.map((slot) => {
     const url = photos[slot.key];
     if (!url) return null;
     const isExternalOnly = slot.type === "hybrid" && !fotoGeotagPath && !!fotoGeotagUrl;
@@ -164,10 +197,19 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
     return { key: slot.key, label: slot.label, url: displayUrl };
   }).filter(Boolean) as { key: string; label: string; url: string }[];
 
-  const openLightbox = (key: string) => {
-    const idx = availablePhotos.findIndex(p => p.key === key);
-    if (idx >= 0) setLightbox({ url: availablePhotos[idx].url, label: availablePhotos[idx].label, index: idx });
-  };
+  const openLightbox = useCallback((key: string) => {
+    const idx = availablePhotos.findIndex((p) => p.key === key);
+    if (idx >= 0) {
+      setLightbox({ url: availablePhotos[idx].url, label: availablePhotos[idx].label, index: idx });
+    } else if (photos[key]) {
+      const url = photos[key]!;
+      setLightbox({ url, label: "Foto Aset", index: 0 });
+    }
+  }, [availablePhotos, photos]);
+
+  useImperativeHandle(ref, () => ({
+    openLightbox,
+  }), [openLightbox]);
 
   const openDocumentLightbox = (document: VehicleDocument | null | undefined, label: string) => {
     const pages = getDocumentPreviewPages(document);
@@ -211,7 +253,10 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
     const kind = uploadKindRef.current || uploadKind;
     if (!file || !target) return;
     const maxSize = kind === "document" ? 20 * 1024 * 1024 : 5 * 1024 * 1024;
-    if (file.size > maxSize) { toast.error(kind === "document" ? "Maksimal 20MB" : "Maksimal 5MB"); return; }
+    if (file.size > maxSize) {
+      toast.error(kind === "document" ? "Maksimal 20MB" : "Maksimal 5MB");
+      return;
+    }
 
     setUploading(target);
     const formData = new FormData();
@@ -224,9 +269,8 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
         toast.success(`Dokumen ${target.toUpperCase()} berhasil diupload.`);
       } else if (target === "geotag") {
         formData.append("photo", file);
-        // Hybrid geotag endpoint
         await api.post(`/bmn/assets/${assetId}/geotag`, formData);
-        toast.success("Foto berhasil diupload.");
+        toast.success("Foto Geotag berhasil diupload.");
       } else {
         formData.append("photo", file);
         formData.append("type", target);
@@ -255,14 +299,18 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
       setShowGeotagInput(false);
       setGeotagInput("");
       onRefresh();
-    } catch { toast.error("Gagal menyimpan link."); }
+    } catch {
+      toast.error("Gagal menyimpan link.");
+    }
   };
 
   const handleDelete = async (type: string) => {
     const isDocument = type === "bpkb" || type === "stnk";
     const ok = await confirm({
       title: isDocument ? "Hapus Dokumen" : "Hapus Foto",
-      description: isDocument ? "Yakin ingin menghapus dokumen kendaraan ini? Tindakan tidak bisa dibatalkan." : "Yakin ingin menghapus foto ini? Tindakan tidak bisa dibatalkan.",
+      description: isDocument
+        ? "Yakin ingin menghapus dokumen kendaraan ini? Tindakan tidak bisa dibatalkan."
+        : "Yakin ingin menghapus foto ini? Tindakan tidak bisa dibatalkan.",
       confirmText: "Ya, Hapus",
       variant: "danger",
     });
@@ -276,7 +324,9 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
         toast.success("Foto dihapus.");
       }
       onRefresh();
-    } catch { toast.error("Gagal menghapus."); }
+    } catch {
+      toast.error("Gagal menghapus.");
+    }
   };
 
   const handleDownload = async (type: string) => {
@@ -289,7 +339,6 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
       return;
     }
     if (type === "geotag") {
-      // If local file, download via API; if external URL, open in new tab
       if (fotoGeotagPath) {
         try {
           const res = await api.get(`/bmn/assets/${assetId}/photo/geotag/download`, { responseType: "blob" });
@@ -298,8 +347,12 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
           link.href = url;
           const slug = assetName.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
           link.setAttribute("download", `${slug}_${nup}_geotag.jpg`);
-          document.body.appendChild(link); link.click(); link.parentNode?.removeChild(link);
-        } catch { toast.error("Foto tidak tersedia."); }
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode?.removeChild(link);
+        } catch {
+          toast.error("Foto tidak tersedia.");
+        }
       } else if (fotoGeotagUrl) {
         window.open(fotoGeotagUrl, "_blank");
       }
@@ -312,8 +365,12 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
       link.href = url;
       const slug = assetName.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
       link.setAttribute("download", `${slug}_${nup}_${type}.jpg`);
-      document.body.appendChild(link); link.click(); link.parentNode?.removeChild(link);
-    } catch { toast.error("Foto tidak tersedia."); }
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch {
+      toast.error("Foto tidak tersedia.");
+    }
   };
 
   const handleDownloadAll = async () => {
@@ -324,8 +381,12 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
       link.href = url;
       const slug = assetName.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
       link.setAttribute("download", `BMN_${slug}_${nup}_Foto.zip`);
-      document.body.appendChild(link); link.click(); link.parentNode?.removeChild(link);
-    } catch { toast.error("Tidak ada foto untuk diunduh."); }
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch {
+      toast.error("Tidak ada foto untuk diunduh.");
+    }
   };
 
   const copyLink = (url: string) => {
@@ -347,45 +408,81 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm ring-1 ring-zinc-200/60 dark:ring-zinc-800 overflow-hidden">
-      <div className="px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 dark:from-zinc-800/50 to-white dark:to-zinc-900 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600"><Camera className="w-4 h-4" /></span>
-          <h3 className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Dokumentasi Foto</h3>
+    <section className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-6 shadow-xs hover:shadow-md transition-shadow">
+      {/* Header Deck Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-zinc-800 gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Camera className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                Dokumentasi &amp; Bukti Fisik Aset
+              </h3>
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 text-xs font-semibold">
+                {filledCount} / 5 Terisi
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+              Kelengkapan sudut pandang standar audit BMN (Geotag, Tampak Depan, Belakang, Kiri, Kanan)
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Deck Action Buttons */}
+        <div className="flex items-center gap-2 flex-wrap">
           {canUpdate && (
-            <Button variant="outline" size="sm" className="text-[10px] rounded-lg h-7 gap-1" onClick={handleVerify}>
-              <ShieldCheck className="w-3 h-3" /> Verifikasi BMN
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleVerify}
+              className={cn(
+                "h-8 text-xs gap-1.5 rounded-lg border-slate-200 dark:border-zinc-800",
+                verifiedAt ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-500/10" : ""
+              )}
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>{verifiedAt ? "Verifikasi Ulang" : "Verifikasi BMN"}</span>
             </Button>
           )}
+
           {hasAnyPhoto && (
-            <Button variant="outline" size="sm" className="text-[10px] rounded-lg h-7 gap-1" onClick={handleDownloadAll}>
-              <ZipIcon className="w-3 h-3" /> Download Semua
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadAll}
+              className="h-8 text-xs gap-1.5 rounded-lg border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300"
+            >
+              <ZipIcon className="w-4 h-4 text-slate-500" />
+              <span>Download Semua</span>
             </Button>
-          )}
-          {hasAnyDocument && (
-            <span className="rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-              Dokumen kendaraan aktif
-            </span>
           )}
         </div>
       </div>
 
-      {/* Verified status */}
+      {/* Verified status banner */}
       {verifiedAt && (
-        <div className="px-5 py-2 bg-emerald-50 dark:bg-emerald-500/10 border-b border-emerald-100 dark:border-emerald-500/20 flex items-center gap-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
-            Telah diverifikasi pada {new Date(verifiedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+        <div className="mt-4 px-4 py-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center gap-2.5">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">
+            Telah diverifikasi BMN pada{" "}
+            {new Date(verifiedAt).toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
             {verifiedByName && ` oleh ${verifiedByName}`}
           </span>
         </div>
       )}
 
-      <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      {/* 5-Point Audit Photo Cards Deck */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-5">
         {PHOTO_SLOTS.map((slot) => (
-          <PhotoSlot
+          <PhotoCardSlot
             key={slot.key}
             slot={slot}
             url={photos[slot.key]}
@@ -406,13 +503,23 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
         ))}
       </div>
 
+      {/* Vehicle Documents (BPKB & STNK) */}
       {isVehicle && (
-        <>
-          <div className="px-5 py-3.5 border-y border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 dark:from-zinc-800/50 to-white dark:to-zinc-900 flex items-center gap-2.5">
-            <span className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600"><FileText className="w-4 h-4" /></span>
-            <h3 className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Dokumen Kendaraan</h3>
+        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-zinc-800">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <FileText className="w-4 h-4" />
+            </span>
+            <div>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                Dokumen Legalitas Kendaraan (BPKB &amp; STNK)
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
+                Pindaian dokumen kepemilikan dan pajak kendaraan bermotor
+              </p>
+            </div>
           </div>
-          <div className="p-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {DOC_SLOTS.map((slot) => (
               <VehicleDocumentCard
                 key={slot.key}
@@ -426,22 +533,27 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
               />
             ))}
           </div>
-        </>
+        </div>
       )}
 
-
-      {/* Geotag URL Input */}
+      {/* Geotag URL Input Modal/Bar */}
       {showGeotagInput && (
-        <div className="px-5 pb-4 flex gap-2">
+        <div className="mt-4 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/30 dark:bg-emerald-950/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <input
             type="url"
             value={geotagInput}
             onChange={(e) => setGeotagInput(e.target.value)}
-            placeholder="https://link-foto-geotag..."
-            className="flex-1 px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            placeholder="Tempel tautan Google Drive / Foto Geotag..."
+            className="flex-1 px-3 py-2 text-xs border border-slate-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           />
-          <Button size="sm" onClick={handleSaveGeotag} className="rounded-lg bg-emerald-600">Simpan</Button>
-          <Button size="sm" variant="outline" onClick={() => setShowGeotagInput(false)} className="rounded-lg">Batal</Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={handleSaveGeotag} className="h-8 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">
+              Simpan Link
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setShowGeotagInput(false)} className="h-8 text-xs rounded-lg">
+              Batal
+            </Button>
+          </div>
         </div>
       )}
 
@@ -455,7 +567,10 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
       />
 
       {uploading && (
-        <div className="px-5 pb-4 text-xs text-emerald-600 font-medium animate-pulse">Mengupload {uploadKind === "document" ? "dokumen" : "foto"} {uploading}...</div>
+        <div className="mt-3 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-xs text-emerald-700 dark:text-emerald-300 font-medium flex items-center gap-2 animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          Mengunggah {uploadKind === "document" ? "dokumen" : "foto"} {uploading}...
+        </div>
       )}
 
       {/* Lightbox Modal */}
@@ -482,70 +597,12 @@ export function PhotoGallery({ assetId, assetName, nup, fotoGeotagUrl, fotoGeota
           onNext={() => navigateDocumentLightbox(1)}
         />
       )}
-    </div>
+    </section>
   );
-}
+});
 
-function Lightbox({ url, label, index, total, onClose, onPrev, onNext }: {
-  url: string; label: string; index: number; total: number;
-  onClose: () => void; onPrev: () => void; onNext: () => void;
-}) {
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
-    if (e.key === "ArrowLeft") onPrev();
-    if (e.key === "ArrowRight") onNext();
-  }, [onClose, onPrev, onNext]);
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [handleKeyDown]);
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={onClose}>
-      {/* Close */}
-      <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10" onClick={onClose}>
-        <X className="w-6 h-6" />
-      </button>
-
-      {/* Label + Counter */}
-      <div className="absolute top-4 left-4 text-white/70 text-sm font-medium z-10">
-        {label} <span className="text-white/40 ml-2">{index + 1} / {total}</span>
-      </div>
-
-      {/* Prev Arrow */}
-      {total > 1 && (
-        <button className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10" onClick={(e) => { e.stopPropagation(); onPrev(); }}>
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Next Arrow */}
-      {total > 1 && (
-        <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10" onClick={(e) => { e.stopPropagation(); onNext(); }}>
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Image */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={url}
-        alt={label}
-        className="max-w-[85vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
-        referrerPolicy={url?.includes("drive.google.com") ? "no-referrer" : undefined}
-        onClick={(e) => e.stopPropagation()}
-      />
-    </div>
-  );
-}
-
-interface PhotoSlotProps {
-  slot: { key: string; label: string; type: string };
+interface PhotoCardSlotProps {
+  slot: { key: string; label: string; shortLabel: string; type: string };
   url: string | null;
   frontLocationDraft?: string;
   onFrontLocationChange?: (value: string) => void;
@@ -562,98 +619,144 @@ interface PhotoSlotProps {
   fotoGeotagUrl: string | null;
 }
 
-function PhotoSlot({ slot, url, frontLocationDraft, onFrontLocationChange, onSaveFrontLocation, savingFrontLocation, openLightbox, handleDownload, copyLink, handleDelete, openUploadPicker, setShowGeotagInput, canWrite, fotoGeotagPath, fotoGeotagUrl }: PhotoSlotProps) {
+function PhotoCardSlot({
+  slot,
+  url,
+  frontLocationDraft,
+  onFrontLocationChange,
+  onSaveFrontLocation,
+  savingFrontLocation,
+  openLightbox,
+  handleDownload,
+  copyLink,
+  handleDelete,
+  openUploadPicker,
+  setShowGeotagInput,
+  canWrite,
+  fotoGeotagPath,
+  fotoGeotagUrl,
+}: PhotoCardSlotProps) {
   const isHybrid = slot.type === "hybrid";
   const isExternalOnly = isHybrid && !fotoGeotagPath && !!fotoGeotagUrl;
   const isFrontView = slot.key === "depan";
 
+  const displayThumb = isExternalOnly && url ? driveToThumbnail(url) : url;
+
   return (
-    <div className="group relative">
-      <div className={cn(
-        "aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all",
-        url ? "border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-500/5" : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600"
-      )}>
-        {url ? (
-          isExternalOnly ? (
-            (() => {
-              const thumb = driveToThumbnail(url);
-              return thumb ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={thumb} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" referrerPolicy="no-referrer" onClick={() => openLightbox(slot.key)} />
-              ) : (
-                <div className="flex flex-col items-center gap-2 p-3 text-center">
-                  <ExternalLink className="w-6 h-6 text-emerald-600" />
-                  <p className="text-[9px] text-emerald-700 font-bold">Link Tersedia</p>
-                </div>
-              );
-            })()
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt={slot.label} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" onClick={() => openLightbox(slot.key)} />
-          )
-        ) : (
-          <div className="flex flex-col items-center gap-1 p-3 text-center">
-            <Camera className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
-            <p className="text-[9px] text-zinc-400 font-medium">Belum ada</p>
-          </div>
-        )}
-      </div>
+    <div className="flex flex-col gap-2">
+      {/* Box Image / Upload Trigger */}
+      {url ? (
+        <div className="relative rounded-xl overflow-hidden border-2 border-emerald-500/20 dark:border-emerald-500/30 aspect-[4/3] bg-slate-100 dark:bg-zinc-800 group shadow-xs">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={displayThumb || url}
+            alt={slot.label}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            referrerPolicy={displayThumb?.includes("drive.google.com") ? "no-referrer" : undefined}
+          />
+          <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/60 text-white text-[10px] font-mono tracking-wider backdrop-blur-xs">
+            {slot.shortLabel}
+          </span>
 
-      {/* Label */}
-      <p className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 text-center mt-1.5">{slot.label}</p>
-      {isFrontView && canWrite && onFrontLocationChange && onSaveFrontLocation && (
-        <input
-          value={frontLocationDraft || ""}
-          onChange={(event) => onFrontLocationChange(event.target.value)}
-          onBlur={onSaveFrontLocation}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.currentTarget.blur();
-            }
-          }}
-          disabled={savingFrontLocation}
-          placeholder="Isi lokasi/ruangan barang..."
-          className="mt-1 h-7 w-full rounded-md border border-zinc-200 bg-white px-2 text-center text-[10px] font-medium text-zinc-600 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
-        />
-      )}
-      {isFrontView && !canWrite && frontLocationDraft && (
-        <p className="mt-0.5 min-h-4 truncate text-center text-[9px] font-medium text-zinc-400 dark:text-zinc-500" title={frontLocationDraft}>
-          {frontLocationDraft}
-        </p>
-      )}
-
-      {/* Actions */}
-      <div className="flex items-center justify-center gap-1 mt-1">
-        {url && (
-          <>
-            <button onClick={() => handleDownload(slot.key)} className="p-1 rounded hover:bg-blue-50 text-blue-600" title="Download">
-              <Download className="w-3 h-3" />
+          {/* Hover Actions Bar */}
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+            <button
+              onClick={() => openLightbox(slot.key)}
+              className="w-7 h-7 rounded-full bg-white/95 text-slate-800 hover:bg-white flex items-center justify-center shadow-xs transition-transform hover:scale-110"
+              title="Lihat Foto"
+            >
+              <Eye className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => copyLink(url)} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500" title="Copy Link">
-              <Link2 className="w-3 h-3" />
+            <button
+              onClick={() => handleDownload(slot.key)}
+              className="w-7 h-7 rounded-full bg-white/95 text-slate-800 hover:bg-white flex items-center justify-center shadow-xs transition-transform hover:scale-110"
+              title="Unduh"
+            >
+              <Download className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => copyLink(url)}
+              className="w-7 h-7 rounded-full bg-white/95 text-slate-800 hover:bg-white flex items-center justify-center shadow-xs transition-transform hover:scale-110"
+              title="Salin Tautan"
+            >
+              <Link2 className="w-3.5 h-3.5" />
             </button>
             {canWrite && (
-              <button onClick={() => handleDelete(slot.key)} className="p-1 rounded hover:bg-red-50 text-red-500" title="Hapus">
-                <Trash2 className="w-3 h-3" />
+              <button
+                onClick={() => handleDelete(slot.key)}
+                className="w-7 h-7 rounded-full bg-red-600 text-white hover:bg-red-700 flex items-center justify-center shadow-xs transition-transform hover:scale-110"
+                title="Hapus"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
-          </>
-        )}
-        {canWrite && !url && (
-          isHybrid ? (
-            <>
-              <button onClick={() => openUploadPicker("geotag")} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload File">
-                <Upload className="w-3 h-3" />
-              </button>
-              <button onClick={() => setShowGeotagInput(true)} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Tambah Link">
-                <Link2 className="w-3 h-3" />
-              </button>
-            </>
-          ) : (
-            <button onClick={() => openUploadPicker(slot.key)} className="p-1 rounded hover:bg-emerald-50 text-emerald-600" title="Upload">
-              <Upload className="w-3 h-3" />
+          </div>
+        </div>
+      ) : (
+        /* Empty Slot Trigger */
+        <div
+          onClick={() => (canWrite ? openUploadPicker(slot.key) : undefined)}
+          className={cn(
+            "rounded-xl border-2 border-dashed border-slate-300/80 dark:border-zinc-700 aspect-[4/3] flex flex-col items-center justify-center p-3 text-center transition-all group bg-slate-50/50 dark:bg-zinc-800/30",
+            canWrite ? "cursor-pointer hover:border-emerald-500/80 hover:bg-emerald-50/20 dark:hover:bg-emerald-500/5" : "cursor-default"
+          )}
+        >
+          <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-slate-400 group-hover:text-emerald-600 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors mb-1.5">
+            <Camera className="w-4 h-4" />
+          </div>
+          <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+            {canWrite ? "+ Unggah Foto" : "Belum ada"}
+          </span>
+          <span className="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5">Maks. 5MB (PNG/JPG)</span>
+
+          {/* Quick link button for geotag if empty */}
+          {canWrite && isHybrid && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowGeotagInput(true);
+              }}
+              className="mt-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5"
+            >
+              <Link2 className="w-2.5 h-2.5" /> Tautan Drive
             </button>
-          )
+          )}
+        </div>
+      )}
+
+      {/* Caption & Metadata */}
+      <div className="text-center">
+        <div className="text-xs font-semibold text-slate-800 dark:text-zinc-200">{slot.label}</div>
+        {url ? (
+          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1 mt-0.5 font-medium">
+            <CheckCircle2 className="w-3 h-3" />
+            Tersedia
+          </div>
+        ) : (
+          <div className="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5">Menunggu Unggahan</div>
+        )}
+
+        {/* Front Location Specific Note */}
+        {isFrontView && canWrite && onFrontLocationChange && onSaveFrontLocation && (
+          <input
+            value={frontLocationDraft || ""}
+            onChange={(event) => onFrontLocationChange(event.target.value)}
+            onBlur={onSaveFrontLocation}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.currentTarget.blur();
+              }
+            }}
+            disabled={savingFrontLocation}
+            placeholder="Ketik lokasi spesifik..."
+            className="mt-1.5 h-6 w-full rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-center text-[10px] font-medium text-slate-700 dark:text-zinc-300 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
+          />
+        )}
+        {isFrontView && !canWrite && frontLocationDraft && (
+          <p className="mt-1 inline-block px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-[10px] font-medium text-slate-600 dark:text-zinc-400 truncate max-w-full">
+            {frontLocationDraft}
+          </p>
         )}
       </div>
     </div>
@@ -670,18 +773,26 @@ interface VehicleDocumentCardProps {
   onUpload: () => void;
 }
 
-function VehicleDocumentCard({ slot, document, canWrite, onPreview, onDownload, onDelete, onUpload }: VehicleDocumentCardProps) {
+function VehicleDocumentCard({
+  slot,
+  document,
+  canWrite,
+  onPreview,
+  onDownload,
+  onDelete,
+  onUpload,
+}: VehicleDocumentCardProps) {
   const isPdf = document?.mime === "application/pdf";
   const filename = document?.original_name || document?.path?.split("/").pop() || `${slot.label}.pdf`;
   const previewUrl = resolveApiUrl(document?.preview_url);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-blue-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-blue-500/40">
+    <div className="overflow-hidden rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs hover:border-blue-300 dark:hover:border-blue-500/40 transition">
       <button
         type="button"
         onClick={document ? onPreview : undefined}
         className={cn(
-          "relative flex h-52 w-full items-center justify-center overflow-hidden bg-zinc-50 dark:bg-zinc-900",
+          "relative flex h-44 w-full items-center justify-center overflow-hidden bg-slate-50 dark:bg-zinc-800/50",
           previewUrl ? "cursor-zoom-in" : "cursor-default"
         )}
       >
@@ -689,16 +800,16 @@ function VehicleDocumentCard({ slot, document, canWrite, onPreview, onDownload, 
           // eslint-disable-next-line @next/next/no-img-element
           <img src={previewUrl} alt={slot.label} className="h-full w-full object-contain" />
         ) : document ? (
-          <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex flex-col items-center gap-2 text-center">
             <FileText className="h-10 w-10 text-blue-500" />
-            <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-              {isPdf ? "PDF" : "DOKUMEN"}
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+              {isPdf ? "DOKUMEN PDF" : "GAMBAR SCAN"}
             </span>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-center">
-            <FileText className="h-10 w-10 text-zinc-300 dark:text-zinc-700" />
-            <p className="text-xs font-semibold text-zinc-400">Belum ada dokumen</p>
+            <FileText className="h-9 w-9 text-slate-300 dark:text-zinc-600" />
+            <p className="text-xs font-semibold text-slate-400 dark:text-zinc-500">Belum ada dokumen</p>
           </div>
         )}
       </button>
@@ -706,45 +817,140 @@ function VehicleDocumentCard({ slot, document, canWrite, onPreview, onDownload, 
       <div className="space-y-3 p-4">
         <div>
           <div className="flex items-center justify-between gap-3">
-            <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{slot.label}</h4>
+            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{slot.label}</h4>
             {document && (
-              <span className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+              <span className="rounded-md bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:text-zinc-300">
                 {isPdf ? "PDF" : "GAMBAR"}
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{document ? filename : slot.description}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 truncate">
+            {document ? filename : slot.description}
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           {document ? (
             <>
-              <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 text-xs" onClick={onPreview}>
+              <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs" onClick={onPreview}>
                 <Eye className="h-3.5 w-3.5" /> Lihat
               </Button>
-              <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 text-xs" onClick={onDownload}>
+              <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs" onClick={onDownload}>
                 <Download className="h-3.5 w-3.5" /> Unduh
               </Button>
               {canWrite && (
                 <>
-                  <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 text-xs" onClick={onUpload}>
+                  <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs" onClick={onUpload}>
                     <Upload className="h-3.5 w-3.5" /> Ganti
                   </Button>
-                  <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg border-rose-200 text-xs text-rose-600 hover:bg-rose-50" onClick={onDelete}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-lg border-rose-200 text-xs text-rose-600 hover:bg-rose-50 dark:border-rose-900/50 dark:hover:bg-rose-950/20"
+                    onClick={onDelete}
+                  >
                     <Trash2 className="h-3.5 w-3.5" /> Hapus
                   </Button>
                 </>
               )}
             </>
           ) : canWrite ? (
-            <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 text-xs" onClick={onUpload}>
-              <Upload className="h-3.5 w-3.5" /> Upload PDF/Gambar
+            <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs" onClick={onUpload}>
+              <Upload className="h-3.5 w-3.5" /> Upload Dokumen
             </Button>
           ) : (
-            <span className="text-xs text-zinc-400">Belum tersedia</span>
+            <span className="text-xs text-slate-400">Belum tersedia</span>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function Lightbox({
+  url,
+  label,
+  index,
+  total,
+  onClose,
+  onPrev,
+  onNext,
+}: {
+  url: string;
+  label: string;
+  index: number;
+  total: number;
+  onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") onPrev();
+      if (e.key === "ArrowRight") onNext();
+    },
+    [onClose, onPrev, onNext]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [handleKeyDown]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xs flex items-center justify-center p-4" onClick={onClose}>
+      <button
+        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
+        onClick={onClose}
+        title="Tutup (Esc)"
+      >
+        <X className="w-6 h-6" />
+      </button>
+
+      <div className="absolute top-4 left-4 text-white/80 text-sm font-medium z-10">
+        {label} <span className="text-white/40 ml-2">{index + 1} / {total}</span>
+      </div>
+
+      {total > 1 && (
+        <button
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrev();
+          }}
+          title="Sebelumnya (Panah Kiri)"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+      )}
+
+      {total > 1 && (
+        <button
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNext();
+          }}
+          title="Berikutnya (Panah Kanan)"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt={label}
+        className="max-w-[85vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
+        referrerPolicy={url?.includes("drive.google.com") ? "no-referrer" : undefined}
+        onClick={(e) => e.stopPropagation()}
+      />
     </div>
   );
 }
