@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Plus, Loader2, ClipboardList, FileText, Eye, ChevronDown, FileCheck, FileSpreadsheet } from "lucide-react";
+import { Plus, Loader2, ClipboardList, FileText, Eye, ChevronDown, FileSpreadsheet, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -28,6 +28,7 @@ interface SuratTugasTabProps {
   fetchSTDetail: (id: string) => Promise<void>;
   stDetailLoading: boolean;
   onOpenReportModal: (type: "general" | "smart_patrol") => void;
+  onOpenKalkulator?: (stId: string) => void;
 }
 
 export function SuratTugasTab({
@@ -36,6 +37,7 @@ export function SuratTugasTab({
   fetchSTDetail,
   stDetailLoading,
   onOpenReportModal,
+  onOpenKalkulator,
 }: SuratTugasTabProps) {
   return (
     <div className="p-6 space-y-4">
@@ -135,6 +137,16 @@ export function SuratTugasTab({
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
+                {onOpenKalkulator && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenKalkulator(st.id)}
+                    className="p-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-emerald-600 transition-colors"
+                    title="Hitung Biaya & Pengeluaran Dinas"
+                  >
+                    <Calculator className="w-4 h-4" />
+                  </button>
+                )}
                 <button onClick={() => fetchSTDetail(st.id)} disabled={stDetailLoading} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors disabled:opacity-50" title="Lihat">
                   {stDetailLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
                 </button>

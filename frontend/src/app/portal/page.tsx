@@ -5,20 +5,12 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Sun, Sunset, Moon, Loader2, LogOut, Users, Package,
-  Boxes, FileText, LayoutGrid, Mail, Sparkles, Bell,
-  HandHelping, Briefcase, ClipboardList, Calendar,
-  ChevronDown, FileCheck, FileSpreadsheet, Banknote,
+  Loader2, LogOut, Users, Package,
+  Boxes, FileText, LayoutGrid, Mail, Bell, Banknote,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -41,6 +33,17 @@ const VisumSpdTab = dynamic(
     loading: () => (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-amber-600" />
+      </div>
+    ),
+  }
+);
+
+const KalkulatorDinasTab = dynamic(
+  () => import("./_components/KalkulatorDinasTab").then((mod) => mod.KalkulatorDinasTab),
+  {
+    loading: () => (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
       </div>
     ),
   }
@@ -132,7 +135,7 @@ interface SuratTugasDetail {
   approver?: { id: number; name: string; nip?: string };
 }
 
-type TabKey = "pinjaman" | "aset" | "surat_tugas" | "cuti";
+
 
 function PortalSkeleton() {
   return (
@@ -211,8 +214,19 @@ function PortalContent() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabKey>("pinjaman");
-  const [activeNavTab, setActiveNavTab] = useState<string>("dashboard");
+  const [activeNavTab, setActiveNavTab] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const savedTab = localStorage.getItem("bksda_portal_nav_tab");
+      if (savedTab) return savedTab;
+    }
+    return "dashboard";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && activeNavTab) {
+      localStorage.setItem("bksda_portal_nav_tab", activeNavTab);
+    }
+  }, [activeNavTab]);
   const [suratTugas, setSuratTugas] = useState<SuratTugasItem[]>([]);
   const [stLoading, setStLoading] = useState(false);
   
@@ -228,6 +242,7 @@ function PortalContent() {
 
   // General Report Builder state
   const [inlineFormType, setInlineFormType] = useState<"general" | "smart_patrol" | null>(null);
+  const [activeKalkulatorStId, setActiveKalkulatorStId] = useState<string>("");
 
   const filteredMyAssets = useMemo(() => {
     if (!data?.my_assets) return myAssets;
@@ -247,11 +262,7 @@ function PortalContent() {
           localStorage.setItem("bksda_portal_dashboard_cache", JSON.stringify(resData));
         } catch {}
         if (resData.user) {
-          const currentSnap = authStore.getSnapshot();
-          const userStr = JSON.stringify(resData.user);
-          if (!currentSnap.includes(userStr)) {
-            authStore.updateUser(resData.user);
-          }
+          authStore.updateUser(resData.user);
         }
       }
     } catch (error: unknown) {
@@ -449,12 +460,7 @@ function PortalContent() {
     );
   }
 
-  const tabs: { key: TabKey; label: string; icon: React.ReactNode; count?: number }[] = [
-    { key: "pinjaman", label: "Pinjaman Aktif", icon: <HandHelping className="w-4 h-4" />, count: data.my_assets.length },
-    { key: "aset", label: "Aset Saya", icon: <Briefcase className="w-4 h-4" />, count: filteredMyAssets.length },
-    { key: "surat_tugas", label: "Surat Tugas", icon: <ClipboardList className="w-4 h-4" />, count: suratTugas.length },
-    { key: "cuti", label: "Pengajuan Cuti Saya", icon: <Calendar className="w-4 h-4" />, count: myLeaveRequests.length },
-  ];
+
   return (
     <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 print:bg-transparent">
         {/* HEADER NAVBAR */}
@@ -515,9 +521,6 @@ function PortalContent() {
               onSelectNavTab={(navTab) => {
                 setInlineFormType(null);
                 setActiveNavTab(navTab);
-                if (navTab === "pinjaman" || navTab === "aset" || navTab === "surat_tugas" || navTab === "cuti") {
-                  setActiveTab(navTab);
-                }
               }}
               pinjamanCount={data.my_assets.length}
               assetCount={filteredMyAssets.length}
@@ -555,6 +558,10 @@ function PortalContent() {
                     setInlineFormType(null);
                     setActiveNavTab("visum");
                   }}
+                  onOpenKalkulator={() => {
+                    setInlineFormType(null);
+                    setActiveNavTab("kalkulator_dinas");
+                  }}
                 />
 
                 {/* QUICK STATS ROW (4 STATUS CARDS) */}
@@ -563,10 +570,7 @@ function PortalContent() {
                   rankLevel={data.employee?.rank_level}
                   activeSuratTugasCount={suratTugas.length}
                   myAssetsCount={filteredMyAssets.length}
-                  onSelectTab={(t) => {
-                    setActiveTab(t);
-                    setActiveNavTab(t);
-                  }}
+                  onSelectTab={(t) => setActiveNavTab(t)}
                 />
 
                 {/* MODUL AKSES GRID */}
@@ -626,6 +630,11 @@ function PortalContent() {
                   fetchSTDetail={fetchSTDetail}
                   stDetailLoading={stDetailLoading}
                   onOpenReportModal={(type) => setInlineFormType(type)}
+                  onOpenKalkulator={(stId) => {
+                    setInlineFormType(null);
+                    setActiveKalkulatorStId(stId);
+                    setActiveNavTab("kalkulator_dinas");
+                  }}
                 />
               </div>
             ) : activeNavTab === "cuti" ? (
@@ -643,11 +652,19 @@ function PortalContent() {
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6">
                 <VisumSpdTab isPortal={true} suratTugasList={suratTugas} />
               </div>
+            ) : activeNavTab === "kalkulator_dinas" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6 print:p-0 print:border-none print:shadow-none print:bg-transparent print:rounded-none">
+                <KalkulatorDinasTab
+                  suratTugasList={suratTugas}
+                  currentUserName={data.employee?.name || data.user.name}
+                  initialSelectedStId={activeKalkulatorStId}
+                />
+              </div>
             ) : null}
           </main>
 
-          {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN (Hidden on Visum tab to give full width) */}
-          {activeNavTab !== "visum" && (
+          {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN (Hidden on Visum & Kalkulator tab to give full width) */}
+          {activeNavTab !== "visum" && activeNavTab !== "kalkulator_dinas" && (
             <div className="shrink-0 print:hidden font-sans">
               <PortalInfoSidebar />
             </div>

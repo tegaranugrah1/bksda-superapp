@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { Sun, Sunset, Moon, Sparkles, FileSpreadsheet } from "lucide-react";
+import { Sun, Sunset, Moon, Sparkles, FileSpreadsheet, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PortalHeaderBannerProps {
   displayName: string;
   activeSuratTugasCount: number;
   onOpenVisum?: () => void;
+  onOpenKalkulator?: () => void;
 }
 
 function getGreeting(): { text: string; icon: React.ReactNode } {
@@ -31,6 +32,7 @@ export function PortalHeaderBanner({
   displayName,
   activeSuratTugasCount,
   onOpenVisum,
+  onOpenKalkulator,
 }: PortalHeaderBannerProps) {
   const greeting = getGreeting();
 
@@ -60,18 +62,29 @@ export function PortalHeaderBanner({
           </p>
         </div>
 
-        {onOpenVisum && (
-          <div className="shrink-0 pt-2 md:pt-0">
+        <div className="shrink-0 pt-2 md:pt-0 flex flex-wrap items-center gap-2">
+          {onOpenKalkulator && (
+            <Button
+              type="button"
+              onClick={onOpenKalkulator}
+              className="rounded-2xl border border-emerald-300/40 bg-emerald-400/20 px-3.5 py-2.5 text-xs font-bold text-emerald-100 shadow-sm backdrop-blur-xs hover:bg-emerald-400/30 hover:text-white transition-all"
+            >
+              <Calculator className="mr-1.5 h-4 w-4 text-emerald-200" />
+              Kalkulator Dinas
+            </Button>
+          )}
+
+          {onOpenVisum && (
             <Button
               type="button"
               onClick={onOpenVisum}
-              className="rounded-2xl border border-amber-300/40 bg-amber-400/20 px-4 py-2.5 text-xs font-bold text-amber-100 shadow-sm backdrop-blur-xs hover:bg-amber-400/30 hover:text-white transition-all"
+              className="rounded-2xl border border-amber-300/40 bg-amber-400/20 px-3.5 py-2.5 text-xs font-bold text-amber-100 shadow-sm backdrop-blur-xs hover:bg-amber-400/30 hover:text-white transition-all"
             >
-              <FileSpreadsheet className="mr-2 h-4 w-4 text-amber-300" />
+              <FileSpreadsheet className="mr-1.5 h-4 w-4 text-amber-300" />
               Buat Visum SPD
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

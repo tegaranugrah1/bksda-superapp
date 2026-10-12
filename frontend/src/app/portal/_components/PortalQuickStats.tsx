@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ShieldCheck, Award, Calendar, FileCheck, Layers } from "lucide-react";
+import { ShieldCheck, Award, Calendar, FileCheck } from "lucide-react";
 
 interface PortalQuickStatsProps {
   rank?: string | null;

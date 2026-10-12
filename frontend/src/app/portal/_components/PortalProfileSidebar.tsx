@@ -5,7 +5,7 @@ import Image from "next/image";
 import {
   User, Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
   Calendar, UserCheck, Building, FileText, ChevronDown, FileCheck,
-  FileSpreadsheet, Pencil, Loader2, Mail, Phone, Lock,
+  FileSpreadsheet, Pencil, Loader2, Mail, Phone, Lock, Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -390,6 +390,33 @@ export function PortalProfileSidebar({
                 activeNavTab === "visum" && !isInlineReportOpen
                   ? "bg-emerald-500 text-white"
                   : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
+              )}
+            >
+              Baru
+            </span>
+          </button>
+
+          {/* 7. Kalkulator & Pengeluaran Dinas */}
+          <button
+            type="button"
+            onClick={() => onSelectNavTab("kalkulator_dinas")}
+            className={cn(
+              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
+              activeNavTab === "kalkulator_dinas" && !isInlineReportOpen
+                ? "bg-emerald-600 text-white shadow-sm font-bold"
+                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            )}
+          >
+            <div className="flex items-center gap-2.5">
+              <Calculator className="w-4 h-4" />
+              <span>Kalkulator Dinas</span>
+            </div>
+            <span
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                activeNavTab === "kalkulator_dinas" && !isInlineReportOpen
+                  ? "bg-emerald-500 text-white"
+                  : "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
               )}
             >
               Baru

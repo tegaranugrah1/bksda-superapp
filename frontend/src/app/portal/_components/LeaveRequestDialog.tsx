@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { Calendar, FileText, Send, X, MapPin, Phone, CheckCircle2 } from "lucide-react";
+import { Calendar, Send, X, MapPin, Phone, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,7 +23,6 @@ const JENIS_CUTI_OPTIONS = [
 ];
 
 export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDialogProps) {
-  const queryClient = useQueryClient();
   const todayStr = new Date().toISOString().split("T")[0];
   const currentYear = new Date().getFullYear();
 
