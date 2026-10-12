@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 import { formatPlainRupiah } from "../_lib/auction-helpers";
 import { printDocumentWindow, KERTAS_KERJA_PRINT_CSS } from "../_lib/print-helpers";
-import type { EmployeeOption } from "../_hooks/useEmployeeOptions";
+import { useEmployeeOptions, type EmployeeOption } from "../_hooks/useEmployeeOptions";
 
 interface KertasKerjaAssetSectionProps {
   asset: AuctionAsset;
   worksheetNumber: number;
-  employees: EmployeeOption[];
+  employees?: EmployeeOption[];
   onClose: () => void;
   initialState?: Partial<WorksheetState> | null;
   isSaving?: boolean;
@@ -264,6 +264,13 @@ function parseMoney(value: string) {
   return Number(value.replace(/[^\d-]/g, "")) || 0;
 }
 
+function formatRibuan(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return "";
+  const clean = String(value).replace(/\D/g, "");
+  if (!clean) return "";
+  return Number(clean).toLocaleString("id-ID");
+}
+
 function parsePercent(value: string) {
   const normalized = value.replace("%", "").replace(",", ".").trim();
   return Number(normalized) || 0;
@@ -319,17 +326,23 @@ function CellInput({
   value,
   onChange,
   className = "",
+  placeholder,
+  inputMode,
   onBlur,
 }: {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  placeholder?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   onBlur?: () => void;
 }) {
   return (
     <input
       value={value ?? ""}
       onChange={(event) => onChange(event.target.value)}
+      placeholder={placeholder}
+      inputMode={inputMode}
       onBlur={onBlur}
       className={`w-full min-w-0 border border-zinc-300 bg-white px-1 py-0.5 text-center outline-none focus:bg-yellow-50 ${className}`}
     />
@@ -429,7 +442,7 @@ function EmployeeSelectInput({
         <option value="">-- Pilih Pegawai --</option>
         {employees.map((employee) => (
           <option key={employee.id} value={String(employee.id)}>
-            {employee.nama_lengkap || employee.name || "-"}
+            {employee.nama_lengkap || employee.name || "-"}{employee.nip ? ` (NIP: ${employee.nip})` : ""}
           </option>
         ))}
       </select>
@@ -464,14 +477,22 @@ export function KertasKerjaAssetSection({
   isSaving = false,
   onSave,
 }: KertasKerjaAssetSectionProps) {
+  const { sortedEmployeesForPanitia } = useEmployeeOptions();
+  const employeeList = employees && employees.length > 0 ? employees : sortedEmployeesForPanitia;
+
   const [state, setState] = useState<WorksheetState>(() => {
     const defaultState = createInitialState(asset);
     if (!initialState) return defaultState;
 
+    const rows = (initialState.lelangRows?.length ? initialState.lelangRows : defaultState.lelangRows).map((row) => ({
+      ...row,
+      harga: row.harga ? formatRibuan(row.harga) : "",
+    }));
+
     return {
       ...defaultState,
       ...initialState,
-      lelangRows: initialState.lelangRows?.length ? initialState.lelangRows : defaultState.lelangRows,
+      lelangRows: rows,
     };
   });
 
@@ -528,10 +549,11 @@ export function KertasKerjaAssetSection({
   };
 
   const updateRow = (index: number, key: keyof LelangRow, value: string) => {
+    const finalValue = key === "harga" ? formatRibuan(value) : value;
     setState((current) => ({
       ...current,
       lelangRows: current.lelangRows.map((row, rowIndex) =>
-        rowIndex === index ? { ...row, [key]: value } : row,
+        rowIndex === index ? { ...row, [key]: finalValue } : row,
       ),
     }));
   };
@@ -564,7 +586,7 @@ export function KertasKerjaAssetSection({
 
   return (
     <section id="kertas-kerja-preview" className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+      <div className="sticky -top-4 z-20 flex flex-col gap-3 rounded-2xl border border-zinc-200/90 bg-white/95 backdrop-blur-md p-4 dark:border-zinc-800 dark:bg-zinc-900/95 sm:flex-row sm:items-center sm:justify-between shadow-xs print:hidden">
         <div>
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Kertas Kerja Analisis Nilai Taksiran BMN</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -592,7 +614,7 @@ export function KertasKerjaAssetSection({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[520px_minmax(0,1fr)]">
+      <div className="grid gap-4 xl:grid-cols-[520px_minmax(0,1fr)] xl:items-start">
         <div className="space-y-4 print:hidden">
           <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Identitas Aset</h3>
@@ -749,14 +771,21 @@ export function KertasKerjaAssetSection({
             <div className="mt-3 space-y-2">
               {state.lelangRows.map((row, index) => (
                 <div key={`lelang-control-${index}`} className="flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950">
-                  <span className="font-semibold text-zinc-700 dark:text-zinc-200">
-                    Baris {index + 1}: {row.data || "Kosong"}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-200 truncate">
+                      Baris {index + 1}: {row.data || "Kosong"}
+                    </span>
+                    {row.harga && (
+                      <span className="shrink-0 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                        • Rp{row.harga}
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => removeLelangRow(index)}
                     disabled={state.lelangRows.length <= 3}
-                    className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-red-500/10"
+                    className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-red-500/10 shrink-0"
                   >
                     <Trash2 className="h-3 w-3" />
                     Hapus
@@ -769,17 +798,20 @@ export function KertasKerjaAssetSection({
           <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Panitia Penaksir</h3>
             <div className="grid gap-3">
-              <EmployeeSelectInput label="Ambil Pegawai 1" employees={employees} onSelect={(name) => update("panitia1", name)} />
+              <EmployeeSelectInput label="Ambil Pegawai 1" employees={employeeList} onSelect={(name) => update("panitia1", name)} />
               <WorksheetInput label="Nama Panitia 1" value={state.panitia1} onChange={(value) => update("panitia1", value)} />
-              <EmployeeSelectInput label="Ambil Pegawai 2" employees={employees} onSelect={(name) => update("panitia2", name)} />
+              <EmployeeSelectInput label="Ambil Pegawai 2" employees={employeeList} onSelect={(name) => update("panitia2", name)} />
               <WorksheetInput label="Nama Panitia 2" value={state.panitia2} onChange={(value) => update("panitia2", value)} />
-              <EmployeeSelectInput label="Ambil Pegawai 3" employees={employees} onSelect={(name) => update("panitia3", name)} />
+              <EmployeeSelectInput label="Ambil Pegawai 3" employees={employeeList} onSelect={(name) => update("panitia3", name)} />
               <WorksheetInput label="Nama Panitia 3" value={state.panitia3} onChange={(value) => update("panitia3", value)} />
             </div>
           </div>
         </div>
 
-        <div id="kertas-kerja-print-root" className="overflow-x-auto">
+        <div
+          id="kertas-kerja-print-root"
+          className="overflow-x-auto xl:sticky xl:top-[76px] xl:max-h-[calc(94vh-100px)] xl:overflow-y-auto rounded-2xl border border-zinc-200/80 bg-zinc-100/50 p-2 dark:border-zinc-800 dark:bg-zinc-950/50 shadow-xs print:border-none print:p-0 print:shadow-none print:overflow-visible scrollbar-thin"
+        >
           <div className="kk-page mx-auto min-w-245 border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
             <style jsx global>{`
               .kk-page { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; }
@@ -934,7 +966,7 @@ export function KertasKerjaAssetSection({
                       <td><CellTextarea value={row.data} onChange={(value) => updateRow(index, "data", value)} /></td>
                       <td><CellInput value={row.kode} onChange={(value) => updateRow(index, "kode", value)} /></td>
                       <td><CellTextarea value={row.tipe} onChange={(value) => updateRow(index, "tipe", value)} /></td>
-                      <td><CellInput value={row.harga} onChange={(value) => updateRow(index, "harga", value)} className="text-right" /></td>
+                      <td><CellInput value={row.harga} onChange={(value) => updateRow(index, "harga", value)} className="text-right font-medium" placeholder="0" inputMode="numeric" /></td>
                       <td><CellInput value={row.waktu} onChange={(value) => updateRow(index, "waktu", value)} /></td>
                       <td><CellInput value={row.lokasi} onChange={(value) => updateRow(index, "lokasi", value)} /></td>
                       <td><CellInput value={row.tahun} onChange={(value) => updateRow(index, "tahun", value)} /></td>

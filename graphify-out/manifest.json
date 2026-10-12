@@ -1720,8 +1720,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/ValuationTab.tsx": {
-    "mtime": 1787548978.572343,
-    "ast_hash": "198e18d97e8fbbf6920570692ee728f5",
+    "mtime": 1791770306.304851,
+    "ast_hash": "10ea0c30cb33a0c2c7a61afa2f7e824b",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/page.tsx": {
@@ -1780,8 +1780,8 @@
     "semantic_hash": "9b22340ac882dfcc99b76a72f72ce56c"
   },
   "frontend/src/app/bmn/auction-candidates/_components/KertasKerjaAssetSection.tsx": {
-    "mtime": 1791174103.7590425,
-    "ast_hash": "821f038983ee1e187fb4302e9897dd85",
+    "mtime": 1791769867.8719423,
+    "ast_hash": "e0d9ce913d4bcac2065caad733e187a8",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/NotaDinasDocument.tsx": {

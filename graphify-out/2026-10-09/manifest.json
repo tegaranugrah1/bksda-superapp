@@ -1660,23 +1660,23 @@
     "semantic_hash": "d86853207f5638d34386ac07b88b9ccb"
   },
   "frontend/src/app/bmn/assets/[id]/_components/DetailSection.tsx": {
-    "mtime": 1791537410.3393612,
-    "ast_hash": "173f9edc516c7daf12268fc28fb90631",
+    "mtime": 1791541116.9644208,
+    "ast_hash": "b4462b50a96dece53bb0bcf37495cb1e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx": {
-    "mtime": 1791536809.8874722,
-    "ast_hash": "71e3f0165cf617fe7630fe51e90c261b",
+    "mtime": 1791541028.1829886,
+    "ast_hash": "962c9f3ab977c28c0e8101af2fad15e3",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1791540061.1519256,
-    "ast_hash": "a07c3ba20764bc0828e4fe4c82aa2bd6",
+    "mtime": 1791541165.2438228,
+    "ast_hash": "d5689da88c4aa54e78dbb1e52775e54a",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/create/page.tsx": {
-    "mtime": 1791540114.0734549,
-    "ast_hash": "cccd224a0794c11d51806cb4f98a8aee",
+    "mtime": 1791541187.164788,
+    "ast_hash": "2136935a713fe5dc4d8f6108ab2871ea",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
@@ -1685,8 +1685,8 @@
     "semantic_hash": "e67d5c5c17a7a1813c22b2998deb0fdb"
   },
   "frontend/src/app/bmn/assets/page.tsx": {
-    "mtime": 1791540174.4969187,
-    "ast_hash": "9a74d5cb3bfdf740fac6ee37e72071ee",
+    "mtime": 1791541201.9218295,
+    "ast_hash": "fa1e2561799bef8a4dd1fe1a89fd6fc2",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/AssetsLotTab.tsx": {
@@ -6582,6 +6582,11 @@
   "backend/app/Modules/SuratTugas/Migrations/2026_10_07_000001_add_dates_to_st_assignment_letter_employees_table.php": {
     "mtime": 1791385653.6208541,
     "ast_hash": "78cb2c2e0965dbe4a02dbbfbc53e3c3b",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/bmn/_lib/location-options.ts": {
+    "mtime": 1791541000.4286242,
+    "ast_hash": "20cdf72eec5ec2a57b7760c8bcde0d04",
     "semantic_hash": ""
   }
 }

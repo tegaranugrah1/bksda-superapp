@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { updateValuation, AuctionBatch, AuctionBatchAsset, ChecklistResponse } from "../../_lib/api";
 import { formatRupiah, type AuctionAsset } from "../../../auction-candidates/_lib/auction-helpers";
 import { KertasKerjaAssetSection } from "../../../auction-candidates/_components/KertasKerjaAssetSection";
+import { useEmployeeOptions } from "../../../auction-candidates/_hooks/useEmployeeOptions";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -37,6 +38,7 @@ interface ValuationTabProps {
 }
 
 export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreDocs }: ValuationTabProps) {
+  const { sortedEmployeesForPanitia } = useEmployeeOptions();
   const [assets, setAssets] = useState<AuctionBatchAsset[]>([]);
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -330,10 +332,11 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                         {isEditing ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <Input
-                              type="number"
-                              value={editingValue}
-                              onChange={(e) => setEditingValue(e.target.value)}
-                              className="h-8 rounded-lg text-xs w-36 text-right border-zinc-200 dark:border-zinc-800"
+                              type="text"
+                              inputMode="numeric"
+                              value={formatThousands(editingValue)}
+                              onChange={(e) => setEditingValue(e.target.value.replace(/\D/g, ""))}
+                              className="h-8 rounded-lg text-xs w-36 text-right border-zinc-200 dark:border-zinc-800 font-medium"
                               placeholder="0"
                               autoFocus
                               onKeyDown={(e) => {
@@ -399,11 +402,14 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
           <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] rounded-2xl max-h-[94vh] overflow-y-auto">
             <DialogHeader className="sr-only">
               <DialogTitle>Kertas Kerja Penaksiran Kendaraan</DialogTitle>
+              <DialogDescription>
+                Formulir analisis dan penentuan nilai taksiran BMN kendaraan dinas operasional untuk lelang.
+              </DialogDescription>
             </DialogHeader>
             <KertasKerjaAssetSection
               asset={toWorksheetAsset(activeAsset)}
-              worksheetNumber={Number(activeAsset.pivot?.lot_number) || 1}
-              employees={[]}
+              worksheetNumber={Math.max(1, assets.findIndex((a) => a.id === activeAsset.id) + 1)}
+              employees={sortedEmployeesForPanitia}
               initialState={getVehicleWorksheetInitialState(activeAsset.pivot?.kertas_kerja_data)}
               isSaving={updateValuationMutation.isPending}
               onClose={() => setActiveAsset(null)}
