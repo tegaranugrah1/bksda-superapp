@@ -285,7 +285,7 @@ export function DocumentHistoryTab({
             <option value="">Semua Pegawai</option>
             {employees.map((employee) => (
               <option key={employee.id} value={employee.id}>
-                {employee.nama_lengkap}
+                {employee.nama_lengkap || employee.name}
               </option>
             ))}
           </select>

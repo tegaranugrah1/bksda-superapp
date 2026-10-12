@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes (untuk form surat tugas)
 Route::get('/employees/select', [EmployeeController::class, 'select'])
-    ->middleware('throttle:30,1');
+    ->middleware('throttle:300,1');
 Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
-    ->middleware('throttle:60,1');
+    ->middleware('throttle:300,1');
 
 Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
 

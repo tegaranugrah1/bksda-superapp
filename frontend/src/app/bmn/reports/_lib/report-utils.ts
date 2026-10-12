@@ -2,12 +2,16 @@ import { toast } from "sonner";
 import type { HandoverParty, HandoverItem } from "../_components/HandoverAgreementDocument";
 
 export interface EmployeeOption {
-  id: number;
+  id: number | string;
   nama_lengkap: string;
+  name?: string;
   nip: string;
   jabatan?: string | null;
+  position?: string | null;
   pangkat_golongan?: string | null;
+  rank?: string | null;
   satuan_kerja?: string | null;
+  department?: string | null;
 }
 
 export function todayInputValue(): string {
@@ -60,10 +64,10 @@ export function formatNip(nip?: string | null, fallback = "-"): string {
 
 export function employeeToHandoverParty(employee?: EmployeeOption | null): HandoverParty {
   return {
-    name: employee?.nama_lengkap || "",
+    name: employee?.nama_lengkap || employee?.name || "",
     nip: formatNip(employee?.nip),
-    rank: employee?.pangkat_golongan || "",
-    position: employee?.jabatan || "",
+    rank: employee?.pangkat_golongan || employee?.rank || "",
+    position: employee?.jabatan || employee?.position || "",
     address: "Jl. Teuku Umar Samarinda.",
   };
 }

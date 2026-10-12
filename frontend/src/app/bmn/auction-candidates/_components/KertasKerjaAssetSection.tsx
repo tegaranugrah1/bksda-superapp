@@ -1,12 +1,23 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Printer, Trash2, X } from "lucide-react";
+import { ChevronDown, Copy, Plus, Printer, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 import { formatPlainRupiah } from "../_lib/auction-helpers";
 import { printDocumentWindow, KERTAS_KERJA_PRINT_CSS } from "../_lib/print-helpers";
 import { useEmployeeOptions, type EmployeeOption } from "../_hooks/useEmployeeOptions";
+
+export interface WorksheetSourceAsset {
+  id: string;
+  nama_barang: string;
+  merk_tipe?: string | null;
+  kode_barang?: string | null;
+  nup?: string | number | null;
+  jenis_bmn?: string | null;
+  nilai_taksiran?: number | null;
+  worksheet: WorksheetState;
+}
 
 interface KertasKerjaAssetSectionProps {
   asset: AuctionAsset;
@@ -16,6 +27,7 @@ interface KertasKerjaAssetSectionProps {
   initialState?: Partial<WorksheetState> | null;
   isSaving?: boolean;
   onSave?: (payload: { nilaiTaksiran: number; worksheet: WorksheetState }) => void;
+  availableSourceAssets?: WorksheetSourceAsset[];
 }
 
 interface LelangRow {
@@ -36,7 +48,7 @@ interface LelangRow {
   nilaiTaksiran: string;
 }
 
-interface WorksheetState {
+export interface WorksheetState {
   namaObjek: string;
   lokasiObjek: string;
   roda2Atau3: boolean;
@@ -476,7 +488,9 @@ export function KertasKerjaAssetSection({
   initialState,
   isSaving = false,
   onSave,
+  availableSourceAssets = [],
 }: KertasKerjaAssetSectionProps) {
+  const [isCopyOpen, setIsCopyOpen] = useState(false);
   const { sortedEmployeesForPanitia } = useEmployeeOptions();
   const employeeList = employees && employees.length > 0 ? employees : sortedEmployeesForPanitia;
 
@@ -575,13 +589,45 @@ export function KertasKerjaAssetSection({
   };
 
   const removeLelangRow = (index: number) => {
-    setState((current) => {
-      if (current.lelangRows.length <= 3) return current;
-      return {
-        ...current,
-        lelangRows: current.lelangRows.filter((_, rowIndex) => rowIndex !== index),
-      };
-    });
+    setState((current) => ({
+      ...current,
+      lelangRows: current.lelangRows.filter((_, i) => i !== index),
+    }));
+  };
+
+
+
+  const handleApplySourceWorksheet = (source: WorksheetSourceAsset) => {
+    const sw = source.worksheet;
+    if (!sw) return;
+
+    const updatedRows = (sw.lelangRows || []).map((row) => ({
+      ...row,
+      harga: row.harga ? formatRibuan(row.harga) : "",
+    }));
+
+    setState((current) => ({
+      ...current,
+      ...sw,
+      lelangRows: updatedRows.length > 0 ? updatedRows : current.lelangRows,
+      namaObjek: current.namaObjek || asset.merk_tipe || asset.nama_barang,
+      nup: String(asset.nup || current.nup || ""),
+      noPolisi: asset.no_polisi || current.noPolisi || "",
+      merekKendaraan: current.merekKendaraan || getAssetBrand(asset),
+      tipeKendaraan: current.tipeKendaraan || getAssetType(asset),
+      tahunPembuatan: String(asset.tahun_perolehan || current.tahunPembuatan || sw.tahunPembuatan || ""),
+      warna: current.warna || sw.warna || "",
+      bahanBakar: current.bahanBakar || sw.bahanBakar || "",
+    }));
+
+    if (sw.lokasiTanggal) {
+      setDateParts(parseLokasiTanggal(sw.lokasiTanggal));
+    }
+
+    setIsCopyOpen(false);
+    toast.success(
+      `Kertas kerja berhasil disalin dari ${source.nama_barang} (NUP ${source.nup || "-"}). Silakan tinjau dan klik Simpan.`
+    );
   };
 
   return (
@@ -593,7 +639,70 @@ export function KertasKerjaAssetSection({
             Nomor kertas kerja #{worksheetNumber} mengikuti urutan aset terpilih.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {availableSourceAssets.length > 0 ? (
+            <Popover open={isCopyOpen} onOpenChange={setIsCopyOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="rounded-xl gap-1.5 text-xs border-indigo-200 bg-indigo-50/60 text-indigo-700 hover:bg-indigo-100/70 hover:text-indigo-800 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                  title="Salin data analisis dari kertas kerja aset lain"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  <span>Salin dari Aset Lain</span>
+                  <ChevronDown className="h-3 w-3 opacity-60" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-84 p-3 rounded-2xl shadow-xl border-zinc-200 dark:border-zinc-800">
+                <div className="mb-2">
+                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                    <Copy className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                    Salin Data Kertas Kerja
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Salin data komparasi pasar, panitia, & kondisi dari aset yang sudah dinilai.
+                  </p>
+                </div>
+
+                <div className="max-h-72 overflow-y-auto space-y-1.5 pr-0.5 scrollbar-thin">
+                  {availableSourceAssets.map((src) => (
+                    <button
+                      key={src.id}
+                      type="button"
+                      onClick={() => handleApplySourceWorksheet(src)}
+                      className="w-full text-left p-2 rounded-xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-800 transition group cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-semibold text-xs truncate text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-zinc-50">
+                          {src.nama_barang}
+                        </span>
+                        {src.nilai_taksiran ? (
+                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                            Rp{formatPlainRupiah(src.nilai_taksiran)}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400">
+                        <span>NUP: {src.nup || "-"}</span>
+                        {src.merk_tipe && <span>• {src.merk_tipe}</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <Button
+              variant="outline"
+              disabled
+              className="rounded-xl gap-1.5 text-xs opacity-50 cursor-not-allowed"
+              title="Belum ada aset lain di paket ini yang memiliki kertas kerja tersimpan"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              <span>Salin dari Aset Lain</span>
+            </Button>
+          )}
+
           <Button variant="outline" className="rounded-xl gap-2 text-xs" onClick={onClose}>
             <X className="h-3.5 w-3.5" />
             Tutup

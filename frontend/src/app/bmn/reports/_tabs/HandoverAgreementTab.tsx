@@ -203,9 +203,9 @@ export function HandoverAgreementTab({
     const employee = employees.find((item) => String(item.id) === employeeId) || null;
     if (employee) {
       setHandoverWitness({
-        name: employee.nama_lengkap,
+        name: employee.nama_lengkap || employee.name || "",
         nip: formatNip(employee.nip),
-        position: employee.jabatan || "-",
+        position: employee.jabatan || employee.position || "-",
         label: "Mengetahui,",
       });
     } else {
@@ -546,10 +546,16 @@ export function HandoverAgreementTab({
                       disabled={loadingEmployees}
                       className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     >
-                      <option value="">Pilih pegawai</option>
+                      <option value="">
+                        {loadingEmployees
+                          ? "Memuat daftar pegawai..."
+                          : employees.length === 0
+                          ? "(Tidak ada data pegawai)"
+                          : "Pilih pegawai"}
+                      </option>
                       {employees.map((employee) => (
                         <option key={employee.id} value={employee.id}>
-                          {employee.nama_lengkap} - {employee.nip}
+                          {employee.nama_lengkap || employee.name} - {formatNip(employee.nip)}
                         </option>
                       ))}
                     </select>
@@ -644,10 +650,16 @@ export function HandoverAgreementTab({
                   disabled={loadingEmployees}
                   className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                 >
-                  <option value="">Pilih dari daftar pegawai (opsional)</option>
+                  <option value="">
+                    {loadingEmployees
+                      ? "Memuat daftar pegawai..."
+                      : employees.length === 0
+                      ? "(Tidak ada data pegawai)"
+                      : "Pilih dari daftar pegawai (opsional)"}
+                  </option>
                   {employees.map((employee) => (
                     <option key={employee.id} value={employee.id}>
-                      {employee.nama_lengkap} - {employee.nip}
+                      {employee.nama_lengkap || employee.name} - {formatNip(employee.nip)}
                     </option>
                   ))}
                 </select>

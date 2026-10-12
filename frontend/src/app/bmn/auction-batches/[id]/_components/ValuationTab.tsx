@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { updateValuation, AuctionBatch, AuctionBatchAsset, ChecklistResponse } from "../../_lib/api";
 import { formatRupiah, type AuctionAsset } from "../../../auction-candidates/_lib/auction-helpers";
-import { KertasKerjaAssetSection } from "../../../auction-candidates/_components/KertasKerjaAssetSection";
-import { useEmployeeOptions } from "../../../auction-candidates/_hooks/useEmployeeOptions";
+import {
+  KertasKerjaAssetSection,
+  type WorksheetSourceAsset,
+} from "../../../auction-candidates/_components/KertasKerjaAssetSection";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -38,7 +40,6 @@ interface ValuationTabProps {
 }
 
 export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreDocs }: ValuationTabProps) {
-  const { sortedEmployeesForPanitia } = useEmployeeOptions();
   const [assets, setAssets] = useState<AuctionBatchAsset[]>([]);
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -242,6 +243,23 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
     });
   };
 
+  const availableSourceAssets = useMemo<WorksheetSourceAsset[]>(() => {
+    if (!activeAsset || !assets) return [];
+    return assets
+      .filter((a) => a.id !== activeAsset.id && a.pivot?.kertas_kerja_data)
+      .map((a) => ({
+        id: a.id,
+        nama_barang: a.nama_barang,
+        merk_tipe: a.merk_tipe,
+        kode_barang: a.kode_barang,
+        nup: a.nup,
+        jenis_bmn: a.jenis_bmn,
+        nilai_taksiran: a.pivot?.nilai_taksiran,
+        worksheet: getVehicleWorksheetInitialState(a.pivot?.kertas_kerja_data) as any,
+      }))
+      .filter((a) => Boolean(a.worksheet));
+  }, [activeAsset, assets]);
+
   return (
     <div className="space-y-6">
       {/* Overview stats */}
@@ -409,11 +427,11 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
             <KertasKerjaAssetSection
               asset={toWorksheetAsset(activeAsset)}
               worksheetNumber={Math.max(1, assets.findIndex((a) => a.id === activeAsset.id) + 1)}
-              employees={sortedEmployeesForPanitia}
               initialState={getVehicleWorksheetInitialState(activeAsset.pivot?.kertas_kerja_data)}
               isSaving={updateValuationMutation.isPending}
               onClose={() => setActiveAsset(null)}
               onSave={handleSaveVehicleWorksheet}
+              availableSourceAssets={availableSourceAssets}
             />
           </DialogContent>
         </Dialog>

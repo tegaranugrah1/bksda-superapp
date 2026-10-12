@@ -36,11 +36,14 @@ export default function BmnReportsPage() {
   const [editingDocument, setEditingDocument] = useState<EditingDocumentState | null>(null);
 
   const { data: employees = [], isLoading: loadingEmployees } = useQuery<EmployeeOption[]>({
-    queryKey: ["bmn-report-employees"],
+    queryKey: ["employees-select-report"],
     queryFn: async () => {
-      const response = await api.get("/employees", { params: { per_page: 500 } });
-      return response.data.data || [];
+      const response = await api.get("/kepegawaian/employees/select");
+      const raw = response.data?.data ?? response.data ?? [];
+      return Array.isArray(raw) ? raw : [];
     },
+    staleTime: 60 * 1000,
+    retry: 2,
   });
 
   const { data: vehicleAssetOptions = [], isLoading: loadingVehicleAssets } = useQuery<BmnAssetOption[]>({

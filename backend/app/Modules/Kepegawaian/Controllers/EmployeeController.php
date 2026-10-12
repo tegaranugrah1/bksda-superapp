@@ -222,9 +222,11 @@ class EmployeeController extends Controller
             });
         }
 
+        $limit = min(500, max(1, $request->integer('limit', $request->integer('per_page', 500))));
+
         $employees = $query->orderBy('nama_lengkap', 'asc')
-            ->limit(200)
-            ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'satuan_kerja']);
+            ->limit($limit)
+            ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja']);
 
         return response()->json([
             'data' => $employees->map(function ($emp) {
@@ -234,6 +236,8 @@ class EmployeeController extends Controller
                     'nama_lengkap' => $emp->nama_lengkap,
                     'nama' => $emp->nama_lengkap,
                     'nip' => $emp->nip,
+                    'pangkat_golongan' => $emp->pangkat_golongan,
+                    'rank' => $emp->pangkat_golongan,
                     'department' => $emp->satuan_kerja,
                     'satuan_kerja' => $emp->satuan_kerja,
                     'position' => $emp->jabatan,

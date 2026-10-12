@@ -393,7 +393,7 @@ export function PowerOfAttorneyTab({
           <option value="">{loadingEmployees ? "Memuat pegawai..." : "Pilih pegawai"}</option>
           {employees.map((employee) => (
             <option key={employee.id} value={employee.id}>
-              {employee.nama_lengkap} - {employee.nip}
+              {employee.nama_lengkap || employee.name} - {formatNip(employee.nip)}
             </option>
           ))}
         </select>
@@ -537,7 +537,7 @@ export function PowerOfAttorneyTab({
                     <option value="">Default - Hardi Purnama</option>
                     {employees.map((employee) => (
                       <option key={employee.id} value={employee.id}>
-                        {employee.nama_lengkap} - {employee.nip}
+                        {employee.nama_lengkap || employee.name} - {formatNip(employee.nip)}
                       </option>
                     ))}
                   </select>
