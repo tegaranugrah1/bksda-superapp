@@ -110,6 +110,16 @@ class StExpenseTemplateSeeder extends Seeder
                 'is_default' => false,
                 'sort_order' => 10,
             ],
+            [
+                'name' => 'kerjasama BARU',
+                'code' => 'kerjasama-baru',
+                'category' => 'kerjasama',
+                'dasar_text' => 'Perjanjian Kerja Sama Antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dan kerjasama baru Nomor: PKS.191/K.18/TU/Teknis/10/2023 dan Nomor 17/HQ10/COP/2023.',
+                'biaya_text' => 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Biaya Kerjasama BKSDA Kalimantan Timur dan Kerjasama;',
+                'is_active' => true,
+                'is_default' => false,
+                'sort_order' => 11,
+            ],
         ];
 
         foreach ($templates as $item) {

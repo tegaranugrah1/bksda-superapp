@@ -149,6 +149,24 @@ class StTemplateSeeder extends Seeder
                 ],
                 'is_system' => true,
             ],
+            [
+                'name' => 'Pengecekan SATS-DN',
+                'code' => 'pengecekan-sats-dn',
+                'description' => 'pengecekan SATS-DN',
+                'type' => StTemplateType::CUSTOM->value,
+                'menimbang' => [
+                    ['id' => '0.6294705667591092', 'text' => "bahwa dalam rangka penghapusan Barang Milik Negara\nberupa Barang Persediaan pada Balai Konservasi Sumber\nDaya Alam Kalimantan Timur;"],
+                    ['id' => '0.938617617594493', 'text' => "bahwa sehubungan dengan butir a tersebut di atas\ndipandang perlu untuk menugaskan staf tersebut di bawah\nuntuk melakukan pemeriksaan Barang Milik Negara."],
+                ],
+                'dasar' => [
+                    ['id' => '0.10216043509978767', 'text' => "Peraturan Menteri Keuangan Nomor : 111/PMK.06/2015\ntentang Tata Cara Pelaksanaan Pemindahtanganan BMN;"],
+                    ['id' => '0.4232741348936707', 'text' => "Peraturan Menteri Lingkungan Hidup dan Kehutanan\nNomor 48/Menlhk-Setjen/2015 tentang Tata Cara\nPelaksanaan Penghapusan BMN lingkup Kementerian\nLingkungan Hidup dan Kehutanan."],
+                ],
+                'configuration' => [
+                    'biaya_text' => 'Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran {tahun};',
+                ],
+                'is_system' => false,
+            ],
         ];
 
         foreach ($templates as $attributes) {
