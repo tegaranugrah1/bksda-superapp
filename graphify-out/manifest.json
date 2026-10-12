@@ -75,7 +75,7 @@
     "semantic_hash": "e911315a1d8be9e2b66b7ce045aaed35"
   },
   "backend/app/Modules/Bmn/Controllers/AssetController.php": {
-    "mtime": 1791537955.763245,
+    "mtime": 1791807652.9357321,
     "ast_hash": "d4a621995a92d8b6e0398cf6b89e416a",
     "semantic_hash": ""
   },
@@ -95,9 +95,9 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/DashboardController.php": {
-    "mtime": 1779151337.1488736,
-    "ast_hash": "dce058853201286c628d677514aa3039",
-    "semantic_hash": "dce058853201286c628d677514aa3039"
+    "mtime": 1791808789.5455155,
+    "ast_hash": "0ad56b0648d95e68c4c3e1e2dd719c3e",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/DocumentHistoryController.php": {
     "mtime": 1788917877.6661348,
@@ -405,7 +405,7 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Requests/UpdateAssetRequest.php": {
-    "mtime": 1791537940.1353712,
+    "mtime": 1791807652.9362571,
     "ast_hash": "b17a5502cb9072547304ae6370a0c344",
     "semantic_hash": ""
   },
@@ -475,7 +475,7 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/AssetService.php": {
-    "mtime": 1791538005.6385484,
+    "mtime": 1791807652.9367788,
     "ast_hash": "50596383076d6259a2d52488e3ff255c",
     "semantic_hash": ""
   },
@@ -1005,7 +1005,7 @@
     "semantic_hash": "3ed007573b3969cb49e5c44d634963c9"
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1791806575.3293104,
+    "mtime": 1791807652.937304,
     "ast_hash": "7833a2b968ce4e6712a344c5c4b4037d",
     "semantic_hash": ""
   },
@@ -1050,7 +1050,7 @@
     "semantic_hash": "5bd4c2137164ae6a608e632a9b5d01be"
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1791781716.504147,
+    "mtime": 1791807652.9378247,
     "ast_hash": "8b68ed6c1f88421e43d37464554d1b62",
     "semantic_hash": ""
   },
@@ -1660,22 +1660,22 @@
     "semantic_hash": "d86853207f5638d34386ac07b88b9ccb"
   },
   "frontend/src/app/bmn/assets/[id]/_components/DetailSection.tsx": {
-    "mtime": 1791541116.9644208,
-    "ast_hash": "b4462b50a96dece53bb0bcf37495cb1e",
+    "mtime": 1791807652.939898,
+    "ast_hash": "76c835fe3378d61fbe3cf330948deee5",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx": {
-    "mtime": 1791541028.1829886,
-    "ast_hash": "962c9f3ab977c28c0e8101af2fad15e3",
+    "mtime": 1791807652.9409037,
+    "ast_hash": "de7bab2c078eead7446924c337ed59ac",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1791541165.2438228,
-    "ast_hash": "d5689da88c4aa54e78dbb1e52775e54a",
+    "mtime": 1791807652.9419081,
+    "ast_hash": "47cbcae1445421d71e7bb057994905eb",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/create/page.tsx": {
-    "mtime": 1791541187.164788,
+    "mtime": 1791807652.9439087,
     "ast_hash": "2136935a713fe5dc4d8f6108ab2871ea",
     "semantic_hash": ""
   },
@@ -1685,7 +1685,7 @@
     "semantic_hash": "e67d5c5c17a7a1813c22b2998deb0fdb"
   },
   "frontend/src/app/bmn/assets/page.tsx": {
-    "mtime": 1791541201.9218295,
+    "mtime": 1791807652.9439087,
     "ast_hash": "fa1e2561799bef8a4dd1fe1a89fd6fc2",
     "semantic_hash": ""
   },
@@ -1720,8 +1720,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/ValuationTab.tsx": {
-    "mtime": 1791806620.1420753,
-    "ast_hash": "bfca4ccb56181fb8395a50593daa95d4",
+    "mtime": 1791812212.9492235,
+    "ast_hash": "461e35ec7996149b67e40b56d87e8661",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/page.tsx": {
@@ -1780,8 +1780,8 @@
     "semantic_hash": "9b22340ac882dfcc99b76a72f72ce56c"
   },
   "frontend/src/app/bmn/auction-candidates/_components/KertasKerjaAssetSection.tsx": {
-    "mtime": 1791806730.4336903,
-    "ast_hash": "6073ecd3c730fd3d3f9eb33711e5f060",
+    "mtime": 1791812207.3061483,
+    "ast_hash": "38f8ee8b37ab11f7e0a6e99572f3412f",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/NotaDinasDocument.tsx": {
@@ -2110,8 +2110,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/page.tsx": {
-    "mtime": 1791781791.7757564,
-    "ast_hash": "e842b83f1c3cf7fc6c5e7e844610c01b",
+    "mtime": 1791807652.9619055,
+    "ast_hash": "def46ce407a843fbedf03e4f36cbc8db",
     "semantic_hash": ""
   },
   "frontend/src/app/cms/_components/CrudFormDrawer.tsx": {
@@ -5490,7 +5490,7 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_lib/report-utils.ts": {
-    "mtime": 1791780866.5258865,
+    "mtime": 1791807652.9479055,
     "ast_hash": "7730b5b4c0fc12a496de1a6fc60ad7dd",
     "semantic_hash": ""
   },
@@ -5660,8 +5660,8 @@
     "semantic_hash": ""
   },
   "backend/database/seeders/StTemplateSeeder.php": {
-    "mtime": 1790669478.349929,
-    "ast_hash": "deb36749525e8e1b455bbd9acbc0e3f6",
+    "mtime": 1791807652.9388673,
+    "ast_hash": "e6405656a3443b90d7e5cb225455ec91",
     "semantic_hash": ""
   },
   "backend/tests/Feature/StTemplateTest.php": {
@@ -5940,8 +5940,8 @@
     "semantic_hash": ""
   },
   "backend/database/seeders/StExpenseTemplateSeeder.php": {
-    "mtime": 1788917877.689134,
-    "ast_hash": "ef1be11152be5803bae97aa11bc5e212",
+    "mtime": 1791807652.9383457,
+    "ast_hash": "098fda50baf13cd21b17a7e49fb98884",
     "semantic_hash": ""
   },
   "backend/tests/Feature/KeuanganSpjTest.php": {
@@ -6445,13 +6445,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/CoveringLetterTab.tsx": {
-    "mtime": 1791780948.7405982,
-    "ast_hash": "b2cd8b01befad8e1744d24ad25d93da3",
+    "mtime": 1791807652.9479055,
+    "ast_hash": "667d0a2414b4a72113b77078e6ab78d6",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/DocumentHistoryTab.tsx": {
-    "mtime": 1791780961.7090335,
-    "ast_hash": "553a02ce2a4221542fd8f5c611877351",
+    "mtime": 1791807652.948905,
+    "ast_hash": "f65cf190b207f544614557d1ff1bae26",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/ExportReportsTab.tsx": {
@@ -6460,18 +6460,18 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/HandoverAgreementTab.tsx": {
-    "mtime": 1791806607.3536737,
-    "ast_hash": "aad4135a67d16a420445be0e4258ede8",
+    "mtime": 1791807652.9499052,
+    "ast_hash": "e34a76fbeb545d4b031fceb62669ad39",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/PowerOfAttorneyTab.tsx": {
-    "mtime": 1791780921.1643043,
-    "ast_hash": "d852677c91313162e945139fbf8dc8a0",
+    "mtime": 1791807652.9509037,
+    "ast_hash": "7c95f2dcbce03a987f4c0f21ba3e82db",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/UsageAgreementTab.tsx": {
-    "mtime": 1791781841.4924872,
-    "ast_hash": "9c947e5ddaff1eb5fee6048a303da46c",
+    "mtime": 1791807652.9609108,
+    "ast_hash": "ea953ff4a2298dfbf6ec2bb0e2c25be8",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_components/TablePaginationFooter.tsx": {
@@ -6585,8 +6585,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_lib/location-options.ts": {
-    "mtime": 1791541000.4286242,
-    "ast_hash": "20cdf72eec5ec2a57b7760c8bcde0d04",
+    "mtime": 1791807652.9393935,
+    "ast_hash": "3e4d5cf9d17e62bf7565716689838ece",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_12_203000_sync_st_and_expense_templates.php": {
+    "mtime": 1791807652.9383457,
+    "ast_hash": "20a05fd1a557a7cccccafdfab9eefad9",
     "semantic_hash": ""
   }
 }

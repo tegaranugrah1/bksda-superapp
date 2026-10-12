@@ -120,12 +120,8 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
   const getVehicleWorksheetInitialState = (data: any) => {
     if (!data) return null;
     let parsed = data;
-    if (typeof parsed === "string") {
-      try {
-        parsed = JSON.parse(parsed);
-      } catch (e) {
-        return null;
-      }
+    while (typeof parsed === "string") {
+      try { parsed = JSON.parse(parsed); } catch { break; }
     }
     if (!parsed || typeof parsed !== "object") return null;
     if (parsed.type === "vehicle_worksheet_v1") return parsed.vehicleWorksheet || null;

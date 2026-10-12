@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Copy, Plus, Printer, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 import { formatPlainRupiah } from "../_lib/auction-helpers";
@@ -491,6 +490,19 @@ export function KertasKerjaAssetSection({
   availableSourceAssets = [],
 }: KertasKerjaAssetSectionProps) {
   const [isCopyOpen, setIsCopyOpen] = useState(false);
+  const copyDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isCopyOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (copyDropdownRef.current && !copyDropdownRef.current.contains(e.target as Node)) {
+        setIsCopyOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isCopyOpen]);
+
   const { sortedEmployeesForPanitia } = useEmployeeOptions();
   const employeeList = employees && employees.length > 0 ? employees : sortedEmployeesForPanitia;
 
@@ -598,10 +610,17 @@ export function KertasKerjaAssetSection({
 
 
   const handleApplySourceWorksheet = (source: WorksheetSourceAsset) => {
-    const sw = source.worksheet;
+    let sw = source.worksheet as any;
     if (!sw) return;
 
-    const updatedRows = (sw.lelangRows || []).map((row) => ({
+    try {
+      if (typeof sw === "string") sw = JSON.parse(sw);
+    } catch {
+      return;
+    }
+    sw = sw?.vehicleWorksheet || sw;
+
+    const updatedRows = (sw.lelangRows || []).map((row: any) => ({
       ...row,
       harga: row.harga ? formatRibuan(row.harga) : "",
     }));
@@ -618,6 +637,8 @@ export function KertasKerjaAssetSection({
       tahunPembuatan: String(asset.tahun_perolehan || current.tahunPembuatan || sw.tahunPembuatan || ""),
       warna: current.warna || sw.warna || "",
       bahanBakar: current.bahanBakar || sw.bahanBakar || "",
+      roda2Atau3: current.roda2Atau3,
+      roda4AtauLebih: current.roda4AtauLebih,
     }));
 
     if (sw.lokasiTanggal) {
@@ -641,56 +662,59 @@ export function KertasKerjaAssetSection({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {availableSourceAssets.length > 0 ? (
-            <Popover open={isCopyOpen} onOpenChange={setIsCopyOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="rounded-xl gap-1.5 text-xs border-indigo-200 bg-indigo-50/60 text-indigo-700 hover:bg-indigo-100/70 hover:text-indigo-800 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
-                  title="Salin data analisis dari kertas kerja aset lain"
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                  <span>Salin dari Aset Lain</span>
-                  <ChevronDown className="h-3 w-3 opacity-60" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-84 p-3 rounded-2xl shadow-xl border-zinc-200 dark:border-zinc-800">
-                <div className="mb-2">
-                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                    <Copy className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-                    Salin Data Kertas Kerja
-                  </h4>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Salin data komparasi pasar, panitia, & kondisi dari aset yang sudah dinilai.
-                  </p>
-                </div>
+            <div className="relative" ref={copyDropdownRef}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCopyOpen((prev) => !prev)}
+                className="rounded-xl gap-1.5 text-xs border-indigo-200 bg-indigo-50/60 text-indigo-700 hover:bg-indigo-100/70 hover:text-indigo-800 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60 cursor-pointer"
+                title="Salin data analisis dari kertas kerja aset lain"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                <span>Salin dari Aset Lain</span>
+                <ChevronDown className={`h-3 w-3 opacity-60 transition-transform ${isCopyOpen ? "rotate-180" : ""}`} />
+              </Button>
 
-                <div className="max-h-72 overflow-y-auto space-y-1.5 pr-0.5 scrollbar-thin">
-                  {availableSourceAssets.map((src) => (
-                    <button
-                      key={src.id}
-                      type="button"
-                      onClick={() => handleApplySourceWorksheet(src)}
-                      className="w-full text-left p-2 rounded-xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-800 transition group cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="font-semibold text-xs truncate text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-zinc-50">
-                          {src.nama_barang}
-                        </span>
-                        {src.nilai_taksiran ? (
-                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
-                            Rp{formatPlainRupiah(src.nilai_taksiran)}
+              {isCopyOpen && (
+                <div className="absolute right-0 top-full mt-2 z-50 w-84 p-3 rounded-2xl shadow-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="mb-2">
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                      <Copy className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                      Salin Data Kertas Kerja
+                    </h4>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                      Salin data komparasi pasar, panitia, &amp; kondisi dari aset yang sudah dinilai.
+                    </p>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto space-y-1.5 pr-0.5 scrollbar-thin">
+                    {availableSourceAssets.map((src) => (
+                      <button
+                        key={src.id}
+                        type="button"
+                        onClick={() => handleApplySourceWorksheet(src)}
+                        className="w-full text-left p-2 rounded-xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-800 transition group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-semibold text-xs truncate text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-zinc-50">
+                            {src.nama_barang}
                           </span>
-                        ) : null}
-                      </div>
-                      <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400">
-                        <span>NUP: {src.nup || "-"}</span>
-                        {src.merk_tipe && <span>• {src.merk_tipe}</span>}
-                      </div>
-                    </button>
-                  ))}
+                          {src.nilai_taksiran ? (
+                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                              Rp{formatPlainRupiah(src.nilai_taksiran)}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400">
+                          <span>NUP: {src.nup || "-"}</span>
+                          {src.merk_tipe && <span>• {src.merk_tipe}</span>}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </PopoverContent>
-            </Popover>
+              )}
+            </div>
           ) : (
             <Button
               variant="outline"
