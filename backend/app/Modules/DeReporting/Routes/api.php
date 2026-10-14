@@ -34,6 +34,11 @@ Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function
     // Pintu gaib pengunduh PDF dari Brankas Privat
     Route::get('/internals/{id}/download', [InternalController::class, 'downloadFile']);
 
+    // 2. BACA & UNDUH LAPORAN EKSTERNAL (Seluruh Pegawai)
+    Route::get('/eksternals', [EksternalController::class, 'index']);
+    Route::get('/eksternals/{id}', [EksternalController::class, 'show']);
+    Route::get('/eksternals/{id}/download', [EksternalController::class, 'downloadFile']);
+
     /*
     |--------------------------------------------------------------------------
     | ZONA ADMIN & SUPER ADMIN (OTORITAS TINGGI)
@@ -50,11 +55,9 @@ Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function
         // B. PENUGASAN OPERATOR WILAYAH
         Route::apiResource('operators', OperatorController::class)->except(['show']);
 
-        // C. PENINJAUAN LAPORAN MASYARAKAT (EKSTERNAL)
-        Route::get('/eksternals', [EksternalController::class, 'index']);
+        // C. TINDAKAN LAPORAN MASYARAKAT (EKSTERNAL)
         Route::put('/eksternals/{id}/status', [EksternalController::class, 'updateStatus']);
-        Route::get('/eksternals/{id}/download', [EksternalController::class, 'downloadFile']);
-        Route::delete('/eksternals/{id}', [EksternalController::class, 'destroy']); // Ekstra fungsi buang laporan sampah
+        Route::delete('/eksternals/{id}', [EksternalController::class, 'destroy']);
     });
 
 });

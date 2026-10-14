@@ -25,7 +25,7 @@ export default function DeReportingDashboardPage() {
             // Kita memanggil beberapa endpoint secara paralel untuk kecepatan
             const [internals, eksternal, bidangList] = await Promise.all([
                 api.get("/dereporting/internals", { params: { paginate: "false" } }).catch(() => ({ data: { data: [] } })),
-                api.get("/dereporting/eksternal", { params: { paginate: "false" } }).catch(() => ({ data: { data: [] } })),
+                api.get("/dereporting/eksternals", { params: { paginate: "false" } }).catch(() => ({ data: { data: [] } })),
                 api.get("/dereporting/master/bidang", { params: { paginate: "false" } }).catch(() => ({ data: { data: [] } })),
             ]);
 

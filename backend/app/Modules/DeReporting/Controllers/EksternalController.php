@@ -42,7 +42,22 @@ class EksternalController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->boolean('all') || $request->get('paginate') === 'false') {
+            return response()->json(['data' => $query->get()]);
+        }
+
         return response()->json($query->paginate(20));
+    }
+
+    /**
+     * GET /api/dereporting/eksternals/{id}
+     * Membaca Rincian Satu Laporan Masyarakat
+     */
+    public function show(string $id)
+    {
+        $report = Ekternal::findOrFail($id);
+
+        return response()->json(['data' => $report]);
     }
 
     /**

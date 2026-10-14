@@ -760,8 +760,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Controllers/EksternalController.php": {
-    "mtime": 1787548978.4794104,
-    "ast_hash": "7521855aa4690288ecd870fb45a85653",
+    "mtime": 1791938683.9743793,
+    "ast_hash": "9ff0e285fa2e40b8435e3a3f268b3fa3",
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Controllers/InternalController.php": {
@@ -865,9 +865,9 @@
     "semantic_hash": "6495b866b00dbfc0d4382b5775e4476f"
   },
   "backend/app/Modules/DeReporting/Routes/api.php": {
-    "mtime": 1778294975.2275636,
-    "ast_hash": "5b4a2902a24ecfcfb4f1ab6388ae0e52",
-    "semantic_hash": "5b4a2902a24ecfcfb4f1ab6388ae0e52"
+    "mtime": 1791938698.8925154,
+    "ast_hash": "65c67bc004d223770073dc3dd99a3339",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Inventory/Controllers/CategoryController.php": {
     "mtime": 1782084555.8552918,
@@ -2265,9 +2265,9 @@
     "semantic_hash": "39cf0d677412779e91af159861c8e732"
   },
   "frontend/src/app/dereporting/page.tsx": {
-    "mtime": 1778913561.4063852,
-    "ast_hash": "79fe61870096ef4bb6e80ac97bfe20ac",
-    "semantic_hash": "79fe61870096ef4bb6e80ac97bfe20ac"
+    "mtime": 1791938708.208099,
+    "ast_hash": "008b905d54b31b054c1d13b4e040662e",
+    "semantic_hash": ""
   },
   "frontend/src/app/dereporting/pemegang-izin/page.tsx": {
     "mtime": 1778380265.623817,
@@ -6597,6 +6597,16 @@
   "frontend/src/app/portal/_components/KalkulatorDinasTab.tsx": {
     "mtime": 1791878901.2387788,
     "ast_hash": "f0e07878ca0e4bb6466546ec95b45917",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/dereporting/eksternal/[id]/page.tsx": {
+    "mtime": 1791938767.255477,
+    "ast_hash": "53505f1a4e61e77d79cbc8600679c377",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/dereporting/eksternal/page.tsx": {
+    "mtime": 1791938738.5869815,
+    "ast_hash": "b7264dbc86ba7826e54d616db95b63b6",
     "semantic_hash": ""
   }
 }
