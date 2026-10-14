@@ -64,6 +64,7 @@ Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function
         Route::delete('/master/{type}/{id}', [MasterDataController::class, 'destroy']);
 
         // B. PENUGASAN OPERATOR WILAYAH
+        Route::get('/operators/candidates', [OperatorController::class, 'candidates']);
         Route::apiResource('operators', OperatorController::class)->except(['show']);
 
         // C. TINDAKAN LAPORAN MASYARAKAT (EKSTERNAL)

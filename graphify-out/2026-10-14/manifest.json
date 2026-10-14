@@ -65,8 +65,8 @@
     "semantic_hash": "9166e18dafbd085a52008a051d530059"
   },
   "backend/app/Models/User.php": {
-    "mtime": 1790729346.8843367,
-    "ast_hash": "3b607dde5af4e17bf3267c53f749f079",
+    "mtime": 1791969565.9208314,
+    "ast_hash": "a55a95696c93bf5d1afef0f65523e3d2",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/BmnServiceProvider.php": {
@@ -775,8 +775,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Controllers/OperatorController.php": {
-    "mtime": 1787548978.484415,
-    "ast_hash": "d0e487d3519610d7be6a1b2de0a142ea",
+    "mtime": 1791969634.6914067,
+    "ast_hash": "ab5783df929c861e8325aaf73de004c6",
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Database/Seeders/InitDataSeeder.php": {
@@ -860,13 +860,13 @@
     "semantic_hash": "9a1ad17605bb8afe346a0d5efa6b5fe0"
   },
   "backend/app/Modules/DeReporting/Requests/StoreOperatorRequest.php": {
-    "mtime": 1778294858.1707768,
-    "ast_hash": "6495b866b00dbfc0d4382b5775e4476f",
-    "semantic_hash": "6495b866b00dbfc0d4382b5775e4476f"
+    "mtime": 1791969502.272213,
+    "ast_hash": "8c4bd21bc9b36f64a776f386a3124379",
+    "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Routes/api.php": {
-    "mtime": 1791938698.8925154,
-    "ast_hash": "65c67bc004d223770073dc3dd99a3339",
+    "mtime": 1791969646.590545,
+    "ast_hash": "f59f4b5af4ff6c681e228a2b06042fc5",
     "semantic_hash": ""
   },
   "backend/app/Modules/Inventory/Controllers/CategoryController.php": {
@@ -2260,9 +2260,9 @@
     "semantic_hash": "0c8d5f4ae82c2d3d59cf17e88fd00858"
   },
   "frontend/src/app/dereporting/layout.tsx": {
-    "mtime": 1778913561.4063852,
-    "ast_hash": "39cf0d677412779e91af159861c8e732",
-    "semantic_hash": "39cf0d677412779e91af159861c8e732"
+    "mtime": 1791940641.6279993,
+    "ast_hash": "3e760f3443c9975c8ee32cc09ded3763",
+    "semantic_hash": ""
   },
   "frontend/src/app/dereporting/page.tsx": {
     "mtime": 1791938708.208099,
@@ -6607,6 +6607,51 @@
   "frontend/src/app/dereporting/eksternal/page.tsx": {
     "mtime": 1791938738.5869815,
     "ast_hash": "b7264dbc86ba7826e54d616db95b63b6",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/DeReporting/Controllers/FormBuilderController.php": {
+    "mtime": 1791940581.538498,
+    "ast_hash": "bcb3c6062d158a9f0569170bb4ef29c3",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/DeReporting/Migrations/2026_10_14_092000_create_dr_dynamic_forms_tables.php": {
+    "mtime": 1791940530.9893446,
+    "ast_hash": "5f03bed634490a21c68472be5a3cd2eb",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/DeReporting/Models/DynamicForm.php": {
+    "mtime": 1791940545.413387,
+    "ast_hash": "b33b65d1c8cdc446f74a6b0117b37f98",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/DeReporting/Models/DynamicFormResponse.php": {
+    "mtime": 1791940551.326273,
+    "ast_hash": "f7b00e83c71911e8d434d349133baa39",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/dereporting/forms/[id]/builder/page.tsx": {
+    "mtime": 1791940708.1128993,
+    "ast_hash": "5fb136a7d392ab3702140a7d6fcb1a47",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/dereporting/forms/[id]/responses/page.tsx": {
+    "mtime": 1791940729.9585133,
+    "ast_hash": "598e758b4c7e7ea0eb6dea6a59eaad5e",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/dereporting/forms/page.tsx": {
+    "mtime": 1791940672.7924016,
+    "ast_hash": "05aa0388143118177915153c262a7358",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/lapor/[slug]/page.tsx": {
+    "mtime": 1791940761.2051208,
+    "ast_hash": "382c400a66c1fbe022a4a0999b5b9a4e",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/dereporting/operator/page.tsx": {
+    "mtime": 1791969681.6823337,
+    "ast_hash": "d71b3aeeaf88de483a4608702aa0ce44",
     "semantic_hash": ""
   }
 }
