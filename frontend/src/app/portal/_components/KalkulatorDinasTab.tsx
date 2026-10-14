@@ -41,6 +41,7 @@ interface PengeluaranItem {
   kategori: string;
   nominal: number;
   notaImage?: string;
+  isSpj?: boolean;
 }
 
 
@@ -119,7 +120,11 @@ export function KalkulatorDinasTab({
     nominal: "",
     tanggal: new Date().toISOString().split("T")[0],
     notaImage: "",
+    isSpj: true,
   });
+
+  // Filter status SPJ di tabel (all / spj / non_spj)
+  const [filterSpj, setFilterSpj] = useState<"all" | "spj" | "non_spj">("all");
 
   // Inline row edit state
   const [editingExpId, setEditingExpId] = useState<string | null>(null);
@@ -129,11 +134,13 @@ export function KalkulatorDinasTab({
     kategori: string;
     nominal: string;
     notaImage?: string;
+    isSpj: boolean;
   }>({
     tanggal: "",
     keterangan: "",
     kategori: "BBM / Transport",
     nominal: "",
+    isSpj: true,
   });
 
   const [lastSavedTime, setLastSavedTime] = useState<string>("Tersimpan Otomatis");
@@ -243,6 +250,7 @@ export function KalkulatorDinasTab({
       kategori: newExp.kategori,
       nominal: nominalNum,
       notaImage: newExp.notaImage,
+      isSpj: newExp.isSpj,
     };
 
     setPengeluaranList((prev) => [item, ...prev]);
@@ -252,6 +260,7 @@ export function KalkulatorDinasTab({
       nominal: "",
       tanggal: new Date().toISOString().split("T")[0],
       notaImage: "",
+      isSpj: true,
     });
     toast.success("Pengeluaran berhasil dicatat.");
   };
@@ -269,6 +278,7 @@ export function KalkulatorDinasTab({
       kategori: item.kategori,
       nominal: formatRibuan(item.nominal),
       notaImage: item.notaImage,
+      isSpj: item.isSpj !== false,
     });
   };
 
@@ -293,6 +303,7 @@ export function KalkulatorDinasTab({
               kategori: editExpData.kategori,
               nominal: nominalNum,
               notaImage: editExpData.notaImage,
+              isSpj: editExpData.isSpj,
             }
           : item
       )
@@ -325,6 +336,7 @@ export function KalkulatorDinasTab({
     setTanggalSelesai(new Date().toISOString().split("T")[0]);
     setUangPanjar(5000000);
     setPengeluaranList([]);
+    setFilterSpj("all");
     toast.success("Kalkulator di-reset ke kondisi awal.");
   };
 
@@ -333,7 +345,29 @@ export function KalkulatorDinasTab({
     return pengeluaranList.reduce((sum, item) => sum + (item.nominal || 0), 0);
   }, [pengeluaranList]);
 
+  const totalSpj = useMemo(() => {
+    return pengeluaranList
+      .filter((item) => item.isSpj !== false)
+      .reduce((sum, item) => sum + (item.nominal || 0), 0);
+  }, [pengeluaranList]);
+
+  const totalNonSpj = useMemo(() => {
+    return pengeluaranList
+      .filter((item) => item.isSpj === false)
+      .reduce((sum, item) => sum + (item.nominal || 0), 0);
+  }, [pengeluaranList]);
+
   const sisaPanjar = uangPanjar - totalPengeluaran;
+
+  const displayedPengeluaranList = useMemo(() => {
+    if (filterSpj === "spj") {
+      return pengeluaranList.filter((item) => item.isSpj !== false);
+    }
+    if (filterSpj === "non_spj") {
+      return pengeluaranList.filter((item) => item.isSpj === false);
+    }
+    return pengeluaranList;
+  }, [pengeluaranList, filterSpj]);
 
 
   return (
@@ -419,9 +453,14 @@ export function KalkulatorDinasTab({
           <p className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
             {formatRupiah(totalPengeluaran)}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">
-            {pengeluaranList.length} Transaksi / Nota Lapangan
-          </p>
+          <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[10px]">
+            <span className="font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+              SPJ: {formatRupiah(totalSpj)}
+            </span>
+            <span className="font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+              Non-SPJ: {formatRupiah(totalNonSpj)}
+            </span>
+          </div>
         </div>
 
         {/* 3. Sisa Saldo Panjar */}
@@ -616,7 +655,7 @@ export function KalkulatorDinasTab({
             />
           </div>
 
-          <div className="sm:col-span-4 space-y-1">
+          <div className="sm:col-span-3 space-y-1">
             <label className="font-semibold text-slate-500">Keterangan Pengeluaran:</label>
             <Input
               value={newExp.keterangan}
@@ -644,6 +683,25 @@ export function KalkulatorDinasTab({
             </select>
           </div>
 
+          {/* Status SPJ Toggle Button */}
+          <div className="sm:col-span-2 space-y-1">
+            <label className="font-semibold text-slate-500">Status SPJ:</label>
+            <button
+              type="button"
+              onClick={() => setNewExp((prev) => ({ ...prev, isSpj: !prev.isSpj }))}
+              className={cn(
+                "w-full h-8.5 rounded-xl text-xs font-bold px-2.5 transition-all flex items-center justify-center gap-1.5 border",
+                newExp.isSpj
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                  : "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+              )}
+              title="Klik untuk beralih antara Bisa SPJ atau Non-SPJ"
+            >
+              <span className={cn("w-2 h-2 rounded-full", newExp.isSpj ? "bg-emerald-500" : "bg-amber-500")} />
+              <span>{newExp.isSpj ? "Bisa SPJ" : "Non-SPJ"}</span>
+            </button>
+          </div>
+
           <div className="sm:col-span-2 space-y-1">
             <label className="font-semibold text-slate-500">Nominal (Rp):</label>
             <Input
@@ -657,7 +715,7 @@ export function KalkulatorDinasTab({
             />
           </div>
 
-          <div className="sm:col-span-2 flex items-end gap-1.5">
+          <div className="sm:col-span-1 flex items-end gap-1">
             <input
               type="file"
               accept="image/*"
@@ -671,7 +729,7 @@ export function KalkulatorDinasTab({
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               className={cn(
-                "h-8.5 px-2.5 rounded-xl text-xs",
+                "h-8.5 px-2 rounded-xl text-xs",
                 newExp.notaImage
                   ? "border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40"
                   : "text-slate-600"
@@ -683,10 +741,10 @@ export function KalkulatorDinasTab({
 
             <Button
               type="submit"
-              className="h-8.5 flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+              className="h-8.5 flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-2"
+              title="Simpan Belanja"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              Simpan
+              <Plus className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -708,21 +766,57 @@ export function KalkulatorDinasTab({
 
       {/* DAFTAR TRANSAKSI PENGELUARAN (DENGAN INLINE EDITING) */}
       <div className="p-4 md:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Rincian Pengeluaran dari Uang Panjar ({pengeluaranList.length})
             </h3>
             <p className="text-[11px] text-slate-500">
-              Klik ikon pensil untuk mengedit nominal atau keterangan langsung di baris.
+              Klik ikon pensil untuk mengedit nominal, keterangan, atau status SPJ langsung di baris.
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] uppercase font-bold text-slate-400">Total Terpakai</p>
-            <p className="font-mono font-bold text-sm text-amber-600 dark:text-amber-400">
-              {formatRupiah(totalPengeluaran)}
-            </p>
-          </div>
+
+          {/* Filter Tab SPJ vs Non-SPJ */}
+          {pengeluaranList.length > 0 && (
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setFilterSpj("all")}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg transition-all",
+                  filterSpj === "all"
+                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-800"
+                )}
+              >
+                Semua ({pengeluaranList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterSpj("spj")}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg transition-all",
+                  filterSpj === "spj"
+                    ? "bg-emerald-600 text-white shadow-xs font-bold"
+                    : "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50/60"
+                )}
+              >
+                Bisa SPJ ({pengeluaranList.filter((x) => x.isSpj !== false).length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterSpj("non_spj")}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg transition-all",
+                  filterSpj === "non_spj"
+                    ? "bg-amber-600 text-white shadow-xs font-bold"
+                    : "text-amber-700 dark:text-amber-400 hover:bg-amber-50/60"
+                )}
+              >
+                Non-SPJ ({pengeluaranList.filter((x) => x.isSpj === false).length})
+              </button>
+            </div>
+          )}
         </div>
 
         {pengeluaranList.length === 0 ? (
@@ -730,9 +824,13 @@ export function KalkulatorDinasTab({
             <Receipt className="w-8 h-8 mx-auto stroke-1" />
             <p className="text-xs">Belum ada pengeluaran yang dicatat dari uang panjar.</p>
           </div>
+        ) : displayedPengeluaranList.length === 0 ? (
+          <div className="text-center py-6 text-slate-400 text-xs">
+            Tidak ada transaksi pada filter ini.
+          </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {pengeluaranList.map((item, idx) => (
+            {displayedPengeluaranList.map((item, idx) => (
               <div key={item.id} className="py-2.5">
                 {editingExpId === item.id ? (
                   /* INLINE EDIT ROW */
@@ -770,6 +868,24 @@ export function KalkulatorDinasTab({
                       <option value="Logistik Patroli">Logistik Patroli</option>
                       <option value="Lain-lain">Lain-lain</option>
                     </select>
+
+                    {/* Toggle Status SPJ saat Edit */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditExpData((prev) => ({ ...prev, isSpj: !prev.isSpj }))
+                      }
+                      className={cn(
+                        "h-8 px-2 rounded-lg text-xs font-bold border transition-all shrink-0",
+                        editExpData.isSpj
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                          : "bg-amber-50 text-amber-700 border-amber-300"
+                      )}
+                      title="Klik untuk beralih status SPJ"
+                    >
+                      {editExpData.isSpj ? "Bisa SPJ" : "Non-SPJ"}
+                    </button>
+
                     <Input
                       type="text"
                       value={editExpData.nominal}
@@ -813,9 +929,21 @@ export function KalkulatorDinasTab({
                         #{idx + 1}
                       </span>
                       <div className="space-y-0.5 min-w-0">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
-                          {item.keterangan}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                            {item.keterangan}
+                          </p>
+                          <span
+                            className={cn(
+                              "text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0",
+                              item.isSpj !== false
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                            )}
+                          >
+                            {item.isSpj !== false ? "Bisa SPJ" : "Non-SPJ"}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2 text-[10px] text-slate-400">
                           <span>{item.tanggal}</span>
                           <span>•</span>
@@ -899,7 +1027,15 @@ export function KalkulatorDinasTab({
             <span>1. JUMLAH UANG PANJAR DITERIMA:</span>
             <span>{formatRupiah(uangPanjar)}</span>
           </div>
-          <div className="flex justify-between font-bold">
+          <div className="flex justify-between text-[11px] pl-3 text-slate-700">
+            <span>• Realisasi Belanja Bisa SPJ:</span>
+            <span>{formatRupiah(totalSpj)}</span>
+          </div>
+          <div className="flex justify-between text-[11px] pl-3 text-slate-700">
+            <span>• Belanja Non-SPJ (Operasional):</span>
+            <span>{formatRupiah(totalNonSpj)}</span>
+          </div>
+          <div className="flex justify-between font-bold border-t border-dashed border-black/40 pt-1">
             <span>2. REALISASI TOTAL PENGELUARAN:</span>
             <span>{formatRupiah(totalPengeluaran)}</span>
           </div>
@@ -917,10 +1053,11 @@ export function KalkulatorDinasTab({
           <thead>
             <tr className="bg-slate-100">
               <th className="border border-black p-1 text-center w-8">No</th>
-              <th className="border border-black p-1 text-left w-24">Tanggal</th>
+              <th className="border border-black p-1 text-left w-20">Tanggal</th>
               <th className="border border-black p-1 text-left">Uraian Keperluan / Belanja</th>
-              <th className="border border-black p-1 text-left w-28">Kategori</th>
-              <th className="border border-black p-1 text-right w-28">Nominal (Rp)</th>
+              <th className="border border-black p-1 text-left w-24">Kategori</th>
+              <th className="border border-black p-1 text-center w-20">Status SPJ</th>
+              <th className="border border-black p-1 text-right w-24">Nominal (Rp)</th>
             </tr>
           </thead>
           <tbody>
@@ -930,14 +1067,33 @@ export function KalkulatorDinasTab({
                 <td className="border border-black p-1">{item.tanggal}</td>
                 <td className="border border-black p-1">{item.keterangan}</td>
                 <td className="border border-black p-1">{item.kategori}</td>
+                <td className="border border-black p-1 text-center font-medium">
+                  {item.isSpj !== false ? "Bisa SPJ" : "Non-SPJ"}
+                </td>
                 <td className="border border-black p-1 text-right font-mono">
                   {formatRupiah(item.nominal)}
                 </td>
               </tr>
             ))}
-            <tr className="font-bold bg-slate-50">
-              <td colSpan={4} className="border border-black p-1.5 text-right">
-                TOTAL PENGELUARAN
+            <tr className="bg-slate-50/70 text-[9.5px]">
+              <td colSpan={5} className="border border-black p-1 text-right font-semibold">
+                SUBTOTAL BELANJA BISA SPJ:
+              </td>
+              <td className="border border-black p-1 text-right font-mono font-semibold">
+                {formatRupiah(totalSpj)}
+              </td>
+            </tr>
+            <tr className="bg-slate-50/70 text-[9.5px]">
+              <td colSpan={5} className="border border-black p-1 text-right font-semibold">
+                SUBTOTAL BELANJA NON-SPJ:
+              </td>
+              <td className="border border-black p-1 text-right font-mono font-semibold">
+                {formatRupiah(totalNonSpj)}
+              </td>
+            </tr>
+            <tr className="font-bold bg-slate-100">
+              <td colSpan={5} className="border border-black p-1.5 text-right">
+                TOTAL PENGELUARAN KESELURUHAN:
               </td>
               <td className="border border-black p-1.5 text-right font-mono">
                 {formatRupiah(totalPengeluaran)}

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   User, Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
   Calendar, UserCheck, Building, FileText, ChevronDown, FileCheck,
   FileSpreadsheet, Pencil, Loader2, Mail, Phone, Lock, Calculator,
+  Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -84,6 +85,14 @@ export function PortalProfileSidebar({
   });
   const [pwLoading, setPwLoading] = useState(false);
 
+  // Photo Upload States
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const [photoKey, setPhotoKey] = useState(Date.now());
+
   const openEditDialog = useCallback(() => {
     setEditData({
       email: employee?.email || user?.email || "",
@@ -128,6 +137,56 @@ export function PortalProfileSidebar({
     }
   };
 
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File harus berupa gambar (JPG, PNG, atau WEBP).");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran file foto maksimal 10 MB.");
+      return;
+    }
+
+    setSelectedPhotoFile(file);
+    setPhotoPreviewUrl(URL.createObjectURL(file));
+    setPhotoDialogOpen(true);
+    e.target.value = "";
+  };
+
+  const closePhotoDialog = () => {
+    if (photoPreviewUrl) {
+      URL.revokeObjectURL(photoPreviewUrl);
+    }
+    setSelectedPhotoFile(null);
+    setPhotoPreviewUrl(null);
+    setPhotoDialogOpen(false);
+  };
+
+  const handleUploadPhoto = async () => {
+    if (!selectedPhotoFile) return;
+
+    setPhotoLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("foto", selectedPhotoFile);
+
+      await api.post("/me/update-photo", formData);
+      toast.success("Foto profil berhasil diperbarui!");
+      closePhotoDialog();
+      setPhotoKey(Date.now());
+      onRefreshDashboard?.();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Gagal mengunggah foto profil.");
+    } finally {
+      setPhotoLoading(false);
+    }
+  };
+
   return (
     <>
       <aside className="w-full lg:w-72 shrink-0 space-y-4">
@@ -145,15 +204,23 @@ export function PortalProfileSidebar({
 
           {/* Avatar Header */}
           <div className="flex flex-col items-center text-center space-y-3">
-            <div className="relative">
+            <div className="relative group">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoSelect}
+              />
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-emerald-500/20 shadow-md bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center">
                 {employee?.photo ? (
                   <Image
-                    src={employee.photo}
+                    src={`${employee.photo}${employee.photo.includes("?") ? "&" : "?"}v=${photoKey}`}
                     alt={displayName}
                     width={96}
                     height={96}
                     className="w-full h-full object-cover"
+                    unoptimized
                   />
                 ) : (
                   <div className="w-full h-full bg-emerald-600 flex items-center justify-center text-white text-2xl font-bold">
@@ -161,8 +228,17 @@ export function PortalProfileSidebar({
                   </div>
                 )}
               </div>
+              {/* Camera Action Button */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Ganti Foto Profil"
+                className="absolute bottom-0 right-0 p-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-md border-2 border-white dark:border-slate-900 transition-all hover:scale-110 active:scale-95 cursor-pointer z-10"
+              >
+                <Camera className="w-3.5 h-3.5" />
+              </button>
               {/* Status Pill */}
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 z-20">
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                 AKTIF
               </div>
@@ -590,6 +666,66 @@ export function PortalProfileSidebar({
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG PREVIEW GANTI FOTO */}
+      <Dialog open={photoDialogOpen} onOpenChange={(open) => !open && closePhotoDialog()}>
+        <DialogContent className="sm:max-w-sm rounded-2xl p-6 text-center">
+          <DialogHeader className="text-center sm:text-center">
+            <DialogTitle className="text-base font-bold flex items-center justify-center gap-2">
+              <Camera className="w-5 h-5 text-emerald-600" />
+              Pratinjau Foto Profil
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Pastikan foto sudah sesuai sebelum disimpan ke server.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 flex flex-col items-center">
+            <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-emerald-500/30 shadow-lg bg-slate-100 dark:bg-slate-800">
+              {photoPreviewUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photoPreviewUrl}
+                  alt="Pratinjau foto profil baru"
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+            {selectedPhotoFile && (
+              <p className="mt-3 text-[11px] text-slate-500 font-mono truncate max-w-[240px]">
+                {selectedPhotoFile.name} ({(selectedPhotoFile.size / 1024).toFixed(0)} KB)
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="flex sm:justify-between gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closePhotoDialog}
+              disabled={photoLoading}
+              className="rounded-xl text-xs w-full sm:w-auto"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              onClick={handleUploadPhoto}
+              disabled={photoLoading}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs w-full sm:w-auto"
+            >
+              {photoLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                  Mengunggah...
+                </>
+              ) : (
+                "Simpan Foto"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
