@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   FolderOpen,
   Menu,
+  ClipboardList,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,6 +28,7 @@ const SIDEBAR_ITEMS = [
   { href: "/dereporting", label: "Dashboard", icon: LayoutDashboard, minRole: "user" as const },
   { href: "/dereporting/internal", label: "Laporan Internal", icon: FileText, minRole: "user" as const },
   { href: "/dereporting/eksternal", label: "Laporan Publik", icon: Globe, minRole: "user" as const },
+  { href: "/dereporting/forms", label: "Form Builder", icon: ClipboardList, minRole: "user" as const },
   { href: "/dereporting/operator", label: "Operator", icon: Users, minRole: "admin" as const },
   { href: "/dereporting/bernilai", label: "Data Bernilai", icon: Gem, minRole: "user" as const },
   { href: "/dereporting/kerjasama", label: "Kerjasama", icon: Handshake, minRole: "user" as const },

@@ -1,7 +1,8 @@
 <?php
 
 use App\Modules\DeReporting\Controllers\EksternalController;
-// Import 4 Pengendali Raksasa kita
+use App\Modules\DeReporting\Controllers\FormBuilderController;
+// Import Pengendali Modul DeReporting
 use App\Modules\DeReporting\Controllers\InternalController;
 use App\Modules\DeReporting\Controllers\MasterDataController;
 use App\Modules\DeReporting\Controllers\OperatorController;
@@ -14,11 +15,15 @@ use Illuminate\Support\Facades\Route;
 | Tanpa Token. Digunakan khusus oleh layar eksternal masyarakat.
 */
 
-// 1. Ekstraktor Dropdown (Peringatan: Controller memiliki perisai exception di dalamnya)
+// 1. Ekstraktor Dropdown
 Route::get('/master/{type}', [MasterDataController::class, 'index']);
 
 // 2. Lubang Penerima Formulir Masyarakat (Rate Limiting telah diurus di Controller)
 Route::post('/eksternals/public', [EksternalController::class, 'storePublic']);
+
+// 3. Formulir Dinamis Publik (Google Forms Style)
+Route::get('/public-forms/{slug}', [FormBuilderController::class, 'showPublic']);
+Route::post('/public-forms/{slug}/submit', [FormBuilderController::class, 'submitPublic'])->middleware('throttle:15,1');
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +43,12 @@ Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function
     Route::get('/eksternals', [EksternalController::class, 'index']);
     Route::get('/eksternals/{id}', [EksternalController::class, 'show']);
     Route::get('/eksternals/{id}/download', [EksternalController::class, 'downloadFile']);
+
+    // 3. PENGELOLAAN FORMULIR DINAMIS (FORM BUILDER)
+    Route::apiResource('forms', FormBuilderController::class);
+    Route::get('/forms/{id}/responses', [FormBuilderController::class, 'responses']);
+    Route::get('/forms/{id}/responses/export', [FormBuilderController::class, 'exportCsv']);
+    Route::get('/forms/responses/{responseId}/download/{fieldId}', [FormBuilderController::class, 'downloadAttachment']);
 
     /*
     |--------------------------------------------------------------------------
