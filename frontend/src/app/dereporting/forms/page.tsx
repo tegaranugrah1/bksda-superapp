@@ -539,31 +539,34 @@ export default function DeReportingFormsListPage() {
 
             {/* Modal Dialog Bagikan & QR Code */}
             <Dialog open={!!shareForm} onOpenChange={(open) => !open && setShareForm(null)}>
-                <DialogContent className="sm:max-w-md rounded-2xl p-6 text-center space-y-4">
-                    <DialogHeader>
+                <DialogContent className="sm:max-w-md rounded-2xl p-6">
+                    <DialogHeader className="text-center sm:text-center items-center">
                         <DialogTitle className="text-base font-bold flex items-center justify-center gap-2">
                             <Share2 className="w-5 h-5 text-violet-600" />
                             Bagikan Formulir Publik
                         </DialogTitle>
-                        <DialogDescription className="text-xs text-zinc-500 line-clamp-2">
+                        <DialogDescription className="text-xs text-zinc-500 line-clamp-2 text-center">
                             {shareForm?.title}
                         </DialogDescription>
                     </DialogHeader>
 
                     {shareForm && (
-                        <div className="space-y-5 py-1">
-                            {/* Kotak QR Code */}
-                            <div className="p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm inline-block mx-auto">
-                                <QRCode
-                                    id="qr-code-svg"
-                                    value={shareUrl}
-                                    size={180}
-                                    level="H"
-                                />
+                        <div className="flex flex-col items-center space-y-5 py-2 w-full">
+                            {/* Kotak QR Code (Persis di Tengah) */}
+                            <div className="flex items-center justify-center w-full py-1">
+                                <div className="p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm flex items-center justify-center shrink-0">
+                                    <QRCode
+                                        id="qr-code-svg"
+                                        value={shareUrl}
+                                        size={180}
+                                        level="H"
+                                        className="w-[180px] h-[180px]"
+                                    />
+                                </div>
                             </div>
 
                             {/* Kotak Tautan URL */}
-                            <div className="flex items-center gap-2 p-2 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono text-zinc-600 dark:text-zinc-300">
+                            <div className="flex items-center gap-2 p-2 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono text-zinc-600 dark:text-zinc-300 w-full">
                                 <span className="truncate flex-1 text-left px-1">{shareUrl}</span>
                                 <Button
                                     type="button"
@@ -584,7 +587,7 @@ export default function DeReportingFormsListPage() {
                             </div>
 
                             {/* Tombol Aksi Download QR & WhatsApp */}
-                            <div className="grid grid-cols-2 gap-2.5">
+                            <div className="grid grid-cols-2 gap-2.5 w-full">
                                 <Button
                                     type="button"
                                     variant="outline"
