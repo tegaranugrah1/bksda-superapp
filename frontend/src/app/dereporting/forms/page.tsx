@@ -539,22 +539,22 @@ export default function DeReportingFormsListPage() {
 
             {/* Modal Dialog Bagikan & QR Code */}
             <Dialog open={!!shareForm} onOpenChange={(open) => !open && setShareForm(null)}>
-                <DialogContent className="sm:max-w-md rounded-2xl p-6">
-                    <DialogHeader className="text-center sm:text-center items-center">
-                        <DialogTitle className="text-base font-bold flex items-center justify-center gap-2">
-                            <Share2 className="w-5 h-5 text-violet-600" />
+                <DialogContent className="sm:max-w-md w-full rounded-2xl p-6 overflow-hidden">
+                    <DialogHeader className="text-center sm:text-center items-center w-full">
+                        <DialogTitle className="text-base font-bold flex items-center justify-center gap-2 text-center w-full">
+                            <Share2 className="w-5 h-5 text-violet-600 shrink-0" />
                             Bagikan Formulir Publik
                         </DialogTitle>
-                        <DialogDescription className="text-xs text-zinc-500 line-clamp-2 text-center">
+                        <DialogDescription className="text-xs text-zinc-500 line-clamp-2 text-center w-full">
                             {shareForm?.title}
                         </DialogDescription>
                     </DialogHeader>
 
                     {shareForm && (
-                        <div className="flex flex-col items-center space-y-5 py-2 w-full">
+                        <div className="flex flex-col items-center space-y-5 py-2 w-full max-w-full min-w-0">
                             {/* Kotak QR Code (Persis di Tengah) */}
                             <div className="flex items-center justify-center w-full py-1">
-                                <div className="p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm flex items-center justify-center shrink-0">
+                                <div className="p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm flex items-center justify-center">
                                     <QRCode
                                         id="qr-code-svg"
                                         value={shareUrl}
@@ -565,9 +565,9 @@ export default function DeReportingFormsListPage() {
                                 </div>
                             </div>
 
-                            {/* Kotak Tautan URL */}
-                            <div className="flex items-center gap-2 p-2 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono text-zinc-600 dark:text-zinc-300 w-full">
-                                <span className="truncate flex-1 text-left px-1">{shareUrl}</span>
+                            {/* Kotak Tautan URL (min-w-0 agar truncate bekerja dan tidak jebol keluar dialog) */}
+                            <div className="flex items-center gap-2 p-2 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono text-zinc-600 dark:text-zinc-300 w-full max-w-full min-w-0 overflow-hidden">
+                                <span className="truncate flex-1 min-w-0 text-left px-1 select-all">{shareUrl}</span>
                                 <Button
                                     type="button"
                                     size="sm"
