@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import QRCode from "react-qr-code";
 import {
     ClipboardList,
     Plus,
@@ -16,6 +17,11 @@ import {
     Trash2,
     Loader2,
     ExternalLink,
+    CopyPlus,
+    QrCode,
+    Download,
+    Share2,
+    Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -54,6 +60,13 @@ export default function DeReportingFormsListPage() {
     const [newTitle, setNewTitle] = useState("");
     const [newSlug, setNewSlug] = useState("");
     const [newDesc, setNewDesc] = useState("");
+
+    // Dialog Duplikasi Form
+    const [duplicateForm, setDuplicateForm] = useState<DynamicFormItem | null>(null);
+    const [duplicateTitle, setDuplicateTitle] = useState("");
+
+    // Dialog QR Code / Bagikan
+    const [shareForm, setShareForm] = useState<DynamicFormItem | null>(null);
 
     // State Salin Tautan
     const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
@@ -94,6 +107,32 @@ export default function DeReportingFormsListPage() {
         },
     });
 
+    // Mutasi Duplikasi Form
+    const duplicateMutation = useMutation({
+        mutationFn: async () => {
+            if (!duplicateForm) return;
+            const res = await api.post(`/dereporting/forms/${duplicateForm.id}/duplicate`, {
+                title: duplicateTitle,
+            });
+            return res.data.data;
+        },
+        onSuccess: (newForm) => {
+            const id = newForm.id;
+            setDuplicateForm(null);
+            queryClient.invalidateQueries({ queryKey: ["dr-dynamic-forms"] });
+            toast.success(`Formulir "${newForm.title}" berhasil diduplikasi (Status: Non-aktif).`, {
+                action: {
+                    label: "Buka Editor",
+                    onClick: () => router.push(`/dereporting/forms/${id}/builder`),
+                },
+            });
+        },
+        onError: (err: unknown) => {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || "Gagal menduplikasi formulir.");
+        },
+    });
+
     // Mutasi Toggle Status Aktif/Ditutup
     const toggleActiveMutation = useMutation({
         mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
@@ -130,7 +169,40 @@ export default function DeReportingFormsListPage() {
         setTimeout(() => setCopiedSlug(null), 2000);
     };
 
+    const handleDownloadQr = () => {
+        const svg = document.getElementById("qr-code-svg");
+        if (!svg) return;
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.onload = () => {
+            canvas.width = 300;
+            canvas.height = 300;
+            if (ctx) {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, 300, 300);
+                ctx.drawImage(img, 10, 10, 280, 280);
+                const a = document.createElement("a");
+                a.download = `qrcode_${shareForm?.slug || "form"}.png`;
+                a.href = canvas.toDataURL("image/png");
+                a.click();
+                toast.success("Gambar QR Code berhasil diunduh!");
+            }
+        };
+        img.src = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
+    };
+
+    const handleShareWhatsApp = (slug: string, title: string) => {
+        const url = `${window.location.origin}/lapor/${slug}`;
+        const text = encodeURIComponent(
+            `Halo, mohon kesediaannya untuk mengisi formulir BKSDA Kalimantan Timur:\n*${title}*\n\nBuka tautan:\n${url}`
+        );
+        window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+    };
+
     const forms = response?.data || [];
+    const shareUrl = shareForm && typeof window !== "undefined" ? `${window.location.origin}/lapor/${shareForm.slug}` : "";
 
     return (
         <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -178,15 +250,13 @@ export default function DeReportingFormsListPage() {
                 </div>
             ) : forms.length === 0 ? (
                 <div className="bg-white dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-12 text-center space-y-4 shadow-sm">
-                    <div className="w-16 h-16 rounded-2xl bg-violet-500/10 text-violet-500 flex items-center justify-center mx-auto">
-                        <ClipboardList className="w-8 h-8" />
-                    </div>
-                    <div className="max-w-md mx-auto space-y-1">
-                        <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                    <ClipboardList className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto" />
+                    <div>
+                        <h3 className="font-bold text-zinc-800 dark:text-zinc-200 text-base">
                             Belum Ada Formulir Dinamis
                         </h3>
-                        <p className="text-xs text-zinc-500 leading-relaxed">
-                            Mulai buat formulir baru untuk mengumpulkan laporan khusus dari warga atau mitra konservasi.
+                        <p className="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
+                            Buat formulir survei publik pertama Anda untuk mengumpulkan laporan masyarakat atau kegiatan mitra.
                         </p>
                     </div>
                     <Button
@@ -194,7 +264,7 @@ export default function DeReportingFormsListPage() {
                         onClick={() => setCreateOpen(true)}
                         className="bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold gap-2"
                     >
-                        <Plus className="w-4 h-4" /> Buat Formulir Pertama
+                        <Plus className="w-4 h-4" /> Buat Formulir Sekarang
                     </Button>
                 </div>
             ) : (
@@ -271,7 +341,31 @@ export default function DeReportingFormsListPage() {
                                     <span>{form.responses_count} Tanggapan</span>
                                 </Link>
 
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1">
+                                    {/* Tombol QR Code / Bagikan */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShareForm(form)}
+                                        className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors"
+                                        title="Bagikan / QR Code"
+                                    >
+                                        <QrCode className="w-4 h-4" />
+                                    </button>
+
+                                    {/* Tombol Duplikasi */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setDuplicateForm(form);
+                                            setDuplicateTitle(`${form.title} (Salinan)`);
+                                        }}
+                                        className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors"
+                                        title="Duplikasi Formulir"
+                                    >
+                                        <CopyPlus className="w-4 h-4" />
+                                    </button>
+
+                                    {/* Tombol Desain Pertanyaan */}
                                     <Link
                                         href={`/dereporting/forms/${form.id}/builder`}
                                         className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors"
@@ -280,6 +374,7 @@ export default function DeReportingFormsListPage() {
                                         <Edit3 className="w-4 h-4" />
                                     </Link>
 
+                                    {/* Tombol Arsipkan */}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -376,6 +471,139 @@ export default function DeReportingFormsListPage() {
                             </Button>
                         </DialogFooter>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal Dialog Duplikasi Formulir */}
+            <Dialog open={!!duplicateForm} onOpenChange={(open) => !open && setDuplicateForm(null)}>
+                <DialogContent className="sm:max-w-md rounded-2xl p-6">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                            <CopyPlus className="w-5 h-5 text-violet-600" />
+                            Duplikasi Formulir
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-zinc-500">
+                            Salin seluruh struktur pertanyaan dan opsi ke formulir baru. Status awal akan non-aktif sehingga dapat Anda tinjau terlebih dahulu.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            if (!duplicateTitle.trim()) return;
+                            duplicateMutation.mutate();
+                        }}
+                        className="space-y-4 py-2"
+                    >
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-bold">Judul Formulir Baru *</Label>
+                            <Input
+                                required
+                                value={duplicateTitle}
+                                onChange={(e) => setDuplicateTitle(e.target.value)}
+                                placeholder="Judul salinan formulir..."
+                                className="text-xs rounded-xl"
+                            />
+                            <p className="text-[11px] text-zinc-400">
+                                Anda dapat mengubah judul ini sekarang atau nanti saat mengedit pertanyaan.
+                            </p>
+                        </div>
+
+                        <DialogFooter className="pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDuplicateForm(null)}
+                                className="rounded-xl text-xs"
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={duplicateMutation.isPending || !duplicateTitle.trim()}
+                                className="bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold"
+                            >
+                                {duplicateMutation.isPending ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                                        Menduplikasi...
+                                    </>
+                                ) : (
+                                    "Duplikat Sekarang"
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal Dialog Bagikan & QR Code */}
+            <Dialog open={!!shareForm} onOpenChange={(open) => !open && setShareForm(null)}>
+                <DialogContent className="sm:max-w-md rounded-2xl p-6 text-center space-y-4">
+                    <DialogHeader>
+                        <DialogTitle className="text-base font-bold flex items-center justify-center gap-2">
+                            <Share2 className="w-5 h-5 text-violet-600" />
+                            Bagikan Formulir Publik
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-zinc-500 line-clamp-2">
+                            {shareForm?.title}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {shareForm && (
+                        <div className="space-y-5 py-1">
+                            {/* Kotak QR Code */}
+                            <div className="p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm inline-block mx-auto">
+                                <QRCode
+                                    id="qr-code-svg"
+                                    value={shareUrl}
+                                    size={180}
+                                    level="H"
+                                />
+                            </div>
+
+                            {/* Kotak Tautan URL */}
+                            <div className="flex items-center gap-2 p-2 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono text-zinc-600 dark:text-zinc-300">
+                                <span className="truncate flex-1 text-left px-1">{shareUrl}</span>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => handleCopyLink(shareForm.slug)}
+                                    className="h-8 rounded-lg text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white gap-1.5 shrink-0"
+                                >
+                                    {copiedSlug === shareForm.slug ? (
+                                        <>
+                                            <Check className="w-3.5 h-3.5" /> Disalin
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy className="w-3.5 h-3.5" /> Salin
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+
+                            {/* Tombol Aksi Download QR & WhatsApp */}
+                            <div className="grid grid-cols-2 gap-2.5">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleDownloadQr}
+                                    className="rounded-xl text-xs font-bold gap-2 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                                >
+                                    <Download className="w-3.5 h-3.5" /> Unduh QR (.png)
+                                </Button>
+
+                                <Button
+                                    type="button"
+                                    onClick={() => handleShareWhatsApp(shareForm.slug, shareForm.title)}
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold gap-2"
+                                >
+                                    <Send className="w-3.5 h-3.5" /> Kirim WhatsApp
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

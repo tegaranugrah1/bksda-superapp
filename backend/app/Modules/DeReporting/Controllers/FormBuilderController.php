@@ -132,6 +132,44 @@ class FormBuilderController extends Controller
     }
 
     /**
+     * POST /api/dereporting/forms/{id}/duplicate
+     * Menduplikasi formulir dinamis yang sudah ada
+     */
+    public function duplicate(Request $request, string $id): JsonResponse
+    {
+        $original = DynamicForm::findOrFail($id);
+
+        $customTitle = $request->input('title');
+        $title = ! empty($customTitle) ? trim($customTitle) : "{$original->title} (Salinan)";
+
+        $baseSlug = Str::slug($title);
+        if (empty($baseSlug)) {
+            $baseSlug = "{$original->slug}-salinan";
+        }
+
+        $slug = $baseSlug;
+        $counter = 1;
+        while (DynamicForm::where('slug', $slug)->exists()) {
+            $slug = "{$baseSlug}-{$counter}";
+            $counter++;
+        }
+
+        $newForm = DynamicForm::create([
+            'title' => $title,
+            'slug' => $slug,
+            'description' => $original->description,
+            'fields' => $original->fields ?? [],
+            'is_active' => false,
+            'created_by' => $request->user()?->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Formulir berhasil diduplikasi.',
+            'data' => $newForm,
+        ], 201);
+    }
+
+    /**
      * GET /api/dereporting/forms/{id}/responses
      * Mengambil daftar respon jawaban untuk suatu formulir
      */

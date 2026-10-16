@@ -46,6 +46,7 @@ Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function
 
     // 3. PENGELOLAAN FORMULIR DINAMIS (FORM BUILDER)
     Route::apiResource('forms', FormBuilderController::class);
+    Route::post('/forms/{id}/duplicate', [FormBuilderController::class, 'duplicate']);
     Route::get('/forms/{id}/responses', [FormBuilderController::class, 'responses']);
     Route::get('/forms/{id}/responses/export', [FormBuilderController::class, 'exportCsv']);
     Route::get('/forms/responses/{responseId}/download/{fieldId}', [FormBuilderController::class, 'downloadAttachment']);
