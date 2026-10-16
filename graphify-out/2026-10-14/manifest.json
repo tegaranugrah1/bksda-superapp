@@ -65,8 +65,8 @@
     "semantic_hash": "9166e18dafbd085a52008a051d530059"
   },
   "backend/app/Models/User.php": {
-    "mtime": 1791969565.9208314,
-    "ast_hash": "a55a95696c93bf5d1afef0f65523e3d2",
+    "mtime": 1791971808.2275505,
+    "ast_hash": "3b607dde5af4e17bf3267c53f749f079",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/BmnServiceProvider.php": {
