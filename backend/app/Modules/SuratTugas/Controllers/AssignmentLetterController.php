@@ -509,6 +509,9 @@ class AssignmentLetterController extends Controller
     public function show(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])->findOrFail($cleanId);
 
         if (! $this->authorizeAccess($surat, $request)) {
@@ -837,6 +840,9 @@ class AssignmentLetterController extends Controller
     public function downloadPdf(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $surat = AssignmentLetter::withTrashed()->with('employees')->findOrFail($cleanId);
 
         if (! $this->authorizeAccess($surat, $request)) {

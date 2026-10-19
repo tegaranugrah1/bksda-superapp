@@ -244,6 +244,14 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
     };
   }, [dokumentasiFiles]);
 
+  useEffect(() => {
+    return () => {
+      if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(customCoverPreview);
+      }
+    };
+  }, [customCoverPreview]);
+
   // Fetch ST specifically filtered by "patrol"
   const fetchMySuratTugas = useCallback(async () => {
     setLoadingST(true);

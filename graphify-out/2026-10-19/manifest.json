@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1792377527.7328677,
-    "ast_hash": "f5cfb1cda3e087570190dc83b1ecec66",
+    "mtime": 1792403799.228566,
+    "ast_hash": "feea510f95aeac4d607c8ebebec3ab3a",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1792391895.1395252,
-    "ast_hash": "ede68c04c76b67ee9ab5d9bd0bd81f12",
+    "mtime": 1792403776.6269603,
+    "ast_hash": "14567a7bb5b0b3df4d3cf633fbe21fb1",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {
@@ -5685,8 +5685,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalProfileSidebar.tsx": {
-    "mtime": 1792373233.0568593,
-    "ast_hash": "2cba20f79fd28fe3f52ecdadef9936aa",
+    "mtime": 1792403811.9960134,
+    "ast_hash": "172b58a4058a8e8ddbbff697d3e48a4a",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalQuickStats.tsx": {
@@ -6680,8 +6680,8 @@
     "semantic_hash": ""
   },
   "backend/tests/portal_security_check.php": {
-    "mtime": 1792393907.725461,
-    "ast_hash": "ef7f4eeb2278d7050798e67da45e99ae",
+    "mtime": 1792403840.5344474,
+    "ast_hash": "e9d9c1d56408b3b6c6a36f6f0510271d",
     "semantic_hash": ""
   },
   "skills-lock.json": {

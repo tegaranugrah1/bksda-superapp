@@ -1206,6 +1206,20 @@ assert(
     'PortalProfileSidebar must validate current_password before dispatching change password request'
 );
 
+// 191. Assignment Letter show and downloadPdf Numeric ID Guard Invariant
+assert(
+    substr_count($stCtrlCheck68, '! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)') >= 5,
+    'AssignmentLetterController must validate cleanId is numeric in myShow, myDownload, verify, show, and downloadPdf'
+);
+
+// 192. SmartPatrolInlineForm Cover Preview Unmount Revoke Invariant
+$spInlineCheck68 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/SmartPatrolInlineForm.tsx');
+assert(
+    str_contains($spInlineCheck68, 'URL.revokeObjectURL(customCoverPreview)') &&
+    str_contains($spInlineCheck68, 'customCoverPreview.startsWith("blob:")'),
+    'SmartPatrolInlineForm must revoke customCoverPreview on unmount to prevent memory leaks'
+);
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 
