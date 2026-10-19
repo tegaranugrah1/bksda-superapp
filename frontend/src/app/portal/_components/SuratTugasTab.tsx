@@ -137,7 +137,7 @@ export function SuratTugasTab({
                   {st.status && (
                     <span className={cn(
                       "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
-                      ["diterbitkan", "disetujui", "approved", "completed"].includes(st.status.toLowerCase())
+                      ["diterbitkan", "disetujui", "approved", "completed", "published"].includes(st.status.toLowerCase())
                         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                         : ["pending", "draft"].includes(st.status.toLowerCase())
                         ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"

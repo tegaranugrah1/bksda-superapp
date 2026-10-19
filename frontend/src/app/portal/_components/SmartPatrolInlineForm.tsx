@@ -539,8 +539,8 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                   <div className="max-h-[300px] overflow-y-auto p-2">
                     {stOptions
                       .filter(st => 
-                        st.nomor_surat?.toLowerCase().includes(stSearch.toLowerCase()) || 
-                        st.maksud_tujuan.toLowerCase().includes(stSearch.toLowerCase())
+                        (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || 
+                        (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())
                       )
                       .map((st) => (
                       <div
@@ -562,7 +562,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                         </div>
                       </div>
                     ))}
-                    {stOptions.filter(st => st.nomor_surat?.toLowerCase().includes(stSearch.toLowerCase()) || st.maksud_tujuan.toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
+                    {stOptions.filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
                       <p className="p-4 text-center text-sm text-slate-500">Tidak ada ST yang cocok.</p>
                     )}
                   </div>

@@ -1165,6 +1165,23 @@ $suratMasukCtrlCheck66 = file_get_contents(__DIR__ . '/../app/Modules/Surat/Cont
 assert(str_contains($stCtrlCheck66, "LOWER(status) as status_lower") && str_contains($stCtrlCheck66, "\$counts['completed'] ?? 0") && str_contains($stCtrlCheck66, "\$counts['diterbitkan'] ?? 0"), 'AssignmentLetterController statusCounts must normalize status case and count all approved variants');
 assert(str_contains($suratMasukCtrlCheck66, "\$cleanYear = preg_replace('/[^0-9]/', '', (string) \$filters['year']);"), 'SuratMasukController exportExcel must sanitize year parameter against illegal characters');
 
+// 185. SmartPatrolInlineForm Blob Object URL Cleanup Invariant
+$spInlineFormCheck67 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/SmartPatrolInlineForm.tsx');
+assert(str_contains($spInlineFormCheck67, "URL.revokeObjectURL(customCoverPreview)"), 'SmartPatrolInlineForm must revoke customCoverPreview object URL in cleanup to avoid memory leaks');
+
+// 186. GeneralReportInlineForm Defensive Null Field Access & Selection Invariant
+$grInlineFormCheck67 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/GeneralReportInlineForm.tsx');
+assert(str_contains($grInlineFormCheck67, "((selectedST.maksud_tujuan || \"\").substring(0, 60) || \"\")") && str_contains($grInlineFormCheck67, "(st.maksud_tujuan || \"\").toLowerCase()"), 'GeneralReportInlineForm must guard against null maksud_tujuan to prevent client runtime crashes');
+
+// 187. Portal Borrowed Asset ID Type Resilience Invariant
+$activeLoansCheck67 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/ActiveLoansTab.tsx');
+$portalPageCheck67 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/page.tsx');
+assert(str_contains($activeLoansCheck67, "id: number | string;") && str_contains($portalPageCheck67, "my_assets: Array<{ id: number | string;"), 'ActiveLoansTab and portal page must support both numeric and string asset IDs');
+
+// 188. Surat Tugas Positive Status Badge Inclusion Invariant
+$stTabCheck67 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/SuratTugasTab.tsx');
+assert(str_contains($stTabCheck67, '"published"'), 'SuratTugasTab badge check must include published status');
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

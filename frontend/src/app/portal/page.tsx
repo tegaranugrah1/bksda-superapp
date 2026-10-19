@@ -90,7 +90,7 @@ const SuratTugasLetterPreview = dynamic(
 interface DashboardData {
   user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
   employee: { id: number; nip: string; name: string; position: string; department: string; email: string | null; phone: string | null; photo: string | null; rank: string | null; rank_level: number; is_active: boolean } | null;
-  my_assets: Array<{ id: number; nama_barang: string; kode_barang: string; nup: string; loan_date: string; due_date: string; status: string; merk: string | null; jenis_bmn?: string; no_polisi?: string | null; nup_lama?: string | null }>;
+  my_assets: Array<{ id: number | string; nama_barang: string; kode_barang: string; nup: string; loan_date: string; due_date: string; status: string; merk: string | null; jenis_bmn?: string; no_polisi?: string | null; nup_lama?: string | null }>;
 }
 
 interface SuratTugasItem {

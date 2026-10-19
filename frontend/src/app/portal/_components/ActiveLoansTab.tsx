@@ -7,7 +7,7 @@ import { formatMerkTipe } from "./MyAssetsTab";
 import { cn } from "@/lib/utils";
 
 export interface BorrowedAssetItem {
-  id: number;
+  id: number | string;
   nama_barang: string;
   kode_barang: string;
   nup: string;

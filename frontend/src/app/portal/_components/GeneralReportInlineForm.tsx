@@ -578,7 +578,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                       ? (selectedST.nomor_surat
                           ? `${selectedST.nomor_surat} - `
                           : "") +
-                        (selectedST.maksud_tujuan.substring(0, 60) || "") +
+                        ((selectedST.maksud_tujuan || "").substring(0, 60) || "") +
                         "..."
                       : "[ Tanpa Surat Tugas / Input Manual ]"}
                   </span>
@@ -611,7 +611,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                       <span className="truncate">[ Tanpa Surat Tugas / Input Manual ]</span>
                     </div>
                     {stOptions
-                      .filter(st => st.nomor_surat?.toLowerCase().includes(stSearch.toLowerCase()) || st.maksud_tujuan.toLowerCase().includes(stSearch.toLowerCase()))
+                      .filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase()))
                       .map((st) => (
                         <div
                           key={st.id}
