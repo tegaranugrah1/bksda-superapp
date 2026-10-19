@@ -143,6 +143,10 @@ export function PortalProfileSidebar({
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!pwData.current_password) {
+      toast.error("Password saat ini wajib diisi.");
+      return;
+    }
     if (!pwData.new_password || pwData.new_password.length < 8) {
       toast.error("Password baru minimal 8 karakter.");
       return;

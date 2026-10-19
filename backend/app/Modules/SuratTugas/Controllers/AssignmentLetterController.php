@@ -77,6 +77,9 @@ class AssignmentLetterController extends Controller
         }
 
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
             ->findOrFail($cleanId);
 
@@ -105,6 +108,9 @@ class AssignmentLetterController extends Controller
     public function myDownload(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $user = $request->user();
         $employee = Employee::where('nip', $user->username)->first();
 
@@ -870,6 +876,12 @@ class AssignmentLetterController extends Controller
     public function verify(string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Dokumen Surat Tugas tidak ditemukan dalam database resmi.',
+            ], 404);
+        }
         $surat = AssignmentLetter::with(['employees:id,nama_lengkap'])->find($cleanId);
 
         if (! $surat) {

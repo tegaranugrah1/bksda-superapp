@@ -1182,6 +1182,30 @@ assert(str_contains($activeLoansCheck67, "id: number | string;") && str_contains
 $stTabCheck67 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/SuratTugasTab.tsx');
 assert(str_contains($stTabCheck67, '"published"'), 'SuratTugasTab badge check must include published status');
 
+// 189. Portal Assignment Letter Non-Numeric ID Guard Invariant
+$stCtrlCheck68 = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Controllers/AssignmentLetterController.php');
+assert(
+    str_contains($stCtrlCheck68, '! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)') &&
+    substr_count($stCtrlCheck68, '! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)') >= 3,
+    'AssignmentLetterController must validate cleanId is numeric in myShow, myDownload, and verify to prevent DB QueryException'
+);
+
+// 190. Leave Request Date Boundary Normalization, Tag Stripping & Password Check Invariant
+$leaveCtrlCheck68 = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php');
+$profileSidebarCheck68 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/PortalProfileSidebar.tsx');
+assert(
+    str_contains($leaveCtrlCheck68, "Carbon::parse(\$validated['tanggal_mulai'])->startOfDay()") &&
+    str_contains($leaveCtrlCheck68, "Carbon::parse(\$validated['tanggal_selesai'])->startOfDay()") &&
+    str_contains($leaveCtrlCheck68, "strip_tags(trim(\$validated['alasan_cuti']))") &&
+    str_contains($leaveCtrlCheck68, "strip_tags(trim(\$validated['alamat_menjalankan_cuti']))"),
+    'EmployeeLeaveRequestController must normalize dates to startOfDay and strip tags on user input'
+);
+assert(
+    str_contains($profileSidebarCheck68, '!pwData.current_password') &&
+    str_contains($profileSidebarCheck68, 'Password saat ini wajib diisi.'),
+    'PortalProfileSidebar must validate current_password before dispatching change password request'
+);
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

@@ -129,8 +129,8 @@ class EmployeeLeaveRequestController extends Controller
             'telepon' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
         ]);
 
-        $start = Carbon::parse($validated['tanggal_mulai']);
-        $end = Carbon::parse($validated['tanggal_selesai']);
+        $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+        $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
 
         // Calculate working days or total days
         $jumlahHari = $start->diffInDays($end) + 1;
@@ -204,11 +204,11 @@ class EmployeeLeaveRequestController extends Controller
                 'nomor_pengajuan' => 'CUTI/' . $year . '/' . sprintf('%03d', (EmployeeLeaveRequest::withTrashed()->max('id') ?? 0) + 1),
                 'tanggal_pengajuan' => Carbon::now()->format('Y-m-d'),
                 'jenis_cuti' => $validated['jenis_cuti'],
-                'alasan_cuti' => $validated['alasan_cuti'],
+                'alasan_cuti' => strip_tags(trim($validated['alasan_cuti'])),
                 'jumlah_hari' => $jumlahHari,
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
-                'alamat_menjalankan_cuti' => $validated['alamat_menjalankan_cuti'],
+                'alamat_menjalankan_cuti' => strip_tags(trim($validated['alamat_menjalankan_cuti'])),
                 'telepon' => $validated['telepon'] ?? $employee->user?->phone,
                 'sisa_n2' => $sisaN2,
                 'sisa_n1' => $sisaN1,
