@@ -31,7 +31,9 @@ class EmployeeLeaveRequestController extends Controller
             ->orderBy('id', 'desc');
 
         if ($year = (int) $request->input('year')) {
-            $query->whereYear('tanggal_mulai', $year);
+            if ($year >= 2000 && $year <= 2100) {
+                $query->whereYear('tanggal_mulai', $year);
+            }
         }
 
         if ($status = $request->input('status')) {
@@ -144,6 +146,12 @@ class EmployeeLeaveRequestController extends Controller
         if ($jumlahHari > 365) {
             return response()->json([
                 'message' => 'Durasi pengajuan cuti tunggal tidak boleh melebihi 365 hari.',
+            ], 422);
+        }
+
+        if ($start->year < 2000 || $start->year > 2100) {
+            return response()->json([
+                'message' => 'Tahun pengajuan cuti tidak valid.',
             ], 422);
         }
 

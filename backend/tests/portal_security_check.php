@@ -1238,6 +1238,26 @@ assert(
     'AssignmentLetterController must validate cleanId is numeric across all route operations to prevent SQLSTATE[22P02]'
 );
 
+// 195. Profile Photo External URL Resilience & Leave Request Year Boundary Invariant
+$userResCheck70 = file_get_contents(__DIR__ . '/../app/Http/Resources/UserResource.php');
+$mobDashCheck70 = file_get_contents(__DIR__ . '/../app/Http/Controllers/Api/MobileDashboardController.php');
+$leaveCtrlCheck70 = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php');
+assert(
+    str_contains($authCtrlCheck69, "!str_starts_with(\$employee->foto_profil, 'http')") &&
+    str_contains($authCtrlCheck69, "str_starts_with(\$employee->foto_profil, 'http') ? \$employee->foto_profil : \Illuminate\Support\Facades\Storage::url"),
+    'AuthController must safely handle external URLs in photo URL generation and deletion'
+);
+assert(
+    str_contains($userResCheck70, "str_starts_with(\$employee->foto_profil, 'http') ? \$employee->foto_profil : \Illuminate\Support\Facades\Storage::url") &&
+    str_contains($mobDashCheck70, "str_starts_with(\$employee->foto_profil, 'http') ? \$employee->foto_profil : Storage::url"),
+    'UserResource and MobileDashboardController must safely handle external photo URLs'
+);
+assert(
+    str_contains($leaveCtrlCheck70, '$start->year < 2000 || $start->year > 2100') &&
+    str_contains($leaveCtrlCheck70, 'Tahun pengajuan cuti tidak valid.'),
+    'EmployeeLeaveRequestController myStore must reject out-of-bounds calendar years'
+);
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

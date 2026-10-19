@@ -114,7 +114,7 @@ class AuthController extends Controller
                 'department' => $employee->satuan_kerja,
                 'email' => $employee->email,
                 'phone' => $employee->no_telepon ?? null,
-                'photo' => $employee->foto_profil ? \Illuminate\Support\Facades\Storage::url($employee->foto_profil) : null,
+                'photo' => $employee->foto_profil ? (str_starts_with($employee->foto_profil, 'http') ? $employee->foto_profil : \Illuminate\Support\Facades\Storage::url($employee->foto_profil)) : null,
                 'rank' => $employee->pangkat_golongan,
                 'rank_level' => 0,
                 'is_active' => $employee->is_active,
@@ -208,7 +208,7 @@ class AuthController extends Controller
         }
 
         // Delete old photo
-        if ($employee->foto_profil) {
+        if ($employee->foto_profil && !str_starts_with($employee->foto_profil, 'http')) {
             Storage::delete($employee->foto_profil);
         }
 

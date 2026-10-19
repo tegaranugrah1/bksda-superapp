@@ -36,7 +36,7 @@ class MobileDashboardController extends Controller
                 'nama_lengkap' => $employee->nama_lengkap,
                 'jabatan' => $employee->jabatan,
                 'satuan_kerja' => $employee->satuan_kerja,
-                'foto_profil' => $employee->foto_profil ? Storage::url($employee->foto_profil) : null,
+                'foto_profil' => $employee->foto_profil ? (str_starts_with($employee->foto_profil, 'http') ? $employee->foto_profil : Storage::url($employee->foto_profil)) : null,
             ] : null,
         ];
 
