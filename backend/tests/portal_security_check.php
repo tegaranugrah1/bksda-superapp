@@ -1220,6 +1220,24 @@ assert(
     'SmartPatrolInlineForm must revoke customCoverPreview on unmount to prevent memory leaks'
 );
 
+// 193. AuthController Employee Photo Filename Collision Guard Invariant
+$authCtrlCheck69 = file_get_contents(__DIR__ . '/../app/Http/Controllers/Api/AuthController.php');
+assert(
+    str_contains($authCtrlCheck69, "Str::slug((\$employee->nip ? \$employee->nip . '-' : '') . (\$employee->nama_lengkap ?: 'pegawai'))"),
+    'AuthController updatePhoto must prefix slug with NIP to prevent photo overwriting across employees'
+);
+
+// 194. Assignment Letter Draft Storage ID Partition and Complete Numeric ID Guard Invariant
+$stCtrlCheck69 = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Controllers/AssignmentLetterController.php');
+assert(
+    str_contains($stCtrlCheck69, "date('Y-m').'-'.\$surat->id.'-'.Str::slug(substr(\$surat->maksud_tujuan ?: 'surat-tugas', 0, 40))"),
+    'AssignmentLetterController must partition draft attachment directory with surat id to prevent cross-submission collisions'
+);
+assert(
+    substr_count($stCtrlCheck69, '! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)') >= 10,
+    'AssignmentLetterController must validate cleanId is numeric across all route operations to prevent SQLSTATE[22P02]'
+);
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

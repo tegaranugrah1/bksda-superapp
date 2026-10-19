@@ -461,7 +461,7 @@ class AssignmentLetterController extends Controller
             if ($request->hasFile('file_surat')) {
                 $folderName = $surat->nomor_surat
                     ? Str::slug($surat->nomor_surat)
-                    : date('Y-m').'-'.Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
+                    : date('Y-m').'-'.$surat->id.'-'.Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
                 $folder = 'surat-tugas/'.$folderName;
                 $ext = $request->file('file_surat')->extension();
                 $filename = 'dasar-surat.'.$ext;
@@ -528,6 +528,9 @@ class AssignmentLetterController extends Controller
     public function update(AssignmentLetterRequest $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $validated = $request->validated();
         $surat = AssignmentLetter::findOrFail($cleanId);
 
@@ -623,7 +626,7 @@ class AssignmentLetterController extends Controller
                 }
                 $folderName = $surat->nomor_surat
                     ? Str::slug($surat->nomor_surat)
-                    : date('Y-m').'-'.Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
+                    : date('Y-m').'-'.$surat->id.'-'.Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
                 $folder = 'surat-tugas/'.$folderName;
                 $ext = $request->file('file_surat')->extension();
                 $filename = 'dasar-surat.'.$ext;
@@ -652,6 +655,9 @@ class AssignmentLetterController extends Controller
     public function updateStatus(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $user = $request->user();
         if (! $user || (! in_array($user->role, ['admin', 'super_admin'], true) && ! $user->hasPermission('surat_tugas.approve'))) {
             return response()->json(['message' => 'Anda tidak memiliki hak akses untuk mengubah status Surat Tugas.'], 403);
@@ -685,6 +691,9 @@ class AssignmentLetterController extends Controller
     public function destroy(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $surat = AssignmentLetter::findOrFail($cleanId);
 
         $user = $request->user();
@@ -717,6 +726,9 @@ class AssignmentLetterController extends Controller
         }
 
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $surat = AssignmentLetter::onlyTrashed()->findOrFail($cleanId);
 
         $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
@@ -739,6 +751,9 @@ class AssignmentLetterController extends Controller
         }
 
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $surat = AssignmentLetter::onlyTrashed()->findOrFail($cleanId);
 
         if ($surat->file_surat_path) {
@@ -920,6 +935,9 @@ class AssignmentLetterController extends Controller
     public function approve(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
+        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+            return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
+        }
         $user = $request->user();
         if (! $user || (! in_array($user->role, ['admin', 'super_admin'], true) && ! $user->hasPermission('surat_tugas.approve'))) {
             return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menyetujui Surat Tugas.'], 403);

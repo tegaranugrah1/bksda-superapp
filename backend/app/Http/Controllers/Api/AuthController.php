@@ -213,7 +213,7 @@ class AuthController extends Controller
         }
 
         // Store new photo
-        $slugName = \Illuminate\Support\Str::slug($employee->nama_lengkap ?: $employee->nip ?: 'pegawai');
+        $slugName = \Illuminate\Support\Str::slug(($employee->nip ? $employee->nip . '-' : '') . ($employee->nama_lengkap ?: 'pegawai'));
         $folder = 'employees/' . $slugName . '/foto-profil';
         $ext = $request->file('foto')->extension();
         $filename = $slugName . '_profil.' . $ext;

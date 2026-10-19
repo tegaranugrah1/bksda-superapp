@@ -5,8 +5,8 @@
     "semantic_hash": "2f2670011adf39d3a4a096715853087f"
   },
   "backend/app/Http/Controllers/Api/AuthController.php": {
-    "mtime": 1792375855.8255394,
-    "ast_hash": "6d19aaa451a2dfdb367085c47b0ecace",
+    "mtime": 1792417893.7119842,
+    "ast_hash": "bc365e38e60d68a471fb4637ea16cc9a",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/MobileDashboardController.php": {
@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1792404876.259549,
-    "ast_hash": "d87a8c138d48087a791ba1b8e2de7285",
+    "mtime": 1792418046.9635513,
+    "ast_hash": "b82ff6d387d48ff7a47c3aa3edbd3301",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {
@@ -6680,8 +6680,8 @@
     "semantic_hash": ""
   },
   "backend/tests/portal_security_check.php": {
-    "mtime": 1792404952.2542598,
-    "ast_hash": "4b91627ca83f471e6101b419b2c4b9b3",
+    "mtime": 1792418069.7436597,
+    "ast_hash": "97bb4101729788b9ce5166c983942539",
     "semantic_hash": ""
   },
   "skills-lock.json": {
