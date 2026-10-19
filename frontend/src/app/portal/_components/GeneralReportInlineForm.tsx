@@ -59,6 +59,7 @@ function getDurationInDays(startStr: string, endStr: string): number {
   try {
     const start = new Date(startStr);
     const end = new Date(endStr);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 1;
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
   } catch {
@@ -238,7 +239,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
   const [waktuTempat, setWaktuTempat] = useState("");
   const [hasilPelaksanaan, setHasilPelaksanaan] = useState<string[]>([
     "Pada hari pertama, mendatangi lokasi penugasan resmi untuk berkoordinasi dan memverifikasi berkas.",
-    "Pada hari kedua, menghadiri serta memantau penutupan pelaksanaan lelang/kegiatan secara tertib.",
+    "Pada hari kedua, melaksanakan dan menuntaskan seluruh rangkaian kegiatan penugasan secara tertib.",
   ]);
   const [dokumentasiFoto, setDokumentasiFoto] = useState<
     Array<{ url: string; caption?: string }>
@@ -258,30 +259,36 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
   );
   const [uploadingCover, setUploadingCover] = useState(false);
 
-  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    return () => {
+      if (customCoverImageUrl && customCoverImageUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(customCoverImageUrl);
+      }
+    };
+  }, [customCoverImageUrl]);
+
+  const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    setUploadingCover(true);
-
-    try {
-      const res = await api.post("/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setCustomCoverImageUrl(res.data.url || res.data.path);
-      toast.success("Gambar cover manual berhasil diunggah!");
-    } catch {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setCustomCoverImageUrl(reader.result as string);
-        toast.success("Gambar cover terpilih!");
-      };
-      reader.readAsDataURL(file);
-    } finally {
-      setUploadingCover(false);
+    if (!file.type.startsWith("image/")) {
+      toast.error("File cover harus berupa gambar (JPG, PNG, WebP).");
+      e.target.value = "";
+      return;
     }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran file cover maksimal 10MB.");
+      e.target.value = "";
+      return;
+    }
+
+    if (customCoverImageUrl && customCoverImageUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(customCoverImageUrl);
+    }
+    const blobUrl = URL.createObjectURL(file);
+    setCustomCoverImageUrl(blobUrl);
+    toast.success("Gambar cover terpilih!");
+    e.target.value = "";
   };
 
   // Print Mode State
@@ -314,7 +321,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     if (!stId) return;
 
     try {
-      const resp = await api.get(`/surat-tugas/my/${stId}`);
+      const resp = await api.get(`/surat-tugas/my/${encodeURIComponent(stId)}`);
       const st = resp.data?.data || resp.data;
       if (!st) return;
 
@@ -373,21 +380,69 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     }
   };
 
-  // Handler for Photo Upload (Otomatis dipaginasi maks. 6 foto per halaman saat cetak)
+  // Handler for Photo Upload (Otomatis dipaginasi maks. 6 foto per halaman saat cetak, maks 30 foto total)
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach((file) => {
+    const remainingSlots = Math.max(0, 30 - dokumentasiFoto.length);
+    if (remainingSlots <= 0) {
+      toast.warning("Batas maksimal 30 foto dokumentasi telah tercapai.");
+      e.target.value = "";
+      return;
+    }
+
+    const validFiles = Array.from(files).filter((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`File ${file.name} bukan format gambar.`);
+        return false;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`File ${file.name} melebihi batas maksimal 10MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    const filesToProcess = validFiles.slice(0, remainingSlots);
+    if (validFiles.length > remainingSlots) {
+      toast.warning(`Hanya ${remainingSlots} foto pertama yang ditambahkan (maks. 30 foto).`);
+    }
+
+    filesToProcess.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (uploadEvent) => {
-        const resultUrl = uploadEvent.target?.result as string;
-        if (resultUrl) {
+        const rawUrl = uploadEvent.target?.result as string;
+        if (!rawUrl) return;
+
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 1200;
+          let width = img.width;
+          let height = img.height;
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75);
+
           setDokumentasiFoto((prev) => [
             ...prev,
-            { url: resultUrl, caption: "" },
+            { url: compressedDataUrl, caption: "" },
           ]);
-        }
+        };
+        img.onerror = () => {
+          toast.error(`Gagal memproses gambar ${file.name}. Format file tidak valid.`);
+        };
+        img.src = rawUrl;
+      };
+      reader.onerror = () => {
+        toast.error(`Gagal membaca file foto ${file.name}.`);
       };
       reader.readAsDataURL(file);
     });
@@ -423,6 +478,8 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     custom_cover_author: customCoverAuthor,
     custom_cover_footer: customCoverFooter,
   };
+
+  const selectedST = selectedSTId ? stOptions.find(st => String(st.id) === String(selectedSTId)) : null;
 
   return (
     <div className="w-full bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 print:border-none print:shadow-none print:rounded-none print:overflow-visible print:bg-transparent">
@@ -517,11 +574,11 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   className="w-full justify-between p-2.5 h-auto min-h-11 rounded-xl bg-white dark:bg-zinc-800 border border-emerald-300 dark:border-emerald-700 text-xs font-semibold text-slate-800 dark:text-slate-200"
                 >
                   <span className="truncate whitespace-normal text-left line-clamp-1 flex-1 pr-2">
-                    {selectedSTId
-                      ? (stOptions.find(st => st.id === selectedSTId)?.nomor_surat
-                          ? `${stOptions.find(st => st.id === selectedSTId)?.nomor_surat} - `
+                    {selectedST
+                      ? (selectedST.nomor_surat
+                          ? `${selectedST.nomor_surat} - `
                           : "") +
-                        (stOptions.find(st => st.id === selectedSTId)?.maksud_tujuan.substring(0, 60) || "") +
+                        (selectedST.maksud_tujuan.substring(0, 60) || "") +
                         "..."
                       : "[ Tanpa Surat Tugas / Input Manual ]"}
                   </span>
@@ -560,14 +617,14 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                           key={st.id}
                           className={cn(
                             "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-300",
-                            selectedSTId === st.id && "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-bold"
+                            String(selectedSTId) === String(st.id) && "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-bold"
                           )}
                           onClick={() => {
-                            handleSelectSuratTugas(st.id);
+                            handleSelectSuratTugas(String(st.id));
                             setStPopoverOpen(false);
                           }}
                         >
-                          <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedSTId === st.id ? "opacity-100" : "opacity-0")} />
+                          <Check className={cn("mr-2 h-4 w-4 shrink-0", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
                           <div className="flex flex-col flex-1 min-w-0">
                             <span className="truncate text-xs">
                               {st.nomor_surat ? `${st.nomor_surat} - ` : ""}
@@ -686,7 +743,12 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   <div className="flex items-center gap-3 pt-2">
                     <div className="w-16 h-20 relative rounded-lg border border-slate-200 overflow-hidden bg-slate-100 shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={customCoverImageUrl} alt="Pratinjau Cover" className="w-full h-full object-cover" />
+                      <img
+                        src={customCoverImageUrl}
+                        alt="Pratinjau Cover"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                      />
                     </div>
                     <div className="space-y-1 text-xs">
                       <p className="font-bold text-emerald-600">Cover Manual Berhasil Diunggah</p>
@@ -1097,6 +1159,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                         src={foto.url}
                         alt={`Dokumentasi ${idx + 1}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                       />
                       <button
                         type="button"

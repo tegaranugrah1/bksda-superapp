@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface SuratTugasItem {
   id: string;
@@ -39,6 +40,8 @@ export function SuratTugasTab({
   onOpenReportModal,
   onOpenKalkulator,
 }: SuratTugasTabProps) {
+  const [activeLoadingId, setActiveLoadingId] = React.useState<string | null>(null);
+
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -129,10 +132,27 @@ export function SuratTugasTab({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{st.maksud_tujuan}</p>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex flex-wrap items-center gap-2 mt-0.5">
                   {st.nomor_surat && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">{st.nomor_surat}</span>}
+                  {st.status && (
+                    <span className={cn(
+                      "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                      ["diterbitkan", "disetujui", "approved", "completed"].includes(st.status.toLowerCase())
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                        : ["pending", "draft"].includes(st.status.toLowerCase())
+                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                        : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
+                    )}>
+                      {st.status}
+                    </span>
+                  )}
                   <span className="text-xs text-slate-400">
-                    {new Date(st.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    {st.tanggal_mulai && !Number.isNaN(new Date(st.tanggal_mulai).getTime())
+                      ? new Date(st.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+                      : "-"}
+                    {st.tanggal_selesai && st.tanggal_selesai !== st.tanggal_mulai && !Number.isNaN(new Date(st.tanggal_selesai).getTime())
+                      ? ` s/d ${new Date(st.tanggal_selesai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`
+                      : ""}
                   </span>
                 </div>
               </div>
@@ -147,8 +167,21 @@ export function SuratTugasTab({
                     <Calculator className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={() => fetchSTDetail(st.id)} disabled={stDetailLoading} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors disabled:opacity-50" title="Lihat">
-                  {stDetailLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setActiveLoadingId(st.id);
+                    try {
+                      await fetchSTDetail(st.id);
+                    } finally {
+                      setActiveLoadingId(null);
+                    }
+                  }}
+                  disabled={stDetailLoading}
+                  className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors disabled:opacity-50"
+                  title="Lihat"
+                >
+                  {activeLoadingId === st.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>

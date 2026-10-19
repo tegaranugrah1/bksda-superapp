@@ -26,7 +26,12 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
   const todayStr = new Date().toISOString().split("T")[0];
   const currentYear = new Date().getFullYear();
 
-  const [leaveBalance, setLeaveBalance] = useState<{ sisa_cuti_tersedia: number; total_hak_cuti: number } | null>(null);
+  const [leaveBalance, setLeaveBalance] = useState<{
+    sisa_cuti_tersedia: number;
+    total_hak_cuti: number;
+    pending_cuti_tahunan?: number;
+    sisa_cuti_dapat_diajukan?: number;
+  } | null>(null);
 
   const [form, setForm] = useState({
     jenis_cuti: "Cuti Tahunan",
@@ -39,15 +44,9 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
 
   useEffect(() => {
     if (open) {
-      api.get("/me")
+      api.get(`/me/leave-balance?year=${currentYear}`)
         .then((res) => {
-          const empId = res.data.data?.employee?.id;
-          if (empId) {
-            return api.get(`/kepegawaian/employees/${empId}/leaves?year=${currentYear}`);
-          }
-        })
-        .then((res) => {
-          if (res) setLeaveBalance(res.data.data);
+          if (res?.data?.data) setLeaveBalance(res.data.data);
         })
         .catch(() => {});
     }
@@ -55,10 +54,23 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      await api.post("/me/leave-requests", form);
+      await api.post("/me/leave-requests", {
+        ...form,
+        alasan_cuti: form.alasan_cuti.trim(),
+        alamat_menjalankan_cuti: form.alamat_menjalankan_cuti.trim(),
+        telepon: form.telepon.trim() || undefined,
+      });
     },
     onSuccess: () => {
       toast.success("Pengajuan Cuti berhasil dikirim!");
+      setForm({
+        jenis_cuti: "Cuti Tahunan",
+        alasan_cuti: "",
+        tanggal_mulai: todayStr,
+        tanggal_selesai: todayStr,
+        alamat_menjalankan_cuti: "",
+        telepon: "",
+      });
       onSuccess();
       onClose();
     },
@@ -72,8 +84,8 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
     const start = new Date(form.tanggal_mulai);
     const end = new Date(form.tanggal_selesai);
     const diffTime = end.getTime() - start.getTime();
-    if (diffTime < 0) return 0;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    if (Number.isNaN(diffTime) || diffTime < 0) return 0;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return diffDays;
   }, [form.tanggal_mulai, form.tanggal_selesai]);
 
@@ -118,14 +130,52 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
           </div>
           <div className="text-right">
             <span className="text-lg font-extrabold text-emerald-700 dark:text-emerald-300">
-              {leaveBalance ? leaveBalance.sisa_cuti_tersedia : 12} Hari
+              {leaveBalance ? (leaveBalance.sisa_cuti_dapat_diajukan ?? leaveBalance.sisa_cuti_tersedia) : 12} Hari
             </span>
+            {leaveBalance && (leaveBalance.pending_cuti_tahunan ?? 0) > 0 && (
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 block font-semibold">
+                ({leaveBalance.pending_cuti_tahunan} hari dalam proses pengajuan)
+              </span>
+            )}
           </div>
         </div>
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            if (submitMutation.isPending) return;
+            if (calculatedDays <= 0) {
+              toast.error("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+              return;
+            }
+            if (calculatedDays > 365) {
+              toast.error("Durasi pengajuan cuti tidak boleh melebihi 365 hari.");
+              return;
+            }
+            if (new Date(form.tanggal_mulai).getFullYear() !== new Date(form.tanggal_selesai).getFullYear()) {
+              toast.error("Pengajuan cuti tidak boleh lintas tahun kalender. Silakan ajukan terpisah per tahun.");
+              return;
+            }
+            const availableQuota = leaveBalance
+              ? (leaveBalance.sisa_cuti_dapat_diajukan ?? leaveBalance.sisa_cuti_tersedia)
+              : 12;
+            if (form.jenis_cuti === "Cuti Tahunan" && leaveBalance && calculatedDays > availableQuota) {
+              toast.error(`Jumlah hari cuti (${calculatedDays} hari) melebihi sisa hak cuti tahunan yang dapat diajukan (${availableQuota} hari).`);
+              return;
+            }
+            if (!form.alasan_cuti.trim()) {
+              toast.error("Alasan cuti wajib diisi.");
+              return;
+            }
+            if (!form.alamat_menjalankan_cuti.trim()) {
+              toast.error("Alamat menjalankan cuti wajib diisi.");
+              return;
+            }
+            const cleanPhone = form.telepon.trim();
+            if (cleanPhone && !/^[0-9+\-\s()]+$/.test(cleanPhone)) {
+              toast.error("Nomor telepon hanya boleh berisi angka, tanda plus, tanda hubung, atau spasi.");
+              return;
+            }
             submitMutation.mutate();
           }}
           className="space-y-4"
@@ -243,7 +293,7 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
             <Button
               type="submit"
               size="sm"
-              disabled={submitMutation.isPending}
+              disabled={submitMutation.isPending || calculatedDays <= 0 || calculatedDays > 365 || (form.jenis_cuti === "Cuti Tahunan" && leaveBalance !== null && calculatedDays > (leaveBalance.sisa_cuti_dapat_diajukan ?? leaveBalance.sisa_cuti_tersedia))}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl gap-1.5"
             >
               <Send className="w-3.5 h-3.5" />

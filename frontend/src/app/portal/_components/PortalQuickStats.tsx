@@ -8,6 +8,13 @@ interface PortalQuickStatsProps {
   rankLevel?: number | null;
   activeSuratTugasCount: number;
   myAssetsCount: number;
+  leaveBalance?: {
+    sisa_cuti_tersedia: number;
+    total_hak_cuti: number;
+    pending_cuti_tahunan?: number;
+    sisa_cuti_dapat_diajukan?: number;
+  } | null;
+  year?: number;
   onSelectTab?: (tab: "pinjaman" | "aset" | "surat_tugas" | "cuti") => void;
 }
 
@@ -16,6 +23,8 @@ export function PortalQuickStats({
   rankLevel,
   activeSuratTugasCount,
   myAssetsCount,
+  leaveBalance,
+  year,
   onSelectTab,
 }: PortalQuickStatsProps) {
   return (
@@ -43,30 +52,56 @@ export function PortalQuickStats({
         <div className="space-y-0.5 min-w-0">
           <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Pangkat / Golongan</p>
           <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-            {rank || "Penata Muda (III/a)"}
+            {rank || "-"}
           </p>
-          <p className="text-[10px] text-slate-500 truncate">TMT: 1 Juni 2025</p>
+          <p className="text-[10px] text-slate-500 truncate">
+            {rank ? "Golongan Aktif" : "Non-PNS / Belum Diatur"}
+          </p>
         </div>
       </div>
 
       {/* 3. SISA CUTI TAHUN 2026 */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => onSelectTab?.("cuti")}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelectTab?.("cuti");
+          }
+        }}
         className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
       >
         <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 shrink-0">
           <Calendar className="w-5 h-5" />
         </div>
         <div className="space-y-0.5 min-w-0">
-          <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Sisa Cuti (2026)</p>
-          <p className="text-xs font-bold text-slate-900 dark:text-white">12 Hari Kerja</p>
-          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">Cuti Tahunan Ready</p>
+          <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+            Sisa Cuti ({year || new Date().getFullYear()})
+          </p>
+          <p className="text-xs font-bold text-slate-900 dark:text-white">
+            {leaveBalance ? `${leaveBalance.sisa_cuti_tersedia} Hari Kerja` : "-"}
+          </p>
+          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+            {leaveBalance && (leaveBalance.pending_cuti_tahunan ?? 0) > 0
+              ? `${leaveBalance.pending_cuti_tahunan} Hari Diajukan`
+              : "Cuti Tahunan Ready"}
+          </p>
         </div>
       </div>
 
       {/* 4. SURAT TUGAS & ASET */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => onSelectTab?.("surat_tugas")}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelectTab?.("surat_tugas");
+          }
+        }}
         className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
       >
         <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shrink-0">

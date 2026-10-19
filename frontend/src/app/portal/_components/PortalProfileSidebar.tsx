@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import {
   User, Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { authStore } from "@/lib/auth-store";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,6 +94,14 @@ export function PortalProfileSidebar({
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoKey, setPhotoKey] = useState(Date.now());
 
+  useEffect(() => {
+    return () => {
+      if (photoPreviewUrl) {
+        URL.revokeObjectURL(photoPreviewUrl);
+      }
+    };
+  }, [photoPreviewUrl]);
+
   const openEditDialog = useCallback(() => {
     setEditData({
       email: employee?.email || user?.email || "",
@@ -103,9 +112,24 @@ export function PortalProfileSidebar({
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = editData.email.trim();
+    const cleanPhone = editData.phone.trim();
+
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      toast.error("Format email tidak valid.");
+      return;
+    }
+    if (cleanPhone && !/^[0-9+\-\s()]+$/.test(cleanPhone)) {
+      toast.error("Nomor telepon hanya boleh berisi angka, tanda plus, tanda hubung, atau spasi.");
+      return;
+    }
+
     setEditLoading(true);
     try {
-      await api.post("/me/update-profile", editData);
+      await api.post("/me/update-profile", {
+        email: cleanEmail,
+        phone: cleanPhone,
+      });
       toast.success("Profil kontak berhasil diperbarui!");
       setEditDialogOpen(false);
       onRefreshDashboard?.();
@@ -119,6 +143,10 @@ export function PortalProfileSidebar({
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!pwData.new_password || pwData.new_password.length < 8) {
+      toast.error("Password baru minimal 8 karakter.");
+      return;
+    }
     if (pwData.new_password !== pwData.new_password_confirmation) {
       toast.error("Konfirmasi password baru tidak cocok.");
       return;
@@ -126,12 +154,17 @@ export function PortalProfileSidebar({
     setPwLoading(true);
     try {
       await api.post("/me/change-password", pwData);
-      toast.success("Password berhasil diubah!");
+      toast.success("Password berhasil diubah! Silakan login kembali dengan password baru.");
       setPwDialogOpen(false);
       setPwData({ current_password: "", new_password: "", new_password_confirmation: "" });
+      authStore.logout();
+      window.location.href = "/login";
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Gagal mengubah password.");
+      const err = error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+      const serverMsg = err.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join(" ")
+        : err.response?.data?.message;
+      toast.error(serverMsg || "Gagal mengubah password.");
     } finally {
       setPwLoading(false);
     }
@@ -142,13 +175,19 @@ export function PortalProfileSidebar({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
+      e.target.value = "";
       toast.error("File harus berupa gambar (JPG, PNG, atau WEBP).");
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
+      e.target.value = "";
       toast.error("Ukuran file foto maksimal 10 MB.");
       return;
+    }
+
+    if (photoPreviewUrl) {
+      URL.revokeObjectURL(photoPreviewUrl);
     }
 
     setSelectedPhotoFile(file);

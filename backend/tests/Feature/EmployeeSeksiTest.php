@@ -59,6 +59,8 @@ class EmployeeSeksiTest extends TestCase
 
     public function test_employees_select_endpoint_returns_is_seksi_and_seksi_wilayah(): void
     {
+        $user = \App\Models\User::factory()->create();
+
         Employee::create([
             'nip' => '198501012010011005',
             'nama_lengkap' => 'Budi Santoso',
@@ -67,7 +69,7 @@ class EmployeeSeksiTest extends TestCase
             'is_active' => true,
         ]);
 
-        $res = $this->getJson('/api/kepegawaian/employees/select?q=Budi');
+        $res = $this->actingAs($user)->getJson('/api/kepegawaian/employees/select?q=Budi');
 
         $res->assertStatus(200)
             ->assertJsonPath('data.0.name', 'Budi Santoso')

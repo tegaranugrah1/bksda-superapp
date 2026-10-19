@@ -28,7 +28,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 const accessSchema = z.object({
-  role: z.enum(["super_admin", "admin", "user"]),
+  role: z.enum(["super_admin", "admin", "user", "pegawai"]),
   access_modules: z.array(z.string()),
   permissions: z.array(z.string()).optional(),
   password: z.string().min(8, "Password minimal 8 karakter").optional().or(z.literal("")),
@@ -100,8 +100,9 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
     if (lastSyncedId.current === employee.id) return;
 
     if (currentAccess) {
+      const resolvedRole = (currentAccess.role === "pegawai" ? "user" : currentAccess.role) as "super_admin" | "admin" | "user" | "pegawai";
       form.reset({
-        role: (currentAccess.role as "super_admin" | "admin" | "user") || "user",
+        role: resolvedRole || "user",
         access_modules: currentAccess.access_modules || [],
         permissions: currentAccess.permissions || [],
         password: "",

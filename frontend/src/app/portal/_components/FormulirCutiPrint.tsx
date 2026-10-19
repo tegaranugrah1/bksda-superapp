@@ -78,13 +78,15 @@ function getKotaAtasanFromSatuanKerja(satuanKerja?: string) {
 
 export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
   const emp = data.employee || {
-    nama_lengkap: "TEGAR ANUGRAH, A.Md.Kom.",
-    nip: "19990707 202506 1 006",
-    jabatan: "PRANATA KOMPUTER TERAMPIL",
+    nama_lengkap: "( .................................................... )",
+    nip: "-",
+    jabatan: "-",
     satuan_kerja: "Balai KSDA Kalimantan Timur",
   };
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = data.tanggal_mulai && !Number.isNaN(new Date(data.tanggal_mulai).getTime())
+    ? new Date(data.tanggal_mulai).getFullYear()
+    : new Date().getFullYear();
   const { kota: kotaTujuan, atasanTitle, atasanNama, atasanNip } = getKotaAtasanFromSatuanKerja(emp.satuan_kerja);
 
   const isDefaultDheny = !data.kasubbag_nama || data.kasubbag_nama.includes("DHENY");
@@ -248,17 +250,17 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
                 <tbody>
                   <tr className="border-b border-black">
                     <td className="py-0.5 border-r border-black">N - 2</td>
-                    <td className="py-0.5 font-bold border-r border-black">{data.sisa_n2 || "-"}</td>
+                    <td className="py-0.5 font-bold border-r border-black">{data.sisa_n2 ?? "-"}</td>
                     <td className="py-0.5 text-left pl-2">Tahun {currentYear - 2}</td>
                   </tr>
                   <tr className="border-b border-black">
                     <td className="py-0.5 border-r border-black">N - 1</td>
-                    <td className="py-0.5 font-bold border-r border-black">{data.sisa_n1 || "-"}</td>
+                    <td className="py-0.5 font-bold border-r border-black">{data.sisa_n1 ?? "-"}</td>
                     <td className="py-0.5 text-left pl-2">Tahun {currentYear - 1}</td>
                   </tr>
                   <tr className="border-b border-black">
                     <td className="py-0.5 border-r border-black">N</td>
-                    <td className="py-0.5 font-bold text-[9.5px] border-r border-black">{data.sisa_n0}</td>
+                    <td className="py-0.5 font-bold text-[9.5px] border-r border-black">{data.sisa_n0 ?? "-"}</td>
                     <td className="py-0.5 text-left pl-2">Tahun {currentYear}</td>
                   </tr>
                 </tbody>

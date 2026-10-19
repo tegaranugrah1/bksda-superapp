@@ -11,15 +11,6 @@ use Illuminate\Support\Str;
 
 class EksternalController extends Controller
 {
-    /**
-     * KONSTRUKTOR PERTAHANAN (SECURITY CONSTRUCTOR)
-     * Perisai DDoS langsung di Controller agar tak lupa di Routes!
-     */
-    public function __construct()
-    {
-        // Membatasi metode storePublic maksimal 10 request per 1 menit (Rule 6.4)
-        $this->middleware('throttle:10,1')->only('storePublic');
-    }
 
     /**
      * GET /api/dereporting/eksternals
@@ -129,7 +120,10 @@ class EksternalController extends Controller
             return response()->json(['message' => 'Berkas laporan gagal ditemukan di karantina.'], 404);
         }
 
-        return Storage::download($report->file_path, $report->judul_laporan.'_Pelapor_Eksternal.'.pathinfo($report->file_path, PATHINFO_EXTENSION));
+        $safeTitle = preg_replace('/[\/\\\\:*?"<>|\r\n]/', '_', $report->judul_laporan ?: 'Laporan');
+        $ext = pathinfo($report->file_path, PATHINFO_EXTENSION);
+
+        return Storage::download($report->file_path, "{$safeTitle}_Pelapor_Eksternal.{$ext}");
     }
 
     /**

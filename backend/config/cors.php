@@ -20,7 +20,7 @@ return [
     'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081,http://localhost:19006,http://localhost:8000,https://bksdakaltim.net,https://www.bksdakaltim.net,https://api.bksdakaltim.net')))),
 
     'allowed_origins_patterns' => [
-        '#^https?://.*bksdakaltim\.net.*#',
+        '#^https?://([a-z0-9-]+\.)*bksdakaltim\.net(:[0-9]+)?$#',
         '#^http://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.\d+\.\d+\.\d+)(:\d+)?$#',
     ],
 

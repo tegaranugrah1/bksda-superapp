@@ -18,19 +18,21 @@ class StExpenseTemplateService
         }
 
         if (!empty($filters['category'])) {
-            $query->where('category', $filters['category']);
+            $query->whereRaw('LOWER(category) = ?', [strtolower($filters['category'])]);
         }
 
-        if (!empty($filters['search'])) {
-            $search = trim($filters['search']);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('biaya_text', 'like', "%{$search}%");
+        $rawSearch = $filters['search'] ?? $filters['q'] ?? null;
+        if (!empty($rawSearch)) {
+            $search = addcslashes(trim($rawSearch), '%_');
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($search, $likeOp) {
+                $q->where('name', $likeOp, "%{$search}%")
+                  ->orWhere('code', $likeOp, "%{$search}%")
+                  ->orWhere('biaya_text', $likeOp, "%{$search}%");
             });
         }
 
-        $perPage = (int) ($filters['per_page'] ?? 50);
+        $perPage = min(100, max(1, (int) ($filters['per_page'] ?? 50)));
 
         return $query->orderBy('sort_order', 'asc')
             ->orderBy('id', 'asc')
@@ -43,7 +45,7 @@ class StExpenseTemplateService
             $template = new StExpenseTemplate();
             $template->name = $data['name'];
             $template->code = !empty($data['code']) ? $data['code'] : $this->generateUniqueCode($data['name']);
-            $template->category = $data['category'] ?? 'other';
+            $template->category = strtolower($data['category'] ?? 'other');
             $template->biaya_text = $data['biaya_text'] ?? null;
             $template->dasar_text = $data['dasar_text'] ?? null;
             $template->is_active = $data['is_active'] ?? true;
@@ -66,7 +68,7 @@ class StExpenseTemplateService
         return DB::transaction(function () use ($template, $data, $userId): StExpenseTemplate {
             if (isset($data['name'])) $template->name = $data['name'];
             if (!empty($data['code'])) $template->code = $data['code'];
-            if (isset($data['category'])) $template->category = $data['category'];
+            if (isset($data['category'])) $template->category = strtolower($data['category']);
             if (array_key_exists('biaya_text', $data)) $template->biaya_text = $data['biaya_text'] ?: null;
             if (array_key_exists('dasar_text', $data)) $template->dasar_text = $data['dasar_text'] ?: null;
             if (isset($data['is_active'])) $template->is_active = (bool) $data['is_active'];

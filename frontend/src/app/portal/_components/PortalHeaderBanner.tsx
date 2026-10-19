@@ -54,7 +54,7 @@ export function PortalHeaderBanner({
           </div>
 
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-            <span>{greeting.text}, {displayName.split(",")[0]}!</span>
+            <span>{greeting.text}, {((displayName || "").trim() || "Pegawai").split(",")[0]}!</span>
             <Sparkles className="w-6 h-6 text-amber-300 animate-pulse hidden sm:inline-block" />
           </h1>
           <p className="text-xs md:text-sm text-emerald-100/90 font-medium max-w-2xl">

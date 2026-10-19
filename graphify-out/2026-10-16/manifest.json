@@ -5,13 +5,13 @@
     "semantic_hash": "2f2670011adf39d3a4a096715853087f"
   },
   "backend/app/Http/Controllers/Api/AuthController.php": {
-    "mtime": 1788917877.664134,
-    "ast_hash": "addc88a7cabc6e3e3518f8e92bee25e0",
+    "mtime": 1792150314.756082,
+    "ast_hash": "ea6ec6a3b4ae5c573c645a36f5f7cc40",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/MobileDashboardController.php": {
-    "mtime": 1785830669.8141477,
-    "ast_hash": "163dec5900afe2816e72d7fa3baa16fd",
+    "mtime": 1792150699.9373336,
+    "ast_hash": "d7ec53e87fcce4f3451dad9ad57a0190",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Controller.php": {
@@ -760,13 +760,13 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Controllers/EksternalController.php": {
-    "mtime": 1791938683.9743793,
-    "ast_hash": "9ff0e285fa2e40b8435e3a3f268b3fa3",
+    "mtime": 1792144806.259187,
+    "ast_hash": "db91f02737d98b6cfc7f6b141215cfca",
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Controllers/InternalController.php": {
-    "mtime": 1787548978.4814105,
-    "ast_hash": "1b750c60878645b2930257b36a4c1deb",
+    "mtime": 1792145339.1552758,
+    "ast_hash": "a0d8389c3f6e85504b1e1ac349b063f9",
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Controllers/MasterDataController.php": {
@@ -865,8 +865,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Routes/api.php": {
-    "mtime": 1791969646.590545,
-    "ast_hash": "f59f4b5af4ff6c681e228a2b06042fc5",
+    "mtime": 1792145643.3818123,
+    "ast_hash": "adf9d8e59a938eeb799c61ff15b720a8",
     "semantic_hash": ""
   },
   "backend/app/Modules/Inventory/Controllers/CategoryController.php": {
@@ -1005,19 +1005,19 @@
     "semantic_hash": "3ed007573b3969cb49e5c44d634963c9"
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1791807652.937304,
-    "ast_hash": "7833a2b968ce4e6712a344c5c4b4037d",
+    "mtime": 1792147395.9844732,
+    "ast_hash": "c07d626093e898a676ddfc0e482ac3fb",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
-    "mtime": 1785369781.9287057,
-    "ast_hash": "c3deaa00dd5105b6719326c5a2b0a916",
-    "semantic_hash": "c3deaa00dd5105b6719326c5a2b0a916"
+    "mtime": 1792149882.9373727,
+    "ast_hash": "38bdf57d91eb6dab812705be8c99269d",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1785131863.5390036,
-    "ast_hash": "64a880a335ba887db644572dda1e0857",
-    "semantic_hash": "64a880a335ba887db644572dda1e0857"
+    "mtime": 1792147419.8276181,
+    "ast_hash": "deb18c91d8b47ffb18bd496be5ef386d",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
     "mtime": 1790324134.904199,
@@ -1050,13 +1050,13 @@
     "semantic_hash": "5bd4c2137164ae6a608e632a9b5d01be"
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1791807652.9378247,
-    "ast_hash": "8b68ed6c1f88421e43d37464554d1b62",
+    "mtime": 1792147375.9599366,
+    "ast_hash": "8dd5ded5d03449f6e18f420e6e71623e",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1791459098.5975637,
-    "ast_hash": "faf3009f683ac047f5a8732b5ed1130f",
+    "mtime": 1792153496.2707722,
+    "ast_hash": "50a923accad682fe56db41b8343d6bec",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {
@@ -1130,8 +1130,8 @@
     "semantic_hash": "1bb19620a1e7dcdc0200316269e7bef1"
   },
   "backend/app/Modules/SuratTugas/Routes/api.php": {
-    "mtime": 1791459078.415352,
-    "ast_hash": "0870e6491f5b213e5134d8a9cbcd083e",
+    "mtime": 1792154726.029033,
+    "ast_hash": "fd99348b5162b10a8a0c458c5e3915f6",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/SuratTugasServiceProvider.php": {
@@ -1245,8 +1245,8 @@
     "semantic_hash": "c4c6c3d814db6eabf0e3f2a2985d7eab"
   },
   "backend/config/cors.php": {
-    "mtime": 1790324134.9081974,
-    "ast_hash": "c41cab538ec177fa8b9d2d3cfdca4212",
+    "mtime": 1792140607.0204308,
+    "ast_hash": "b61362d538b7fed1ed988f4ff4b5f2ee",
     "semantic_hash": ""
   },
   "backend/config/database.php": {
@@ -1470,9 +1470,9 @@
     "semantic_hash": "b519d08ef66fd54910edbedba6181ec2"
   },
   "backend/routes/api.php": {
-    "mtime": 1786341146.360565,
-    "ast_hash": "b039e4ad363c54b4c5f81551395c083c",
-    "semantic_hash": "b039e4ad363c54b4c5f81551395c083c"
+    "mtime": 1792142289.9838223,
+    "ast_hash": "cf90759845c1ee697a8b7ed3f5b1ee87",
+    "semantic_hash": ""
   },
   "backend/routes/console.php": {
     "mtime": 1778041302.2985356,
@@ -2480,18 +2480,18 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/LeaveRequestDialog.tsx": {
-    "mtime": 1791817394.1085432,
-    "ast_hash": "9b1a06eb711c3cc36a574850a4dc1dec",
+    "mtime": 1792156161.481806,
+    "ast_hash": "48fac84964bebe82def2e6ebdef93a6d",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1791817394.1138637,
-    "ast_hash": "6bd10d35c6d5d84be2c9463047e7b11d",
+    "mtime": 1792153543.5259874,
+    "ast_hash": "fdadcfef1e0cbdadf6737e7c4c1295ff",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
-    "mtime": 1787548978.691369,
-    "ast_hash": "6cd51339ce5b31176d0792f4bef33a8e",
+    "mtime": 1792154715.0779028,
+    "ast_hash": "7286378866340409636c17e23e7738c4",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/layout.tsx": {
@@ -2755,8 +2755,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/auth-store.ts": {
-    "mtime": 1787555257.0488706,
-    "ast_hash": "02eb73d2c25f2f2d82af569ea0bb936b",
+    "mtime": 1792154703.5845654,
+    "ast_hash": "a02eca41aff6d85d9f99dc877f11cf4a",
     "semantic_hash": ""
   },
   "frontend/src/lib/bmn-utils.ts": {
@@ -5470,8 +5470,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SuratTugasTab.tsx": {
-    "mtime": 1791817394.1128137,
-    "ast_hash": "9a042a6d09db1f5ae99c2626d1feb543",
+    "mtime": 1792149627.401245,
+    "ast_hash": "536d778ccd3b647ff0baeed222161962",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/ConfirmActionModal.tsx": {
@@ -5515,8 +5515,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyLeaveTab.tsx": {
-    "mtime": 1787548978.6758463,
-    "ast_hash": "39e876c3bcbf2c32ce68cddf01dbca3e",
+    "mtime": 1792150045.363144,
+    "ast_hash": "11592e77303b1a5d6a951aa448a57362",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/EmployeeSelectionStep.tsx": {
@@ -5545,8 +5545,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/ActiveLoansTab.tsx": {
-    "mtime": 1787548978.6688454,
-    "ast_hash": "4964889519721b1c437af173804134b3",
+    "mtime": 1792150307.047005,
+    "ast_hash": "77fe58c239d133d562629324e33bd564",
     "semantic_hash": ""
   },
   "mobile/src/features/profile/ChangePasswordModal.tsx": {
@@ -5575,13 +5575,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportPrint.tsx": {
-    "mtime": 1791459611.9122298,
-    "ast_hash": "58335b66c5c92d7d75a13914c8c2e31d",
+    "mtime": 1792153608.2398217,
+    "ast_hash": "f665e70cde7b328fb2ee8578e4732495",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/GeneralReportInlineForm.tsx": {
-    "mtime": 1791459595.6073272,
-    "ast_hash": "93c496ea08add202fd569a599ac1b05d",
+    "mtime": 1792151505.8112845,
+    "ast_hash": "f1c346945ca5806cfaad26c49ee38050",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/StTemplateController.php": {
@@ -5675,8 +5675,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalHeaderBanner.tsx": {
-    "mtime": 1791817394.1095967,
-    "ast_hash": "eb59866542366ec4046b4bd7095aa4b6",
+    "mtime": 1792144140.1660423,
+    "ast_hash": "190bdbc599de366e3c9ee8124494f061",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalInfoSidebar.tsx": {
@@ -5685,23 +5685,23 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalProfileSidebar.tsx": {
-    "mtime": 1791880581.4516182,
-    "ast_hash": "ce7be8c8b124dbbd9a6cb1cb711c8190",
+    "mtime": 1792153533.4032578,
+    "ast_hash": "d1cc7dea322f881fc0cbbfb10d005647",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalQuickStats.tsx": {
-    "mtime": 1791817394.112285,
-    "ast_hash": "1e3d5b9f7849878d624d806d5dcd4efc",
+    "mtime": 1792150687.8926256,
+    "ast_hash": "36e08b727e99a71a0e4b5c5b64af880a",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SmartPatrolInlineForm.tsx": {
-    "mtime": 1787550881.0011175,
-    "ast_hash": "f2884f54a60a9f6076834d676ed840df",
+    "mtime": 1792155841.6477778,
+    "ast_hash": "4c08fe2ac3ac0611ba0d5b61543f91ac",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SmartPatrolPrint.tsx": {
-    "mtime": 1790324134.9442008,
-    "ast_hash": "b9721061f9445d0bef4f5a9ad5c58b4a",
+    "mtime": 1792151888.8524694,
+    "ast_hash": "a40e8a6e963917d44a701ab9d66a6c47",
     "semantic_hash": ""
   },
   "mobile/src/features/surat-tugas/screens/GeneralReportFormScreen.tsx": {
@@ -5870,8 +5870,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/StExpenseTemplateService.php": {
-    "mtime": 1788917877.6731336,
-    "ast_hash": "a21a1caae322c115a091a034c5582129",
+    "mtime": 1792147407.4321704,
+    "ast_hash": "59c1c8c0443e8da267e16372599d9891",
     "semantic_hash": ""
   },
   "backend/app/Modules/Keuangan/Controllers/SpjController.php": {
@@ -5880,8 +5880,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Keuangan/Controllers/VisumSpdController.php": {
-    "mtime": 1788917877.6751368,
-    "ast_hash": "1ee25f0457a3af5be19c4b2a61f4006a",
+    "mtime": 1792156692.084118,
+    "ast_hash": "9a4630c17f6204bb27c5154dc195da0c",
     "semantic_hash": ""
   },
   "backend/app/Modules/Keuangan/KeuanganServiceProvider.php": {
@@ -5905,8 +5905,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Keuangan/Routes/api.php": {
-    "mtime": 1790324134.9052,
-    "ast_hash": "73dd5c91f4e550132645597b71cfce35",
+    "mtime": 1792152429.5398684,
+    "ast_hash": "b2d55e55ef2b961b1d8e263fcdfef090",
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Exports/SuratMasukExport.php": {
@@ -5960,8 +5960,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/keuangan/_components/VisumManageTemplatesModal.tsx": {
-    "mtime": 1788917877.7436976,
-    "ast_hash": "dafc19f3c505ec9644c0adf3752f26ff",
+    "mtime": 1792156412.0295403,
+    "ast_hash": "789a29d93c830de5889e1ccbf25459f4",
     "semantic_hash": ""
   },
   "frontend/src/app/keuangan/_components/VisumSaveAsTemplateModal.tsx": {
@@ -5975,8 +5975,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/keuangan/_components/VisumSpdTab.tsx": {
-    "mtime": 1788917877.7476995,
-    "ast_hash": "7f4de914cfffc058dc146973f09bf4e9",
+    "mtime": 1792156668.865181,
+    "ast_hash": "0fa13ce9cda27f06ab6eddf204c2ee2f",
     "semantic_hash": ""
   },
   "frontend/src/app/keuangan/_components/steps/SearchableOfficialSelect.tsx": {
@@ -6595,8 +6595,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/KalkulatorDinasTab.tsx": {
-    "mtime": 1791878901.2387788,
-    "ast_hash": "f0e07878ca0e4bb6466546ec95b45917",
+    "mtime": 1792156154.8656988,
+    "ast_hash": "f1d484de781929002509decded6a4405",
     "semantic_hash": ""
   },
   "frontend/src/app/dereporting/eksternal/[id]/page.tsx": {
@@ -6610,8 +6610,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Controllers/FormBuilderController.php": {
-    "mtime": 1791940581.538498,
-    "ast_hash": "bcb3c6062d158a9f0569170bb4ef29c3",
+    "mtime": 1792153505.2714527,
+    "ast_hash": "31f413898896d300c7d5c4be07cb6ada",
     "semantic_hash": ""
   },
   "backend/app/Modules/DeReporting/Migrations/2026_10_14_092000_create_dr_dynamic_forms_tables.php": {
@@ -6640,8 +6640,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dereporting/forms/page.tsx": {
-    "mtime": 1791940672.7924016,
-    "ast_hash": "05aa0388143118177915153c262a7358",
+    "mtime": 1792138215.641615,
+    "ast_hash": "c75384f6e01a290cc12c011c71cd9f13",
     "semantic_hash": ""
   },
   "frontend/src/app/lapor/[slug]/page.tsx": {
@@ -6652,6 +6652,116 @@
   "frontend/src/app/dereporting/operator/page.tsx": {
     "mtime": 1791969681.6823337,
     "ast_hash": "d71b3aeeaf88de483a4608702aa0ce44",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/report-schema.json": {
+    "mtime": 1792138657.0298305,
+    "ast_hash": "e705ada366ad4025f55f943c95d9f590",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/validate-coverage-ledger.cjs": {
+    "mtime": 1792138657.0308268,
+    "ast_hash": "5a66be64317f177ecef5d150b1abf1d9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/validate-coverage-ledger.test.cjs": {
+    "mtime": 1792138657.0308268,
+    "ast_hash": "3bc35b09cbd0d46c65457de04cef10a3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/validate-findings.cjs": {
+    "mtime": 1792138657.031827,
+    "ast_hash": "b924a4aca31ed6095f6c1603b97a552c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/validate-findings.test.cjs": {
+    "mtime": 1792138657.031827,
+    "ast_hash": "135077736a6939252acbff7ca706c32a",
+    "semantic_hash": ""
+  },
+  "backend/tests/portal_security_check.php": {
+    "mtime": 1792156717.2810397,
+    "ast_hash": "c6a3473581d0d2633725ba8b2dc70342",
+    "semantic_hash": ""
+  },
+  "skills-lock.json": {
+    "mtime": 1792138657.9665456,
+    "ast_hash": "1b2513c2e2bf8015ba4b1debcf34a39e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/AI-AND-LLM.md": {
+    "mtime": 1792138657.0208263,
+    "ast_hash": "c5abfaece0f58d5d5058fa07b29791ad",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/ATTACK-CLASSES.md": {
+    "mtime": 1792138657.0218265,
+    "ast_hash": "b33b760ff50ffdc0eda5d928f80fb107",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/CLIENT-SIDE.md": {
+    "mtime": 1792138657.0218265,
+    "ast_hash": "f535193f9c655e348e5b904f7f67d34e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/CLOUD-AND-DEPLOYMENT.md": {
+    "mtime": 1792138657.0228262,
+    "ast_hash": "3396934a06bfa86a84596e661f875300",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md": {
+    "mtime": 1792138657.0228262,
+    "ast_hash": "33d0561cb12415d388a6449d90d2ff3f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md": {
+    "mtime": 1792138657.0238264,
+    "ast_hash": "f0d96ab77876c447d64ba1cef6f3da5e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/HUNTING.md": {
+    "mtime": 1792138657.0248258,
+    "ast_hash": "5cb64bcc2971ceb4a7f955ffd741d25f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md": {
+    "mtime": 1792138657.0248258,
+    "ast_hash": "8d3d5783e9710a299c2c1cbef8ca7463",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md": {
+    "mtime": 1792138657.0258262,
+    "ast_hash": "5137eb203d4b236a081210bb77b21131",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/RECONNAISSANCE.md": {
+    "mtime": 1792138657.0258262,
+    "ast_hash": "95ea170b99be883a9f704bfee29b9443",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/RESOURCE-EXHAUSTION-AND-AVAILABILITY.md": {
+    "mtime": 1792138657.026827,
+    "ast_hash": "92a3e104467a5fc71a6ba34bf97828ef",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/SKILL.md": {
+    "mtime": 1792138657.0278263,
+    "ast_hash": "cec212c92a709bfffce1cbb1daca0df1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/SUPPLY-CHAIN-AND-RELEASE.md": {
+    "mtime": 1792138657.0278263,
+    "ast_hash": "ea6e73711ef3d3acc1201633a172d4b0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/VALIDATION-AND-REPORTING.md": {
+    "mtime": 1792138657.0288296,
+    "ast_hash": "df9bbf7f5058f0f7eaba098b4ce830a2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-audit/WEB-PROTOCOL-AND-AUTH.md": {
+    "mtime": 1792138657.0288296,
+    "ast_hash": "53943d99f2a3484ce8f37de2be783f8b",
     "semantic_hash": ""
   }
 }

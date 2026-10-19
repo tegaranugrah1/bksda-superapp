@@ -69,18 +69,14 @@ function formatNameWithDegree(fullName: string): string {
 
 function cleanCoverSubtitle(rawTitle?: string): string {
   if (!rawTitle) return "PELAKSANAAN TUGAS DINAS";
-  let cleaned = rawTitle.trim();
-  cleaned = cleaned.replace(/^laporan\s+/i, "").trim();
-  return cleaned.toUpperCase();
+  const cleaned = rawTitle.trim().replace(/^(?:laporan(?:[\s:\-]+|$))+/i, "").trim();
+  return (cleaned || "PELAKSANAAN TUGAS DINAS").toUpperCase();
 }
 
 function ensureLeadingLaporan(rawTitle?: string): string {
   if (!rawTitle) return "LAPORAN PELAKSANAAN TUGAS";
-  let cleaned = rawTitle.trim();
-  if (!/^laporan\s+/i.test(cleaned)) {
-    cleaned = `LAPORAN ${cleaned}`;
-  }
-  return cleaned.toUpperCase();
+  const cleaned = rawTitle.trim().replace(/^(?:laporan(?:[\s:\-]+|$))+/i, "").trim();
+  return `LAPORAN ${cleaned || "PELAKSANAAN TUGAS"}`.toUpperCase();
 }
 
 export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
@@ -170,6 +166,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
             src={data.custom_cover_image_url}
             alt="Cover Manual Laporan"
             className="w-full h-full object-cover object-center block m-0 p-0"
+            onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
           />
         </div>
       ) : (
@@ -383,8 +380,8 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                                 ))
                               ) : (
                                 <div className="pt-24 space-y-0.5">
-                                  <p className="font-normal">ANISA RAHMAWATI, S.Tr.Kom.</p>
-                                  <p className="text-[12pt] font-normal">NIP. 199911032025062012</p>
+                                  <p className="font-normal underline">( .................................................... )</p>
+                                  <p className="text-[12pt] font-normal">NIP. -</p>
                                 </div>
                               )}
                             </div>
@@ -410,15 +407,21 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                       )}
                       <div className="grid grid-cols-2 gap-4 pl-4 pt-1">
                         {chunk.map((foto, idx) => (
-                          <div key={idx} className="overflow-hidden">
-                            <div className="w-full h-72 print:h-[72mm] relative flex items-center justify-center p-0">
+                          <div key={idx} className="overflow-hidden space-y-1">
+                            <div className="w-full h-72 print:h-[68mm] relative flex items-center justify-center p-0">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={foto.url}
-                                alt={`Dokumentasi ${pageIdx * 6 + idx + 1}`}
+                                alt={foto.caption || `Dokumentasi ${pageIdx * 6 + idx + 1}`}
                                 className="w-full h-full object-contain mx-auto rounded-none border-none"
+                                onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                               />
                             </div>
+                            {foto.caption && (
+                              <p className="text-[10pt] text-center text-slate-700 italic leading-snug">
+                                {foto.caption}
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>

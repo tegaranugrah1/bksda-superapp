@@ -20,7 +20,11 @@ class SuratMasukController extends Controller
         
         $filename = 'Rekap_Surat_Masuk_BKSDA_' . date('Ymd_His') . '.xlsx';
         if (!empty($filters['year'])) {
-            $filename = 'Rekap_Surat_Masuk_BKSDA_' . $filters['year'] . (!empty($filters['month']) ? sprintf('_%02d', (int) $filters['month']) : '') . '.xlsx';
+            $cleanYear = preg_replace('/[^0-9]/', '', (string) $filters['year']);
+            $cleanMonth = !empty($filters['month']) ? sprintf('_%02d', (int) $filters['month']) : '';
+            if ($cleanYear !== '') {
+                $filename = 'Rekap_Surat_Masuk_BKSDA_' . $cleanYear . $cleanMonth . '.xlsx';
+            }
         }
 
         return Excel::download(new SuratMasukExport($filters), $filename);

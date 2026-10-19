@@ -30,14 +30,15 @@ class EmployeeController extends Controller
             ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
             ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
 
-        // Ambil parameter pencarian dari URL (?search=...)
-        $searchTerm = $request->input('search');
+        // Ambil parameter pencarian dari URL (?search=... atau ?q=...)
+        $searchTerm = trim((string) ($request->input('search') ?? $request->input('q') ?? ''));
 
-        if (! empty($searchTerm)) {
+        if ($searchTerm !== '') {
+            $escapedTerm = addcslashes($searchTerm, '%_');
             $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($searchTerm, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$searchTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$searchTerm}%");
+            $query->where(function ($q) use ($escapedTerm, $likeOp) {
+                $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
+                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%");
             });
         }
 
@@ -98,12 +99,13 @@ class EmployeeController extends Controller
         }
 
         // Auto-create user account with default password '123'
-        if (!User::where('username', $employee->nip)->exists()) {
+        $nip = trim((string) $employee->nip);
+        if ($nip !== '' && !User::where('username', $nip)->exists()) {
             User::create([
                 'name' => $employee->nama_lengkap,
-                'username' => $employee->nip,
+                'username' => $nip,
                 'password' => Hash::make('123'),
-                'role' => 'pegawai',
+                'role' => 'user',
             ]);
         }
 
@@ -152,7 +154,16 @@ class EmployeeController extends Controller
             $validated['foto_profil'] = $path;
         }
 
+        $oldNip = trim((string) $employee->nip);
         $employee->update($validated);
+        $newNip = trim((string) $employee->nip);
+
+        if ($oldNip !== '' && $newNip !== '' && $newNip !== $oldNip) {
+            User::where('username', $oldNip)->update([
+                'username' => $newNip,
+                'name' => $employee->nama_lengkap,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Data pegawai berhasil diperbarui.',
@@ -192,12 +203,26 @@ class EmployeeController extends Controller
     /**
      * Rule 3.6: Soft Delete
      */
-    public function destroy($id): JsonResponse
+    public function destroy(Request $request, $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
 
+        $currentUser = $request->user();
+        if ($currentUser && ($currentUser->username === $employee->nip || (int) $currentUser->employee_id === (int) $employee->id)) {
+            return response()->json([
+                'message' => 'Anda tidak dapat menghapus data pegawai akun Anda sendiri.',
+            ], 403);
+        }
+
         // Operasi ini otomatis menjadi Soft Delete karena Trait SoftDeletes di Model (Issue #23)
         $employee->delete();
+
+        // Deactivate associated user account and revoke existing tokens to prevent orphaned login
+        $nip = trim((string) $employee->nip);
+        if ($nip !== '' && ($user = User::where('username', $nip)->first())) {
+            $user->update(['is_active' => false]);
+            $user->tokens()->delete();
+        }
 
         return response()->json([
             'message' => 'Data pegawai berhasil dihapus (soft delete).',
@@ -205,24 +230,28 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Public select - untuk dropdown di form surat tugas
-     * Rate limited: 30 per menit
+     * Protected select - untuk dropdown di form surat tugas & modul internal
      */
     public function select(Request $request): JsonResponse
     {
-        $searchTerm = $request->input('q', '');
+        $searchTerm = trim((string) ($request->input('q') ?? $request->input('search') ?? ''));
 
-        $query = Employee::query()->where('is_active', true);
+        $query = Employee::query()
+            ->where('is_active', true)
+            ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
+            ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
+            ->where('nama_lengkap', 'NOT LIKE', '%magang%');
 
         if (! empty($searchTerm)) {
+            $escapedTerm = addcslashes($searchTerm, '%_');
             $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($searchTerm, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$searchTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$searchTerm}%");
+            $query->where(function ($q) use ($escapedTerm, $likeOp) {
+                $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
+                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%");
             });
         }
 
-        $limit = min(500, max(1, $request->integer('limit', $request->integer('per_page', 500))));
+        $limit = min(200, max(1, $request->integer('limit', $request->integer('per_page', 50))));
 
         $employees = $query->orderBy('nama_lengkap', 'asc')
             ->limit($limit)
@@ -251,13 +280,14 @@ class EmployeeController extends Controller
 
     /**
      * POST /api/kepegawaian/employees/{id}/reset-password
-     * Reset password pegawai ke default '123'
+     * Reset password pegawai ke default '123' dan invalidasi token aktif
      */
-    public function resetPassword($id): JsonResponse
+    public function resetPassword(Request $request, $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
 
-        $user = User::where('username', $employee->nip)->first();
+        $nip = trim((string) $employee->nip);
+        $user = $nip !== '' ? User::where('username', $nip)->first() : null;
 
         if (!$user) {
             return response()->json([
@@ -265,9 +295,19 @@ class EmployeeController extends Controller
             ], 404);
         }
 
+        $currentUser = $request->user();
+        if ($user->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat mereset password akun Super Admin.',
+            ], 403);
+        }
+
         $user->update([
             'password' => Hash::make('123'),
         ]);
+
+        // Revoke active sessions / bearer tokens upon password reset
+        $user->tokens()->delete();
 
         return response()->json([
             'message' => 'Password berhasil direset ke default.',
@@ -278,13 +318,14 @@ class EmployeeController extends Controller
      * GET /api/kepegawaian/employees/{id}/assignment-letters
      * Mengambil riwayat surat tugas khusus untuk pegawai ini
      */
-    public function assignmentLetters(string $id): JsonResponse
+    public function assignmentLetters(Request $request, string $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
+        $perPage = min(100, max(1, (int) $request->input('per_page', 10)));
 
         $letters = $employee->assignmentLetters()
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage);
 
         return response()->json([
             'message' => 'Riwayat penugasan berhasil diambil.',
@@ -322,7 +363,7 @@ class EmployeeController extends Controller
         $activeStCount = AssignmentLetter::whereIn('status', ['DITERBITKAN', 'APPROVED', 'COMPLETED', 'PUBLISHED', 'diterbitkan', 'approved', 'completed', 'published'])->count();
 
         // 3. Pending Leave Requests
-        $pendingCutiCount = EmployeeLeaveRequest::whereIn('status', ['PENDING', 'pending'])->count();
+        $pendingCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['PENGAJUAN', 'PENDING'])->count();
 
         // 4. Sebaran Satuan Kerja
         $satkerRaw = (clone $baseQuery)

@@ -60,7 +60,9 @@ class SpjDipaExcelService
             }
         }
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'SPJ_DIPA_') . '.xlsx';
+        $tempBase = tempnam(sys_get_temp_dir(), 'SPJ_DIPA_');
+        @unlink($tempBase);
+        $tempFile = $tempBase . '.xlsx';
         $writer = new XlsxWriter($spreadsheet);
         $writer->setPreCalculateFormulas(false);
         $writer->save($tempFile);

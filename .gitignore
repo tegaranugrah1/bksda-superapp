@@ -78,3 +78,5 @@ service-account.json
 # Local backups (do not commit)
 # ========================
 backups/
+.audit/
+graphify-out/cache/

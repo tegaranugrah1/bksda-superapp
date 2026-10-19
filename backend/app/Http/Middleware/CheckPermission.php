@@ -52,7 +52,7 @@ class CheckPermission
                     // 2. Detail asset endpoint: check if the asset belongs to them
                     $assetId = $request->route('asset');
                     if ($assetId) {
-                        $asset = \App\Modules\Bmn\Models\Asset::find($assetId);
+                        $asset = $assetId instanceof \App\Modules\Bmn\Models\Asset ? $assetId : \App\Modules\Bmn\Models\Asset::find($assetId);
                         if ($asset && $this->isAssetOwner($asset, $employee)) {
                             return $next($request);
                         }

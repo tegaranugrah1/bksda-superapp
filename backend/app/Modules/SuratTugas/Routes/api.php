@@ -4,16 +4,19 @@ use App\Modules\SuratTugas\Controllers\AssignmentLetterController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/verify/{id}', [AssignmentLetterController::class, 'verify'])
+    ->middleware('throttle:60,1')
     ->name('surat-tugas.verify');
 
-Route::post('/submit', [AssignmentLetterController::class, 'store'])
-    ->middleware('throttle:10,1'); // Public submit - rate limit 10 per menit
-
-// Portal: pegawai bisa lihat surat tugas milik sendiri (tanpa perlu akses modul)
+// Portal & Mobile: pegawai bisa membuat surat tugas dan melihat surat tugas milik sendiri
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/my', [AssignmentLetterController::class, 'myLetters']);
-    Route::get('/my/{id}', [AssignmentLetterController::class, 'myShow']);
-    Route::get('/my/{id}/download', [AssignmentLetterController::class, 'myDownload']);
+    Route::post('/submit', [AssignmentLetterController::class, 'store'])
+        ->middleware('throttle:15,1');
+    Route::get('/my', [AssignmentLetterController::class, 'myLetters'])
+        ->middleware('throttle:120,1');
+    Route::get('/my/{id}', [AssignmentLetterController::class, 'myShow'])
+        ->middleware('throttle:120,1');
+    Route::get('/my/{id}/download', [AssignmentLetterController::class, 'myDownload'])
+        ->middleware('throttle:30,1');
 });
 
 Route::middleware(['auth:sanctum', 'module.access:surat_tugas,kepegawaian'])->group(function () {
@@ -31,6 +34,6 @@ Route::middleware(['auth:sanctum', 'module.access:surat_tugas,kepegawaian'])->gr
     Route::get('/{id}', [AssignmentLetterController::class, 'show']);
     Route::put('/{id}', [AssignmentLetterController::class, 'update']);
     Route::put('/{id}/approve', [AssignmentLetterController::class, 'approve']);
-    Route::delete('/{id}/force', [AssignmentLetterController::class, 'forceDestroy']);
+    Route::delete('/{id}/force', [AssignmentLetterController::class, 'forceDestroy'])->middleware('role:super_admin,admin');
     Route::get('/{id}/download', [AssignmentLetterController::class, 'downloadPdf']);
 });

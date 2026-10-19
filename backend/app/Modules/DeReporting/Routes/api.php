@@ -15,11 +15,11 @@ use Illuminate\Support\Facades\Route;
 | Tanpa Token. Digunakan khusus oleh layar eksternal masyarakat.
 */
 
-// 1. Ekstraktor Dropdown
-Route::get('/master/{type}', [MasterDataController::class, 'index']);
+// 1. Ekstraktor Dropdown (Rate limited 120 req/menit)
+Route::get('/master/{type}', [MasterDataController::class, 'index'])->middleware('throttle:120,1');
 
-// 2. Lubang Penerima Formulir Masyarakat (Rate Limiting telah diurus di Controller)
-Route::post('/eksternals/public', [EksternalController::class, 'storePublic']);
+// 2. Lubang Penerima Formulir Masyarakat (Rate Limiting 10 req/menit)
+Route::post('/eksternals/public', [EksternalController::class, 'storePublic'])->middleware('throttle:10,1');
 
 // 3. Formulir Dinamis Publik (Google Forms Style)
 Route::get('/public-forms/{slug}', [FormBuilderController::class, 'showPublic']);

@@ -32,6 +32,7 @@ export interface SuratTugasSimpleOption {
   maksud_tujuan: string;
   tanggal_mulai: string;
   tanggal_selesai: string;
+  tempat_tujuan?: string | null;
 }
 
 interface PengeluaranItem {
@@ -64,13 +65,20 @@ const formatRibuan = (val: number | string): string => {
 };
 
 const parseRibuan = (val: string | number): number => {
-  return Number(String(val).replace(/[^0-9]/g, "")) || 0;
+  const num = Number(String(val).replace(/[^0-9]/g, "")) || 0;
+  return Math.min(num, 10_000_000_000);
 };
 
-const getInitialDraft = () => {
+const getStorageKey = (userName?: string) => {
+  const safeUser = (userName || "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+  return safeUser ? `bksda_kalkulator_panjar_${safeUser}` : STORAGE_KEY;
+};
+
+const getInitialDraft = (userName?: string) => {
   if (typeof window === "undefined") return null;
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const key = getStorageKey(userName);
+    const saved = localStorage.getItem(key) || (key !== STORAGE_KEY ? localStorage.getItem(STORAGE_KEY) : null);
     return saved ? JSON.parse(saved) : null;
   } catch {
     return null;
@@ -87,29 +95,30 @@ export function KalkulatorDinasTab({
   initialSelectedStId?: string;
 }) {
   const confirm = useConfirm();
+  const storageKey = useMemo(() => getStorageKey(currentUserName), [currentUserName]);
 
   // Synchronous hydration to prevent data loss on F5
   const [selectedStId, setSelectedStId] = useState<string>(initialSelectedStId || "");
   const [namaKegiatan, setNamaKegiatan] = useState(
-    () => getInitialDraft()?.namaKegiatan ?? "Perjalanan Dinas Lapangan"
+    () => getInitialDraft(currentUserName)?.namaKegiatan ?? "Perjalanan Dinas"
   );
   const [lokasiTujuan, setLokasiTujuan] = useState(
-    () => getInitialDraft()?.lokasiTujuan ?? "Balikpapan"
+    () => getInitialDraft(currentUserName)?.lokasiTujuan ?? ""
   );
   const [pemegangPanjar, setPemegangPanjar] = useState(
-    () => getInitialDraft()?.pemegangPanjar ?? currentUserName
+    () => getInitialDraft(currentUserName)?.pemegangPanjar ?? currentUserName
   );
   const [tanggalMulai, setTanggalMulai] = useState(
-    () => getInitialDraft()?.tanggalMulai ?? new Date().toISOString().split("T")[0]
+    () => getInitialDraft(currentUserName)?.tanggalMulai ?? new Date().toISOString().split("T")[0]
   );
   const [tanggalSelesai, setTanggalSelesai] = useState(
-    () => getInitialDraft()?.tanggalSelesai ?? new Date().toISOString().split("T")[0]
+    () => getInitialDraft(currentUserName)?.tanggalSelesai ?? new Date().toISOString().split("T")[0]
   );
   const [uangPanjar, setUangPanjar] = useState<number>(
-    () => getInitialDraft()?.uangPanjar ?? 5000000
+    () => getInitialDraft(currentUserName)?.uangPanjar ?? 0
   );
   const [pengeluaranList, setPengeluaranList] = useState<PengeluaranItem[]>(
-    () => getInitialDraft()?.pengeluaranList ?? []
+    () => getInitialDraft(currentUserName)?.pengeluaranList ?? []
   );
 
 
@@ -146,21 +155,25 @@ export function KalkulatorDinasTab({
   const [lastSavedTime, setLastSavedTime] = useState<string>("Tersimpan Otomatis");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Calculate duration in days
   const jumlahHari = useMemo(() => {
     if (!tanggalMulai || !tanggalSelesai) return 1;
     const d1 = new Date(tanggalMulai);
     const d2 = new Date(tanggalSelesai);
     const diffTime = d2.getTime() - d1.getTime();
+    if (Number.isNaN(diffTime)) return 1;
     return Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1);
   }, [tanggalMulai, tanggalSelesai]);
 
   // Sync state from selected Surat Tugas
   useEffect(() => {
     if (!selectedStId) return;
-    const st = suratTugasList.find((s) => s.id === selectedStId);
+    const cleanSelected = String(selectedStId).replace(/^st-/, "");
+    const st = suratTugasList.find(
+      (s) => String(s.id) === String(selectedStId) || String(s.id).replace(/^st-/, "") === cleanSelected
+    );
     if (st) {
       setNamaKegiatan(st.maksud_tujuan || "Perjalanan Dinas");
+      if (st.tempat_tujuan) setLokasiTujuan(st.tempat_tujuan);
       if (st.tanggal_mulai) setTanggalMulai(st.tanggal_mulai.split("T")[0]);
       if (st.tanggal_selesai) setTanggalSelesai(st.tanggal_selesai.split("T")[0]);
       toast.success("Data Surat Tugas dimuat ke form panjar.");
@@ -179,15 +192,19 @@ export function KalkulatorDinasTab({
       pengeluaranList,
     };
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       setLastSavedTime(`Tersimpan pk ${timeStr}`);
       if (notify) {
         toast.success("Draf pertanggungjawaban panjar berhasil disimpan!");
       }
-    } catch {
-      if (notify) toast.error("Gagal menyimpan draf.");
+    } catch (e: any) {
+      if (e?.name === "QuotaExceededError" || e?.code === 22) {
+        toast.warning("Memori penyimpanan peramban penuh karena lampiran foto nota. Mohon kurangi lampiran gambar.");
+      } else if (notify) {
+        toast.error("Gagal menyimpan draf.");
+      }
     }
   };
 
@@ -204,6 +221,18 @@ export function KalkulatorDinasTab({
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File nota harus berupa gambar (JPG, PNG, atau WEBP).");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran foto nota maksimal 10 MB.");
+      e.target.value = "";
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -225,9 +254,16 @@ export function KalkulatorDinasTab({
         setNewExp((prev) => ({ ...prev, notaImage: dataUrl }));
         toast.success("Foto nota berhasil dilampirkan.");
       };
+      img.onerror = () => {
+        toast.error("Gagal memproses gambar nota. Format file tidak valid.");
+      };
       img.src = event.target?.result as string;
     };
+    reader.onerror = () => {
+      toast.error("Gagal membaca file foto nota.");
+    };
     reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   // Add new expense
@@ -327,14 +363,15 @@ export function KalkulatorDinasTab({
     });
     if (!ok) return;
 
+    localStorage.removeItem(storageKey);
     localStorage.removeItem(STORAGE_KEY);
     setSelectedStId("");
-    setNamaKegiatan("Perjalanan Dinas Lapangan");
-    setLokasiTujuan("Balikpapan");
+    setNamaKegiatan("Perjalanan Dinas");
+    setLokasiTujuan("");
     setPemegangPanjar(currentUserName);
     setTanggalMulai(new Date().toISOString().split("T")[0]);
     setTanggalSelesai(new Date().toISOString().split("T")[0]);
-    setUangPanjar(5000000);
+    setUangPanjar(0);
     setPengeluaranList([]);
     setFilterSpj("all");
     toast.success("Kalkulator di-reset ke kondisi awal.");
@@ -1122,6 +1159,7 @@ export function KalkulatorDinasTab({
                       src={item.notaImage}
                       alt={item.keterangan}
                       className="max-h-48 object-contain w-full rounded border"
+                      onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                     />
                   </div>
                 ))}

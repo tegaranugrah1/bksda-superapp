@@ -40,6 +40,8 @@ export function MyAssetsTab({
   assetViewMode,
   setAssetViewMode,
 }: MyAssetsTabProps) {
+  const [failedImgMap, setFailedImgMap] = React.useState<Record<string, boolean>>({});
+
   if (assetsLoading) {
     return (
       <div className="p-12 text-center">
@@ -135,7 +137,9 @@ export function MyAssetsTab({
         /* Grid View with Geotag Image */
         <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredMyAssets.map((asset) => {
-            const thumbUrl = asset.foto_geotag_path || asset.foto_geotag_url || null;
+            const thumbUrl = asset.foto_geotag_url || (asset.foto_geotag_path?.startsWith("http") ? asset.foto_geotag_path : null);
+            const safeThumbUrl = thumbUrl && (thumbUrl.startsWith("/") || thumbUrl.startsWith("http://") || thumbUrl.startsWith("https://")) ? thumbUrl : null;
+            const hasValidThumb = Boolean(safeThumbUrl && !failedImgMap[asset.id]);
 
             return (
               <div
@@ -144,13 +148,14 @@ export function MyAssetsTab({
               >
                 {/* Photo Container */}
                 <div className="aspect-video relative bg-slate-200/50 dark:bg-slate-800/50 border-b border-slate-200/40 dark:border-slate-800/40 flex items-center justify-center overflow-hidden shrink-0">
-                  {thumbUrl ? (
+                  {hasValidThumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={thumbUrl}
+                      src={safeThumbUrl!}
                       alt={asset.nama_barang}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
+                      onError={() => setFailedImgMap((prev) => ({ ...prev, [asset.id]: true }))}
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-1.5 p-3 text-center text-slate-400 dark:text-slate-600">

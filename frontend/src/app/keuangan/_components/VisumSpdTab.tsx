@@ -71,16 +71,38 @@ export function VisumSpdTab({
   isPortal?: boolean;
   suratTugasList?: SuratTugasSimpleItem[];
 }) {
-  const [spdType, setSpdType] = useState<"dipa" | "folu">("dipa");
-  const [data, setData] = useState<VisumSpdData>(getTemplateDipaTenggarong());
+  const [spdType, setSpdType] = useState<"dipa" | "folu">(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedType = localStorage.getItem("bksda_visum_spd_type_v1");
+        if (savedType === "dipa" || savedType === "folu") return savedType;
+      } catch {}
+    }
+    return "dipa";
+  });
+  const [data, setData] = useState<VisumSpdData>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return getTemplateDipaTenggarong();
+  });
   const [templates, setTemplates] = useState<VisumTemplateItem[]>([]);
   const [settings, setSettings] = useState<VisumSpdSettings | null>(null);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("default");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem(STORAGE_KEY_TMPL_ID) || "default";
+      } catch {}
+    }
+    return "default";
+  });
 
   const [includeBalaiData, setIncludeBalaiData] = useState<boolean>(true);
   const [includeDestinationData, setIncludeDestinationData] = useState<boolean>(true);
   const [showTableBorder, setShowTableBorder] = useState<boolean>(true);
-  const [showTransitSection, setShowTransitSection] = useState<boolean>(false);
   const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
   const [previewZoom, setPreviewZoom] = useState<number>(0.85); // Default 85% large clear scale for high readability
 
@@ -117,7 +139,7 @@ export function VisumSpdTab({
   const updateTransitData = (
     transitKey: "transit_3" | "transit_4" | "transit_5",
     field: keyof VisumTransitItem,
-    value: any
+    value: VisumTransitItem[keyof VisumTransitItem]
   ) => {
     setData((prev) => {
       const existing = prev[transitKey] || {};
@@ -161,7 +183,7 @@ export function VisumSpdTab({
         tiba_kepala_nama: "",
         tiba_kepala_nip: "",
         tiba_id_type: "NIP",
-        berangkat_dari: "",
+        berangkat_dari: data.tujuan_1_tempat || "",
         berangkat_ke: data.kembali_tempat || "Samarinda",
         berangkat_tanggal: today,
         berangkat_kepala_jabatan: "",
@@ -178,7 +200,7 @@ export function VisumSpdTab({
         tiba_kepala_nama: "",
         tiba_kepala_nip: "",
         tiba_id_type: "NIP",
-        berangkat_dari: "",
+        berangkat_dari: data.transit_3?.tiba_di || data.transit_3?.berangkat_ke || "",
         berangkat_ke: data.kembali_tempat || "Samarinda",
         berangkat_tanggal: today,
         berangkat_kepala_jabatan: "",
@@ -195,7 +217,7 @@ export function VisumSpdTab({
         tiba_kepala_nama: "",
         tiba_kepala_nip: "",
         tiba_id_type: "NIP",
-        berangkat_dari: "",
+        berangkat_dari: data.transit_4?.tiba_di || data.transit_4?.berangkat_ke || "",
         berangkat_ke: data.kembali_tempat || "Samarinda",
         berangkat_tanggal: today,
         berangkat_kepala_jabatan: "",
@@ -213,7 +235,23 @@ export function VisumSpdTab({
     transitKey: "transit_3" | "transit_4" | "transit_5",
     label: string
   ) => {
-    updateData(transitKey, {});
+    setData((prev) => {
+      const next = { ...prev };
+      if (transitKey === "transit_3") {
+        next.transit_3 = prev.transit_4 || {};
+        next.transit_4 = prev.transit_5 || {};
+        next.transit_5 = {};
+      } else if (transitKey === "transit_4") {
+        next.transit_4 = prev.transit_5 || {};
+        next.transit_5 = {};
+      } else {
+        next.transit_5 = {};
+      }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     toast.info(`Destinasi ${label} telah dihapus.`);
   };
 
@@ -372,8 +410,11 @@ export function VisumSpdTab({
         const defaultTmpl = tmpls.find((t) => t.is_default) || tmpls[0];
 
         if (defaultTmpl) {
-          setSelectedTemplateId(String(defaultTmpl.id));
-          applyTemplateItem(defaultTmpl, false, loadedSettings);
+          const hasExistingDraft = typeof window !== "undefined" && !!localStorage.getItem(STORAGE_KEY);
+          if (!hasExistingDraft) {
+            setSelectedTemplateId(String(defaultTmpl.id));
+            applyTemplateItem(defaultTmpl, false, loadedSettings);
+          }
         }
       }
     } catch (err) {

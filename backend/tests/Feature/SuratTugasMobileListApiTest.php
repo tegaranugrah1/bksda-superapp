@@ -70,6 +70,8 @@ class SuratTugasMobileListApiTest extends TestCase
             $table->uuid('assignment_letter_id');
             $table->foreignId('employee_id');
             $table->string('peran')->nullable();
+            $table->date('tanggal_mulai')->nullable();
+            $table->date('tanggal_selesai')->nullable();
             $table->timestamps();
             $table->unique(['assignment_letter_id', 'employee_id'], 'st_al_employee_unique');
         });
@@ -166,7 +168,7 @@ class SuratTugasMobileListApiTest extends TestCase
             'tanggal_surat' => '2026-06-19',
             'tempat_tujuan' => 'Berau',
             'status' => 'approved',
-            'created_by' => $user->id,
+            'created_by' => null,
         ]);
         $myLetter->employees()->sync([$employee->id]);
         $otherLetter->employees()->sync([$otherEmployee->id]);

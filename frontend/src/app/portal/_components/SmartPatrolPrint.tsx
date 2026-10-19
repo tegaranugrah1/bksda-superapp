@@ -107,11 +107,30 @@ export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps
   const tanggalFormatted = formatDateIndo(defaultDate);
   const monthYearUpper = getMonthYearIndo(defaultDate);
 
+  const [tallySheetUrl, setTallySheetUrl] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!tallySheetFile) {
+      setTallySheetUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(tallySheetFile);
+    setTallySheetUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [tallySheetFile]);
+
   // Default values matching sample document
   const defaultNamaKegiatan = data.namaKegiatan || "SMART PATROL/PATROLI PERLINDUNGAN KAWASAN DI KAWASAN SUAKA MARGASATWA KELIAN";
   const defaultSumberDana = data.sumberDana || "ANGGARAN PROYEK FOLU NET SINK 2030 RBC NORWEGIA TAHAP II DAN III (FOLU NC 2&3) PADA AWP KSDAE – TAHUN ANGGARAN 2026";
-  const defaultDinilai = data.dinilaiOleh || "Dheny Mardiono, S.Hut., M.Sc.\nNIP. 19750314 199903 1 004";
-  const defaultDisusun = data.disusunOleh || "Didi Susanto, S.Si.\nNIP. 19880719 202012 1 003";
+  const defaultDinilai = data.dinilaiOleh || "( .................................................... )\nNIP. -";
+  const defaultDisusun = data.disusunOleh
+    ? data.disusunOleh
+    : data.pelaksanaEmployees && data.pelaksanaEmployees.length > 0
+    ? `${data.pelaksanaEmployees[0].nama_lengkap}\nNIP. ${data.pelaksanaEmployees[0].nip || "-"}`
+    : "( .................................................... )\nNIP. -";
 
   const renderTocRow = (title: string, page: string = "", isBold: boolean = false, isIndent: boolean = false) => (
     <tr key={title}>
@@ -305,7 +324,7 @@ export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps
       {data.coverMode === "custom" && data.customCoverPreview ? (
         <div className="cover-page min-h-[297mm] flex items-center justify-center p-0 mb-8" style={{ pageBreakAfter: "always" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={data.customCoverPreview} alt="Custom Cover" className="w-full h-auto max-h-[297mm] object-contain" />
+          <img src={data.customCoverPreview} alt="Custom Cover" className="w-full h-auto max-h-[297mm] object-contain" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
         </div>
       ) : (
         <div className="cover-page min-h-[297mm] bg-gradient-to-b from-slate-50 via-white to-emerald-900/10 py-16 pl-[25mm] pr-[22mm] flex flex-col justify-between border border-slate-200 relative overflow-hidden mb-8" style={{ pageBreakAfter: "always" }}>
@@ -349,7 +368,12 @@ export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps
             <div className="w-full max-w-lg h-56 rounded-3xl overflow-hidden border-4 border-emerald-800/20 shadow-xl bg-slate-100 flex items-center justify-center">
               {data.dokumentasiPreviews && data.dokumentasiPreviews.length > 0 ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={data.dokumentasiPreviews[0]} alt="Foto Tim Patroli" className="w-full h-full object-cover" />
+                <img
+                  src={data.dokumentasiPreviews[0]}
+                  alt="Foto Tim Patroli"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                />
               ) : (
                 <div className="text-center p-6 text-emerald-900/60">
                   <p className="text-[12pt] font-bold">FOTO TIM PATROLI KAWASAN</p>
@@ -423,14 +447,14 @@ export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps
                   <p className="font-normal">Kepala Sub Bagian Tata Usaha</p>
                   <p className="font-normal mb-[72px]">Balai KSDA Kalimantan Timur</p>
                   <p className="font-bold">{defaultDinilai.split('\n')[0]}</p>
-                  <p className="font-bold">{defaultDinilai.split('\n')[1] || "NIP. 19750314 199903 1 004"}</p>
+                  <p className="font-bold">{defaultDinilai.split('\n')[1] || "NIP. -"}</p>
                 </td>
                 <td className="align-top pl-4" style={{ width: "40%" }}>
                   <p className="font-normal mb-2">Samarinda, {tanggalFormatted}</p>
                   <p className="font-normal">Disusun Oleh :</p>
                   <p className="font-normal mb-[96px]">Pelaksana Kegiatan,</p>
                   <p className="font-bold">{defaultDisusun.split('\n')[0]}</p>
-                  <p className="font-bold">{defaultDisusun.split('\n')[1] || "NIP. 19880719 202012 1 003"}</p>
+                  <p className="font-bold">{defaultDisusun.split('\n')[1] || "NIP. -"}</p>
                 </td>
               </tr>
             </tbody>
@@ -694,7 +718,7 @@ Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Marga
                               </thead>
                               <tbody>
                                 {data.temuanSatwaLiarTable.map((item, idx) => (
-                                  <tr key={item.id} className="text-center">
+                                  <tr key={item.id || idx} className="text-center">
                                     <td className="border border-black p-1">{idx + 1}</td>
                                     <td className="border border-black p-1 text-left">{item.namaLokal}</td>
                                     <td className="border border-black p-1 text-left italic">{item.namaIlmiah}</td>
@@ -752,7 +776,12 @@ Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Marga
                       {data.dokumentasiPreviews.map((url, idx) => (
                         <div key={idx} className="border p-2 rounded text-center space-y-2 bg-gray-50">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={url} alt={`Dokumentasi ${idx + 1}`} className="w-full h-44 object-cover rounded" />
+                          <img
+                            src={url}
+                            alt={`Dokumentasi ${idx + 1}`}
+                            className="w-full h-44 object-cover rounded"
+                            onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                          />
                           <p className="text-[9pt] font-semibold text-gray-700">Foto Dokumentasi #{idx + 1}</p>
                         </div>
                       ))}
@@ -773,15 +802,16 @@ Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Marga
           <h2 className="text-[12pt] font-bold text-center uppercase tracking-wider mb-8">TALLY SHEET</h2>
           <img src="/header-paling-baru.png" alt="Kop Surat" className="w-full mb-6" />
           
-          {tallySheetFile.type.startsWith('image/') ? (
+          {tallySheetFile.type.startsWith('image/') && tallySheetUrl ? (
             <img 
-              src={URL.createObjectURL(tallySheetFile)} 
+              src={tallySheetUrl} 
               alt="Tally Sheet" 
               className="w-full h-auto object-contain"
+              onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
             />
-          ) : tallySheetFile.type === 'application/pdf' ? (
+          ) : tallySheetFile.type === 'application/pdf' && tallySheetUrl ? (
             <iframe 
-              src={URL.createObjectURL(tallySheetFile) + "#toolbar=0&navpanes=0&scrollbar=0"} 
+              src={tallySheetUrl + "#toolbar=0&navpanes=0&scrollbar=0"} 
               className="w-full h-[1100px] border-0"
               title="Tally Sheet PDF"
             />

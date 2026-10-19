@@ -35,15 +35,18 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:lo
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::get('/me', [AuthController::class, 'me']);
-    Route::get('/me/dashboard', [AuthController::class, 'dashboard']);
-    Route::get('/mobile/dashboard', [MobileDashboardController::class, 'index']);
-    Route::post('/me/update-photo', [AuthController::class, 'updatePhoto']);
-    Route::post('/me/update-profile', [AuthController::class, 'updateProfile']);
-    Route::post('/me/change-password', [AuthController::class, 'changePassword']);
+    Route::get('/me/dashboard', [AuthController::class, 'dashboard'])->middleware('throttle:120,1');
+    Route::get('/mobile/dashboard', [MobileDashboardController::class, 'index'])->middleware('throttle:120,1');
+    Route::post('/me/update-photo', [AuthController::class, 'updatePhoto'])->middleware('throttle:15,1');
+    Route::post('/me/update-profile', [AuthController::class, 'updateProfile'])->middleware('throttle:15,1');
+    Route::post('/me/change-password', [AuthController::class, 'changePassword'])->middleware('throttle:6,1');
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/change-password', [AuthController::class, 'changePassword']);
 
-    // Leave requests for logged-in employee (Portal)
-    Route::get('/me/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myIndex']);
-    Route::post('/me/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myStore']);
+    // Leave requests & balance for logged-in employee (Portal)
+    Route::get('/me/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myIndex'])->middleware('throttle:120,1');
+    Route::get('/me/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myShow'])->middleware('throttle:120,1');
+    Route::post('/me/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myStore'])->middleware('throttle:10,1');
+    Route::delete('/me/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myDestroy'])->middleware('throttle:30,1');
+    Route::get('/me/leave-balance', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myBalance'])->middleware('throttle:120,1');
+    Route::get('/me/assets', [AuthController::class, 'myAssets'])->middleware('throttle:120,1');
 });

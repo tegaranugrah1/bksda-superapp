@@ -6,11 +6,13 @@ use Illuminate\Support\Facades\Route;
 
 // Semua route di bawah ini otomatis memiliki prefix /api/kepegawaian/
 
-// Public routes (untuk form surat tugas)
-Route::get('/employees/select', [EmployeeController::class, 'select'])
-    ->middleware('throttle:300,1');
-Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
-    ->middleware('throttle:300,1');
+// Protected routes for internal employee selection & templates (requires login)
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/employees/select', [EmployeeController::class, 'select'])
+        ->middleware('throttle:120,1');
+    Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
+        ->middleware('throttle:120,1');
+});
 
 Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
 

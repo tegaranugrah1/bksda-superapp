@@ -17,11 +17,12 @@ class EmployeeLeaveController extends Controller
     public function show(Request $request, int $employeeId): JsonResponse
     {
         $employee = Employee::findOrFail($employeeId);
-        $year = (int) $request->input('year', date('Y'));
+        $rawYear = (int) $request->input('year', date('Y'));
+        $year = ($rawYear >= 2000 && $rawYear <= 2100) ? $rawYear : (int) date('Y');
 
         $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
-            ->where('status', 'DISETUJUI')
-            ->where('jenis_cuti', 'LIKE', '%Tahunan%')
+            ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
+            ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
             ->whereYear('tanggal_mulai', $year)
             ->sum('jumlah_hari');
 
@@ -30,12 +31,11 @@ class EmployeeLeaveController extends Controller
             ->first();
 
         if ($leave) {
-            $hasApprovedRequests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
-                ->where('status', 'DISETUJUI')
-                ->where('jenis_cuti', 'LIKE', '%Tahunan%')
+            $hasOnlineRequests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
+                ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
                 ->whereYear('tanggal_mulai', $year)
                 ->exists();
-            if ($hasApprovedRequests && (int) $leave->cuti_terpakai_n0 !== $approvedDays) {
+            if ($hasOnlineRequests && (int) $leave->cuti_terpakai_n0 !== $approvedDays) {
                 $leave->update(['cuti_terpakai_n0' => $approvedDays]);
                 $leave->refresh();
             }
@@ -122,7 +122,7 @@ class EmployeeLeaveController extends Controller
             DB::rollBack();
             return response()->json([
                 'error' => 'Gagal memperbarui data cuti',
-                'message' => $e->getMessage(),
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat memperbarui data cuti.',
             ], 500);
         }
     }

@@ -20,9 +20,11 @@ class LoanController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = min((int) $request->get('per_page', 10), 100);
+        $perPage = min(100, max(1, (int) $request->input('per_page', 10)));
         $filters = [
             'status' => $request->get('status'),
+            'employee_id' => $request->get('employee_id'),
+            'search' => $request->query('search') ?? $request->query('q'),
         ];
 
         $loans = $this->loanService->listLoans($filters, $perPage);
@@ -82,7 +84,7 @@ class LoanController extends Controller
         $request->validate([
             'borrower_employee_id' => ['sometimes', 'exists:kpg_employees,id'],
             'loan_date' => ['sometimes', 'date'],
-            'due_date' => ['nullable', 'date'],
+            'due_date' => ['nullable', 'date', 'after_or_equal:loan_date'],
             'purpose' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -106,6 +108,8 @@ class LoanController extends Controller
     {
         $request->validate([
             'return_condition' => ['nullable', 'string', 'in:Baik,Rusak Ringan,Rusak Berat'],
+            'tanggal_kembali' => ['nullable', 'date'],
+            'catatan_pengembalian' => ['nullable', 'string', 'max:1000'],
         ]);
 
         try {

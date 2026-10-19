@@ -37,10 +37,22 @@ class AssignmentLetterController extends Controller
         }
 
         $query = AssignmentLetter::with(['employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
-            ->whereHas('employees', function ($q) use ($employee) {
-                $q->where('kpg_employees.id', $employee->id);
+            ->where(function ($q) use ($employee, $user) {
+                $q->whereHas('employees', function ($sub) use ($employee) {
+                    $sub->where('kpg_employees.id', $employee->id);
+                })->orWhere('created_by', $user->id);
             })
-            ->whereIn('status', ['approved', 'completed', 'published', 'diterbitkan']);
+            ->whereIn('status', ['approved', 'completed', 'published', 'diterbitkan', 'APPROVED', 'COMPLETED', 'PUBLISHED', 'DITERBITKAN']);
+
+        if ($search = ($request->query('search') ?? $request->query('q'))) {
+            $s = addcslashes((string) $search, '%_');
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($s, $likeOp) {
+                $q->where('tempat_tujuan', $likeOp, "%{$s}%")
+                    ->orWhere('maksud_tujuan', $likeOp, "%{$s}%")
+                    ->orWhere('nomor_surat', $likeOp, "%{$s}%");
+            });
+        }
 
         $requestedPerPage = max(1, (int) $request->query('per_page', 20));
         $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
@@ -64,8 +76,9 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Data pegawai tidak ditemukan'], 404);
         }
 
+        $cleanId = preg_replace('/^st-/', '', $id);
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
-            ->findOrFail($id);
+            ->findOrFail($cleanId);
 
         $isAssignedEmployee = $surat->employees->contains(fn ($item) => (int) $item->id === (int) $employee->id);
         $isCreator = (int) $surat->created_by === (int) $user->id;
@@ -73,6 +86,12 @@ class AssignmentLetterController extends Controller
         if (! $isAssignedEmployee && ! $isCreator) {
             return response()->json([
                 'message' => 'Anda tidak memiliki akses ke Surat Tugas ini.',
+            ], 403);
+        }
+
+        if (! $isCreator && ! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
+            return response()->json([
+                'message' => 'Surat Tugas ini masih dalam proses penyusunan/persetujuan dan belum dapat diakses.',
             ], 403);
         }
 
@@ -85,6 +104,7 @@ class AssignmentLetterController extends Controller
 
     public function myDownload(Request $request, string $id)
     {
+        $cleanId = preg_replace('/^st-/', '', $id);
         $user = $request->user();
         $employee = Employee::where('nip', $user->username)->first();
 
@@ -93,10 +113,19 @@ class AssignmentLetterController extends Controller
         }
 
         $surat = AssignmentLetter::with(['employees'])
-            ->whereHas('employees', function ($q) use ($employee) {
-                $q->where('kpg_employees.id', $employee->id);
+            ->where(function ($q) use ($employee, $user) {
+                $q->whereHas('employees', function ($eq) use ($employee) {
+                    $eq->where('kpg_employees.id', $employee->id);
+                })->orWhere('created_by', $user->id);
             })
-            ->findOrFail($id);
+            ->findOrFail($cleanId);
+
+        $isCreator = (int) $surat->created_by === (int) $user->id;
+        if (! $isCreator && ! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
+            return response()->json([
+                'message' => 'Dokumen Surat Tugas belum diterbitkan secara resmi.',
+            ], 403);
+        }
 
         if ($surat->file_surat_path && Storage::exists($surat->file_surat_path)) {
             $ext = pathinfo($surat->file_surat_path, PATHINFO_EXTENSION) ?: 'pdf';
@@ -104,9 +133,11 @@ class AssignmentLetterController extends Controller
             $namaPersonel = $surat->employees->first()?->nama_lengkap ?? 'Pegawai';
             $tanggalUpload = $surat->created_at?->format('d-m-Y') ?? date('d-m-Y');
             $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}").'.'.$ext;
-            $filename = preg_replace('/[\/\\\\:*?"<>|]/', '_', $filename);
+            $filename = preg_replace('/[\r\n\/\\\\:*?"<>|]/', '_', $filename);
 
-            return Storage::download($surat->file_surat_path, $filename);
+            return Storage::download($surat->file_surat_path, $filename, [
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
         }
 
         // Fallback document content if no file stored
@@ -117,7 +148,8 @@ class AssignmentLetterController extends Controller
         $content .= 'Tanggal: '.($surat->tanggal_mulai?->format('d-m-Y') ?: '-').' s/d '.($surat->tanggal_selesai?->format('d-m-Y') ?: '-')."\n";
         $content .= 'Status: '.strtoupper($surat->status)."\n";
 
-        $filename = 'Surat-Tugas-'.($surat->nomor_surat ? str_replace('/', '_', $surat->nomor_surat) : $surat->id).'.txt';
+        $rawNomor = $surat->nomor_surat ? preg_replace('/[\r\n"\/\\\\:*?<>|]/', '_', (string) $surat->nomor_surat) : (string) $surat->id;
+        $filename = 'Surat-Tugas-'.$rawNomor.'.txt';
 
         return response($content, 200, [
             'Content-Type' => 'text/plain',
@@ -129,15 +161,16 @@ class AssignmentLetterController extends Controller
     {
         $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,pangkat_golongan,satuan_kerja']);
 
-        if ($search = $request->query('search')) {
+        if ($search = ($request->query('search') ?? $request->query('q'))) {
+            $s = addcslashes((string) $search, '%_');
             $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($search, $likeOp) {
-                $q->where('tempat_tujuan', $likeOp, "%{$search}%")
-                    ->orWhere('maksud_tujuan', $likeOp, "%{$search}%")
-                    ->orWhere('nomor_surat', $likeOp, "%{$search}%")
-                    ->orWhereHas('employees', function ($eq) use ($search, $likeOp) {
-                        $eq->where('nama_lengkap', $likeOp, "%{$search}%")
-                            ->orWhere('nip', $likeOp, "%{$search}%");
+            $query->where(function ($q) use ($s, $likeOp) {
+                $q->where('tempat_tujuan', $likeOp, "%{$s}%")
+                    ->orWhere('maksud_tujuan', $likeOp, "%{$s}%")
+                    ->orWhere('nomor_surat', $likeOp, "%{$s}%")
+                    ->orWhereHas('employees', function ($eq) use ($s, $likeOp) {
+                        $eq->where('nama_lengkap', $likeOp, "%{$s}%")
+                            ->orWhere('nip', $likeOp, "%{$s}%");
                     });
             });
         }
@@ -250,7 +283,7 @@ class AssignmentLetterController extends Controller
                 'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->toDateString()) : null,
             ])->values(),
             'has_file' => ! empty($letter->file_surat_path),
-            'file_surat_path' => $letter->file_surat_path,
+            'file_surat_path' => $letter->file_surat_path ? basename($letter->file_surat_path) : null,
             'file' => [
                 'available' => ! empty($letter->file_surat_path),
                 'download_url' => $personal ? "/api/surat-tugas/my/{$letter->id}/download" : "/api/surat-tugas/{$letter->id}/download",
@@ -292,7 +325,7 @@ class AssignmentLetterController extends Controller
             'penandatangan_nama' => $letter->penandatangan_nama,
             'penandatangan_nip' => $letter->penandatangan_nip,
             'has_file' => ! empty($letter->file_surat_path),
-            'file_surat_path' => $letter->file_surat_path,
+            'file_surat_path' => $letter->file_surat_path ? basename($letter->file_surat_path) : null,
             'employees' => $letter->employees->map(fn ($employee) => [
                 'id' => $employee->id,
                 'name' => $employee->nama_lengkap,
@@ -329,7 +362,7 @@ class AssignmentLetterController extends Controller
                 'can_view' => true,
                 'can_download' => ! empty($letter->file_surat_path),
                 'can_update' => ! $personal,
-                'can_approve' => ! $personal && $letter->status === 'pending',
+                'can_approve' => ! $personal && strtolower((string) $letter->status) === 'pending',
                 'can_delete' => ! $personal,
             ],
         ];
@@ -461,7 +494,9 @@ class AssignmentLetterController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
 
-            return response()->json(['message' => 'Terjadi kegagalan sistem: '.$e->getMessage()], 500);
+            return response()->json([
+                'message' => config('app.debug') ? 'Terjadi kegagalan sistem: '.$e->getMessage() : 'Terjadi kesalahan sistem saat menyimpan pengajuan Surat Tugas.',
+            ], 500);
         }
     }
 
@@ -487,8 +522,15 @@ class AssignmentLetterController extends Controller
         $validated = $request->validated();
         $surat = AssignmentLetter::findOrFail($cleanId);
 
+        $user = $request->user();
+        $isAdmin = $user && in_array($user->role, ['admin', 'super_admin'], true);
+
         if (! $this->authorizeAccess($surat, $request)) {
             return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk merubah Surat Tugas ini.'], 403);
+        }
+
+        if (! $isAdmin && in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
+            return response()->json(['message' => 'Dokumen Surat Tugas yang telah disetujui hanya dapat diubah oleh Administrator.'], 403);
         }
 
         DB::beginTransaction();
@@ -527,7 +569,11 @@ class AssignmentLetterController extends Controller
                 $updateData['kode_surat'] = $request->input('kode_surat');
             }
             if ($request->has('status')) {
-                $updateData['status'] = $request->input('status');
+                $targetStatus = strtolower((string) $request->input('status'));
+                if (! $isAdmin && in_array($targetStatus, ['approved', 'completed', 'published', 'diterbitkan'])) {
+                    return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk mengubah status dokumen menjadi disetujui.'], 403);
+                }
+                $updateData['status'] = $targetStatus;
             }
             if ($request->has('nama_plh')) {
                 $updateData['nama_plh'] = $request->input('nama_plh');
@@ -588,22 +634,31 @@ class AssignmentLetterController extends Controller
             DB::rollBack();
             Log::error('Update Surat Tugas failed: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
-            return response()->json(['message' => 'Terjadi kegagalan sistem: '.$e->getMessage()], 500);
+            return response()->json([
+                'message' => config('app.debug') ? 'Terjadi kegagalan sistem: '.$e->getMessage() : 'Terjadi kesalahan sistem saat memperbarui data Surat Tugas.',
+            ], 500);
         }
     }
 
     public function updateStatus(Request $request, string $id)
     {
+        $cleanId = preg_replace('/^st-/', '', $id);
+        $user = $request->user();
+        if (! $user || (! in_array($user->role, ['admin', 'super_admin'], true) && ! $user->hasPermission('surat_tugas.approve'))) {
+            return response()->json(['message' => 'Anda tidak memiliki hak akses untuk mengubah status Surat Tugas.'], 403);
+        }
+
         $request->validate([
-            'status' => 'required|in:pending,approved,rejected,completed',
+            'status' => 'required|in:pending,approved,rejected,completed,PENDING,APPROVED,REJECTED,COMPLETED',
             'nomor_surat' => 'nullable|string',
         ]);
 
-        $surat = AssignmentLetter::findOrFail($id);
-        $surat->status = $request->status;
+        $surat = AssignmentLetter::findOrFail($cleanId);
+        $cleanStatus = strtolower($request->status);
+        $surat->status = $cleanStatus;
 
-        if (in_array($request->status, ['approved', 'completed'])) {
-            $surat->approved_by = (int) auth()->id();
+        if (in_array($cleanStatus, ['approved', 'completed'], true)) {
+            $surat->approved_by = (int) $user->id;
         }
 
         if ($request->has('nomor_surat')) {
@@ -613,30 +668,69 @@ class AssignmentLetterController extends Controller
         $surat->save();
 
         return response()->json([
-            'message' => 'Status Surat Tugas telah diperbarui menjadi '.strtoupper($request->status),
+            'message' => 'Status Surat Tugas telah diperbarui menjadi '.strtoupper($cleanStatus),
             'data' => $surat,
         ]);
     }
 
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $surat = AssignmentLetter::findOrFail($id);
+        $cleanId = preg_replace('/^st-/', '', $id);
+        $surat = AssignmentLetter::findOrFail($cleanId);
+
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $isCreator = (int) $surat->created_by === (int) $user->id;
+
+        if (! $isAdmin) {
+            if (! $isCreator) {
+                return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk menghapus Surat Tugas ini.'], 403);
+            }
+            if (in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
+                return response()->json(['message' => 'Dokumen Surat Tugas yang telah disetujui hanya dapat dihapus atau diarsipkan oleh Administrator.'], 403);
+            }
+        }
+
         $surat->delete();
 
         return response()->json(['message' => 'Dokumen dipindahkan ke Arsip Sampah.']);
     }
 
-    public function restore(string $id)
+    public function restore(Request $request, string $id)
     {
-        $surat = AssignmentLetter::onlyTrashed()->findOrFail($id);
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $cleanId = preg_replace('/^st-/', '', $id);
+        $surat = AssignmentLetter::onlyTrashed()->findOrFail($cleanId);
+
+        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $isCreator = (int) $surat->created_by === (int) $user->id;
+
+        if (! $isAdmin && ! $isCreator) {
+            return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk memulihkan Surat Tugas ini.'], 403);
+        }
+
         $surat->restore();
 
         return response()->json(['message' => 'Dokumen berhasil dipulihkan.']);
     }
 
-    public function forceDestroy(string $id)
+    public function forceDestroy(Request $request, string $id)
     {
-        $surat = AssignmentLetter::onlyTrashed()->findOrFail($id);
+        $user = $request->user();
+        if (! $user || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+            return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menghapus permanen Surat Tugas.'], 403);
+        }
+
+        $cleanId = preg_replace('/^st-/', '', $id);
+        $surat = AssignmentLetter::onlyTrashed()->findOrFail($cleanId);
 
         if ($surat->file_surat_path) {
             Storage::delete($surat->file_surat_path);
@@ -649,18 +743,23 @@ class AssignmentLetterController extends Controller
 
     public function statusCounts()
     {
-        $counts = AssignmentLetter::selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
+        $counts = AssignmentLetter::selectRaw('LOWER(status) as status_lower, count(*) as total')
+            ->groupByRaw('LOWER(status)')
+            ->pluck('total', 'status_lower');
 
         $trashed = AssignmentLetter::onlyTrashed()->count();
         $total = AssignmentLetter::count();
+
+        $approvedCount = (int) ($counts['approved'] ?? 0)
+            + (int) ($counts['completed'] ?? 0)
+            + (int) ($counts['published'] ?? 0)
+            + (int) ($counts['diterbitkan'] ?? 0);
 
         return response()->json([
             'all' => $total,
             'draft' => (int) ($counts['draft'] ?? 0),
             'pending' => (int) ($counts['pending'] ?? 0),
-            'approved' => (int) ($counts['approved'] ?? 0),
+            'approved' => $approvedCount,
             'rejected' => (int) ($counts['rejected'] ?? 0),
             'trashed' => $trashed,
         ]);
@@ -668,22 +767,47 @@ class AssignmentLetterController extends Controller
 
     public function bulkTrash(Request $request)
     {
-        $ids = $request->input('ids', []);
-        if (!empty($ids) && is_array($ids)) {
-            AssignmentLetter::whereIn('id', $ids)->delete();
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $rawIds = is_array($request->input('ids')) ? $request->input('ids') : [];
+        $ids = array_slice($rawIds, 0, 100);
+        if (!empty($ids)) {
+            $cleanIds = array_map(fn($id) => preg_replace('/^st-/', '', (string) $id), $ids);
+            $query = AssignmentLetter::whereIn('id', $cleanIds);
+            if (! $isAdmin) {
+                $query->where('created_by', $user->id)
+                      ->whereIn('status', ['draft', 'pending', 'rejected', 'DRAFT', 'PENDING', 'REJECTED']);
+            }
+            $count = $query->delete();
+            return response()->json(['message' => $count . ' dokumen dipindahkan ke Arsip Sampah.']);
         }
 
-        return response()->json(['message' => count($ids) . ' dokumen dipindahkan ke Arsip Sampah.']);
+        return response()->json(['message' => '0 dokumen dipindahkan ke Arsip Sampah.']);
     }
 
     public function bulkRestore(Request $request)
     {
-        $ids = $request->input('ids', []);
-        if (!empty($ids) && is_array($ids)) {
-            AssignmentLetter::onlyTrashed()->whereIn('id', $ids)->restore();
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $rawIds = is_array($request->input('ids')) ? $request->input('ids') : [];
+        $ids = array_slice($rawIds, 0, 100);
+        if (!empty($ids)) {
+            $cleanIds = array_map(fn($id) => preg_replace('/^st-/', '', (string) $id), $ids);
+            $query = AssignmentLetter::onlyTrashed()->whereIn('id', $cleanIds);
+            if (! $isAdmin) {
+                $query->where('created_by', $user->id);
+            }
+            $count = $query->restore();
+            return response()->json(['message' => $count . ' dokumen berhasil dipulihkan.']);
         }
 
-        return response()->json(['message' => count($ids) . ' dokumen berhasil dipulihkan.']);
+        return response()->json(['message' => '0 dokumen berhasil dipulihkan.']);
     }
 
     private function authorizeAccess(AssignmentLetter $surat, Request $request): bool
@@ -706,11 +830,21 @@ class AssignmentLetterController extends Controller
 
     public function downloadPdf(Request $request, string $id)
     {
-        $surat = AssignmentLetter::withTrashed()->with('employees')->findOrFail($id);
+        $cleanId = preg_replace('/^st-/', '', $id);
+        $surat = AssignmentLetter::withTrashed()->with('employees')->findOrFail($cleanId);
 
         if (! $this->authorizeAccess($surat, $request)) {
             return response()->json([
                 'message' => 'Anda tidak memiliki otorisasi untuk mengunduh Surat Tugas ini.',
+            ], 403);
+        }
+
+        $user = $request->user();
+        $isAdmin = $user && in_array($user->role, ['admin', 'super_admin'], true);
+        $isCreator = $user && (int) $surat->created_by === (int) $user->id;
+        if (! $isAdmin && ! $isCreator && ! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
+            return response()->json([
+                'message' => 'Dokumen Surat Tugas belum diterbitkan secara resmi.',
             ], 403);
         }
 
@@ -726,16 +860,26 @@ class AssignmentLetterController extends Controller
         $tanggalUpload = $surat->created_at?->format('d-m-Y') ?? date('d-m-Y');
         $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}").'.'.$ext;
         // Sanitize filename
-        $filename = preg_replace('/[\/\\\\:*?"<>|]/', '_', $filename);
+        $filename = preg_replace('/[\r\n"\/\\\\:*?<>|]/', '_', $filename);
 
-        return Storage::download($surat->file_surat_path, $filename);
+        return Storage::download($surat->file_surat_path, $filename, [
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function verify(string $id)
     {
-        $surat = AssignmentLetter::with(['employees:id,nama_lengkap'])->findOrFail($id);
+        $cleanId = preg_replace('/^st-/', '', $id);
+        $surat = AssignmentLetter::with(['employees:id,nama_lengkap'])->find($cleanId);
 
-        if ($surat->status !== 'approved' && $surat->status !== 'completed') {
+        if (! $surat) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Dokumen Surat Tugas tidak ditemukan dalam database resmi.',
+            ], 404);
+        }
+
+        if (! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
             return response()->json([
                 'valid' => false,
                 'message' => 'Dokumen ini tidak memiliki ketetapan hukum yang sah atau statusnya belum disetujui.',
@@ -748,7 +892,7 @@ class AssignmentLetterController extends Controller
             'data' => [
                 'nomor_surat' => $surat->nomor_surat,
                 'maksud_tujuan' => $surat->maksud_tujuan,
-                'tanggal_berlaku' => $surat->tanggal_mulai->format('d M Y').' s/d '.$surat->tanggal_selesai->format('d M Y'),
+                'tanggal_berlaku' => ($surat->tanggal_mulai?->format('d M Y') ?? '-').' s/d '.($surat->tanggal_selesai?->format('d M Y') ?? '-'),
                 'tempat_tujuan' => $surat->tempat_tujuan,
                 'personil' => $surat->employees->pluck('nama_lengkap'),
             ],
@@ -757,6 +901,12 @@ class AssignmentLetterController extends Controller
 
     public function approve(Request $request, string $id)
     {
+        $cleanId = preg_replace('/^st-/', '', $id);
+        $user = $request->user();
+        if (! $user || (! in_array($user->role, ['admin', 'super_admin'], true) && ! $user->hasPermission('surat_tugas.approve'))) {
+            return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menyetujui Surat Tugas.'], 403);
+        }
+
         $request->validate([
             'nomor_surat' => 'nullable|string',
             'kode_surat' => 'nullable|string',
@@ -773,10 +923,10 @@ class AssignmentLetterController extends Controller
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
             'employee_ids' => 'nullable|array',
-            'status' => 'nullable|in:pending,approved',
+            'status' => 'nullable|in:pending,approved,PENDING,APPROVED',
         ]);
 
-        $surat = AssignmentLetter::findOrFail($id);
+        $surat = AssignmentLetter::findOrFail($cleanId);
 
         $targetStatus = $request->input('status'); // null if not provided
 
@@ -802,9 +952,10 @@ class AssignmentLetterController extends Controller
 
             // Only update status if explicitly provided
             if ($targetStatus) {
-                $updateData['status'] = $targetStatus;
-                if ($targetStatus === 'approved') {
-                    $updateData['approved_by'] = auth()->id();
+                $cleanTargetStatus = strtolower($targetStatus);
+                $updateData['status'] = $cleanTargetStatus;
+                if ($cleanTargetStatus === 'approved') {
+                    $updateData['approved_by'] = (int) ($user?->id ?? auth()->id());
                 }
             }
 
@@ -867,26 +1018,35 @@ class AssignmentLetterController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
 
-            return response()->json(['message' => 'Gagal memproses surat: '.$e->getMessage()], 500);
+            return response()->json([
+                'message' => config('app.debug') ? 'Gagal memproses surat: '.$e->getMessage() : 'Terjadi kesalahan sistem saat memproses persetujuan Surat Tugas.',
+            ], 500);
         }
     }
 
     public function getNextNumber()
     {
         $year = now()->year;
-        $lastLetter = AssignmentLetter::whereYear('tanggal_surat', $year)
-            ->orWhereYear('created_at', $year)
+        $letters = AssignmentLetter::where(function ($q) use ($year) {
+                $q->whereYear('tanggal_surat', $year)
+                  ->orWhereYear('created_at', $year);
+            })
             ->whereNotNull('nomor_surat')
-            ->orderBy('nomor_surat', 'desc')
-            ->first();
+            ->pluck('nomor_surat');
 
-        $nextNumber = 1;
-        if ($lastLetter && preg_match('/ST\.(\d+)/', $lastLetter->nomor_surat, $matches)) {
-            $nextNumber = (int) $matches[1] + 1;
+        $maxNumber = 0;
+        foreach ($letters as $num) {
+            if (preg_match('/ST\.(\d+)/i', (string) $num, $matches)) {
+                $val = (int) $matches[1];
+                if ($val > $maxNumber) {
+                    $maxNumber = $val;
+                }
+            }
         }
+        $nextNumber = $maxNumber + 1;
 
         return response()->json([
-            'next_number' => str_pad($nextNumber, 3, '0', STR_PAD_LEFT),
+            'next_number' => str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT),
             'current_year' => $year,
         ]);
     }

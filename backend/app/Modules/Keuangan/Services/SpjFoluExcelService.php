@@ -49,7 +49,9 @@ class SpjFoluExcelService
         $this->populateSpd($spreadsheet, $data, $pegawaiList);
         $this->populateKwitansi($spreadsheet, $data, $recipients);
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'SPJ_FOLU_') . '.xlsx';
+        $tempBase = tempnam(sys_get_temp_dir(), 'SPJ_FOLU_');
+        @unlink($tempBase);
+        $tempFile = $tempBase . '.xlsx';
         $writer = new XlsxWriter($spreadsheet);
         $writer->setPreCalculateFormulas(false);
         $writer->save($tempFile);

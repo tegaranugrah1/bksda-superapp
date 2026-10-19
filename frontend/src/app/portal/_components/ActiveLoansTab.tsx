@@ -4,6 +4,7 @@ import React from "react";
 import { Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatMerkTipe } from "./MyAssetsTab";
+import { cn } from "@/lib/utils";
 
 export interface BorrowedAssetItem {
   id: number;
@@ -36,7 +37,13 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
   return (
     <div className="divide-y divide-slate-100 dark:divide-zinc-800">
       {assets.map((asset) => {
-        const isOverdue = new Date(asset.due_date) < new Date();
+        const cleanStatus = (asset.status || "").toLowerCase();
+        const isOverdue = asset.status === "terlambat" || cleanStatus === "terlambat" || Boolean(
+          (asset.status === "dipinjam" || cleanStatus === "dipinjam") &&
+          asset.due_date &&
+          !Number.isNaN(new Date(asset.due_date).getTime()) &&
+          new Date(asset.due_date) < new Date()
+        );
         const merkDisplay = formatMerkTipe(asset.merk);
 
         return (
@@ -49,21 +56,31 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
               {merkDisplay && (
                 <p className="text-xs text-slate-500 mb-0.5 truncate">{merkDisplay}</p>
               )}
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
-                <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
-                {asset.nup_lama && (
-                  <span className="text-xs text-slate-400">• NUP Lama: {asset.nup_lama}</span>
-                )}
-                {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
-                    {asset.no_polisi}
-                  </span>
-                )}
-              </div>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
+                  <span className="text-xs text-slate-500">NUP: {asset.nup}</span>
+                  {asset.nup_lama && (
+                    <span className="text-xs text-slate-400">• NUP Lama: {asset.nup_lama}</span>
+                  )}
+                  {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
+                      {asset.no_polisi}
+                    </span>
+                  )}
+                  {asset.loan_date && (
+                    <span className="text-xs text-slate-400">
+                      • Pinjam: {new Date(asset.loan_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  )}
+                  {asset.due_date && (
+                    <span className={cn("text-xs font-medium", isOverdue ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-500")}>
+                      • Batas: {new Date(asset.due_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  )}
+                </div>
             </div>
             <Badge variant={isOverdue ? "destructive" : "secondary"} className="shrink-0">
-              {isOverdue ? "Terlambat" : asset.status}
+              {isOverdue ? "Terlambat" : (cleanStatus === "dipinjam" ? "Dipinjam" : asset.status)}
             </Badge>
           </div>
         );

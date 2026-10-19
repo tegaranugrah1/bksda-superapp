@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -46,6 +47,9 @@ class AuthController extends Controller
 
         // Login user secara session-based (HttpOnly Cookie)
         \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         // Return sesuai format Rule 5.1
         return response()->json([
@@ -81,7 +85,7 @@ class AuthController extends Controller
         if ($employee) {
             try {
                 $loans = AssetLoan::where('employee_id', $employee->id)
-                    ->whereIn('status', ['dipinjam', 'terlambat'])
+                    ->whereIn('status', ['dipinjam', 'terlambat', 'DIPINJAM', 'TERLAMBAT'])
                     ->with('asset')
                     ->orderByDesc('tanggal_pinjam')
                     ->limit(20)
@@ -123,7 +127,7 @@ class AuthController extends Controller
                     'nup' => $loan->asset->nup,
                     'nup_lama' => $loan->asset->nup_lama,
                     'loan_date' => $loan->tanggal_pinjam?->toIso8601String(),
-                    'due_date' => $loan->tanggal_kembali?->toIso8601String(),
+                    'due_date' => ($loan->due_date ?? $loan->tanggal_kembali)?->toIso8601String(),
                     'status' => $loan->status,
                     'merk' => $loan->asset->merk_tipe ?? $loan->asset->merk,
                     'jenis_bmn' => $loan->asset->jenis_bmn,
@@ -175,6 +179,13 @@ class AuthController extends Controller
         // Password change is a credential reset event; revoke every issued token.
         $user->tokens()->delete();
 
+        // Invalidate session cookie for web guard if active
+        \Illuminate\Support\Facades\Auth::guard('web')->logout();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         return response()->json([
             'message' => 'Password berhasil diubah',
         ]);
@@ -202,9 +213,10 @@ class AuthController extends Controller
         }
 
         // Store new photo
-        $folder = 'employees/' . \Illuminate\Support\Str::slug($employee->nama_lengkap) . '/foto-profil';
+        $slugName = \Illuminate\Support\Str::slug($employee->nama_lengkap ?: $employee->nip ?: 'pegawai');
+        $folder = 'employees/' . $slugName . '/foto-profil';
         $ext = $request->file('foto')->extension();
-        $filename = \Illuminate\Support\Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
+        $filename = $slugName . '_profil.' . $ext;
         $path = $request->file('foto')->storeAs($folder, $filename);
         $employee->update(['foto_profil' => $path]);
 
@@ -219,25 +231,74 @@ class AuthController extends Controller
      */
     public function updateProfile(Request $request): JsonResponse
     {
+        $user = $request->user();
         $request->validate([
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:20',
+            'email' => ['nullable', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
         ]);
 
-        $user = $request->user();
         $employee = Employee::where('nip', $user->username)->first();
 
-        if ($employee) {
-            $employee->update(array_filter([
-                'email' => $request->input('email'),
-                'no_telepon' => $request->input('phone'),
-            ], fn($v) => $v !== null));
+        if ($request->has('email')) {
+            $cleanEmail = $request->filled('email') ? trim(strtolower((string) $request->input('email'))) : null;
+            if ($employee) {
+                $employee->update(['email' => $cleanEmail]);
+            }
+            if ($cleanEmail !== null) {
+                $user->update(['email' => $cleanEmail]);
+            }
         }
 
-        if ($request->filled('email')) {
-            $user->update(['email' => $request->input('email')]);
+        if ($request->has('phone')) {
+            $cleanPhone = $request->filled('phone') ? trim((string) $request->input('phone')) : null;
+            if ($employee) {
+                $employee->update(['no_telepon' => $cleanPhone]);
+            }
         }
 
         return response()->json(['message' => 'Profil berhasil diperbarui.']);
+    }
+
+    /**
+     * Endpoint: GET /api/me/assets
+     */
+    public function myAssets(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $employee = Employee::where('nip', $user->username)->first();
+
+        if (! $employee) {
+            return response()->json(['data' => []]);
+        }
+
+        $fullName = trim($employee->nama_lengkap ?? '');
+        $escapedName = addcslashes(mb_strtolower($fullName), '%_');
+        $assets = \App\Modules\Bmn\Models\Asset::where(function ($q) use ($employee, $fullName, $escapedName) {
+            $q->where('employee_id', $employee->id);
+            if (mb_strlen($fullName) >= 3) {
+                $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
+                  ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+            }
+        })
+        ->select([
+            'id', 'nama_barang', 'kode_barang', 'nup', 'nup_lama',
+            'merk', 'tipe', 'merk_tipe', 'kondisi', 'no_polisi', 'jenis_bmn',
+            'foto_geotag_url', 'foto_geotag_path', 'updated_at',
+        ])
+        ->latest()->limit(50)->get()
+        ->map(function ($asset) use ($request) {
+            if ($asset->foto_geotag_path && ! $asset->foto_geotag_url) {
+                $token = $request->bearerToken() ?: $request->query('token');
+                $tokenParam = $token ? "&token=" . urlencode($token) : "";
+                $v = $asset->updated_at?->timestamp ?: time();
+                $asset->foto_geotag_url = "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}{$tokenParam}";
+            }
+            if ($asset->foto_geotag_path && ! str_starts_with($asset->foto_geotag_path, 'http')) {
+                $asset->foto_geotag_path = null;
+            }
+            return $asset;
+        });
+
+        return response()->json(['data' => $assets]);
     }
 }

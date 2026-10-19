@@ -278,7 +278,9 @@ class AssetPhotoController extends Controller
                 $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag.{$ext}";
                 return response()->streamDownload(function () use ($asset) {
                     echo $this->disk()->get($asset->foto_geotag_path);
-                }, $filename);
+                }, $filename, [
+                    'X-Content-Type-Options' => 'nosniff',
+                ]);
             }
 
             if ($asset->foto_geotag_url) {
@@ -304,7 +306,9 @@ class AssetPhotoController extends Controller
 
         return response()->streamDownload(function () use ($asset, $column) {
             echo $this->disk()->get($asset->$column);
-        }, $filename);
+        }, $filename, [
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     /**
@@ -350,17 +354,17 @@ class AssetPhotoController extends Controller
         $zip = new ZipArchive();
         $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-        // Stream each file from storage (works with both local and S3 disks)
+        // Stream each file from storage directly into ZIP without disk leaks
         foreach ($entries as $entry) {
-            $tempFile = tempnam(sys_get_temp_dir(), 'bmn_');
-            file_put_contents($tempFile, $this->disk()->get($entry['storage_path']));
-            $zip->addFile($tempFile, $entry['name']);
+            $zip->addFromString($entry['name'], $this->disk()->get($entry['storage_path']));
         }
 
         $zip->close();
 
         // Clean up temp files after sending
-        return response()->download($zipPath, $zipName)->deleteFileAfterSend(true);
+        return response()->download($zipPath, $zipName, [
+            'X-Content-Type-Options' => 'nosniff',
+        ])->deleteFileAfterSend(true);
     }
 
     /**
@@ -374,7 +378,9 @@ class AssetPhotoController extends Controller
             if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
                 $file = $this->disk()->get($asset->foto_geotag_path);
                 $mime = $this->disk()->mimeType($asset->foto_geotag_path) ?: 'image/jpeg';
-                return response($file, 200)->header('Content-Type', $mime);
+                return response($file, 200)
+                    ->header('Content-Type', $mime)
+                    ->header('X-Content-Type-Options', 'nosniff');
             }
 
             if ($asset->foto_geotag_url) {
@@ -398,6 +404,8 @@ class AssetPhotoController extends Controller
         $file = $this->disk()->get($asset->$column);
         $mime = $this->disk()->mimeType($asset->$column) ?: 'image/jpeg';
 
-        return response($file, 200)->header('Content-Type', $mime);
+        return response($file, 200)
+            ->header('Content-Type', $mime)
+            ->header('X-Content-Type-Options', 'nosniff');
     }
 }

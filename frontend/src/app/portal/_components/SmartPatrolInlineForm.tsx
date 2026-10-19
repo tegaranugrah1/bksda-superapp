@@ -21,6 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { SmartPatrolPrint, SmartPatrolReportData, TemuanSatwaLiarItem } from "./SmartPatrolPrint";
+import { toast } from "sonner";
 
 interface SmartPatrolInlineFormProps {
   onBack: () => void;
@@ -51,6 +52,14 @@ export function SmartPatrolInlineForm({ onBack }: SmartPatrolInlineFormProps) {
   const [coverMode, setCoverMode] = useState<"standard" | "custom">("standard");
   const [customCoverFile, setCustomCoverFile] = useState<File | null>(null);
   const [customCoverPreview, setCustomCoverPreview] = useState<string>("");
+
+  useEffect(() => {
+    return () => {
+      if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(customCoverPreview);
+      }
+    };
+  }, [customCoverPreview]);
 
   // === Section II: Basic Info ===
   const [namaKegiatan, setNamaKegiatan] = useState("");
@@ -223,6 +232,17 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
   const [tallySheetFile, setTallySheetFile] = useState<File | null>(null);
   const [sptFile, setSptFile] = useState<File | null>(null);
   const [dokumentasiFiles, setDokumentasiFiles] = useState<File[]>([]);
+  const [dokumentasiPreviews, setDokumentasiPreviews] = useState<string[]>([]);
+
+  // Prevent memory leak by creating and revoking Object URLs deterministically
+  useEffect(() => {
+    const urls = dokumentasiFiles.map((file) => URL.createObjectURL(file));
+    setDokumentasiPreviews(urls);
+
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [dokumentasiFiles]);
 
   // Fetch ST specifically filtered by "patrol"
   const fetchMySuratTugas = useCallback(async () => {
@@ -235,7 +255,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
           st.maksud_tujuan?.toLowerCase().includes("patrol") || 
           st.nomor_surat?.toLowerCase().includes("patrol")
         );
-        setStOptions(filtered);
+        setStOptions(filtered.length > 0 ? filtered : dataArray);
       }
     } catch (err) {
       console.error("Gagal mengambil Surat Tugas:", err);
@@ -251,7 +271,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
   // Autofill fields when ST changes
   useEffect(() => {
     if (selectedSTId) {
-      const st = stOptions.find(o => o.id === selectedSTId);
+      const st = stOptions.find(o => String(o.id) === String(selectedSTId));
       if (st) {
         setNamaKegiatan(st.maksud_tujuan);
         
@@ -275,9 +295,23 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
   const handleCustomCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (!file.type.startsWith("image/")) {
+        toast.error("File cover harus berupa gambar (JPG, PNG, atau WEBP).");
+        e.target.value = "";
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Ukuran file cover maksimal 10 MB.");
+        e.target.value = "";
+        return;
+      }
+      if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(customCoverPreview);
+      }
       setCustomCoverFile(file);
       setCustomCoverPreview(URL.createObjectURL(file));
       setCoverMode("custom");
+      e.target.value = "";
     }
   };
 
@@ -286,10 +320,33 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
   const scrollPositions = useRef({ edit: 0, print: 0 });
 
   const handleDokumentasiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setDokumentasiFiles((prev) => [...prev, ...newFiles]);
+    if (!e.target.files || e.target.files.length === 0) return;
+    const incoming = Array.from(e.target.files);
+    const validFiles: File[] = [];
+
+    for (const file of incoming) {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`File ${file.name} bukan format gambar.`);
+        continue;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`File ${file.name} melebihi batas maksimal 10 MB.`);
+        continue;
+      }
+      validFiles.push(file);
     }
+
+    if (validFiles.length > 0) {
+      setDokumentasiFiles((prev) => {
+        const combined = [...prev, ...validFiles];
+        if (combined.length > 30) {
+          toast.warning("Maksimal 30 foto dokumentasi (kelebihannya diabaikan).");
+          return combined.slice(0, 30);
+        }
+        return combined;
+      });
+    }
+    e.target.value = "";
   };
 
   const handleToggleMode = () => {
@@ -339,7 +396,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
     ruangLingkup,
     waktuTempat,
     pelaksanaKegiatan,
-    pelaksanaEmployees: stOptions.find((o) => o.id === selectedSTId)?.employees,
+    pelaksanaEmployees: stOptions.find((o) => String(o.id) === String(selectedSTId))?.employees,
     alatBahan,
     metodePelaksanaan,
     tahapanPelaksanaan,
@@ -352,7 +409,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
     kesimpulan,
     saran,
     penutup,
-    dokumentasiPreviews: dokumentasiFiles.map((f) => URL.createObjectURL(f)),
+    dokumentasiPreviews,
     tallySheetName: tallySheetFile?.name,
     sptName: sptFile?.name,
   };
@@ -456,10 +513,10 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                       {selectedSTId ? (
                         <>
                           <span className="font-bold text-slate-900 dark:text-slate-100 text-sm truncate w-full">
-                            {stOptions.find((st) => st.id === selectedSTId)?.nomor_surat || "[ Tanpa Nomor ST ]"}
+                            {stOptions.find((st) => String(st.id) === String(selectedSTId))?.nomor_surat || "[ Tanpa Nomor ST ]"}
                           </span>
                           <span className="text-xs text-slate-500 font-normal truncate w-full">
-                            {stOptions.find((st) => st.id === selectedSTId)?.maksud_tujuan}
+                            {stOptions.find((st) => String(st.id) === String(selectedSTId))?.maksud_tujuan}
                           </span>
                         </>
                       ) : (
@@ -490,15 +547,15 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                         key={st.id}
                         className={cn(
                           "flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors mb-1",
-                          selectedSTId === st.id ? "bg-blue-50 dark:bg-blue-900/30" : "hover:bg-slate-50 dark:hover:bg-slate-800"
+                          String(selectedSTId) === String(st.id) ? "bg-blue-50 dark:bg-blue-900/30" : "hover:bg-slate-50 dark:hover:bg-slate-800"
                         )}
                         onClick={() => {
-                          setSelectedSTId(st.id);
+                          setSelectedSTId(String(st.id));
                           setStPopoverOpen(false);
                           setStSearch("");
                         }}
                       >
-                        <Check className={cn("w-4 h-4 mt-0.5 shrink-0 text-blue-600", selectedSTId === st.id ? "opacity-100" : "opacity-0")} />
+                        <Check className={cn("w-4 h-4 mt-0.5 shrink-0 text-blue-600", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
                         <div>
                           <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{st.nomor_surat}</p>
                           <p className="text-xs text-slate-500 mt-1 line-clamp-2">{st.maksud_tujuan}</p>
@@ -541,7 +598,12 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
             </div>
             {coverMode === "custom" && customCoverPreview && (
               <div className="mt-4 relative rounded-xl overflow-hidden border border-slate-200 inline-block">
-                <img src={customCoverPreview} alt="Cover Preview" className="h-64 object-cover" />
+                <img
+                  src={customCoverPreview}
+                  alt="Cover Preview"
+                  className="h-64 object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                />
                 <Button
                   size="icon"
                   variant="destructive"
@@ -787,14 +849,50 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
               <div className="space-y-2">
                 <Label>1. TALLY SHEET</Label>
                 <div className="flex gap-2">
-                  <Input type="file" onChange={(e) => { if (e.target.files) setTallySheetFile(e.target.files[0]) }} />
+                  <Input 
+                    type="file" 
+                    accept=".pdf,image/*" 
+                    onChange={(e) => { 
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
+                        toast.error("File Tally Sheet harus berupa Gambar atau PDF.");
+                        e.target.value = "";
+                        return;
+                      }
+                      if (f.size > 10 * 1024 * 1024) {
+                        toast.error("Ukuran file tally sheet maksimal 10 MB.");
+                        e.target.value = "";
+                        return;
+                      }
+                      setTallySheetFile(f);
+                    }} 
+                  />
                   {tallySheetFile && <Button variant="destructive" size="icon" onClick={() => setTallySheetFile(null)}><Trash2 className="w-4 h-4" /></Button>}
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>2. SURAT PERINTAH TUGAS (SPT)</Label>
                 <div className="flex gap-2">
-                  <Input type="file" onChange={(e) => { if (e.target.files) setSptFile(e.target.files[0]) }} />
+                  <Input 
+                    type="file" 
+                    accept=".pdf,image/*" 
+                    onChange={(e) => { 
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
+                        toast.error("File SPT harus berupa Gambar atau PDF.");
+                        e.target.value = "";
+                        return;
+                      }
+                      if (f.size > 10 * 1024 * 1024) {
+                        toast.error("Ukuran file SPT maksimal 10 MB.");
+                        e.target.value = "";
+                        return;
+                      }
+                      setSptFile(f);
+                    }} 
+                  />
                   {sptFile && <Button variant="destructive" size="icon" onClick={() => setSptFile(null)}><Trash2 className="w-4 h-4" /></Button>}
                 </div>
               </div>
@@ -805,9 +903,9 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                 </div>
                 {dokumentasiFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {dokumentasiFiles.map((file, idx) => (
+                    {dokumentasiPreviews.map((url, idx) => (
                       <div key={idx} className="relative rounded-lg overflow-hidden border border-slate-200">
-                        <img src={URL.createObjectURL(file)} alt="Dok" className="w-20 h-20 object-cover" />
+                        <img src={url} alt="Dok" className="w-20 h-20 object-cover" />
                         <Button 
                           variant="destructive" size="icon" 
                           className="absolute top-1 right-1 w-6 h-6 rounded-full"

@@ -217,7 +217,12 @@ function PortalContent() {
   const [activeNavTab, setActiveNavTab] = useState<string>(() => {
     if (typeof window !== "undefined") {
       const savedTab = localStorage.getItem("bksda_portal_nav_tab");
-      if (savedTab) return savedTab;
+      if (
+        savedTab &&
+        ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"].includes(savedTab)
+      ) {
+        return savedTab;
+      }
     }
     return "dashboard";
   });
@@ -290,26 +295,21 @@ function PortalContent() {
     }
   }, [employeeId]);
 
-  const fetchAssets = useCallback(async (targetEmpId?: number) => {
-    const empId = targetEmpId ?? employeeId;
-    if (!empId) {
-      setMyAssets([]);
-      return;
-    }
+  const fetchAssets = useCallback(async () => {
     try {
-      const respMy = await api.get("/bmn/assets", { params: { employee_id: empId, per_page: 50 } });
+      const respMy = await api.get("/me/assets");
       setMyAssets(respMy.data.data || []);
     } catch {
       // Keep existing list on background error
     } finally {
       setAssetsLoading(false);
     }
-  }, [employeeId]);
+  }, []);
 
   const fetchSTDetail = useCallback(async (id: string) => {
     setStDetailLoading(true);
     try {
-      const resp = await api.get(`/surat-tugas/my/${id}`);
+      const resp = await api.get(`/surat-tugas/my/${encodeURIComponent(id)}`);
       setStDetail(resp.data.data || resp.data);
       setStPreviewOpen(true);
     } catch {
@@ -327,25 +327,38 @@ function PortalContent() {
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [printLeaveData, setPrintLeaveData] = useState<LeaveRequestPrintData | null>(null);
 
-  const fetchMyLeaveRequests = useCallback(async (targetEmpId?: number) => {
-    const empId = targetEmpId ?? employeeId;
+  useEffect(() => {
+    if (!printLeaveData) return;
+    const handleAfterPrint = () => {
+      setPrintLeaveData(null);
+    };
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => {
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, [printLeaveData]);
+
+  const fetchMyLeaveRequests = useCallback(async () => {
     try {
       const res = await api.get("/me/leave-requests");
       setMyLeaveRequests(res.data.data || []);
-      if (empId) {
-        const balRes = await api.get(`/kepegawaian/employees/${empId}/leaves?year=${currentYear}`);
-        setMyLeaveBalance(balRes.data.data);
-      }
+      const balRes = await api.get(`/me/leave-balance?year=${currentYear}`);
+      setMyLeaveBalance(balRes.data.data);
     } catch (e) {}
-  }, [employeeId, currentYear]);
+  }, [currentYear]);
 
-  // Initial dashboard load with fast cache populate
+  // Initial dashboard load with fast cache populate (strictly validated to active user session)
   useEffect(() => {
     try {
-      const cached = localStorage.getItem("bksda_portal_dashboard_cache");
-      if (cached) {
-        setData(JSON.parse(cached));
-        setLoading(false);
+      const cachedStr = localStorage.getItem("bksda_portal_dashboard_cache");
+      const currentStoredUser = localStorage.getItem("bksda_user");
+      if (cachedStr && currentStoredUser) {
+        const cached = JSON.parse(cachedStr);
+        const currentUser = JSON.parse(currentStoredUser);
+        if (cached?.user?.username && cached.user.username === currentUser?.username) {
+          setData(cached);
+          setLoading(false);
+        }
       }
     } catch {}
     fetchDashboard();
@@ -369,8 +382,8 @@ function PortalContent() {
   useEffect(() => {
     if (employeeId) {
       fetchSuratTugas(employeeId);
-      fetchAssets(employeeId);
-      fetchMyLeaveRequests(employeeId);
+      fetchAssets();
+      fetchMyLeaveRequests();
     }
   }, [employeeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -385,8 +398,8 @@ function PortalContent() {
       fetchDashboard();
       if (employeeId) {
         fetchSuratTugas(employeeId);
-        fetchAssets(employeeId);
-        fetchMyLeaveRequests(employeeId);
+        fetchAssets();
+        fetchMyLeaveRequests();
       }
     };
   }, [fetchDashboard, fetchSuratTugas, fetchAssets, fetchMyLeaveRequests, employeeId]);
@@ -511,7 +524,7 @@ function PortalContent() {
         </header>
 
         {/* 3-COLUMN HYBRID LAYOUT (MYASN INSPIRED) */}
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6 print:p-0 print:m-0 print:block print:max-w-none">
+        <div className={cn("max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6 print:p-0 print:m-0 print:block print:max-w-none", printLeaveData && "print:hidden")}>
           {/* LEFT COLUMN: SIDEBAR PROFIL & NAVIGASI */}
           <div className="w-full lg:w-72 shrink-0 print:hidden">
             <PortalProfileSidebar
@@ -570,6 +583,8 @@ function PortalContent() {
                   rankLevel={data.employee?.rank_level}
                   activeSuratTugasCount={suratTugas.length}
                   myAssetsCount={filteredMyAssets.length}
+                  leaveBalance={myLeaveBalance}
+                  year={currentYear}
                   onSelectTab={(t) => setActiveNavTab(t)}
                 />
 
@@ -642,6 +657,16 @@ function PortalContent() {
                 <MyLeaveTab
                   myLeaveRequests={myLeaveRequests}
                   onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
+                  onCancelLeave={async (id) => {
+                    if (!confirm("Apakah Anda yakin ingin membatalkan permohonan cuti ini?")) return;
+                    try {
+                      await api.delete(`/me/leave-requests/${id}`);
+                      toast.success("Permohonan cuti berhasil dibatalkan.");
+                      fetchMyLeaveRequests();
+                    } catch (err: any) {
+                      toast.error(err.response?.data?.message || "Gagal membatalkan permohonan cuti.");
+                    }
+                  }}
                   onPrintLeave={(item) => {
                     setPrintLeaveData(item);
                     setTimeout(() => window.print(), 300);

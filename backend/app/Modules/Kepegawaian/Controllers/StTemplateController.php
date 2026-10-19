@@ -8,6 +8,7 @@ use App\Modules\Kepegawaian\Requests\StoreStTemplateRequest;
 use App\Modules\Kepegawaian\Requests\UpdateStTemplateRequest;
 use App\Modules\Kepegawaian\Resources\StTemplateResource;
 use App\Modules\Kepegawaian\Services\StTemplateService;
+use App\Support\Security\UploadValidationRules;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -115,11 +116,11 @@ class StTemplateController extends Controller
     public function uploadKop(Request $request): JsonResponse
     {
         $request->validate([
-            'kop' => ['required', 'file', 'image', 'mimes:png,jpg,jpeg,webp', 'max:5120'],
+            'kop' => UploadValidationRules::image(maxKilobytes: 5120),
         ]);
 
         $file = $request->file('kop');
-        $extension = $file->getClientOriginalExtension() ?: 'png';
+        $extension = $file->extension() ?: 'png';
         $filename = 'kop_' . time() . '_' . Str::random(8) . '.' . $extension;
         $path = $file->storeAs('kop-surat', $filename, 'public');
 
