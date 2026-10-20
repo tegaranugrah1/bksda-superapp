@@ -155,6 +155,10 @@ export function PortalProfileSidebar({
       toast.error("Konfirmasi password baru tidak cocok.");
       return;
     }
+    if (pwData.new_password === pwData.current_password) {
+      toast.error("Password baru tidak boleh sama dengan password saat ini.");
+      return;
+    }
     setPwLoading(true);
     try {
       await api.post("/me/change-password", pwData);

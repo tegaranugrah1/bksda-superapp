@@ -15,7 +15,14 @@ class ChangePasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string', 'current_password'],
-            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+            'new_password' => ['required', 'string', 'min:8', 'confirmed', 'different:current_password'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'new_password.different' => 'Password baru tidak boleh sama dengan password saat ini.',
         ];
     }
 }

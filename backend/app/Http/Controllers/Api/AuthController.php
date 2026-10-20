@@ -156,8 +156,9 @@ class AuthController extends Controller
         }
 
         // Hapus token yang sedang digunakan jika terautentikasi lewat token
-        if ($request->user() && $request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete();
+        $token = $request->user()?->currentAccessToken();
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
         }
 
         return response()->json([

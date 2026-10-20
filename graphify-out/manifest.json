@@ -5,8 +5,8 @@
     "semantic_hash": "2f2670011adf39d3a4a096715853087f"
   },
   "backend/app/Http/Controllers/Api/AuthController.php": {
-    "mtime": 1792452535.7655735,
-    "ast_hash": "0e4f8b366e41506ed94b786ec5ed29e7",
+    "mtime": 1792454740.543464,
+    "ast_hash": "68a89b876837babb2389e9d4424ee28b",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/MobileDashboardController.php": {
@@ -40,9 +40,9 @@
     "semantic_hash": "3a0bfa6e62ceb9d2807f45849707838e"
   },
   "backend/app/Http/Requests/Auth/ChangePasswordRequest.php": {
-    "mtime": 1778138197.7764032,
-    "ast_hash": "db9ea42c05423f890c1c45887f34236c",
-    "semantic_hash": "db9ea42c05423f890c1c45887f34236c"
+    "mtime": 1792454797.0258126,
+    "ast_hash": "37d58ba4432dbea6f8098a6346d7fb10",
+    "semantic_hash": ""
   },
   "backend/app/Http/Requests/Auth/LoginRequest.php": {
     "mtime": 1778138197.7774076,
@@ -5685,8 +5685,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalProfileSidebar.tsx": {
-    "mtime": 1792403811.9960134,
-    "ast_hash": "172b58a4058a8e8ddbbff697d3e48a4a",
+    "mtime": 1792454808.2395911,
+    "ast_hash": "e3c27a6a204bd61e27587f5c13b07f92",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalQuickStats.tsx": {
@@ -6680,8 +6680,8 @@
     "semantic_hash": ""
   },
   "backend/tests/portal_security_check.php": {
-    "mtime": 1792454470.478263,
-    "ast_hash": "f8dc8a07975cb15a8b476d0e32886b86",
+    "mtime": 1792454825.7853622,
+    "ast_hash": "51fcb62f7606c911fc84098392d0b42a",
     "semantic_hash": ""
   },
   "skills-lock.json": {

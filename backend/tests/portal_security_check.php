@@ -1265,6 +1265,24 @@ assert(
     'EmployeeLeaveRequestController must fallback to employee no_telepon and support bilingual status filtering in myIndex'
 );
 
+// 197. TransientToken Logout Crash Guard & Password Rotation Reuse Invariant
+$authCtrlCheck71 = file_get_contents(__DIR__ . '/../app/Http/Controllers/Api/AuthController.php');
+$changePwReqCheck71 = file_get_contents(__DIR__ . '/../app/Http/Requests/Auth/ChangePasswordRequest.php');
+$profileSidebarCheck71 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/PortalProfileSidebar.tsx');
+
+assert(
+    str_contains($authCtrlCheck71, "method_exists(\$token, 'delete')"),
+    'AuthController logout must guard against TransientToken without delete method'
+);
+assert(
+    str_contains($changePwReqCheck71, "'different:current_password'"),
+    'ChangePasswordRequest must enforce different:current_password rule to prevent password reuse'
+);
+assert(
+    str_contains($profileSidebarCheck71, "pwData.new_password === pwData.current_password"),
+    'PortalProfileSidebar must validate that new password is not identical to current password'
+);
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 
