@@ -259,7 +259,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
       const resp = await api.get("/surat-tugas/my", { params: { per_page: 100 } });
       const dataArray = resp.data?.data || resp.data;
       if (Array.isArray(dataArray)) {
-        const filtered = dataArray.filter((st: any) => 
+        const filtered = dataArray.filter((st: { maksud_tujuan?: string; nomor_surat?: string }) => 
           st.maksud_tujuan?.toLowerCase().includes("patrol") || 
           st.nomor_surat?.toLowerCase().includes("patrol")
         );

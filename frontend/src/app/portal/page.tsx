@@ -663,7 +663,8 @@ function PortalContent() {
                       await api.delete(`/me/leave-requests/${id}`);
                       toast.success("Permohonan cuti berhasil dibatalkan.");
                       fetchMyLeaveRequests();
-                    } catch (err: any) {
+                    } catch (error: unknown) {
+                      const err = error as { response?: { data?: { message?: string } } };
                       toast.error(err.response?.data?.message || "Gagal membatalkan permohonan cuti.");
                     }
                   }}

@@ -355,7 +355,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
       // 5. Pelaksana Auto
       if (Array.isArray(st.employees) && st.employees.length > 0) {
         setPelaksana(
-          st.employees.map((e: any, idx: number) => ({
+          st.employees.map((e: { nama_lengkap?: string; name?: string; nip?: string; jabatan?: string }, idx: number) => ({
             no: idx + 1,
             nama_lengkap: e.nama_lengkap || e.name || "Pegawai",
             nip: e.nip || "-",

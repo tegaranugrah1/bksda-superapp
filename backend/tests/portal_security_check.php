@@ -1299,6 +1299,27 @@ assert($leaveShowRoute72 !== null && ($leaveShowRoute72->wheres['id'] ?? '') ===
 $leaveDelRoute72 = $routes->first(fn($r) => $r->uri() === 'api/me/leave-requests/{id}' && in_array('DELETE', $r->methods()));
 assert($leaveDelRoute72 !== null && ($leaveDelRoute72->wheres['id'] ?? '') === '[0-9]+', 'DELETE api/me/leave-requests/{id} missing whereNumber constraint');
 
+// 199. Portal Frontend Strict Error Typing & Boundary Invariants
+$portalPageCode73 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/page.tsx');
+$leaveDialogCode73 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/LeaveRequestDialog.tsx');
+$kalkulatorTabCode73 = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/KalkulatorDinasTab.tsx');
+
+assert(
+    str_contains($portalPageCode73, 'catch (error: unknown)') &&
+    str_contains($portalPageCode73, 'const err = error as { response?: { data?: { message?: string } } }'),
+    'portal/page.tsx onCancelLeave must use strictly-typed error boundary'
+);
+assert(
+    str_contains($leaveDialogCode73, 'onError: (error: unknown) =>') &&
+    str_contains($leaveDialogCode73, 'const err = error as { response?: { data?: { message?: string } } }'),
+    'LeaveRequestDialog mutation must use strictly-typed error boundary'
+);
+assert(
+    str_contains($kalkulatorTabCode73, 'catch (e: unknown)') &&
+    str_contains($kalkulatorTabCode73, 'const err = e as { name?: string; code?: number }'),
+    'KalkulatorDinasTab storage save must use strictly-typed error boundary'
+);
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

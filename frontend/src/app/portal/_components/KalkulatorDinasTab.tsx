@@ -199,8 +199,9 @@ export function KalkulatorDinasTab({
       if (notify) {
         toast.success("Draf pertanggungjawaban panjar berhasil disimpan!");
       }
-    } catch (e: any) {
-      if (e?.name === "QuotaExceededError" || e?.code === 22) {
+    } catch (e: unknown) {
+      const err = e as { name?: string; code?: number };
+      if (err?.name === "QuotaExceededError" || err?.code === 22) {
         toast.warning("Memori penyimpanan peramban penuh karena lampiran foto nota. Mohon kurangi lampiran gambar.");
       } else if (notify) {
         toast.error("Gagal menyimpan draf.");

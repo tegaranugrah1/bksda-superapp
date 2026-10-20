@@ -74,7 +74,8 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
       onSuccess();
       onClose();
     },
-    onError: (err: any) => {
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
       toast.error(err.response?.data?.message || "Gagal mengajukan cuti.");
     },
   });
