@@ -85,7 +85,7 @@ class AuctionBatchService
         $query = Asset::query()->where('kondisi', 'Rusak Berat');
 
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
+            $search = addcslashes(trim((string) $filters['search']), '%_');
             $query->where(function ($q) use ($search) {
                 $q->where('nama_barang', 'LIKE', "%{$search}%")
                   ->orWhere('kode_barang', 'LIKE', "%{$search}%")

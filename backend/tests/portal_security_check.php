@@ -1365,6 +1365,19 @@ assert(str_contains($bmnAssetImportCode, "in_array(\$scheme, ['http', 'https'], 
 // Photo zip temp collision protection
 assert(str_contains($bmnAssetPhotoCtrlCode, 'bin2hex(random_bytes(8))'), 'AssetPhotoController downloadAll must use unique temp path to prevent race conditions');
 
+// Auction batch search grouping & wildcard escaping
+$bmnAuctionBatchCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Controllers/AuctionBatchController.php');
+assert(str_contains($bmnAuctionBatchCtrlCode, "addcslashes(trim((string) \$request->search), '%_')"), 'AuctionBatchController search missing addcslashes wildcard escaping');
+assert(str_contains($bmnAuctionBatchCtrlCode, "\$query->where(function (\$q) use (\$search) {"), 'AuctionBatchController search must use nested closure to prevent SQL precedence status bypass');
+
+// Auction candidates wildcard escaping
+$bmnAuctionBatchSvcCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Services/AuctionBatchService.php');
+assert(str_contains($bmnAuctionBatchSvcCode, "addcslashes(trim((string) \$filters['search']), '%_')"), 'AuctionBatchService getCandidates missing addcslashes wildcard escaping');
+
+// Usage agreement employee filter wildcard escaping
+$bmnUsageAgreementCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Controllers/UsageAgreementController.php');
+assert(str_contains($bmnUsageAgreementCtrlCode, "addcslashes(\$rawFullName, '%_')"), 'UsageAgreementController employee filter missing addcslashes wildcard escaping');
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

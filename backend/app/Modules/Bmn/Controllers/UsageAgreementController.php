@@ -188,22 +188,24 @@ class UsageAgreementController extends Controller
         $query->where(function ($q) use ($employee) {
             $q->where('employee_id', $employee->id);
 
-            $fullName = trim((string) $employee->nama_lengkap);
-            if ($fullName !== '') {
+            $rawFullName = trim((string) $employee->nama_lengkap);
+            if ($rawFullName !== '') {
+                $fullName = addcslashes($rawFullName, '%_');
                 $q->orWhere('pengguna', 'LIKE', '%' . $fullName . '%')
                     ->orWhere('nama_pengguna', 'LIKE', '%' . $fullName . '%');
 
-                if (str_contains($fullName, ',')) {
-                    $baseName = trim(explode(',', $fullName)[0]);
+                if (str_contains($rawFullName, ',')) {
+                    $baseName = addcslashes(trim(explode(',', $rawFullName)[0]), '%_');
                     if (strlen($baseName) > 2) {
                         $q->orWhere('pengguna', 'LIKE', '%' . $baseName . '%')
                             ->orWhere('nama_pengguna', 'LIKE', '%' . $baseName . '%');
                     }
                 }
 
-                $words = preg_split('/\s+/', $fullName) ?: [];
+                $words = preg_split('/\s+/', $rawFullName) ?: [];
                 if (count($words) >= 2) {
-                    $q->orWhere('pengguna', 'LIKE', '%' . $words[0] . ' ' . $words[1] . '%');
+                    $twoWords = addcslashes($words[0] . ' ' . $words[1], '%_');
+                    $q->orWhere('pengguna', 'LIKE', '%' . $twoWords . '%');
                 }
             }
         });

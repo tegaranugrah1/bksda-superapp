@@ -2581,18 +2581,18 @@
       "label": ".store()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L69",
+      "source_location": "L71",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_store",
-      "community": 607,
-      "community_name": "CreateAuctionBatchRequest",
+      "community": 365,
+      "community_name": "AuctionBatchController",
       "norm_label": ".store()"
     },
     {
       "label": ".show()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L84",
+      "source_location": "L86",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_show",
       "community": 365,
@@ -2603,7 +2603,7 @@
       "label": ".destroy()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L100",
+      "source_location": "L102",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_destroy",
       "community": 365,
@@ -2614,7 +2614,7 @@
       "label": ".candidates()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L124",
+      "source_location": "L126",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_candidates",
       "community": 7,
@@ -2625,7 +2625,7 @@
       "label": ".checklist()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L136",
+      "source_location": "L138",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_checklist",
       "community": 365,
@@ -2636,7 +2636,7 @@
       "label": ".addAssets()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L152",
+      "source_location": "L154",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_addassets",
       "community": 365,
@@ -2647,7 +2647,7 @@
       "label": ".removeAsset()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L165",
+      "source_location": "L167",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_removeasset",
       "community": 365,
@@ -2658,7 +2658,7 @@
       "label": ".updateOrder()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L178",
+      "source_location": "L180",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_updateorder",
       "community": 567,
@@ -2669,7 +2669,7 @@
       "label": ".updateValuation()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L195",
+      "source_location": "L197",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_updatevaluation",
       "community": 699,
@@ -2680,7 +2680,7 @@
       "label": ".updateDraftMetadata()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L212",
+      "source_location": "L214",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_updatedraftmetadata",
       "community": 66,
@@ -2691,7 +2691,7 @@
       "label": ".transition()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L226",
+      "source_location": "L228",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_transition",
       "community": 365,
@@ -2702,7 +2702,7 @@
       "label": ".recordFirstAuctionResults()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L258",
+      "source_location": "L260",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_recordfirstauctionresults",
       "community": 365,
@@ -2713,7 +2713,7 @@
       "label": ".recordReauctionResults()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L271",
+      "source_location": "L273",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_recordreauctionresults",
       "community": 548,
@@ -2724,7 +2724,7 @@
       "label": ".realize()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L283",
+      "source_location": "L285",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_realize",
       "community": 365,
@@ -2735,7 +2735,7 @@
       "label": ".documentContext()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L295",
+      "source_location": "L297",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_documentcontext",
       "community": 365,
@@ -2746,7 +2746,7 @@
       "label": ".hydrateDraftDocumentMetadata()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L334",
+      "source_location": "L336",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_hydratedraftdocumentmetadata",
       "community": 365,
@@ -2757,7 +2757,7 @@
       "label": ".mapEmployeesByIds()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L371",
+      "source_location": "L373",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_mapemployeesbyids",
       "community": 365,
@@ -2768,7 +2768,7 @@
       "label": ".mapEmployee()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L393",
+      "source_location": "L395",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_mapemployee",
       "community": 365,
@@ -2779,18 +2779,18 @@
       "label": ".recordPrintEvent()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L418",
+      "source_location": "L420",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_recordprintevent",
-      "community": 365,
-      "community_name": "AuctionBatchController",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".recordprintevent()"
     },
     {
       "label": ".events()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L446",
+      "source_location": "L448",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_events",
       "community": 7,
@@ -3868,7 +3868,7 @@
       "label": ".employeeSnapshot()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/UsageAgreementController.php",
-      "source_location": "L212",
+      "source_location": "L214",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_employeesnapshot",
       "community": 77,
@@ -3879,7 +3879,7 @@
       "label": ".assetSnapshot()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Bmn/Controllers/UsageAgreementController.php",
-      "source_location": "L224",
+      "source_location": "L226",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_assetsnapshot",
       "community": 77,
@@ -6412,8 +6412,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_createauctionbatchrequest",
-      "community": 607,
-      "community_name": "CreateAuctionBatchRequest",
+      "community": 365,
+      "community_name": "AuctionBatchController",
       "norm_label": "createauctionbatchrequest.php"
     },
     {
@@ -6423,8 +6423,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_createauctionbatchrequest_createauctionbatchrequest",
-      "community": 607,
-      "community_name": "CreateAuctionBatchRequest",
+      "community": 365,
+      "community_name": "AuctionBatchController",
       "norm_label": "createauctionbatchrequest"
     },
     {
@@ -6434,8 +6434,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_createauctionbatchrequest_createauctionbatchrequest_authorize",
-      "community": 607,
-      "community_name": "CreateAuctionBatchRequest",
+      "community": 365,
+      "community_name": "AuctionBatchController",
       "norm_label": ".authorize()"
     },
     {
@@ -6445,8 +6445,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_createauctionbatchrequest_createauctionbatchrequest_rules",
-      "community": 607,
-      "community_name": "CreateAuctionBatchRequest",
+      "community": 365,
+      "community_name": "AuctionBatchController",
       "norm_label": ".rules()"
     },
     {
@@ -6566,8 +6566,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_printauctiondocumenteventrequest",
-      "community": 365,
-      "community_name": "AuctionBatchController",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "printauctiondocumenteventrequest.php"
     },
     {
@@ -6577,8 +6577,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_printauctiondocumenteventrequest_printauctiondocumenteventrequest",
-      "community": 365,
-      "community_name": "AuctionBatchController",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "printauctiondocumenteventrequest"
     },
     {
@@ -6588,8 +6588,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_printauctiondocumenteventrequest_printauctiondocumenteventrequest_authorize",
-      "community": 365,
-      "community_name": "AuctionBatchController",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
     {
@@ -6599,8 +6599,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_requests_printauctiondocumenteventrequest_printauctiondocumenteventrequest_rules",
-      "community": 365,
-      "community_name": "AuctionBatchController",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
     {
@@ -12022,8 +12022,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_stockcontroller_stockcontroller_stockin",
-      "community": 614,
-      "community_name": "StockInRequest",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".stockin()"
     },
     {
@@ -12033,8 +12033,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_stockcontroller_stockcontroller_stockout",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 495,
+      "community_name": "StockOutRequest",
       "norm_label": ".stockout()"
     },
     {
@@ -12671,8 +12671,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockinrequest",
-      "community": 614,
-      "community_name": "StockInRequest",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "stockinrequest.php"
     },
     {
@@ -12682,8 +12682,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockinrequest_stockinrequest",
-      "community": 614,
-      "community_name": "StockInRequest",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": "stockinrequest"
     },
     {
@@ -12693,8 +12693,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockinrequest_stockinrequest_authorize",
-      "community": 614,
-      "community_name": "StockInRequest",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".authorize()"
     },
     {
@@ -12704,8 +12704,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockinrequest_stockinrequest_rules",
-      "community": 614,
-      "community_name": "StockInRequest",
+      "community": 194,
+      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
       "norm_label": ".rules()"
     },
     {
@@ -12715,8 +12715,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 495,
+      "community_name": "StockOutRequest",
       "norm_label": "stockoutrequest.php"
     },
     {
@@ -12726,8 +12726,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest_stockoutrequest",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 495,
+      "community_name": "StockOutRequest",
       "norm_label": "stockoutrequest"
     },
     {
@@ -12737,8 +12737,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest_stockoutrequest_authorize",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 495,
+      "community_name": "StockOutRequest",
       "norm_label": ".authorize()"
     },
     {
@@ -12748,8 +12748,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest_stockoutrequest_rules",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 495,
+      "community_name": "StockOutRequest",
       "norm_label": ".rules()"
     },
     {
@@ -12759,8 +12759,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_stockoutrequest_stockoutrequest_messages",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 495,
+      "community_name": "StockOutRequest",
       "norm_label": ".messages()"
     },
     {
@@ -12814,8 +12814,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeofficerequest",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 592,
+      "community_name": "StoreOfficeRequest",
       "norm_label": "storeofficerequest.php"
     },
     {
@@ -12825,8 +12825,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeofficerequest_storeofficerequest",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 592,
+      "community_name": "StoreOfficeRequest",
       "norm_label": "storeofficerequest"
     },
     {
@@ -12836,8 +12836,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeofficerequest_storeofficerequest_authorize",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 592,
+      "community_name": "StoreOfficeRequest",
       "norm_label": ".authorize()"
     },
     {
@@ -12847,8 +12847,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_requests_storeofficerequest_storeofficerequest_rules",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 592,
+      "community_name": "StoreOfficeRequest",
       "norm_label": ".rules()"
     },
     {
@@ -13463,8 +13463,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_sttemplatecontroller_sttemplatecontroller_store",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 607,
+      "community_name": "StoreStTemplateRequest",
       "norm_label": ".store()"
     },
     {
@@ -14200,8 +14200,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_storesttemplaterequest_storesttemplaterequest",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 607,
+      "community_name": "StoreStTemplateRequest",
       "norm_label": "storesttemplaterequest"
     },
     {
@@ -14211,8 +14211,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_storesttemplaterequest_storesttemplaterequest_authorize",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 607,
+      "community_name": "StoreStTemplateRequest",
       "norm_label": ".authorize()"
     },
     {
@@ -14222,8 +14222,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_storesttemplaterequest_storesttemplaterequest_rules",
-      "community": 194,
-      "community_name": "Illuminate\\Foundation\\Http\\FormRequest",
+      "community": 607,
+      "community_name": "StoreStTemplateRequest",
       "norm_label": ".rules()"
     },
     {
@@ -17621,8 +17621,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_composer_autoload_dev",
-      "community": 698,
-      "community_name": "autoload-dev",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "autoload-dev"
     },
     {
@@ -17632,8 +17632,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_composer_autoload_dev_psr_4",
-      "community": 698,
-      "community_name": "autoload-dev",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "psr-4"
     },
     {
@@ -17643,8 +17643,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "backend_composer_psr_4_tests",
-      "community": 698,
-      "community_name": "autoload-dev",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "tests\\\\"
     },
     {
@@ -17962,8 +17962,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_composer_extra",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 696,
+      "community_name": "extra",
       "norm_label": "extra"
     },
     {
@@ -17973,8 +17973,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_composer_extra_laravel",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 696,
+      "community_name": "extra",
       "norm_label": "laravel"
     },
     {
@@ -17984,8 +17984,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_composer_laravel_dont_discover",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 696,
+      "community_name": "extra",
       "norm_label": "dont-discover"
     },
     {
@@ -25648,8 +25648,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_batches_id_lib_auction_print_dispatcher",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "auction-print-dispatcher.ts"
     },
     {
@@ -25659,8 +25659,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_batches_id_lib_auction_print_dispatcher_auctionprintcontext",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "auctionprintcontext"
     },
     {
@@ -25670,8 +25670,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_batches_id_lib_auction_print_dispatcher_auction_doc_printers",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "auction_doc_printers"
     },
     {
@@ -26562,7 +26562,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_handleprintba",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "handleprintba()"
     },
     {
@@ -26782,7 +26782,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_handleprintbapemeriksaan",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "handleprintbapemeriksaan()"
     },
     {
@@ -27320,8 +27320,8 @@
       "source_location": "L464",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kertaskerjaassetsection_handleprintkertaskerjaasset",
-      "community": 50,
-      "community_name": "KertasKerjaAssetSection.tsx",
+      "community": 53,
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "handleprintkertaskerjaasset()"
     },
     {
@@ -27376,7 +27376,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_notadinasdocument_handleprintnotadinas",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "handleprintnotadinas()"
     },
     {
@@ -27529,8 +27529,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_permohonankpknldocument_handleprintpermohonankpknl",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 64,
+      "community_name": "auction-helpers.ts",
       "norm_label": "handleprintpermohonankpknl()"
     },
     {
@@ -27749,8 +27749,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skkebenarandokumendocument.tsx"
     },
     {
@@ -27771,8 +27771,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument_buildnomortext",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "buildnomortext()"
     },
     {
@@ -27782,8 +27782,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument_getownershipdocumentnumber",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "getownershipdocumentnumber()"
     },
     {
@@ -27793,8 +27793,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument_handleprintskkebenaran",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "handleprintskkebenaran()"
     },
     {
@@ -27804,8 +27804,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument_skkebenarandokumendocument",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skkebenarandokumendocument()"
     },
     {
@@ -27849,7 +27849,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpanitiadocument_handleprintskpanitia",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "handleprintskpanitia()"
     },
     {
@@ -27870,8 +27870,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 64,
+      "community_name": "auction-helpers.ts",
       "norm_label": "skpenghentiandocument.tsx"
     },
     {
@@ -27893,7 +27893,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_handleprintsk",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "handleprintsk()"
     },
     {
@@ -27903,8 +27903,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_getouterheight",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 64,
+      "community_name": "auction-helpers.ts",
       "norm_label": "getouterheight()"
     },
     {
@@ -27914,8 +27914,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_buildfallbacklampiranpages",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 64,
+      "community_name": "auction-helpers.ts",
       "norm_label": "buildfallbacklampiranpages()"
     },
     {
@@ -27925,8 +27925,8 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_buildmeasuredskattachmentpages",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 64,
+      "community_name": "auction-helpers.ts",
       "norm_label": "buildmeasuredskattachmentpages()"
     },
     {
@@ -27936,8 +27936,8 @@
       "source_location": "L212",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_skpenghentiandocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 64,
+      "community_name": "auction-helpers.ts",
       "norm_label": "skpenghentiandocument()"
     },
     {
@@ -27992,7 +27992,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "sktimpenilaidocument.tsx"
     },
     {
@@ -28014,7 +28014,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument_renderkeduatext",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "renderkeduatext()"
     },
     {
@@ -28025,7 +28025,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument_handleprintsktimpenilai",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "handleprintsktimpenilai()"
     },
     {
@@ -28036,7 +28036,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument_sktimpenilaidocument",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "sktimpenilaidocument()"
     },
     {
@@ -29234,8 +29234,8 @@
       "source_location": "L158",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_parsedocdate",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "parsedocdate()"
     },
     {
@@ -29356,7 +29356,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_helpers",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "print-helpers.ts"
     },
     {
@@ -29367,7 +29367,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_helpers_printdocumentwindowoptions",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "printdocumentwindowoptions"
     },
     {
@@ -29378,7 +29378,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_helpers_sk_tim_penilai_print_css",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "sk_tim_penilai_print_css"
     },
     {
@@ -29389,7 +29389,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_helpers_printdocumentwindow",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "printdocumentwindow()"
     },
     {
@@ -29664,7 +29664,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_print",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "sk-print.ts"
     },
     {
@@ -29675,7 +29675,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_print_skpaginationconfig",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "skpaginationconfig"
     },
     {
@@ -29686,7 +29686,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_print_buildpaginationstyle",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "buildpaginationstyle()"
     },
     {
@@ -29697,7 +29697,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_print_runskpagination",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "runskpagination()"
     },
     {
@@ -29708,7 +29708,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_print_openskprintwindow",
       "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community_name": "SkTimPenilaiDocument.tsx",
       "norm_label": "openskprintwindow()"
     },
     {
@@ -44854,8 +44854,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 731,
+      "community_name": "expo",
       "norm_label": "expo"
     },
     {
@@ -44865,8 +44865,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "expo",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 731,
+      "community_name": "expo",
       "norm_label": "expo"
     },
     {
@@ -44942,8 +44942,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo_font",
-      "community": 696,
-      "community_name": "expo-font",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "expo-font"
     },
     {
@@ -44953,8 +44953,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "expo_font",
-      "community": 696,
-      "community_name": "expo-font",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "expo-font"
     },
     {
@@ -88018,8 +88018,8 @@
       "source_location": "L209",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_214_redesain_ui_portal_bksda_kaltim_terinspirasi_myasn_restrukturisasi_navigasi_sidebar_dan_opsi_cover_manual_laporan",
-      "community": 560,
-      "community_name": "Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 214: redesain ui portal bksda kaltim terinspirasi myasn, restrukturisasi navigasi sidebar, dan opsi cover manual laporan"
     },
     {
@@ -88029,8 +88029,8 @@
       "source_location": "L216",
       "_origin": "ast",
       "id": "docs_progress_1_redesain_portal_bksda_kaltim_terinspirasi_myasn_github_issue_564",
-      "community": 560,
-      "community_name": "Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "1. redesain portal bksda kaltim terinspirasi myasn (github issue #564)"
     },
     {
@@ -88040,8 +88040,8 @@
       "source_location": "L227",
       "_origin": "ast",
       "id": "docs_progress_2_penyempurnaan_kartu_profil_layout_shift_fix",
-      "community": 560,
-      "community_name": "Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "2. penyempurnaan kartu profil & layout shift fix"
     },
     {
@@ -88051,8 +88051,8 @@
       "source_location": "L234",
       "_origin": "ast",
       "id": "docs_progress_3_opsi_pengaturan_cover_manual_laporan_pelaksanaan_generalreportprint_tsx_generalreportinlineform_tsx",
-      "community": 560,
-      "community_name": "Progress - Phase 214: Redesain UI Portal BKSDA Kaltim Terinspirasi MYASN, Restrukturisasi Navigasi Sidebar, dan Opsi Cover Manual Laporan",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "3. opsi pengaturan cover manual laporan pelaksanaan (`generalreportprint.tsx` & `generalreportinlineform.tsx`)"
     },
     {
@@ -88876,8 +88876,8 @@
       "source_location": "L726",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_177_penyelarasan_form_buat_surat_tugas_mobile_date_picker",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 691,
+      "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
       "norm_label": "progress - phase 177: penyelarasan form buat surat tugas mobile & date picker"
     },
     {
@@ -88887,8 +88887,8 @@
       "source_location": "L733",
       "_origin": "ast",
       "id": "docs_progress_penyelarasan_form_buat_surat_tugas_mobile_buatsurattugasscreen_tsx_dengan_localhost",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 691,
+      "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
       "norm_label": "penyelarasan form buat surat tugas mobile (`buatsurattugasscreen.tsx`) dengan localhost"
     },
     {
@@ -88898,8 +88898,8 @@
       "source_location": "L735",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_735",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 691,
+      "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
       "norm_label": "status: selesai"
     },
     {
@@ -88909,8 +88909,8 @@
       "source_location": "L753",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_753",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 691,
+      "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -89008,8 +89008,8 @@
       "source_location": "L814",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_174_penyesuaian_label_pilihan_jenis_tugas_surat_tugas",
-      "community": 652,
-      "community_name": "Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 174: penyesuaian label pilihan jenis tugas surat tugas"
     },
     {
@@ -89019,8 +89019,8 @@
       "source_location": "L821",
       "_origin": "ast",
       "id": "docs_progress_penyesuaian_label_pilihan_jenis_tugas_di_web_mobile",
-      "community": 652,
-      "community_name": "Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "penyesuaian label pilihan jenis tugas di web & mobile"
     },
     {
@@ -89030,8 +89030,8 @@
       "source_location": "L823",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_823",
-      "community": 652,
-      "community_name": "Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -89041,8 +89041,8 @@
       "source_location": "L834",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_834",
-      "community": 652,
-      "community_name": "Penyesuaian Label Pilihan Jenis Tugas di Web & Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -89228,8 +89228,8 @@
       "source_location": "L963",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_169_pemisahan_rute_perjalanan_dari_ke_kolom_pada_kegiatan",
-      "community": 647,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 169: pemisahan rute perjalanan (dari/ke) & kolom pada kegiatan"
     },
     {
@@ -89239,8 +89239,8 @@
       "source_location": "L970",
       "_origin": "ast",
       "id": "docs_progress_pemisahan_rute_perjalanan_2_kolom_dari_ke_kolom_pada_clean_state_default",
-      "community": 647,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "pemisahan rute perjalanan 2 kolom (dari & ke) + kolom 'pada' + clean state default"
     },
     {
@@ -89250,8 +89250,8 @@
       "source_location": "L972",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_972",
-      "community": 647,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -89261,8 +89261,8 @@
       "source_location": "L988",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_988",
-      "community": 647,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -89536,8 +89536,8 @@
       "source_location": "L1152",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_162_penghapusan_tombol_toggle_tema_header_modul",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 652,
+      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
       "norm_label": "progress - phase 162: penghapusan tombol toggle tema header modul"
     },
     {
@@ -89547,8 +89547,8 @@
       "source_location": "L1159",
       "_origin": "ast",
       "id": "docs_progress_penghapusan_tombol_toggle_tema_header_modul",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 652,
+      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
       "norm_label": "penghapusan tombol toggle tema header modul"
     },
     {
@@ -89558,8 +89558,8 @@
       "source_location": "L1161",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1161",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 652,
+      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
       "norm_label": "status: selesai"
     },
     {
@@ -89569,8 +89569,8 @@
       "source_location": "L1169",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1169",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 652,
+      "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -89580,8 +89580,8 @@
       "source_location": "L1175",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_161_opsi_resmi_lengkap_pangkat_golongan_penempatan_satker",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 647,
+      "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "progress - phase 161: opsi resmi lengkap pangkat/golongan & penempatan satker"
     },
     {
@@ -89591,8 +89591,8 @@
       "source_location": "L1182",
       "_origin": "ast",
       "id": "docs_progress_opsi_resmi_lengkap_pangkat_golongan_penempatan_satker",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 647,
+      "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "opsi resmi lengkap pangkat/golongan & penempatan satker"
     },
     {
@@ -89602,8 +89602,8 @@
       "source_location": "L1184",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1184",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 647,
+      "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "status: selesai"
     },
     {
@@ -89613,8 +89613,8 @@
       "source_location": "L1205",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1205",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 647,
+      "community_name": "Opsi Resmi Lengkap Pangkat/Golongan & Penempatan Satker",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -89844,8 +89844,8 @@
       "source_location": "L1367",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_155_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 639,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "progress - phase 155: mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -89855,8 +89855,8 @@
       "source_location": "L1374",
       "_origin": "ast",
       "id": "docs_progress_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 639,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -89866,8 +89866,8 @@
       "source_location": "L1376",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1376",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 639,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "status: selesai"
     },
     {
@@ -89877,8 +89877,8 @@
       "source_location": "L1391",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1391",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 639,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -90020,8 +90020,8 @@
       "source_location": "L1485",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_151_mobile_app_empty_states_100_sync_with_web_portal",
-      "community": 592,
-      "community_name": "Mobile App Empty States 100% Sync with Web Portal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 151: mobile app empty states 100% sync with web portal"
     },
     {
@@ -90031,8 +90031,8 @@
       "source_location": "L1492",
       "_origin": "ast",
       "id": "docs_progress_mobile_app_empty_states_100_sync_with_web_portal",
-      "community": 592,
-      "community_name": "Mobile App Empty States 100% Sync with Web Portal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile app empty states 100% sync with web portal"
     },
     {
@@ -90042,8 +90042,8 @@
       "source_location": "L1494",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1494",
-      "community": 592,
-      "community_name": "Mobile App Empty States 100% Sync with Web Portal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -90053,8 +90053,8 @@
       "source_location": "L1509",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1509",
-      "community": 592,
-      "community_name": "Mobile App Empty States 100% Sync with Web Portal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -90108,8 +90108,8 @@
       "source_location": "L1542",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_149_mobile_login_keyboard_avoiding_input_focus_fix",
-      "community": 639,
-      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 149: mobile login keyboard avoiding & input focus fix"
     },
     {
@@ -90119,8 +90119,8 @@
       "source_location": "L1549",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_keyboard_avoiding_input_focus_fix",
-      "community": 639,
-      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile login keyboard avoiding & input focus fix"
     },
     {
@@ -90130,8 +90130,8 @@
       "source_location": "L1551",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1551",
-      "community": 639,
-      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -90141,8 +90141,8 @@
       "source_location": "L1563",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1563",
-      "community": 639,
-      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -90196,8 +90196,8 @@
       "source_location": "L1597",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_147_custom_premium_logout_confirmation_modal_fab_menu",
-      "community": 554,
-      "community_name": "Custom Premium Logout Confirmation Modal & FAB Menu",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 147: custom premium logout confirmation modal & fab menu"
     },
     {
@@ -90207,8 +90207,8 @@
       "source_location": "L1604",
       "_origin": "ast",
       "id": "docs_progress_custom_premium_logout_confirmation_modal_fab_menu",
-      "community": 554,
-      "community_name": "Custom Premium Logout Confirmation Modal & FAB Menu",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "custom premium logout confirmation modal & fab menu"
     },
     {
@@ -90218,8 +90218,8 @@
       "source_location": "L1606",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1606",
-      "community": 554,
-      "community_name": "Custom Premium Logout Confirmation Modal & FAB Menu",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -90229,8 +90229,8 @@
       "source_location": "L1620",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1620",
-      "community": 554,
-      "community_name": "Custom Premium Logout Confirmation Modal & FAB Menu",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -90284,8 +90284,8 @@
       "source_location": "L1657",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_145_mobile_dashboard_compact_grid_2_row_interactive_tabs",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 614,
+      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
       "norm_label": "progress - phase 145: mobile dashboard compact grid & 2-row interactive tabs"
     },
     {
@@ -90295,8 +90295,8 @@
       "source_location": "L1664",
       "_origin": "ast",
       "id": "docs_progress_mobile_dashboard_compact_grid_2_row_interactive_tabs",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 614,
+      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
       "norm_label": "mobile dashboard compact grid & 2-row interactive tabs"
     },
     {
@@ -90306,8 +90306,8 @@
       "source_location": "L1666",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1666",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 614,
+      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
       "norm_label": "status: selesai"
     },
     {
@@ -90317,8 +90317,8 @@
       "source_location": "L1679",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1679",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 614,
+      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -93276,8 +93276,8 @@
       "source_location": "L3285",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_98_mobile_bmn_photo_slots_component",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 554,
+      "community_name": "Mobile BMN Photo Slots Component",
       "norm_label": "progress - phase 98: mobile bmn photo slots component"
     },
     {
@@ -93287,8 +93287,8 @@
       "source_location": "L3292",
       "_origin": "ast",
       "id": "docs_progress_mobile_bmn_photo_slots_component",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 554,
+      "community_name": "Mobile BMN Photo Slots Component",
       "norm_label": "mobile bmn photo slots component"
     },
     {
@@ -93298,8 +93298,8 @@
       "source_location": "L3294",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_3294",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 554,
+      "community_name": "Mobile BMN Photo Slots Component",
       "norm_label": "status: selesai"
     },
     {
@@ -93309,8 +93309,8 @@
       "source_location": "L3298",
       "_origin": "ast",
       "id": "docs_progress_implementasi_3298",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 554,
+      "community_name": "Mobile BMN Photo Slots Component",
       "norm_label": "implementasi"
     },
     {
@@ -93320,8 +93320,8 @@
       "source_location": "L3310",
       "_origin": "ast",
       "id": "docs_progress_validasi_3310",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 554,
+      "community_name": "Mobile BMN Photo Slots Component",
       "norm_label": "validasi"
     },
     {
@@ -94596,8 +94596,8 @@
       "source_location": "L4103",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_76_ba_serah_terima_bmn",
-      "community": 495,
-      "community_name": "Issue #404: Generate BA Serah Terima BMN",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 76: ba serah terima bmn"
     },
     {
@@ -94607,8 +94607,8 @@
       "source_location": "L4110",
       "_origin": "ast",
       "id": "docs_progress_issue_404_generate_ba_serah_terima_bmn",
-      "community": 495,
-      "community_name": "Issue #404: Generate BA Serah Terima BMN",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "issue #404: generate ba serah terima bmn"
     },
     {
@@ -94618,8 +94618,8 @@
       "source_location": "L4112",
       "_origin": "ast",
       "id": "docs_progress_status_merged_4112",
-      "community": 495,
-      "community_name": "Issue #404: Generate BA Serah Terima BMN",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: merged"
     },
     {
@@ -94629,8 +94629,8 @@
       "source_location": "L4117",
       "_origin": "ast",
       "id": "docs_progress_implementasi_4117",
-      "community": 495,
-      "community_name": "Issue #404: Generate BA Serah Terima BMN",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "implementasi"
     },
     {
@@ -94640,8 +94640,8 @@
       "source_location": "L4146",
       "_origin": "ast",
       "id": "docs_progress_validasi_4146",
-      "community": 495,
-      "community_name": "Issue #404: Generate BA Serah Terima BMN",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi"
     },
     {
@@ -94651,8 +94651,8 @@
       "source_location": "L4159",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_75_ba_pemakaian_bmn_per_pegawai",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 560,
+      "community_name": "Issue #402: Generate BA Pemakaian BMN per pegawai",
       "norm_label": "progress - phase 75: ba pemakaian bmn per pegawai"
     },
     {
@@ -94662,8 +94662,8 @@
       "source_location": "L4166",
       "_origin": "ast",
       "id": "docs_progress_issue_402_generate_ba_pemakaian_bmn_per_pegawai",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 560,
+      "community_name": "Issue #402: Generate BA Pemakaian BMN per pegawai",
       "norm_label": "issue #402: generate ba pemakaian bmn per pegawai"
     },
     {
@@ -94673,8 +94673,8 @@
       "source_location": "L4168",
       "_origin": "ast",
       "id": "docs_progress_status_wip_ui_lokal_siap_dicek",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 560,
+      "community_name": "Issue #402: Generate BA Pemakaian BMN per pegawai",
       "norm_label": "status: wip - ui lokal siap dicek"
     },
     {
@@ -94684,8 +94684,8 @@
       "source_location": "L4174",
       "_origin": "ast",
       "id": "docs_progress_implementasi_4174",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 560,
+      "community_name": "Issue #402: Generate BA Pemakaian BMN per pegawai",
       "norm_label": "implementasi"
     },
     {
@@ -94695,8 +94695,8 @@
       "source_location": "L4205",
       "_origin": "ast",
       "id": "docs_progress_validasi_4205",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 560,
+      "community_name": "Issue #402: Generate BA Pemakaian BMN per pegawai",
       "norm_label": "validasi"
     },
     {
@@ -100195,8 +100195,8 @@
       "source_location": "L7878",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_13_milestone_1",
-      "community": 726,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 13 (milestone 1)"
     },
     {
@@ -100206,8 +100206,8 @@
       "source_location": "L7880",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7880",
-      "community": 726,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -100217,8 +100217,8 @@
       "source_location": "L7888",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7888",
-      "community": 726,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -100228,8 +100228,8 @@
       "source_location": "L7891",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_14_milestone_1",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 698,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 14 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 14 (milestone 1)"
     },
     {
@@ -100239,8 +100239,8 @@
       "source_location": "L7893",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7893",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 698,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 14 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -100250,8 +100250,8 @@
       "source_location": "L7901",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7901",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 698,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 14 (Milestone 1)",
       "norm_label": "next steps"
     },
     {
@@ -100723,8 +100723,8 @@
       "source_location": "L8086",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_29_milestone_2",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 726,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 29 (Milestone 2)",
       "norm_label": "[2026-06-19] mobile app implementation - task 29 (milestone 2)"
     },
     {
@@ -100734,8 +100734,8 @@
       "source_location": "L8088",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_8088",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 726,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 29 (Milestone 2)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -100745,8 +100745,8 @@
       "source_location": "L8094",
       "_origin": "ast",
       "id": "docs_progress_next_steps_8094",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 726,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 29 (Milestone 2)",
       "norm_label": "next steps"
     },
     {
@@ -100756,8 +100756,8 @@
       "source_location": "L8097",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_30_milestone_2",
-      "community": 691,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 30 (Milestone 2)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 30 (milestone 2)"
     },
     {
@@ -100767,8 +100767,8 @@
       "source_location": "L8099",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_8099",
-      "community": 691,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 30 (Milestone 2)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -100778,8 +100778,8 @@
       "source_location": "L8108",
       "_origin": "ast",
       "id": "docs_progress_next_steps_8108",
-      "community": 691,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 30 (Milestone 2)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -103000,8 +103000,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tatanaskahdinas_lampiran_peraturan_menteri_kehutanan_republik_indonesia",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 563,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "lampiran peraturan menteri kehutanan republik indonesia"
     },
     {
@@ -103011,8 +103011,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "tatanaskahdinas_nomor_1_tahun_2025",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 563,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "nomor 1 tahun 2025"
     },
     {
@@ -103022,8 +103022,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "tatanaskahdinas_tentang_tata_naskah_dinas_kementerian_kehutanan",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 563,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "tentang tata naskah dinas kementerian kehutanan"
     },
     {
@@ -103033,8 +103033,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "tatanaskahdinas_daftar_isi",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 563,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "daftar isi"
     },
     {
@@ -103044,8 +103044,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "tatanaskahdinas_sistematika_lampiran",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 563,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "sistematika lampiran"
     },
     {
@@ -104903,8 +104903,8 @@
       "source_location": "L4963",
       "_origin": "ast",
       "id": "tatanaskahdinas_bab_iii_pengamanan_naskah_dinas_4963",
-      "community": 563,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "bab iii pengamanan naskah dinas"
     },
     {
@@ -104914,8 +104914,8 @@
       "source_location": "L4966",
       "_origin": "ast",
       "id": "tatanaskahdinas_a_penggunaan_amplop_4966",
-      "community": 563,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "a. penggunaan amplop"
     },
     {
@@ -104925,8 +104925,8 @@
       "source_location": "L4995",
       "_origin": "ast",
       "id": "tatanaskahdinas_b_metode_security_printing_4995",
-      "community": 563,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "b. metode security printing"
     },
     {
@@ -104936,8 +104936,8 @@
       "source_location": "L5014",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_rosettes_guilloche_relief_pattern",
-      "community": 563,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan rosettes, guilloche, relief pattern"
     },
     {
@@ -104947,8 +104947,8 @@
       "source_location": "L5055",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_anticopy_rainbow_printing",
-      "community": 563,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan anticopy, rainbow printing"
     },
     {
@@ -104958,8 +104958,8 @@
       "source_location": "L5079",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_microtext_hidden_image",
-      "community": 563,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan microtext, hidden image"
     },
     {
@@ -104969,8 +104969,8 @@
       "source_location": "L5119",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_barcode_2d_qr_code_invisible_ink",
-      "community": 563,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan barcode 2d / qr code, invisible ink"
     },
     {
@@ -115349,7 +115349,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L152",
+      "source_location": "L154",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115360,7 +115360,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L124",
+      "source_location": "L126",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115371,7 +115371,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L136",
+      "source_location": "L138",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115393,7 +115393,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L100",
+      "source_location": "L102",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115404,7 +115404,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L295",
+      "source_location": "L297",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115415,7 +115415,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L446",
+      "source_location": "L448",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115426,7 +115426,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L334",
+      "source_location": "L336",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115448,7 +115448,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L393",
+      "source_location": "L395",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115459,7 +115459,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L371",
+      "source_location": "L373",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115470,7 +115470,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115481,7 +115481,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L258",
+      "source_location": "L260",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115492,7 +115492,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115503,7 +115503,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115514,7 +115514,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L165",
+      "source_location": "L167",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115525,7 +115525,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115536,7 +115536,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L69",
+      "source_location": "L71",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115547,7 +115547,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L226",
+      "source_location": "L228",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115558,7 +115558,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L212",
+      "source_location": "L214",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115569,7 +115569,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L178",
+      "source_location": "L180",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115580,7 +115580,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L195",
+      "source_location": "L197",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller",
@@ -115628,7 +115628,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L60",
+      "source_location": "L62",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_index",
@@ -115651,7 +115651,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L69",
+      "source_location": "L71",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115663,7 +115663,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L69",
+      "source_location": "L71",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115676,7 +115676,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_show",
@@ -115687,7 +115687,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115700,7 +115700,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_destroy",
@@ -115711,7 +115711,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L100",
+      "source_location": "L102",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115725,7 +115725,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L127",
+      "source_location": "L129",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_candidates",
@@ -115735,7 +115735,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L124",
+      "source_location": "L126",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115748,7 +115748,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L138",
+      "source_location": "L140",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_checklist",
@@ -115759,7 +115759,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L136",
+      "source_location": "L138",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115771,7 +115771,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L152",
+      "source_location": "L154",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115783,7 +115783,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L152",
+      "source_location": "L154",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115795,7 +115795,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L165",
+      "source_location": "L167",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115807,7 +115807,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L178",
+      "source_location": "L180",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115819,7 +115819,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L178",
+      "source_location": "L180",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115831,7 +115831,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L195",
+      "source_location": "L197",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115843,7 +115843,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L195",
+      "source_location": "L197",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115855,7 +115855,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L212",
+      "source_location": "L214",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115867,7 +115867,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L212",
+      "source_location": "L214",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115880,7 +115880,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L239",
+      "source_location": "L241",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_transition",
@@ -115891,7 +115891,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L226",
+      "source_location": "L228",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115903,7 +115903,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L226",
+      "source_location": "L228",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115915,7 +115915,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L258",
+      "source_location": "L260",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115927,7 +115927,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L258",
+      "source_location": "L260",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115939,7 +115939,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -115951,7 +115951,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L271",
+      "source_location": "L273",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115963,7 +115963,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -115976,7 +115976,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L301",
+      "source_location": "L303",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_documentcontext",
@@ -115988,7 +115988,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L297",
+      "source_location": "L299",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_documentcontext",
@@ -116001,7 +116001,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L318",
+      "source_location": "L320",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_documentcontext",
@@ -116011,7 +116011,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L295",
+      "source_location": "L297",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -116024,7 +116024,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L345",
+      "source_location": "L347",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_hydratedraftdocumentmetadata",
@@ -116036,7 +116036,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L358",
+      "source_location": "L360",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_hydratedraftdocumentmetadata",
@@ -116047,7 +116047,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L334",
+      "source_location": "L336",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -116060,7 +116060,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L345",
+      "source_location": "L347",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_hydratedraftdocumentmetadata",
@@ -116072,7 +116072,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L384",
+      "source_location": "L386",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_mapemployeesbyids",
@@ -116084,7 +116084,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L379",
+      "source_location": "L381",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_mapemployeesbyids",
@@ -116095,7 +116095,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L393",
+      "source_location": "L395",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -116108,7 +116108,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L421",
+      "source_location": "L423",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_recordprintevent",
@@ -116119,7 +116119,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -116131,7 +116131,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L418",
+      "source_location": "L420",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -116144,7 +116144,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L448",
+      "source_location": "L450",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_events",
@@ -116157,7 +116157,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php",
-      "source_location": "L451",
+      "source_location": "L453",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_events",
@@ -120169,7 +120169,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/UsageAgreementController.php",
-      "source_location": "L224",
+      "source_location": "L226",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller",
@@ -120202,7 +120202,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/UsageAgreementController.php",
-      "source_location": "L212",
+      "source_location": "L214",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller",
@@ -120594,7 +120594,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Bmn/Controllers/UsageAgreementController.php",
-      "source_location": "L205",
+      "source_location": "L206",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_applyemployeeassetfilter",
@@ -120604,7 +120604,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/UsageAgreementController.php",
-      "source_location": "L212",
+      "source_location": "L214",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -120616,7 +120616,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Bmn/Controllers/UsageAgreementController.php",
-      "source_location": "L224",
+      "source_location": "L226",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -298392,5 +298392,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "3b51aadaf1d5afb2ec95dfde214bf54fb5e35487"
+  "built_at_commit": "88da8820987213bf22ef8a6abb386cf4501a5662"
 }
