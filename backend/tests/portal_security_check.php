@@ -1353,6 +1353,18 @@ assert(str_contains($bmnDocHistoryCtrlCode, "addcslashes(trim((string) (\$valida
 assert(str_contains($bmnAssetPhotoCtrlCode, "str_starts_with(\$asset->foto_geotag_url, 'http://') || str_starts_with(\$asset->foto_geotag_url, 'https://')"), 'AssetPhotoController geotag redirect missing protocol check');
 assert(str_contains($bmnAssetPhotoCtrlCode, "redirect()->away(\$asset->foto_geotag_url)"), 'AssetPhotoController geotag redirect must use redirect()->away');
 
+// PDF Preview DoS protection & safe temp handling
+$bmnPdfPreviewCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Services/PdfPreviewService.php');
+assert(str_contains($bmnPdfPreviewCode, "sprintf('-f 1 -l %d', max(1, \$maxPages))"), 'PdfPreviewService must enforce maxPages limit to prevent page bomb DoS');
+
+// BMN Import URL scheme validation
+$bmnAssetImportCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Imports/AssetImport.php');
+assert(str_contains($bmnAssetImportCode, 'filter_var($val, FILTER_VALIDATE_URL)'), 'AssetImport extractUrl must validate URL format');
+assert(str_contains($bmnAssetImportCode, "in_array(\$scheme, ['http', 'https'], true)"), 'AssetImport extractUrl must restrict to http/https schemes');
+
+// Photo zip temp collision protection
+assert(str_contains($bmnAssetPhotoCtrlCode, 'bin2hex(random_bytes(8))'), 'AssetPhotoController downloadAll must use unique temp path to prevent race conditions');
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

@@ -173,7 +173,13 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
     private function extractUrl($value): ?string
     {
         if (!$value) return null;
-        $val = (string) $value;
-        return str_contains($val, 'http') ? $val : null;
+        $val = trim((string) $value);
+        if (filter_var($val, FILTER_VALIDATE_URL)) {
+            $scheme = strtolower((string) parse_url($val, PHP_URL_SCHEME));
+            if (in_array($scheme, ['http', 'https'], true)) {
+                return $val;
+            }
+        }
+        return null;
     }
 }

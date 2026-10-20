@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetPhotoController.php": {
-    "mtime": 1792463294.4630086,
-    "ast_hash": "cfebab81c1d9704b68229c867655f13d",
+    "mtime": 1792475664.6053576,
+    "ast_hash": "78c88d4748cddb51ade1952dbfb94995",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php": {
@@ -175,9 +175,9 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Imports/AssetImport.php": {
-    "mtime": 1778656969.459493,
-    "ast_hash": "69c47908cc3c3dca1decd6e3815e15a6",
-    "semantic_hash": "69c47908cc3c3dca1decd6e3815e15a6"
+    "mtime": 1792475588.788033,
+    "ast_hash": "89e3d0ca0d33d81cef7b25111d749c3c",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Imports/AssetStagingImport.php": {
     "mtime": 1778656969.459493,
@@ -530,9 +530,9 @@
     "semantic_hash": "e77bf579659dbc7ebb2cfd8689e3256b"
   },
   "backend/app/Modules/Bmn/Services/PdfPreviewService.php": {
-    "mtime": 1782093386.7721138,
-    "ast_hash": "15cd13c463877faa68251498093bce25",
-    "semantic_hash": "15cd13c463877faa68251498093bce25"
+    "mtime": 1792475435.3238792,
+    "ast_hash": "846bb113270187f62231e28439eab72c",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/VehicleDocumentPathService.php": {
     "mtime": 1782093386.7721138,
@@ -5685,8 +5685,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalProfileSidebar.tsx": {
-    "mtime": 1792467360.6906772,
-    "ast_hash": "b14bc0bfd9e47fdc843abb28f99ae4ca",
+    "mtime": 1792474348.4278486,
+    "ast_hash": "181c3be9c140e8a9ce0b82b609b6a3f6",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalQuickStats.tsx": {
@@ -6680,8 +6680,8 @@
     "semantic_hash": ""
   },
   "backend/tests/portal_security_check.php": {
-    "mtime": 1792458392.3586538,
-    "ast_hash": "8ab96c660dedc9911863c15809a2b227",
+    "mtime": 1792475730.0027573,
+    "ast_hash": "0700cedacb83b418108ee85e5b32abf9",
     "semantic_hash": ""
   },
   "skills-lock.json": {

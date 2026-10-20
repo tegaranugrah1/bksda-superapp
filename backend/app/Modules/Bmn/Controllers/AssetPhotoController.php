@@ -346,7 +346,8 @@ class AssetPhotoController extends Controller
         }
 
         $zipName = Str::slug($asset->nama_barang) . "_{$asset->nup}_Foto.zip";
-        $zipPath = storage_path("app/temp/{$zipName}");
+        $tempFilename = 'asset_photos_' . bin2hex(random_bytes(8)) . '.zip';
+        $zipPath = storage_path("app/temp/{$tempFilename}");
 
         // Ensure temp directory exists
         if (!is_dir(storage_path('app/temp'))) {

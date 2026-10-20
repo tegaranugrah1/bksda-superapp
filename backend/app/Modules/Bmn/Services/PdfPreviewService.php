@@ -14,12 +14,12 @@ class PdfPreviewService
     /**
      * @return array<int, string>
      */
-    public function jpegPages(string $pdfBytes, bool $firstPageOnly = false): array
+    public function jpegPages(string $pdfBytes, bool $firstPageOnly = false, int $maxPages = 20): array
     {
         $workingDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'bmn-pdf-preview-'.bin2hex(random_bytes(6));
 
         if (! mkdir($workingDir, 0700, true) && ! is_dir($workingDir)) {
-            return null;
+            return [];
         }
 
         $pdfPath = $workingDir.DIRECTORY_SEPARATOR.'source.pdf';
@@ -28,10 +28,12 @@ class PdfPreviewService
         try {
             file_put_contents($pdfPath, $pdfBytes);
 
+            $pageRangeArg = $firstPageOnly ? '-singlefile -f 1 -l 1' : sprintf('-f 1 -l %d', max(1, $maxPages));
+
             $command = sprintf(
                 '%s -jpeg %s -scale-to 1400 %s %s 2>&1',
                 escapeshellarg($this->pdftoppmBinary()),
-                $firstPageOnly ? '-singlefile -f 1 -l 1' : '',
+                $pageRangeArg,
                 escapeshellarg($pdfPath),
                 escapeshellarg($outputBase)
             );
