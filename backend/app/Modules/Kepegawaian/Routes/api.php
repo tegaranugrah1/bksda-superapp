@@ -19,6 +19,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
 
     // Arsip riwayat surat masuk Kepegawaian.
     Route::get('/surat-masuk', [EmployeeIncomingLetterController::class, 'index']);
+    Route::get('/surat-masuk/export/excel', [EmployeeIncomingLetterController::class, 'export']);
     Route::get('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'show']);
     Route::get('/surat-masuk/{letter}/attachments/{attachment}/preview', [EmployeeIncomingLetterController::class, 'preview']);
     Route::get('/surat-masuk/{letter}/attachments/{attachment}/download', [EmployeeIncomingLetterController::class, 'download']);

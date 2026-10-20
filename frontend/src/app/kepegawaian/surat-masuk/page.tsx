@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Download, Eye, FileText, Inbox, Paperclip, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { Calendar, CheckCircle2, Download, Eye, FileSpreadsheet, FileText, Filter, Inbox, Paperclip, Pencil, Plus, Search, TableProperties, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -116,6 +116,10 @@ export default function EmployeeIncomingLettersPage() {
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState<{ attachment: Attachment; dataUrl: string | null } | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportPeriod, setExportPeriod] = useState<"all" | "current_filter" | "this_month" | "this_year" | "custom">("all");
+  const [exportStartDate, setExportStartDate] = useState("");
+  const [exportEndDate, setExportEndDate] = useState("");
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -206,6 +210,53 @@ export default function EmployeeIncomingLettersPage() {
     }
   };
 
+  const exportExcel = async () => {
+    try {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const lastDay = new Date(year, month + 1, 0).toISOString().slice(0, 10);
+      const firstDay = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+      const params: Record<string, string> = {};
+      if (exportPeriod === "current_filter") {
+        if (debouncedSearch) params.search = debouncedSearch;
+        if (kategori) params.kategori = kategori;
+        if (startDate) params.start_date = startDate;
+        if (endDate) params.end_date = endDate;
+      } else if (exportPeriod === "this_month") {
+        params.start_date = firstDay;
+        params.end_date = lastDay;
+      } else if (exportPeriod === "this_year") {
+        params.start_date = `${year}-01-01`;
+        params.end_date = `${year}-12-31`;
+      } else if (exportPeriod === "custom") {
+        if (!exportStartDate || !exportEndDate) {
+          toast.error("Isi rentang tanggal terlebih dahulu.");
+          return;
+        }
+        params.start_date = exportStartDate;
+        params.end_date = exportEndDate;
+      }
+      const response = await api.get("/kepegawaian/surat-masuk/export/excel", {
+        params,
+        responseType: "blob",
+        timeout: 60000,
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Arsip_Surat_Masuk_Kepegawaian_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Arsip surat berhasil diekspor ke Excel.");
+      setExportOpen(false);
+    } catch {
+      toast.error("Gagal mengekspor arsip surat.");
+    }
+  };
+
   const handleDelete = async (item: IncomingLetter) => {
     if (!await confirm({ title: "Hapus Arsip Surat", description: `Hapus arsip ${item.no_agenda}? Semua lampiran RustFS akan ikut dihapus.`, confirmText: "Hapus", cancelText: "Batal", variant: "danger" })) return;
     try {
@@ -267,7 +318,7 @@ export default function EmployeeIncomingLettersPage() {
           <h1 className="mt-1 text-2xl font-black">Arsip Surat Masuk</h1>
           <p className="text-sm text-zinc-500">Riwayat surat masuk, lampiran, dan surat balasan.</p>
         </div>
-        {canWrite && <Button onClick={openCreate} className="gap-2 bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4" />Tambah Arsip</Button>}
+        <div className="flex flex-wrap gap-2">{canWrite && <Button onClick={openCreate} className="gap-2 bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4" />Tambah Arsip</Button>}<Button variant="outline" onClick={() => setExportOpen(true)} className="gap-2"><FileSpreadsheet className="h-4 w-4" />Export Excel</Button></div>
       </div>
 
       <div className="grid gap-2 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950 md:grid-cols-[1fr_170px_150px_150px]">
@@ -281,10 +332,10 @@ export default function EmployeeIncomingLettersPage() {
       <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         {loading ? <div className="p-10 text-center text-sm text-zinc-500">Memuat arsip...</div> : items.length === 0 ? <div className="p-10 text-center text-sm text-zinc-500">Belum ada arsip surat.</div> : (
           <table className="w-full min-w-[1100px] text-left text-sm">
-            <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900"><tr><th className="p-3 text-center">No</th><th className="p-3">Agenda</th><th className="p-3">Nomor &amp; tanggal surat</th><th className="p-3">Asal surat / pengirim</th><th className="p-3">Perihal</th><th className="p-3">Balasan Balai</th><th className="p-3">Lampiran</th><th className="p-3 text-right">Aksi</th></tr></thead>
+            <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900"><tr><th className="p-3">Agenda</th><th className="p-3">Kategori</th><th className="p-3">Nomor &amp; tanggal surat</th><th className="p-3">Asal surat / pengirim</th><th className="p-3">Perihal</th><th className="p-3">Balasan Balai</th><th className="p-3">Lampiran</th><th className="p-3 text-right">Aksi</th></tr></thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">{items.map((item, index) => <tr key={item.id} className="align-top hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
-              <td className="p-3 text-center text-zinc-500">{(page - 1) * 20 + index + 1}</td>
               <td className="p-3 min-w-28 whitespace-nowrap"><div className="font-bold text-blue-600">{item.no_agenda}</div><div className="mt-0.5 text-xs text-zinc-500">{item.tanggal_diterima}</div></td>
+              <td className="p-3 min-w-28"><span className="inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">{item.kategori}</span></td>
               <td className="p-3 min-w-52"><div className="line-clamp-2 font-semibold">{item.no_surat_masuk || "Tanpa nomor surat"}</div><div className="mt-0.5 text-xs text-zinc-500">Tanggal: {item.tanggal_surat || "-"}</div></td>
               <td className="p-3 min-w-56"><div className="line-clamp-2 font-semibold">{item.asal_surat}</div><div className="mt-1 line-clamp-1 text-xs text-zinc-500">{item.catatan || "-"}</div></td>
               <td className="p-3 min-w-64"><p className="line-clamp-3 leading-relaxed">{item.perihal || "-"}</p></td>
@@ -296,6 +347,8 @@ export default function EmployeeIncomingLettersPage() {
         )}
       </div>
       <div className="flex justify-end gap-2"><Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>Sebelumnya</Button><Button variant="outline" size="sm" disabled={page >= lastPage} onClick={() => setPage((value) => value + 1)}>Berikutnya</Button></div>
+
+      {exportOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setExportOpen(false); }}><div className="w-full max-w-lg overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"><div className="flex items-center justify-between border-b border-zinc-100 bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent px-6 py-4 dark:border-zinc-800"><div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/20"><FileSpreadsheet className="h-5 w-5" /></div><div><h2 className="text-base font-bold">Export Arsip Surat Masuk</h2><p className="text-xs text-zinc-500">Unduh rekapitulasi arsip ke format Excel (.xlsx)</p></div></div><button type="button" onClick={() => setExportOpen(false)} className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"><X className="h-4 w-4" /></button></div><div className="space-y-5 p-6"><div className="space-y-3"><label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">Pilih Rentang / Periode Data</label><div className="grid gap-2.5 sm:grid-cols-2">{debouncedSearch.trim() && <button type="button" onClick={() => setExportPeriod("current_filter")} className={`col-span-full flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${exportPeriod === "current_filter" ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-500/80 dark:bg-blue-950/30 dark:text-blue-300" : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"}`}><Filter className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" /><div className="text-xs"><div className="font-semibold">Filter Pencarian Saat Ini</div><div className="mt-0.5 text-[11px] opacity-75">Keyword, kategori, dan tanggal aktif</div></div></button>}<button type="button" onClick={() => setExportPeriod("all")} className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${exportPeriod === "all" ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-500/80 dark:bg-blue-950/30 dark:text-blue-300" : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"}`}><TableProperties className="mt-0.5 h-4 w-4 text-blue-600" /><div className="text-xs"><div className="font-semibold">Semua Data</div><div className="mt-0.5 text-[11px] opacity-75">Seluruh arsip surat masuk</div></div></button><button type="button" onClick={() => setExportPeriod("this_month")} className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${exportPeriod === "this_month" ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-500/80 dark:bg-blue-950/30 dark:text-blue-300" : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"}`}><Calendar className="mt-0.5 h-4 w-4 text-blue-600" /><div className="text-xs"><div className="font-semibold">Bulan Ini</div><div className="mt-0.5 text-[11px] opacity-75">{new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date())}</div></div></button><button type="button" onClick={() => setExportPeriod("this_year")} className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${exportPeriod === "this_year" ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-500/80 dark:bg-blue-950/30 dark:text-blue-300" : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"}`}><Calendar className="mt-0.5 h-4 w-4 text-blue-600" /><div className="text-xs"><div className="font-semibold">Tahun {new Date().getFullYear()}</div><div className="mt-0.5 text-[11px] opacity-75">Rekap 1 tahun anggaran</div></div></button><button type="button" onClick={() => setExportPeriod("custom")} className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${exportPeriod === "custom" ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-300 dark:bg-blue-950/30 dark:text-blue-300" : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"}`}><Filter className="mt-0.5 h-4 w-4 text-blue-600" /><div className="text-xs"><div className="font-semibold">Rentang Kustom</div><div className="mt-0.5 text-[11px] opacity-75">Pilih tanggal spesifik</div></div></button></div></div>{exportPeriod === "custom" && <div className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40"><div className="grid grid-cols-2 gap-3"><label className="space-y-1.5 text-[11px] font-medium text-zinc-600 dark:text-zinc-400">Dari Tanggal<Input type="date" value={exportStartDate} onChange={(event) => setExportStartDate(event.target.value)} className="bg-white text-xs dark:bg-zinc-950" /></label><label className="space-y-1.5 text-[11px] font-medium text-zinc-600 dark:text-zinc-400">Sampai Tanggal<Input type="date" value={exportEndDate} onChange={(event) => setExportEndDate(event.target.value)} className="bg-white text-xs dark:bg-zinc-950" /></label></div></div>}<div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-950/60 dark:bg-blue-950/20"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-blue-900 dark:text-blue-300"><CheckCircle2 className="h-4 w-4 text-blue-600" /><span>Format 11 Kolom Excel:</span></div><div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-zinc-600 dark:text-zinc-400"><div>1. <b>No Agenda</b></div><div>2. <b>Tanggal Diterima</b></div><div>3. <b>Tanggal Surat</b></div><div>4. <b>No Surat Masuk</b></div><div>5. <b>Kategori</b></div><div>6. <b>Asal/Pengirim</b></div><div>7. <b>Perihal</b></div><div>8. <b>Catatan</b></div><div>9. <b>No Balasan</b></div><div>10. <b>Tanggal Balasan</b></div><div>11. <b>Lampiran</b></div></div></div></div><div className="flex items-center justify-end gap-3 border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800"><Button type="button" variant="outline" onClick={() => setExportOpen(false)}>Batal</Button><Button type="button" onClick={exportExcel} className="gap-2 bg-blue-600 text-white hover:bg-blue-700"><Download className="h-4 w-4" />Download Excel (.xlsx)</Button></div></div></div>}
 
       {preview && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) closePreview(); }}><div className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-950"><div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900"><div className="min-w-0"><h3 className="truncate text-sm font-bold" title={preview.attachment.original_name}>{preview.attachment.original_name}</h3><p className="mt-1 truncate text-xs text-zinc-500">{attachmentLabel(preview.attachment.type)} · Lihat lampiran</p></div><button type="button" aria-label="Tutup pratinjau" onClick={closePreview} className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"><X className="h-5 w-5" /></button></div><div className="flex min-h-[420px] flex-1 items-center justify-center overflow-auto bg-zinc-100 p-4 dark:bg-zinc-900">{previewLoading ? <div className="text-sm text-zinc-500">Memuat isi lampiran...</div> : preview.dataUrl && preview.attachment.mime_type === "application/pdf" ? <iframe title={preview.attachment.original_name} src={preview.dataUrl} className="h-[70vh] w-full rounded-lg bg-white" /> : preview.dataUrl ? <img src={preview.dataUrl} alt={preview.attachment.original_name} className="max-h-[70vh] max-w-full rounded-lg object-contain" /> : <div className="max-w-sm text-center"><FileText className="mx-auto h-12 w-12 text-zinc-400" /><p className="mt-3 text-sm font-semibold">{previewMessage(preview.attachment.mime_type)}</p><p className="mt-1 text-xs text-zinc-500">File tetap private di RustFS. Gunakan tombol Unduh file untuk membukanya dengan aplikasi yang sesuai.</p></div>}</div><div className="flex justify-end gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"><Button type="button" variant="outline" onClick={closePreview}>Tutup</Button><Button type="button" onClick={() => download(preview.attachment)} className="gap-2"><Download className="h-4 w-4" />Unduh file</Button></div></div></div>}
 

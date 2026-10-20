@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Modules\Kepegawaian\Exports\EmployeeIncomingLettersExport;
 
 class EmployeeIncomingLetterController extends Controller
 {
@@ -19,6 +21,14 @@ class EmployeeIncomingLetterController extends Controller
     private function disk(): string
     {
         return (string) config('filesystems.default');
+    }
+
+    public function export(Request $request)
+    {
+        $filters = $request->only(['search', 'kategori', 'start_date', 'end_date']);
+        $filename = 'Arsip_Surat_Masuk_Kepegawaian_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new EmployeeIncomingLettersExport($filters), $filename);
     }
 
     public function index(Request $request): JsonResponse
