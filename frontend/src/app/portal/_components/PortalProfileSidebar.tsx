@@ -92,7 +92,7 @@ export function PortalProfileSidebar({
   const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [photoLoading, setPhotoLoading] = useState(false);
-  const [photoKey, setPhotoKey] = useState(Date.now());
+  const [photoVersion, setPhotoVersion] = useState(0);
 
   useEffect(() => {
     return () => {
@@ -224,7 +224,7 @@ export function PortalProfileSidebar({
       await api.post("/me/update-photo", formData);
       toast.success("Foto profil berhasil diperbarui!");
       closePhotoDialog();
-      setPhotoKey(Date.now());
+      setPhotoVersion((v) => v + 1);
       onRefreshDashboard?.();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
@@ -262,7 +262,7 @@ export function PortalProfileSidebar({
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-emerald-500/20 shadow-md bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center">
                 {employee?.photo ? (
                   <Image
-                    src={`${employee.photo}${employee.photo.includes("?") ? "&" : "?"}v=${photoKey}`}
+                    src={`${employee.photo}${employee.photo.includes("?") ? "&" : "?"}v=${photoVersion}`}
                     alt={displayName}
                     width={96}
                     height={96}
