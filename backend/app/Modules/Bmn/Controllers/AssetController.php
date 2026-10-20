@@ -120,6 +120,7 @@ class AssetController extends Controller
             if (!empty($cleanTagIds)) {
                 $tagsModels = Tag::with('subTags')->whereIn('id', $cleanTagIds)->get();
                 foreach ($tagsModels as $tModel) {
+                    /** @var Tag $tModel */
                     $familyIds = $tModel->getFamilyTagIds();
                     $query->whereHas('tags', fn ($q) => $q->whereIn('bmn_tags.id', $familyIds));
                 }

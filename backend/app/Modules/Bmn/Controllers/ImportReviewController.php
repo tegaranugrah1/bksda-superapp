@@ -150,6 +150,7 @@ class ImportReviewController extends Controller
             ->get();
 
         foreach ($rows as $row) {
+            /** @var ImportStaging $row */
             $updates = ['selected' => $request->selected];
 
             if ($row->diff_status === 'updated') {

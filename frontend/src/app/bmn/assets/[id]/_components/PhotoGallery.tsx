@@ -197,7 +197,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
     return { key: slot.key, label: slot.label, url: displayUrl };
   }).filter(Boolean) as { key: string; label: string; url: string }[];
 
-  const openLightbox = useCallback((key: string) => {
+  const openLightbox = (key: string) => {
     const idx = availablePhotos.findIndex((p) => p.key === key);
     if (idx >= 0) {
       setLightbox({ url: availablePhotos[idx].url, label: availablePhotos[idx].label, index: idx });
@@ -205,11 +205,11 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
       const url = photos[key]!;
       setLightbox({ url, label: "Foto Aset", index: 0 });
     }
-  }, [availablePhotos, photos]);
+  };
 
   useImperativeHandle(ref, () => ({
     openLightbox,
-  }), [openLightbox]);
+  }));
 
   const openDocumentLightbox = (document: VehicleDocument | null | undefined, label: string) => {
     const pages = getDocumentPreviewPages(document);
@@ -646,7 +646,7 @@ function PhotoCardSlot({
     <div className="flex flex-col gap-2">
       {/* Box Image / Upload Trigger */}
       {url ? (
-        <div className="relative rounded-xl overflow-hidden border-2 border-emerald-500/20 dark:border-emerald-500/30 aspect-[4/3] bg-slate-100 dark:bg-zinc-800 group shadow-xs">
+        <div className="relative rounded-xl overflow-hidden border-2 border-emerald-500/20 dark:border-emerald-500/30 aspect-4/3 bg-slate-100 dark:bg-zinc-800 group shadow-xs">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={displayThumb || url}
@@ -697,7 +697,7 @@ function PhotoCardSlot({
         <div
           onClick={() => (canWrite ? openUploadPicker(slot.key) : undefined)}
           className={cn(
-            "rounded-xl border-2 border-dashed border-slate-300/80 dark:border-zinc-700 aspect-[4/3] flex flex-col items-center justify-center p-3 text-center transition-all group bg-slate-50/50 dark:bg-zinc-800/30",
+            "rounded-xl border-2 border-dashed border-slate-300/80 dark:border-zinc-700 aspect-4/3 flex flex-col items-center justify-center p-3 text-center transition-all group bg-slate-50/50 dark:bg-zinc-800/30",
             canWrite ? "cursor-pointer hover:border-emerald-500/80 hover:bg-emerald-50/20 dark:hover:bg-emerald-500/5" : "cursor-default"
           )}
         >

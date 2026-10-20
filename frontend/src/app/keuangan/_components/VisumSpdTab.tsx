@@ -814,7 +814,7 @@ export function VisumSpdTab({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 dark:border-amber-500/20 dark:from-amber-500/15">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between rounded-2xl border border-amber-200/80 bg-linear-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 dark:border-amber-500/20 dark:from-amber-500/15">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
             <FileSpreadsheet className="h-4 w-4" />
@@ -895,7 +895,7 @@ export function VisumSpdTab({
                 <select
                   value={selectedTemplateId}
                   onChange={(e) => handleSelectTemplateOption(e.target.value)}
-                  className="bg-transparent text-xs font-semibold text-zinc-800 outline-none dark:text-zinc-200 cursor-pointer max-w-[220px] truncate"
+                  className="bg-transparent text-xs font-semibold text-zinc-800 outline-none dark:text-zinc-200 cursor-pointer max-w-55 truncate"
                 >
                   <option value="manual" className="dark:bg-zinc-900 font-semibold text-amber-700 dark:text-amber-400">
                     ✏️ Manual (Kosong)
@@ -1202,7 +1202,7 @@ export function VisumSpdTab({
                     >
                       <ZoomOut className="h-3.5 w-3.5" />
                     </button>
-                    <span className="min-w-[36px] text-center font-bold text-zinc-700 dark:text-zinc-200 text-[11px]">
+                    <span className="min-w-9 text-center font-bold text-zinc-700 dark:text-zinc-200 text-[11px]">
                       {Math.round(previewZoom * 100)}%
                     </span>
                     <button
