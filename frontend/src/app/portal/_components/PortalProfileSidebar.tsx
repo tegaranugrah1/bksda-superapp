@@ -741,7 +741,7 @@ export function PortalProfileSidebar({
               )}
             </div>
             {selectedPhotoFile && (
-              <p className="mt-3 text-[11px] text-slate-500 font-mono truncate max-w-[240px]">
+              <p className="mt-3 text-[11px] text-slate-500 font-mono truncate max-w-60">
                 {selectedPhotoFile.name} ({(selectedPhotoFile.size / 1024).toFixed(0)} KB)
               </p>
             )}

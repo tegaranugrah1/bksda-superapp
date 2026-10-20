@@ -887,7 +887,7 @@ export function KalkulatorDinasTab({
                       onChange={(e) =>
                         setEditExpData((prev) => ({ ...prev, keterangan: e.target.value }))
                       }
-                      className="h-8 text-xs flex-1 min-w-[150px]"
+                      className="h-8 text-xs flex-1 min-w-37.5"
                       placeholder="Keterangan Pengeluaran"
                     />
                     <select

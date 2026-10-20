@@ -142,7 +142,7 @@ function PortalSkeleton() {
     <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950">
       {/* HEADER NAVBAR SKELETON */}
       <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+        <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
             <div className="space-y-1">
@@ -157,7 +157,7 @@ function PortalSkeleton() {
       </header>
 
       {/* 3-COLUMN SKELETON */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6">
+      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6">
         {/* Left column */}
         <div className="w-full lg:w-72 shrink-0 space-y-4">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 space-y-4 shadow-sm">
@@ -177,7 +177,7 @@ function PortalSkeleton() {
         {/* Center column */}
         <main className="flex-1 min-w-0 space-y-6 w-full">
           {/* Banner skeleton */}
-          <div className="rounded-3xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 md:p-7 text-white shadow-md space-y-3 animate-pulse">
+          <div className="rounded-3xl bg-linear-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 md:p-7 text-white shadow-md space-y-3 animate-pulse">
             <div className="w-32 h-4 bg-emerald-600/60 rounded" />
             <div className="w-64 h-7 bg-emerald-600/80 rounded" />
             <div className="w-96 max-w-full h-3 bg-emerald-600/50 rounded" />
@@ -191,7 +191,7 @@ function PortalSkeleton() {
           </div>
 
           {/* Tabs skeleton */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 min-h-[300px]">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 min-h-75">
             <div className="w-48 h-5 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mb-4" />
             <div className="space-y-3">
               <div className="w-full h-14 bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
@@ -478,7 +478,7 @@ function PortalContent() {
     <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 print:bg-transparent">
         {/* HEADER NAVBAR */}
         <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm print:hidden">
-          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+          <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="p-1.5 bg-white dark:bg-slate-900 shadow-sm border border-slate-200/80 dark:border-slate-800 rounded-xl">
                 <Image src="/logo_bksda.png" alt="Logo BKSDA" width={32} height={32} className="w-8 h-8 object-contain" />
@@ -505,7 +505,7 @@ function PortalContent() {
                   <p className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
                     {data.employee?.name || data.user.name}
                   </p>
-                  <p className="text-[10px] text-slate-500 truncate max-w-[150px]">
+                  <p className="text-[10px] text-slate-500 truncate max-w-37.5">
                     {data.employee?.position || data.user.role}
                   </p>
                 </div>
@@ -524,7 +524,7 @@ function PortalContent() {
         </header>
 
         {/* 3-COLUMN HYBRID LAYOUT (MYASN INSPIRED) */}
-        <div className={cn("max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6 print:p-0 print:m-0 print:block print:max-w-none", printLeaveData && "print:hidden")}>
+        <div className={cn("max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6 print:p-0 print:m-0 print:block print:max-w-none", printLeaveData && "print:hidden")}>
           {/* LEFT COLUMN: SIDEBAR PROFIL & NAVIGASI */}
           <div className="w-full lg:w-72 shrink-0 print:hidden">
             <PortalProfileSidebar
@@ -614,7 +614,7 @@ function PortalContent() {
                             <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight">
                               {mod.label}
                             </p>
-                            <p className="text-[10px] text-slate-400 truncate max-w-[100px]">
+                            <p className="text-[10px] text-slate-400 truncate max-w-25">
                               {mod.desc}
                             </p>
                           </div>

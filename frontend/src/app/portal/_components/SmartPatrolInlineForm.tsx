@@ -534,7 +534,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                     <ChevronsUpDown className="w-4 h-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[800px] p-0" align="start">
+                <PopoverContent className="w-200 p-0" align="start">
                   <div className="p-3 border-b border-slate-100 dark:border-slate-800 relative">
                     <Search className="w-4 h-4 absolute left-6 top-6 text-slate-400" />
                     <Input 
@@ -544,7 +544,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                       className="pl-9 bg-slate-50 dark:bg-slate-800/50"
                     />
                   </div>
-                  <div className="max-h-[300px] overflow-y-auto p-2">
+                  <div className="max-h-75 overflow-y-auto p-2">
                     {stOptions
                       .filter(st => 
                         (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || 
@@ -673,15 +673,15 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
           <div className="space-y-6">
             <div className="space-y-1.5">
               <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">iii. Kata Pengantar</h3>
-              <Textarea value={kataPengantar} onChange={(e) => setKataPengantar(e.target.value)} placeholder="Teks Kata Pengantar..." className="min-h-[300px]" />
+              <Textarea value={kataPengantar} onChange={(e) => setKataPengantar(e.target.value)} placeholder="Teks Kata Pengantar..." className="min-h-75" />
             </div>
             <div className="space-y-1.5">
               <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">iv. Daftar Isi</h3>
-              <Textarea value={daftarIsi} onChange={(e) => setDaftarIsi(e.target.value)} placeholder="Daftar Isi (opsional untuk versi draft)..." className="min-h-[150px]" />
+              <Textarea value={daftarIsi} onChange={(e) => setDaftarIsi(e.target.value)} placeholder="Daftar Isi (opsional untuk versi draft)..." className="min-h-37.5" />
             </div>
             <div className="space-y-1.5">
               <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">v. Daftar Lampiran</h3>
-              <Textarea value={daftarLampiran} onChange={(e) => setDaftarLampiran(e.target.value)} placeholder="Daftar Lampiran..." className="min-h-[150px]" />
+              <Textarea value={daftarLampiran} onChange={(e) => setDaftarLampiran(e.target.value)} placeholder="Daftar Lampiran..." className="min-h-37.5" />
             </div>
           </div>
 
@@ -691,16 +691,16 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
           <div className="space-y-6">
             <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">BAB I PENDAHULUAN</h3>
             <div className="space-y-6">
-              <div className="space-y-1.5"><Label>A. Latar Belakang</Label><Textarea value={latarBelakang} onChange={(e) => setLatarBelakang(e.target.value)} className="min-h-[250px]" /></div>
-              <div className="space-y-1.5"><Label>B. Dasar Hukum</Label><Textarea value={dasarHukum} onChange={(e) => setDasarHukum(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>C. Maksud</Label><Textarea value={maksud} onChange={(e) => setMaksud(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>Tujuan</Label><Textarea value={tujuan} onChange={(e) => setTujuan(e.target.value)} className="min-h-[250px]" /></div>
-              <div className="space-y-1.5"><Label>D. Penerima Manfaat/Sasaran</Label><Textarea value={penerimaManfaat} onChange={(e) => setPenerimaManfaat(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>E. Output</Label><Textarea value={output} onChange={(e) => setOutput(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>F. Indikator Kinerja Kegiatan</Label><Textarea value={indikatorKinerja} onChange={(e) => setIndikatorKinerja(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>G. Satuan Ukur</Label><Textarea value={satuanUkur} onChange={(e) => setSatuanUkur(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>H. Volume</Label><Textarea value={volume} onChange={(e) => setVolume(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>I. Ruang Lingkup</Label><Textarea value={ruangLingkup} onChange={(e) => setRuangLingkup(e.target.value)} className="min-h-[150px]" /></div>
+              <div className="space-y-1.5"><Label>A. Latar Belakang</Label><Textarea value={latarBelakang} onChange={(e) => setLatarBelakang(e.target.value)} className="min-h-62.5" /></div>
+              <div className="space-y-1.5"><Label>B. Dasar Hukum</Label><Textarea value={dasarHukum} onChange={(e) => setDasarHukum(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>C. Maksud</Label><Textarea value={maksud} onChange={(e) => setMaksud(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>Tujuan</Label><Textarea value={tujuan} onChange={(e) => setTujuan(e.target.value)} className="min-h-62.5" /></div>
+              <div className="space-y-1.5"><Label>D. Penerima Manfaat/Sasaran</Label><Textarea value={penerimaManfaat} onChange={(e) => setPenerimaManfaat(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>E. Output</Label><Textarea value={output} onChange={(e) => setOutput(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>F. Indikator Kinerja Kegiatan</Label><Textarea value={indikatorKinerja} onChange={(e) => setIndikatorKinerja(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>G. Satuan Ukur</Label><Textarea value={satuanUkur} onChange={(e) => setSatuanUkur(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>H. Volume</Label><Textarea value={volume} onChange={(e) => setVolume(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>I. Ruang Lingkup</Label><Textarea value={ruangLingkup} onChange={(e) => setRuangLingkup(e.target.value)} className="min-h-37.5" /></div>
             </div>
           </div>
 
@@ -710,10 +710,10 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
           <div className="space-y-6">
             <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">BAB II METODOLOGI</h3>
             <div className="space-y-6">
-              <div className="space-y-1.5"><Label>A. Waktu dan Tempat</Label><Textarea value={waktuTempat} onChange={(e) => setWaktuTempat(e.target.value)} className="min-h-[150px]" /></div>
+              <div className="space-y-1.5"><Label>A. Waktu dan Tempat</Label><Textarea value={waktuTempat} onChange={(e) => setWaktuTempat(e.target.value)} className="min-h-37.5" /></div>
               <div className="space-y-1.5">
                 <Label>B. Pelaksana Kegiatan</Label>
-                <Textarea value={pelaksanaKegiatan} onChange={(e) => setPelaksanaKegiatan(e.target.value)} className="min-h-[150px]" />
+                <Textarea value={pelaksanaKegiatan} onChange={(e) => setPelaksanaKegiatan(e.target.value)} className="min-h-37.5" />
                 
                 {reportData.pelaksanaEmployees && reportData.pelaksanaEmployees.length > 0 && (
                   <div className="mt-4 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
@@ -745,9 +745,9 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                   </div>
                 )}
               </div>
-              <div className="space-y-1.5"><Label>C. Alat dan Bahan</Label><Textarea value={alatBahan} onChange={(e) => setAlatBahan(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>D. Metode Pelaksanaan</Label><Textarea value={metodePelaksanaan} onChange={(e) => setMetodePelaksanaan(e.target.value)} className="min-h-[150px]" /></div>
-              <div className="space-y-1.5"><Label>E. Tahapan Pelaksanaan Kegiatan</Label><Textarea value={tahapanPelaksanaan} onChange={(e) => setTahapanPelaksanaan(e.target.value)} className="min-h-[250px]" /></div>
+              <div className="space-y-1.5"><Label>C. Alat dan Bahan</Label><Textarea value={alatBahan} onChange={(e) => setAlatBahan(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>D. Metode Pelaksanaan</Label><Textarea value={metodePelaksanaan} onChange={(e) => setMetodePelaksanaan(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-1.5"><Label>E. Tahapan Pelaksanaan Kegiatan</Label><Textarea value={tahapanPelaksanaan} onChange={(e) => setTahapanPelaksanaan(e.target.value)} className="min-h-62.5" /></div>
             </div>
           </div>
 
@@ -761,14 +761,14 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                 <h4 className="font-bold text-lg">A. Hasil Pelaksanaan</h4>
                 <div className="space-y-1.5">
                   <Label>Pengantar Hasil Pelaksanaan</Label>
-                  <Textarea value={hasilPelaksanaanIntro} onChange={(e) => setHasilPelaksanaanIntro(e.target.value)} className="min-h-[150px]" />
+                  <Textarea value={hasilPelaksanaanIntro} onChange={(e) => setHasilPelaksanaanIntro(e.target.value)} className="min-h-37.5" />
                 </div>
                 
                 <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <h5 className="font-bold">1. Temuan Satwa Liar</h5>
                   <div className="space-y-1.5">
                     <Label>Pengantar Temuan Satwa Liar</Label>
-                    <Textarea value={temuanSatwaLiarIntro} onChange={(e) => setTemuanSatwaLiarIntro(e.target.value)} className="min-h-[100px]" />
+                    <Textarea value={temuanSatwaLiarIntro} onChange={(e) => setTemuanSatwaLiarIntro(e.target.value)} className="min-h-25" />
                   </div>
                   
                   <div className="space-y-2 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
@@ -812,18 +812,18 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                   
                   <div className="space-y-1.5">
                     <Label>Penutup Temuan Satwa Liar</Label>
-                    <Textarea value={temuanSatwaLiarOutro} onChange={(e) => setTemuanSatwaLiarOutro(e.target.value)} className="min-h-[100px]" />
+                    <Textarea value={temuanSatwaLiarOutro} onChange={(e) => setTemuanSatwaLiarOutro(e.target.value)} className="min-h-25" />
                   </div>
                 </div>
                 
                 <div className="space-y-1.5 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <h5 className="font-bold pb-1">2. Status Konservasi Kawasan</h5>
-                  <Textarea value={statusKonservasiKawasan} onChange={(e) => setStatusKonservasiKawasan(e.target.value)} className="min-h-[100px]" />
+                  <Textarea value={statusKonservasiKawasan} onChange={(e) => setStatusKonservasiKawasan(e.target.value)} className="min-h-25" />
                 </div>
                 
                 <div className="space-y-1.5 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <h5 className="font-bold pb-1">3. Temuan Ancaman</h5>
-                  <Textarea value={temuanAncaman} onChange={(e) => setTemuanAncaman(e.target.value)} className="min-h-[150px]" />
+                  <Textarea value={temuanAncaman} onChange={(e) => setTemuanAncaman(e.target.value)} className="min-h-37.5" />
                 </div>
               </div>
             </div>
@@ -833,18 +833,18 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
               <div className="space-y-4 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
                 <div className="space-y-1.5">
                   <h4 className="font-bold text-lg">A. Kesimpulan</h4>
-                  <Textarea value={kesimpulan} onChange={(e) => setKesimpulan(e.target.value)} className="min-h-[250px]" />
+                  <Textarea value={kesimpulan} onChange={(e) => setKesimpulan(e.target.value)} className="min-h-62.5" />
                 </div>
                 <div className="space-y-1.5 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <h4 className="font-bold text-lg">B. Saran/Rekomendasi</h4>
-                  <Textarea value={saran} onChange={(e) => setSaran(e.target.value)} className="min-h-[250px]" />
+                  <Textarea value={saran} onChange={(e) => setSaran(e.target.value)} className="min-h-62.5" />
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
               <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">BAB V PENUTUP</h3>
-              <Textarea value={penutup} onChange={(e) => setPenutup(e.target.value)} className="min-h-[200px]" />
+              <Textarea value={penutup} onChange={(e) => setPenutup(e.target.value)} className="min-h-50" />
             </div>
           </div>
 
