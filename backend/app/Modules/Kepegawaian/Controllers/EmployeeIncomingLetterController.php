@@ -39,7 +39,7 @@ class EmployeeIncomingLetterController extends Controller
             ->latest('id');
 
         if ($request->filled('search')) {
-            $search = trim((string) $request->input('search'));
+            $search = addcslashes(trim((string) $request->input('search')), '%_');
             $query->where(function ($builder) use ($search) {
                 $builder->where('no_agenda', 'like', "%{$search}%")
                     ->orWhere('no_surat_masuk', 'like', "%{$search}%")

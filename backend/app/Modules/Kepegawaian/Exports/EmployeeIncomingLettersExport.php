@@ -21,7 +21,7 @@ class EmployeeIncomingLettersExport implements FromCollection, WithHeadings, Wit
         $query = EmployeeIncomingLetter::query()->with('attachments');
 
         if (! empty($this->filters['search'])) {
-            $search = trim((string) $this->filters['search']);
+            $search = addcslashes(trim((string) $this->filters['search']), '%_');
             $query->where(function ($builder) use ($search) {
                 $builder->where('no_agenda', 'like', "%{$search}%")
                     ->orWhere('no_surat_masuk', 'like', "%{$search}%")
