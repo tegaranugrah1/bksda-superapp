@@ -8,19 +8,9 @@ function getBaseApiUrl(): string {
       : "http://127.0.0.1:8000/api";
   }
 
-  const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  if (rawUrl.startsWith("http")) {
-    try {
-      const urlObj = new URL(rawUrl);
-      if (urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1") {
-        urlObj.hostname = window.location.hostname;
-      }
-      return urlObj.toString();
-    } catch {
-      return rawUrl;
-    }
-  }
-  return rawUrl;
+  // Browser selalu memakai proxy same-origin Next.js. Laravel/RustFS tidak
+  // pernah diakses langsung dari browser, jadi token dan binary tidak mentok CORS.
+  return "/api";
 }
 
 const api = axios.create({
@@ -115,6 +105,11 @@ api.get = function <T = any, R = AxiosResponse<T>, D = any>(
   url: string,
   config?: AxiosRequestConfig<D>
 ): Promise<R> {
+  // Binary downloads (blob/arraybuffer/stream) must bypass dedup & cache
+  if (config?.responseType && config.responseType !== "json") {
+    return originalGet<T, R, D>(url, config);
+  }
+
   const key = getRequestKey("get", url, config?.params);
 
   // 1. Check short-term cache

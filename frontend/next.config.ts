@@ -53,27 +53,21 @@ const nextConfig: NextConfig = {
     },
 
     async rewrites() {
-        if (process.env.NODE_ENV === "development") {
-            const backendUrl = "http://localhost:8000";
-            return [
-                {
-                    source: "/api/:path*",
-                    destination: `${backendUrl}/api/:path*`,
-                },
-                {
-                    source: "/sanctum/:path*",
-                    destination: `${backendUrl}/sanctum/:path*`,
-                },
-                {
-                    source: "/storage/:path*",
-                    destination: `${backendUrl}/storage/:path*`,
-                },
-            ];
-        }
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:8000" : null);
+        if (!backendUrl) return [];
+
         return [
             {
+                source: "/api/:path*",
+                destination: `${backendUrl}/api/:path*`,
+            },
+            {
+                source: "/sanctum/:path*",
+                destination: `${backendUrl}/sanctum/:path*`,
+            },
+            {
                 source: "/storage/:path*",
-                destination: `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://backend.vercel.app'}/storage/:path*`,
+                destination: `${backendUrl}/storage/:path*`,
             },
         ];
     },

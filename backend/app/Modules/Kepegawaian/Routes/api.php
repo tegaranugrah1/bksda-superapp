@@ -2,6 +2,7 @@
 
 use App\Modules\Kepegawaian\Controllers\EmployeeAccessController;
 use App\Modules\Kepegawaian\Controllers\EmployeeController;
+use App\Modules\Kepegawaian\Controllers\EmployeeIncomingLetterController;
 use Illuminate\Support\Facades\Route;
 
 // Semua route di bawah ini otomatis memiliki prefix /api/kepegawaian/
@@ -15,6 +16,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
+
+    // Arsip riwayat surat masuk Kepegawaian.
+    Route::get('/surat-masuk', [EmployeeIncomingLetterController::class, 'index']);
+    Route::get('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'show']);
+    Route::get('/surat-masuk/{letter}/attachments/{attachment}/preview', [EmployeeIncomingLetterController::class, 'preview']);
+    Route::get('/surat-masuk/{letter}/attachments/{attachment}/download', [EmployeeIncomingLetterController::class, 'download']);
+
+    Route::middleware('role:super_admin,admin')->group(function () {
+        Route::post('/surat-masuk', [EmployeeIncomingLetterController::class, 'store']);
+        Route::post('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'update']);
+        Route::delete('/surat-masuk/{letter}/attachments/{attachment}', [EmployeeIncomingLetterController::class, 'destroyAttachment']);
+        Route::delete('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'destroy']);
+    });
 
     // --- MANAJEMEN DATA PEGAWAI (CRUD) ---
     Route::get('/dashboard-stats', [EmployeeController::class, 'dashboardStats']);
