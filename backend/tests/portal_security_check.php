@@ -1258,6 +1258,13 @@ assert(
     'EmployeeLeaveRequestController myStore must reject out-of-bounds calendar years'
 );
 
+// 196. Leave Request Phone Fallback & Resilient Status Filter Invariant
+assert(
+    str_contains($leaveCtrlCheck70, "'telepon' => \$validated['telepon'] ?? \$employee->no_telepon ?? null") &&
+    str_contains($leaveCtrlCheck70, "'PENDING', 'PENGAJUAN' => ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending']"),
+    'EmployeeLeaveRequestController must fallback to employee no_telepon and support bilingual status filtering in myIndex'
+);
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

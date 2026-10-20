@@ -37,7 +37,14 @@ class EmployeeLeaveRequestController extends Controller
         }
 
         if ($status = $request->input('status')) {
-            $query->where('status', strtoupper((string) $status));
+            $s = strtoupper((string) $status);
+            $statuses = match ($s) {
+                'PENDING', 'PENGAJUAN' => ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'],
+                'APPROVED', 'DISETUJUI' => ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'],
+                'REJECTED', 'DITOLAK' => ['DITOLAK', 'REJECTED', 'ditolak', 'rejected'],
+                default => [$s],
+            };
+            $query->whereIn('status', $statuses);
         }
 
         $requests = $query->limit(100)->get();
@@ -217,7 +224,7 @@ class EmployeeLeaveRequestController extends Controller
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'alamat_menjalankan_cuti' => strip_tags(trim($validated['alamat_menjalankan_cuti'])),
-                'telepon' => $validated['telepon'] ?? $employee->user?->phone,
+                'telepon' => $validated['telepon'] ?? $employee->no_telepon ?? null,
                 'sisa_n2' => $sisaN2,
                 'sisa_n1' => $sisaN1,
                 'sisa_n0' => $sisaN0,
