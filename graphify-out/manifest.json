@@ -1470,8 +1470,8 @@
     "semantic_hash": "b519d08ef66fd54910edbedba6181ec2"
   },
   "backend/routes/api.php": {
-    "mtime": 1792369782.6954396,
-    "ast_hash": "56924d41c24e5e69d6cff966e1471ecf",
+    "mtime": 1792455637.7015023,
+    "ast_hash": "1ae3caabd314318b9320c1f4ca77a09a",
     "semantic_hash": ""
   },
   "backend/routes/console.php": {
@@ -6680,8 +6680,8 @@
     "semantic_hash": ""
   },
   "backend/tests/portal_security_check.php": {
-    "mtime": 1792454825.7853622,
-    "ast_hash": "51fcb62f7606c911fc84098392d0b42a",
+    "mtime": 1792455661.788991,
+    "ast_hash": "50ad7c4209c1855d10d32be9bebfcc03",
     "semantic_hash": ""
   },
   "skills-lock.json": {

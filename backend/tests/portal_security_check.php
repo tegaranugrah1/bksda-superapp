@@ -1283,6 +1283,22 @@ assert(
     'PortalProfileSidebar must validate that new password is not identical to current password'
 );
 
+// 198. Portal & Auth Route Throttling and Numeric Parameter Route Invariants
+$logoutRoute72 = $routes->first(fn($r) => $r->uri() === 'api/logout' && in_array('POST', $r->methods()));
+assert($logoutRoute72 !== null && in_array('throttle:30,1', $logoutRoute72->middleware()), 'POST api/logout missing throttle:30,1');
+
+$userRoute72 = $routes->first(fn($r) => $r->uri() === 'api/user' && in_array('GET', $r->methods()));
+assert($userRoute72 !== null && in_array('throttle:120,1', $userRoute72->middleware()), 'GET api/user missing throttle:120,1');
+
+$meRoute72 = $routes->first(fn($r) => $r->uri() === 'api/me' && in_array('GET', $r->methods()));
+assert($meRoute72 !== null && in_array('throttle:120,1', $meRoute72->middleware()), 'GET api/me missing throttle:120,1');
+
+$leaveShowRoute72 = $routes->first(fn($r) => $r->uri() === 'api/me/leave-requests/{id}' && in_array('GET', $r->methods()));
+assert($leaveShowRoute72 !== null && ($leaveShowRoute72->wheres['id'] ?? '') === '[0-9]+', 'GET api/me/leave-requests/{id} missing whereNumber constraint');
+
+$leaveDelRoute72 = $routes->first(fn($r) => $r->uri() === 'api/me/leave-requests/{id}' && in_array('DELETE', $r->methods()));
+assert($leaveDelRoute72 !== null && ($leaveDelRoute72->wheres['id'] ?? '') === '[0-9]+', 'DELETE api/me/leave-requests/{id} missing whereNumber constraint');
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 
