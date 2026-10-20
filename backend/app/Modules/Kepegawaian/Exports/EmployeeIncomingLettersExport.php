@@ -53,18 +53,23 @@ class EmployeeIncomingLettersExport implements FromCollection, WithHeadings, Wit
     public function map($row): array
     {
         return [
-            $row->no_agenda ?: '-',
+            $this->safeCell($row->no_agenda ?: '-'),
             $row->tanggal_diterima?->format('d/m/Y') ?: '-',
             $row->tanggal_surat?->format('d/m/Y') ?: '-',
-            $row->no_surat_masuk ?: '-',
-            $row->kategori,
-            $row->asal_surat,
-            $row->perihal ?: '-',
-            $row->catatan ?: '-',
-            $row->no_surat_balasan ?: '-',
+            $this->safeCell($row->no_surat_masuk ?: '-'),
+            $this->safeCell($row->kategori),
+            $this->safeCell($row->asal_surat),
+            $this->safeCell($row->perihal ?: '-'),
+            $this->safeCell($row->catatan ?: '-'),
+            $this->safeCell($row->no_surat_balasan ?: '-'),
             $row->tanggal_surat_balasan?->format('d/m/Y') ?: '-',
-            $row->attachments->pluck('original_name')->implode(', ') ?: '-',
+            $this->safeCell($row->attachments->pluck('original_name')->implode(', ') ?: '-'),
         ];
+    }
+
+    private function safeCell(string $value): string
+    {
+        return $value !== '-' && preg_match('/^[=+\-@]/', $value) === 1 ? "'{$value}" : $value;
     }
 
     public function styles(Worksheet $sheet): array
