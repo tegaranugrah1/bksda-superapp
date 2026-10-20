@@ -1319,6 +1319,39 @@ assert(
     str_contains($kalkulatorTabCode73, 'const err = e as { name?: string; code?: number }'),
     'KalkulatorDinasTab storage save must use strictly-typed error boundary'
 );
+// 200. BMN Security Invariants (Formula Injection, LIKE escaping, Safe Geotag Redirect)
+$bmnAssetExportCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Exports/AssetExport.php');
+$bmnLoanExportCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Exports/LoanExport.php');
+$bmnMaintExportCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Exports/MaintenanceExport.php');
+$bmnAssetCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Controllers/AssetController.php');
+$bmnAssetPhotoCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Controllers/AssetPhotoController.php');
+$bmnDocHistoryCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Controllers/DocumentHistoryController.php');
+
+// Formula injection sanitization in BMN exports
+$bmnSanitizer = function ($val) {
+    if (is_string($val) && preg_match('/^[=+\-@\t\r]/', $val)) {
+        return "'" . $val;
+    }
+    return $val;
+};
+assert($bmnSanitizer("=1+1") === "'=1+1", 'BMN export must neutralize = prefix');
+assert($bmnSanitizer("+cmd") === "'+cmd", 'BMN export must neutralize + prefix');
+assert($bmnSanitizer("-SUM(A1:A5)") === "'-SUM(A1:A5)", 'BMN export must neutralize - prefix');
+assert($bmnSanitizer("@SUM(A1:A5)") === "'@SUM(A1:A5)", 'BMN export must neutralize @ prefix');
+assert($bmnSanitizer("Aset Normal 123") === "Aset Normal 123", 'BMN export must not alter benign strings');
+
+assert(str_contains($bmnAssetExportCode, 'sanitizeRow') && str_contains($bmnAssetExportCode, "preg_match('/^[=+\\-@\\t\\r]/'"), 'AssetExport missing formula injection sanitization');
+assert(str_contains($bmnLoanExportCode, 'sanitizeRow') && str_contains($bmnLoanExportCode, "preg_match('/^[=+\\-@\\t\\r]/'"), 'LoanExport missing formula injection sanitization');
+assert(str_contains($bmnMaintExportCode, 'sanitizeRow') && str_contains($bmnMaintExportCode, "preg_match('/^[=+\\-@\\t\\r]/'"), 'MaintenanceExport missing formula injection sanitization');
+
+// SQL LIKE wildcard escaping in AssetController & DocumentHistoryController
+assert(str_contains($bmnAssetCtrlCode, "addcslashes(\$search, '%_')"), 'AssetController search missing addcslashes wildcard escaping');
+assert(str_contains($bmnAssetCtrlCode, "addcslashes(\$cleanSearch, '%_')"), 'AssetController cleanSearch missing addcslashes wildcard escaping');
+assert(str_contains($bmnDocHistoryCtrlCode, "addcslashes(trim((string) (\$validated['search'] ?? '')), '%_')"), 'DocumentHistoryController search missing addcslashes wildcard escaping');
+
+// Safe redirect guard in AssetPhotoController
+assert(str_contains($bmnAssetPhotoCtrlCode, "str_starts_with(\$asset->foto_geotag_url, 'http://') || str_starts_with(\$asset->foto_geotag_url, 'https://')"), 'AssetPhotoController geotag redirect missing protocol check');
+assert(str_contains($bmnAssetPhotoCtrlCode, "redirect()->away(\$asset->foto_geotag_url)"), 'AssetPhotoController geotag redirect must use redirect()->away');
 
 echo "PASS: portal_security_check completed successfully.\n";
 

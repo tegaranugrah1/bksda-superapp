@@ -31,7 +31,7 @@ class LoanExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($loan): array
     {
-        return [
+        return $this->sanitizeRow([
             $loan->id,
             $loan->asset?->kode_barang ?? '-',
             $loan->asset?->nama_barang ?? '-',
@@ -41,6 +41,16 @@ class LoanExport implements FromCollection, WithHeadings, WithMapping
             $loan->tanggal_kembali?->format('d/m/Y'),
             $loan->status,
             $loan->keterangan ?? '-',
-        ];
+        ]);
+    }
+
+    private function sanitizeRow(array $row): array
+    {
+        return array_map(function ($val) {
+            if (is_string($val) && preg_match('/^[=+\-@\t\r]/', $val)) {
+                return "'" . $val;
+            }
+            return $val;
+        }, $row);
     }
 }

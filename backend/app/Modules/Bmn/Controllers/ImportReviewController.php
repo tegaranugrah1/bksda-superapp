@@ -451,7 +451,7 @@ class ImportReviewController extends Controller
     private function applyIdentityFilters($query, Request $request)
     {
         foreach (['kode_barang', 'nup', 'nama_barang'] as $field) {
-            $value = trim((string) $request->input($field, ''));
+            $value = addcslashes(trim((string) $request->input($field, '')), '%_');
 
             if ($value !== '') {
                 $query->whereRaw("imported_data->>'{$field}' ILIKE ?", ["%{$value}%"]);

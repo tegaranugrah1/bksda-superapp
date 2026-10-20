@@ -219,7 +219,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
     }
 
     const viewUrl = resolveApiUrl(document?.url);
-    if (viewUrl) window.open(viewUrl, "_blank");
+    if (viewUrl) window.open(viewUrl, "_blank", "noopener,noreferrer");
   };
 
   const navigateLightbox = (dir: 1 | -1) => {
@@ -334,7 +334,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
       const document = documents[type];
       const downloadUrl = resolveApiUrl(document?.download_url);
       if (downloadUrl) {
-        window.open(downloadUrl, "_blank");
+        window.open(downloadUrl, "_blank", "noopener,noreferrer");
       }
       return;
     }
@@ -353,8 +353,8 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
         } catch {
           toast.error("Foto tidak tersedia.");
         }
-      } else if (fotoGeotagUrl) {
-        window.open(fotoGeotagUrl, "_blank");
+      } else if (fotoGeotagUrl && (fotoGeotagUrl.startsWith("http://") || fotoGeotagUrl.startsWith("https://"))) {
+        window.open(fotoGeotagUrl, "_blank", "noopener,noreferrer");
       }
       return;
     }

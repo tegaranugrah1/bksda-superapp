@@ -30,7 +30,7 @@ class MaintenanceExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($m): array
     {
-        return [
+        return $this->sanitizeRow([
             $m->id,
             $m->asset?->kode_barang ?? '-',
             $m->asset?->nama_barang ?? '-',
@@ -39,6 +39,16 @@ class MaintenanceExport implements FromCollection, WithHeadings, WithMapping
             $m->biaya ?? 0,
             $m->vendor ?? '-',
             $m->keterangan ?? '-',
-        ];
+        ]);
+    }
+
+    private function sanitizeRow(array $row): array
+    {
+        return array_map(function ($val) {
+            if (is_string($val) && preg_match('/^[=+\-@\t\r]/', $val)) {
+                return "'" . $val;
+            }
+            return $val;
+        }, $row);
     }
 }

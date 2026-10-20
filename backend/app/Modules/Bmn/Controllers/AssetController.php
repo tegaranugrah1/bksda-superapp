@@ -37,9 +37,10 @@ class AssetController extends Controller
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
-            $likePattern = "%{$search}%";
+            $escapedSearch = addcslashes($search, '%_');
+            $likePattern = "%{$escapedSearch}%";
             $cleanSearch = ltrim($search, '#');
-            $cleanLikePattern = "%{$cleanSearch}%";
+            $cleanLikePattern = '%' . addcslashes($cleanSearch, '%_') . '%';
             $isPgSql = config('database.default') === 'pgsql';
             $likeOp = $isPgSql ? 'ilike' : 'like';
 
@@ -73,7 +74,7 @@ class AssetController extends Controller
                 $q->where('employee_id', $employeeId);
                 if ($employee && $employee->nama_lengkap) {
                     $fullName = trim($employee->nama_lengkap);
-                    $fullNameLower = mb_strtolower($fullName);
+                    $fullNameLower = addcslashes(mb_strtolower($fullName), '%_');
                     
                     // Search full name
                     $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $fullNameLower . '%'])
@@ -82,7 +83,7 @@ class AssetController extends Controller
                     // Search name before comma (titles)
                     if (str_contains($fullName, ',')) {
                         $nameParts = explode(',', $fullName);
-                        $baseName = mb_strtolower(trim($nameParts[0]));
+                        $baseName = addcslashes(mb_strtolower(trim($nameParts[0])), '%_');
                         if (strlen($baseName) > 2) {
                             $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $baseName . '%'])
                               ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $baseName . '%']);
@@ -92,7 +93,7 @@ class AssetController extends Controller
                     // Search first two words for better fuzzy match
                     $words = explode(' ', $fullNameLower);
                     if (count($words) >= 2) {
-                        $twoWords = $words[0] . ' ' . $words[1];
+                        $twoWords = addcslashes($words[0] . ' ' . $words[1], '%_');
                         $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $twoWords . '%']);
                     }
                 }
@@ -107,7 +108,7 @@ class AssetController extends Controller
 
         foreach (['kondisi', 'jenis_bmn', 'lokasi_ruang'] as $field) {
             if ($request->filled($field)) {
-                $val = mb_strtolower(trim((string) $request->input($field)));
+                $val = addcslashes(mb_strtolower(trim((string) $request->input($field))), '%_');
                 $query->whereRaw("LOWER({$field}) LIKE ?", ["%{$val}%"]);
             }
         }

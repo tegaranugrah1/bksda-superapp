@@ -383,8 +383,8 @@ class AssetPhotoController extends Controller
                     ->header('X-Content-Type-Options', 'nosniff');
             }
 
-            if ($asset->foto_geotag_url) {
-                return redirect($asset->foto_geotag_url);
+            if ($asset->foto_geotag_url && (str_starts_with($asset->foto_geotag_url, 'http://') || str_starts_with($asset->foto_geotag_url, 'https://'))) {
+                return redirect()->away($asset->foto_geotag_url);
             }
 
             return response()->json(['message' => 'Foto geotag tidak tersedia.'], 404);
