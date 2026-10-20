@@ -5,13 +5,12 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class EmployeeUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $password = Hash::make('123');
         $mmpCounter = 1;
         $created = 0;
         $skipped = 0;
@@ -32,11 +31,10 @@ class EmployeeUserSeeder extends Seeder
             $existingUser = User::where('username', $username)->first();
 
             if ($existingUser) {
-                // Update existing user: set password to 123, access_modules to empty
+                // Never overwrite an existing password from a seeder.
                 // But skip the admin account (super_admin role)
                 if ($existingUser->role !== 'super_admin') {
                     $existingUser->update([
-                        'password' => $password,
                         'access_modules' => [],
                         'role' => 'user',
                     ]);
@@ -49,10 +47,11 @@ class EmployeeUserSeeder extends Seeder
                 'name' => $employee->nama_lengkap,
                 'username' => $username,
                 'email' => $username . '@bksda.local',
-                'password' => $password,
+                // No known default password: an admin must set one through access management.
+                'password' => Str::random(64),
                 'role' => 'user',
                 'access_modules' => [],
-                'is_active' => true,
+                'is_active' => false,
             ]);
 
             $created++;

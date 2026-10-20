@@ -80,20 +80,24 @@ class EmployeeAccessController extends Controller
 
         // SKENARIO A: Pegawai belum punya Akun, kita buatkan!
         if (! $user) {
-            // Pembuatan akun perdana — jika password tidak diisi, gunakan default "12345678"
-            $password = !empty($validated['password']) ? $validated['password'] : '12345678';
+            if (empty($validated['password'])) {
+                return response()->json([
+                    'error' => 'Unprocessable Entity',
+                    'message' => 'Password wajib diisi saat membuat akun baru (minimal 8 karakter).',
+                ], 422);
+            }
 
             // Rule 6.1: Hubungkan NIP Pegawai menjadi Username Aplikasi
             $user = User::create([
                 'username' => $nip,
                 'name' => $employee->nama_lengkap,
-                'password' => $password,
+                'password' => $validated['password'],
                 'role' => $validated['role'],
                 'access_modules' => $validated['access_modules'] ?? [],
                 'permissions' => $validated['permissions'] ?? [],
             ]);
 
-            $message = 'Akun akses berhasil diterbitkan (password default: 12345678).';
+            $message = 'Akun akses berhasil diterbitkan.';
         }
 
         // SKENARIO B: Pegawai sudah punya Akun, kita perbarui datanya

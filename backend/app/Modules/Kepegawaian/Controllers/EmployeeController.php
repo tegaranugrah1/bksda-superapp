@@ -12,7 +12,6 @@ use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -96,17 +95,6 @@ class EmployeeController extends Controller
                 Storage::move($oldPath, $newPath);
                 $employee->update(['foto_profil' => $newPath]);
             }
-        }
-
-        // Auto-create user account with default password '123'
-        $nip = trim((string) $employee->nip);
-        if ($nip !== '' && !User::where('username', $nip)->exists()) {
-            User::create([
-                'name' => $employee->nama_lengkap,
-                'username' => $nip,
-                'password' => Hash::make('123'),
-                'role' => 'user',
-            ]);
         }
 
         return response()->json([
@@ -280,10 +268,14 @@ class EmployeeController extends Controller
 
     /**
      * POST /api/kepegawaian/employees/{id}/reset-password
-     * Reset password pegawai ke default '123' dan invalidasi token aktif
+     * Reset password pegawai dan invalidasi token aktif.
      */
     public function resetPassword(Request $request, $id): JsonResponse
     {
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'max:255'],
+        ]);
+
         $employee = Employee::findOrFail($id);
 
         $nip = trim((string) $employee->nip);
@@ -303,14 +295,14 @@ class EmployeeController extends Controller
         }
 
         $user->update([
-            'password' => Hash::make('123'),
+            'password' => $validated['password'],
         ]);
 
         // Revoke active sessions / bearer tokens upon password reset
         $user->tokens()->delete();
 
         return response()->json([
-            'message' => 'Password berhasil direset ke default.',
+            'message' => 'Password berhasil direset.',
         ]);
     }
 

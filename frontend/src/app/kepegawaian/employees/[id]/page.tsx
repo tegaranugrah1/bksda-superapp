@@ -41,6 +41,7 @@ export default function EmployeeDetailPage() {
   // Reset password state
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [resetPassword, setResetPassword] = useState("");
 
   const { data: employee, isLoading, isError } = useQuery({
     queryKey: ["employee", id],
@@ -109,10 +110,15 @@ export default function EmployeeDetailPage() {
   };
 
   const handleResetPassword = async () => {
+    if (resetPassword.length < 8) {
+      toast.error("Password baru minimal 8 karakter.");
+      return;
+    }
     setResetting(true);
     try {
-      await api.post(`/kepegawaian/employees/${id}/reset-password`);
-      toast.success("Password berhasil direset ke '123'.");
+      await api.post(`/kepegawaian/employees/${id}/reset-password`, { password: resetPassword });
+      toast.success("Password berhasil direset.");
+      setResetPassword("");
       setResetDialogOpen(false);
     } catch {
       toast.error("Gagal mereset password.");
@@ -171,8 +177,17 @@ export default function EmployeeDetailPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
             <h3 className="text-base font-bold text-slate-900">Reset Password</h3>
             <p className="text-sm text-slate-600">
-              Password untuk <span className="font-semibold">{employee.nama_lengkap}</span> akan direset ke <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono">123</code>. Lanjutkan?
+              Masukkan password baru untuk <span className="font-semibold">{employee.nama_lengkap}</span>.
             </p>
+            <input
+              type="password"
+              value={resetPassword}
+              onChange={(event) => setResetPassword(event.target.value)}
+              placeholder="Minimal 8 karakter"
+              minLength={8}
+              autoComplete="new-password"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
+            />
             <div className="flex items-center gap-2 justify-end">
               <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setResetDialogOpen(false)} disabled={resetting}>
                 Batal
