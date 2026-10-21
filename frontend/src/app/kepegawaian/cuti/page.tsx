@@ -297,58 +297,82 @@ export default function InboxSuratCutiPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="p-3.5">Pegawai Pemohon</th>
-                  <th className="p-3.5">Surat & Jenis Cuti</th>
-                  <th className="p-3.5">Masa Pelaksanaan</th>
-                  <th className="p-3.5">Alasan Cuti</th>
-                  <th className="p-3.5">Alamat Selama Cuti</th>
-                  <th className="p-3.5">Status</th>
-                  <th className="p-3.5 text-right">Aksi & Verifikasi</th>
+                  <th className="p-3.5 w-[20%]">Pegawai Pemohon</th>
+                  <th className="p-3.5 w-[16%]">Surat & Jenis Cuti</th>
+                  <th className="p-3.5 w-[14%]">Masa Pelaksanaan</th>
+                  <th className="p-3.5 w-[13%]">Alasan Cuti</th>
+                  <th className="p-3.5 w-[14%]">Alamat Selama Cuti</th>
+                  <th className="p-3.5 w-[9%] text-center">Status</th>
+                  <th className="p-3.5 text-right w-[14%]">Aksi & Verifikasi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {list.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="p-3.5 font-bold text-slate-900 dark:text-slate-100 align-top">
-                      <div>{item.employee?.nama_lengkap || "Pegawai"}</div>
-                      <div className="text-[10px] font-mono text-slate-400 mt-0.5">{item.employee?.nip}</div>
+                    {/* Pegawai Pemohon */}
+                    <td className="p-3.5 align-middle">
+                      <div className="font-bold text-slate-900 dark:text-slate-100 leading-snug">
+                        {item.employee?.nama_lengkap || "Pegawai"}
+                      </div>
+                      <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">
+                        {item.employee?.nip}
+                      </div>
                       {item.employee?.satuan_kerja && (
-                        <div className="text-[10px] font-normal text-slate-400 truncate max-w-44 mt-0.5">
+                        <div
+                          className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-52 mt-0.5"
+                          title={item.employee?.satuan_kerja}
+                        >
                           {item.employee?.satuan_kerja}
                         </div>
                       )}
                     </td>
-                    <td className="p-3.5 align-top">
-                      <div className="font-semibold text-blue-700 dark:text-blue-400">
+
+                    {/* Surat & Jenis Cuti */}
+                    <td className="p-3.5 align-middle">
+                      <div className="font-semibold text-blue-700 dark:text-blue-400 leading-snug">
                         {item.jenis_cuti}
                       </div>
                       {item.nomor_pengajuan ? (
-                        <span className="font-mono text-[10px] text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 px-1.5 py-0.5 rounded mt-1 inline-block border border-slate-200 dark:border-slate-700">
+                        <span className="font-mono text-[10px] text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 px-2 py-0.5 rounded-md mt-1 inline-block border border-slate-200 dark:border-slate-700 font-medium">
                           {item.nomor_pengajuan}
                         </span>
                       ) : (
-                        <span className="text-[10px] text-amber-700 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300 px-1.5 py-0.5 rounded mt-1 inline-block border border-amber-200/60 dark:border-amber-900">
+                        <span className="text-[10px] text-amber-700 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded-md mt-1 inline-block border border-amber-200/60 dark:border-amber-900 font-medium">
                           Pengajuan Portal
                         </span>
                       )}
                     </td>
-                    <td className="p-3.5 align-top">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{item.jumlah_hari} Hari</span>
-                      <span className="text-[10px] text-slate-400 block mt-0.5">
+
+                    {/* Masa Pelaksanaan */}
+                    <td className="p-3.5 align-middle">
+                      <div className="font-bold text-slate-800 dark:text-slate-200 leading-snug">
+                        {item.jumlah_hari} Hari
+                      </div>
+                      <span className="text-[11px] text-slate-400 block mt-0.5 whitespace-nowrap">
                         {item.tanggal_mulai} s/d {item.tanggal_selesai}
                       </span>
                     </td>
-                    <td className="p-3.5 max-w-45 text-slate-600 dark:text-slate-400 align-top">
+
+                    {/* Alasan Cuti */}
+                    <td className="p-3.5 max-w-44 align-middle">
                       {!item.alasan_cuti || item.alasan_cuti.toLowerCase().includes("sisa cuti") ? (
                         <span className="text-slate-400 italic text-[11px]">-</span>
                       ) : (
-                        <span className="text-[11px]">{item.alasan_cuti}</span>
+                        <span className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed" title={item.alasan_cuti}>
+                          {item.alasan_cuti}
+                        </span>
                       )}
                     </td>
-                    <td className="p-3.5 max-w-45 truncate text-slate-600 dark:text-slate-400 align-top">
-                      {item.alamat_menjalankan_cuti || "-"}
+
+                    {/* Alamat Selama Cuti */}
+                    <td className="p-3.5 max-w-44 align-middle">
+                      <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate block" title={item.alamat_menjalankan_cuti || "-"}>
+                        {item.alamat_menjalankan_cuti || "-"}
+                      </span>
                     </td>
-                    <td className="p-3.5 align-top">
+
+                    {/* Status Toggle Button */}
+                    <td className="p-3.5 align-middle text-center">
                       <button
                         type="button"
                         onClick={() => {
@@ -360,7 +384,7 @@ export default function InboxSuratCutiPage() {
                         }}
                         disabled={toggleStatusMutation.isPending || approveMutation.isPending}
                         className={cn(
-                          "px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95 border",
+                          "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-2xs cursor-pointer hover:scale-105 active:scale-95 border",
                           item.status === 'DISETUJUI'
                             ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
                             : "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
@@ -368,85 +392,88 @@ export default function InboxSuratCutiPage() {
                         title={item.status === 'DISETUJUI' ? "Klik untuk mengembalikan ke status Pengajuan" : "Klik untuk menyetujui pengajuan cuti (opsional berkas scan)"}
                       >
                         <span className={cn(
-                          "w-1.5 h-1.5 rounded-full",
+                          "w-1.5 h-1.5 rounded-full shrink-0",
                           item.status === 'DISETUJUI' ? "bg-emerald-600 animate-pulse" : "bg-amber-500"
                         )} />
                         {item.status === 'DISETUJUI' ? 'Disetujui' : 'Pengajuan'}
                       </button>
                     </td>
-                    <td className="p-3.5 text-right space-x-1 whitespace-nowrap align-top">
-                      {/* Scan Actions */}
-                      {item.scan_surat_path ? (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setViewerItem(item)}
-                            className="h-7.5 px-2 text-[11px] font-semibold text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 rounded-xl gap-1"
-                            title="Lihat Berkas Scan yang Telah Dicap & Ditandatangani"
-                          >
-                            <FileCheck className="w-3.5 h-3.5" />
-                            Lihat Scan
-                          </Button>
+
+                    {/* Aksi & Verifikasi */}
+                    <td className="p-3.5 text-right whitespace-nowrap align-middle">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {/* Scan Actions */}
+                        {item.scan_surat_path ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setViewerItem(item)}
+                              className="h-8 px-2.5 text-xs font-semibold text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 rounded-xl gap-1.5 shadow-2xs"
+                              title="Lihat Berkas Scan yang Telah Dicap & Ditandatangani"
+                            >
+                              <FileCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                              Lihat Scan
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setUploadScanItem(item)}
+                              className="h-8 w-8 p-0 text-slate-600 border-slate-200 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 rounded-xl"
+                              title="Ganti Berkas Scan Cuti"
+                            >
+                              <FileUp className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
+                        ) : (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setUploadScanItem(item)}
-                            className="h-7.5 px-2 text-[11px] font-semibold text-slate-700 border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-xl gap-1"
-                            title="Ganti Berkas Scan Cuti"
+                            className="h-8 px-2.5 text-xs font-semibold text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800 rounded-xl gap-1.5 shadow-2xs"
+                            title="Unggah Berkas Scan TTD & Cap Balai"
                           >
-                            <FileUp className="w-3.5 h-3.5" />
-                            Ganti Scan
+                            <FileUp className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                            Upload Scan
                           </Button>
-                        </>
-                      ) : (
+                        )}
+
+                        {/* View/Print Form */}
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setUploadScanItem(item)}
-                          className="h-7.5 px-2 text-[11px] font-semibold text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 rounded-xl gap-1"
-                          title="Unggah Berkas Scan TTD & Cap Balai"
+                          onClick={() => setPrintItem(item)}
+                          className="h-8 px-2.5 text-xs font-semibold text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800 rounded-xl gap-1.5 shadow-2xs"
+                          title="Lihat / Cetak Hasil Formulir Cuti"
                         >
-                          <FileUp className="w-3.5 h-3.5" />
-                          Upload Scan
+                          <Eye className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                          Form Cuti
                         </Button>
-                      )}
 
-                      {/* View/Print Form */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPrintItem(item)}
-                        className="h-7.5 px-2.5 text-[11px] font-semibold text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-xl gap-1"
-                        title="Lihat / Cetak Hasil Formulir Cuti"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        Form Cuti
-                      </Button>
+                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-0.5" />
 
-                      {/* Edit Request */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditModal(item)}
-                        className="h-7.5 px-2.5 text-[11px] font-semibold text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100 rounded-xl gap-1"
-                        title="Edit Pengajuan Cuti"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        Edit
-                      </Button>
+                        {/* Edit Request Icon Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(item)}
+                          className="h-8 w-8 p-0 text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 rounded-xl shadow-2xs"
+                          title="Edit Pengajuan Cuti"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </Button>
 
-                      {/* Delete Request */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeleteItem(item)}
-                        className="h-7.5 px-2.5 text-[11px] font-semibold text-rose-700 border-rose-200 bg-rose-50 hover:bg-rose-100 rounded-xl gap-1"
-                        title="Hapus Pengajuan Cuti"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Hapus
-                      </Button>
+                        {/* Delete Request Icon Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeleteItem(item)}
+                          className="h-8 w-8 p-0 text-rose-700 border-rose-200 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800 rounded-xl shadow-2xs"
+                          title="Hapus Pengajuan Cuti"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

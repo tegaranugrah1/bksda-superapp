@@ -1429,8 +1429,8 @@
       "source_location": "L198",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_authcontroller_authcontroller_updatephoto",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".updatephoto()"
     },
     {
@@ -3211,8 +3211,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_upload",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".upload()"
     },
     {
@@ -10383,8 +10383,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": "formbuildercontroller"
     },
     {
@@ -10394,8 +10394,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_index",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".index()"
     },
     {
@@ -10405,8 +10405,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_store",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".store()"
     },
     {
@@ -10416,8 +10416,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_show",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".show()"
     },
     {
@@ -10427,8 +10427,8 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_update",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".update()"
     },
     {
@@ -10438,8 +10438,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_destroy",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".destroy()"
     },
     {
@@ -10449,8 +10449,8 @@
       "source_location": "L146",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_duplicate",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".duplicate()"
     },
     {
@@ -10460,8 +10460,8 @@
       "source_location": "L188",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_responses",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".responses()"
     },
     {
@@ -10471,8 +10471,8 @@
       "source_location": "L215",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_exportcsv",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".exportcsv()"
     },
     {
@@ -10482,8 +10482,8 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_downloadattachment",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".downloadattachment()"
     },
     {
@@ -10493,8 +10493,8 @@
       "source_location": "L309",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_showpublic",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".showpublic()"
     },
     {
@@ -10504,8 +10504,8 @@
       "source_location": "L336",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_formbuildercontroller_formbuildercontroller_submitpublic",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".submitpublic()"
     },
     {
@@ -11076,8 +11076,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_dynamicform_dynamicform",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": "dynamicform"
     },
     {
@@ -11087,8 +11087,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_dynamicform_dynamicform_creator",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".creator()"
     },
     {
@@ -11098,8 +11098,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_dynamicform_dynamicform_responses",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".responses()"
     },
     {
@@ -11120,8 +11120,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_dynamicformresponse_dynamicformresponse",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": "dynamicformresponse"
     },
     {
@@ -11131,8 +11131,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_dynamicformresponse_dynamicformresponse_form",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": ".form()"
     },
     {
@@ -13859,8 +13859,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_sttemplatecontroller_sttemplatecontroller_uploadkop",
-      "community": 607,
-      "community_name": "StTemplate",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".uploadkop()"
     },
     {
@@ -14684,8 +14684,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest_rules",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".rules()"
     },
     {
@@ -17709,8 +17709,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules_uploadvalidationrules",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "uploadvalidationrules"
     },
     {
@@ -17720,8 +17720,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules_uploadvalidationrules_spreadsheet",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".spreadsheet()"
     },
     {
@@ -17731,8 +17731,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules_uploadvalidationrules_image",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".image()"
     },
     {
@@ -17863,8 +17863,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "backend_composer_keywords",
-      "community": 550,
-      "community_name": "keywords",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "keywords"
     },
     {
@@ -17874,8 +17874,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_laravel",
-      "community": 550,
-      "community_name": "keywords",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "laravel"
     },
     {
@@ -17885,8 +17885,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_framework",
-      "community": 550,
-      "community_name": "keywords",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "framework"
     },
     {
@@ -18523,8 +18523,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_composer_extra",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 718,
+      "community_name": "extra",
       "norm_label": "extra"
     },
     {
@@ -18534,8 +18534,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_composer_extra_laravel",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 718,
+      "community_name": "extra",
       "norm_label": "laravel"
     },
     {
@@ -18545,8 +18545,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_composer_laravel_dont_discover",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 718,
+      "community_name": "extra",
       "norm_label": "dont-discover"
     },
     {
@@ -26969,7 +26969,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_batches_lib_document_content_defaults_skdocumentcontent",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skdocumentcontent"
     },
     {
@@ -26990,8 +26990,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_batches_lib_document_content_defaults_bapemeriksaancontent",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 30,
+      "community_name": "AuctionDocumentRenderer.tsx",
       "norm_label": "bapemeriksaancontent"
     },
     {
@@ -27035,7 +27035,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_batches_lib_document_content_defaults_pernyataandocumentcontent",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "pernyataandocumentcontent"
     },
     {
@@ -27177,8 +27177,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_assetlampiranlandscapetable",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "assetlampiranlandscapetable.tsx"
     },
     {
@@ -27188,7 +27188,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_assetlampiranlandscapetable_assetlampiranlandscapetableprops",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "assetlampiranlandscapetableprops"
     },
@@ -27199,7 +27199,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_assetlampiranlandscapetable_lampiranpage",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "lampiranpage"
     },
@@ -27210,8 +27210,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_assetlampiranlandscapetable_buildlampiranpages",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "buildlampiranpages()"
     },
     {
@@ -27221,8 +27221,8 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_assetlampiranlandscapetable_istruthycheck",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "istruthycheck()"
     },
     {
@@ -27232,8 +27232,8 @@
       "source_location": "L111",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_assetlampiranlandscapetable_getassetsuratstatus",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "getassetsuratstatus()"
     },
     {
@@ -27243,8 +27243,8 @@
       "source_location": "L156",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_assetlampiranlandscapetable_assetlampiranlandscapetable",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "assetlampiranlandscapetable()"
     },
     {
@@ -27265,7 +27265,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_assettable_assettableprops",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "assettableprops"
     },
@@ -27288,7 +27288,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "bakoreksidocument.tsx"
     },
     {
@@ -27299,7 +27299,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_balampiransection",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "balampiransection"
     },
     {
@@ -27310,7 +27310,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_balampiranpage",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "balampiranpage"
     },
     {
@@ -27332,7 +27332,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_assetconditiontable",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "assetconditiontable()"
     },
     {
@@ -27343,7 +27343,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_attachmentmeta",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "attachmentmeta()"
     },
     {
@@ -27354,7 +27354,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_attachmentsignature",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "attachmentsignature()"
     },
     {
@@ -27365,7 +27365,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_balampiransectionblock",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "balampiransectionblock()"
     },
     {
@@ -27376,7 +27376,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_balampiranpagecontent",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "balampiranpagecontent()"
     },
     {
@@ -27387,7 +27387,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_getouterheight",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "getouterheight()"
     },
     {
@@ -27398,7 +27398,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_fitassetcount",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "fitassetcount()"
     },
     {
@@ -27409,7 +27409,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_buildmeasuredlampiranpages",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "buildmeasuredlampiranpages()"
     },
     {
@@ -27420,7 +27420,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_buildfallbacklampiranpages",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "buildfallbacklampiranpages()"
     },
     {
@@ -27431,7 +27431,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_correctiondocument",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "correctiondocument()"
     },
     {
@@ -27442,7 +27442,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bakoreksidocument_documentheader",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "documentheader()"
     },
     {
@@ -27453,7 +27453,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "bapemeriksaandocument.tsx"
     },
     {
@@ -27463,8 +27463,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_bapemeriksaandocumentprops",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 30,
+      "community_name": "AuctionDocumentRenderer.tsx",
       "norm_label": "bapemeriksaandocumentprops"
     },
     {
@@ -27474,7 +27474,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_balampiranpage",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "balampiranpage"
     },
@@ -27486,7 +27486,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_buildnomortext",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "buildnomortext()"
     },
     {
@@ -27497,7 +27497,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_parsedocdate",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "parsedocdate()"
     },
     {
@@ -27508,7 +27508,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_formatstnumbertext",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "formatstnumbertext()"
     },
     {
@@ -27519,7 +27519,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_formatsttanggaltext",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "formatsttanggaltext()"
     },
     {
@@ -27530,7 +27530,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_buildbalampiranpages",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "buildbalampiranpages()"
     },
     {
@@ -27552,7 +27552,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_bapemeriksaandocument_bapemeriksaandocument",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "bapemeriksaandocument()"
     },
     {
@@ -27628,7 +27628,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "documentnumberinputs.tsx"
     },
@@ -27639,7 +27639,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_documentnumberinputsprops",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "documentnumberinputsprops"
     },
@@ -27650,7 +27650,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_numberrow",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "numberrow"
     },
@@ -27661,7 +27661,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_documentnumberinlinecardprops",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "documentnumberinlinecardprops"
     },
@@ -27672,7 +27672,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_documentnumberinlinecard",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "documentnumberinlinecard()"
     },
@@ -27683,7 +27683,7 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_numbersettingrow",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "numbersettingrow()"
     },
@@ -27694,7 +27694,7 @@
       "source_location": "L207",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_documentnumberinputs_documentnumberinputs",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "documentnumberinputs()"
     },
@@ -27705,8 +27705,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker",
-      "community": 659,
-      "community_name": "EmployeeOption",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "kepalabalaipicker.tsx"
     },
     {
@@ -27716,8 +27716,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_employeerecord",
-      "community": 659,
-      "community_name": "EmployeeOption",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "employeerecord"
     },
     {
@@ -27727,8 +27727,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_kepalabalaipickerprops",
-      "community": 659,
-      "community_name": "EmployeeOption",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "kepalabalaipickerprops"
     },
     {
@@ -27738,8 +27738,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_loadstoredkepalabalaidefault",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "loadstoredkepalabalaidefault()"
     },
     {
@@ -27749,8 +27749,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_savestoredkepalabalaidefault",
-      "community": 659,
-      "community_name": "EmployeeOption",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "savestoredkepalabalaidefault()"
     },
     {
@@ -27760,8 +27760,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_kepalabalaipicker_kepalabalaipicker",
-      "community": 659,
-      "community_name": "EmployeeOption",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "kepalabalaipicker()"
     },
     {
@@ -28101,8 +28101,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_notadinasdocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "notadinasdocument.tsx"
     },
     {
@@ -28112,8 +28112,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_notadinasdocument_notadinasdocumentprops",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "notadinasdocumentprops"
     },
     {
@@ -28123,8 +28123,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_notadinasdocument_buildnomor",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "buildnomor()"
     },
     {
@@ -28145,8 +28145,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_notadinasdocument_notadinasdocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "notadinasdocument()"
     },
     {
@@ -28255,8 +28255,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_permohonankpknldocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "permohonankpknldocument.tsx"
     },
     {
@@ -28266,8 +28266,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_permohonankpknldocument_permohonankpknldocumentprops",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "permohonankpknldocumentprops"
     },
     {
@@ -28277,8 +28277,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_permohonankpknldocument_buildnomor",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "buildnomor()"
     },
     {
@@ -28299,8 +28299,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_permohonankpknldocument_permohonankpknldocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "permohonankpknldocument()"
     },
     {
@@ -28310,8 +28310,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_pernyataandocument",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "pernyataandocument.tsx"
     },
     {
@@ -28322,7 +28322,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_pernyataandocument_pernyataandocumentprops",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "pernyataandocumentprops"
     },
     {
@@ -28332,8 +28332,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_pernyataandocument_pernyataandocument",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "pernyataandocument()"
     },
     {
@@ -28343,8 +28343,8 @@
       "source_location": "L98",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_pernyataandocument_pernyataanidentity",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "pernyataanidentity()"
     },
     {
@@ -28354,7 +28354,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_reorderpanel",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "reorderpanel.tsx"
     },
@@ -28365,7 +28365,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_reorderpanel_reorderpanelprops",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "reorderpanelprops"
     },
@@ -28376,7 +28376,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_reorderpanel_reorderpanel",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "reorderpanel()"
     },
@@ -28465,7 +28465,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skbuilder",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skbuilder.tsx"
     },
     {
@@ -28476,7 +28476,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skbuilder_employeeoption",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "employeeoption"
     },
     {
@@ -28487,7 +28487,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skbuilder_skbuilderprops",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skbuilderprops"
     },
     {
@@ -28498,7 +28498,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skbuilder_skbuilder",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skbuilder()"
     },
     {
@@ -28508,8 +28508,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skkebenarandokumendocument.tsx"
     },
     {
@@ -28520,7 +28520,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument_skkebenarandokumendocumentprops",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "skkebenarandokumendocumentprops"
     },
     {
@@ -28530,8 +28530,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument_buildnomortext",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "buildnomortext()"
     },
     {
@@ -28541,8 +28541,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument_getownershipdocumentnumber",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "getownershipdocumentnumber()"
     },
     {
@@ -28563,8 +28563,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skkebenarandokumendocument_skkebenarandokumendocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skkebenarandokumendocument()"
     },
     {
@@ -28586,7 +28586,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpanitiadocument_skpanitiadocumentprops",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skpanitiadocumentprops"
     },
     {
@@ -28629,8 +28629,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "skpenghentiandocument.tsx"
     },
     {
@@ -28641,7 +28641,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_skpenghentiandocumentprops",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skpenghentiandocumentprops"
     },
     {
@@ -28662,8 +28662,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_getouterheight",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "getouterheight()"
     },
     {
@@ -28673,8 +28673,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_buildfallbacklampiranpages",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "buildfallbacklampiranpages()"
     },
     {
@@ -28684,8 +28684,8 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_buildmeasuredskattachmentpages",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "buildmeasuredskattachmentpages()"
     },
     {
@@ -28695,8 +28695,8 @@
       "source_location": "L212",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_skpenghentiandocument_skpenghentiandocument",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "skpenghentiandocument()"
     },
     {
@@ -28707,7 +28707,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaibuilder",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "sktimpenilaibuilder.tsx"
     },
     {
@@ -28718,7 +28718,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaibuilder_employeeoption",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "employeeoption"
     },
     {
@@ -28729,7 +28729,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaibuilder_sktimpenilaibuilderprops",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "sktimpenilaibuilderprops"
     },
     {
@@ -28740,7 +28740,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaibuilder_sktimpenilaibuilder",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "sktimpenilaibuilder()"
     },
     {
@@ -28761,8 +28761,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sktimpenilaidocument_sktimpenilaidocumentprops",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 659,
+      "community_name": "EmployeeOption",
       "norm_label": "sktimpenilaidocumentprops"
     },
     {
@@ -28805,8 +28805,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptugasdocument",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "sptugasdocument.tsx"
     },
     {
@@ -28817,7 +28817,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptugasdocument_sptugasdocumentprops",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptugasdocumentprops"
     },
     {
@@ -28827,8 +28827,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptugasdocument_handleprintsptugas",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "handleprintsptugas()"
     },
     {
@@ -28838,8 +28838,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptugasdocument_sptugasdocument",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "sptugasdocument()"
     },
     {
@@ -28849,8 +28849,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjlimitdocument",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "sptjlimitdocument.tsx"
     },
     {
@@ -28861,7 +28861,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjlimitdocument_sptjlimitdocumentprops",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptjlimitdocumentprops"
     },
     {
@@ -28882,8 +28882,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjlimitdocument_sptjlimitdocument",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "sptjlimitdocument()"
     },
     {
@@ -28893,8 +28893,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjmdocument",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "sptjmdocument.tsx"
     },
     {
@@ -28905,7 +28905,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjmdocument_sptjmdocumentprops",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptjmdocumentprops"
     },
     {
@@ -28926,8 +28926,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sptjmdocument_sptjmdocument",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "sptjmdocument()"
     },
     {
@@ -29102,8 +29102,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_bakoreksisection",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "bakoreksisection.tsx"
     },
     {
@@ -29113,8 +29113,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_bakoreksisection_bakoreksisectionprops",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "bakoreksisectionprops"
     },
     {
@@ -29124,8 +29124,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_bakoreksisection_bakoreksisection",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "bakoreksisection()"
     },
     {
@@ -29169,7 +29169,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_notadinassection",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "notadinassection.tsx"
     },
     {
@@ -29180,7 +29180,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_notadinassection_notadinassectionprops",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "notadinassectionprops"
     },
     {
@@ -29191,7 +29191,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_notadinassection_notadinassection",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "notadinassection()"
     },
     {
@@ -29201,8 +29201,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_permohonankpknlsection",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "permohonankpknlsection.tsx"
     },
     {
@@ -29212,8 +29212,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_permohonankpknlsection_permohonankpknlsectionprops",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "permohonankpknlsectionprops"
     },
     {
@@ -29223,8 +29223,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_permohonankpknlsection_permohonankpknlsection",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "permohonankpknlsection()"
     },
     {
@@ -29234,8 +29234,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skkebenaransection",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skkebenaransection.tsx"
     },
     {
@@ -29245,8 +29245,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skkebenaransection_skkebenaransectionprops",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skkebenaransectionprops"
     },
     {
@@ -29256,8 +29256,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skkebenaransection_skkebenaransection",
-      "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community": 8,
+      "community_name": "SkKepalaBalai",
       "norm_label": "skkebenaransection()"
     },
     {
@@ -29301,7 +29301,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skpenghentiansection.tsx"
     },
     {
@@ -29312,7 +29312,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection_skpenghentiansectionprops",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skpenghentiansectionprops"
     },
     {
@@ -29323,7 +29323,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection_skpenghentiansection",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skpenghentiansection()"
     },
     {
@@ -29333,8 +29333,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sktimpenilaisection",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 659,
+      "community_name": "EmployeeOption",
       "norm_label": "sktimpenilaisection.tsx"
     },
     {
@@ -29344,8 +29344,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sktimpenilaisection_sktimpenilaisectionprops",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 659,
+      "community_name": "EmployeeOption",
       "norm_label": "sktimpenilaisectionprops"
     },
     {
@@ -29355,8 +29355,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sktimpenilaisection_sktimpenilaisection",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 659,
+      "community_name": "EmployeeOption",
       "norm_label": "sktimpenilaisection()"
     },
     {
@@ -29366,7 +29366,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptugassection",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "sptugassection.tsx"
     },
@@ -29377,7 +29377,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptugassection_sptugassectionprops",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "sptugassectionprops"
     },
@@ -29388,7 +29388,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptugassection_sptugassection",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "sptugassection()"
     },
@@ -29400,7 +29400,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjlimitsection",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptjlimitsection.tsx"
     },
     {
@@ -29411,7 +29411,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjlimitsection_sptjlimitsectionprops",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptjlimitsectionprops"
     },
     {
@@ -29422,7 +29422,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjlimitsection_sptjlimitsection",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptjlimitsection()"
     },
     {
@@ -29433,7 +29433,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjmsection",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptjmsection.tsx"
     },
     {
@@ -29444,7 +29444,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjmsection_sptjmsectionprops",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptjmsectionprops"
     },
     {
@@ -29455,7 +29455,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_sptjmsection_sptjmsection",
       "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community_name": "SkKepalaBalai",
       "norm_label": "sptjmsection()"
     },
     {
@@ -29465,7 +29465,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useauctionassets",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "useauctionassets.ts"
     },
@@ -29476,7 +29476,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useauctionassets_useauctionassetsresult",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "useauctionassetsresult"
     },
@@ -29487,7 +29487,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useauctionassets_useauctionassets",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "useauctionassets()"
     },
@@ -29499,7 +29499,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usedocumentnumbers",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "usedocumentnumbers.ts"
     },
     {
@@ -29510,7 +29510,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usedocumentnumbers_usedocumentnumbersresult",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "usedocumentnumbersresult"
     },
     {
@@ -29521,7 +29521,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usedocumentnumbers_usedocumentnumbers",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "usedocumentnumbers()"
     },
     {
@@ -29619,8 +29619,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usenotakpknlbuilderstate",
-      "community": 477,
-      "community_name": "useNotaKpknlBuilderState.ts",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "usenotakpknlbuilderstate.ts"
     },
     {
@@ -29630,8 +29630,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usenotakpknlbuilderstate_usenotakpknlbuilderresult",
-      "community": 477,
-      "community_name": "useNotaKpknlBuilderState.ts",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "usenotakpknlbuilderresult"
     },
     {
@@ -29641,8 +29641,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usenotakpknlbuilderstate_usenotakpknlbuilderstate",
-      "community": 477,
-      "community_name": "useNotaKpknlBuilderState.ts",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "usenotakpknlbuilderstate()"
     },
     {
@@ -29674,8 +29674,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usepanitialist_usepanitialist",
-      "community": 659,
-      "community_name": "EmployeeOption",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "usepanitialist()"
     },
     {
@@ -29718,8 +29718,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskbuilderstate",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "useskbuilderstate.ts"
     },
     {
@@ -29730,7 +29730,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskbuilderstate_useskbuilderstateresult",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "useskbuilderstateresult"
     },
     {
@@ -29740,8 +29740,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskbuilderstate_useskbuilderstate",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "useskbuilderstate()"
     },
     {
@@ -29763,7 +29763,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_useskpanitiabuilderstate_useskpanitiabuilderstateresult",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "useskpanitiabuilderstateresult"
     },
     {
@@ -29795,8 +29795,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_hooks_usesktimpenilaibuilderstate_usesktimpenilaibuilderstateresult",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 659,
+      "community_name": "EmployeeOption",
       "norm_label": "usesktimpenilaibuilderstateresult"
     },
     {
@@ -29850,7 +29850,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "auction-helpers.ts"
     },
@@ -29861,7 +29861,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_auctionasset",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "auctionasset"
     },
@@ -29872,7 +29872,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_assetresponse",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "assetresponse"
     },
@@ -29883,8 +29883,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_attachmentpage",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "attachmentpage"
     },
     {
@@ -29894,8 +29894,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_formatplainrupiah",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "formatplainrupiah()"
     },
     {
@@ -29906,7 +29906,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_formatdatelong",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "formatdatelong()"
     },
     {
@@ -29916,7 +29916,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_daynames",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "daynames"
     },
@@ -29927,7 +29927,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_numberwords",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "numberwords"
     },
@@ -29938,8 +29938,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_numbertowords",
-      "community": 53,
-      "community_name": "auction-print-dispatcher.ts",
+      "community": 477,
+      "community_name": "auction-helpers.ts",
       "norm_label": "numbertowords()"
     },
     {
@@ -29950,7 +29950,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_getspelleddate",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "getspelleddate()"
     },
     {
@@ -29960,7 +29960,7 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_getbanumbersuffix",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "getbanumbersuffix()"
     },
@@ -29971,7 +29971,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_getsknumbersuffix",
-      "community": 64,
+      "community": 477,
       "community_name": "auction-helpers.ts",
       "norm_label": "getsknumbersuffix()"
     },
@@ -29983,7 +29983,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_auction_helpers_getassetnilaitaksiran",
       "community": 64,
-      "community_name": "auction-helpers.ts",
+      "community_name": "BaKoreksiDocument.tsx",
       "norm_label": "getassetnilaitaksiran()"
     },
     {
@@ -30004,8 +30004,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults",
-      "community": 477,
-      "community_name": "useNotaKpknlBuilderState.ts",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "nota-kpknl-defaults.ts"
     },
     {
@@ -30015,8 +30015,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults_makeid",
-      "community": 477,
-      "community_name": "useNotaKpknlBuilderState.ts",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "makeid()"
     },
     {
@@ -30026,8 +30026,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults_kpknlmeta",
-      "community": 477,
-      "community_name": "useNotaKpknlBuilderState.ts",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "kpknlmeta"
     },
     {
@@ -30037,8 +30037,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults_default_nota_dinas_tembusan",
-      "community": 477,
-      "community_name": "useNotaKpknlBuilderState.ts",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "default_nota_dinas_tembusan"
     },
     {
@@ -30048,8 +30048,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_nota_kpknl_defaults_default_kpknl_tembusan",
-      "community": 477,
-      "community_name": "useNotaKpknlBuilderState.ts",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "default_kpknl_tembusan"
     },
     {
@@ -30158,8 +30158,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_pernyataan",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "print-pernyataan.ts"
     },
     {
@@ -30169,8 +30169,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_pernyataan_buildpernyataannomor",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "buildpernyataannomor()"
     },
     {
@@ -30180,8 +30180,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_pernyataan_printpernyataanoptions",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "printpernyataanoptions"
     },
     {
@@ -30191,8 +30191,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_print_pernyataan_printpernyataan",
-      "community": 8,
-      "community_name": "SptjLimitDocument.tsx",
+      "community": 53,
+      "community_name": "auction-print-dispatcher.ts",
       "norm_label": "printpernyataan()"
     },
     {
@@ -30202,8 +30202,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "sk-defaults.ts"
     },
     {
@@ -30214,7 +30214,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_makeid",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "makeid()"
     },
     {
@@ -30225,7 +30225,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_skbuilderitem",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skbuilderitem"
     },
     {
@@ -30236,7 +30236,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_skmemutuskan",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "skmemutuskan"
     },
     {
@@ -30246,7 +30246,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_skkepalabalai",
-      "community": 11,
+      "community": 8,
       "community_name": "SkKepalaBalai",
       "norm_label": "skkepalabalai"
     },
@@ -30257,8 +30257,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_menimbang",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "default_menimbang"
     },
     {
@@ -30268,8 +30268,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_mengingat",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "default_mengingat"
     },
     {
@@ -30279,8 +30279,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_memutuskan",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "default_memutuskan"
     },
     {
@@ -30290,8 +30290,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_kepala_balai",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "default_kepala_balai"
     },
     {
@@ -30301,8 +30301,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_default_tembusan",
-      "community": 30,
-      "community_name": "AuctionDocumentRenderer.tsx",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "default_tembusan"
     },
     {
@@ -30312,8 +30312,8 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_formatnip",
-      "community": 659,
-      "community_name": "EmployeeOption",
+      "community": 11,
+      "community_name": "sk-defaults.ts",
       "norm_label": "formatnip()"
     },
     {
@@ -30324,7 +30324,7 @@
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_defaults_newskbuilderitem",
       "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community_name": "sk-defaults.ts",
       "norm_label": "newskbuilderitem()"
     },
     {
@@ -30499,8 +30499,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_lib_sk_tim_penilai_defaults_sktimpenilaimemutuskan",
-      "community": 11,
-      "community_name": "SkKepalaBalai",
+      "community": 659,
+      "community_name": "EmployeeOption",
       "norm_label": "sktimpenilaimemutuskan"
     },
     {
@@ -35394,8 +35394,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_page",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "kepegawaian/settings/page.tsx"
     },
     {
@@ -35405,8 +35405,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_page_kepegawaiansettingspage",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "kepegawaiansettingspage()"
     },
     {
@@ -35416,8 +35416,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_expensetemplatestab",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "expensetemplatestab.tsx"
     },
     {
@@ -35427,8 +35427,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_expensetemplatestab_expense_categories",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "expense_categories"
     },
     {
@@ -35438,8 +35438,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_expensetemplatestab_templatecodefromname",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "templatecodefromname()"
     },
     {
@@ -35449,8 +35449,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_expensetemplatestab_errormessage",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "errormessage()"
     },
     {
@@ -35460,8 +35460,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_expensetemplatestab_expensetemplatestab",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "expensetemplatestab()"
     },
     {
@@ -35471,8 +35471,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_leavetypestab",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "leavetypestab.tsx"
     },
     {
@@ -35482,8 +35482,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_leavetypestab_leavetype",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "leavetype"
     },
     {
@@ -35493,8 +35493,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_leavetypestab_leavetypestab",
-      "community": 416,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 550,
+      "community_name": "ExpenseTemplatesTab.tsx",
       "norm_label": "leavetypestab()"
     },
     {
@@ -91318,8 +91318,8 @@
       "source_location": "L840",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_173_dinamisasi_form_detail_kegiatan_berdasarkan_jenis_tugas",
-      "community": 695,
-      "community_name": "Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 173: dinamisasi form detail kegiatan berdasarkan jenis tugas"
     },
     {
@@ -91329,8 +91329,8 @@
       "source_location": "L847",
       "_origin": "ast",
       "id": "docs_progress_dinamisasi_form_detail_kegiatan_presisi_menurut_pilihan_jenis_tugas",
-      "community": 695,
-      "community_name": "Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "dinamisasi form detail kegiatan presisi menurut pilihan jenis tugas"
     },
     {
@@ -91340,8 +91340,8 @@
       "source_location": "L849",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_849",
-      "community": 695,
-      "community_name": "Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -91351,8 +91351,8 @@
       "source_location": "L871",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_871",
-      "community": 695,
-      "community_name": "Dinamisasi Form Detail Kegiatan Presisi Menurut Pilihan Jenis Tugas",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -91538,8 +91538,8 @@
       "source_location": "L994",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_168_form_builder_jenis_perjalanan_kegiatan_surat_tugas",
-      "community": 560,
-      "community_name": "Form Builder Structured Jenis Perjalanan Dinas vs Kegiatan (1 Hari) Presisi Directive User",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 168: form builder jenis perjalanan & kegiatan surat tugas"
     },
     {
@@ -91549,8 +91549,8 @@
       "source_location": "L1001",
       "_origin": "ast",
       "id": "docs_progress_form_builder_structured_jenis_perjalanan_dinas_vs_kegiatan_1_hari_presisi_directive_user",
-      "community": 560,
-      "community_name": "Form Builder Structured Jenis Perjalanan Dinas vs Kegiatan (1 Hari) Presisi Directive User",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "form builder structured jenis perjalanan dinas vs kegiatan (1 hari) presisi directive user"
     },
     {
@@ -91560,8 +91560,8 @@
       "source_location": "L1003",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1003",
-      "community": 560,
-      "community_name": "Form Builder Structured Jenis Perjalanan Dinas vs Kegiatan (1 Hari) Presisi Directive User",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -91571,8 +91571,8 @@
       "source_location": "L1023",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1023",
-      "community": 560,
-      "community_name": "Form Builder Structured Jenis Perjalanan Dinas vs Kegiatan (1 Hari) Presisi Directive User",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -91978,8 +91978,8 @@
       "source_location": "L1272",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_158_floating_popover_overlay_card_modul_aktif_fix_ionicons_warning",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 632,
+      "community_name": "Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning",
       "norm_label": "progress - phase 158: floating popover overlay card modul aktif & fix ionicons warning"
     },
     {
@@ -91989,8 +91989,8 @@
       "source_location": "L1279",
       "_origin": "ast",
       "id": "docs_progress_floating_popover_overlay_card_modul_aktif_fix_ionicons_warning",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 632,
+      "community_name": "Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning",
       "norm_label": "floating popover overlay card modul aktif & fix ionicons warning"
     },
     {
@@ -92000,8 +92000,8 @@
       "source_location": "L1281",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1281",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 632,
+      "community_name": "Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning",
       "norm_label": "status: selesai"
     },
     {
@@ -92011,8 +92011,8 @@
       "source_location": "L1300",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1300",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 632,
+      "community_name": "Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92154,8 +92154,8 @@
       "source_location": "L1397",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_154_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 639,
+      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
       "norm_label": "progress - phase 154: mobile employee full search sync & single-line nip layout"
     },
     {
@@ -92165,8 +92165,8 @@
       "source_location": "L1404",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 639,
+      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
       "norm_label": "mobile employee full search sync & single-line nip layout"
     },
     {
@@ -92176,8 +92176,8 @@
       "source_location": "L1406",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1406",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 639,
+      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
       "norm_label": "status: selesai"
     },
     {
@@ -92187,8 +92187,8 @@
       "source_location": "L1417",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1417",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 639,
+      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92198,8 +92198,8 @@
       "source_location": "L1423",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_153_mobile_employee_detail_screen_superadmin_iam_access_management_modal",
-      "community": 586,
-      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 153: mobile employee detail screen & superadmin iam access management modal"
     },
     {
@@ -92209,8 +92209,8 @@
       "source_location": "L1430",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_detail_screen_superadmin_iam_access_management_modal",
-      "community": 586,
-      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile employee detail screen & superadmin iam access management modal"
     },
     {
@@ -92220,8 +92220,8 @@
       "source_location": "L1432",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1432",
-      "community": 586,
-      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -92231,8 +92231,8 @@
       "source_location": "L1448",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1448",
-      "community": 586,
-      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92462,8 +92462,8 @@
       "source_location": "L1597",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_147_custom_premium_logout_confirmation_modal_fab_menu",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 586,
+      "community_name": "Custom Premium Logout Confirmation Modal & FAB Menu",
       "norm_label": "progress - phase 147: custom premium logout confirmation modal & fab menu"
     },
     {
@@ -92473,8 +92473,8 @@
       "source_location": "L1604",
       "_origin": "ast",
       "id": "docs_progress_custom_premium_logout_confirmation_modal_fab_menu",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 586,
+      "community_name": "Custom Premium Logout Confirmation Modal & FAB Menu",
       "norm_label": "custom premium logout confirmation modal & fab menu"
     },
     {
@@ -92484,8 +92484,8 @@
       "source_location": "L1606",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1606",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 586,
+      "community_name": "Custom Premium Logout Confirmation Modal & FAB Menu",
       "norm_label": "status: selesai"
     },
     {
@@ -92495,8 +92495,8 @@
       "source_location": "L1620",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1620",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 586,
+      "community_name": "Custom Premium Logout Confirmation Modal & FAB Menu",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92506,8 +92506,8 @@
       "source_location": "L1626",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_146_mobile_floating_nav_theme_toggle_ultra_compact_3x2_grid",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 695,
+      "community_name": "Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid",
       "norm_label": "progress - phase 146: mobile floating nav, theme toggle & ultra-compact 3x2 grid"
     },
     {
@@ -92517,8 +92517,8 @@
       "source_location": "L1633",
       "_origin": "ast",
       "id": "docs_progress_mobile_floating_nav_theme_toggle_ultra_compact_3x2_grid",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 695,
+      "community_name": "Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid",
       "norm_label": "mobile floating nav, theme toggle & ultra-compact 3x2 grid"
     },
     {
@@ -92528,8 +92528,8 @@
       "source_location": "L1635",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1635",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 695,
+      "community_name": "Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid",
       "norm_label": "status: selesai"
     },
     {
@@ -92539,8 +92539,8 @@
       "source_location": "L1651",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1651",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 695,
+      "community_name": "Mobile Floating Nav, Theme Toggle & Ultra-Compact 3x2 Grid",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -95762,8 +95762,8 @@
       "source_location": "L3418",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_94_descriptive_audit_logging_for_observability",
-      "community": 718,
-      "community_name": "Descriptive Audit Logging for Observability",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 94: descriptive audit logging for observability"
     },
     {
@@ -95773,8 +95773,8 @@
       "source_location": "L3425",
       "_origin": "ast",
       "id": "docs_progress_descriptive_audit_logging_for_observability",
-      "community": 718,
-      "community_name": "Descriptive Audit Logging for Observability",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "descriptive audit logging for observability"
     },
     {
@@ -95784,8 +95784,8 @@
       "source_location": "L3427",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_3427",
-      "community": 718,
-      "community_name": "Descriptive Audit Logging for Observability",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -95795,8 +95795,8 @@
       "source_location": "L3431",
       "_origin": "ast",
       "id": "docs_progress_implementasi_3431",
-      "community": 718,
-      "community_name": "Descriptive Audit Logging for Observability",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "implementasi"
     },
     {
@@ -95806,8 +95806,8 @@
       "source_location": "L3437",
       "_origin": "ast",
       "id": "docs_progress_validasi_3437",
-      "community": 718,
-      "community_name": "Descriptive Audit Logging for Observability",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi"
     },
     {
@@ -102461,8 +102461,8 @@
       "source_location": "L7878",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_13_milestone_1",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 719,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 13 (milestone 1)"
     },
     {
@@ -102472,8 +102472,8 @@
       "source_location": "L7880",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7880",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 719,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -102483,8 +102483,8 @@
       "source_location": "L7888",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7888",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 719,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 13 (Milestone 1)",
       "norm_label": "next steps"
     },
     {
@@ -102560,8 +102560,8 @@
       "source_location": "L7916",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_16_milestone_1",
-      "community": 632,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 16 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 16 (milestone 1)"
     },
     {
@@ -102571,8 +102571,8 @@
       "source_location": "L7918",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_7918",
-      "community": 632,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 16 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -102582,8 +102582,8 @@
       "source_location": "L7926",
       "_origin": "ast",
       "id": "docs_progress_next_steps_7926",
-      "community": 632,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 16 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -102824,8 +102824,8 @@
       "source_location": "L8019",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_24_milestone_1",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 722,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 24 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 24 (milestone 1)"
     },
     {
@@ -102835,8 +102835,8 @@
       "source_location": "L8021",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_8021",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 722,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 24 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -102846,8 +102846,8 @@
       "source_location": "L8029",
       "_origin": "ast",
       "id": "docs_progress_next_steps_8029",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 722,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 24 (Milestone 1)",
       "norm_label": "next steps"
     },
     {
@@ -103022,8 +103022,8 @@
       "source_location": "L8097",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_30_milestone_2",
-      "community": 639,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 30 (Milestone 2)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 30 (milestone 2)"
     },
     {
@@ -103033,8 +103033,8 @@
       "source_location": "L8099",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_8099",
-      "community": 639,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 30 (Milestone 2)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -103044,8 +103044,8 @@
       "source_location": "L8108",
       "_origin": "ast",
       "id": "docs_progress_next_steps_8108",
-      "community": 639,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 30 (Milestone 2)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -105266,8 +105266,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tatanaskahdinas_lampiran_peraturan_menteri_kehutanan_republik_indonesia",
-      "community": 520,
-      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "lampiran peraturan menteri kehutanan republik indonesia"
     },
     {
@@ -105277,8 +105277,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "tatanaskahdinas_nomor_1_tahun_2025",
-      "community": 520,
-      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "nomor 1 tahun 2025"
     },
     {
@@ -105288,8 +105288,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "tatanaskahdinas_tentang_tata_naskah_dinas_kementerian_kehutanan",
-      "community": 520,
-      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "tentang tata naskah dinas kementerian kehutanan"
     },
     {
@@ -105299,8 +105299,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "tatanaskahdinas_daftar_isi",
-      "community": 520,
-      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "daftar isi"
     },
     {
@@ -105310,8 +105310,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "tatanaskahdinas_sistematika_lampiran",
-      "community": 520,
-      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "sistematika lampiran"
     },
     {
@@ -107169,8 +107169,8 @@
       "source_location": "L4963",
       "_origin": "ast",
       "id": "tatanaskahdinas_bab_iii_pengamanan_naskah_dinas_4963",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 560,
+      "community_name": "B. Metode Security Printing",
       "norm_label": "bab iii pengamanan naskah dinas"
     },
     {
@@ -107180,8 +107180,8 @@
       "source_location": "L4966",
       "_origin": "ast",
       "id": "tatanaskahdinas_a_penggunaan_amplop_4966",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 560,
+      "community_name": "B. Metode Security Printing",
       "norm_label": "a. penggunaan amplop"
     },
     {
@@ -107191,8 +107191,8 @@
       "source_location": "L4995",
       "_origin": "ast",
       "id": "tatanaskahdinas_b_metode_security_printing_4995",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 560,
+      "community_name": "B. Metode Security Printing",
       "norm_label": "b. metode security printing"
     },
     {
@@ -107202,8 +107202,8 @@
       "source_location": "L5014",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_rosettes_guilloche_relief_pattern",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 560,
+      "community_name": "B. Metode Security Printing",
       "norm_label": "format / contoh teknik pengamanan rosettes, guilloche, relief pattern"
     },
     {
@@ -107213,8 +107213,8 @@
       "source_location": "L5055",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_anticopy_rainbow_printing",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 560,
+      "community_name": "B. Metode Security Printing",
       "norm_label": "format / contoh teknik pengamanan anticopy, rainbow printing"
     },
     {
@@ -107224,8 +107224,8 @@
       "source_location": "L5079",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_microtext_hidden_image",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 560,
+      "community_name": "B. Metode Security Printing",
       "norm_label": "format / contoh teknik pengamanan microtext, hidden image"
     },
     {
@@ -107235,8 +107235,8 @@
       "source_location": "L5119",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_barcode_2d_qr_code_invisible_ink",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 560,
+      "community_name": "B. Metode Security Printing",
       "norm_label": "format / contoh teknik pengamanan barcode 2d / qr code, invisible ink"
     },
     {
@@ -107719,8 +107719,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "symfony_component_httpfoundation_streamedresponse",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 520,
+      "community_name": "DynamicForm",
       "norm_label": "symfony\\component\\httpfoundation\\streamedresponse"
     },
     {
@@ -201925,7 +201925,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/cuti/page.tsx",
-      "source_location": "L362",
+      "source_location": "L386",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_page_inboxsuratcutipage",
@@ -304849,5 +304849,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "a6cbee29dd1d2e77f8324497bda5cac5193703bb"
+  "built_at_commit": "5df01492df88f4968d0e992860a2ef6baa70f1ee"
 }
