@@ -1010,8 +1010,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
-    "mtime": 1792542684.4142034,
-    "ast_hash": "6613151690d16bd305217550c95fdf23",
+    "mtime": 1792545947.1914332,
+    "ast_hash": "3f5562fbce4c46b80ccb829bf6ef9357",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": "5bd4c2137164ae6a608e632a9b5d01be"
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1792541114.5653696,
-    "ast_hash": "688c0058444fdf58ddaadfbfd03796cb",
+    "mtime": 1792545360.0218267,
+    "ast_hash": "00884a93d672735850ffcccc7d0bf596",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
@@ -6575,8 +6575,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx": {
-    "mtime": 1791374243.041891,
-    "ast_hash": "6c72ee8c2d056a180855dc6efbee027f",
+    "mtime": 1792546749.0552213,
+    "ast_hash": "54e74ab5ba858d9f759b12b21b62ea45",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_10_07_000001_add_dates_to_st_assignment_letter_employees_table.php": {
@@ -6797,6 +6797,11 @@
   "frontend/src/app/kepegawaian/surat-masuk/page.tsx": {
     "mtime": 1792541865.3481042,
     "ast_hash": "61022c6e5be43551a7bb5a4df1e45596",
+    "semantic_hash": ""
+  },
+  "docs/REKAP_CUTI_PEGAWAI_BKSDA_KALTIM.md": {
+    "mtime": 1792543800.7185166,
+    "ast_hash": "1cb582563477c7e879ee7846dc8d61ff",
     "semantic_hash": ""
   }
 }

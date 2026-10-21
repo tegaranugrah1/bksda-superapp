@@ -1005,13 +1005,13 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1792489647.9055452,
-    "ast_hash": "130aa5274ea14301d8a1904df584d27d",
+    "mtime": 1792542666.037545,
+    "ast_hash": "2fc2f799dab38aa8b763b22f336b7dd8",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
-    "mtime": 1792377437.2787535,
-    "ast_hash": "c53dd6c42d8322a01fbece1d22371de4",
+    "mtime": 1792545947.1914332,
+    "ast_hash": "3f5562fbce4c46b80ccb829bf6ef9357",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": "5bd4c2137164ae6a608e632a9b5d01be"
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1792541114.5653696,
-    "ast_hash": "688c0058444fdf58ddaadfbfd03796cb",
+    "mtime": 1792545360.0218267,
+    "ast_hash": "00884a93d672735850ffcccc7d0bf596",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
@@ -5870,8 +5870,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/StExpenseTemplateService.php": {
-    "mtime": 1792379642.4177694,
-    "ast_hash": "4f91edd19bb8c8532cba480a59769a23",
+    "mtime": 1792542673.3163338,
+    "ast_hash": "58b8148bbf082c9723f9ed01712130aa",
     "semantic_hash": ""
   },
   "backend/app/Modules/Keuangan/Controllers/SpjController.php": {
@@ -6575,8 +6575,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx": {
-    "mtime": 1791374243.041891,
-    "ast_hash": "6c72ee8c2d056a180855dc6efbee027f",
+    "mtime": 1792545932.3845446,
+    "ast_hash": "b4db01a9efc5f2a1a1c56e08536a94b7",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_10_07_000001_add_dates_to_st_assignment_letter_employees_table.php": {
@@ -6680,8 +6680,8 @@
     "semantic_hash": ""
   },
   "backend/tests/portal_security_check.php": {
-    "mtime": 1792478411.0805082,
-    "ast_hash": "d5f279258d798de16f5939aed4afe124",
+    "mtime": 1792542714.3081741,
+    "ast_hash": "ba6482fccfc61444dc8b14a2e3f686cb",
     "semantic_hash": ""
   },
   "skills-lock.json": {
@@ -6770,8 +6770,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Exports/EmployeeIncomingLettersExport.php": {
-    "mtime": 1792540159.059825,
-    "ast_hash": "1a7d370a40bf287664e477d680013434",
+    "mtime": 1792542693.4354596,
+    "ast_hash": "cec72b212c467d1f370070bddb676f66",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeIncomingLetter.php": {
@@ -6797,6 +6797,11 @@
   "frontend/src/app/kepegawaian/surat-masuk/page.tsx": {
     "mtime": 1792541865.3481042,
     "ast_hash": "61022c6e5be43551a7bb5a4df1e45596",
+    "semantic_hash": ""
+  },
+  "docs/REKAP_CUTI_PEGAWAI_BKSDA_KALTIM.md": {
+    "mtime": 1792543800.7185166,
+    "ast_hash": "1cb582563477c7e879ee7846dc8d61ff",
     "semantic_hash": ""
   }
 }
