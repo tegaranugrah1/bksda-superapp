@@ -6575,8 +6575,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx": {
-    "mtime": 1792546749.0552213,
-    "ast_hash": "54e74ab5ba858d9f759b12b21b62ea45",
+    "mtime": 1792547212.2818851,
+    "ast_hash": "e4b8f6fe9e08ea9dc648a241ba04694e",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_10_07_000001_add_dates_to_st_assignment_letter_employees_table.php": {

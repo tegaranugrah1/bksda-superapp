@@ -94,6 +94,38 @@ const JENIS_CUTI_OPTIONS = [
   "Cuti di Luar Tanggungan Negara",
 ];
 
+function parseLocalDate(str: string): Date {
+  const [y, m, d] = str.split("-").map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+function calculateLeaveDays(startDateStr: string, endDateStr: string, jenisCuti: string): number {
+  if (!startDateStr || !endDateStr) return 0;
+  const start = parseLocalDate(startDateStr);
+  const end = parseLocalDate(endDateStr);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
+
+  const isTahunan = jenisCuti.toLowerCase().includes("tahunan");
+
+  if (!isTahunan) {
+    // Hari Kalender
+    const diffTime = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(1, diffTime + 1);
+  }
+
+  // Hari Kerja (Senin - Jumat, abaikan Sabtu & Minggu)
+  let count = 0;
+  const cur = new Date(start);
+  while (cur <= end) {
+    const day = cur.getDay(); // 0 is Sunday, 6 is Saturday
+    if (day !== 0 && day !== 6) {
+      count++;
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return Math.max(1, count);
+}
+
 export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const queryClient = useQueryClient();
   const currentYear = new Date().getFullYear();
@@ -234,7 +266,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
         jumlah_hari: Number(recordForm.jumlah_hari),
         tanggal_mulai: recordForm.tanggal_mulai,
         tanggal_selesai: recordForm.tanggal_selesai,
-        catatan_atasan: recordForm.catatan_atasan,
+        catatan_atasan: recordForm.alasan_cuti,
         status: "DISETUJUI",
       };
 
@@ -278,16 +310,44 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     },
   });
 
+  const handleDateChange = (field: "tanggal_mulai" | "tanggal_selesai", val: string) => {
+    setRecordForm((prev) => {
+      const next = { ...prev, [field]: val };
+      if (next.tanggal_mulai && next.tanggal_selesai) {
+        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, next.jenis_cuti);
+        if (days > 0) {
+          next.jumlah_hari = days;
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleJenisCutiChange = (val: string) => {
+    setRecordForm((prev) => {
+      const next = { ...prev, jenis_cuti: val };
+      if (next.tanggal_mulai && next.tanggal_selesai) {
+        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, val);
+        if (days > 0) {
+          next.jumlah_hari = days;
+        }
+      }
+      return next;
+    });
+  };
+
   const handleOpenCreateDialog = () => {
     setEditingRecord(null);
+    const today = new Date().toISOString().split("T")[0];
+    const initialDays = calculateLeaveDays(today, today, "Cuti Tahunan");
     setRecordForm({
       nomor_pengajuan: "",
-      tanggal_pengajuan: new Date().toISOString().split("T")[0],
+      tanggal_pengajuan: today,
       jenis_cuti: "Cuti Tahunan",
       alasan_cuti: "",
-      jumlah_hari: 1,
-      tanggal_mulai: new Date().toISOString().split("T")[0],
-      tanggal_selesai: new Date().toISOString().split("T")[0],
+      jumlah_hari: initialDays || 1,
+      tanggal_mulai: today,
+      tanggal_selesai: today,
       catatan_atasan: "",
     });
     setIsDialogOpen(true);
@@ -295,11 +355,14 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
   const handleOpenEditDialog = (record: LeaveRecordItem) => {
     setEditingRecord(record);
+    const rawAlasan = record.alasan_cuti || record.catatan_atasan || "";
+    const cleanAlasan = rawAlasan.toLowerCase().includes("sisa cuti") ? "" : rawAlasan;
+
     setRecordForm({
       nomor_pengajuan: record.nomor_pengajuan || "",
       tanggal_pengajuan: record.tanggal_pengajuan || new Date().toISOString().split("T")[0],
       jenis_cuti: record.jenis_cuti || "Cuti Tahunan",
-      alasan_cuti: record.alasan_cuti || "",
+      alasan_cuti: cleanAlasan,
       jumlah_hari: record.jumlah_hari || 1,
       tanggal_mulai: record.tanggal_mulai || "",
       tanggal_selesai: record.tanggal_selesai || "",
@@ -529,7 +592,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                       <th className="py-2.5 px-3 w-[28%]">Surat Persetujuan (SI / ST)</th>
                       <th className="py-2.5 px-3 w-[16%]">Jenis Cuti</th>
                       <th className="py-2.5 px-3 w-[22%]">Pelaksanaan & Durasi</th>
-                      <th className="py-2.5 px-3 w-[18%]">Keterangan / Sisa</th>
+                      <th className="py-2.5 px-3 w-[18%]">Alasan Cuti</th>
                       <th className="py-2.5 px-3 w-[16%] text-right">Status & Aksi</th>
                     </tr>
                   </thead>
@@ -565,18 +628,22 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                           </div>
                           <div className="mt-1">
                             <span className="inline-block font-bold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[10px]">
-                              {req.jumlah_hari} Hari Kerja
+                              {req.jumlah_hari} {req.jenis_cuti.toLowerCase().includes("tahunan") ? "Hari Kerja" : "Hari"}
                             </span>
                           </div>
                         </td>
                         <td className="py-3 px-3 align-top">
-                          {req.catatan_atasan ? (
-                            <span className="inline-block text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md leading-snug">
-                              {req.catatan_atasan}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 text-[11px]">-</span>
-                          )}
+                          {(() => {
+                            const raw = req.alasan_cuti || req.catatan_atasan;
+                            if (!raw || raw.toLowerCase().includes("sisa cuti")) {
+                              return <span className="text-slate-400 text-[11px] italic">-</span>;
+                            }
+                            return (
+                              <span className="inline-block text-[11px] font-medium text-slate-700 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md leading-snug">
+                                {raw}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="py-3 px-3 align-top text-right">
                           <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1.5">
@@ -699,116 +766,226 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
       {/* Modal Dialog: Tambah / Edit Surat Izin Cuti */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-900">
-              {editingRecord ? "Edit Surat Izin Penetapan Cuti" : "Catat Surat Izin Penetapan Cuti"}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
-              Pencatatan data surat keputusan izin cuti resmi (SI / ST) untuk buku kendali cuti pegawai.
-            </DialogDescription>
+        <DialogContent className="sm:max-w-2xl max-w-[95vw] p-6">
+          <DialogHeader className="pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                <FileCheck2 className="w-5 h-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-slate-900">
+                  {editingRecord ? "Edit Surat Izin Penetapan Cuti" : "Catat Surat Izin Penetapan Cuti"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                  Pencatatan data surat keputusan izin cuti resmi (SI / ST) untuk buku kendali cuti pegawai.
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
+
+          {/* Interactive Employee Leave Balance Card */}
+          <div className="rounded-xl border border-blue-100 bg-linear-to-r from-blue-50/90 via-indigo-50/40 to-slate-50/80 p-3.5 mt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <Award className="w-4 h-4 text-blue-600" />
+                  <span>Sisa Kuota Cuti Pegawai (Tahun {selectedYear}):</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-600">
+                  <span>Pokok: <b>{calc.hakN}</b></span>
+                  <span>•</span>
+                  <span>N-1: <b>+{calc.hakN1}</b></span>
+                  <span>•</span>
+                  <span>N-2: <b>+{calc.hakN2}</b></span>
+                  <span>•</span>
+                  <span>Terpakai: <b>{calc.usedN0}</b></span>
+                </div>
+              </div>
+              <div className="text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Kuota Tersedia</span>
+                <span className="text-xl font-extrabold text-blue-700">{calc.sisaTersedia} <span className="text-xs font-bold">Hari</span></span>
+              </div>
+            </div>
+
+            {/* Live simulation of remaining balance if Cuti Tahunan */}
+            {recordForm.jenis_cuti.toLowerCase().includes("tahunan") && recordForm.jumlah_hari > 0 && (
+              <div className="mt-2.5 pt-2 border-t border-blue-100/70 flex items-center justify-between text-[11px]">
+                <span className="text-slate-600">Simulasi sisa setelah cuti ini ({recordForm.jumlah_hari} hari):</span>
+                {(() => {
+                  const projectedDiff = editingRecord
+                    ? Math.max(0, recordForm.jumlah_hari - editingRecord.jumlah_hari)
+                    : recordForm.jumlah_hari;
+                  const projectedRemaining = calc.sisaTersedia - projectedDiff;
+                  if (projectedRemaining < 0) {
+                    return (
+                      <span className="font-bold text-rose-600 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        Melebihi kuota (kurang {Math.abs(projectedRemaining)} hari)
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className="font-bold text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Sisa {projectedRemaining} Hari
+                    </span>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
 
           <form
             onSubmit={(e) => {
               e.preventDefault();
               saveRecordMutation.mutate();
             }}
-            className="space-y-3.5 py-2"
+            className="space-y-4 pt-1 pb-1"
           >
-            <div>
-              <label className="text-xs font-bold text-slate-700">Nomor Surat Persetujuan (SI / ST) *</label>
-              <Input
-                required
-                value={recordForm.nomor_pengajuan}
-                onChange={(e) => setRecordForm({ ...recordForm, nomor_pengajuan: e.target.value })}
-                placeholder="Contoh: SI.80/K.18/TU/PEG.12.1/B/04/2025"
-                className="mt-1 text-xs font-mono h-9"
-              />
-            </div>
+            {/* Grid Baris 1: Surat Persetujuan & Tanggal Terbit */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div className="sm:col-span-7">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Nomor Surat Persetujuan (SI / ST) <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  required
+                  value={recordForm.nomor_pengajuan}
+                  onChange={(e) => setRecordForm({ ...recordForm, nomor_pengajuan: e.target.value })}
+                  placeholder="Contoh: SI.80/K.18/TU/PEG.12.1/B/04/2025"
+                  className="mt-1 text-xs font-mono h-9 bg-slate-50/50 focus:bg-white transition-colors"
+                />
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700">Tanggal Surat *</label>
+              <div className="sm:col-span-5">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Tanggal Surat <span className="text-rose-500">*</span>
+                </label>
                 <Input
                   type="date"
                   required
                   value={recordForm.tanggal_pengajuan}
                   onChange={(e) => setRecordForm({ ...recordForm, tanggal_pengajuan: e.target.value })}
-                  className="mt-1 text-xs h-9"
+                  className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
                 />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700">Jenis Cuti / Izin *</label>
-                <select
-                  value={recordForm.jenis_cuti}
-                  onChange={(e) => setRecordForm({ ...recordForm, jenis_cuti: e.target.value })}
-                  className="w-full mt-1 h-9 px-3 rounded-md border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 outline-none"
-                >
-                  {JENIS_CUTI_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700">Lama (Hari Kerja) *</label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={365}
-                  required
-                  value={recordForm.jumlah_hari}
-                  onChange={(e) => setRecordForm({ ...recordForm, jumlah_hari: Number(e.target.value) })}
-                  className="mt-1 text-xs font-bold h-9"
-                />
-              </div>
+            {/* Grid Baris 2: Jenis Cuti */}
+            <div>
+              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                Jenis Cuti / Izin <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={recordForm.jenis_cuti}
+                onChange={(e) => handleJenisCutiChange(e.target.value)}
+                className="w-full mt-1 h-9 px-3 rounded-md border border-slate-200 bg-slate-50/50 focus:bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
+              >
+                {JENIS_CUTI_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
 
+            {/* Grid Baris 3: Rentang Tanggal Mulai & Selesai */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="text-xs font-bold text-slate-700">Tanggal Mulai *</label>
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Tanggal Mulai Pelaksanaan <span className="text-rose-500">*</span>
+                </label>
                 <Input
                   type="date"
                   required
                   value={recordForm.tanggal_mulai}
-                  onChange={(e) => setRecordForm({ ...recordForm, tanggal_mulai: e.target.value })}
-                  className="mt-1 text-xs h-9"
+                  onChange={(e) => handleDateChange("tanggal_mulai", e.target.value)}
+                  className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700">Tanggal Selesai *</label>
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Tanggal Selesai Pelaksanaan <span className="text-rose-500">*</span>
+                </label>
                 <Input
                   type="date"
                   required
                   value={recordForm.tanggal_selesai}
-                  onChange={(e) => setRecordForm({ ...recordForm, tanggal_selesai: e.target.value })}
-                  className="mt-1 text-xs h-9"
+                  onChange={(e) => handleDateChange("tanggal_selesai", e.target.value)}
+                  className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
                 />
               </div>
             </div>
 
+            {/* Grid Baris 4 (DI BAWAH Tanggal Mulai & Selesai): Lama Cuti Otomatis Terhitung */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div className="sm:col-span-5">
+                <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                  <span>Lama Cuti <span className="text-rose-500">*</span></span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    {recordForm.jenis_cuti.toLowerCase().includes("tahunan") ? "Hari Kerja" : "Hari Kalender"}
+                  </span>
+                </label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    required
+                    value={recordForm.jumlah_hari}
+                    onChange={(e) => setRecordForm({ ...recordForm, jumlah_hari: Number(e.target.value) })}
+                    className="text-xs font-bold h-9 pr-14 bg-slate-50/50 focus:bg-white transition-colors"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-[11px] font-medium text-slate-400">
+                    Hari
+                  </div>
+                </div>
+              </div>
+
+              <div className="sm:col-span-7 flex flex-col justify-end">
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70 text-[11px] text-slate-600 flex items-center gap-2">
+                  <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span>
+                    {recordForm.jenis_cuti.toLowerCase().includes("tahunan")
+                      ? "Otomatis dihitung hari kerja (Senin - Jumat)."
+                      : "Otomatis dihitung hari kalender penuh."}
+                    {" Dapat diedit manual jika terdapat libur nasional."}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Baris 5: Alasan Cuti (Keterangan Hanya Alasan) */}
             <div>
-              <label className="text-xs font-bold text-slate-700">Keterangan / Sisa Cuti (Opsional)</label>
+              <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                <span>Alasan Cuti</span>
+                <span className="text-[10px] text-slate-400 font-normal">Opsional (bisa dikosongkan untuk data lama)</span>
+              </label>
               <Input
-                value={recordForm.catatan_atasan}
-                onChange={(e) => setRecordForm({ ...recordForm, catatan_atasan: e.target.value })}
-                placeholder="Contoh: Sisa Cuti= 7 Hari"
-                className="mt-1 text-xs h-9"
+                value={recordForm.alasan_cuti}
+                onChange={(e) => setRecordForm({ ...recordForm, alasan_cuti: e.target.value })}
+                placeholder="Contoh: Keperluan keluarga mendesak / Melahirkan / Menikahkan anak (Opsional)"
+                className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
               />
             </div>
 
-            <DialogFooter className="gap-2 pt-2">
+            {/* Contextual Notice */}
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-blue-50/60 border border-blue-100/80 text-xs text-blue-900">
+              <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <p className="text-[11px] leading-relaxed text-slate-600">
+                Data surat penetapan ini akan tersimpan pada riwayat resmi buku kendali cuti pegawai dan menyelaraskan saldo cuti terpakai pada tahun yang bersangkutan.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <DialogFooter className="gap-2 pt-3 border-t border-slate-100">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsDialogOpen(false)}
-                className="text-xs font-bold"
+                className="text-xs font-semibold"
               >
                 Batal
               </Button>
@@ -816,10 +993,14 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 type="submit"
                 size="sm"
                 disabled={saveRecordMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold gap-1.5"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-1.5 shadow-xs"
               >
                 <Save className="w-3.5 h-3.5" />
-                {saveRecordMutation.isPending ? "Menyimpan..." : "Simpan Penetapan Cuti"}
+                {saveRecordMutation.isPending
+                  ? "Menyimpan..."
+                  : editingRecord
+                  ? "Simpan Perubahan"
+                  : "Simpan Penetapan Cuti"}
               </Button>
             </DialogFooter>
           </form>
