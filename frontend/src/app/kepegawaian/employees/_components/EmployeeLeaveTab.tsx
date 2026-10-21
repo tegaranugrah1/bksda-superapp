@@ -23,10 +23,20 @@ import {
   FileCheck,
   FileUp,
   UploadCloud,
+  ChevronDown,
+  MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +46,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { isAxiosError } from "axios";
+import { cn } from "@/lib/utils";
 import { ScanViewerModal, UploadScanModal } from "@/app/kepegawaian/cuti/_components/CutiModals";
 
 interface EmployeeLeaveData {
@@ -72,6 +83,10 @@ interface LeaveRecordItem {
   status: string;
   scan_surat_path?: string | null;
   scan_surat_nama?: string | null;
+  scan_formulir_path?: string | null;
+  scan_formulir_nama?: string | null;
+  scan_surat_izin_path?: string | null;
+  scan_surat_izin_nama?: string | null;
 }
 
 interface ApiResponse {
@@ -173,8 +188,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const [isBalanceDialogOpen, setIsBalanceDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<LeaveRecordItem | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [fileScan, setFileScan] = useState<File | null>(null);
-  const [viewerItem, setViewerItem] = useState<LeaveRecordItem | null>(null);
+  const [fileScanFormulir, setFileScanFormulir] = useState<File | null>(null);
+  const [fileScanSuratIzin, setFileScanSuratIzin] = useState<File | null>(null);
+  const [viewerModal, setViewerModal] = useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
   const [uploadScanItem, setUploadScanItem] = useState<LeaveRecordItem | null>(null);
 
   // Form for Leave Balance (Admin Quota)
@@ -307,8 +323,11 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
       formData.append("tanggal_selesai", recordForm.tanggal_selesai);
       formData.append("catatan_atasan", recordForm.alasan_cuti || "");
       formData.append("status", "DISETUJUI");
-      if (fileScan) {
-        formData.append("file_scan", fileScan);
+      if (fileScanFormulir) {
+        formData.append("file_scan_formulir", fileScanFormulir);
+      }
+      if (fileScanSuratIzin) {
+        formData.append("file_scan_surat_izin", fileScanSuratIzin);
       }
 
       if (editingRecord) {
@@ -326,7 +345,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
       toast.success(editingRecord ? "Penetapan cuti berhasil diperbarui!" : "Surat Izin Cuti berhasil dicatat!");
       setIsDialogOpen(false);
       setEditingRecord(null);
-      setFileScan(null);
+      setFileScanFormulir(null);
+      setFileScanSuratIzin(null);
       queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
     },
     onError: (err: unknown) => {
@@ -340,15 +360,28 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
   // Mutation: Upload or Replace Scan File on Existing Record
   const uploadRecordScanMutation = useMutation({
-    mutationFn: async ({ id, file }: { id: number; file: File }) => {
+    mutationFn: async ({
+      id,
+      fileFormulir,
+      fileSuratIzin,
+    }: {
+      id: number;
+      fileFormulir: File | null;
+      fileSuratIzin: File | null;
+    }) => {
       const formData = new FormData();
-      formData.append("file_scan", file);
+      if (fileFormulir) {
+        formData.append("file_scan_formulir", fileFormulir);
+      }
+      if (fileSuratIzin) {
+        formData.append("file_scan_surat_izin", fileSuratIzin);
+      }
       await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
     },
     onSuccess: () => {
-      toast.success("Berkas scan cuti resmi berhasil disimpan!");
+      toast.success("Berkas cuti resmi berhasil disimpan!");
       setUploadScanItem(null);
       queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
     },
@@ -408,7 +441,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
   const handleOpenCreateDialog = () => {
     setEditingRecord(null);
-    setFileScan(null);
+    setFileScanFormulir(null);
+    setFileScanSuratIzin(null);
     const today = new Date().toISOString().split("T")[0];
     const initialDays = calculateLeaveDays(today, today, "Cuti Tahunan", leaveTypes);
     setRecordForm({
@@ -426,7 +460,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
   const handleOpenEditDialog = (record: LeaveRecordItem) => {
     setEditingRecord(record);
-    setFileScan(null);
+    setFileScanFormulir(null);
+    setFileScanSuratIzin(null);
     const rawAlasan = record.alasan_cuti || record.catatan_atasan || "";
     const cleanAlasan = rawAlasan.toLowerCase().includes("sisa cuti") ? "" : rawAlasan;
 
@@ -741,55 +776,136 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                               {req.status}
                             </span>
-                            <div className="flex items-center gap-0.5">
-                              {/* Scan Actions */}
-                              {req.scan_surat_path ? (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => setViewerItem(req)}
-                                    className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                                    title="Lihat Berkas Scan Cuti"
-                                  >
-                                    <FileCheck className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setUploadScanItem(req)}
-                                    className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                    title="Ganti Berkas Scan Cuti"
-                                  >
-                                    <FileUp className="w-3.5 h-3.5" />
-                                  </button>
-                                </>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setUploadScanItem(req)}
-                                  className="p-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
-                                  title="Unggah Berkas Scan Cuti"
-                                >
-                                  <FileUp className="w-3.5 h-3.5" />
-                                </button>
-                              )}
+                            {(() => {
+                              const hasSuratIzin = !!(req.scan_surat_izin_path || req.scan_surat_path);
+                              const hasFormulir = !!req.scan_formulir_path;
+                              const uploadedCount = (hasSuratIzin ? 1 : 0) + (hasFormulir ? 1 : 0);
 
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEditDialog(req)}
-                                className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Edit penetapan cuti"
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setDeleteConfirmId(req.id)}
-                                className="p-1 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                title="Hapus penetapan cuti"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                              return (
+                                <div className="flex items-center gap-1.5">
+                                  {/* Berkas Dropdown Menu */}
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className={cn(
+                                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer",
+                                          uploadedCount === 2
+                                            ? "text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                                            : uploadedCount === 1
+                                            ? "text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100"
+                                            : "text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100"
+                                        )}
+                                        title="Kelola & Lihat Berkas Scan Cuti"
+                                      >
+                                        {uploadedCount === 2 ? (
+                                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                        ) : uploadedCount === 1 ? (
+                                          <Clock className="w-3 h-3 text-amber-600" />
+                                        ) : (
+                                          <FileUp className="w-3 h-3 text-purple-600" />
+                                        )}
+                                        <span>{uploadedCount > 0 ? `Berkas (${uploadedCount})` : "+ Berkas"}</span>
+                                        <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-60 p-1.5 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">
+                                        Berkas Scan Cuti
+                                      </DropdownMenuLabel>
+
+                                      <DropdownMenuItem
+                                        disabled={!hasSuratIzin}
+                                        onClick={() =>
+                                          setViewerModal({
+                                            url: `/kepegawaian/leave-requests/${req.id}/scan-surat-izin`,
+                                            fileName: req.scan_surat_izin_nama || req.scan_surat_nama,
+                                            title: "Surat Izin Cuti Resmi (TTE Kepala Balai)",
+                                          })
+                                        }
+                                        className="flex items-center justify-between text-xs py-1.5 px-2 rounded-xl cursor-pointer"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <FileCheck className={cn("w-4 h-4", hasSuratIzin ? "text-emerald-600" : "text-slate-400")} />
+                                          <span className={cn("font-medium", !hasSuratIzin && "text-slate-400")}>Surat Izin (TTE)</span>
+                                        </div>
+                                        {hasSuratIzin ? (
+                                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
+                                            Lihat
+                                          </span>
+                                        ) : (
+                                          <span className="text-[10px] text-slate-400 italic">Belum ada</span>
+                                        )}
+                                      </DropdownMenuItem>
+
+                                      <DropdownMenuItem
+                                        disabled={!hasFormulir}
+                                        onClick={() =>
+                                          setViewerModal({
+                                            url: `/kepegawaian/leave-requests/${req.id}/scan-formulir`,
+                                            fileName: req.scan_formulir_nama,
+                                            title: "Scan Formulir Permohonan Cuti (TTD Manual & Cap Balai)",
+                                          })
+                                        }
+                                        className="flex items-center justify-between text-xs py-1.5 px-2 rounded-xl cursor-pointer"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <FileText className={cn("w-4 h-4", hasFormulir ? "text-indigo-600" : "text-slate-400")} />
+                                          <span className={cn("font-medium", !hasFormulir && "text-slate-400")}>Formulir (Scan)</span>
+                                        </div>
+                                        {hasFormulir ? (
+                                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700">
+                                            Lihat
+                                          </span>
+                                        ) : (
+                                          <span className="text-[10px] text-slate-400 italic">Belum ada</span>
+                                        )}
+                                      </DropdownMenuItem>
+
+                                      <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+
+                                      <DropdownMenuItem
+                                        onClick={() => setUploadScanItem(req)}
+                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl text-purple-700 hover:bg-purple-50 cursor-pointer font-semibold"
+                                      >
+                                        <FileUp className="w-3.5 h-3.5 text-purple-600" />
+                                        <span>{uploadedCount > 0 ? "Unggah Ulang Berkas" : "Unggah Berkas Scan"}</span>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+
+                                  {/* Aksi More Dropdown (...) */}
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                        title="Aksi Lainnya"
+                                      >
+                                        <MoreHorizontal className="w-3.5 h-3.5" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40 p-1 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                      <DropdownMenuItem
+                                        onClick={() => handleOpenEditDialog(req)}
+                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl cursor-pointer text-amber-700 hover:bg-amber-50 font-medium"
+                                      >
+                                        <Pencil className="w-3 h-3" />
+                                        <span>Edit Cuti</span>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                      <DropdownMenuItem
+                                        onClick={() => setDeleteConfirmId(req.id)}
+                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl cursor-pointer text-rose-600 hover:bg-rose-50 font-medium"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                        <span>Hapus Cuti</span>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </td>
                       </tr>
@@ -1099,74 +1215,143 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               />
             </div>
 
-            {/* Baris 6: Berkas Scan Surat Cuti (Opsional) */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-semibold text-slate-700">
-                  Unggah Berkas Scan TTD & Cap Balai
-                </label>
-                <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-medium">
-                  Opsional
-                </span>
-              </div>
-
-              {editingRecord?.scan_surat_nama && !fileScan && (
-                <div className="mb-2 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 truncate">
-                    <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    Berkas saat ini: <b>{editingRecord.scan_surat_nama}</b>
+            {/* Baris 6: Berkas Scan Surat Cuti (Opsional - 2 Berkas) */}
+            <div className="space-y-3">
+              {/* Slot 1: Scan Formulir Cuti */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-blue-500" />
+                    1. Scan Formulir Cuti (TTD Fisik & Cap)
+                  </label>
+                  <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-medium">
+                    Opsional
                   </span>
-                  <span className="text-[10px] text-emerald-600 font-medium">Tersimpan</span>
                 </div>
-              )}
 
-              <div className="border border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-3 text-center bg-slate-50/50 transition-colors">
-                <input
-                  type="file"
-                  id="file_scan_manual_record"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0] || null;
-                    if (f && f.size > 10 * 1024 * 1024) {
-                      alert("Ukuran berkas maksimal 10MB");
-                      e.target.value = "";
-                      return;
-                    }
-                    setFileScan(f);
-                  }}
-                  className="hidden"
-                />
-                <label htmlFor="file_scan_manual_record" className="cursor-pointer block space-y-1">
-                  {fileScan ? (
-                    <div className="flex items-center justify-center gap-2 text-blue-600 font-bold text-xs">
-                      <FileCheck className="w-4 h-4" />
-                      <span className="truncate max-w-xs">{fileScan.name}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">
-                        ({(fileScan.size / 1024 / 1024).toFixed(2)} MB)
-                      </span>
-                    </div>
-                  ) : (
-                    <>
-                      <UploadCloud className="w-6 h-6 text-slate-400 mx-auto" />
-                      <p className="text-xs font-semibold text-slate-700">
-                        {editingRecord?.scan_surat_nama ? "Ganti Berkas Scan (PDF/JPG/PNG)" : "Pilih Berkas Scan (PDF/JPG/PNG)"}
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        Maksimal ukuran berkas: 10MB. Jika belum discan, dapat diunggah nanti.
-                      </p>
-                    </>
-                  )}
-                </label>
+                {editingRecord?.scan_formulir_nama && !fileScanFormulir && (
+                  <div className="mb-1.5 p-2 rounded-lg bg-blue-50 border border-blue-200 text-[11px] text-blue-800 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 truncate">
+                      <FileCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      Berkas saat ini: <b>{editingRecord.scan_formulir_nama}</b>
+                    </span>
+                    <span className="text-[10px] text-blue-600 font-medium">Tersimpan</span>
+                  </div>
+                )}
+
+                <div className="border border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-2.5 text-center bg-slate-50/50 transition-colors">
+                  <input
+                    type="file"
+                    id="file_scan_formulir_manual"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      if (f && f.size > 10 * 1024 * 1024) {
+                        alert("Ukuran berkas maksimal 10MB");
+                        e.target.value = "";
+                        return;
+                      }
+                      setFileScanFormulir(f);
+                    }}
+                    className="hidden"
+                  />
+                  <label htmlFor="file_scan_formulir_manual" className="cursor-pointer block space-y-1">
+                    {fileScanFormulir ? (
+                      <div className="flex items-center justify-center gap-1.5 text-blue-600 font-semibold text-xs">
+                        <FileCheck className="w-4 h-4" />
+                        <span className="truncate max-w-xs">{fileScanFormulir.name}</span>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          ({(fileScanFormulir.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-xs font-semibold text-slate-700">
+                          {editingRecord?.scan_formulir_nama ? "Ganti Berkas Scan Formulir" : "Pilih Berkas Scan Formulir Permohonan"}
+                        </p>
+                        <p className="text-[10px] text-slate-400">PDF, JPG, atau PNG (Maks. 10MB)</p>
+                      </>
+                    )}
+                  </label>
+                </div>
+                {fileScanFormulir && (
+                  <button
+                    type="button"
+                    onClick={() => setFileScanFormulir(null)}
+                    className="text-[10px] text-rose-500 hover:underline mt-1"
+                  >
+                    Batalkan pilihan berkas formulir
+                  </button>
+                )}
               </div>
-              {fileScan && (
-                <button
-                  type="button"
-                  onClick={() => setFileScan(null)}
-                  className="text-[10px] text-rose-500 hover:underline mt-1"
-                >
-                  Batalkan pilihan berkas baru
-                </button>
-              )}
+
+              {/* Slot 2: Surat Izin Cuti Resmi (TTE) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
+                    2. Surat Izin Cuti Resmi (TTE Kepala Balai)
+                  </label>
+                  <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-medium">
+                    Opsional
+                  </span>
+                </div>
+
+                {(editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama) && !fileScanSuratIzin && (
+                  <div className="mb-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 truncate">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Berkas saat ini: <b>{editingRecord.scan_surat_izin_nama || editingRecord.scan_surat_nama}</b>
+                    </span>
+                    <span className="text-[10px] text-emerald-600 font-medium">Tersimpan</span>
+                  </div>
+                )}
+
+                <div className="border border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-2.5 text-center bg-slate-50/50 transition-colors">
+                  <input
+                    type="file"
+                    id="file_scan_surat_izin_manual"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      if (f && f.size > 10 * 1024 * 1024) {
+                        alert("Ukuran berkas maksimal 10MB");
+                        e.target.value = "";
+                        return;
+                      }
+                      setFileScanSuratIzin(f);
+                    }}
+                    className="hidden"
+                  />
+                  <label htmlFor="file_scan_surat_izin_manual" className="cursor-pointer block space-y-1">
+                    {fileScanSuratIzin ? (
+                      <div className="flex items-center justify-center gap-1.5 text-emerald-600 font-semibold text-xs">
+                        <FileCheck className="w-4 h-4" />
+                        <span className="truncate max-w-xs">{fileScanSuratIzin.name}</span>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          ({(fileScanSuratIzin.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-xs font-semibold text-slate-700">
+                          {editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama ? "Ganti Berkas Surat Izin Resmi" : "Pilih Berkas Surat Izin Cuti Resmi (TTE)"}
+                        </p>
+                        <p className="text-[10px] text-slate-400">PDF, JPG, atau PNG (Maks. 10MB)</p>
+                      </>
+                    )}
+                  </label>
+                </div>
+                {fileScanSuratIzin && (
+                  <button
+                    type="button"
+                    onClick={() => setFileScanSuratIzin(null)}
+                    className="text-[10px] text-rose-500 hover:underline mt-1"
+                  >
+                    Batalkan pilihan surat izin
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Contextual Notice */}
@@ -1242,10 +1427,11 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
       {/* Pratinjau Berkas Scan Cuti Pegawai */}
       <ScanViewerModal
-        isOpen={!!viewerItem}
-        scanUrl={viewerItem ? `/kepegawaian/leave-requests/${viewerItem.id}/scan` : null}
-        fileName={viewerItem?.scan_surat_nama}
-        onClose={() => setViewerItem(null)}
+        isOpen={!!viewerModal}
+        scanUrl={viewerModal?.url || null}
+        fileName={viewerModal?.fileName}
+        title={viewerModal?.title}
+        onClose={() => setViewerModal(null)}
       />
 
       {/* Upload / Ganti Berkas Scan Cuti Pegawai */}
@@ -1254,13 +1440,21 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           id: uploadScanItem.id,
           scan_surat_path: uploadScanItem.scan_surat_path,
           scan_surat_nama: uploadScanItem.scan_surat_nama,
+          scan_formulir_path: uploadScanItem.scan_formulir_path,
+          scan_formulir_nama: uploadScanItem.scan_formulir_nama,
+          scan_surat_izin_path: uploadScanItem.scan_surat_izin_path,
+          scan_surat_izin_nama: uploadScanItem.scan_surat_izin_nama,
           employee: { nama_lengkap: apiResponse?.employee?.nama_lengkap || "Pegawai" },
         } : null}
         isPending={uploadRecordScanMutation.isPending}
         onClose={() => setUploadScanItem(null)}
-        onUpload={(file) => {
+        onUpload={({ fileFormulir, fileSuratIzin }) => {
           if (uploadScanItem) {
-            uploadRecordScanMutation.mutate({ id: uploadScanItem.id, file });
+            uploadRecordScanMutation.mutate({
+              id: uploadScanItem.id,
+              fileFormulir,
+              fileSuratIzin,
+            });
           }
         }}
       />

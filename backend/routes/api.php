@@ -46,6 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myIndex'])->middleware('throttle:120,1');
     Route::get('/me/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myShow'])->whereNumber('id')->middleware('throttle:120,1');
     Route::get('/me/leave-requests/{id}/scan', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myViewScan'])->whereNumber('id')->middleware('throttle:120,1');
+    Route::get('/me/leave-requests/{id}/scan-formulir', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myViewScanFormulir'])->whereNumber('id')->middleware('throttle:120,1');
+    Route::get('/me/leave-requests/{id}/scan-surat-izin', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myViewScanSuratIzin'])->whereNumber('id')->middleware('throttle:120,1');
     Route::post('/me/leave-requests', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myStore'])->middleware('throttle:10,1');
     Route::delete('/me/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myDestroy'])->whereNumber('id')->middleware('throttle:30,1');
     Route::get('/me/leave-balance', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myBalance'])->middleware('throttle:120,1');

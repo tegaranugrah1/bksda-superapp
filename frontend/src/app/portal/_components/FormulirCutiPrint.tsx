@@ -26,6 +26,10 @@ export interface LeaveRequestPrintData {
   kepala_balai_nip?: string;
   scan_surat_path?: string | null;
   scan_surat_nama?: string | null;
+  scan_formulir_path?: string | null;
+  scan_formulir_nama?: string | null;
+  scan_surat_izin_path?: string | null;
+  scan_surat_izin_nama?: string | null;
   employee?: {
     nama_lengkap: string;
     nip: string;

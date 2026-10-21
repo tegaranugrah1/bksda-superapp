@@ -46,14 +46,16 @@ try {
         'status' => 'PENGAJUAN',
     ]);
 
-    // 2. Admin approves with uploaded PDF scan
-    $fakePdf = UploadedFile::fake()->create('surat_izin_resmi_101.pdf', 500, 'application/pdf');
+    // 2. Admin approves with uploaded PDF scan for Formulir and Surat Izin
+    $fakeFormulir = UploadedFile::fake()->create('scan_formulir_cuti.pdf', 300, 'application/pdf');
+    $fakeSuratIzin = UploadedFile::fake()->create('surat_izin_tte.pdf', 500, 'application/pdf');
 
     $reqApprove = Request::create("/api/kepegawaian/leave-requests/{$leaveReqA->id}/approve", 'POST', [
         'nomor_surat' => 'SI.999/K.18/TU/PEG/10/2026',
         'catatan_atasan' => 'Disetujui lengkap dengan stempel',
     ], [], [
-        'file_scan' => $fakePdf,
+        'file_scan_formulir' => $fakeFormulir,
+        'file_scan_surat_izin' => $fakeSuratIzin,
     ]);
     $reqApprove->setUserResolver(fn() => $adminUser);
     Auth::login($adminUser);
@@ -64,40 +66,81 @@ try {
     $leaveReqA->refresh();
     assert($leaveReqA->status === 'DISETUJUI', "Status should be DISETUJUI");
     assert($leaveReqA->nomor_pengajuan === 'SI.999/K.18/TU/PEG/10/2026', "Official number should be updated");
-    assert(!empty($leaveReqA->scan_surat_path), "scan_surat_path must be populated");
-    assert(Storage::disk('local')->exists($leaveReqA->scan_surat_path), "File must exist in local storage");
-    assert($leaveReqA->scan_surat_nama === 'surat_izin_resmi_101.pdf', "Original file name must match");
-    echo "[PASS] 1. adminApprove with file_scan succeeded and stored securely\n";
+    assert(!empty($leaveReqA->scan_formulir_path), "scan_formulir_path must be populated");
+    assert(!empty($leaveReqA->scan_surat_izin_path), "scan_surat_izin_path must be populated");
+    assert(Storage::disk('local')->exists($leaveReqA->scan_formulir_path), "Formulir file must exist in local storage");
+    assert(Storage::disk('local')->exists($leaveReqA->scan_surat_izin_path), "Surat Izin file must exist in local storage");
+    assert($leaveReqA->scan_formulir_nama === 'scan_formulir_cuti.pdf', "Formulir original name must match");
+    assert($leaveReqA->scan_surat_izin_nama === 'surat_izin_tte.pdf', "Surat Izin original name must match");
+    assert($leaveReqA->scan_surat_path === $leaveReqA->scan_surat_izin_path, "Legacy scan_surat_path must match scan_surat_izin_path");
+    echo "[PASS] 1. adminApprove with both scans succeeded and stored securely\n";
 
-    // 3. IDOR Check: Employee B attempts to view Employee A's scan -> MUST BE FORBIDDEN / 404
+    // 3. IDOR Check: Employee B attempts to view Employee A's scans -> MUST BE 404
     $userB = User::where('username', $empB->nip)->first() ?: User::factory()->create(['username' => $empB->nip]);
-    $reqUserB = Request::create("/api/me/leave-requests/{$leaveReqA->id}/scan", 'GET');
-    $reqUserB->setUserResolver(fn() => $userB);
-
-    $idorBlocked = false;
+    
+    // Check IDOR on scan-formulir
+    $reqUserBFormulir = Request::create("/api/me/leave-requests/{$leaveReqA->id}/scan-formulir", 'GET');
+    $reqUserBFormulir->setUserResolver(fn() => $userB);
+    $idorBlockedFormulir = false;
     try {
-        $controller->myViewScan($reqUserB, $leaveReqA->id);
+        $controller->myViewScanFormulir($reqUserBFormulir, $leaveReqA->id);
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        $idorBlocked = true;
+        $idorBlockedFormulir = true;
     }
-    assert($idorBlocked, "Employee B must NOT be able to access Employee A's leave scan (IDOR prevention)");
-    echo "[PASS] 2. IDOR Prevention: Other employee cannot access scan\n";
+    assert($idorBlockedFormulir, "Employee B must NOT access Employee A's scan formulir (IDOR prevention)");
 
-    // 4. Owner Check: Employee A views their own scan -> SUCCESS
+    // Check IDOR on scan-surat-izin
+    $reqUserBSuratIzin = Request::create("/api/me/leave-requests/{$leaveReqA->id}/scan-surat-izin", 'GET');
+    $reqUserBSuratIzin->setUserResolver(fn() => $userB);
+    $idorBlockedSuratIzin = false;
+    try {
+        $controller->myViewScanSuratIzin($reqUserBSuratIzin, $leaveReqA->id);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        $idorBlockedSuratIzin = true;
+    }
+    assert($idorBlockedSuratIzin, "Employee B must NOT access Employee A's scan surat izin (IDOR prevention)");
+    echo "[PASS] 2. IDOR Prevention: Other employee cannot access either scan file\n";
+
+    // 4. Owner Check: Employee A views both scans -> SUCCESS
     $userA = User::where('username', $empA->nip)->first() ?: User::factory()->create(['username' => $empA->nip]);
-    $reqUserA = Request::create("/api/me/leave-requests/{$leaveReqA->id}/scan", 'GET');
-    $reqUserA->setUserResolver(fn() => $userA);
+    $reqUserAFormulir = Request::create("/api/me/leave-requests/{$leaveReqA->id}/scan-formulir", 'GET');
+    $reqUserAFormulir->setUserResolver(fn() => $userA);
+    $streamAFormulir = $controller->myViewScanFormulir($reqUserAFormulir, $leaveReqA->id);
+    assert($streamAFormulir->getStatusCode() === 200, "Owner employee should be able to view scan formulir");
 
-    $streamA = $controller->myViewScan($reqUserA, $leaveReqA->id);
-    assert($streamA->getStatusCode() === 200, "Owner employee should be able to view scan");
-    echo "[PASS] 3. Owner Authorization: Employee A can view their own scan\n";
+    $reqUserASuratIzin = Request::create("/api/me/leave-requests/{$leaveReqA->id}/scan-surat-izin", 'GET');
+    $reqUserASuratIzin->setUserResolver(fn() => $userA);
+    $streamASuratIzin = $controller->myViewScanSuratIzin($reqUserASuratIzin, $leaveReqA->id);
+    assert($streamASuratIzin->getStatusCode() === 200, "Owner employee should be able to view scan surat izin");
+    echo "[PASS] 3. Owner Authorization: Employee A can view both of their own scans\n";
 
-    // 5. Admin View Scan Check
-    $streamAdmin = $controller->adminViewScan($leaveReqA->id);
-    assert($streamAdmin->getStatusCode() === 200, "Admin can view leave scan");
-    echo "[PASS] 4. Admin View: Kepegawaian admin can view scan\n";
+    // 5. Admin View Scan Check (both binary stream and JSON preview mode)
+    $streamAdminFormulir = $controller->adminViewScanFormulir($leaveReqA->id);
+    assert($streamAdminFormulir->getStatusCode() === 200, "Admin can view scan formulir");
+    $streamAdminSuratIzin = $controller->adminViewScanSuratIzin($leaveReqA->id);
+    assert($streamAdminSuratIzin->getStatusCode() === 200, "Admin can view scan surat izin");
 
-    // 6. Approval without scan (optional scan check)
+    // Check preview JSON mode (same as Surat Masuk)
+    $reqPreview = Request::create("/api/kepegawaian/leave-requests/{$leaveReqA->id}/scan-surat-izin?preview=1", 'GET');
+    $jsonPreview = $controller->adminViewScanSuratIzin($reqPreview, $leaveReqA->id);
+    assert($jsonPreview->getStatusCode() === 200, "Preview mode returns 200");
+    $previewData = $jsonPreview->getData(true);
+    assert(!empty($previewData['data_url']) && str_starts_with($previewData['data_url'], 'data:application/pdf;base64,'), "Preview returns valid base64 data_url");
+    echo "[PASS] 4. Admin View: Kepegawaian admin can view both scans (stream & preview JSON)\n";
+
+    // 6. Admin Upload / Replace Scan
+    $newFakeSuratIzin = UploadedFile::fake()->create('surat_izin_v2.pdf', 600, 'application/pdf');
+    $reqUploadScan = Request::create("/api/kepegawaian/leave-requests/{$leaveReqA->id}/upload-scan", 'POST', [], [], [
+        'file_scan_surat_izin' => $newFakeSuratIzin,
+    ]);
+    $reqUploadScan->setUserResolver(fn() => $adminUser);
+    $uploadRes = $controller->adminUploadScan($reqUploadScan, $leaveReqA->id);
+    assert($uploadRes->getStatusCode() === 200, "Upload replacement scan should succeed");
+    $leaveReqA->refresh();
+    assert($leaveReqA->scan_surat_izin_nama === 'surat_izin_v2.pdf', "Surat izin name should update");
+    echo "[PASS] 5. Admin Upload / Replace Scan works seamlessly\n";
+
+    // 7. Approval without scan (optional scan check)
     $leaveReqB = EmployeeLeaveRequest::create([
         'employee_id' => $empA->id,
         'nomor_pengajuan' => 'CUTI/TEST/002',
@@ -119,7 +162,9 @@ try {
     $leaveReqB->refresh();
     assert($leaveReqB->status === 'DISETUJUI', "Status should be DISETUJUI even without scan");
     assert($leaveReqB->scan_surat_path === null, "scan_surat_path should remain null");
-    echo "[PASS] 5. Optional scan: Approval without scan file works properly\n";
+    assert($leaveReqB->scan_formulir_path === null, "scan_formulir_path should remain null");
+    assert($leaveReqB->scan_surat_izin_path === null, "scan_surat_izin_path should remain null");
+    echo "[PASS] 6. Optional scan: Approval without scan files works properly\n";
 } finally {
     // Guaranteed rollback so no test records ever persist in the database
     DB::rollBack();

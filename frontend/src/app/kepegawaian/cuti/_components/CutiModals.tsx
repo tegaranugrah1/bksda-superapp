@@ -32,6 +32,10 @@ export interface LeaveRequestItem {
   catatan_atasan: string | null;
   scan_surat_path?: string | null;
   scan_surat_nama?: string | null;
+  scan_formulir_path?: string | null;
+  scan_formulir_nama?: string | null;
+  scan_surat_izin_path?: string | null;
+  scan_surat_izin_nama?: string | null;
   scan_surat_uploaded_at?: string | null;
   scan_surat_uploaded_by?: number | null;
   employee: {
@@ -294,7 +298,12 @@ interface ApproveLeaveModalProps {
   item: LeaveRequestItem | null;
   isPending: boolean;
   onClose: () => void;
-  onApprove: (nomorSurat: string, fileScan: File | null, catatan: string) => void;
+  onApprove: (
+    nomorSurat: string,
+    fileFormulir: File | null,
+    fileSuratIzin: File | null,
+    catatan: string
+  ) => void;
 }
 
 export function ApproveLeaveModal({
@@ -304,14 +313,16 @@ export function ApproveLeaveModal({
   onApprove,
 }: ApproveLeaveModalProps) {
   const [nomorSurat, setNomorSurat] = useState("");
-  const [fileScan, setFileScan] = useState<File | null>(null);
+  const [fileFormulir, setFileFormulir] = useState<File | null>(null);
+  const [fileSuratIzin, setFileSuratIzin] = useState<File | null>(null);
   const [catatan, setCatatan] = useState("");
 
   useEffect(() => {
     if (item) {
       setNomorSurat(item.nomor_pengajuan || "");
       setCatatan(item.catatan_atasan || "");
-      setFileScan(null);
+      setFileFormulir(null);
+      setFileSuratIzin(null);
     }
   }, [item]);
 
@@ -319,12 +330,12 @@ export function ApproveLeaveModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onApprove(nomorSurat, fileScan, catatan);
+    onApprove(nomorSurat, fileFormulir, fileSuratIzin, catatan);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
@@ -380,20 +391,21 @@ export function ApproveLeaveModal({
             </p>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="font-bold text-slate-700 dark:text-slate-300">
-                Unggah Berkas Scan TTD & Cap Balai
+          {/* Slot 1: Scan Formulir Cuti TTD Manual */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-blue-500" />
+                1. Scan Formulir Cuti (TTD Fisik & Cap)
               </label>
               <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full font-medium">
                 Opsional
               </span>
             </div>
-
-            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-xl p-4 text-center bg-slate-50/50 dark:bg-slate-800/20 transition-colors">
+            <div className="border border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-500 rounded-xl p-3 text-center bg-slate-50/50 dark:bg-slate-800/20 transition-colors">
               <input
                 type="file"
-                id="file_scan_approve"
+                id="file_scan_formulir_approve"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={(e) => {
                   const f = e.target.files?.[0] || null;
@@ -402,39 +414,93 @@ export function ApproveLeaveModal({
                     e.target.value = "";
                     return;
                   }
-                  setFileScan(f);
+                  setFileFormulir(f);
                 }}
                 className="hidden"
               />
-              <label htmlFor="file_scan_approve" className="cursor-pointer block space-y-1.5">
-                {fileScan ? (
-                  <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
-                    <FileCheck className="w-5 h-5" />
-                    <span className="truncate max-w-xs">{fileScan.name}</span>
+              <label htmlFor="file_scan_formulir_approve" className="cursor-pointer block space-y-1">
+                {fileFormulir ? (
+                  <div className="flex items-center justify-center gap-1.5 text-blue-600 dark:text-blue-400 font-semibold text-xs">
+                    <FileCheck className="w-4 h-4" />
+                    <span className="truncate max-w-xs">{fileFormulir.name}</span>
                     <span className="text-[10px] text-slate-400 font-normal">
-                      ({(fileScan.size / 1024 / 1024).toFixed(2)} MB)
+                      ({(fileFormulir.size / 1024 / 1024).toFixed(2)} MB)
                     </span>
                   </div>
                 ) : (
                   <>
-                    <UploadCloud className="w-7 h-7 text-slate-400 mx-auto" />
-                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Pilih berkas PDF atau Foto Scan (JPG/PNG)
+                    <p className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                      Pilih berkas Scan Formulir Permohonan Cuti
                     </p>
-                    <p className="text-[10px] text-slate-400">
-                      Maksimal ukuran berkas: 10MB. Jika belum ada fisik scan, bisa dilewati dan diunggah nanti.
-                    </p>
+                    <p className="text-[10px] text-slate-400">PDF, JPG, atau PNG (Maks. 10MB)</p>
                   </>
                 )}
               </label>
             </div>
-            {fileScan && (
+            {fileFormulir && (
               <button
                 type="button"
-                onClick={() => setFileScan(null)}
-                className="text-[10px] text-rose-500 hover:underline mt-1"
+                onClick={() => setFileFormulir(null)}
+                className="text-[10px] text-rose-500 hover:underline"
               >
-                Hapus pilihan berkas
+                Batalkan pilihan formulir
+              </button>
+            )}
+          </div>
+
+          {/* Slot 2: Surat Izin Cuti Resmi (TTE) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
+                2. Surat Izin Cuti Resmi (TTE Kepala Balai)
+              </label>
+              <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full font-medium">
+                Opsional
+              </span>
+            </div>
+            <div className="border border-dashed border-slate-200 dark:border-slate-700 hover:border-emerald-500 rounded-xl p-3 text-center bg-slate-50/50 dark:bg-slate-800/20 transition-colors">
+              <input
+                type="file"
+                id="file_scan_surat_izin_approve"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  if (f && f.size > 10 * 1024 * 1024) {
+                    alert("Ukuran berkas maksimal 10MB");
+                    e.target.value = "";
+                    return;
+                  }
+                  setFileSuratIzin(f);
+                }}
+                className="hidden"
+              />
+              <label htmlFor="file_scan_surat_izin_approve" className="cursor-pointer block space-y-1">
+                {fileSuratIzin ? (
+                  <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+                    <FileCheck className="w-4 h-4" />
+                    <span className="truncate max-w-xs">{fileSuratIzin.name}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      ({(fileSuratIzin.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                      Pilih berkas Surat Izin Cuti Resmi (TTE)
+                    </p>
+                    <p className="text-[10px] text-slate-400">PDF, JPG, atau PNG (Maks. 10MB)</p>
+                  </>
+                )}
+              </label>
+            </div>
+            {fileSuratIzin && (
+              <button
+                type="button"
+                onClick={() => setFileSuratIzin(null)}
+                className="text-[10px] text-rose-500 hover:underline"
+              >
+                Batalkan pilihan surat izin
               </button>
             )}
           </div>
@@ -475,13 +541,17 @@ interface UploadScanModalProps {
     id: number;
     scan_surat_path?: string | null;
     scan_surat_nama?: string | null;
+    scan_formulir_path?: string | null;
+    scan_formulir_nama?: string | null;
+    scan_surat_izin_path?: string | null;
+    scan_surat_izin_nama?: string | null;
     employee?: {
       nama_lengkap?: string;
     };
   } | null;
   isPending: boolean;
   onClose: () => void;
-  onUpload: (fileScan: File) => void;
+  onUpload: (files: { fileFormulir: File | null; fileSuratIzin: File | null }) => void;
 }
 
 export function UploadScanModal({
@@ -490,26 +560,30 @@ export function UploadScanModal({
   onClose,
   onUpload,
 }: UploadScanModalProps) {
-  const [fileScan, setFileScan] = useState<File | null>(null);
+  const [fileFormulir, setFileFormulir] = useState<File | null>(null);
+  const [fileSuratIzin, setFileSuratIzin] = useState<File | null>(null);
 
   useEffect(() => {
-    setFileScan(null);
+    setFileFormulir(null);
+    setFileSuratIzin(null);
   }, [item]);
 
   if (!item) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fileScan) {
-      alert("Silakan pilih berkas scan terlebih dahulu.");
+    if (!fileFormulir && !fileSuratIzin) {
+      alert("Silakan pilih minimal salah satu berkas untuk diunggah.");
       return;
     }
-    onUpload(fileScan);
+    onUpload({ fileFormulir, fileSuratIzin });
   };
+
+  const currentSuratIzin = item.scan_surat_izin_nama || item.scan_surat_nama;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 relative space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -517,7 +591,7 @@ export function UploadScanModal({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                {item.scan_surat_path ? "Ganti Berkas Scan Cuti" : "Unggah Berkas Scan Cuti"}
+                Unggah / Kelola Berkas Cuti
               </h3>
               <p className="text-xs text-slate-500">
                 Pemohon: <span className="font-semibold text-slate-700 dark:text-slate-300">{item.employee?.nama_lengkap}</span>
@@ -529,53 +603,135 @@ export function UploadScanModal({
           </Button>
         </div>
 
-        {item.scan_surat_nama && (
-          <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-200">
-            Berkas saat ini: <span className="font-mono font-bold">{item.scan_surat_nama}</span>
-            <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
-              Mengunggah berkas baru akan menggantikan berkas lama.
-            </p>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-500 rounded-xl p-4 text-center bg-slate-50/50 dark:bg-slate-800/20">
-            <input
-              type="file"
-              id="file_scan_upload_only"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={(e) => {
-                const f = e.target.files?.[0] || null;
-                if (f && f.size > 10 * 1024 * 1024) {
-                  alert("Ukuran berkas maksimal 10MB");
-                  e.target.value = "";
-                  return;
-                }
-                setFileScan(f);
-              }}
-              className="hidden"
-            />
-            <label htmlFor="file_scan_upload_only" className="cursor-pointer block space-y-1.5">
-              {fileScan ? (
-                <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 font-bold">
-                  <FileCheck className="w-5 h-5" />
-                  <span className="truncate max-w-xs">{fileScan.name}</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    ({(fileScan.size / 1024 / 1024).toFixed(2)} MB)
-                  </span>
-                </div>
+          {/* Slot 1: Scan Formulir */}
+          <div className="space-y-1.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-blue-500" />
+                1. Scan Formulir Cuti (TTD & Cap)
+              </label>
+              {item.scan_formulir_nama ? (
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
+                  Sudah Terunggah
+                </span>
               ) : (
-                <>
-                  <UploadCloud className="w-7 h-7 text-slate-400 mx-auto" />
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Pilih berkas PDF atau Foto Scan (JPG/PNG)
-                  </p>
-                  <p className="text-[10px] text-slate-400">
-                    Maksimal ukuran berkas: 10MB.
-                  </p>
-                </>
+                <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                  Belum ada
+                </span>
               )}
-            </label>
+            </div>
+            {item.scan_formulir_nama && (
+              <p className="text-[10px] text-slate-500 font-mono truncate">
+                Berkas aktif: {item.scan_formulir_nama}
+              </p>
+            )}
+            <div className="border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 rounded-lg p-2.5 text-center bg-white dark:bg-slate-900">
+              <input
+                type="file"
+                id="file_scan_formulir_upload"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  if (f && f.size > 10 * 1024 * 1024) {
+                    alert("Ukuran berkas maksimal 10MB");
+                    e.target.value = "";
+                    return;
+                  }
+                  setFileFormulir(f);
+                }}
+                className="hidden"
+              />
+              <label htmlFor="file_scan_formulir_upload" className="cursor-pointer block">
+                {fileFormulir ? (
+                  <div className="flex items-center justify-center gap-1.5 text-blue-600 dark:text-blue-400 font-semibold text-xs">
+                    <FileCheck className="w-4 h-4" />
+                    <span className="truncate max-w-xs">{fileFormulir.name}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      ({(fileFormulir.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-slate-600 dark:text-slate-300 text-[11px] font-medium">
+                    {item.scan_formulir_nama ? "Pilih berkas baru untuk mengganti" : "Pilih berkas PDF / Gambar Scan Formulir"}
+                  </span>
+                )}
+              </label>
+            </div>
+            {fileFormulir && (
+              <button
+                type="button"
+                onClick={() => setFileFormulir(null)}
+                className="text-[10px] text-rose-500 hover:underline"
+              >
+                Batalkan berkas formulir ini
+              </button>
+            )}
+          </div>
+
+          {/* Slot 2: Surat Izin Cuti Resmi (TTE) */}
+          <div className="space-y-1.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
+                2. Surat Izin Cuti Resmi (TTE Kepala Balai)
+              </label>
+              {currentSuratIzin ? (
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
+                  Sudah Terunggah
+                </span>
+              ) : (
+                <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                  Belum ada
+                </span>
+              )}
+            </div>
+            {currentSuratIzin && (
+              <p className="text-[10px] text-slate-500 font-mono truncate">
+                Berkas aktif: {currentSuratIzin}
+              </p>
+            )}
+            <div className="border border-dashed border-slate-300 dark:border-slate-600 hover:border-emerald-500 rounded-lg p-2.5 text-center bg-white dark:bg-slate-900">
+              <input
+                type="file"
+                id="file_scan_surat_izin_upload"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  if (f && f.size > 10 * 1024 * 1024) {
+                    alert("Ukuran berkas maksimal 10MB");
+                    e.target.value = "";
+                    return;
+                  }
+                  setFileSuratIzin(f);
+                }}
+                className="hidden"
+              />
+              <label htmlFor="file_scan_surat_izin_upload" className="cursor-pointer block">
+                {fileSuratIzin ? (
+                  <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+                    <FileCheck className="w-4 h-4" />
+                    <span className="truncate max-w-xs">{fileSuratIzin.name}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      ({(fileSuratIzin.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-slate-600 dark:text-slate-300 text-[11px] font-medium">
+                    {currentSuratIzin ? "Pilih berkas baru untuk mengganti" : "Pilih berkas PDF / Gambar Surat Izin Resmi (TTE)"}
+                  </span>
+                )}
+              </label>
+            </div>
+            {fileSuratIzin && (
+              <button
+                type="button"
+                onClick={() => setFileSuratIzin(null)}
+                className="text-[10px] text-rose-500 hover:underline"
+              >
+                Batalkan berkas surat izin ini
+              </button>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-3">
@@ -584,10 +740,10 @@ export function UploadScanModal({
             </Button>
             <Button
               type="submit"
-              disabled={isPending || !fileScan}
+              disabled={isPending || (!fileFormulir && !fileSuratIzin)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs gap-1.5"
             >
-              {isPending ? "Mengunggah..." : "Simpan Berkas Scan"}
+              {isPending ? "Mengunggah..." : "Simpan Berkas"}
             </Button>
           </div>
         </form>

@@ -16,58 +16,45 @@ interface ScanViewerModalProps {
 
 export function ScanViewerModal({
   isOpen,
-  title = "Pratinjau Surat Cuti Resmi (Scan)",
+  title = "Pratinjau Berkas Cuti Resmi (Scan)",
   scanUrl,
   fileName,
   onClose,
 }: ScanViewerModalProps) {
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPdf, setIsPdf] = useState(true);
 
   useEffect(() => {
     if (!isOpen || !scanUrl) {
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
-        setBlobUrl(null);
-      }
+      setDataUrl(null);
+      setIsLoading(false);
       return;
     }
 
     let active = true;
     setIsLoading(true);
 
+    // Minta data pratinjau JSON dengan data_url base64 (identik dengan Surat Masuk)
+    // Pendekatan ini mencegah download ganda dan tidak memicu hook interceptor downloader (IDM)
     api
-      .get(scanUrl, { responseType: "blob" })
+      .get(scanUrl, { params: { preview: 1 } })
       .then((res) => {
-        const contentType = String(res.headers["content-type"] || "");
-        const blob = new Blob([res.data], {
-          type: contentType || "application/pdf",
-        });
-        const url = URL.createObjectURL(blob);
-        setBlobUrl(url);
-
-        const lowerName = (fileName || "").toLowerCase();
-        setIsPdf(
-          contentType.includes("pdf") ||
-            lowerName.endsWith(".pdf") ||
-            (!contentType.includes("image") && !lowerName.match(/\.(jpg|jpeg|png)$/))
-        );
-      })
-      .catch(async (err) => {
         if (!active) return;
-        let message = "Berkas scan surat cuti belum diunggah atau tidak ditemukan.";
-        if (err?.response?.data instanceof Blob) {
-          try {
-            const text = await err.response.data.text();
-            const json = JSON.parse(text);
-            if (json.message) message = json.message;
-          } catch {
-            // keep default
-          }
-        } else if (err?.response?.data?.message) {
-          message = err.response.data.message;
-        }
+        const resDataUrl = res.data?.data_url;
+        const mimeType = String(res.data?.mime_type || "application/pdf");
+        const lowerName = (fileName || "").toLowerCase();
+        const detectedIsPdf =
+          mimeType.includes("pdf") ||
+          (!mimeType.includes("image") && !lowerName.match(/\.(jpe?g|png|webp)$/i));
+
+        setIsPdf(detectedIsPdf);
+        setDataUrl(resDataUrl);
+      })
+      .catch((err) => {
+        if (!active) return;
+        const message =
+          err?.response?.data?.message || "Berkas scan cuti belum diunggah atau tidak ditemukan.";
         toast.error(message);
         onClose();
       })
@@ -77,31 +64,34 @@ export function ScanViewerModal({
 
     return () => {
       active = false;
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
-      }
     };
   }, [isOpen, scanUrl]);
 
   if (!isOpen) return null;
 
   const handleDownload = () => {
-    if (!blobUrl) return;
+    if (!dataUrl) return;
     const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = fileName || "Surat_Cuti_Resmi.pdf";
+    a.href = dataUrl;
+    a.download = fileName || "Berkas_Cuti_Resmi.pdf";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   };
 
   const handleOpenExternal = () => {
-    if (!blobUrl) return;
-    window.open(blobUrl, "_blank");
+    if (!scanUrl) return;
+    const streamUrl = `/api${scanUrl.replace(/^\/api/, "")}`;
+    window.open(streamUrl, "_blank", "noopener");
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 overflow-y-auto"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
@@ -116,22 +106,24 @@ export function ScanViewerModal({
           </div>
 
           <div className="flex items-center gap-2">
-            {blobUrl && (
+            {dataUrl && (
               <>
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
                   onClick={handleOpenExternal}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 text-xs h-8 gap-1.5 rounded-xl font-bold"
-                  title="Buka di Tab Baru"
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 text-xs h-8 gap-1.5 rounded-xl font-bold cursor-pointer"
+                  title="Buka Berkas di Tab Baru"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Buka Tab Baru
                 </Button>
                 <Button
+                  type="button"
                   size="sm"
                   onClick={handleDownload}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 gap-1.5 rounded-xl font-bold shadow-xs"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 gap-1.5 rounded-xl font-bold shadow-xs cursor-pointer"
                   title="Unduh Berkas Scan"
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -140,10 +132,11 @@ export function ScanViewerModal({
               </>
             )}
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-slate-400 hover:text-white hover:bg-slate-800 h-8 w-8 p-0 rounded-xl"
+              className="text-slate-400 hover:text-white hover:bg-slate-800 h-8 w-8 p-0 rounded-xl cursor-pointer"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -157,24 +150,18 @@ export function ScanViewerModal({
               <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
               <p className="text-xs font-semibold text-slate-500">Memuat berkas scan resmi...</p>
             </div>
-          ) : blobUrl ? (
+          ) : dataUrl ? (
             isPdf ? (
-              <object
-                data={blobUrl}
-                type="application/pdf"
-                className="w-full h-[70vh] rounded-xl shadow-xs border border-slate-200 dark:border-slate-800"
-              >
-                <iframe
-                  src={blobUrl}
-                  title={title}
-                  className="w-full h-[70vh] rounded-xl"
-                />
-              </object>
+              <iframe
+                src={dataUrl}
+                title={title}
+                className="w-full h-[72vh] rounded-xl border border-slate-200 dark:border-slate-800 bg-white shadow-xs"
+              />
             ) : (
               <img
-                src={blobUrl}
-                alt="Scan Surat Cuti"
-                className="max-h-[70vh] max-w-full mx-auto object-contain rounded-xl shadow-lg border border-slate-200 dark:border-slate-800"
+                src={dataUrl}
+                alt={title}
+                className="max-h-[72vh] max-w-full mx-auto object-contain rounded-xl shadow-lg border border-slate-200 dark:border-slate-800"
               />
             )
           ) : (

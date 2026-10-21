@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Calendar, FileCheck, Plus, Printer } from "lucide-react";
+import { Calendar, FileCheck, FileText, Plus, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LeaveRequestPrintData } from "./FormulirCutiPrint";
@@ -49,7 +49,7 @@ export function MyLeaveTab({
   onCancelLeave,
 }: MyLeaveTabProps) {
   const [selectedYear, setSelectedYear] = React.useState<string>("all");
-  const [viewerItem, setViewerItem] = React.useState<LeaveRequestPrintData | null>(null);
+  const [viewerModal, setViewerModal] = React.useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
 
   // Extract available years from records dynamically
   const availableYears = React.useMemo(() => {
@@ -188,26 +188,66 @@ export function MyLeaveTab({
                       Batalkan
                     </Button>
                   )}
-                  {((item.status?.toUpperCase() === "DISETUJUI" || item.status?.toUpperCase() === "APPROVED") && item.scan_surat_path) ? (
-                    <Button
-                      size="sm"
-                      onClick={() => setViewerItem(item)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
-                      title="Lihat Berkas Surat Cuti yang Telah Ditandatangani & Dicap Balai"
-                    >
-                      <FileCheck className="w-3.5 h-3.5" />
-                      Lihat Surat Cuti (Scan)
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => onPrintLeave(item)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      Cetak Formulir Cuti
-                    </Button>
-                  )}
+                  {(() => {
+                    const isApproved = item.status?.toUpperCase() === "DISETUJUI" || item.status?.toUpperCase() === "APPROVED";
+                    const hasSuratIzin = !!(item.scan_surat_izin_path || item.scan_surat_path);
+                    const hasFormulir = !!item.scan_formulir_path;
+
+                    if (isApproved && (hasSuratIzin || hasFormulir)) {
+                      return (
+                        <>
+                          {hasSuratIzin && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() =>
+                                setViewerModal({
+                                  url: `/me/leave-requests/${item.id}/scan-surat-izin`,
+                                  fileName: item.scan_surat_izin_nama || item.scan_surat_nama,
+                                  title: "Surat Izin Cuti Resmi (TTE Kepala Balai)",
+                                })
+                              }
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
+                              title="Lihat Surat Izin Cuti Resmi (TTE Kepala Balai)"
+                            >
+                              <FileCheck className="w-3.5 h-3.5" />
+                              Surat Izin (TTE)
+                            </Button>
+                          )}
+                          {hasFormulir && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() =>
+                                setViewerModal({
+                                  url: `/me/leave-requests/${item.id}/scan-formulir`,
+                                  fileName: item.scan_formulir_nama,
+                                  title: "Scan Formulir Permohonan Cuti (TTD Manual & Cap Balai)",
+                                })
+                              }
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
+                              title="Lihat Scan Formulir Cuti (TTD Manual & Cap Balai)"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              Scan Formulir
+                            </Button>
+                          )}
+                        </>
+                      );
+                    }
+
+                    return (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => onPrintLeave(item)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        Cetak Formulir Cuti
+                      </Button>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -217,10 +257,11 @@ export function MyLeaveTab({
 
       {/* Modal Pratinjau Berkas Scan Cuti Pegawai */}
       <ScanViewerModal
-        isOpen={!!viewerItem}
-        scanUrl={viewerItem?.id ? `/me/leave-requests/${viewerItem.id}/scan` : null}
-        fileName={viewerItem?.scan_surat_nama}
-        onClose={() => setViewerItem(null)}
+        isOpen={!!viewerModal}
+        scanUrl={viewerModal?.url || null}
+        fileName={viewerModal?.fileName}
+        title={viewerModal?.title}
+        onClose={() => setViewerModal(null)}
       />
     </div>
   );

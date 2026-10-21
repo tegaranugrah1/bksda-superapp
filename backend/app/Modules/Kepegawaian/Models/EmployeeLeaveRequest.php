@@ -40,6 +40,10 @@ class EmployeeLeaveRequest extends Model
         'scan_surat_nama',
         'scan_surat_uploaded_at',
         'scan_surat_uploaded_by',
+        'scan_formulir_path',
+        'scan_formulir_nama',
+        'scan_surat_izin_path',
+        'scan_surat_izin_nama',
     ];
 
     protected $casts = [

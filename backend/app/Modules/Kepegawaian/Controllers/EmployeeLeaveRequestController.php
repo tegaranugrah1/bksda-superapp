@@ -430,6 +430,8 @@ class EmployeeLeaveRequestController extends Controller
         $leaveReq = EmployeeLeaveRequest::findOrFail($id);
 
         $validated = $request->validate([
+            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'nomor_surat' => 'nullable|string|max:255',
             'catatan_atasan' => 'nullable|string|max:1000',
@@ -480,14 +482,34 @@ class EmployeeLeaveRequestController extends Controller
                 $updateData['catatan_atasan'] = strip_tags(trim($validated['catatan_atasan']));
             }
 
-            if ($request->hasFile('file_scan')) {
-                $file = $request->file('file_scan');
+            $hasUploaded = false;
+            if ($request->hasFile('file_scan_formulir')) {
+                $fileFormulir = $request->file('file_scan_formulir');
+                if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_formulir_path);
+                }
+                $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
+                $updateData['scan_formulir_nama'] = $fileFormulir->getClientOriginalName();
+                $hasUploaded = true;
+            }
+
+            $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
+            if ($suratIzinFile) {
+                if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
+                }
                 if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
                     Storage::disk('local')->delete($leaveReq->scan_surat_path);
                 }
-                $path = Storage::disk('local')->putFile('cuti_scans', $file);
+                $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
+                $updateData['scan_surat_izin_path'] = $path;
+                $updateData['scan_surat_izin_nama'] = $suratIzinFile->getClientOriginalName();
                 $updateData['scan_surat_path'] = $path;
-                $updateData['scan_surat_nama'] = $file->getClientOriginalName();
+                $updateData['scan_surat_nama'] = $suratIzinFile->getClientOriginalName();
+                $hasUploaded = true;
+            }
+
+            if ($hasUploaded) {
                 $updateData['scan_surat_uploaded_at'] = Carbon::now();
                 $updateData['scan_surat_uploaded_by'] = Auth::id();
             }
@@ -517,22 +539,45 @@ class EmployeeLeaveRequestController extends Controller
         $leaveReq = EmployeeLeaveRequest::findOrFail($id);
 
         $request->validate([
-            'file_scan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
-        try {
-            $file = $request->file('file_scan');
-            if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
-                Storage::disk('local')->delete($leaveReq->scan_surat_path);
-            }
-            $path = Storage::disk('local')->putFile('cuti_scans', $file);
+        if (!$request->hasFile('file_scan_formulir') && !$request->hasFile('file_scan_surat_izin') && !$request->hasFile('file_scan')) {
+            return response()->json(['message' => 'Pilih setidaknya satu berkas scan untuk diunggah.'], 422);
+        }
 
-            $leaveReq->update([
-                'scan_surat_path' => $path,
-                'scan_surat_nama' => $file->getClientOriginalName(),
-                'scan_surat_uploaded_at' => Carbon::now(),
-                'scan_surat_uploaded_by' => Auth::id(),
-            ]);
+        try {
+            $updateData = [];
+            if ($request->hasFile('file_scan_formulir')) {
+                $fileFormulir = $request->file('file_scan_formulir');
+                if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_formulir_path);
+                }
+                $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
+                $updateData['scan_formulir_nama'] = $fileFormulir->getClientOriginalName();
+            }
+
+            $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
+            if ($suratIzinFile) {
+                if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
+                }
+                if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_surat_path);
+                }
+                $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
+                $updateData['scan_surat_izin_path'] = $path;
+                $updateData['scan_surat_izin_nama'] = $suratIzinFile->getClientOriginalName();
+                $updateData['scan_surat_path'] = $path;
+                $updateData['scan_surat_nama'] = $suratIzinFile->getClientOriginalName();
+            }
+
+            $updateData['scan_surat_uploaded_at'] = Carbon::now();
+            $updateData['scan_surat_uploaded_by'] = Auth::id();
+
+            $leaveReq->update($updateData);
 
             return response()->json([
                 'message' => 'Berkas scan surat cuti berhasil diunggah.',
@@ -547,24 +592,140 @@ class EmployeeLeaveRequestController extends Controller
     }
 
     /**
-     * Admin View / Stream Scan File
+    /**
+     * Helper to return file response (inline/preview JSON base64 or binary stream)
      */
-    public function adminViewScan(int $id)
+    private function respondScanFile(?Request $request, string $path, string $nama)
     {
-        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
-
-        if (!$leaveReq->scan_surat_path || !Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
-            return response()->json(['message' => 'Berkas scan surat cuti belum diunggah atau tidak ditemukan.'], 404);
+        $disk = Storage::disk('local');
+        if (!$path || !$disk->exists($path)) {
+            return response()->json(['message' => 'Berkas scan cuti belum diunggah atau tidak ditemukan.'], 404);
         }
 
-        $fileName = $leaveReq->scan_surat_nama ?: 'Surat_Cuti_' . $leaveReq->id . '.pdf';
-        return Storage::disk('local')->response($leaveReq->scan_surat_path, $fileName, [
-            'Content-Disposition' => 'inline; filename="' . addslashes($fileName) . '"',
+        $request = $request ?: request();
+
+        // Mode pratinjau (JSON base64 data_url) - mencegah download otomatis & hook IDM
+        if ($request && ($request->query('preview') || $request->wantsJson())) {
+            $mime = $disk->mimeType($path) ?: 'application/pdf';
+            return response()->json([
+                'mime_type' => $mime,
+                'file_name' => $nama,
+                'data_url' => "data:{$mime};base64," . base64_encode($disk->get($path)),
+            ], 200, ['Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0']);
+        }
+
+        return $disk->response($path, $nama, [
+            'Content-Disposition' => 'inline; filename="' . addslashes($nama) . '"',
         ]);
     }
 
     /**
-     * Portal Employee View / Stream Scan File (Strict Ownership Protected)
+     * Admin View Scan Formulir
+     */
+    public function adminViewScanFormulir($requestOrId, $optionalId = null)
+    {
+        $request = $requestOrId instanceof Request ? $requestOrId : request();
+        $id = $requestOrId instanceof Request ? (int) $optionalId : (int) $requestOrId;
+
+        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+
+        if (!$leaveReq->scan_formulir_path) {
+            return response()->json(['message' => 'Berkas scan formulir cuti belum diunggah atau tidak ditemukan.'], 404);
+        }
+
+        $fileName = $leaveReq->scan_formulir_nama ?: 'Formulir_Cuti_' . $leaveReq->id . '.pdf';
+        return $this->respondScanFile($request, $leaveReq->scan_formulir_path, $fileName);
+    }
+
+    /**
+     * Admin View Scan Surat Izin Resmi
+     */
+    public function adminViewScanSuratIzin($requestOrId, $optionalId = null)
+    {
+        $request = $requestOrId instanceof Request ? $requestOrId : request();
+        $id = $requestOrId instanceof Request ? (int) $optionalId : (int) $requestOrId;
+
+        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+        $path = $leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path;
+        $nama = $leaveReq->scan_surat_izin_nama ?: ($leaveReq->scan_surat_nama ?: 'Surat_Izin_' . $leaveReq->id . '.pdf');
+
+        if (!$path) {
+            return response()->json(['message' => 'Berkas surat izin cuti resmi belum diunggah atau tidak ditemukan.'], 404);
+        }
+
+        return $this->respondScanFile($request, $path, $nama);
+    }
+
+    /**
+     * Admin View / Stream Scan File (defaults to Surat Izin, fallback to Formulir)
+     */
+    public function adminViewScan($requestOrId, $optionalId = null)
+    {
+        $request = $requestOrId instanceof Request ? $requestOrId : request();
+        $id = $requestOrId instanceof Request ? (int) $optionalId : (int) $requestOrId;
+
+        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+        if ($leaveReq->scan_surat_izin_path || $leaveReq->scan_surat_path) {
+            return $this->adminViewScanSuratIzin($request, $id);
+        }
+        if ($leaveReq->scan_formulir_path) {
+            return $this->adminViewScanFormulir($request, $id);
+        }
+        return response()->json(['message' => 'Berkas scan cuti belum diunggah atau tidak ditemukan.'], 404);
+    }
+
+    /**
+     * Portal Employee View Scan Formulir (Strict Ownership Protected)
+     */
+    public function myViewScanFormulir(Request $request, int $id)
+    {
+        $user = $request->user();
+        $employee = Employee::where('nip', $user->username)->first();
+
+        if (!$employee) {
+            return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 403);
+        }
+
+        $leaveReq = EmployeeLeaveRequest::where('id', $id)
+            ->where('employee_id', $employee->id)
+            ->firstOrFail();
+
+        if (!$leaveReq->scan_formulir_path) {
+            return response()->json(['message' => 'Berkas scan formulir cuti belum diunggah atau tidak ditemukan.'], 404);
+        }
+
+        $fileName = $leaveReq->scan_formulir_nama ?: 'Formulir_Cuti_' . $leaveReq->id . '.pdf';
+        return $this->respondScanFile($request, $leaveReq->scan_formulir_path, $fileName);
+    }
+
+    /**
+     * Portal Employee View Scan Surat Izin Resmi (Strict Ownership Protected)
+     */
+    public function myViewScanSuratIzin(Request $request, int $id)
+    {
+        $user = $request->user();
+        $employee = Employee::where('nip', $user->username)->first();
+
+        if (!$employee) {
+            return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 403);
+        }
+
+        $leaveReq = EmployeeLeaveRequest::where('id', $id)
+            ->where('employee_id', $employee->id)
+            ->firstOrFail();
+
+        $path = $leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path;
+        $nama = $leaveReq->scan_surat_izin_nama ?: ($leaveReq->scan_surat_nama ?: 'Surat_Izin_' . $leaveReq->id . '.pdf');
+
+        if (!$path) {
+            return response()->json(['message' => 'Berkas surat izin cuti resmi belum diunggah atau tidak ditemukan.'], 404);
+        }
+
+        return $this->respondScanFile($request, $path, $nama);
+    }
+
+    /**
+     * Portal Employee View / Stream Scan File
      */
     public function myViewScan(Request $request, int $id)
     {
@@ -579,14 +740,13 @@ class EmployeeLeaveRequestController extends Controller
             ->where('employee_id', $employee->id)
             ->firstOrFail();
 
-        if (!$leaveReq->scan_surat_path || !Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
-            return response()->json(['message' => 'Berkas scan surat cuti belum diunggah atau tidak ditemukan.'], 404);
+        if ($leaveReq->scan_surat_izin_path || $leaveReq->scan_surat_path) {
+            return $this->myViewScanSuratIzin($request, $id);
         }
-
-        $fileName = $leaveReq->scan_surat_nama ?: 'Surat_Cuti_' . $leaveReq->id . '.pdf';
-        return Storage::disk('local')->response($leaveReq->scan_surat_path, $fileName, [
-            'Content-Disposition' => 'inline; filename="' . addslashes($fileName) . '"',
-        ]);
+        if ($leaveReq->scan_formulir_path) {
+            return $this->myViewScanFormulir($request, $id);
+        }
+        return response()->json(['message' => 'Berkas scan cuti belum diunggah atau tidak ditemukan.'], 404);
     }
 
     /**

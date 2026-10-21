@@ -154,6 +154,8 @@ class EmployeeLeaveController extends Controller
             'telepon' => 'nullable|string|max:50',
             'catatan_atasan' => 'nullable|string|max:500',
             'status' => 'nullable|string|in:DISETUJUI,APPROVED,PENGAJUAN,DITOLAK',
+            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
@@ -161,13 +163,24 @@ class EmployeeLeaveController extends Controller
 
         DB::beginTransaction();
         try {
-            $scanPath = null;
-            $scanNama = null;
-            if ($request->hasFile('file_scan')) {
-                $file = $request->file('file_scan');
-                $scanPath = Storage::disk('local')->putFile('cuti_scans', $file);
-                $scanNama = $file->getClientOriginalName();
+            $scanFormulirPath = null;
+            $scanFormulirNama = null;
+            $scanSuratIzinPath = null;
+            $scanSuratIzinNama = null;
+
+            if ($request->hasFile('file_scan_formulir')) {
+                $f = $request->file('file_scan_formulir');
+                $scanFormulirPath = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
+                $scanFormulirNama = $f->getClientOriginalName();
             }
+
+            $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
+            if ($suratIzinFile) {
+                $scanSuratIzinPath = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
+                $scanSuratIzinNama = $suratIzinFile->getClientOriginalName();
+            }
+
+            $hasUploaded = $scanFormulirPath || $scanSuratIzinPath;
 
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::create([
                 'employee_id' => $employeeId,
@@ -184,10 +197,14 @@ class EmployeeLeaveController extends Controller
                 'status_pertimbangan_atasan' => $status,
                 'status_pertimbangan_pejabat' => $status,
                 'catatan_atasan' => isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : null,
-                'scan_surat_path' => $scanPath,
-                'scan_surat_nama' => $scanNama,
-                'scan_surat_uploaded_at' => $scanPath ? Carbon::now() : null,
-                'scan_surat_uploaded_by' => $scanPath ? Auth::id() : null,
+                'scan_formulir_path' => $scanFormulirPath,
+                'scan_formulir_nama' => $scanFormulirNama,
+                'scan_surat_izin_path' => $scanSuratIzinPath,
+                'scan_surat_izin_nama' => $scanSuratIzinNama,
+                'scan_surat_path' => $scanSuratIzinPath,
+                'scan_surat_nama' => $scanSuratIzinNama,
+                'scan_surat_uploaded_at' => $hasUploaded ? Carbon::now() : null,
+                'scan_surat_uploaded_by' => $hasUploaded ? Auth::id() : null,
             ]);
 
             // Sync cuti_terpakai_n0 for the year
@@ -251,6 +268,8 @@ class EmployeeLeaveController extends Controller
             'telepon' => 'nullable|string|max:50',
             'catatan_atasan' => 'nullable|string|max:500',
             'status' => 'nullable|string|in:DISETUJUI,APPROVED,PENGAJUAN,DITOLAK',
+            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
@@ -276,14 +295,34 @@ class EmployeeLeaveController extends Controller
                 'catatan_atasan' => isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : null,
             ];
 
-            if ($request->hasFile('file_scan')) {
-                $file = $request->file('file_scan');
+            $hasUploaded = false;
+            if ($request->hasFile('file_scan_formulir')) {
+                $f = $request->file('file_scan_formulir');
+                if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_formulir_path);
+                }
+                $updatePayload['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
+                $updatePayload['scan_formulir_nama'] = $f->getClientOriginalName();
+                $hasUploaded = true;
+            }
+
+            $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
+            if ($suratIzinFile) {
+                if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
+                }
                 if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
                     Storage::disk('local')->delete($leaveReq->scan_surat_path);
                 }
-                $path = Storage::disk('local')->putFile('cuti_scans', $file);
+                $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
+                $updatePayload['scan_surat_izin_path'] = $path;
+                $updatePayload['scan_surat_izin_nama'] = $suratIzinFile->getClientOriginalName();
                 $updatePayload['scan_surat_path'] = $path;
-                $updatePayload['scan_surat_nama'] = $file->getClientOriginalName();
+                $updatePayload['scan_surat_nama'] = $suratIzinFile->getClientOriginalName();
+                $hasUploaded = true;
+            }
+
+            if ($hasUploaded) {
                 $updatePayload['scan_surat_uploaded_at'] = Carbon::now();
                 $updatePayload['scan_surat_uploaded_by'] = Auth::id();
             }
