@@ -1025,10 +1025,10 @@ export default function EmployeeIncomingLettersPage() {
         </div>
       )}
 
-      {/* MODAL TAMBAH & EDIT ARSIP (Centered Max-w-4xl Terstruktur) */}
+      {/* MODAL TAMBAH & EDIT ARSIP (Wide Side-by-Side Tanpa Scroll Layar) */}
       {formOpen && canWrite && (
         <div
-          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-sm"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
               setEditing(null);
@@ -1038,17 +1038,24 @@ export default function EmployeeIncomingLettersPage() {
         >
           <form
             onSubmit={handleSave}
-            className="mx-auto my-4 w-full max-w-4xl space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-2xl md:p-6 dark:border-zinc-800 dark:bg-zinc-950"
+            className="flex flex-col w-full max-w-6xl xl:max-w-7xl max-h-[92vh] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
           >
-            {/* Header Modal Form */}
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-              <div>
-                <h2 className="text-lg font-bold sm:text-xl">
-                  {editing ? `Edit Arsip Agenda #${editing.no_agenda}` : "Tambah Arsip Surat Masuk"}
-                </h2>
-                <p className="text-xs text-zinc-500">
-                  Lengkapi identitas surat masuk dan lampirkan berkas dokumen yang bersangkutan.
-                </p>
+            {/* Header Modal Form (Fixed Top) */}
+            <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-6 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-600/20">
+                  {editing ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                </span>
+                <div>
+                  <h2 className="text-base font-bold sm:text-lg">
+                    {editing ? `Edit Arsip Agenda #${editing.no_agenda}` : "Tambah Arsip Surat Masuk"}
+                  </h2>
+                  <p className="text-[11px] text-zinc-500">
+                    {editing
+                      ? "Perbarui informasi atau kelola berkas lampiran surat masuk."
+                      : "Lengkapi data pokok surat dan lampirkan berkas yang bersangkutan."}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
@@ -1062,263 +1069,287 @@ export default function EmployeeIncomingLettersPage() {
               </button>
             </div>
 
-            {/* Bagian 1: Data Pokok Surat */}
-            <div className="space-y-3 rounded-xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-900/30">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">Informasi Identitas Surat</h3>
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                <label className="block space-y-1 text-xs font-semibold">
-                  <span>Nomor Agenda *</span>
-                  <Input
-                    className="h-9.5 text-xs bg-white dark:bg-zinc-950 font-mono"
-                    placeholder="Contoh: 1432"
-                    value={form.no_agenda}
-                    onChange={(event) => setField("no_agenda", event.target.value)}
-                    required
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold">
-                  <span>Kategori Pengirim *</span>
-                  <select
-                    value={form.kategori}
-                    onChange={(event) => setField("kategori", event.target.value as Category)}
-                    className="h-9.5 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs font-medium dark:border-zinc-800 dark:bg-zinc-950"
-                  >
-                    {CATEGORIES.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block space-y-1 text-xs font-semibold">
-                  <span>Nomor Surat Asal</span>
-                  <Input
-                    className="h-9.5 text-xs bg-white dark:bg-zinc-950"
-                    placeholder="Kosongkan jika tidak ada nomor"
-                    value={form.no_surat_masuk || ""}
-                    onChange={(event) => setField("no_surat_masuk", event.target.value)}
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold sm:col-span-2 md:col-span-2">
-                  <span>Asal Surat / Nama Pengirim *</span>
-                  <Input
-                    className="h-9.5 text-xs bg-white dark:bg-zinc-950"
-                    placeholder="Contoh: Direktorat Jenderal KSDAE atau Nama Pribadi"
-                    value={form.asal_surat}
-                    onChange={(event) => setField("asal_surat", event.target.value)}
-                    required
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold">
-                  <span>Tanggal Diterima Balai *</span>
-                  <Input
-                    className="h-9.5 text-xs bg-white dark:bg-zinc-950"
-                    type="date"
-                    value={form.tanggal_diterima}
-                    onChange={(event) => setField("tanggal_diterima", event.target.value)}
-                    required
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold">
-                  <span>Tanggal Surat</span>
-                  <Input
-                    className="h-9.5 text-xs bg-white dark:bg-zinc-950"
-                    type="date"
-                    value={form.tanggal_surat || ""}
-                    onChange={(event) => setField("tanggal_surat", event.target.value)}
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold sm:col-span-2">
-                  <span>Catatan Tambahan Pengirim</span>
-                  <Input
-                    className="h-9.5 text-xs bg-white dark:bg-zinc-950"
-                    placeholder="Contoh: Pengirim dari SKW III Berau"
-                    value={form.catatan || ""}
-                    onChange={(event) => setField("catatan", event.target.value)}
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold sm:col-span-2 md:col-span-3">
-                  <span>Perihal / Ringkasan Isi Surat</span>
-                  <textarea
-                    rows={2}
-                    placeholder="Tuliskan uraian ringkas maksud atau perihal surat..."
-                    value={form.perihal || ""}
-                    onChange={(event) => setField("perihal", event.target.value)}
-                    className="w-full resize-y rounded-md border border-zinc-200 bg-white p-2.5 text-xs outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-950"
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* Bagian 2: Surat Balasan Balai (Opsional) */}
-            <div className="space-y-3 rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 dark:border-emerald-950 dark:bg-emerald-950/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                    Status Balasan Balai
+            {/* Body Form: 2 Kolom Seimbang (Memanjang ke Samping) */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-5 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+              {/* Kolom Kiri (7/12): Data Pokok Surat & Status Balasan */}
+              <div className="lg:col-span-7 flex flex-col gap-3.5">
+                {/* Data Pokok Surat */}
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-900/30 space-y-2.5">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                    Informasi Identitas Surat
                   </h3>
-                  <p className="text-[11px] text-zinc-500">
-                    Dapat diisi sekarang atau disunting kemudian ketika surat balasan telah terbit.
-                  </p>
-                </div>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block space-y-1 text-xs font-semibold">
-                  <span>Nomor Surat Balasan</span>
-                  <Input
-                    className="h-9.5 text-xs bg-white dark:bg-zinc-950"
-                    placeholder="Contoh: S.123/K.18/TU/KSA/10/2026"
-                    value={form.no_surat_balasan || ""}
-                    onChange={(event) => setField("no_surat_balasan", event.target.value)}
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold">
-                  <span>Tanggal Surat Balasan</span>
-                  <Input
-                    className="h-9.5 text-xs bg-white dark:bg-zinc-950"
-                    type="date"
-                    value={form.tanggal_surat_balasan || ""}
-                    onChange={(event) => setField("tanggal_surat_balasan", event.target.value)}
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* Bagian 3: Berkas Yang Sudah Tersimpan (Khusus Edit) */}
-            {editing && editing.attachments && editing.attachments.length > 0 && (
-              <div className="space-y-2 rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/30">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                  Lampiran Tersimpan di Storage ({editing.attachments.length})
-                </h3>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {editing.attachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2.5 text-xs dark:border-zinc-800 dark:bg-zinc-950"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="h-4 w-4 shrink-0 text-blue-600" />
-                        <div className="min-w-0">
-                          <p className="font-semibold truncate max-w-[180px] sm:max-w-[220px]">
-                            {attachment.original_name}
-                          </p>
-                          <p className="text-[11px] text-zinc-400">
-                            {attachmentLabel(attachment.type)} • {formatBytes(attachment.size)}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeAttachment(attachment)}
-                        className="h-7 w-7 p-0 text-red-500 hover:bg-red-50 hover:text-red-700"
-                        title="Hapus berkas ini"
+                  <div className="grid gap-2.5 sm:grid-cols-3">
+                    <label className="block space-y-1 text-xs font-semibold">
+                      <span>Nomor Agenda *</span>
+                      <Input
+                        className="h-8.5 text-xs bg-white dark:bg-zinc-950 font-mono"
+                        placeholder="Contoh: 1432"
+                        value={form.no_agenda}
+                        onChange={(event) => setField("no_agenda", event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label className="block space-y-1 text-xs font-semibold">
+                      <span>Kategori Pengirim *</span>
+                      <select
+                        value={form.kategori}
+                        onChange={(event) => setField("kategori", event.target.value as Category)}
+                        className="h-8.5 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-xs font-medium dark:border-zinc-800 dark:bg-zinc-950"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ))}
+                        {CATEGORIES.map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block space-y-1 text-xs font-semibold">
+                      <span>Nomor Surat Asal</span>
+                      <Input
+                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        placeholder="Jika ada nomor"
+                        value={form.no_surat_masuk || ""}
+                        onChange={(event) => setField("no_surat_masuk", event.target.value)}
+                      />
+                    </label>
+                    <label className="block space-y-1 text-xs font-semibold sm:col-span-2">
+                      <span>Asal Surat / Nama Pengirim *</span>
+                      <Input
+                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        placeholder="Contoh: Ditjen KSDAE / Nama Instansi / Pribadi"
+                        value={form.asal_surat}
+                        onChange={(event) => setField("asal_surat", event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label className="block space-y-1 text-xs font-semibold">
+                      <span>Tanggal Diterima *</span>
+                      <Input
+                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        type="date"
+                        value={form.tanggal_diterima}
+                        onChange={(event) => setField("tanggal_diterima", event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label className="block space-y-1 text-xs font-semibold sm:col-span-2">
+                      <span>Catatan Tambahan Pengirim</span>
+                      <Input
+                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        placeholder="Contoh: Pengirim dari SKW III Berau"
+                        value={form.catatan || ""}
+                        onChange={(event) => setField("catatan", event.target.value)}
+                      />
+                    </label>
+                    <label className="block space-y-1 text-xs font-semibold">
+                      <span>Tanggal Surat</span>
+                      <Input
+                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        type="date"
+                        value={form.tanggal_surat || ""}
+                        onChange={(event) => setField("tanggal_surat", event.target.value)}
+                      />
+                    </label>
+                    <label className="block space-y-1 text-xs font-semibold sm:col-span-3">
+                      <span>Perihal / Ringkasan Isi Surat</span>
+                      <textarea
+                        rows={2}
+                        placeholder="Tuliskan uraian ringkas maksud atau perihal surat..."
+                        value={form.perihal || ""}
+                        onChange={(event) => setField("perihal", event.target.value)}
+                        className="w-full resize-none rounded-md border border-zinc-200 bg-white p-2 text-xs outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-950"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Status Balasan Balai */}
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-3.5 dark:border-emerald-950 dark:bg-emerald-950/20 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                      Status Balasan Balai (Opsional)
+                    </h3>
+                  </div>
+                  <div className="grid gap-2.5 sm:grid-cols-2">
+                    <label className="block space-y-1 text-xs font-semibold">
+                      <span>Nomor Surat Balasan</span>
+                      <Input
+                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        placeholder="Contoh: S.123/K.18/TU/KSA/10/2026"
+                        value={form.no_surat_balasan || ""}
+                        onChange={(event) => setField("no_surat_balasan", event.target.value)}
+                      />
+                    </label>
+                    <label className="block space-y-1 text-xs font-semibold">
+                      <span>Tanggal Surat Balasan</span>
+                      <Input
+                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        type="date"
+                        value={form.tanggal_surat_balasan || ""}
+                        onChange={(event) => setField("tanggal_surat_balasan", event.target.value)}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Bagian 4: Dropzone Upload Lampiran Baru */}
-            <div className="space-y-3">
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">Upload Lampiran Berkas Baru</h3>
-                <p className="text-xs text-zinc-400">Pilih kategori berkas yang sesuai. Maksimal 20 MB per file.</p>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-3">
-                {(["incoming", "supporting", "reply"] as AttachmentType[]).map((type) => {
-                  const config = UPLOAD_CONFIG[type];
-                  const stagedFiles = files[type];
-
-                  return (
-                    <div
-                      key={type}
-                      className={`flex flex-col justify-between rounded-xl border p-3.5 transition-colors ${config.card}`}
-                    >
-                      <div>
-                        <div className="flex items-start gap-2.5">
-                          <div
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.icon}`}
+              {/* Kolom Kanan (5/12): Lampiran Tersimpan & Dropzone Upload Baru */}
+              <div className="lg:col-span-5 flex flex-col gap-3">
+                {/* Lampiran Tersimpan di Storage (Khusus Edit) */}
+                {editing && editing.attachments && editing.attachments.length > 0 && (
+                  <div className="rounded-xl border border-zinc-200/90 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-900/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                        Lampiran Tersimpan ({editing.attachments.length})
+                      </h3>
+                      <span className="text-[10px] text-zinc-400">Klik ikon sampah untuk menghapus</span>
+                    </div>
+                    <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                      {editing.attachments.map((attachment) => (
+                        <div
+                          key={attachment.id}
+                          className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200/80 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-800 dark:bg-zinc-950"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileText className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+                            <div className="min-w-0">
+                              <p className="font-semibold truncate max-w-[170px] sm:max-w-[210px] text-[11px]">
+                                {attachment.original_name}
+                              </p>
+                              <p className="text-[10px] text-zinc-400">
+                                {attachmentLabel(attachment.type)} • {formatBytes(attachment.size)}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAttachment(attachment)}
+                            className="h-6 w-6 p-0 text-red-500 hover:bg-red-50 hover:text-red-700"
+                            title="Hapus berkas ini dari arsip"
                           >
-                            <Paperclip className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="text-xs font-bold leading-tight">{config.title}</h4>
-                            <p className="mt-0.5 text-[11px] leading-4 text-zinc-500 dark:text-zinc-400">
-                              {config.description}
-                            </p>
-                          </div>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
-
-                        {/* Staged file list preview */}
-                        {stagedFiles.length > 0 && (
-                          <div className="mt-3 space-y-1.5">
-                            {stagedFiles.map((file, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between rounded-md bg-white/90 p-1.5 text-[11px] shadow-2xs dark:bg-zinc-950/70"
-                              >
-                                <span className="truncate max-w-[160px] font-medium" title={file.name}>
-                                  {file.name}
-                                </span>
-                                <div className="flex items-center gap-1 shrink-0 ml-1">
-                                  <span className="text-[10px] text-zinc-400">{formatBytes(file.size)}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => removeStagedFile(type, idx)}
-                                    className="p-0.5 text-zinc-400 hover:text-red-500"
-                                    title="Hapus berkas ini"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <label
-                        htmlFor={`attachment-${type}`}
-                        className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-current/25 bg-white/60 p-2.5 text-center transition hover:bg-white dark:bg-zinc-950/40 dark:hover:bg-zinc-950/70"
-                      >
-                        <Upload className="h-4 w-4 opacity-70" />
-                        <span className="mt-1 text-[11px] font-bold">Pilih Berkas</span>
-                        <input
-                          id={`attachment-${type}`}
-                          type="file"
-                          multiple
-                          accept={FILE_ACCEPT}
-                          onChange={(event) => handleFiles(type, event.target.files)}
-                          className="sr-only"
-                        />
-                      </label>
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                )}
+
+                {/* Dropzone Upload Lampiran Baru (Compact Row-Based Cards) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                      Upload Lampiran Baru
+                    </h3>
+                    <span className="text-[10px] text-zinc-400">Maks 20 MB/file</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {(["incoming", "supporting", "reply"] as AttachmentType[]).map((type) => {
+                      const config = UPLOAD_CONFIG[type];
+                      const stagedFiles = files[type];
+
+                      return (
+                        <div
+                          key={type}
+                          className={`rounded-xl border p-2.5 transition-colors ${config.card}`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div
+                                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${config.icon}`}
+                              >
+                                <Paperclip className="h-3.5 w-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className="text-xs font-bold leading-tight">{config.title}</h4>
+                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
+                                  {config.hint}
+                                </p>
+                              </div>
+                            </div>
+
+                            <label
+                              htmlFor={`attachment-${type}`}
+                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 shadow-2xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 shrink-0"
+                            >
+                              <Upload className="h-3 w-3 text-blue-600" />
+                              <span>Pilih File</span>
+                              <input
+                                id={`attachment-${type}`}
+                                type="file"
+                                multiple
+                                accept={FILE_ACCEPT}
+                                onChange={(event) => handleFiles(type, event.target.files)}
+                                className="sr-only"
+                              />
+                            </label>
+                          </div>
+
+                          {/* Staged file list preview */}
+                          {stagedFiles.length > 0 && (
+                            <div className="mt-2 space-y-1 border-t border-current/10 pt-1.5">
+                              {stagedFiles.map((file, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between rounded-md bg-white/90 px-2 py-1 text-[11px] shadow-2xs dark:bg-zinc-950/80"
+                                >
+                                  <span className="truncate max-w-[180px] font-medium" title={file.name}>
+                                    {file.name}
+                                  </span>
+                                  <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                    <span className="text-[10px] text-zinc-400">{formatBytes(file.size)}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeStagedFile(type, idx)}
+                                      className="p-0.5 text-zinc-400 hover:text-red-500"
+                                      title="Batal pilih berkas ini"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Footer Form Action */}
-            <div className="flex items-center justify-end gap-2.5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setEditing(null);
-                  setFormOpen(false);
-                }}
-              >
-                Batal
-              </Button>
-              <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white min-w-28">
-                {saving ? "Menyimpan..." : editing ? "Perbarui Arsip" : "Simpan Arsip"}
-              </Button>
+            {/* Footer Form Action (Fixed Bottom) */}
+            <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/70 px-6 py-3 dark:border-zinc-800 dark:bg-zinc-900/50 shrink-0">
+              <span className="text-[11px] text-zinc-400 hidden sm:inline">
+                Format didukung: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG
+              </span>
+              <div className="flex items-center gap-2.5 ml-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setEditing(null);
+                    setFormOpen(false);
+                  }}
+                  className="text-xs"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white min-w-28 text-xs font-semibold shadow-sm"
+                >
+                  {saving ? "Menyimpan..." : editing ? "Perbarui Arsip" : "Simpan Arsip"}
+                </Button>
+              </div>
             </div>
           </form>
         </div>

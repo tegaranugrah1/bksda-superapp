@@ -1000,13 +1000,13 @@
     "semantic_hash": "7eb13e2169bb5e425b50e74bbbb0a50a"
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeAccessController.php": {
-    "mtime": 1792391119.9549417,
-    "ast_hash": "5e6547ce0953db98ea3aa101f6c4f876",
+    "mtime": 1792489643.256707,
+    "ast_hash": "a717062d49a0a3e2803b9d452f1a4dee",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1792391146.428731,
-    "ast_hash": "9b2fe1eca429cf85dc25a33daf89800f",
+    "mtime": 1792489647.9055452,
+    "ast_hash": "130aa5274ea14301d8a1904df584d27d",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": "5bd4c2137164ae6a608e632a9b5d01be"
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1792147375.9599366,
-    "ast_hash": "8dd5ded5d03449f6e18f420e6e71623e",
+    "mtime": 1792541114.5653696,
+    "ast_hash": "688c0058444fdf58ddaadfbfd03796cb",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
@@ -1215,7 +1215,7 @@
     "semantic_hash": "e66bb13691f6184c762c196427d8e685"
   },
   "backend/bootstrap/app.php": {
-    "mtime": 1787556203.0609121,
+    "mtime": 1792487367.195417,
     "ast_hash": "f58b286dec26183b28bdef41ec40bada",
     "semantic_hash": ""
   },
@@ -1415,9 +1415,9 @@
     "semantic_hash": "8d804842c69745eef976551c282c429a"
   },
   "backend/database/seeders/EmployeeUserSeeder.php": {
-    "mtime": 1778565736.224937,
-    "ast_hash": "012c68907f977da4efbbe1b2d7cb1fb0",
-    "semantic_hash": "012c68907f977da4efbbe1b2d7cb1fb0"
+    "mtime": 1792489643.2577102,
+    "ast_hash": "1786066517a142462f3de2f94e25cc33",
+    "semantic_hash": ""
   },
   "backend/database/seeders/InventorySeeder.php": {
     "mtime": 1778401381.9169948,
@@ -1475,7 +1475,7 @@
     "semantic_hash": ""
   },
   "backend/routes/console.php": {
-    "mtime": 1778041302.2985356,
+    "mtime": 1792487350.0540001,
     "ast_hash": "3c6ce2e6d16444282b24a9aa63885563",
     "semantic_hash": "3c6ce2e6d16444282b24a9aa63885563"
   },
@@ -1550,8 +1550,8 @@
     "semantic_hash": "f0560bd9b20dbdcb47a5db59a9221bee"
   },
   "frontend/next.config.ts": {
-    "mtime": 1790324134.9121978,
-    "ast_hash": "1257eb66ec94ff4883cc6700fcc99c55",
+    "mtime": 1792486387.1675599,
+    "ast_hash": "52ac8304d34979f71a79bbd02241e2f7",
     "semantic_hash": ""
   },
   "frontend/package.json": {
@@ -2340,8 +2340,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
-    "mtime": 1791374376.5186021,
-    "ast_hash": "7530c1a478f6776e7b6e77d541e8a453",
+    "mtime": 1792489643.2587066,
+    "ast_hash": "73c7f0b0a35ff3ee4fb84c0a37c23a6e",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/create/page.tsx": {
@@ -2350,8 +2350,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/layout.tsx": {
-    "mtime": 1791380652.8538554,
-    "ast_hash": "b03e144580bd1155272035a032f392e2",
+    "mtime": 1792482131.7253199,
+    "ast_hash": "7933eeb02cfbc916eea0640ab406b709",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/page.tsx": {
@@ -2750,8 +2750,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/api.ts": {
-    "mtime": 1787555257.0478537,
-    "ast_hash": "79863ed8055e9087d749be236e78c16c",
+    "mtime": 1792486947.4468365,
+    "ast_hash": "37651abb16643120eea877a6ec00847b",
     "semantic_hash": ""
   },
   "frontend/src/lib/auth-store.ts": {
@@ -5430,7 +5430,7 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/page.tsx": {
-    "mtime": 1791374146.7448294,
+    "mtime": 1792481332.128247,
     "ast_hash": "0ffa670982f179db9634e804feac9f01",
     "semantic_hash": ""
   },
@@ -6762,6 +6762,41 @@
   ".agents/skills/security-audit/WEB-PROTOCOL-AND-AUTH.md": {
     "mtime": 1792138657.0288296,
     "ast_hash": "53943d99f2a3484ce8f37de2be783f8b",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/Kepegawaian/Controllers/EmployeeIncomingLetterController.php": {
+    "mtime": 1792541136.8001862,
+    "ast_hash": "34d095d13969d0147fe0b94f94527bd4",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/Kepegawaian/Exports/EmployeeIncomingLettersExport.php": {
+    "mtime": 1792540159.059825,
+    "ast_hash": "1a7d370a40bf287664e477d680013434",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/Kepegawaian/Models/EmployeeIncomingLetter.php": {
+    "mtime": 1792482936.6058683,
+    "ast_hash": "0db46f8f466f1e8cd3c8fb6eb4539234",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/Kepegawaian/Models/EmployeeIncomingLetterAttachment.php": {
+    "mtime": 1792482084.3488877,
+    "ast_hash": "0f353f43a5d47fb87593f434b02bbdbc",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/Kepegawaian/Requests/EmployeeIncomingLetterRequest.php": {
+    "mtime": 1792484454.1271565,
+    "ast_hash": "c8980f84460e4f4aa253ebc90257eab1",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_20_000001_create_kpg_incoming_letters_tables.php": {
+    "mtime": 1792482084.3478835,
+    "ast_hash": "f5476f588cb4e063c7674a8e8ff735e1",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/kepegawaian/surat-masuk/page.tsx": {
+    "mtime": 1792541482.0052145,
+    "ast_hash": "ccface089208e9633f57238410ddd662",
     "semantic_hash": ""
   }
 }
