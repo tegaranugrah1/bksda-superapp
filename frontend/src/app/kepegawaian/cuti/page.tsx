@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
-  Inbox, Search, Eye, Edit2, Trash2, Printer, Calendar, User, FileText, Check, AlertCircle, X
+  Inbox, Search, Eye, Edit2, Trash2, Printer, Calendar, User, FileText, Check, AlertCircle, X, FileUp, FileCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,9 @@ import {
   EditLeaveModal,
   DeleteLeaveModal,
   PrintLeaveModal,
+  ApproveLeaveModal,
+  UploadScanModal,
+  ScanViewerModal,
 } from "./_components/CutiModals";
 
 export default function InboxSuratCutiPage() {
@@ -42,6 +45,9 @@ export default function InboxSuratCutiPage() {
   const [printItem, setPrintItem] = useState<LeaveRequestItem | null>(null);
   const [editItem, setEditItem] = useState<LeaveRequestItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<LeaveRequestItem | null>(null);
+  const [approveItem, setApproveItem] = useState<LeaveRequestItem | null>(null);
+  const [uploadScanItem, setUploadScanItem] = useState<LeaveRequestItem | null>(null);
+  const [viewerItem, setViewerItem] = useState<LeaveRequestItem | null>(null);
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -91,6 +97,62 @@ export default function InboxSuratCutiPage() {
     },
     onError: () => {
       toast.error("Gagal mengubah status pengajuan.");
+    },
+  });
+
+  // Approve Mutation with Optional Scan Upload & Nomor Surat
+  const approveMutation = useMutation({
+    mutationFn: async ({
+      id,
+      nomorSurat,
+      fileScan,
+      catatan,
+    }: {
+      id: number;
+      nomorSurat: string;
+      fileScan: File | null;
+      catatan: string;
+    }) => {
+      const formData = new FormData();
+      formData.append("nomor_pengajuan", nomorSurat);
+      if (fileScan) {
+        formData.append("file_scan", fileScan);
+      }
+      if (catatan) {
+        formData.append("catatan_atasan", catatan);
+      }
+      await api.post(`/kepegawaian/leave-requests/${id}/approve`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Pengajuan Cuti berhasil disetujui! Kuota cuti pegawai otomatis terpotong.");
+      queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
+      setApproveItem(null);
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal menyetujui pengajuan cuti.";
+      toast.error(msg);
+    },
+  });
+
+  // Upload or Replace Scan File Mutation
+  const uploadScanMutation = useMutation({
+    mutationFn: async ({ id, fileScan }: { id: number; fileScan: File }) => {
+      const formData = new FormData();
+      formData.append("file_scan", fileScan);
+      await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Berkas scan cuti resmi berhasil disimpan!");
+      queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
+      setUploadScanItem(null);
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal mengunggah berkas scan.";
+      toast.error(msg);
     },
   });
 
@@ -290,17 +352,20 @@ export default function InboxSuratCutiPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          const targetStatus = (item.status === 'DISETUJUI') ? 'PENGAJUAN' : 'DISETUJUI';
-                          toggleStatusMutation.mutate({ id: item.id, newStatus: targetStatus });
+                          if (item.status === 'DISETUJUI') {
+                            toggleStatusMutation.mutate({ id: item.id, newStatus: 'PENGAJUAN' });
+                          } else {
+                            setApproveItem(item);
+                          }
                         }}
-                        disabled={toggleStatusMutation.isPending}
+                        disabled={toggleStatusMutation.isPending || approveMutation.isPending}
                         className={cn(
                           "px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95 border",
                           item.status === 'DISETUJUI'
                             ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
                             : "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
                         )}
-                        title="Klik untuk mengubah status (Pengajuan <-> Disetujui)"
+                        title={item.status === 'DISETUJUI' ? "Klik untuk mengembalikan ke status Pengajuan" : "Klik untuk menyetujui pengajuan cuti (opsional berkas scan)"}
                       >
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full",
@@ -310,6 +375,43 @@ export default function InboxSuratCutiPage() {
                       </button>
                     </td>
                     <td className="p-3.5 text-right space-x-1 whitespace-nowrap align-top">
+                      {/* Scan Actions */}
+                      {item.scan_surat_path ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setViewerItem(item)}
+                            className="h-7.5 px-2 text-[11px] font-semibold text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 rounded-xl gap-1"
+                            title="Lihat Berkas Scan yang Telah Dicap & Ditandatangani"
+                          >
+                            <FileCheck className="w-3.5 h-3.5" />
+                            Lihat Scan
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setUploadScanItem(item)}
+                            className="h-7.5 px-2 text-[11px] font-semibold text-slate-700 border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-xl gap-1"
+                            title="Ganti Berkas Scan Cuti"
+                          >
+                            <FileUp className="w-3.5 h-3.5" />
+                            Ganti Scan
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUploadScanItem(item)}
+                          className="h-7.5 px-2 text-[11px] font-semibold text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 rounded-xl gap-1"
+                          title="Unggah Berkas Scan TTD & Cap Balai"
+                        >
+                          <FileUp className="w-3.5 h-3.5" />
+                          Upload Scan
+                        </Button>
+                      )}
+
                       {/* View/Print Form */}
                       <Button
                         variant="outline"
@@ -407,6 +509,46 @@ export default function InboxSuratCutiPage() {
       <PrintLeaveModal
         item={printItem}
         onClose={() => setPrintItem(null)}
+      />
+
+      {/* Persetujuan Cuti Modal */}
+      <ApproveLeaveModal
+        item={approveItem}
+        isPending={approveMutation.isPending}
+        onClose={() => setApproveItem(null)}
+        onApprove={(nomorSurat, fileScan, catatan) => {
+          if (approveItem) {
+            approveMutation.mutate({
+              id: approveItem.id,
+              nomorSurat,
+              fileScan,
+              catatan,
+            });
+          }
+        }}
+      />
+
+      {/* Upload / Ganti Berkas Scan Cuti Modal */}
+      <UploadScanModal
+        item={uploadScanItem}
+        isPending={uploadScanMutation.isPending}
+        onClose={() => setUploadScanItem(null)}
+        onUpload={(fileScan) => {
+          if (uploadScanItem) {
+            uploadScanMutation.mutate({
+              id: uploadScanItem.id,
+              fileScan,
+            });
+          }
+        }}
+      />
+
+      {/* Pratinjau Berkas Scan Cuti Modal */}
+      <ScanViewerModal
+        isOpen={!!viewerItem}
+        scanUrl={viewerItem ? `/kepegawaian/leave-requests/${viewerItem.id}/scan` : null}
+        fileName={viewerItem?.scan_surat_nama}
+        onClose={() => setViewerItem(null)}
       />
     </div>
   );

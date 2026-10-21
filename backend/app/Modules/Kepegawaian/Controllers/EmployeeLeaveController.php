@@ -7,7 +7,10 @@ use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Models\EmployeeLeave;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeeLeaveController extends Controller
 {
@@ -151,12 +154,21 @@ class EmployeeLeaveController extends Controller
             'telepon' => 'nullable|string|max:50',
             'catatan_atasan' => 'nullable|string|max:500',
             'status' => 'nullable|string|in:DISETUJUI,APPROVED,PENGAJUAN,DITOLAK',
+            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $status = strtoupper($validated['status'] ?? 'DISETUJUI');
 
         DB::beginTransaction();
         try {
+            $scanPath = null;
+            $scanNama = null;
+            if ($request->hasFile('file_scan')) {
+                $file = $request->file('file_scan');
+                $scanPath = Storage::disk('local')->putFile('cuti_scans', $file);
+                $scanNama = $file->getClientOriginalName();
+            }
+
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::create([
                 'employee_id' => $employeeId,
                 'nomor_pengajuan' => strip_tags(trim($validated['nomor_pengajuan'])),
@@ -172,6 +184,10 @@ class EmployeeLeaveController extends Controller
                 'status_pertimbangan_atasan' => $status,
                 'status_pertimbangan_pejabat' => $status,
                 'catatan_atasan' => isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : null,
+                'scan_surat_path' => $scanPath,
+                'scan_surat_nama' => $scanNama,
+                'scan_surat_uploaded_at' => $scanPath ? Carbon::now() : null,
+                'scan_surat_uploaded_by' => $scanPath ? Auth::id() : null,
             ]);
 
             // Sync cuti_terpakai_n0 for the year
@@ -235,6 +251,7 @@ class EmployeeLeaveController extends Controller
             'telepon' => 'nullable|string|max:50',
             'catatan_atasan' => 'nullable|string|max:500',
             'status' => 'nullable|string|in:DISETUJUI,APPROVED,PENGAJUAN,DITOLAK',
+            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $status = strtoupper($validated['status'] ?? $leaveReq->status);
@@ -243,7 +260,7 @@ class EmployeeLeaveController extends Controller
 
         DB::beginTransaction();
         try {
-            $leaveReq->update([
+            $updatePayload = [
                 'nomor_pengajuan' => strip_tags(trim($validated['nomor_pengajuan'])),
                 'tanggal_pengajuan' => $validated['tanggal_pengajuan'],
                 'jenis_cuti' => strip_tags(trim($validated['jenis_cuti'])),
@@ -257,7 +274,21 @@ class EmployeeLeaveController extends Controller
                 'status_pertimbangan_atasan' => $status,
                 'status_pertimbangan_pejabat' => $status,
                 'catatan_atasan' => isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : null,
-            ]);
+            ];
+
+            if ($request->hasFile('file_scan')) {
+                $file = $request->file('file_scan');
+                if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_surat_path);
+                }
+                $path = Storage::disk('local')->putFile('cuti_scans', $file);
+                $updatePayload['scan_surat_path'] = $path;
+                $updatePayload['scan_surat_nama'] = $file->getClientOriginalName();
+                $updatePayload['scan_surat_uploaded_at'] = Carbon::now();
+                $updatePayload['scan_surat_uploaded_by'] = Auth::id();
+            }
+
+            $leaveReq->update($updatePayload);
 
             // Sync years
             $yearsToSync = array_unique([$oldYear, $newYear]);

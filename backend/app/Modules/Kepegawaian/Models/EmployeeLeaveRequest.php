@@ -36,6 +36,10 @@ class EmployeeLeaveRequest extends Model
         'kepala_balai_nama',
         'kepala_balai_nip',
         'catatan_atasan',
+        'scan_surat_path',
+        'scan_surat_nama',
+        'scan_surat_uploaded_at',
+        'scan_surat_uploaded_by',
     ];
 
     protected $casts = [
@@ -46,6 +50,7 @@ class EmployeeLeaveRequest extends Model
         'sisa_n2' => 'integer',
         'sisa_n1' => 'integer',
         'sisa_n0' => 'integer',
+        'scan_surat_uploaded_at' => 'datetime',
     ];
 
     public function employee(): BelongsTo

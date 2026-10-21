@@ -87,7 +87,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         // --- MANAJEMEN CUTI PEGAWAI WRITE (PERBKN 24/2017 & 7/2021) ---
         Route::post('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'store']);
         Route::post('/employees/{employee}/leave-records', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'storeRecord']);
-        Route::put('/employees/{employee}/leave-records/{requestId}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'updateRecord']);
+        Route::match(['put', 'post'], '/employees/{employee}/leave-records/{requestId}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'updateRecord']);
         Route::delete('/employees/{employee}/leave-records/{requestId}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'destroyRecord']);
 
         // --- INBOX SURAT CUTI (ADMIN KEPEGAWAIAN) ---
@@ -96,6 +96,9 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::put('/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminUpdate']);
         Route::delete('/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminDestroy']);
         Route::put('/leave-requests/{id}/status', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminUpdateStatus']);
+        Route::post('/leave-requests/{id}/approve', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminApprove']);
+        Route::post('/leave-requests/{id}/upload-scan', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminUploadScan']);
+        Route::get('/leave-requests/{id}/scan', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminViewScan']);
     });
 
     // --- MANAJEMEN HAK AKSES (IAM) ---

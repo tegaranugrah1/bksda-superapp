@@ -9,7 +9,9 @@ use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class EmployeeLeaveRequestController extends Controller
@@ -418,6 +420,173 @@ class EmployeeLeaveRequestController extends Controller
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat memproses permohonan cuti.',
             ], 500);
         }
+    }
+
+    /**
+     * Admin Approve Leave Request with optional scan file upload & optional official number update
+     */
+    public function adminApprove(Request $request, int $id): JsonResponse
+    {
+        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+
+        $validated = $request->validate([
+            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'nomor_surat' => 'nullable|string|max:255',
+            'catatan_atasan' => 'nullable|string|max:1000',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $oldStatus = strtoupper($leaveReq->status);
+            $newStatus = 'DISETUJUI';
+            $isTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
+            $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
+
+            if ($isTahunan && !$isOldApproved) {
+                $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
+                $leaveBalance = EmployeeLeave::firstOrCreate(
+                    ['employee_id' => $leaveReq->employee_id, 'year' => $year],
+                    [
+                        'hak_cuti_n' => 12,
+                        'sisa_cuti_n1' => 0,
+                        'cuti_terpakai_n1' => 0,
+                        'sisa_cuti_n2' => 0,
+                        'cuti_terpakai_n2' => 0,
+                        'cuti_terpakai_n0' => 0,
+                    ]
+                );
+
+                if ($leaveReq->jumlah_hari > $leaveBalance->sisa_cuti_tersedia) {
+                    DB::rollBack();
+                    return response()->json([
+                        'error' => 'Saldo cuti tidak mencukupi',
+                        'message' => "Sisa hak cuti pegawai hanya tersisa {$leaveBalance->sisa_cuti_tersedia} hari, tidak mencukupi untuk permohonan {$leaveReq->jumlah_hari} hari.",
+                    ], 422);
+                }
+                $leaveBalance->increment('cuti_terpakai_n0', $leaveReq->jumlah_hari);
+            }
+
+            $updateData = [
+                'status' => $newStatus,
+                'status_pertimbangan_atasan' => $newStatus,
+                'status_pertimbangan_pejabat' => $newStatus,
+            ];
+
+            if (!empty($validated['nomor_surat'])) {
+                $updateData['nomor_pengajuan'] = strip_tags(trim($validated['nomor_surat']));
+            }
+
+            if (isset($validated['catatan_atasan'])) {
+                $updateData['catatan_atasan'] = strip_tags(trim($validated['catatan_atasan']));
+            }
+
+            if ($request->hasFile('file_scan')) {
+                $file = $request->file('file_scan');
+                if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
+                    Storage::disk('local')->delete($leaveReq->scan_surat_path);
+                }
+                $path = Storage::disk('local')->putFile('cuti_scans', $file);
+                $updateData['scan_surat_path'] = $path;
+                $updateData['scan_surat_nama'] = $file->getClientOriginalName();
+                $updateData['scan_surat_uploaded_at'] = Carbon::now();
+                $updateData['scan_surat_uploaded_by'] = Auth::id();
+            }
+
+            $leaveReq->update($updateData);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Permohonan cuti berhasil disetujui.',
+                'data' => $leaveReq->fresh('employee'),
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Gagal menyetujui pengajuan cuti',
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat menyetujui permohonan cuti.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Admin Upload / Replace Scan on existing leave request
+     */
+    public function adminUploadScan(Request $request, int $id): JsonResponse
+    {
+        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+
+        $request->validate([
+            'file_scan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        try {
+            $file = $request->file('file_scan');
+            if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
+                Storage::disk('local')->delete($leaveReq->scan_surat_path);
+            }
+            $path = Storage::disk('local')->putFile('cuti_scans', $file);
+
+            $leaveReq->update([
+                'scan_surat_path' => $path,
+                'scan_surat_nama' => $file->getClientOriginalName(),
+                'scan_surat_uploaded_at' => Carbon::now(),
+                'scan_surat_uploaded_by' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'message' => 'Berkas scan surat cuti berhasil diunggah.',
+                'data' => $leaveReq->fresh('employee'),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Gagal mengunggah berkas scan',
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat mengunggah berkas.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Admin View / Stream Scan File
+     */
+    public function adminViewScan(int $id)
+    {
+        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+
+        if (!$leaveReq->scan_surat_path || !Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
+            return response()->json(['message' => 'Berkas scan surat cuti belum diunggah atau tidak ditemukan.'], 404);
+        }
+
+        $fileName = $leaveReq->scan_surat_nama ?: 'Surat_Cuti_' . $leaveReq->id . '.pdf';
+        return Storage::disk('local')->response($leaveReq->scan_surat_path, $fileName, [
+            'Content-Disposition' => 'inline; filename="' . addslashes($fileName) . '"',
+        ]);
+    }
+
+    /**
+     * Portal Employee View / Stream Scan File (Strict Ownership Protected)
+     */
+    public function myViewScan(Request $request, int $id)
+    {
+        $user = $request->user();
+        $employee = Employee::where('nip', $user->username)->first();
+
+        if (!$employee) {
+            return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 403);
+        }
+
+        $leaveReq = EmployeeLeaveRequest::where('id', $id)
+            ->where('employee_id', $employee->id)
+            ->firstOrFail();
+
+        if (!$leaveReq->scan_surat_path || !Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
+            return response()->json(['message' => 'Berkas scan surat cuti belum diunggah atau tidak ditemukan.'], 404);
+        }
+
+        $fileName = $leaveReq->scan_surat_nama ?: 'Surat_Cuti_' . $leaveReq->id . '.pdf';
+        return Storage::disk('local')->response($leaveReq->scan_surat_path, $fileName, [
+            'Content-Disposition' => 'inline; filename="' . addslashes($fileName) . '"',
+        ]);
     }
 
     /**

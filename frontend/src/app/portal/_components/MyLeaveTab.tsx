@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import { Calendar, Plus, Printer } from "lucide-react";
+import { Calendar, FileCheck, Plus, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LeaveRequestPrintData } from "./FormulirCutiPrint";
+import { ScanViewerModal } from "@/app/kepegawaian/cuti/_components/ScanViewerModal";
 
 interface MyLeaveTabProps {
   myLeaveRequests: LeaveRequestPrintData[];
@@ -48,6 +49,7 @@ export function MyLeaveTab({
   onCancelLeave,
 }: MyLeaveTabProps) {
   const [selectedYear, setSelectedYear] = React.useState<string>("all");
+  const [viewerItem, setViewerItem] = React.useState<LeaveRequestPrintData | null>(null);
 
   // Extract available years from records dynamically
   const availableYears = React.useMemo(() => {
@@ -186,20 +188,40 @@ export function MyLeaveTab({
                       Batalkan
                     </Button>
                   )}
-                  <Button
-                    size="sm"
-                    onClick={() => onPrintLeave(item)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    Cetak Formulir Cuti
-                  </Button>
+                  {((item.status?.toUpperCase() === "DISETUJUI" || item.status?.toUpperCase() === "APPROVED") && item.scan_surat_path) ? (
+                    <Button
+                      size="sm"
+                      onClick={() => setViewerItem(item)}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
+                      title="Lihat Berkas Surat Cuti yang Telah Ditandatangani & Dicap Balai"
+                    >
+                      <FileCheck className="w-3.5 h-3.5" />
+                      Lihat Surat Cuti (Scan)
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => onPrintLeave(item)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      Cetak Formulir Cuti
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Modal Pratinjau Berkas Scan Cuti Pegawai */}
+      <ScanViewerModal
+        isOpen={!!viewerItem}
+        scanUrl={viewerItem?.id ? `/me/leave-requests/${viewerItem.id}/scan` : null}
+        fileName={viewerItem?.scan_surat_nama}
+        onClose={() => setViewerItem(null)}
+      />
     </div>
   );
 }

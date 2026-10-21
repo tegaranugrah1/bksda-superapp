@@ -24,6 +24,8 @@ export interface LeaveRequestPrintData {
   kasubbag_nip?: string;
   kepala_balai_nama?: string;
   kepala_balai_nip?: string;
+  scan_surat_path?: string | null;
+  scan_surat_nama?: string | null;
   employee?: {
     nama_lengkap: string;
     nip: string;

@@ -20,6 +20,9 @@ import {
   CalendarDays,
   FileCheck2,
   SlidersHorizontal,
+  FileCheck,
+  FileUp,
+  UploadCloud,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +36,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { isAxiosError } from "axios";
+import { ScanViewerModal, UploadScanModal } from "@/app/kepegawaian/cuti/_components/CutiModals";
 
 interface EmployeeLeaveData {
   id?: number;
@@ -66,6 +70,8 @@ interface LeaveRecordItem {
   telepon?: string | null;
   catatan_atasan?: string | null;
   status: string;
+  scan_surat_path?: string | null;
+  scan_surat_nama?: string | null;
 }
 
 interface ApiResponse {
@@ -167,6 +173,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const [isBalanceDialogOpen, setIsBalanceDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<LeaveRecordItem | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [fileScan, setFileScan] = useState<File | null>(null);
+  const [viewerItem, setViewerItem] = useState<LeaveRecordItem | null>(null);
+  const [uploadScanItem, setUploadScanItem] = useState<LeaveRecordItem | null>(null);
 
   // Form for Leave Balance (Admin Quota)
   const [balanceForm, setBalanceForm] = useState({
@@ -285,35 +294,66 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     },
   });
 
-  // Mutation: Save/Update Official Leave Record (SI / ST)
+  // Mutation: Save/Update Official Leave Record (SI / ST) with Optional Scan
   const saveRecordMutation = useMutation({
     mutationFn: async () => {
-      const payload = {
-        nomor_pengajuan: recordForm.nomor_pengajuan,
-        tanggal_pengajuan: recordForm.tanggal_pengajuan,
-        jenis_cuti: recordForm.jenis_cuti,
-        alasan_cuti: recordForm.alasan_cuti || recordForm.jenis_cuti,
-        jumlah_hari: Number(recordForm.jumlah_hari),
-        tanggal_mulai: recordForm.tanggal_mulai,
-        tanggal_selesai: recordForm.tanggal_selesai,
-        catatan_atasan: recordForm.alasan_cuti,
-        status: "DISETUJUI",
-      };
+      const formData = new FormData();
+      formData.append("nomor_pengajuan", recordForm.nomor_pengajuan);
+      formData.append("tanggal_pengajuan", recordForm.tanggal_pengajuan);
+      formData.append("jenis_cuti", recordForm.jenis_cuti);
+      formData.append("alasan_cuti", recordForm.alasan_cuti || recordForm.jenis_cuti);
+      formData.append("jumlah_hari", String(recordForm.jumlah_hari));
+      formData.append("tanggal_mulai", recordForm.tanggal_mulai);
+      formData.append("tanggal_selesai", recordForm.tanggal_selesai);
+      formData.append("catatan_atasan", recordForm.alasan_cuti || "");
+      formData.append("status", "DISETUJUI");
+      if (fileScan) {
+        formData.append("file_scan", fileScan);
+      }
 
       if (editingRecord) {
-        await api.put(`/kepegawaian/employees/${employeeId}/leave-records/${editingRecord.id}`, payload);
+        formData.append("_method", "PUT");
+        await api.post(`/kepegawaian/employees/${employeeId}/leave-records/${editingRecord.id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       } else {
-        await api.post(`/kepegawaian/employees/${employeeId}/leave-records`, payload);
+        await api.post(`/kepegawaian/employees/${employeeId}/leave-records`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
     },
     onSuccess: () => {
       toast.success(editingRecord ? "Penetapan cuti berhasil diperbarui!" : "Surat Izin Cuti berhasil dicatat!");
       setIsDialogOpen(false);
       setEditingRecord(null);
+      setFileScan(null);
       queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
     },
     onError: (err: unknown) => {
       let msg = "Gagal menyimpan penetapan cuti.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      toast.error(msg);
+    },
+  });
+
+  // Mutation: Upload or Replace Scan File on Existing Record
+  const uploadRecordScanMutation = useMutation({
+    mutationFn: async ({ id, file }: { id: number; file: File }) => {
+      const formData = new FormData();
+      formData.append("file_scan", file);
+      await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Berkas scan cuti resmi berhasil disimpan!");
+      setUploadScanItem(null);
+      queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
+    },
+    onError: (err: unknown) => {
+      let msg = "Gagal mengunggah berkas scan.";
       if (isAxiosError<{ message?: string }>(err)) {
         msg = err.response?.data?.message || msg;
       }
@@ -368,6 +408,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
   const handleOpenCreateDialog = () => {
     setEditingRecord(null);
+    setFileScan(null);
     const today = new Date().toISOString().split("T")[0];
     const initialDays = calculateLeaveDays(today, today, "Cuti Tahunan", leaveTypes);
     setRecordForm({
@@ -385,6 +426,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
   const handleOpenEditDialog = (record: LeaveRecordItem) => {
     setEditingRecord(record);
+    setFileScan(null);
     const rawAlasan = record.alasan_cuti || record.catatan_atasan || "";
     const cleanAlasan = rawAlasan.toLowerCase().includes("sisa cuti") ? "" : rawAlasan;
 
@@ -700,6 +742,37 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                               {req.status}
                             </span>
                             <div className="flex items-center gap-0.5">
+                              {/* Scan Actions */}
+                              {req.scan_surat_path ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setViewerItem(req)}
+                                    className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                                    title="Lihat Berkas Scan Cuti"
+                                  >
+                                    <FileCheck className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setUploadScanItem(req)}
+                                    className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="Ganti Berkas Scan Cuti"
+                                  >
+                                    <FileUp className="w-3.5 h-3.5" />
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setUploadScanItem(req)}
+                                  className="p-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                                  title="Unggah Berkas Scan Cuti"
+                                >
+                                  <FileUp className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditDialog(req)}
@@ -1026,6 +1099,76 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               />
             </div>
 
+            {/* Baris 6: Berkas Scan Surat Cuti (Opsional) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Unggah Berkas Scan TTD & Cap Balai
+                </label>
+                <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-medium">
+                  Opsional
+                </span>
+              </div>
+
+              {editingRecord?.scan_surat_nama && !fileScan && (
+                <div className="mb-2 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 truncate">
+                    <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    Berkas saat ini: <b>{editingRecord.scan_surat_nama}</b>
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-medium">Tersimpan</span>
+                </div>
+              )}
+
+              <div className="border border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-3 text-center bg-slate-50/50 transition-colors">
+                <input
+                  type="file"
+                  id="file_scan_manual_record"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    if (f && f.size > 10 * 1024 * 1024) {
+                      alert("Ukuran berkas maksimal 10MB");
+                      e.target.value = "";
+                      return;
+                    }
+                    setFileScan(f);
+                  }}
+                  className="hidden"
+                />
+                <label htmlFor="file_scan_manual_record" className="cursor-pointer block space-y-1">
+                  {fileScan ? (
+                    <div className="flex items-center justify-center gap-2 text-blue-600 font-bold text-xs">
+                      <FileCheck className="w-4 h-4" />
+                      <span className="truncate max-w-xs">{fileScan.name}</span>
+                      <span className="text-[10px] text-slate-400 font-normal">
+                        ({(fileScan.size / 1024 / 1024).toFixed(2)} MB)
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <UploadCloud className="w-6 h-6 text-slate-400 mx-auto" />
+                      <p className="text-xs font-semibold text-slate-700">
+                        {editingRecord?.scan_surat_nama ? "Ganti Berkas Scan (PDF/JPG/PNG)" : "Pilih Berkas Scan (PDF/JPG/PNG)"}
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        Maksimal ukuran berkas: 10MB. Jika belum discan, dapat diunggah nanti.
+                      </p>
+                    </>
+                  )}
+                </label>
+              </div>
+              {fileScan && (
+                <button
+                  type="button"
+                  onClick={() => setFileScan(null)}
+                  className="text-[10px] text-rose-500 hover:underline mt-1"
+                >
+                  Batalkan pilihan berkas baru
+                </button>
+              )}
+            </div>
+
             {/* Contextual Notice */}
             <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-blue-50/60 border border-blue-100/80 text-xs text-blue-900">
               <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
@@ -1096,6 +1239,31 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Pratinjau Berkas Scan Cuti Pegawai */}
+      <ScanViewerModal
+        isOpen={!!viewerItem}
+        scanUrl={viewerItem ? `/kepegawaian/leave-requests/${viewerItem.id}/scan` : null}
+        fileName={viewerItem?.scan_surat_nama}
+        onClose={() => setViewerItem(null)}
+      />
+
+      {/* Upload / Ganti Berkas Scan Cuti Pegawai */}
+      <UploadScanModal
+        item={uploadScanItem ? {
+          id: uploadScanItem.id,
+          scan_surat_path: uploadScanItem.scan_surat_path,
+          scan_surat_nama: uploadScanItem.scan_surat_nama,
+          employee: { nama_lengkap: apiResponse?.employee?.nama_lengkap || "Pegawai" },
+        } : null}
+        isPending={uploadRecordScanMutation.isPending}
+        onClose={() => setUploadScanItem(null)}
+        onUpload={(file) => {
+          if (uploadScanItem) {
+            uploadRecordScanMutation.mutate({ id: uploadScanItem.id, file });
+          }
+        }}
+      />
     </div>
   );
 }

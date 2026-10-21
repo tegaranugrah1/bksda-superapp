@@ -6800,8 +6800,8 @@
     "semantic_hash": ""
   },
   "docs/REKAP_CUTI_PEGAWAI_BKSDA_KALTIM.md": {
-    "mtime": 1792543800.7185166,
-    "ast_hash": "1cb582563477c7e879ee7846dc8d61ff",
+    "mtime": 1792554160.5007062,
+    "ast_hash": "975ddd09d15544518992a66195fa2bb5",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/LeaveTypeController.php": {
@@ -6837,6 +6837,16 @@
   "frontend/src/app/kepegawaian/settings/st-templates/_components/LeaveTypesTab.tsx": {
     "mtime": 1792551533.1586893,
     "ast_hash": "d016584898206959a2c1051c521ef423",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_21_000003_standardize_cuti_karena_alasan_penting.php": {
+    "mtime": 1792554177.0546684,
+    "ast_hash": "9e2dffef80d556ca58c5be156387bf28",
+    "semantic_hash": ""
+  },
+  "backend/tests/LeaveDataIntegritySecurityTest.php": {
+    "mtime": 1792554250.9995265,
+    "ast_hash": "3374777877bc377dbe5753cdedfdc714",
     "semantic_hash": ""
   }
 }
