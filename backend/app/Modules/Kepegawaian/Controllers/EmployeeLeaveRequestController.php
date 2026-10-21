@@ -28,6 +28,7 @@ class EmployeeLeaveRequestController extends Controller
 
         $query = EmployeeLeaveRequest::where('employee_id', $employee->id)
             ->with(['employee:id,nama_lengkap,nip,jabatan,satuan_kerja,pangkat_golongan'])
+            ->orderBy('tanggal_mulai', 'desc')
             ->orderBy('id', 'desc');
 
         if ($year = (int) $request->input('year')) {
@@ -38,13 +39,15 @@ class EmployeeLeaveRequestController extends Controller
 
         if ($status = $request->input('status')) {
             $s = strtoupper((string) $status);
-            $statuses = match ($s) {
-                'PENDING', 'PENGAJUAN' => ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'],
-                'APPROVED', 'DISETUJUI' => ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'],
-                'REJECTED', 'DITOLAK' => ['DITOLAK', 'REJECTED', 'ditolak', 'rejected'],
-                default => [$s],
-            };
-            $query->whereIn('status', $statuses);
+            if ($s !== 'ALL' && $s !== 'SEMUA') {
+                $statuses = match ($s) {
+                    'PENDING', 'PENGAJUAN' => ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'],
+                    'APPROVED', 'DISETUJUI' => ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'],
+                    'REJECTED', 'DITOLAK' => ['DITOLAK', 'REJECTED', 'ditolak', 'rejected'],
+                    default => [$s],
+                };
+                $query->whereIn('status', $statuses);
+            }
         }
 
         $requests = $query->limit(100)->get();
@@ -126,11 +129,7 @@ class EmployeeLeaveRequestController extends Controller
         }
 
         $validated = $request->validate([
-            'jenis_cuti' => ['required', 'string', Rule::in([
-                'Cuti Tahunan', 'Cuti Besar', 'Cuti Sakit',
-                'Cuti Melahirkan', 'Cuti Karena Alasan Penting',
-                'Cuti di Luar Tanggungan Negara',
-            ])],
+            'jenis_cuti' => 'required|string|max:150',
             'alasan_cuti' => 'required|string|max:1000',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
@@ -138,11 +137,39 @@ class EmployeeLeaveRequestController extends Controller
             'telepon' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
         ]);
 
+        $leaveType = \App\Modules\Kepegawaian\Models\LeaveType::where('is_active', true)
+            ->where(function ($q) use ($validated) {
+                $q->where('nama', $validated['jenis_cuti'])
+                  ->orWhere('kode', $validated['jenis_cuti']);
+            })
+            ->first();
+
         $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
         $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
 
-        // Calculate working days or total days
-        $jumlahHari = $start->diffInDays($end) + 1;
+        // Calculate working days or calendar days based on LeaveType configuration
+        $isHariKerja = $leaveType 
+            ? ($leaveType->hitung_hari === 'hari_kerja') 
+            : str_contains(strtolower($validated['jenis_cuti']), 'tahunan');
+
+        if ($isHariKerja) {
+            $jumlahHari = 0;
+            $curr = $start->copy();
+            while ($curr->lte($end)) {
+                if (!$curr->isWeekend()) {
+                    $jumlahHari++;
+                }
+                $curr->addDay();
+            }
+        } else {
+            $jumlahHari = $start->diffInDays($end) + 1;
+        }
+
+        if ($leaveType && $leaveType->maks_hari && $jumlahHari > $leaveType->maks_hari) {
+            return response()->json([
+                'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal untuk jenis cuti {$leaveType->nama} ({$leaveType->maks_hari} hari).",
+            ], 422);
+        }
 
         if ($start->year !== $end->year) {
             return response()->json([
@@ -182,7 +209,8 @@ class EmployeeLeaveRequestController extends Controller
             ->sum('jumlah_hari');
 
         $availableQuota = max(0, $totalQuota - $pendingDays);
-        if (str_contains(strtolower($validated['jenis_cuti']), 'tahunan') && $jumlahHari > $availableQuota) {
+        $isTahunan = $leaveType ? $leaveType->potong_kuota_tahunan : str_contains(strtolower($validated['jenis_cuti']), 'tahunan');
+        if ($isTahunan && $jumlahHari > $availableQuota) {
             $msg = $pendingDays > 0
                 ? "Jumlah hari cuti ({$jumlahHari} hari) melebihi sisa hak cuti tahunan yang belum diajukan ({$availableQuota} hari tersisa dari total {$totalQuota} hari, {$pendingDays} hari sedang dalam proses pengajuan)."
                 : "Jumlah hari cuti ({$jumlahHari} hari) melebihi total sisa cuti tahunan yang tersedia ({$totalQuota} hari).";
@@ -258,7 +286,27 @@ class EmployeeLeaveRequestController extends Controller
     public function adminIndex(Request $request): JsonResponse
     {
         $query = EmployeeLeaveRequest::with('employee')
+            ->orderBy('tanggal_mulai', 'desc')
             ->orderBy('id', 'desc');
+
+        if ($year = (int) $request->input('year')) {
+            if ($year >= 2000 && $year <= 2100) {
+                $query->whereYear('tanggal_mulai', $year);
+            }
+        }
+
+        if ($status = $request->input('status')) {
+            $s = strtoupper((string) $status);
+            if ($s !== 'ALL' && $s !== 'SEMUA') {
+                $statuses = match ($s) {
+                    'PENDING', 'PENGAJUAN' => ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'],
+                    'APPROVED', 'DISETUJUI' => ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'],
+                    'REJECTED', 'DITOLAK' => ['DITOLAK', 'REJECTED', 'ditolak', 'rejected'],
+                    default => [$s],
+                };
+                $query->whereIn('status', $statuses);
+            }
+        }
 
         $search = trim((string) ($request->input('search') ?? $request->input('q') ?? ''));
         if ($search !== '') {
@@ -274,7 +322,7 @@ class EmployeeLeaveRequestController extends Controller
             });
         }
 
-        $requestedPerPage = max(1, (int) $request->input('per_page', 15));
+        $requestedPerPage = max(1, (int) $request->input('per_page', 20));
         $perPage = min($requestedPerPage, 100);
         $requests = $query->paginate($perPage);
 

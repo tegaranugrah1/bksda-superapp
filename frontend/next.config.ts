@@ -49,6 +49,11 @@ const nextConfig: NextConfig = {
                 destination: "https://bksdakaltim.ksdae.kehutanan.go.id/",
                 permanent: false,
             },
+            {
+                source: "/kepegawaian/settings/st-templates",
+                destination: "/kepegawaian/settings",
+                permanent: true,
+            },
         ];
     },
 

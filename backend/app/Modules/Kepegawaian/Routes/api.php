@@ -63,6 +63,16 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::delete('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'destroy']);
     });
 
+    // --- MASTER JENIS SURAT CUTI ---
+    Route::get('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'index']);
+    Route::get('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'show']);
+    Route::middleware('role:super_admin,admin')->group(function () {
+        Route::post('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'store']);
+        Route::put('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'update']);
+        Route::patch('/leave-types/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'toggleActive']);
+        Route::delete('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'destroy']);
+    });
+
     // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE) ---
     Route::get('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'show']);
 

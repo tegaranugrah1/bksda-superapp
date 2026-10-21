@@ -99,15 +99,36 @@ function parseLocalDate(str: string): Date {
   return new Date(y, m - 1, d, 12, 0, 0);
 }
 
-function calculateLeaveDays(startDateStr: string, endDateStr: string, jenisCuti: string): number {
+interface DynamicLeaveType {
+  id: number;
+  nama: string;
+  kode: string | null;
+  hitung_hari: "hari_kerja" | "hari_kalender";
+  potong_kuota_tahunan: boolean;
+  maks_hari: number | null;
+}
+
+function calculateLeaveDays(
+  startDateStr: string,
+  endDateStr: string,
+  jenisCuti: string,
+  leaveTypes: DynamicLeaveType[] = []
+): number {
   if (!startDateStr || !endDateStr) return 0;
   const start = parseLocalDate(startDateStr);
   const end = parseLocalDate(endDateStr);
   if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
 
-  const isTahunan = jenisCuti.toLowerCase().includes("tahunan");
+  const matched = leaveTypes.find(
+    (lt) =>
+      lt.nama.toLowerCase() === jenisCuti.toLowerCase() ||
+      (lt.kode && lt.kode.toLowerCase() === jenisCuti.toLowerCase())
+  );
+  const isHariKerja = matched
+    ? matched.hitung_hari === "hari_kerja"
+    : jenisCuti.toLowerCase().includes("tahunan");
 
-  if (!isTahunan) {
+  if (!isHariKerja) {
     // Hari Kalender
     const diffTime = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     return Math.max(1, diffTime + 1);
@@ -131,6 +152,15 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [filterScope, setFilterScope] = useState<"year" | "all">("year");
+
+  // Fetch dynamic leave types
+  const { data: leaveTypes = [] } = useQuery<DynamicLeaveType[]>({
+    queryKey: ["leaveTypes"],
+    queryFn: async () => {
+      const res = await api.get("/api/kepegawaian/leave-types");
+      return res.data?.data || [];
+    },
+  });
 
   // Modal dialog states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -314,7 +344,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     setRecordForm((prev) => {
       const next = { ...prev, [field]: val };
       if (next.tanggal_mulai && next.tanggal_selesai) {
-        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, next.jenis_cuti);
+        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, next.jenis_cuti, leaveTypes);
         if (days > 0) {
           next.jumlah_hari = days;
         }
@@ -327,7 +357,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     setRecordForm((prev) => {
       const next = { ...prev, jenis_cuti: val };
       if (next.tanggal_mulai && next.tanggal_selesai) {
-        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, val);
+        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, val, leaveTypes);
         if (days > 0) {
           next.jumlah_hari = days;
         }
@@ -339,7 +369,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const handleOpenCreateDialog = () => {
     setEditingRecord(null);
     const today = new Date().toISOString().split("T")[0];
-    const initialDays = calculateLeaveDays(today, today, "Cuti Tahunan");
+    const initialDays = calculateLeaveDays(today, today, "Cuti Tahunan", leaveTypes);
     setRecordForm({
       nomor_pengajuan: "",
       tanggal_pengajuan: today,
@@ -384,6 +414,24 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
       return dateStr;
     }
   };
+
+  const availableLeaveTypeNames = useMemo(() => {
+    if (leaveTypes.length > 0) {
+      const names = leaveTypes.map((lt) => lt.nama);
+      if (recordForm.jenis_cuti && !names.includes(recordForm.jenis_cuti)) {
+        names.push(recordForm.jenis_cuti);
+      }
+      return names;
+    }
+    return JENIS_CUTI_OPTIONS;
+  }, [leaveTypes, recordForm.jenis_cuti]);
+
+  const selectedLeaveType = leaveTypes.find(
+    (lt) => lt.nama.toLowerCase() === recordForm.jenis_cuti.toLowerCase()
+  );
+  const isTahunan = selectedLeaveType
+    ? selectedLeaveType.potong_kuota_tahunan
+    : recordForm.jenis_cuti.toLowerCase().includes("tahunan");
 
   return (
     <div className="space-y-6">
@@ -807,8 +855,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               </div>
             </div>
 
-            {/* Live simulation of remaining balance if Cuti Tahunan */}
-            {recordForm.jenis_cuti.toLowerCase().includes("tahunan") && recordForm.jumlah_hari > 0 && (
+            {/* Live simulation of remaining balance if Cuti Tahunan / cuts quota */}
+            {isTahunan && recordForm.jumlah_hari > 0 && (
               <div className="mt-2.5 pt-2 border-t border-blue-100/70 flex items-center justify-between text-[11px]">
                 <span className="text-slate-600">Simulasi sisa setelah cuti ini ({recordForm.jumlah_hari} hari):</span>
                 {(() => {
@@ -881,7 +929,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 onChange={(e) => handleJenisCutiChange(e.target.value)}
                 className="w-full mt-1 h-9 px-3 rounded-md border border-slate-200 bg-slate-50/50 focus:bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
               >
-                {JENIS_CUTI_OPTIONS.map((opt) => (
+                {availableLeaveTypeNames.map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
                   </option>
@@ -924,7 +972,13 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
                   <span>Lama Cuti <span className="text-rose-500">*</span></span>
                   <span className="text-[10px] text-slate-400 font-normal">
-                    {recordForm.jenis_cuti.toLowerCase().includes("tahunan") ? "Hari Kerja" : "Hari Kalender"}
+                    {selectedLeaveType
+                      ? selectedLeaveType.hitung_hari === "hari_kerja"
+                        ? "Hari Kerja"
+                        : "Hari Kalender"
+                      : recordForm.jenis_cuti.toLowerCase().includes("tahunan")
+                      ? "Hari Kerja"
+                      : "Hari Kalender"}
                   </span>
                 </label>
                 <div className="relative mt-1">
@@ -947,7 +1001,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70 text-[11px] text-slate-600 flex items-center gap-2">
                   <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                   <span>
-                    {recordForm.jenis_cuti.toLowerCase().includes("tahunan")
+                    {(selectedLeaveType
+                      ? selectedLeaveType.hitung_hari === "hari_kerja"
+                      : recordForm.jenis_cuti.toLowerCase().includes("tahunan"))
                       ? "Otomatis dihitung hari kerja (Senin - Jumat)."
                       : "Otomatis dihitung hari kalender penuh."}
                     {" Dapat diedit manual jika terdapat libur nasional."}

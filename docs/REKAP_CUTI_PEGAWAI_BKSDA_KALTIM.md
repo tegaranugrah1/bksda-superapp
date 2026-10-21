@@ -286,11 +286,11 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
-| 1 | **-** | Cuti Tahunan Tahunan 2016 | `CT.07/BKSDA-12/2016` | 07/01/2016 | 9 Hari | 11/01/2016 S/D 21/01/2016 | - |
-| 2 | **2017** | Cuti Alasan Penting | `SI.025/K.18/TU/PEG/02/2017` | 06/02/2017 | 12 Hari Kalender | 20/02/2017 S.D 03/03/2017 | - |
-| 3 | **2017** | Cuti Tahunan Tahunan 2017 | `SI.115/K.18/TU/PEG/08/2017` | 24/08/2017 | 12 Hari Kerja | 21/08/2017 S.D 06/09/2017 | - |
-| 4 | **2019** | Cuti Tahunan Tahunan 2018 | `SI.70/K.18/TU/PEG/03/2019` | 21/03/2019 | 6 Hari Kerja | 14/03/2019 S.D 21/03/2019 | - |
-| 5 | **2019** | Cuti Tahunan Tahunan 2019 | `SI.242/K.18/TU/PEG/10/2019` | 22/10/2019 | 12 Hari Kerja | 23/10/2019 S.D 07/11/2019 | Sisa Cuti 2019=0 |
+| 1 | **-** | Cuti Tahunan 2016 | `CT.07/BKSDA-12/2016` | 07/01/2016 | 9 Hari | 11/01/2016 S/D 21/01/2016 | - |
+| 2 | **2017** | Cuti Karena Alasan Penting | `SI.025/K.18/TU/PEG/02/2017` | 06/02/2017 | 12 Hari Kalender | 20/02/2017 S.D 03/03/2017 | - |
+| 3 | **2017** | Cuti Tahunan 2017 | `SI.115/K.18/TU/PEG/08/2017` | 24/08/2017 | 12 Hari Kerja | 21/08/2017 S.D 06/09/2017 | - |
+| 4 | **2019** | Cuti Tahunan 2018 | `SI.70/K.18/TU/PEG/03/2019` | 21/03/2019 | 6 Hari Kerja | 14/03/2019 S.D 21/03/2019 | - |
+| 5 | **2019** | Cuti Tahunan 2019 | `SI.242/K.18/TU/PEG/10/2019` | 22/10/2019 | 12 Hari Kerja | 23/10/2019 S.D 07/11/2019 | Sisa Cuti 2019=0 |
 | 6 | **2021** | Cuti Tahunan Tahun 2020 & 2021 | `SI.284/K.18/TU/PEG/12/2021` | 09/12/2021 | 3 Hari Kerja | 08/12/2021 S.D 10/12/2021 | Sisa Cuti 2021=6 Hari |
 | 7 | **2022** | Cuti Tahunan Tahun 2021 & 2022 | `SI.195//K.18/TU/PEG/07/2022` | 04/07/2022 | 6 Hari Kerja | 05/07/2022 S.D 12/02/2022 | Sisa Cuti 2022=12 Hari |
 | 8 | **2022** | Cuti Tahunan Tahun 2022 | `SI.329/K.18/TU/PEG/10/2022` | 17/10/2022 | 5 Hari Kerja | 17/10/2022 S.D 21/10/2022 | Sisa Cuti 2022=7 Hari |
@@ -322,8 +322,8 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **2019** | Cuti Tahunan Tahun 2018 & 2019 | `SI.277/K.18/TU/PEG/12/2019` | 18/12/2019 | 9 Hari Kerja | 17/12/2019 S.D 31/12/2019 | Sisa Cuti 2019 = 6 Hr |
-| 2 | **2020** | Cuti Sakit Tahun 2020 | `ST.195/K.18/TU/PEG/10/2020` | 05/10/2020 | 9 Hari Kerja | 01/10/2020 S.D 13/10/2020 | - |
-| 3 | **2022** | Cuti Alasan Penting Tahun 2022 | `SI.06/K.18/TU/PEG/01/2022` | 04/01/2022 | 21 Hari | 07/01/2022 S.D 27/01/2022 | - |
+| 2 | **2020** | Cuti Sakit | `ST.195/K.18/TU/PEG/10/2020` | 05/10/2020 | 9 Hari Kerja | 01/10/2020 S.D 13/10/2020 | - |
+| 3 | **2022** | Cuti Karena Alasan Penting | `SI.06/K.18/TU/PEG/01/2022` | 04/01/2022 | 21 Hari | 07/01/2022 S.D 27/01/2022 | - |
 | 4 | **2023** | Cuti Tahunan Tahun 2021, 2022,2023 | `SI.154/K.18/TU/PEG/04/2023` | 14/04/2023 | 8 Hari Kerja | 12 S.D 28 April 2023 | Sisa Cuti = 16 Hr |
 | 5 | **2025** | Cuti Tahunan Tahun 2024 & 2025 | `-` | - | 4 Hari Kerja | 24 S.D 27 Maret 2025 | Sisa Cuti = 14 Hr |
 | 6 | **2025** | Cuti Tahunan Tahun 2024 & 2025 | `-` | - | 3 Hari Kerja | 15 S.D 19 Mei 2025 | Sisa Cuti = 11 Hr |
@@ -350,7 +350,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 5 | **2019** | CUTI TAHUNAN 2019 & 2020 | `SI.283/K.18/TU/PEG/12/2019` | 23/12/2019 | 5 Hari Kerja | 30/12/2019 S.D 04/01/2020 | Sisa Cuti 2019 = 0 |
 | 6 | **2020** | CUTI TAHUNAN TAHUN 2020 | `SI.277/K.18/TU/PEG/12/2023` | 18/12/2020 | 6 Hari Kerja | 21/12/2020 S.D 30/12/2020 | Sisa Cuti 2020 = 6 Hr |
 | 7 | **2021** | CUTI TAHUNAN TH. 2020 & TH.2021 | `SI.118/K.18/TU/PEG/05/2021` | 19/05/2021 | 8 Hari Kerja | 18/05/2021 S.D 28/05/2021 | Sisa Cuti = 10 Hr |
-| 8 | **2021** | CUTI ALASAN PENTING | `SI.214/K.18/TU/PEG/08/2021` | 13/08/2021 | 20 Hari Kalender | 11/08/2021 S.D 30/08/2021 | Sisa Cuti 2021 = 10 Hr |
+| 8 | **2021** | Cuti Karena Alasan Penting | `SI.214/K.18/TU/PEG/08/2021` | 13/08/2021 | 20 Hari Kalender | 11/08/2021 S.D 30/08/2021 | Sisa Cuti 2021 = 10 Hr |
 | 9 | **2022** | CUTI TAHUNAN TH.2021 & TH 2022 | `SI.139/TU/PEG/05/2022` | 10/05/2022 | 12 Hari Kerja | 10/05/2022 S.D 27/05/2022 | 12+6 = 18 Hr Sisa Cuti = 6 Hr |
 | 10 | **2022** | CUTI TAHUNAN TH. 2022 | `SI.435/K.18/TU/PEG/12/2022` | 27/12/2022 | 5 Hari Kerja | 26 S.D 30 Desember 2022 | Sisa Cuti = 1 Hr |
 | 11 | **2023** | CUTI TAHUNAN TH.2023 | `SI.146/K.18/TU/PEG/03/2022` | 30/03/2023 | 8 Hari Kerja | 06 S.D 18 April 2023 | Sisa Cuti = 5 Hr |
@@ -438,7 +438,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **-** | CUTI TAHUNAN TH. 2018,2019,&2020 | `SI.03/K.18/TU/PEG/01/2020` | 03/01/2020 | 6 Hari Kerja | 06/01/2020 S.D 13/01/2020 | Sisa Cuti 2020 = 18 Hr |
 | 2 | **-** | CUTI TAHUNAN TH. 2019 & TH. 2020 | `SI.131/K.18/TU/PEG/08/2020` | 24/08/2020 | 8 Hari Kerja | 18/08/2020 S.D 31/08/2020 | Sisa Cuti 2020 = 10 Hr |
-| 3 | **-** | CUTI ALASAN PENTING | `SI.196/K.18/TU/PEG/08/2021` | 02/08/2021 | 8 Hari Kerja | 30/07/2021 S.D 06/08/2021 | Sisa Cuti 2021 = 6+12 = 18 Hr |
+| 3 | **-** | Cuti Karena Alasan Penting | `SI.196/K.18/TU/PEG/08/2021` | 02/08/2021 | 8 Hari Kerja | 30/07/2021 S.D 06/08/2021 | Sisa Cuti 2021 = 6+12 = 18 Hr |
 | 4 | **-** | CUTI TAHUNAN TH. 2022, 2023, & 2024 | `SI.55/K.18/TU/PEG/02/2024` | 15/02/2024 | 2 Hari Kerja | 15/02/2024 S.D 16/02/2024 | Sisa Cuti 2024 = 22 |
 | 5 | **-** | CUTI TAHUNAN TH.2024 & 2025 | `-` | - | 8 Hari Kerja | 24-27/03/2025 dan 08-11/04/2025 | Sisa Cuti = 10 |
 | 6 | **-** | CUTI TAHUNAN TH.2025 | `-` | - | 3 Hari Kerja | 13-15/10/2025 | Sisa Cuti = 7 |
@@ -504,7 +504,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 3 | **2022** | CUTI TAHUNAN TH. 2020,2021,&2022 | `SI.275/K.18/TU/PEG/09/2022` | 08/09/2022 | 4 Hari Kerja | 18/08/2022 S.D 19/08/202 | Sisa Cuti 2022 = 20 Hari |
 | 4 | **2023** | CUTI TAHUNAN TH. 2022 & 2023 | `SI.38/K.18/TU/PEG/01/2023` | 17/01/2023 | 5 Hari Kerja | 16/01/2023 S.D 20/01/2023 | Sisa Cuti = 13 Hr |
 | 5 | **2024** | CUTI TAHUNAN TH. 2023, 2024 & 2025 | `SI.395/K.18/TU/PEG.12.1/12/2024` | 16/12/2024 | 10 Hari Kerja | 20/12/2024 S.D 07/01/2025 | Sisa Cuti = 7 Hr |
-| 6 | **2024** | CUTI ALASAN PENTING | `-` | - | 3 Hari Kerja | 18/06/2025 S.D 20/06/2025 | Sisa Cuti = 7 Hr |
+| 6 | **2024** | Cuti Karena Alasan Penting | `-` | - | 3 Hari Kerja | 18/06/2025 S.D 20/06/2025 | Sisa Cuti = 7 Hr |
 | 7 | **2025** | Cuti Tahunan Tahun 2025 | `SI.366/K.18/TU/PEG.11.01/B/12/2025` | 09/12/2025 | 5 hari | 23 Desember 2025 s.d 31 Desember 2026 | Sisa Cuti = 13 Hari |
 | 8 | **2026** | Cuti Tahunan Tahun 2025 & Tahun 2026 | `SI.258/K.18/TU/PEG.11.01/B/08/2026` | 24/08/2026 | 3 Hari Kerja | 24 Agustus s.d 27 Agustus 2026 | Sisa Cuti =15 Hari |
 
@@ -523,7 +523,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
-| 1 | **2023** | CUTI ALASAN PENTING | `SI.341/K.18/TU/PEG/08/2023` | 25/08/2023 | 5 Hari Kerja | 25 S.D 29 AGUSTUS 2023 | - |
+| 1 | **2023** | Cuti Karena Alasan Penting | `SI.341/K.18/TU/PEG/08/2023` | 25/08/2023 | 5 Hari Kerja | 25 S.D 29 AGUSTUS 2023 | - |
 | 2 | **2023** | Cuti Tahunan TH 2023 | `SI.439/K.18/TU/PEG/12/2023` | 22/12/2023 | 3 Hari Kerja | 27 S.D 29 Desember 2023 | Sisa cuti 2023=9 hr |
 | 3 | **2024** | Cuti Tahunan TH 2023 & TH. 2024 | `SI.230/K.18/TU/PEG/07/2024` | 18/07/2024 | 2 Hari Kerja | 17 S.D 18 Juli 2024 | Sisa cuti 2024=16 hr |
 | 4 | **2024** | Cuti Tahunan TH 2023 & TH. 2024 | `SI.413/K.18/TU/PEG.12.1/12/2024` | 23/12/2024 | 4 Hari Kerja | 24 S.D 31 Desember 2024 | Sisa cuti 2024=12 hr |
@@ -668,12 +668,12 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **2022** | CUTI TAHUNAN TH. 2022 | `SI.28/K.18/TU/PEG/01/2022` | 14/01/2022 | 10 Hari Kerja | 17/01/2022 S.D 28/01/2022 | Sisa Cuti 2022 = 2 Hr |
-| 2 | **2023** | CUTI ALASAN PENTING (PERNIKAHAN) | `SI.16/K.18/TU/PEG/01/2023` | 09/01/2023 | 16 Hari Kalender | 16/01/2023 S.D 31/01/2023 | Sisa Cuti 2+12= 14 Hr |
+| 2 | **2023** | Cuti Karena Alasan Penting | `SI.16/K.18/TU/PEG/01/2023` | 09/01/2023 | 16 Hari Kalender | 16/01/2023 S.D 31/01/2023 | Sisa Cuti 2+12= 14 Hr | Pernikahan |
 | 3 | **2024** | CUTI TAHUNAN TH. 2023 & 2024 | `SI.324/K.18/TU/PEG/10/2024` | 14/10/2024 | 5 Hari Kerja | 14/10/2024 S.D 18/10/2024 | Sisa Cuti 2024 = 13 Hr |
 | 4 | **2024** | CUTI TAHUNAN TH. 2023 & 2024 | `SI.354/K.18/TU/PEG/10/2024` | 28/10/2024 | 5 Hari Kerja | 21/10/2024 S.D 25/10/2024 | Sisa Cuti 2024 = 8 Hr |
 | 5 | **2025** | CUTI TAHUNAN TH. 2024 & 2025 | `SI.67/K.18/TU/PEG.12.1/B/03/2025` | 24/03/2025 | 7 Hari Kerja | 08/04/2025 S.D 16/04/2025 | Sisa Cuti 2025 = 11 Hr |
 | 6 | **2025** | CUTI TAHUNAN TH 2025 | `-` | - | 4 Hari Kerja | 10/06/2025 S.D 13/06/2025 | Sisa Cuti 2025 = 7 Hr |
-| 7 | **2025** | CUTI ALASAN PENTING (ANAK SAKIT) | `-` | - | 7 Hari Kalender | 11/09/2025 S.D 17/09/2025 | Sisa Cuti 2025 = 7 Hr |
+| 7 | **2025** | Cuti Karena Alasan Penting | `-` | - | 7 Hari Kalender | 11/09/2025 S.D 17/09/2025 | Sisa Cuti 2025 = 7 Hr | Anak Sakit |
 | 8 | **2025** | CUTI TAHUNAN TH 2025 | `-` | - | 1 Hari Kerja | 29/12/2025 | Sisa Cuti 2025 = 6 Hr |
 
 ---
@@ -715,7 +715,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 5 | **2021** | Cuti Tahunan Tahun 2020 & 2021 | `SI.116/K.18/TU/PEG/05/2021` | 19/05/2021 | 7 Hari Kerja | 24/05/2021 S.D 04/06/2021 | Sisa Cuti 2021=11 Hari |
 | 6 | **2021** | Cuti Tahunan Tahun 2020 & 2021 | `SI.239/K.18/TU/PEG/10/2021` | 22/10/2021 | 7 Hari Kerja | 28/10/2021 S.D 05/11/2021 | Sisa Cuti 2021= 4 Hari |
 | 7 | **2022** | Cuti Tahunan Tahun 2021 & 2022 | `SI.221/K.18/TU/PEG/07/2022` | 21/07/2022 | 4 Hari Kerja | 22/07/2022 S.D 27/07/2022 | Sisa Cuti 2022=12 Hari |
-| 8 | **2022** | Cuti Alasan Penting | `SI.270/K.18/TU/PEG/09/2022` | 06/09/2022 | 18 Hari Kerja | 02/08/2022 S.D 27/08/2022 | - |
+| 8 | **2022** | Cuti Karena Alasan Penting | `SI.270/K.18/TU/PEG/09/2022` | 06/09/2022 | 18 Hari Kerja | 02/08/2022 S.D 27/08/2022 | - |
 | 9 | **2022** | Cuti Tahunan Tahun 2022 | `SI.365/K.18/TU/PEG/11/2022` | 18/11/2022 | 6 Hari Kerja | 18/11/2022 S.D 25/11/2022 | Sisa Cuti 2022=6 Hari |
 | 10 | **2023** | Cuti Tahunan Tahun 2022 & 2023 | `SI.165/K.18/TU/PEG/04/2023` | 18/04/2023 | 4 Hari Kerja | 18 SD. 28 April 2023 | Sisa Cuti = 14 |
 | 11 | **2023** | Cuti Tahunan Tahun 2022 & 2023 | `SI.235/K.18/TU/PEG/06/2023` | 21/06/2023 | 2 Hari Kerja | 26 S.D 27 Juni 2023 | Sisa Cuti= 12 Hari |
@@ -759,7 +759,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **-** | Cuti Tahunan TH 2015 & 2016 | `CT.01/BKSDA-1.2/2016` | 04/01/2016 | 12 Hari | 06/01/2016 S.D 21/01/2016 | - |
 | 2 | **-** | Cuti Tahunan TH 2018, 2019, & 2020 | `SI.18/K.18/TU/PEG/02/2020` | 20/02/2020 | 7 Hari kerja | 25/02/2020 S.D 04/03/2020 | Sisa Cuti 2020=17 hr |
-| 3 | **-** | Cuti Besar (Haji) | `SI.162/K.18/TU/PEG/05/2024` | 15/05/2024 | 31 Hari kalender | 05/06/2024 S.D 05/07/2024 | - |
+| 3 | **-** | Cuti Besar | `SI.162/K.18/TU/PEG/05/2024` | 15/05/2024 | 31 Hari kalender | 05/06/2024 S.D 05/07/2024 | Menunaikan Ibadah Haji |
 | 4 | **-** | Cuti Tahunan TH 2024 & 2025 | `-` | - | 10 Hari | 13/06/2025 S.D 26/06/2025 | Sisa Cuti 2025=2 hr |
 | 5 | **-** | Cuti Tahunan 2025 | `SI.365/K.18/TU/PEG.11.01/B/12/2025` | 09/12/2025 | 2 Hari | 22 Desember s.d 23 Desember 2025 | Sisa Cuti 2025=0 hr |
 
@@ -846,8 +846,8 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **2020** | Cuti Tahunan Tahun 2019 & 2020 | `SI.156/K.18/TU/PEG/09/2020` | 10/09/2020 | 12 Hari Kerja | 02/09/2020 S.D 17/09/2020 | Sisa Cuti 2020= 6 Hari |
-| 2 | **2020** | Cuti Alasan Penting Tahun 2020 | `SI.200/K.18/TU/PEG/11/2020` | 13/11/2020 | 10 Hari Kerja | 09/11/2020 S.D 20/11/2020 | - |
-| 3 | **2022** | Cuti Alasan Penting Tahun 2022 | `SI.120/K.18/TU/PEG/04/2022` | 25/04/2022 | 4 Hari Kerja | 25/04/2022 S.D 28/04/2022 | - |
+| 2 | **2020** | Cuti Karena Alasan Penting | `SI.200/K.18/TU/PEG/11/2020` | 13/11/2020 | 10 Hari Kerja | 09/11/2020 S.D 20/11/2020 | - |
+| 3 | **2022** | Cuti Karena Alasan Penting | `SI.120/K.18/TU/PEG/04/2022` | 25/04/2022 | 4 Hari Kerja | 25/04/2022 S.D 28/04/2022 | - |
 | 4 | **2022** | Cuti Tahunan Tahun 2021 & 2022 | `SI.252/K.18/TU/PEG/08/2022` | 03/08/2022 | 5 Hari Kerja | 01/08/2022 S.D 05/08/2022 | Sisa Cuti 2022=13 Hari |
 | 5 | **2023** | Cuti Tahunan Tahun 2022 & 2023 | `SI.383/K.18/TU/PEG/10/2023` | 24/10/2023 | 3 Hari Kerja | 11/10/2023 S.D 13/10/2023 | Sisa 15 Hari |
 | 6 | **2023** | Cuti Tahunan Tahun 2022 & 2023 | `SI.433/K.18/TU/PEG/12/2023` | 14/12/2023 | 5 Hari Kerja | 18/12/2023 S.D 22/12/2023 | Sisa =10 Hari |
@@ -916,7 +916,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **2017** | Cuti Tahunan Tahun 2017 | `SI.157/K.18/TU/PEG/10/2017` | 25/10/2017 | 9 Hari Kerja | 31/10/2017 S.D 10/11/2017 | - |
 | 2 | **2018** | Cuti Tahunan Tahun 2018 | `SI.042/K.18/TU/PEG/02/2018` | 23/02/2018 | 8 Hari Kerja | 01/03/2018 S.D 12/038/2018 | - |
-| 3 | **2018** | Cuti Bersalin | `SI.220/K.18/TU/PEG/10/2018` | 31/10/2018 | 1 Bulan | 26/10/2018 S.D 31/10/2018 | - |
+| 3 | **2018** | Cuti Melahirkan | `SI.220/K.18/TU/PEG/10/2018` | 31/10/2018 | 1 Bulan | 26/10/2018 S.D 31/10/2018 | - |
 | 4 | **2019** | Cuti Tahunan Tahun 2019 | `SI.095/K.18/TU/PEG/04/2019` | 23/04/2019 | 3 Hari Kerja | 24/04/2019 S.D 26/04/2019 | - |
 | 5 | **2019** | Cuti Tahunan Tahun 2019 | `SI.225/K.18/TU/PEG/10/2019` | 07/10/2019 | 6 Hari Kerja | 03/10/2019 S.D 10/10/2019 | Sisa Cuti Tahun 2019=3 Hari |
 | 6 | **2021** | Cuti Tahunan Tahun 2020 & 2021 | `SI.02/K.18/TU/PEG/01/2021` | 11/01/2021 | 10 Hari Kerja | 11/01/2021 S.D 22/01/2021 | Sisa Cuti 2021=8 Hari |
@@ -962,17 +962,17 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **2023** | Cuti Tahunan Tahun 2023 | `SI.381/K.18/TU/PEG/10/2023` | 23/10/2023 | 5 Hari Kerja | 23/10/2023 S.D 27/10/2023 | Sisa Cuti 2023=7 Hr |
-| 2 | **2024** | Cuti Alasan Penting | `SI.135/K.18/TU/PEG/04/2024` | 18/04/2024 | 21 Hari Kalender | 16/04/2024 S.D 06/06/2024 | Sisa Cuti 2024=18 |
+| 2 | **2024** | Cuti Karena Alasan Penting | `SI.135/K.18/TU/PEG/04/2024` | 18/04/2024 | 21 Hari Kalender | 16/04/2024 S.D 06/06/2024 | Sisa Cuti 2024=18 |
 | 3 | **2024** | Cuti Tahunan Tahun 2023 & Tahun 2024 | `SI.184/K.18/TU/PEG/06/2024` | 21/06/2024 | 6 Hari Kerja | 01/07/2024 S.D 08/07/2024 | Sisa Cuti 2024=12 |
 | 4 | **2025** | Cuti Tahunan Tahun 2024 & Tahun 2025 | `SI.07/K.18/TU/PEG.12.1/B/01/2025` | 10/01/2025 | 1 Hari Kerja | 10/01/2025 | Sisa Cuti 2025=17 |
 | 5 | **2025** | Cuti Tahunan Tahun 2024 & Tahun 2025 | `-` | - | 4 Hari Kerja | 11/03/2025 S.D 14/03/2025 | Sisa Cuti 2025=13 |
 | 6 | **2025** | Cuti Tahunan Tahun 2024 & Tahun 2025 | `-` | - | 4 Hari Kerja | 8-11/04/2025 | Sisa Cuti 2025=9 |
 | 7 | **2025** | Cuti Tahunan Tahun 2025 | `-` | - | 1 Hari Kerja | 28/05/2025 | Sisa Cuti 2025=9 |
 | 8 | **2025** | Cuti Tahunan Tahun 2025 | `-` | - | 5 Hari Kerja | 17/06/2025 S.D 23/06/2025 | Sisa Cuti 2025=4 |
-| 9 | **2025** | Cuti Alasan Penting | `SI.175/K.18/TU/PEG.11.02/B/06/2025` | 23/06/2025 | 3 Hari Kalender | 24/06/2025 S.D 26/06/2025 | Sisa Cuti 2025=4 |
-| 10 | **2026** | Cuti sakit | `SI.69/ K.18/TU/PEG.11.01/B/02/2026` | 24/02/2026 | 10 Hari Kelender | 24 Februari s.d 05 Maret 2026 | - |
+| 9 | **2025** | Cuti Karena Alasan Penting | `SI.175/K.18/TU/PEG.11.02/B/06/2025` | 23/06/2025 | 3 Hari Kalender | 24/06/2025 S.D 26/06/2025 | Sisa Cuti 2025=4 |
+| 10 | **2026** | Cuti Sakit | `SI.69/ K.18/TU/PEG.11.01/B/02/2026` | 24/02/2026 | 10 Hari Kelender | 24 Februari s.d 05 Maret 2026 | - |
 | 11 | **2026** | Cuti Tahunan Tahun 2025 & Tahun 2026 | `SI.15/K.18/TU/PEG.11.01/B/01/2026` | 13/01/2026 | 6 Hari Kelender | 15 Januari s.d 23 Januari 2026 | Sisa Cuti = 10 |
-| 12 | **2026** | Cuti Alasan Penting | `SI.284/K.18/TU/PEG.11.02/B/09/2026` | 16/09/2026 | 5 Hari Kelender | 14 September s.d 18 September 2026 | - |
+| 12 | **2026** | Cuti Karena Alasan Penting | `SI.284/K.18/TU/PEG.11.02/B/09/2026` | 16/09/2026 | 5 Hari Kelender | 14 September s.d 18 September 2026 | - |
 | 13 | **2026** | Cuti Tahunan Tahun 2026 | `SI.289/K.18/TU/PEG.11.01/B/09/2026` | 21/09/2026 | 4 hari Kelender | 23 September s.d 28 September 2026 | Sisa Cuti = 6 Hari |
 
 ---
@@ -992,7 +992,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **2018** | Cuti Tahunan Tahun 2018 | `SI.055/K.18/TU/PEG/03/2018` | 14/03/2018 | 5 Hari Kerja | 19/03/2018 S.D 23/03/2018 | - |
 | 2 | **2019** | Cuti Tahunan Tahun 2018 & 2019 | `SI.131/K.18/TU/PEG/06/2019` | 27/06/2019 | 6 Hari Kerja | 24/06/2019 S.D 01/07/2019 | Sisa Cuti 2019= 6 Hari |
-| 3 | **2020** | Cut Tahunan Tahun 2019 & 2020 | `SI.35/K.18/TU/PEG/03/2020` | 03/03/2020 | 8 Hari Kerja | 09/03/2020 S.D 18/03/2020 | Sisa Cuti 2020= 10 Hari |
+| 3 | **2020** | Cuti Tahunan Tahun 2019 & 2020 | `SI.35/K.18/TU/PEG/03/2020` | 03/03/2020 | 8 Hari Kerja | 09/03/2020 S.D 18/03/2020 | Sisa Cuti 2020= 10 Hari |
 | 4 | **2022** | Cuti Tahunan Tahun 2021 & 2022 | `SI.96/K.18/TU.PEG/03/2022` | 31/03/2022 | 7 Hari Kerja | 24/03/2022 S.D 01/04/2022 | Sisa Cuti 2022=11 Hari |
 | 5 | **2023** | Cuti Tahunan Tahun 2021, 2022, & 2023 | `SI.15/K.18/TU/PEG/01/2023` | 09/01/2023 | 15 Hari Kerja | 23/01/2023 S.D 10/02/2023 | Sisa Cuti= 3 Hari |
 | 6 | **2024** | Cuti Tahunan Tahun 2023 & 2024 | `SI.50/K.18/TU/PEG/02/2024` | 12/02/2024 | 4 Hari Kerja | 22/02/2024 S.D 27/02/2024 | Sisa Cuti 2024=12 Hari |
@@ -1191,9 +1191,9 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
-| 1 | **-** | Cuti Tahunan T ahun 2017 & 2018 | `SI.030/K.18/TU/PEG/01/2019` | 28/01/2019 | 9 Hari Kerja | 30/01/2019 S.D 12/02/2019 | - |
+| 1 | **-** | Cuti Tahunan Tahun 2017 & 2018 | `SI.030/K.18/TU/PEG/01/2019` | 28/01/2019 | 9 Hari Kerja | 30/01/2019 S.D 12/02/2019 | - |
 | 2 | **-** | Cuti Tahunan Tahun 2019 | `SI.232/K.18/TU/PEG/10/2019` | 11/10/2019 | 4 Hari Kerja | 11/10/20199 S.D 16/10/2019 | Sisa Cuti 2019=6 Hari |
-| 3 | **-** | Cuti Tahunan Tahun2019 & 2020 | `SI.11/K.18/TU/PEG/01/2020` | 17/01/2020 | 3 Har Kerja | 20/01/2020 S.D 22/01/2020 | Sisa Cuti 2020=15 Hari |
+| 3 | **-** | Cuti Tahunan Tahun 2019 & 2020 | `SI.11/K.18/TU/PEG/01/2020` | 17/01/2020 | 3 Har Kerja | 20/01/2020 S.D 22/01/2020 | Sisa Cuti 2020=15 Hari |
 | 4 | **-** | Cuti Tahunan Tahun 2020, 2021, & 2022 | `SI.260/K.18/TU/PEG/08/2022` | 15/08/2022 | 3 Hari Kerja | 16/08/2022 S.D 19/08/2022 | Sisa Cuti 2022= 21 Hari |
 | 5 | **-** | Cuti Tahunan Tahun 2020, 2021, & 2022 | `SI.307/K.18/TU/PEG/10/2022` | 06/10/2022 | 1 Hari Kerja | 05/10/2022 | Sisa Cuti 2022=20 Hari |
 | 6 | **-** | Cuti Tahunan Tahun 2022 & 2023 | `SI.19/K.18/TU/PEG/01/2023` | 09/01/2023 | 2 Hari Kerja | 09/01/2023 S.D 10/01/2023 | Siisa Cuti 2023=16 Hari |
@@ -1390,7 +1390,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 5 | **-** | CUTI TAHUNAN TAHUN 2025 | `SI.219/K.18/TU/PEG.11.01/B/07/2025` | 24/07/2025 | 1 Hari Kerja | 25/07/2025 | Sisa cuti 2025= 6 Hr |
 | 6 | **-** | CUTI TAHUNAN TAHUN 2025 | `-` | - | 2 Hari Kerja | 21 s.d 22 Agustus 2025 | Sisa cuti 2025= 4 Hr |
 | 7 | **-** | CUTI TAHUNAN TAHUN 2025 | `SI.396/K.18/TU/PEG.11.01/B/12/2025` | 19/12/2025 | 4 Hari Kerja | 22 Desember s.d 29 Desember 2025 | Sisa cuti 2025= 0 |
-| 8 | **-** | CUTI BERSALIN | `SI.50/K.18/TU/PEG.11.01/B/02/2026` | 10/02/2026 | 3 Bulan | 18 Februari s.d 20 Mei 2026 | - |
+| 8 | **-** | Cuti Melahirkan | `SI.50/K.18/TU/PEG.11.01/B/02/2026` | 10/02/2026 | 3 Bulan | 18 Februari s.d 20 Mei 2026 | - |
 | 9 | **-** | CUTI TAHUNAN TAHUN 2026 | `SI.318/K.18/TU/PEG.11.01/B/10/2026` | 20/10/2026 | 2 Hari Kerja | 22 Oktober s.d 23 Oktober 2026 | Sisa Cuti = 10 Hari |
 
 ---
@@ -1416,15 +1416,15 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 6 | **2022** | Cuti Tahunan Tahun 2020, 2021, & 2022 | `SI.45/K.18/TU/PEG/02/2022` | 07/02/2022 | 5 Hari Kerja | 28/01/2022 S.D 04/02/2022 | Sisa Cuti 2022 : 13 Hr |
 | 7 | **2023** | CUTI TAHUNAN TH. 2022 & TH.2023 | `SI.10/K.18/TU/PEG/01/2023` | 05/01/2023 | 3 Hari Kerja | 04/01/2023 S.D 06/01/2023 | Sisa cuti = 15 Hr |
 | 8 | **2023** | CUTI TAHUNAN TH. 2022 & TH.2023 | `SI.89/K.18/TU/PEG/02/2023` | 14/02/2023 | 5 Hari Kerja | 13/02/2023 S.D 17/02/2023 | Sisa cuti = 10 Hr |
-| 9 | **2023** | CUTI ALASAN PENTING | `SI.127/K.18/TU/PEG/03/2023` | 17/03/2023 | 19 Hari Kerja | 20/02/2023 S.D 10/03/2023 | Sisa cuti = 10 Hr |
+| 9 | **2023** | Cuti Karena Alasan Penting | `SI.127/K.18/TU/PEG/03/2023` | 17/03/2023 | 19 Hari Kerja | 20/02/2023 S.D 10/03/2023 | Sisa cuti = 10 Hr |
 | 10 | **2023** | CUTI TAHUNAN TH.2023 | `SI.255/K.18/TU/PEG/07/2023` | 04/07/2023 | 2 Hari Kerja | 05/07/2023 S.D 07/07/2023 | Sisa cuti = 8 hr |
 | 11 | **2023** | CUTI TAHUNAN TH.2023 | `SI.374/K.18/TU/PEG/11/2023` | 03/11/2023 | 2 Hari Kerja | 05/10/2023 S.D 06/10/2023 | Sisa cuti = 6 hr |
 | 12 | **2024** | CUTI TAHUNAN TH. 2023 & TH.2024 | `SI.86/K.18/TU/PEG/03/2024` | 01/03/2024 | 2 Hari Kerja | 01/02/2024 S.D 02/02/2024 | Sisa cuti = 16 Hr |
 | 13 | **2024** | CUTI TAHUNAN TH. 2023 & TH.2024 | `SI.371/K.18/TU/PEG.12.1/11/2024` | 13/11/2024 | 14 Hari Kerja | 11/11/2024 S.D 29/11/2024 | Sisa cuti = 2 Hr |
-| 14 | **2024** | CUTI ALASAN PENTING | `SI.435/K.18/TU/PEG.12.2/12/2024` | 30/12/2024 | 9 Hari kalender | 23/12/2024 S.D 31/12/2024 | Sisa cuti = 2 Hr |
+| 14 | **2024** | Cuti Karena Alasan Penting | `SI.435/K.18/TU/PEG.12.2/12/2024` | 30/12/2024 | 9 Hari kalender | 23/12/2024 S.D 31/12/2024 | Sisa cuti = 2 Hr |
 | 15 | **2025** | CUTI TAHUNAN TH. 2024 & TH.2025 | `SI.04/K.18/TU/PEG.12.1/B/01/2025` | 06/01/2025 | 4 Hari Kerja | 02/01/2025 S.D 07/01/2025 | Sisa cuti = 10 Hr |
-| 16 | **2025** | CUTI SAKIT | `-` | - | 24 Hari Kalender | 05/02/2025 S.D 28/02/2025 | Sisa cuti = 10 Hr |
-| 17 | **2025** | CUTI SAKIT | `-` | - | 16 Hari kalender | 03/03/2025 S.D 18/03/2025 | Sisa cuti = 10 Hr |
+| 16 | **2025** | Cuti Sakit | `-` | - | 24 Hari Kalender | 05/02/2025 S.D 28/02/2025 | Sisa cuti = 10 Hr |
+| 17 | **2025** | Cuti Sakit | `-` | - | 16 Hari kalender | 03/03/2025 S.D 18/03/2025 | Sisa cuti = 10 Hr |
 | 18 | **2025** | CUTI TAHUNAN TH. 2025 | `-` | - | 4 Hari Kerja | 19/03/2025 S.D 24/03/2025 | Sisa cuti = 6 Hr |
 | 19 | **2025** | CUTI TAHUNAN TH. 2025 & 2026 | `-` | - | 1 Hari Kerja | 02/01/2026 | Sisa cuti = 5 Hr |
 | 20 | **2026** | CUTI TAHUNAN TH. 2025 & 2026 | `SI.416/K.18/TU/PEG.11.01/B/12/2025` | 31/12/2025 | 1 Hari Kerja | 02/01/2026 | Sisa cuti =16 |
@@ -1459,8 +1459,8 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 11 | **2025** | CUTI TAHUNAN TH 2024 & 2025 | `SI.116/K.18/TU/PEG.11.01/B/05/2025` | 15/05/2025 | 1 Hari Kerja | 16/05/2025 | Sisa = 17 |
 | 12 | **2025** | CUTI TAHUNAN TH 2024 & 2025 | `SI.156/K.18/TU/PEG.11.01/B/06/2025` | 04/06/2025 | 2 Hari Kerja | 04-05/06/2025 | Sisa = 15 |
 | 13 | **2025** | CUTI TAHUNAN TH 2024 & 2025 | `SI.190/K.18/TU/PEG.11.01/B/07/2025` | 01/07/2025 | 4 Hari Kerja | 01-04/07/2025 | Sisa = 11 |
-| 14 | **2025** | CUTI ALASAN PENTING | `SI.210/K.18/TU/PEG.11.02/B/07/2025` | 11/07/2025 | 3 Hari Kalender | 9 Juli 2025 s.d 11 Juli 2025 | Sisa = 11 |
-| 15 | **2025** | CUTI ALASAN PENTING | `SI.220/K.18/TU/PEG.11.02/B/07/2025` | 24/07/2025 | 7 Hari Kalender | 23 Juli 2025 s.d 31 Juli 2025 | Sisa = 11 |
+| 14 | **2025** | Cuti Karena Alasan Penting | `SI.210/K.18/TU/PEG.11.02/B/07/2025` | 11/07/2025 | 3 Hari Kalender | 9 Juli 2025 s.d 11 Juli 2025 | Sisa = 11 |
+| 15 | **2025** | Cuti Karena Alasan Penting | `SI.220/K.18/TU/PEG.11.02/B/07/2025` | 24/07/2025 | 7 Hari Kalender | 23 Juli 2025 s.d 31 Juli 2025 | Sisa = 11 |
 | 16 | **2026** | Cuti Tahunan 2025 & 2026 | `SI.21/K.18/TU/PEG.11.02/B/01/2026` | 15 Jauanri 2026 | 2 Hari Kerja | 22 s.d 23 Januari 2026 | Sisa Cuti = 16 Hari |
 | 17 | **2026** | Cuti Tahunan 2025 & 2026 | `SI.224/K.18/TU/PEG.11.01/B/07/2026` | 28/07/2026 | 2 Hari Kerja | 28 Juli s.d 29 Juli 2026 | Sisa Cuti = 14 Hari |
 
@@ -1624,9 +1624,9 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 3 | **-** | Cuti Tahunan Tahun 2020 &2021 | `SI.117/K.18/TU/PEG/05/2021` | 19/05/2021 | 3 Hari Kerja | 19/05/2021 S.D 21/05/2021 | Sisa cuti 2021 = 21 Hr |
 | 4 | **-** | Cuti Tahunan Th. 2021 & 2022 | `SI.60/K.18/TU/PEG/02/2022` | 18/02/2022 | 6 Hari Kerja | 02/03/2022 s.d 10/03/2023 | Sisa cuti 2022= 12 hr |
 | 5 | **-** | Cuti Tahunan Th. 2022 | `SI.316/K.18/TU/PEG/10/2022` | 10/10/2022 | 4 Hari Kerja | 21/11/2023 S.D 24/11/2023 | Sisa cuti 2022= 8 hr |
-| 6 | **-** | CUTI ALASAN PENTING TH.2023 | `SI.25/K.18/TU/PEG/01/2023` | 12/01/2023 | 22 Hari Kalender | 20/01/2023 S.D 10/02/2023 | Sisa cuti= 18 hr |
+| 6 | **-** | Cuti Karena Alasan Penting | `SI.25/K.18/TU/PEG/01/2023` | 12/01/2023 | 22 Hari Kalender | 20/01/2023 S.D 10/02/2023 | Sisa cuti= 18 hr |
 | 7 | **-** | CUTI TAHUNAN T H. 2022 & 2023 | `SI.371/K.18/TU/PEG/10/2023` | 02/10/2023 | 7 Hari Kerja | 05 S.D 13 Oktober 2023 | Sisa cuti = 11 hr |
-| 8 | **-** | CUTI BERSALIN | `SI.391/K.18/TU/PEG/11/2023` | 06/11/2023 | 3 Bulan | 06/11/2023 S.D 05/02/2024 | Sisa cuti = 11 hr |
+| 8 | **-** | Cuti Melahirkan | `SI.391/K.18/TU/PEG/11/2023` | 06/11/2023 | 3 Bulan | 06/11/2023 S.D 05/02/2024 | Sisa cuti = 11 hr |
 | 9 | **-** | CUTI TAHUNAN TH. 2023 & 2024 | `SI.101/K.18/TU/PEG/03/2024` | 08/03/2024 | 3 Hari Kerja | 13 S.D 15 Maret 2024 | Sisa cuti = 15 Hr |
 | 10 | **-** | CUTI TAHUNAN TH. 2023 & 2024 | `SI.136/K.18/TU/PEG/04/2024` | 19/04/2024 | 1 Hari Kerja | 19/04/2024 | Sisa cuti = 14 Hr |
 | 11 | **-** | CUTI TAHUNAN TH. 2023 & 2024 | `SI.224/K.18/TU/PEG/07/2024` | 11/07/2024 | 3 Hari Kerja | 10/07/2024 S.D 12/07/2024 | Sisa cuti = 11 Hr |
@@ -1692,13 +1692,13 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 2 | **-** | CUTI TAHUNAN TH.2022 | `SI.315/K.18/TU/PEG/10/2022` | 10/10/2022 | 5 Hari Kerja | 03/10/2022 S.D 07/10/2022 | Sisa = 4 Hr |
 | 3 | **-** | CUTI TAHUNAN TH.2022 & 2023 | `SI.425/K.18/TU/PEG/12/2022` | 26/12/2022 | 7 Hari Kerja | 26/12/2022 S.D 03/01/2023 | 4+12(2023) = 16 Hr Sisa = 9Hr |
 | 4 | **2023** | CUTI TAHUNAN TH. 2023 | `SI.191/K.18/TU/PEG/05/2023` | 11/05/2023 | 2 Hari Kerja | 11 S.D 12 MEI 2023 | Sisa cuti = 7 Hr |
-| 5 | **2023** | CUTI BERSALIN | `SI.295/K.18/TU/PEG/07/2023` | 28/07/2023 | 3 Bulan | 01/08/2023 S.D 31/10/2023 | Sisa Cuti 2023 = 7 Hr |
+| 5 | **2023** | Cuti Melahirkan | `SI.295/K.18/TU/PEG/07/2023` | 28/07/2023 | 3 Bulan | 01/08/2023 S.D 31/10/2023 | Sisa Cuti 2023 = 7 Hr |
 | 6 | **2023** | CUTI TAHUNAN TH 2023 | `SI.427/K.18/TU/PEG/12/2023` | 14/12/2023 | 6 Hari Kerja | 20 S.D 29/12/2023 | Sisa Cuti 2023 = 1 Hr |
 | 7 | **2024** | CUTI TAHUNAN TH. 2023 & TH. 2024 | `SI.223/K.18/TU/PEG/07/2024` | 11/07/2024 | 3 Hari Kerja | 15/07/2024 S.D 17/07/2024 | Sisa Cuti 2024= 10 hr |
 | 8 | **2024** | CUTI TAHUNAN TH. 2024 & TH. 2025 | `SI.405/K.18/TU/PEG.12.1/12/2024` | 16/12/2024 | 10 Hari Kerja | 23/12/2024 S.D 08/01/2025 | Sisa Cuti 2024= 0 hr |
 | 9 | **2025** | CUTI TAHUNAN TH. 2025 | `-` | - | 4 Hari Kerja | 09/05/2025 S.D 16/05/2025 | Sisa Cuti 2025= 8 hr |
-| 10 | **2025** | CUTI ALASAN PENTING | `SI.140/K.18/TU/PEG.11.02/B/05/2025` | 21/05/2025 | 5 Hari Kalender | 19/05/2025 S.D 23/05/2025 | Sisa Cuti 2025= 8 hr |
-| 11 | **2025** | CUTI ALASAN PENTING | `-` | - | 5 Hari Kalender | 24/11/2025 S.D 28/11/2025 | Sisa Cuti 2025= 8 hr |
+| 10 | **2025** | Cuti Karena Alasan Penting | `SI.140/K.18/TU/PEG.11.02/B/05/2025` | 21/05/2025 | 5 Hari Kalender | 19/05/2025 S.D 23/05/2025 | Sisa Cuti 2025= 8 hr |
+| 11 | **2025** | Cuti Karena Alasan Penting | `-` | - | 5 Hari Kalender | 24/11/2025 S.D 28/11/2025 | Sisa Cuti 2025= 8 hr |
 | 12 | **2025** | CUTI TAHUNAN TH. 2025 | `-` | - | 7 Hari Kerja | 22/12/2025 S.D 02/01/2026 | Sisa Cuti 2025= 1 hr |
 | 13 | **2026** | Cuti Tahunan Tahun 2025 dan tahun 2026 | `SI.172/K.18/TU/PEG.11.01/B/06/2026` | 17/06/2026 | 2 Hari Kerja | 15 Juni s.d 17 Juni 2026 | Sisa cuti = 11 hari |
 | 14 | **2026** | Cuti Tahunan Tahun 2025 dan tahun 2026 | `SI.230/K.18/TU/PEG.11.01/B/08/2026` | 05/08/2026 | 2 Hari Kerja | 18 Agustus s.d 19 Agustus 2026 | Sisa Cuti = 9 Hari |
@@ -1758,11 +1758,11 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
-| 1 | **2023** | CUTI SAKIT | `SI.356/K.18/TU/PEG/09/2023` | 05/09/2023 | 30 Hari Kerja | 10/08/2023 S.D 29/09/2023 | Sisa cuti 2023= 18 |
+| 1 | **2023** | Cuti Sakit | `SI.356/K.18/TU/PEG/09/2023` | 05/09/2023 | 30 Hari Kerja | 10/08/2023 S.D 29/09/2023 | Sisa cuti 2023= 18 |
 | 2 | **2023** | CUTI TAHUNAN TH.2022 & 2023 | `SI.376/K.18/TU/PEG/10/2023` | 10/10/2023 | 5 Hari Kerja | 09/10/2023 S.D 13/10/2023 | Sisa cuti 2023= 13 |
-| 3 | **2023** | CUTI SAKIT | `SI.392/K.18/TU/PEG/11/2023` | 07/11/2023 | 24 Hari Kerja | 16/10/2023 S.D 08/11/2023 | Sisa cuti 2023= 13 |
-| 4 | **2023** | CUTI SAKIT | `SI.423/K.18/TU/PEG/12/2023` | 13/12/2023 | 60 Hari Kerja | 09/11/2023 S.D 07/01/2024 | Sisa cuti 2023= 13 |
-| 5 | **2024** | CUTI SAKIT | `SI.112/K.18/TU/PEG/03/2024` | 18/03/2024 | 7 Hari Kerja | 27/03/2024 S.D 05/04/2024 | Sisa cuti = 18 |
+| 3 | **2023** | Cuti Sakit | `SI.392/K.18/TU/PEG/11/2023` | 07/11/2023 | 24 Hari Kerja | 16/10/2023 S.D 08/11/2023 | Sisa cuti 2023= 13 |
+| 4 | **2023** | Cuti Sakit | `SI.423/K.18/TU/PEG/12/2023` | 13/12/2023 | 60 Hari Kerja | 09/11/2023 S.D 07/01/2024 | Sisa cuti 2023= 13 |
+| 5 | **2024** | Cuti Sakit | `SI.112/K.18/TU/PEG/03/2024` | 18/03/2024 | 7 Hari Kerja | 27/03/2024 S.D 05/04/2024 | Sisa cuti = 18 |
 | 6 | **2024** | CUTI TAHUNAN TH.2023 & 2024 | `SI.209/K.18/TU/PEG/07/2024` | 04/07/2024 | 3 Hari Kerja | 03/07/2024 S.D 05/07/2024 | Sisa cuti = 15 |
 | 7 | **2024** | CUTI TAHUNAN TH.2023 & 2024 | `SI.250/K.18/TU/PEG/08/2024` | 09/08/2024 | 10 Hari Kerja | 12/08/2024 S.D 23/08/2024 | Sisa cuti = 5 |
 | 8 | **2025** | CUTI TAHUNAN TH.2024 & 2025 | `-` | - | 3 Hari Kerja | 15/05/2025 S.D 19/05/2025 | Sisa cuti = 14 |
@@ -1802,10 +1802,10 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
-| 1 | **-** | Cuti Alasan Penting (Pernikahan) | `SI.290/K.18/TU/PEG/09/2024` | 13/09/2024 | 7 Hari Kalender | 17 s.d 23 September 2024 | Sisa cuti= 18 |
+| 1 | **-** | Cuti Karena Alasan Penting | `SI.290/K.18/TU/PEG/09/2024` | 13/09/2024 | 7 Hari Kalender | 17 s.d 23 September 2024 | Sisa cuti= 18 | Pernikahan |
 | 2 | **-** | Cuti Tahunan tahun 2023 & 2024 | `SI.309/K.18/TU/PEG/09/2024` | 25/09/2024 | 5 Hari Kerja | 24 s.d 30 September 2024 | Sisa cuti= 13 |
 | 3 | **-** | Cuti Tahunan tahun 2024 & 2025 | `SI.112/K.18/TU/PEG.11.01/B/05/2025` | 14/05/2025 | 3 Hari Kerja | 14 s.d 16 Mei 2025 | Sisa cuti= 15 |
-| 4 | **-** | Cuti Bersalin | `-` | - | 3 Bulan | 22 Oktober s.d 22 Januari 2025 | Sisa cuti= 15 |
+| 4 | **-** | Cuti Melahirkan | `-` | - | 3 Bulan | 22 Oktober s.d 22 Januari 2025 | Sisa cuti= 15 |
 | 5 | **-** | Cuti Tahunan tahun 2025 & 2026 | `SI.142/K.18/TU/PEG.11.01/B/05/2026` | 20/05/2026 | 1 Hari Kerja | 20/05/2026 | Sisa Cuti = 17 Hari |
 
 ---
@@ -1908,7 +1908,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **2022** | Cuti Tahunan TH 2020, 2021, & 2022 | `SI.07/K.18/TU/PEG/01/2022` | 04/01/2022 | 8 Hari Kerja | 05/01/2022 S.D 14/01/2022 | Sisa Cuti 2022=16 hr |
-| 2 | **2024** | Cuti Alasan Penting (Ayah Wafat) | `SI.373/K.18/TU/PEG.12.2/11/2024` | 28/11/2024 | 5 Hari Kalender | 25/11/2024 S.D 29/11/2024 | Sisa cuti = 18 |
+| 2 | **2024** | Cuti Karena Alasan Penting | `SI.373/K.18/TU/PEG.12.2/11/2024` | 28/11/2024 | 5 Hari Kalender | 25/11/2024 S.D 29/11/2024 | Sisa cuti = 18 | Ayah Wafat |
 | 3 | **2025** | Cuti Tahunan TH 2023, 2024, & 2025 | `-` | - | 3 Hari Kerja | 15/05/2025 S.D 19/05/2025 | Sisa cuti = 21 |
 | 4 | **2026** | Cuti Tahunan Tahun 2025 dan Tahun 2026 | `SI.173/K.18/TU/PEG.11.01/B/06/2026` | 17/06/2026 | 5 Hari Kerja | 22 Juni s.d 26 Juni 2026 | Sisa Cuti = 12 Hari |
 | 5 | **2026** | Cuti Tahunan Tahun 2025 dan Tahun 2026 | `-` | 04/08/2026 | - | - | - |
@@ -1991,7 +1991,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 2 | **-** | Cuti Tahunan TH 2020, 2021, & 2022 | `SI.366/K.18/TU/PEG/11/2022` | 18/11/2022 | 3 Hari Kerja | 21/11/2022 S.D 23/11/2022 | Sisa Cuti 2022=21 hr |
 | 3 | **-** | Cuti Tahunan TH 2023 & 2024 | `SI.07/K.18/TU/PEG/01/2024` | 04/01/2024 | 4 Hari Kerja | 02/01/2024 S.D 05/01/2024 | Sisa cuti 2024=14 hr |
 | 4 | **-** | Cuti Tahunan TH 2023 & 2024 | `SI.193/K.18/TU/PEG/06/2024` | 26/06/2024 | 5 Hari Kerja | 01/07/2024 S.D 05/07/2024 | Sisa cuti 2024=9 hr |
-| 5 | **-** | Cuti Bersalin | `SI.391/K.18/TU/PEG.12.1/12/2024` | 12/12/2024 | 3 bulan | 09/12/2024 S.D 09/03/2025 | Sisa cuti 2024=9 hr |
+| 5 | **-** | Cuti Melahirkan | `SI.391/K.18/TU/PEG.12.1/12/2024` | 12/12/2024 | 3 bulan | 09/12/2024 S.D 09/03/2025 | Sisa cuti 2024=9 hr |
 
 ---
 
@@ -2009,15 +2009,15 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **2023** | Cuti Tahunan TH 2023 | `SI.426/K.18/TU/PEG/12/2023` | 14/12/2023 | 6 Hari Kerja | 15/12/2023 S.D 22/12/2023 | Sisa = 2 |
-| 2 | **2024** | Cuti Alasan Penting | `SI.25/K.18/TU/PEG/01/2024` | 24/01/2024 | 9 Hari Kerja | 11 s.d 19/01/2024 | Sisa = 14 |
+| 2 | **2024** | Cuti Karena Alasan Penting | `SI.25/K.18/TU/PEG/01/2024` | 24/01/2024 | 9 Hari Kerja | 11 s.d 19/01/2024 | Sisa = 14 |
 | 3 | **2024** | Cuti Tahunan TH 2024 | `SI.328/K.18/TU/PEG/10/2024` | 16/10/2024 | 7 Hari Kerja | 18/10/2024 S.D 28/10/2024 | Sisa = 7 |
 | 4 | **2024** | Cuti Tahunan TH 2024 | `SI.404/K.18/TU/PEG.12.1/12/2024` | 16/12/2024 | 5 Hari Kerja | 16/12/2024 S.D 20/12/2024 | Sisa = 2 |
 | 5 | **2025** | Cuti Tahunan TH 2024 & TH 2025 | `SI.201/K.18/TU/PEG.11.01/B/07/2025` | 07/07/2025 | 5 Hari Kerja | 7 s.d 11/07/2025 | Sisa = 9 |
 | 6 | **2025** | Cuti Tahunan TH 2025 | `-` | - | 2 Hari Kerja | 9 s.d 10/10/2025 | Sisa = 7 |
 | 7 | **2026** | Cuti Tahunan TH 2025 & TH 2026 | `SI.280/K.18/TU/PEG.11.01/B/02/2026` | 18/02/2026 | 5 Hari Kerja | 25 maret s.d 31 maret 2026 | Sisa 14 Hari |
-| 8 | **2026** | SUKET IZIN SIKADIR | `ND.690/K.18/SKWIII/06/2026` | 15/06/2026 | 1 Hari Kerja | 15/06/2026 | Sisa Cuti = 13 hari |
+| 8 | **2026** | Cuti Karena Alasan Penting | `ND.690/K.18/SKWIII/06/2026` | 15/06/2026 | 1 Hari Kerja | 15/06/2026 | Sisa Cuti = 13 hari | Suket Izin SIKADIR |
 | 9 | **2026** | Cuti Tahunan tahun 2025 dan tahun 2026 | `SI.185/ K.18/TU/PEG.11.01/B/06/2026` | 26/06/2026 | 6 Hari Kerja | 26 Juni s.d 03 Juli 2026 | Sisa Cuti = 7 Hari |
-| 10 | **2026** | Cuti Alasan Penting 2026 | `SI.200/K.18/TU/PEG.11.02/B/07/2026` | 06/07/2026 | 5  hari kalender | 06 Juli s.d 10 Juli 2026 | Sisa Cuti = 7 Hari |
+| 10 | **2026** | Cuti Karena Alasan Penting | `SI.200/K.18/TU/PEG.11.02/B/07/2026` | 06/07/2026 | 5  hari kalender | 06 Juli s.d 10 Juli 2026 | Sisa Cuti = 7 Hari |
 
 ---
 
@@ -2101,7 +2101,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 1 | **-** | Cuti Tahun 2014 S.D 2015 | `SI.009/BKSDA-1.2/2015` | 02/02/2015 | 14 Hari Kerja | 09/02/2015 S.D 27/02/2015 | - |
 | 2 | **2019** | Cuti Tahunan TH 2019 & 2020 | `SI.296/K.18/TU/PEG/12/2019` | 30/12/2019 | 6 Hari Kerja | 03/01/2020 S.D 10/01/2020 | Sisa Cuti 2019 & 2020=12 hr |
 | 3 | **2020** | Cuti Tahunan TH 2020 & 2021 | `SI.287/K.18/TU/PEG/12/2020` | 28/12/2020 | 8 Hari Kerja | 28/12/2020 S.D 08/01/2021 | Sisa Cuti 2020=10 hr |
-| 4 | **2021** | Cuti Sakit TH 2021 | `SI.45/K.18/TU/PEG/02/2021` | 24/02/2021 | 3 Hari Kerja | 24/02/2021 S.D 26/02/2021 | Sisa Cuti =6 hr |
+| 4 | **2021** | Cuti Sakit | `SI.45/K.18/TU/PEG/02/2021` | 24/02/2021 | 3 Hari Kerja | 24/02/2021 S.D 26/02/2021 | Sisa Cuti =6 hr |
 | 5 | **2021** | Cuti Tahunan TH 2020 & 2021 | `SI.155/K.18/TU/PEG/06/2021` | 24/06/2021 | 2 Hari Kerja | 23/06/2021 S.D 24/06/2021 | Sisa Cuti 2021=16 hr |
 | 6 | **2022** | Cuti Tahunan TH 2021 & 2022 | `SI.75/K.18/TU/PEG/02/2022` | 25/02/2022 | 3 Hari Kerja | 01/03/2022 S.D 04/03/2022 | Sisa Cuti 2022=18 hr |
 | 7 | **2022** | Cuti Tahunan TH 2021 & 2022 | `SI.322/K.18/TU/PEG/10/2022` | 13/10/2022 | 1 Hari Kerja | 14/10/2022 | Sisa Cuti =14 hr |
@@ -2112,7 +2112,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 12 | **2024** | Cuti Tahunan TH 2023 & 2024 | `SI.215/K.18/TU/PEG/07/2024` | 08/07/2024 | 12 Hari Kerja | 25/07/2024 S.D 09/08/2024 | Sisa cuti= 5 hr |
 | 13 | **2025** | Cuti Tahunan TH 2024 & 2025 | `SI.17.2/K.18/TU/PEG.12.1/B/01/2025` | 21/01/2025 | 2 Hari Kerja | 20/01/2025 S.D 21/01/2025 | Sisa cuti= 15 hr |
 | 14 | **2025** | Cuti Tahunan TH 2024 & 2025 | `SI.248/K.18/TU/PEG.11.01/B/07/2025` | 12/08/2025 | 3 Hari Kerja | 20/08/2025 S.D 22/08/2025 | Sisa cuti= 12 hr |
-| 15 | **2026** | Cuti Alasan Penting | `SI.155/K.18/TU/PEG.11.02/B/06/2026` | 02/06/2026 | 8 hari Kalender | 29 Mei s.d 05 Juni 2026 | - |
+| 15 | **2026** | Cuti Karena Alasan Penting | `SI.155/K.18/TU/PEG.11.02/B/06/2026` | 02/06/2026 | 8 hari Kalender | 29 Mei s.d 05 Juni 2026 | - |
 | 16 | **2026** | Cuti tahunan tahun 2025 dan tahun 2026 | `SI. 123/K.18/TU/PEG.11.01/B/04/2026` | 29/04/2026 | 3 hari Kerja | 29 s.d 30 April 2026 | Sisa Cuti = 15 Hari |
 | 17 | **2026** | Cuti tahunan tahun 2025 dan tahun 2026 | `SI.228 /K.18/TU/PEG.11.01/B/08/2026` | 08/08/2026 | 2 hari Kerja | 7 Agustus s.d 10 Agustus 2026 | Sisa Cuti = 13 Hari |
 | 18 | **2026** | Cuti tahunan tahun 2025 dan tahun 2026 | `SI.316/K.18/TU/PEG.11.01/B/10/2026` | 19/10/2026 | 5 Hari Kerja | 28 Oktober s.d 03 November 2026 | Sisa Cuti = 8 Hari |
@@ -2159,8 +2159,8 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 1 | **-** | Cuti Tahunan 2018 | `SI.128/K.18/TU/PEG/07/2018` | 11/07/2018 | 8 Hari Kerja | 04/07/2018 S.D 13/07/2018 | - |
 | 2 | **2019** | Cuti Tahunan 2019 | `SI.010/K.18/TU/PEG/12/2018` | 04/12/2018 | 3 Hari Kerja | 02/01/2019 S.D 04/02/2019 | Sisa Cuti 2019=6 |
 | 3 | **2020** | Cuti Tahunan TH 2019 & 2020 | `SI.171/K.18/TU/PEG/10/2020` | 14/10/2020 | 15 Hari Kerja | 14/10/2020 S.D 06/11/2020 | Sisa Cuti 2020=3 |
-| 4 | **2020** | Cuti Sakit TH 2020 | `SI.286/K.18/TU/PEG/12/2020` | 28/12/2020 | 14 Hari Kerja | 22/12/2020 S.D 04/01/2021 | - |
-| 5 | **2022** | Cuti Alasan Penting TH 2022 | `SI.95/K.18/TU/PEG/03/2022` | 31/03/2022 | 5 Hari Kerja | 14/03/2022 S.D 18/03/2022 | Sisa Cuti =18 hr |
+| 4 | **2020** | Cuti Sakit | `SI.286/K.18/TU/PEG/12/2020` | 28/12/2020 | 14 Hari Kerja | 22/12/2020 S.D 04/01/2021 | - |
+| 5 | **2022** | Cuti Karena Alasan Penting | `SI.95/K.18/TU/PEG/03/2022` | 31/03/2022 | 5 Hari Kerja | 14/03/2022 S.D 18/03/2022 | Sisa Cuti =18 hr |
 | 6 | **2022** | cuti Tahunan TH 2021 & 2022 | `SI.331/K.18/TU/PEG/10/2022` | 17/10/2022 | 3 Hari Kerja | 24/10/2022 S.D 26/10/2022 | Sisa Cuti =-15 hr |
 | 7 | **2023** | Cuti Tahunan TH 2022 & 2023 | `SI.245/K.18/TU/PEG/06/2023` | 27/06/2023 | 10 Hari Kerja | 03/S.D 14/07/2023 | Sisa =8 hr |
 | 8 | **2023** | Cuti Tahunan TH 2023 | `SI.382/K.18/TU/PEG/10/2023` | 23/10/2023 | 8 Hari Kerja | 24/10/2023 S.D 01/11/2023 | Sisa=0 |
@@ -2298,7 +2298,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | 3 | **-** | Cuti Tahunan Tahun 2024 & Tahun 2025 | `SI.18.1/K.18/TU/PEG.12.1/B/01/2025` | 22/01/2025 | 1 Hari Kerja | 22/01/2025 | Sisa cuti = 17 |
 | 4 | **-** | Cuti Tahunan Tahun 2024 & Tahun 2025 | `SI.65/K.18/TU/PEG.12.1/B/03/2025` | 20/03/2025 | 7 Hari Kerja | 24/03/2025 S.D 10/04/2025 | Sisa cuti = 10 |
 | 5 | **-** | Cuti Tahunan Tahun 2024 & Tahun 2025 | `-` | - | 1 Hari Kerja | 11/04/2025 | Sisa cuti = 9 |
-| 6 | **-** | CUTI BERSALIN | `SI.182/K.18/TU/PEG.11.01/B/06/2025` | 26/06/2025 | 3 Bulan | 01/07/2025 S.D 30/09/2025 | Sisa cuti = 9 |
+| 6 | **-** | Cuti Melahirkan | `SI.182/K.18/TU/PEG.11.01/B/06/2025` | 26/06/2025 | 3 Bulan | 01/07/2025 S.D 30/09/2025 | Sisa cuti = 9 |
 
 ---
 
@@ -2351,7 +2351,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
-| 1 | **-** | CUTI ALASAN PENTING TH. 2018 | `SI.288/K.18/TU/PEG/12/2018` | 26/12/2018 | 18 Hari Kalender | 17/12/18 S.D 03/01/19 | - |
+| 1 | **-** | Cuti Karena Alasan Penting | `SI.288/K.18/TU/PEG/12/2018` | 26/12/2018 | 18 Hari Kalender | 17/12/18 S.D 03/01/19 | - |
 | 2 | **2019** | CUTI TAHUNAN TH. 2019 | `SI.045/K.18/TU/PEG/02/2019` | 07/02/2019 | 5 Hari Kerja | 11/02/2019 | Sisa cuti Th. 2019 = 11 Hr = 6 Hr |
 | 3 | **2021** | CUTI TAHUNAN TH. 2020 & 2021 | `SI.54/K.18/TU/PEG/03/2021` | 03/03/2021 | 12 Hari Kerja | 08/03/2021 S.D 24/03/2021 | Sisa cuti Th. 2021 = 6 Hr |
 | 4 | **2022** | CUTI TAHUNAN TH. 2021 & 2022 | `SI.271K.18/TU/PEG/09/2022` | 06/09/2022 | 5 Hari Kerja | 25/09/2022 S.D 09/09/2022 | Sisa cuti 2022 = 13 Hr |
@@ -2396,7 +2396,7 @@ Dokumen ini memuat seluruh riwayat cuti pegawai BKSDA Kalimantan Timur yang tert
 | No | Tahun | Jenis Cuti / Izin | No. Surat Persetujuan (SI / ST) | Tgl Surat | Lama Cuti | Rentang Tanggal Pelaksanaan | Sisa Cuti / Keterangan |
 |:---:|:---:|---|---|:---:|:---:|---|---|
 | 1 | **-** | Cuti Tahun 2013 & 2014 | `CT.10/BKSDA-1.2/2014` | 19/03/2014 | 12 Hari | 17/3/2014 s.d 2/4/2014 | - |
-| 2 | **2019** | CUTI TAHUANAN TH. 2018 & 2019 | `SI.140/K.18/TU/PEG/07/2019` | 02/07/2019 | 4 Hari Kerja | 02/07/2019 S.D 05/07/2019 | - |
+| 2 | **2019** | CUTI TAHUNAN TH. 2018 & 2019 | `SI.140/K.18/TU/PEG/07/2019` | 02/07/2019 | 4 Hari Kerja | 02/07/2019 S.D 05/07/2019 | - |
 | 3 | **2022** | CUTI TAHUNAN TH 2020,2021 & 2022 | `SI.177/K.18/TU/PEG/06/2022` | 20/06/2022 | 1 Hari Kerja | 17/06/2022 | Sisa Cuti 2022 = 23 Hr |
 | 4 | **2022** | CUTI TAHUNAN TH. 2022 | `SI.286/K.18/TU/PEG/09/2022` | 12/09/2022 | 5 Hari Kerja | 06/09/2022 s.d 12/09/2022 | Sisa cuti 2022 = 18 Hr |
 | 5 | **2022** | CUTI TAHUNAN TH. 2022 | `SI.342/K.18/TU/PEG/10/2022` | 24/10/2022 | 2 Hari Kerja | 18-19/10/2022 | Sisa cuti 2022 = 16 Hr |

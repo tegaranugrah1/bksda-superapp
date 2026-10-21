@@ -33,6 +33,15 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
     sisa_cuti_dapat_diajukan?: number;
   } | null>(null);
 
+  const [leaveTypes, setLeaveTypes] = useState<Array<{
+    id: number;
+    nama: string;
+    kode: string | null;
+    hitung_hari: "hari_kerja" | "hari_kalender";
+    potong_kuota_tahunan: boolean;
+    maks_hari: number | null;
+  }>>([]);
+
   const [form, setForm] = useState({
     jenis_cuti: "Cuti Tahunan",
     alasan_cuti: "",
@@ -47,6 +56,14 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
       api.get(`/me/leave-balance?year=${currentYear}`)
         .then((res) => {
           if (res?.data?.data) setLeaveBalance(res.data.data);
+        })
+        .catch(() => {});
+
+      api.get("/api/kepegawaian/leave-types")
+        .then((res) => {
+          if (res?.data?.data && Array.isArray(res.data.data)) {
+            setLeaveTypes(res.data.data);
+          }
         })
         .catch(() => {});
     }
@@ -80,15 +97,40 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
     },
   });
 
+  const selectedLeaveType = leaveTypes.find(
+    (lt) => lt.nama.toLowerCase() === form.jenis_cuti.toLowerCase()
+  );
+  const isHariKerja = selectedLeaveType
+    ? selectedLeaveType.hitung_hari === "hari_kerja"
+    : form.jenis_cuti.toLowerCase().includes("tahunan");
+
   const calculatedDays = React.useMemo(() => {
     if (!form.tanggal_mulai || !form.tanggal_selesai) return 1;
-    const start = new Date(form.tanggal_mulai);
-    const end = new Date(form.tanggal_selesai);
+    const [sy, sm, sd] = form.tanggal_mulai.split("-").map(Number);
+    const [ey, em, ed] = form.tanggal_selesai.split("-").map(Number);
+    const start = new Date(sy, sm - 1, sd, 12, 0, 0);
+    const end = new Date(ey, em - 1, ed, 12, 0, 0);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
+
     const diffTime = end.getTime() - start.getTime();
     if (Number.isNaN(diffTime) || diffTime < 0) return 0;
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    return diffDays;
-  }, [form.tanggal_mulai, form.tanggal_selesai]);
+
+    if (!isHariKerja) {
+      return Math.max(1, diffDays);
+    }
+
+    let workingDays = 0;
+    const curr = new Date(start);
+    while (curr <= end) {
+      const day = curr.getDay();
+      if (day !== 0 && day !== 6) {
+        workingDays++;
+      }
+      curr.setDate(curr.getDate() + 1);
+    }
+    return workingDays;
+  }, [form.tanggal_mulai, form.tanggal_selesai, isHariKerja]);
 
   if (!open) return null;
 
@@ -160,8 +202,20 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
             const availableQuota = leaveBalance
               ? (leaveBalance.sisa_cuti_dapat_diajukan ?? leaveBalance.sisa_cuti_tersedia)
               : 12;
-            if (form.jenis_cuti === "Cuti Tahunan" && leaveBalance && calculatedDays > availableQuota) {
-              toast.error(`Jumlah hari cuti (${calculatedDays} hari) melebihi sisa hak cuti tahunan yang dapat diajukan (${availableQuota} hari).`);
+            const cutsQuota = selectedLeaveType
+              ? selectedLeaveType.potong_kuota_tahunan
+              : form.jenis_cuti.toLowerCase().includes("tahunan");
+
+            if (cutsQuota && leaveBalance && calculatedDays > availableQuota) {
+              toast.error(
+                `Jumlah hari cuti (${calculatedDays} hari) melebihi sisa hak cuti tahunan yang dapat diajukan (${availableQuota} hari).`
+              );
+              return;
+            }
+            if (selectedLeaveType?.maks_hari && calculatedDays > selectedLeaveType.maks_hari) {
+              toast.error(
+                `Jumlah hari cuti (${calculatedDays} hari) melebihi batas maksimal untuk ${selectedLeaveType.nama} (${selectedLeaveType.maks_hari} hari).`
+              );
               return;
             }
             if (!form.alasan_cuti.trim()) {
@@ -183,19 +237,28 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
         >
           {/* Jenis Cuti */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-              Jenis Cuti Yang Diambil *
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Jenis Cuti Yang Diambil *
+              </label>
+              {selectedLeaveType?.maks_hari && (
+                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">
+                  Maksimal {selectedLeaveType.maks_hari} hari
+                </span>
+              )}
+            </div>
             <select
               value={form.jenis_cuti}
               onChange={(e) => setForm({ ...form, jenis_cuti: e.target.value })}
               className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
             >
-              {JENIS_CUTI_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
+              {(leaveTypes.length > 0 ? leaveTypes.map((lt) => lt.nama) : JENIS_CUTI_OPTIONS).map(
+                (opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                )
+              )}
             </select>
           </div>
 
@@ -228,9 +291,13 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
 
             {/* Indikator Durasi Cuti */}
             <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/60 text-xs">
-              <span className="text-slate-600 dark:text-slate-400 font-medium">Lamanya Cuti:</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">
+                Lamanya Cuti ({isHariKerja ? "Hari Kerja" : "Hari Kalender"}):
+              </span>
               <span className="font-extrabold text-blue-700 dark:text-blue-300">
-                {calculatedDays > 0 ? `${calculatedDays} Hari Kerja` : "Tanggal tidak valid"}
+                {calculatedDays > 0
+                  ? `${calculatedDays} ${isHariKerja ? "Hari Kerja" : "Hari"}`
+                  : "Tanggal tidak valid"}
               </span>
             </div>
           </div>
