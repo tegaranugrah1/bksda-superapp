@@ -107,7 +107,7 @@ class EmployeeLeaveController extends Controller
                     'sisa_cuti_n2' => $validated['sisa_cuti_n2'] ?? 0,
                     'cuti_terpakai_n2' => $validated['cuti_terpakai_n2'] ?? 0,
                     'cuti_terpakai_n0' => $validated['cuti_terpakai_n0'] ?? 0,
-                    'catatan' => $validated['catatan'] ?? null,
+                    'catatan' => isset($validated['catatan']) ? strip_tags(trim((string) $validated['catatan'])) : null,
                     'updated_by' => $request->user()?->id,
                 ]
             );

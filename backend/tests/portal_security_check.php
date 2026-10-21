@@ -1378,6 +1378,22 @@ assert(str_contains($bmnAuctionBatchSvcCode, "addcslashes(trim((string) \$filter
 $bmnUsageAgreementCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Bmn/Controllers/UsageAgreementController.php');
 assert(str_contains($bmnUsageAgreementCtrlCode, "addcslashes(\$rawFullName, '%_')"), 'UsageAgreementController employee filter missing addcslashes wildcard escaping');
 
+// Kepegawaian Security Audit Invariants
+$kpgEmpCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeController.php');
+assert(str_contains($kpgEmpCtrlCode, "Hanya Super Admin yang dapat mengubah data pegawai Super Admin."), 'EmployeeController update must guard against non-super_admin editing super_admin accounts');
+assert(str_contains($kpgEmpCtrlCode, "Hanya Super Admin yang dapat mengubah foto profil Super Admin."), 'EmployeeController updatePhoto must guard against non-super_admin modifying super_admin photo');
+assert(str_contains($kpgEmpCtrlCode, "Hanya Super Admin yang dapat menghapus data akun Super Admin."), 'EmployeeController destroy must guard against non-super_admin deleting super_admin accounts');
+assert(str_contains($kpgEmpCtrlCode, "'is_active' => false") && str_contains($kpgEmpCtrlCode, "Str::random(64)"), 'EmployeeController auto-create user must be inactive with unguessable random password');
+
+$kpgExpSvcCode = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Services/StExpenseTemplateService.php');
+assert(str_contains($kpgExpSvcCode, "if (\$template->is_default) {\n            throw new \\DomainException('Template biaya default tidak dapat dihapus."), 'StExpenseTemplateService delete must prevent deleting default expense template');
+
+$kpgLeaveCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php');
+assert(str_contains($kpgLeaveCtrlCode, "strip_tags(trim((string) \$validated['catatan']))"), 'EmployeeLeaveController store must sanitize catatan with strip_tags');
+
+$kpgExportCode = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Exports/EmployeeIncomingLettersExport.php');
+assert(str_contains($kpgExportCode, "preg_match('/^[=+\\-@\\t\\r]/', \$trimmed)"), 'EmployeeIncomingLettersExport safeCell must guard against formula injection including whitespace, tabs, and CR');
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

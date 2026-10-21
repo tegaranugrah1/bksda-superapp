@@ -76,9 +76,14 @@ class EmployeeIncomingLettersExport implements FromCollection, WithHeadings, Wit
         ];
     }
 
-    private function safeCell(string $value): string
+    private function safeCell(?string $value): string
     {
-        return $value !== '-' && preg_match('/^[=+\-@]/', $value) === 1 ? "'{$value}" : $value;
+        if ($value === null || $value === '' || $value === '-') {
+            return $value ?? '-';
+        }
+
+        $trimmed = ltrim($value);
+        return preg_match('/^[=+\-@\t\r]/', $trimmed) === 1 ? "'{$value}" : $value;
     }
 
     public function styles(Worksheet $sheet): array

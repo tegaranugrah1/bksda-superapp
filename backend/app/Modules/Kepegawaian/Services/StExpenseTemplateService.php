@@ -130,6 +130,10 @@ class StExpenseTemplateService
 
     public function delete(StExpenseTemplate $template): void
     {
+        if ($template->is_default) {
+            throw new \DomainException('Template biaya default tidak dapat dihapus. Tetapkan template lain sebagai default terlebih dahulu.');
+        }
+
         $template->delete();
     }
 

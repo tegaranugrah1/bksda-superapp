@@ -82,6 +82,18 @@ class EmployeeController extends Controller
 
         $employee = Employee::create($validated);
 
+        // Auto-create inactive user account with random secure password if it doesn't exist yet
+        $nip = trim((string) $employee->nip);
+        if ($nip !== '' && ! User::where('username', $nip)->exists()) {
+            User::create([
+                'name' => $employee->nama_lengkap,
+                'username' => $nip,
+                'password' => Str::random(64),
+                'role' => 'user',
+                'is_active' => false,
+            ]);
+        }
+
         // Re-store photo with proper folder structure after employee is created
         if (isset($validated['foto_profil'])) {
             $oldPath = $validated['foto_profil'];
@@ -125,6 +137,17 @@ class EmployeeController extends Controller
     public function update(EmployeeRequest $request, $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
+        $currentUser = $request->user();
+
+        // Mencegah akun admin non-super_admin mengubah profil pegawai super_admin
+        $oldNip = trim((string) $employee->nip);
+        $targetUser = $oldNip !== '' ? User::where('username', $oldNip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat mengubah data pegawai Super Admin.',
+            ], 403);
+        }
+
         $validated = $request->validated();
 
         // Jika user mengganti foto lama dengan foto baru
@@ -135,14 +158,13 @@ class EmployeeController extends Controller
             }
 
             // Simpan foto baru
-            $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
+            $folder = 'employees/' . (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '/foto-profil';
             $ext = $request->file('foto')->extension();
-            $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
+            $filename = (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '_profil.' . $ext;
             $path = $request->file('foto')->storeAs($folder, $filename);
             $validated['foto_profil'] = $path;
         }
 
-        $oldNip = trim((string) $employee->nip);
         $employee->update($validated);
         $newNip = trim((string) $employee->nip);
 
@@ -170,15 +192,25 @@ class EmployeeController extends Controller
         ]);
 
         $employee = Employee::findOrFail($id);
+        $currentUser = $request->user();
+
+        // Mencegah admin non-super_admin mengganti foto super_admin
+        $nip = trim((string) $employee->nip);
+        $targetUser = $nip !== '' ? User::where('username', $nip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat mengubah foto profil Super Admin.',
+            ], 403);
+        }
 
         // Delete old photo
         if ($employee->foto_profil) {
             Storage::delete($employee->foto_profil);
         }
 
-        $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
+        $folder = 'employees/' . (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '/foto-profil';
         $ext = $request->file('foto')->extension();
-        $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
+        $filename = (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '_profil.' . $ext;
         $path = $request->file('foto')->storeAs($folder, $filename);
         $employee->update(['foto_profil' => $path]);
 
@@ -202,11 +234,19 @@ class EmployeeController extends Controller
             ], 403);
         }
 
+        // Mencegah admin non-super_admin menghapus akun pegawai super_admin
+        $nip = trim((string) $employee->nip);
+        $targetUser = $nip !== '' ? User::where('username', $nip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat menghapus data akun Super Admin.',
+            ], 403);
+        }
+
         // Operasi ini otomatis menjadi Soft Delete karena Trait SoftDeletes di Model (Issue #23)
         $employee->delete();
 
         // Deactivate associated user account and revoke existing tokens to prevent orphaned login
-        $nip = trim((string) $employee->nip);
         if ($nip !== '' && ($user = User::where('username', $nip)->first())) {
             $user->update(['is_active' => false]);
             $user->tokens()->delete();
