@@ -22,7 +22,8 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     Route::get('/surat-masuk/export/excel', [EmployeeIncomingLetterController::class, 'export']);
     Route::get('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'show']);
     Route::get('/surat-masuk/{letter}/attachments/{attachment}/preview', [EmployeeIncomingLetterController::class, 'preview']);
-    Route::get('/surat-masuk/{letter}/attachments/{attachment}/download', [EmployeeIncomingLetterController::class, 'download']);
+    Route::get('/surat-masuk/{letter}/attachments/{attachment}/download/{filename?}', [EmployeeIncomingLetterController::class, 'download'])
+        ->where('filename', '.*');
 
     Route::middleware('role:super_admin,admin')->group(function () {
         Route::post('/surat-masuk', [EmployeeIncomingLetterController::class, 'store']);

@@ -25,7 +25,7 @@ class EmployeeIncomingLetterController extends Controller
 
     public function export(Request $request)
     {
-        $filters = $request->only(['search', 'kategori', 'start_date', 'end_date']);
+        $filters = $request->only(['search', 'kategori', 'start_date', 'end_date', 'status_balasan']);
         $filename = 'Arsip_Surat_Masuk_Kepegawaian_' . now()->format('Ymd_His') . '.xlsx';
 
         return Excel::download(new EmployeeIncomingLettersExport($filters), $filename);
@@ -52,6 +52,14 @@ class EmployeeIncomingLetterController extends Controller
 
         if ($request->filled('kategori') && in_array($request->input('kategori'), self::CATEGORIES, true)) {
             $query->where('kategori', $request->input('kategori'));
+        }
+
+        if ($request->input('status_balasan') === 'replied') {
+            $query->whereNotNull('no_surat_balasan')->where('no_surat_balasan', '!=', '');
+        } elseif ($request->input('status_balasan') === 'pending') {
+            $query->where(function ($builder) {
+                $builder->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
+            });
         }
 
         if ($request->filled('start_date')) {
@@ -130,13 +138,21 @@ class EmployeeIncomingLetterController extends Controller
         $disk = Storage::disk($this->disk());
         abort_unless($disk->exists($attachment->storage_path), 404);
 
-        $filename = str_replace(['"', "\r", "\n", '/', '\\', ':', '*', '?', '<', '>', '|'], '_', basename($attachment->original_name)) ?: 'lampiran';
+        $rawFilename = basename(str_replace('\\', '/', $attachment->original_name)) ?: 'lampiran';
+        $safeAscii = preg_replace('/[^\x20-\x7E]/', '_', $rawFilename);
+        $safeAscii = str_replace(['"', "\r", "\n", '/', '\\', ':', '*', '?', '<', '>', '|'], '_', $safeAscii);
+        $safeAscii = preg_replace('/\s+/', ' ', trim($safeAscii));
+        $encodedFilename = rawurlencode($rawFilename);
+
+        $fileContent = $disk->get($attachment->storage_path);
+        $fileSize = strlen($fileContent);
 
         // Batas upload 20 MB; respons buffered lebih stabil saat diteruskan
         // oleh proxy Next.js dibanding stream PHP dari dev server.
         $headers = [
-            'Content-Disposition' => 'attachment; filename="'.addcslashes($filename, '\\"').'"',
-            'Content-Type' => $attachment->mime_type,
+            'Content-Disposition' => 'attachment; filename="'.$safeAscii.'"; filename*=UTF-8\'\''.$encodedFilename,
+            'Content-Type' => $attachment->mime_type ?: 'application/octet-stream',
+            'Content-Length' => (string) $fileSize,
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'private, no-store',
         ];
@@ -149,7 +165,7 @@ class EmployeeIncomingLetterController extends Controller
             $headers['Vary'] = 'Origin';
         }
 
-        return response($disk->get($attachment->storage_path), 200, $headers);
+        return response($fileContent, 200, $headers);
     }
 
     public function preview(EmployeeIncomingLetter $letter, EmployeeIncomingLetterAttachment $attachment): JsonResponse
@@ -267,7 +283,7 @@ class EmployeeIncomingLetterController extends Controller
                 'mime_type' => $attachment->mime_type,
                 'size' => $attachment->size,
                 'note' => $attachment->note,
-                'download_url' => "/api/kepegawaian/surat-masuk/{$letter->id}/attachments/{$attachment->id}/download",
+                'download_url' => "/api/kepegawaian/surat-masuk/{$letter->id}/attachments/{$attachment->id}/download/".rawurlencode($attachment->original_name ?: 'lampiran'),
                 'preview_url' => "/api/kepegawaian/surat-masuk/{$letter->id}/attachments/{$attachment->id}/preview",
             ])->values()->all(),
         ];

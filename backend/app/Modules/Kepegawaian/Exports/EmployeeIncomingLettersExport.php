@@ -35,6 +35,15 @@ class EmployeeIncomingLettersExport implements FromCollection, WithHeadings, Wit
         if (! empty($this->filters['kategori'])) {
             $query->where('kategori', $this->filters['kategori']);
         }
+        if (! empty($this->filters['status_balasan'])) {
+            if ($this->filters['status_balasan'] === 'replied') {
+                $query->whereNotNull('no_surat_balasan')->where('no_surat_balasan', '!=', '');
+            } elseif ($this->filters['status_balasan'] === 'pending') {
+                $query->where(function ($builder) {
+                    $builder->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
+                });
+            }
+        }
         if (! empty($this->filters['start_date'])) {
             $query->whereDate('tanggal_diterima', '>=', $this->filters['start_date']);
         }
