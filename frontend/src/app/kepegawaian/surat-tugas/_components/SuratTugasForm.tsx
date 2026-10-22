@@ -226,7 +226,9 @@ export function SuratTugasForm({
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["employees-select-form"],
     queryFn: async () => {
-      const res = await api.get("/kepegawaian/employees/select");
+      const res = await api.get("/kepegawaian/employees/select", {
+        params: { limit: 500 },
+      });
       return res.data.data || [];
     },
   });

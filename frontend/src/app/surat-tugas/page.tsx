@@ -28,18 +28,21 @@ export default function SuratTugasForm() {
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["all-employees-list"],
     queryFn: async () => {
-      const response = await api.get("/kepegawaian/employees/select");
-      return response.data.data || response.data;
+      const response = await api.get("/kepegawaian/employees/select", {
+        params: { limit: 500 },
+      });
+      return response.data.data || response.data || [];
     },
     staleTime: 5 * 60 * 1000,
   });
 
   const searchResults = allEmployees
-    .filter(
-      (emp: Employee) =>
-        emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (emp.nip && emp.nip.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
+    .filter((emp: Employee) => {
+      const name = emp.name || (emp as any).nama_lengkap || "";
+      const nip = emp.nip || "";
+      const q = searchQuery.toLowerCase();
+      return name.toLowerCase().includes(q) || nip.toLowerCase().includes(q);
+    })
     .slice(0, 50);
 
   const [formData, setFormData] = useState<SuratTugasFormData>({
@@ -65,11 +68,12 @@ export default function SuratTugasForm() {
   const plhDropdownRef = useRef<HTMLDivElement>(null);
 
   const plhSearchResults = allEmployees
-    .filter(
-      (emp: Employee) =>
-        emp.name.toLowerCase().includes(plhSearchQuery.toLowerCase()) ||
-        (emp.nip && emp.nip.toLowerCase().includes(plhSearchQuery.toLowerCase()))
-    )
+    .filter((emp: Employee) => {
+      const name = emp.name || (emp as any).nama_lengkap || "";
+      const nip = emp.nip || "";
+      const q = plhSearchQuery.toLowerCase();
+      return name.toLowerCase().includes(q) || nip.toLowerCase().includes(q);
+    })
     .slice(0, 50);
   const [tandaSetuju, setTandaSetuju] = useState<"sudah" | "belum" | "">("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

@@ -279,7 +279,7 @@ class EmployeeController extends Controller
             });
         }
 
-        $limit = min(200, max(1, $request->integer('limit', $request->integer('per_page', 50))));
+        $limit = min(200, max(1, $request->integer('limit', $request->integer('per_page', 200))));
 
         $employees = $query->orderBy('nama_lengkap', 'asc')
             ->limit($limit)

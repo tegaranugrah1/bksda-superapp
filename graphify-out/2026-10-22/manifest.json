@@ -25,8 +25,8 @@
     "semantic_hash": "bedad33fc7282b38fbf26d920744b93b"
   },
   "backend/app/Http/Middleware/CheckModuleAccess.php": {
-    "mtime": 1792373159.605749,
-    "ast_hash": "2b8d477306cceba314b10f0c353852ad",
+    "mtime": 1792658197.525877,
+    "ast_hash": "3b5936a2feb5f0e393c25be000d22bb6",
     "semantic_hash": ""
   },
   "backend/app/Http/Middleware/CheckPermission.php": {
@@ -6680,8 +6680,8 @@
     "semantic_hash": ""
   },
   "backend/tests/portal_security_check.php": {
-    "mtime": 1792569643.5170958,
-    "ast_hash": "882a59442cdb558a5a861feed96cf4ef",
+    "mtime": 1792658237.6558585,
+    "ast_hash": "126ea523ff27d51b266f5b1fa8be0629",
     "semantic_hash": ""
   },
   "skills-lock.json": {
@@ -6912,6 +6912,11 @@
   "backend/database/migrations/2026_10_22_000003_adjust_cpns_2025_leave_balances.php": {
     "mtime": 1792657531.2347364,
     "ast_hash": "50ad6a427576bc6d2223af229ee76881",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/KeuanganVisumTest.php": {
+    "mtime": 1792658219.1129932,
+    "ast_hash": "c3d0904e7243a70ee190c9aaa5864a8d",
     "semantic_hash": ""
   }
 }
