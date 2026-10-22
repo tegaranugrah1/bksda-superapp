@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Models\EmployeeLeave;
 use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
+use App\Modules\Surat\Models\SuratKeluar;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -287,7 +288,7 @@ class EmployeeLeaveRequestController extends Controller
      */
     public function adminIndex(Request $request): JsonResponse
     {
-        $query = EmployeeLeaveRequest::with('employee')
+        $query = EmployeeLeaveRequest::with(['employee', 'suratKeluar'])
             ->orderBy('tanggal_mulai', 'desc')
             ->orderBy('id', 'desc');
 
@@ -336,7 +337,7 @@ class EmployeeLeaveRequestController extends Controller
      */
     public function adminShow(int $id): JsonResponse
     {
-        $leaveReq = EmployeeLeaveRequest::with('employee')->findOrFail($id);
+        $leaveReq = EmployeeLeaveRequest::with(['employee', 'suratKeluar'])->findOrFail($id);
         return response()->json(['data' => $leaveReq]);
     }
 
@@ -400,11 +401,21 @@ class EmployeeLeaveRequestController extends Controller
                 }
             }
 
+            $catatanUpdate = $validated['catatan_atasan'] ?? $leaveReq->catatan_atasan;
+            if ($isNewApproved && empty($catatanUpdate)) {
+                $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
+                $leaveBalance = EmployeeLeave::where('employee_id', $leaveReq->employee_id)
+                    ->where('year', $year)
+                    ->first();
+                $sisaCutiTersedia = $leaveBalance ? $leaveBalance->sisa_cuti_tersedia : 12;
+                $catatanUpdate = "Sisa Cuti = {$sisaCutiTersedia} Hari";
+            }
+
             $leaveReq->update([
                 'status' => $newStatus,
                 'status_pertimbangan_atasan' => $newStatus,
                 'status_pertimbangan_pejabat' => $newStatus,
-                'catatan_atasan' => $validated['catatan_atasan'] ?? $leaveReq->catatan_atasan,
+                'catatan_atasan' => $catatanUpdate,
             ]);
 
             DB::commit();
@@ -939,5 +950,282 @@ class EmployeeLeaveRequestController extends Controller
             'nama' => 'M. ARI WIBAWANTO, S.Hut., M.Sc.',
             'nip' => '19740514 199903 1 001',
         ];
+    }
+
+    /**
+     * Preview Data & Suggested Auto Number for Surat Izin Cuti Resmi
+     */
+    public function previewSuratIzin(int $id): JsonResponse
+    {
+        $leaveReq = EmployeeLeaveRequest::with('employee')->findOrFail($id);
+
+        $currentYear = Carbon::now()->year;
+        $currentMonth = Carbon::now()->format('m');
+
+        // Check if there's already an existing nomor or SuratKeluar
+        $existingNomor = $leaveReq->nomor_pengajuan;
+        $suratKeluar = $leaveReq->surat_keluar_id ? SuratKeluar::find($leaveReq->surat_keluar_id) : null;
+        if ($suratKeluar && $suratKeluar->no_surat) {
+            $existingNomor = $suratKeluar->no_surat;
+        }
+
+        // Calculate next sequence for SI in this current year
+        $existingCount = DB::table('surat_keluar')
+            ->whereYear('tanggal_surat', $currentYear)
+            ->where(function ($q) {
+                $q->where('template_type', 'surat_izin_cuti')
+                  ->orWhere('no_surat', 'like', 'SI.%');
+            })
+            ->count();
+
+        $leaveCount = DB::table('kpg_employee_leave_requests')
+            ->whereYear('created_at', $currentYear)
+            ->where('nomor_pengajuan', 'like', 'SI.%')
+            ->where('id', '!=', $id)
+            ->count();
+
+        $seq = max($existingCount, $leaveCount) + 1;
+        $suggestedNomor = "SI.{$seq}/K.18/TU/PEG.11.01/B/{$currentMonth}/{$currentYear}";
+
+        $defaultComponents = [
+            'nomor_urut' => (string) $seq,
+            'kode_unit' => '/K.18/TU/',
+            'klasifikasi' => 'PEG.11.01',
+            'bulan_tahun' => "/B/{$currentMonth}/{$currentYear}",
+        ];
+
+        $activeComponents = $defaultComponents;
+        if ($existingNomor) {
+            if (preg_match('/^SI\.?\s*(\d*)\s*(\/[^\/]+\/[^\/]+\/)\s*([A-Za-z0-9\.]+)\s*(\/B\/[^\/]+\/[^\/]+)/i', $existingNomor, $m)) {
+                $activeComponents = [
+                    'nomor_urut' => $m[1],
+                    'kode_unit' => $m[2],
+                    'klasifikasi' => $m[3],
+                    'bulan_tahun' => $m[4],
+                ];
+            } elseif (preg_match('/^SI\.?\s*([^\/\s]+)\s*(\/[^\/]+\/[^\/]+\/)?\s*([A-Za-z0-9\.]+)?\s*(\/B\/.+)?/i', $existingNomor, $m)) {
+                $activeComponents = [
+                    'nomor_urut' => $m[1] ?: (string) $seq,
+                    'kode_unit' => $m[2] ?: '/K.18/TU/',
+                    'klasifikasi' => $m[3] ?: 'PEG.11.01',
+                    'bulan_tahun' => $m[4] ?: "/B/{$currentMonth}/{$currentYear}",
+                ];
+            }
+        }
+
+        $existingTanggalSurat = null;
+        if ($leaveReq->surat_keluar_id) {
+            $sk = SuratKeluar::find($leaveReq->surat_keluar_id);
+            if ($sk && $sk->tanggal_surat) {
+                $existingTanggalSurat = Carbon::parse($sk->tanggal_surat)->format('Y-m-d');
+            }
+        }
+
+        $kepalaBalai = $this->getKepalaBalai();
+        $terbilangHari = $this->terbilang((int) $leaveReq->jumlah_hari);
+
+        $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
+        $leaveBalance = EmployeeLeave::where('employee_id', $leaveReq->employee_id)
+            ->where('year', $year)
+            ->first();
+
+        $currentAvailable = $leaveBalance ? $leaveBalance->sisa_cuti_tersedia : 12;
+        $isTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
+        $isOldApproved = in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true);
+
+        // Jika belum disetujui dan cuti tahunan, sisa cuti setelah disetujui berkurang jumlah_hari
+        $sisaCutiSetelahDisetujui = ($isTahunan && !$isOldApproved)
+            ? max(0, $currentAvailable - (int) $leaveReq->jumlah_hari)
+            : $currentAvailable;
+
+        $defaultCatatan = "Sisa Cuti = {$sisaCutiSetelahDisetujui} Hari";
+
+        return response()->json([
+            'suggested_nomor' => $existingNomor ?: $suggestedNomor,
+            'default_nomor' => $suggestedNomor,
+            'suggested_tanggal_surat' => $existingTanggalSurat ?: Carbon::now()->format('Y-m-d'),
+            'default_catatan' => $defaultCatatan,
+            'sisa_cuti' => $sisaCutiSetelahDisetujui,
+            'components' => $activeComponents,
+            'default_components' => $defaultComponents,
+            'is_already_generated' => (bool) $leaveReq->surat_keluar_id,
+            'surat_keluar_id' => $leaveReq->surat_keluar_id,
+            'request' => $leaveReq,
+            'terbilang_hari' => $terbilangHari,
+            'kepala_balai' => $kepalaBalai,
+        ]);
+    }
+
+    /**
+     * Generate or Regenerate Surat Izin Cuti Resmi (SuratKeluar)
+     */
+    public function generateSuratIzin(Request $request, int $id): JsonResponse
+    {
+        $leaveReq = EmployeeLeaveRequest::with('employee')->findOrFail($id);
+
+        $validated = $request->validate([
+            'nomor_surat' => 'required|string|max:255',
+            'catatan_atasan' => 'nullable|string|max:1000',
+            'klasifikasi' => 'nullable|string|max:50',
+            'tanggal_surat' => 'nullable|date',
+        ]);
+
+        $nomorSurat = strip_tags(trim($validated['nomor_surat']));
+        $catatan = isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : $leaveReq->catatan_atasan;
+
+        DB::beginTransaction();
+        try {
+            $oldStatus = strtoupper($leaveReq->status);
+            $newStatus = 'DISETUJUI';
+            $isTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
+            $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
+
+            $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
+            $leaveBalance = EmployeeLeave::firstOrCreate(
+                ['employee_id' => $leaveReq->employee_id, 'year' => $year],
+                [
+                    'hak_cuti_n' => 12,
+                    'sisa_cuti_n1' => 0,
+                    'cuti_terpakai_n1' => 0,
+                    'sisa_cuti_n2' => 0,
+                    'cuti_terpakai_n2' => 0,
+                    'cuti_terpakai_n0' => 0,
+                ]
+            );
+
+            // If not already approved and is Cuti Tahunan, deduct quota
+            if ($isTahunan && !$isOldApproved) {
+                if ($leaveReq->jumlah_hari > $leaveBalance->sisa_cuti_tersedia) {
+                    DB::rollBack();
+                    return response()->json([
+                        'error' => 'Saldo cuti tidak mencukupi',
+                        'message' => "Sisa hak cuti pegawai hanya tersisa {$leaveBalance->sisa_cuti_tersedia} hari, tidak mencukupi untuk permohonan {$leaveReq->jumlah_hari} hari.",
+                    ], 422);
+                }
+                $leaveBalance->increment('cuti_terpakai_n0', $leaveReq->jumlah_hari);
+            }
+
+            // Hitung sisa cuti setelah disetujui untuk default catatan jika catatan kosong
+            $sisaCutiTersedia = $leaveBalance->fresh()->sisa_cuti_tersedia;
+            $fallbackCatatan = "Sisa Cuti = {$sisaCutiTersedia} Hari";
+
+            $inputCatatan = isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : null;
+            $existingCatatan = $leaveReq->catatan_atasan ? trim($leaveReq->catatan_atasan) : null;
+            $catatan = !empty($inputCatatan) ? $inputCatatan : (!empty($existingCatatan) ? $existingCatatan : $fallbackCatatan);
+
+            $kepalaBalai = $this->getKepalaBalai();
+            $terbilangHari = $this->terbilang((int) $leaveReq->jumlah_hari);
+
+            $tglSuratCarbon = !empty($validated['tanggal_surat'])
+                ? Carbon::parse($validated['tanggal_surat'])
+                : Carbon::now();
+
+            $tglMulaiFormatted = Carbon::parse($leaveReq->tanggal_mulai)->translatedFormat('d F Y');
+            $tglSelesaiFormatted = Carbon::parse($leaveReq->tanggal_selesai)->translatedFormat('d F Y');
+            $tglSuratFormatted = $tglSuratCarbon->translatedFormat('d F Y');
+
+            // Find Kepala Balai employee id for penandatangan_id if available
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $kbEmployee = Employee::where('jabatan', $likeOp, '%Kepala Balai%')
+                ->where('is_active', true)
+                ->first();
+
+            $payload = [
+                'templateType' => 'surat_izin_cuti',
+                'nomor' => $nomorSurat,
+                'kotaTanggal' => 'Samarinda, ' . $tglSuratFormatted,
+                'jenisCuti' => $leaveReq->jenis_cuti,
+                'jumlahHari' => $leaveReq->jumlah_hari,
+                'terbilangHari' => $terbilangHari,
+                'tanggalMulai' => $tglMulaiFormatted,
+                'tanggalSelesai' => $tglSelesaiFormatted,
+                'pegawai' => [
+                    'nama' => $leaveReq->employee ? $leaveReq->employee->nama_lengkap : '-',
+                    'nip' => $leaveReq->employee ? $leaveReq->employee->nip : '-',
+                    'pangkatGol' => $leaveReq->employee ? ($leaveReq->employee->pangkat_golongan ?? '-') : '-',
+                    'jabatan' => $leaveReq->employee ? ($leaveReq->employee->jabatan ?? '-') : '-',
+                    'satuanKerja' => 'Balai Konservasi Sumber Daya Alam Kalimantan Timur',
+                ],
+                'jabatanPenandatangan' => 'Kepala Balai,',
+                'namaPenandatangan' => $kepalaBalai['nama'],
+                'nipPenandatangan' => $kepalaBalai['nip'],
+                'paragraf' => [],
+                'tembusan' => [],
+            ];
+
+            // Create or update SuratKeluar
+            if ($leaveReq->surat_keluar_id) {
+                $suratKeluar = SuratKeluar::find($leaveReq->surat_keluar_id);
+            } else {
+                $suratKeluar = new SuratKeluar();
+            }
+
+            if (!$suratKeluar) {
+                $suratKeluar = new SuratKeluar();
+            }
+
+            $kodeKlasifikasi = !empty($validated['klasifikasi'])
+                ? strip_tags(trim($validated['klasifikasi']))
+                : 'PEG.11.01';
+
+            $suratKeluar->fill([
+                'no_surat' => $nomorSurat,
+                'kode_klasifikasi' => $kodeKlasifikasi,
+                'tanggal_surat' => $tglSuratCarbon->format('Y-m-d'),
+                'tujuan_surat' => $leaveReq->employee ? $leaveReq->employee->nama_lengkap : 'Pegawai Balai KSDA',
+                'perihal' => 'Surat Izin ' . $leaveReq->jenis_cuti . ' - ' . ($leaveReq->employee ? $leaveReq->employee->nama_lengkap : ''),
+                'sifat' => 'Biasa',
+                'template_type' => 'surat_izin_cuti',
+                'status' => 'signed',
+                'document_payload' => $payload,
+                'penandatangan_id' => $kbEmployee ? $kbEmployee->id : null,
+                'created_by' => Auth::id() ?: 1,
+            ]);
+            $suratKeluar->save();
+
+            // Update EmployeeLeaveRequest
+            $leaveReq->update([
+                'status' => $newStatus,
+                'status_pertimbangan_atasan' => $newStatus,
+                'status_pertimbangan_pejabat' => $newStatus,
+                'nomor_pengajuan' => $nomorSurat,
+                'surat_keluar_id' => $suratKeluar->id,
+                'catatan_atasan' => $catatan,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Surat Izin Cuti Resmi berhasil diterbitkan!',
+                'data' => $leaveReq->fresh(['employee', 'suratKeluar']),
+                'surat_keluar_id' => $suratKeluar->id,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Gagal menerbitkan surat izin cuti',
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Minimal Terbilang Helper (Indonesian Numbers)
+     */
+    private function terbilang(int $angka): string
+    {
+        $bilang = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+        if ($angka < 12) {
+            return $bilang[$angka] ?? (string) $angka;
+        } elseif ($angka < 20) {
+            return $this->terbilang($angka - 10) . ' belas';
+        } elseif ($angka < 100) {
+            return $this->terbilang((int) ($angka / 10)) . ' puluh' . ($angka % 10 ? ' ' . $this->terbilang($angka % 10) : '');
+        } elseif ($angka < 200) {
+            return 'seratus' . ($angka - 100 ? ' ' . $this->terbilang($angka - 100) : '');
+        } elseif ($angka < 1000) {
+            return $this->terbilang((int) ($angka / 100)) . ' ratus' . ($angka % 100 ? ' ' . $this->terbilang($angka % 100) : '');
+        }
+        return (string) $angka;
     }
 }

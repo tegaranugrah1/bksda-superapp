@@ -15,6 +15,7 @@ class EmployeeLeaveRequest extends Model
 
     protected $fillable = [
         'employee_id',
+        'surat_keluar_id',
         'nomor_pengajuan',
         'tanggal_pengajuan',
         'jenis_cuti',
@@ -60,5 +61,10 @@ class EmployeeLeaveRequest extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'employee_id');
+    }
+
+    public function suratKeluar(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Surat\Models\SuratKeluar::class, 'surat_keluar_id');
     }
 }

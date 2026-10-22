@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mail, Inbox, Send, Plus, Menu, FileText } from "lucide-react";
+import { Mail, Inbox, Send, Plus, Menu, FileText, Settings2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ const SIDEBAR_ITEMS = [
   { href: "/surat/masuk/create", label: "Input Surat Masuk (Disposisi)", icon: Plus },
   { href: "/surat/keluar", label: "Daftar Surat Keluar", icon: Send },
   { href: "/surat/keluar/dinas", label: "Tata Naskah Dinas", icon: FileText },
+  { href: "/surat/settings", label: "Pengaturan Template", icon: Settings2 },
 ];
 
 export default function SuratLayout({

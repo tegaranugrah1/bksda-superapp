@@ -103,6 +103,8 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::get('/leave-requests/{id}/scan', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminViewScan']);
         Route::get('/leave-requests/{id}/scan-formulir', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminViewScanFormulir']);
         Route::get('/leave-requests/{id}/scan-surat-izin', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'adminViewScanSuratIzin']);
+        Route::get('/leave-requests/{id}/preview-surat-izin', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'previewSuratIzin']);
+        Route::post('/leave-requests/{id}/generate-surat-izin', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'generateSuratIzin']);
     });
 
     // --- MANAJEMEN HAK AKSES (IAM) ---

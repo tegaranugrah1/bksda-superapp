@@ -187,6 +187,8 @@ function getComputedTujuan(tpl: TemplateType, d: SuratDinasData): string {
     case "surat_pernyataan":
     case "surat_izin":
       return `Keterangan: ${d.pegawaiDiterangkan?.nama || "Pegawai"}`;
+    case "surat_izin_cuti":
+      return `Izin Cuti: ${d.pegawai?.nama || d.pegawaiDiterangkan?.nama || "Pegawai"}`;
     case "berita_acara":
       return `Pihak II: ${d.pihakKedua?.nama || "Pihak Kedua"}`;
     case "surat_kuasa":
@@ -291,9 +293,16 @@ function GenerateSuratDinasContent() {
           setEditingSuratKeluarId(String(item.id));
           setEditingSuratKeluarStatus(item.status || "terdaftar");
           if (item.document_payload) {
-            setData(item.document_payload);
+            const loadedTemplate = (item.document_payload.templateType || item.template_type || templateParam) as TemplateType;
+            const defData = getDefaultDataForTemplate(loadedTemplate);
+            setData({
+              ...defData,
+              ...item.document_payload,
+              paragraf: Array.isArray(item.document_payload.paragraf) ? item.document_payload.paragraf : (defData.paragraf || []),
+              tembusan: Array.isArray(item.document_payload.tembusan) ? item.document_payload.tembusan : (defData.tembusan || []),
+            });
           } else {
-            const loadedTemplate = (item.template_type as TemplateType) || "surat_dinas";
+            const loadedTemplate = (item.template_type as TemplateType) || templateParam || "surat_dinas";
             const defData = getDefaultDataForTemplate(loadedTemplate);
             setData({
               ...defData,
@@ -303,6 +312,8 @@ function GenerateSuratDinasContent() {
               perihal: item.perihal || defData.perihal,
               tujuanKepada: item.tujuan_surat || defData.tujuanKepada,
               kotaTanggal: item.tanggal_surat ? formatIsoDateToIndo(item.tanggal_surat) : defData.kotaTanggal,
+              paragraf: defData.paragraf || [],
+              tembusan: defData.tembusan || [],
             });
           }
           toast.info(`Memuat Surat Keluar: ${item.no_surat}`);
@@ -351,7 +362,7 @@ function GenerateSuratDinasContent() {
   // Paragraph management: Penutup is ALWAYS the last paragraph
   const handleAddParagraph = () => {
     setData((prev) => {
-      const list = [...prev.paragraf];
+      const list = [...(prev.paragraf || [])];
       const insertAt = Math.max(0, list.length - 1);
       list.splice(insertAt, 0, "");
       return { ...prev, paragraf: list };
@@ -359,16 +370,19 @@ function GenerateSuratDinasContent() {
   };
 
   const handleRemoveParagraph = (index: number) => {
-    setData((prev) => ({
-      ...prev,
-      paragraf: prev.paragraf.length > 1 ? prev.paragraf.filter((_, i) => i !== index) : prev.paragraf,
-    }));
+    setData((prev) => {
+      const p = prev.paragraf || [];
+      return {
+        ...prev,
+        paragraf: p.length > 1 ? p.filter((_, i) => i !== index) : p,
+      };
+    });
   };
 
   const handleParagraphChange = (index: number, val: string) => {
     setData((prev) => ({
       ...prev,
-      paragraf: prev.paragraf.map((p, i) => (i === index ? val : p)),
+      paragraf: (prev.paragraf || []).map((p, i) => (i === index ? val : p)),
     }));
   };
 
@@ -415,7 +429,7 @@ function GenerateSuratDinasContent() {
     setData((prev) => ({
       ...prev,
       tembusan: [
-        ...prev.tembusan,
+        ...(prev.tembusan || []),
         { id: Date.now().toString(), text: "" },
       ],
     }));
@@ -424,14 +438,14 @@ function GenerateSuratDinasContent() {
   const handleRemoveTembusan = (id: string) => {
     setData((prev) => ({
       ...prev,
-      tembusan: prev.tembusan.filter((t) => t.id !== id),
+      tembusan: (prev.tembusan || []).filter((t) => t.id !== id),
     }));
   };
 
   const handleTembusanChange = (id: string, text: string) => {
     setData((prev) => ({
       ...prev,
-      tembusan: prev.tembusan.map((t) => (t.id === id ? { ...t, text } : t)),
+      tembusan: (prev.tembusan || []).map((t) => (t.id === id ? { ...t, text } : t)),
     }));
   };
 
@@ -1124,16 +1138,90 @@ function GenerateSuratDinasContent() {
                   </div>
                 </>
               )}
+              {/* SURAT IZIN CUTI RESMI */}
+              {activeTemplate === "surat_izin_cuti" && (
+                <div className="space-y-3">
+                  <PartySelectorBlock
+                    label="Pegawai Yang Diberikan Izin Cuti"
+                    party={data.pegawai as PersonItem}
+                    onChange={(p) => updateField("pegawai", p)}
+                    employeeOptions={employeeOptions}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Jenis Cuti</label>
+                      <Input
+                        value={data.jenisCuti || ""}
+                        onChange={(e) => updateField("jenisCuti", e.target.value)}
+                        placeholder="Contoh: Alasan Penting / Tahunan"
+                        className="mt-1 text-xs font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Jumlah Hari</label>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <Input
+                          type="number"
+                          value={data.jumlahHari ?? ""}
+                          onChange={(e) => updateField("jumlahHari", Number(e.target.value))}
+                          placeholder="5"
+                          className="text-xs"
+                        />
+                        <Input
+                          value={data.terbilangHari || ""}
+                          onChange={(e) => updateField("terbilangHari", e.target.value)}
+                          placeholder="lima"
+                          className="text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Mulai Cuti</label>
+                      <Input
+                        value={data.tanggalMulai || ""}
+                        onChange={(e) => updateField("tanggalMulai", e.target.value)}
+                        placeholder="Contoh: 22 Oktober 2026"
+                        className="mt-1 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Selesai Cuti</label>
+                      <Input
+                        value={data.tanggalSelesai || ""}
+                        onChange={(e) => updateField("tanggalSelesai", e.target.value)}
+                        placeholder="Contoh: 28 Oktober 2026"
+                        className="mt-1 text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Satuan Kerja</label>
+                    <Input
+                      value={data.pegawai?.satuanKerja || (data.pegawai as any)?.unit || ""}
+                      onChange={(e) =>
+                        updateField("pegawai", {
+                          ...(data.pegawai || {}),
+                          satuanKerja: e.target.value,
+                        })
+                      }
+                      placeholder="Balai Konservasi Sumber Daya Alam Kalimantan Timur"
+                      className="mt-1 text-xs"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Card 3: Paragraf Isi */}
-          {activeTemplate !== "surat_pengantar" && (
+          {activeTemplate !== "surat_pengantar" && activeTemplate !== "surat_izin_cuti" && (
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-3">
               <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
                   <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
-                  3. Batang Tubuh / Isi ({data.paragraf.length} Paragraf)
+                  3. Batang Tubuh / Isi ({(data.paragraf || []).length} Paragraf)
                 </h2>
                 <Button
                   variant="ghost"
@@ -1147,8 +1235,9 @@ function GenerateSuratDinasContent() {
               </div>
 
               <div className="space-y-3 text-xs">
-                {data.paragraf.map((pText, idx) => {
-                  const isPenutup = idx === data.paragraf.length - 1;
+                {(data.paragraf || []).map((pText, idx) => {
+                  const pList = data.paragraf || [];
+                  const isPenutup = idx === pList.length - 1;
                   const isPembuka = idx === 0;
                   return (
                     <div
@@ -1178,7 +1267,7 @@ function GenerateSuratDinasContent() {
                             </Badge>
                           )}
                         </div>
-                        {!isPenutup && data.paragraf.length > 1 && (
+                        {!isPenutup && pList.length > 1 && (
                           <button
                             type="button"
                             onClick={() => handleRemoveParagraph(idx)}
@@ -1462,7 +1551,7 @@ function GenerateSuratDinasContent() {
               <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-zinc-400" />
-                  5. Tembusan ({data.tembusan.length})
+                  5. Tembusan ({(data.tembusan || []).length})
                 </h2>
                 <Button
                   variant="ghost"
@@ -1476,9 +1565,9 @@ function GenerateSuratDinasContent() {
               </div>
 
               <div className="space-y-2">
-                {data.tembusan.map((t, i) => (
+                {(data.tembusan || []).map((t, i) => (
                   <div key={t.id || i} className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-400 w-4">{data.tembusan.length > 1 ? `${i + 1}.` : ""}</span>
+                    <span className="text-xs font-bold text-zinc-400 w-4">{(data.tembusan || []).length > 1 ? `${i + 1}.` : ""}</span>
                     <Input
                       value={t.text}
                       onChange={(e) => handleTembusanChange(t.id, e.target.value)}

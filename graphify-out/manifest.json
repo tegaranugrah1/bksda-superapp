@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1792630809.5633595,
-    "ast_hash": "db48e00bbc4cc421a03b5a0f7570d0b7",
+    "mtime": 1792656529.794922,
+    "ast_hash": "8b813247e96cb846a71855bd2b78075f",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
@@ -1030,8 +1030,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeLeaveRequest.php": {
-    "mtime": 1792565610.4160085,
-    "ast_hash": "6e6dee24465e090d1058d32d86c510b9",
+    "mtime": 1792646988.565391,
+    "ast_hash": "3e122a2ed7c3dc6d1c4a3901a07cc22f",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Providers/KepegawaianServiceProvider.php": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": "5bd4c2137164ae6a608e632a9b5d01be"
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1792569632.3106935,
-    "ast_hash": "68a70f8fa42eb5f789d065ed9a2f44c3",
+    "mtime": 1792647346.7923627,
+    "ast_hash": "37f8590188ff6535a89c5ec78d1f30bf",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": "11207a7d3f75372f91abff8f25402708"
   },
   "backend/app/Modules/Surat/Routes/api.php": {
-    "mtime": 1788917877.6821334,
-    "ast_hash": "4172a1927677f4bc9be2ca64fdd40a0c",
+    "mtime": 1792647063.8627298,
+    "ast_hash": "9e8698e21713d417869128e0e4d036e2",
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/SuratServiceProvider.php": {
@@ -2335,8 +2335,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/page.tsx": {
-    "mtime": 1792634484.8230443,
-    "ast_hash": "495ad3c25992fa31683aa6bd69dd3755",
+    "mtime": 1792656079.5115182,
+    "ast_hash": "35da879311d9db2e6c35957f3aedd3ff",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
@@ -2485,8 +2485,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1792467975.7999136,
-    "ast_hash": "06ffd65ccfca8be82aa6f27634e83d5d",
+    "mtime": 1792656120.2623038,
+    "ast_hash": "5a75acfc72482d8b018c2b1b2493c1b6",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -2540,8 +2540,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/layout.tsx": {
-    "mtime": 1790324134.9521978,
-    "ast_hash": "1796d0f49c708372a6041cc740e7ed0b",
+    "mtime": 1792647886.2174494,
+    "ast_hash": "712a33f2c8e13ad7603337bc5a0e3905",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/masuk/create/page.tsx": {
@@ -5505,8 +5505,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/_components/CutiModals.tsx": {
-    "mtime": 1792634074.8280547,
-    "ast_hash": "d238b3b5be3f95959c8904dba8d63a4d",
+    "mtime": 1792656568.3453488,
+    "ast_hash": "51004958c8b99da9dfd20eb242876808",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyAssetsTab.tsx": {
@@ -6385,13 +6385,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratDinasDocument.tsx": {
-    "mtime": 1790669478.359443,
-    "ast_hash": "6e9218b2243a45accc261fd4591c866f",
+    "mtime": 1792653820.402974,
+    "ast_hash": "ce1630f1faad2c25e436fa4ea6951297",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
-    "mtime": 1790669478.3604453,
-    "ast_hash": "b0b6b194c26e2c862e1c36dd667a9d85",
+    "mtime": 1792653091.6530852,
+    "ast_hash": "a627ca24bbb6c35c640a30baaf6f9f27",
     "semantic_hash": ""
   },
   "tatanaskahdinas.md": {
@@ -6400,8 +6400,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/TemplatePickerModal.tsx": {
-    "mtime": 1790324134.9491973,
-    "ast_hash": "3ddf3b21c14611ca77317748628eb6e1",
+    "mtime": 1792650294.0170255,
+    "ast_hash": "f6217bd0b2998d1c05bc771af1c82a68",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Migrations/2026_09_29_160000_fix_bmn_auction_batch_columns_type.php": {
@@ -6872,6 +6872,41 @@
   "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx": {
     "mtime": 1792636874.846956,
     "ast_hash": "475f507541bc6a28433e7bfe91d1967e",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/Surat/Controllers/SuratTemplateController.php": {
+    "mtime": 1792647040.805267,
+    "ast_hash": "693204382331730fea68207f120a730c",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/Surat/Models/SuratTemplate.php": {
+    "mtime": 1792646963.5012577,
+    "ast_hash": "294211c921fb8ee112866bdd525c5e99",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_22_000001_create_surat_templates_table.php": {
+    "mtime": 1792646936.462139,
+    "ast_hash": "eb5fab7aeb9540c11d9f53585bee4f2d",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_22_000002_add_surat_keluar_id_to_kpg_employee_leave_requests.php": {
+    "mtime": 1792646945.8547096,
+    "ast_hash": "a18cf163761a9628e6f1880da8e3d6bf",
+    "semantic_hash": ""
+  },
+  "backend/database/seeders/SuratTemplateSeeder.php": {
+    "mtime": 1792647014.9435802,
+    "ast_hash": "31ef8d41eeda5bb0f4a4407d1bc8163f",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/kepegawaian/cuti/_components/DigitalSuratIzinModal.tsx": {
+    "mtime": 1792652483.4826689,
+    "ast_hash": "2edc2e245e51f44801ee3251d4e0184a",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/surat/settings/page.tsx": {
+    "mtime": 1792647943.5395243,
+    "ast_hash": "867b607c9c54c19e299df0b5aab45c78",
     "semantic_hash": ""
   }
 }

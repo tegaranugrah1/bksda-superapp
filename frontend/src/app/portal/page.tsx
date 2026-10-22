@@ -338,10 +338,50 @@ function PortalContent() {
     };
   }, [printLeaveData]);
 
+  // Status change tracker & toast notification for leave requests
+  const prevLeaveStatusesRef = useRef<Map<number, string>>(new Map());
+  const isFirstLeaveLoadRef = useRef(true);
+
   const fetchMyLeaveRequests = useCallback(async () => {
     try {
       const res = await api.get("/me/leave-requests");
-      setMyLeaveRequests(res.data.data || []);
+      const list: LeaveRequestPrintData[] = res.data.data || [];
+      setMyLeaveRequests(list);
+
+      // Deteksi perubahan status cuti & tampilkan notifikasi toast otomatis
+      if (!isFirstLeaveLoadRef.current) {
+        list.forEach((item) => {
+          if (!item.id) return;
+          const prevStatus = prevLeaveStatusesRef.current.get(item.id);
+          const currentStatus = (item.status || "").toUpperCase();
+
+          if (prevStatus && prevStatus !== currentStatus) {
+            if (currentStatus === "DISETUJUI") {
+              toast.success("Permohonan Cuti Disetujui! 🎉", {
+                description: `Pengajuan ${item.jenis_cuti || "Cuti"} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.`,
+                duration: 7000,
+              });
+            } else if (currentStatus === "PENGAJUAN") {
+              toast.info("Status Permohonan Cuti", {
+                description: `Pengajuan ${item.jenis_cuti || "Cuti"} Anda dikembalikan ke status Pengajuan.`,
+                duration: 5000,
+              });
+            }
+          }
+        });
+      }
+
+      // Perbarui map snapshot status
+      const newMap = new Map<number, string>();
+      list.forEach((item) => {
+        if (item.id) {
+          newMap.set(item.id, (item.status || "").toUpperCase());
+        }
+      });
+      prevLeaveStatusesRef.current = newMap;
+      isFirstLeaveLoadRef.current = false;
+
+      // Update saldo cuti
       const balRes = await api.get(`/me/leave-balance?year=${currentYear}`);
       setMyLeaveBalance(balRes.data.data);
     } catch (e) {}
@@ -430,6 +470,44 @@ function PortalContent() {
       document.removeEventListener("visibilitychange", handleFocus);
     };
   }, []);
+
+  // Cek apakah ada pengajuan cuti yang masih menunggu persetujuan (status: Pengajuan)
+  const hasPendingLeave = useMemo(() => {
+    return myLeaveRequests.some(
+      (r) => (r.status || "").toUpperCase() === "PENGAJUAN"
+    );
+  }, [myLeaveRequests]);
+
+  // Smart Polling (15s): Hanya aktif jika ada pengajuan cuti berstatus 'Pengajuan' dan tab browser sedang aktif
+  // Mencegah request berulang yang tidak perlu ke server jika semua pengajuan sudah selesai
+  useEffect(() => {
+    if (!hasPendingLeave) return;
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchMyLeaveRequests();
+      }
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [hasPendingLeave, fetchMyLeaveRequests]);
+
+  // Instant Cross-Tab Sync via BroadcastChannel (0ms latency, 0 beban server)
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof BroadcastChannel === "undefined") return;
+
+    const channel = new BroadcastChannel("bksda_leave_sync");
+    channel.onmessage = (event) => {
+      if (event.data?.type === "LEAVE_STATUS_CHANGED") {
+        fetchMyLeaveRequests();
+        fetchDashboard();
+      }
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [fetchMyLeaveRequests, fetchDashboard]);
 
   const handleLogout = async () => {
     try {
