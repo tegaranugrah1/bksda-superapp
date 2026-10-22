@@ -1222,7 +1222,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-blue-500" />
-                    1. Scan Formulir Cuti (TTD Fisik & Cap)
+                    1. Scan Surat Pengantar dan Formulir Cuti (TTD & Cap)
                   </label>
                   <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-medium">
                     Opsional

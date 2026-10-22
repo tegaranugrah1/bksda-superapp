@@ -413,7 +413,7 @@ export function ApproveLeaveModal({
             <div className="flex items-center justify-between">
               <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-blue-500" />
-                1. Scan Formulir Cuti (TTD Fisik & Cap)
+                1. Scan Surat Pengantar dan Formulir Cuti (TTD & Cap)
               </label>
               <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full font-medium">
                 Opsional
@@ -626,7 +626,7 @@ export function UploadScanModal({
             <div className="flex items-center justify-between">
               <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-blue-500" />
-                1. Scan Formulir Cuti (TTD & Cap)
+                1. Scan Surat Pengantar dan Formulir Cuti (TTD & Cap)
               </label>
               {item.scan_formulir_nama ? (
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
