@@ -430,9 +430,9 @@ class EmployeeLeaveRequestController extends Controller
         $leaveReq = EmployeeLeaveRequest::findOrFail($id);
 
         $validated = $request->validate([
-            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
+            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
             'nomor_surat' => 'nullable|string|max:255',
             'catatan_atasan' => 'nullable|string|max:1000',
         ]);
@@ -489,7 +489,7 @@ class EmployeeLeaveRequestController extends Controller
                     Storage::disk('local')->delete($leaveReq->scan_formulir_path);
                 }
                 $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
-                $updateData['scan_formulir_nama'] = $fileFormulir->getClientOriginalName();
+                $updateData['scan_formulir_nama'] = basename(str_replace('\\', '/', $fileFormulir->getClientOriginalName()));
                 $hasUploaded = true;
             }
 
@@ -503,9 +503,9 @@ class EmployeeLeaveRequestController extends Controller
                 }
                 $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
                 $updateData['scan_surat_izin_path'] = $path;
-                $updateData['scan_surat_izin_nama'] = $suratIzinFile->getClientOriginalName();
+                $updateData['scan_surat_izin_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
                 $updateData['scan_surat_path'] = $path;
-                $updateData['scan_surat_nama'] = $suratIzinFile->getClientOriginalName();
+                $updateData['scan_surat_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
                 $hasUploaded = true;
             }
 
@@ -539,9 +539,9 @@ class EmployeeLeaveRequestController extends Controller
         $leaveReq = EmployeeLeaveRequest::findOrFail($id);
 
         $request->validate([
-            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
+            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         if (!$request->hasFile('file_scan_formulir') && !$request->hasFile('file_scan_surat_izin') && !$request->hasFile('file_scan')) {
@@ -556,7 +556,7 @@ class EmployeeLeaveRequestController extends Controller
                     Storage::disk('local')->delete($leaveReq->scan_formulir_path);
                 }
                 $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
-                $updateData['scan_formulir_nama'] = $fileFormulir->getClientOriginalName();
+                $updateData['scan_formulir_nama'] = basename(str_replace('\\', '/', $fileFormulir->getClientOriginalName()));
             }
 
             $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
@@ -569,9 +569,9 @@ class EmployeeLeaveRequestController extends Controller
                 }
                 $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
                 $updateData['scan_surat_izin_path'] = $path;
-                $updateData['scan_surat_izin_nama'] = $suratIzinFile->getClientOriginalName();
+                $updateData['scan_surat_izin_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
                 $updateData['scan_surat_path'] = $path;
-                $updateData['scan_surat_nama'] = $suratIzinFile->getClientOriginalName();
+                $updateData['scan_surat_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
             }
 
             $updateData['scan_surat_uploaded_at'] = Carbon::now();
@@ -592,7 +592,6 @@ class EmployeeLeaveRequestController extends Controller
     }
 
     /**
-    /**
      * Helper to return file response (inline/preview JSON base64 or binary stream)
      */
     private function respondScanFile(?Request $request, string $path, string $nama)
@@ -604,18 +603,24 @@ class EmployeeLeaveRequestController extends Controller
 
         $request = $request ?: request();
 
+        $safeName = basename(str_replace('\\', '/', $nama));
+        $safeName = preg_replace('/[^\x20-\x7E]/', '_', $safeName);
+        $safeName = str_replace(['"', "\r", "\n", '/', '\\', ';'], '_', $safeName);
+        $safeName = trim($safeName) ?: 'berkas_cuti.pdf';
+
         // Mode pratinjau (JSON base64 data_url) - mencegah download otomatis & hook IDM
         if ($request && ($request->query('preview') || $request->wantsJson())) {
             $mime = $disk->mimeType($path) ?: 'application/pdf';
             return response()->json([
                 'mime_type' => $mime,
-                'file_name' => $nama,
+                'file_name' => $safeName,
                 'data_url' => "data:{$mime};base64," . base64_encode($disk->get($path)),
             ], 200, ['Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0']);
         }
 
-        return $disk->response($path, $nama, [
-            'Content-Disposition' => 'inline; filename="' . addslashes($nama) . '"',
+        return $disk->response($path, $safeName, [
+            'Content-Disposition' => 'inline; filename="' . $safeName . '"',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 

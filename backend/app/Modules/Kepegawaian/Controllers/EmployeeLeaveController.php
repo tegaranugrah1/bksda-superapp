@@ -154,9 +154,9 @@ class EmployeeLeaveController extends Controller
             'telepon' => 'nullable|string|max:50',
             'catatan_atasan' => 'nullable|string|max:500',
             'status' => 'nullable|string|in:DISETUJUI,APPROVED,PENGAJUAN,DITOLAK',
-            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
+            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $status = strtoupper($validated['status'] ?? 'DISETUJUI');
@@ -171,13 +171,13 @@ class EmployeeLeaveController extends Controller
             if ($request->hasFile('file_scan_formulir')) {
                 $f = $request->file('file_scan_formulir');
                 $scanFormulirPath = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
-                $scanFormulirNama = $f->getClientOriginalName();
+                $scanFormulirNama = basename(str_replace('\\', '/', $f->getClientOriginalName()));
             }
 
             $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
             if ($suratIzinFile) {
                 $scanSuratIzinPath = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
-                $scanSuratIzinNama = $suratIzinFile->getClientOriginalName();
+                $scanSuratIzinNama = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
             }
 
             $hasUploaded = $scanFormulirPath || $scanSuratIzinPath;
@@ -268,9 +268,9 @@ class EmployeeLeaveController extends Controller
             'telepon' => 'nullable|string|max:50',
             'catatan_atasan' => 'nullable|string|max:500',
             'status' => 'nullable|string|in:DISETUJUI,APPROVED,PENGAJUAN,DITOLAK',
-            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
+            'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
+            'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $status = strtoupper($validated['status'] ?? $leaveReq->status);
@@ -302,7 +302,7 @@ class EmployeeLeaveController extends Controller
                     Storage::disk('local')->delete($leaveReq->scan_formulir_path);
                 }
                 $updatePayload['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
-                $updatePayload['scan_formulir_nama'] = $f->getClientOriginalName();
+                $updatePayload['scan_formulir_nama'] = basename(str_replace('\\', '/', $f->getClientOriginalName()));
                 $hasUploaded = true;
             }
 
@@ -316,9 +316,9 @@ class EmployeeLeaveController extends Controller
                 }
                 $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
                 $updatePayload['scan_surat_izin_path'] = $path;
-                $updatePayload['scan_surat_izin_nama'] = $suratIzinFile->getClientOriginalName();
+                $updatePayload['scan_surat_izin_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
                 $updatePayload['scan_surat_path'] = $path;
-                $updatePayload['scan_surat_nama'] = $suratIzinFile->getClientOriginalName();
+                $updatePayload['scan_surat_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
                 $hasUploaded = true;
             }
 

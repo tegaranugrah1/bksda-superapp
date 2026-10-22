@@ -33,7 +33,7 @@ class LeaveTypeController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = strip_tags(trim((string) $request->query('search')));
+            $search = addcslashes(strip_tags(trim((string) $request->query('search'))), '%_');
             $likeOp = config('database.default') === 'pgsql' ? 'ILIKE' : 'LIKE';
             $query->where(function ($q) use ($search, $likeOp) {
                 $q->where('nama', $likeOp, "%{$search}%")
