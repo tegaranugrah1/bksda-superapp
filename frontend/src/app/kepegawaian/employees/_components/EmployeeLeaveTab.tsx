@@ -22,7 +22,6 @@ import {
   SlidersHorizontal,
   FileCheck,
   FileUp,
-  UploadCloud,
   ChevronDown,
   MoreHorizontal,
 } from "lucide-react";
@@ -310,9 +309,39 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     },
   });
 
+  const handleFileValidate = (f: File | null) => {
+    if (!f) return false;
+    if (f.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran berkas maksimal 10MB");
+      return false;
+    }
+    const validExts = ["pdf", "jpg", "jpeg", "png"];
+    const ext = f.name.split(".").pop()?.toLowerCase();
+    if (!ext || !validExts.includes(ext)) {
+      toast.error("Format berkas harus PDF, JPG, atau PNG");
+      return false;
+    }
+    return true;
+  };
+
   // Mutation: Save/Update Official Leave Record (SI / ST) with Optional Scan
   const saveRecordMutation = useMutation({
     mutationFn: async () => {
+      if (!recordForm.nomor_pengajuan.trim()) {
+        toast.error("Nomor surat persetujuan (SI / ST) wajib diisi.");
+        throw new Error("Nomor surat wajib diisi");
+      }
+      if (!recordForm.tanggal_mulai || !recordForm.tanggal_selesai) {
+        toast.error("Rentang tanggal cuti wajib diisi.");
+        throw new Error("Tanggal cuti wajib diisi");
+      }
+      const startYear = parseInt(recordForm.tanggal_mulai.slice(0, 4), 10);
+      const endYear = parseInt(recordForm.tanggal_selesai.slice(0, 4), 10);
+      if (startYear !== endYear) {
+        toast.error("Pengajuan cuti tidak boleh lintas tahun kalender (PerBKN 24/2017).");
+        throw new Error("Lintas tahun kalender tidak diperbolehkan");
+      }
+
       const formData = new FormData();
       formData.append("nomor_pengajuan", recordForm.nomor_pengajuan);
       formData.append("tanggal_pengajuan", recordForm.tanggal_pengajuan);
@@ -1251,12 +1280,11 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => {
                       const f = e.target.files?.[0] || null;
-                      if (f && f.size > 10 * 1024 * 1024) {
-                        alert("Ukuran berkas maksimal 10MB");
+                      if (handleFileValidate(f)) {
+                        setFileScanFormulir(f);
+                      } else {
                         e.target.value = "";
-                        return;
                       }
-                      setFileScanFormulir(f);
                     }}
                     className="hidden"
                   />
@@ -1316,12 +1344,11 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => {
                       const f = e.target.files?.[0] || null;
-                      if (f && f.size > 10 * 1024 * 1024) {
-                        alert("Ukuran berkas maksimal 10MB");
+                      if (handleFileValidate(f)) {
+                        setFileScanSuratIzin(f);
+                      } else {
                         e.target.value = "";
-                        return;
                       }
-                      setFileScanSuratIzin(f);
                     }}
                     className="hidden"
                   />

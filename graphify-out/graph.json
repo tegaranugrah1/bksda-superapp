@@ -5599,7 +5599,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_asset_asset_booted",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": ".booted()"
     },
     {
@@ -9360,8 +9360,8 @@
       "source_location": "L366",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_public_publiccontroller_publiccontroller_posterindex",
-      "community": 479,
-      "community_name": "Poster",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".posterindex()"
     },
     {
@@ -9779,7 +9779,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_leaflet_leaflet_booted",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": ".booted()"
     },
     {
@@ -9790,7 +9790,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_leaflet_leaflet_boot",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": ".boot()"
     },
     {
@@ -9856,7 +9856,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_menu_menu_parent",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": ".parent()"
     },
     {
@@ -9943,8 +9943,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_poster_poster",
-      "community": 479,
-      "community_name": "Poster",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "poster"
     },
     {
@@ -9954,8 +9954,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_poster_poster_booted",
-      "community": 479,
-      "community_name": "Poster",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".booted()"
     },
     {
@@ -9966,7 +9966,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_poster_poster_boot",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": ".boot()"
     },
     {
@@ -9976,8 +9976,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_poster_poster_jenis",
-      "community": 479,
-      "community_name": "Poster",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".jenis()"
     },
     {
@@ -11835,8 +11835,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_itemcontroller",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
+      "community": 477,
+      "community_name": "User.php",
       "norm_label": "itemcontroller.php"
     },
     {
@@ -12198,8 +12198,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_imports_itemimport_itemimport_construct",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 76,
+      "community_name": "AssetStagingImport",
       "norm_label": ".__construct()"
     },
     {
@@ -12209,8 +12209,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_imports_itemimport_itemimport_model",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 76,
+      "community_name": "AssetStagingImport",
       "norm_label": ".model()"
     },
     {
@@ -12440,8 +12440,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_category",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "inventory/models/category.php"
     },
     {
@@ -12451,8 +12451,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_category_category",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 76,
+      "community_name": "AssetStagingImport",
       "norm_label": "category"
     },
     {
@@ -12462,8 +12462,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_category_category_items",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".items()"
     },
     {
@@ -14069,7 +14069,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_booted",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": ".booted()"
     },
     {
@@ -17258,8 +17258,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratdisposisi",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "suratdisposisi.php"
     },
     {
@@ -17269,8 +17269,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratdisposisi_suratdisposisi",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "suratdisposisi"
     },
     {
@@ -17280,8 +17280,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratdisposisi_suratdisposisi_suratmasuk",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".suratmasuk()"
     },
     {
@@ -17291,8 +17291,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratdisposisi_suratdisposisi_kasubbagtu",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".kasubbagtu()"
     },
     {
@@ -17302,8 +17302,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratdisposisi_suratdisposisi_kepalabalai",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".kepalabalai()"
     },
     {
@@ -17687,8 +17687,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice",
-      "community": 598,
-      "community_name": "SupabaseStorageService",
+      "community": 44,
+      "community_name": "Closure",
       "norm_label": "supabasestorageservice.php"
     },
     {
@@ -17698,8 +17698,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice",
-      "community": 598,
-      "community_name": "SupabaseStorageService",
+      "community": 44,
+      "community_name": "Closure",
       "norm_label": "supabasestorageservice"
     },
     {
@@ -17709,8 +17709,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice_construct",
-      "community": 598,
-      "community_name": "SupabaseStorageService",
+      "community": 44,
+      "community_name": "Closure",
       "norm_label": ".__construct()"
     },
     {
@@ -17720,8 +17720,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice_upload",
-      "community": 598,
-      "community_name": "SupabaseStorageService",
+      "community": 44,
+      "community_name": "Closure",
       "norm_label": ".upload()"
     },
     {
@@ -17731,8 +17731,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice_delete",
-      "community": 598,
-      "community_name": "SupabaseStorageService",
+      "community": 44,
+      "community_name": "Closure",
       "norm_label": ".delete()"
     },
     {
@@ -17742,8 +17742,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice_publicurl",
-      "community": 598,
-      "community_name": "SupabaseStorageService",
+      "community": 44,
+      "community_name": "Closure",
       "norm_label": ".publicurl()"
     },
     {
@@ -17753,8 +17753,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules",
-      "community": 35,
-      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
+      "community": 477,
+      "community_name": "User.php",
       "norm_label": "uploadvalidationrules.php"
     },
     {
@@ -17918,8 +17918,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "backend_composer_keywords",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 698,
+      "community_name": "keywords",
       "norm_label": "keywords"
     },
     {
@@ -17929,8 +17929,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_laravel",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 698,
+      "community_name": "keywords",
       "norm_label": "laravel"
     },
     {
@@ -17940,8 +17940,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "ref_framework",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 698,
+      "community_name": "keywords",
       "norm_label": "framework"
     },
     {
@@ -18512,8 +18512,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "backend_composer_scripts_post_create_project_cmd",
-      "community": 522,
-      "community_name": "scripts",
+      "community": 598,
+      "community_name": "post-create-project-cmd",
       "norm_label": "post-create-project-cmd"
     },
     {
@@ -18523,8 +18523,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_artisan_key_generate_ansi",
-      "community": 522,
-      "community_name": "scripts",
+      "community": 598,
+      "community_name": "post-create-project-cmd",
       "norm_label": "@php artisan key:generate --ansi"
     },
     {
@@ -18534,8 +18534,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_r_file_exists_database_database_sqlite_touch_database_database_sqlite",
-      "community": 522,
-      "community_name": "scripts",
+      "community": 598,
+      "community_name": "post-create-project-cmd",
       "norm_label": "@php -r \\\"file_exists('database/database.sqlite') || touch('database/database.sqlite');\\"
     },
     {
@@ -18545,8 +18545,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "ref_php_artisan_migrate_graceful_ansi",
-      "community": 522,
-      "community_name": "scripts",
+      "community": 598,
+      "community_name": "post-create-project-cmd",
       "norm_label": "@php artisan migrate --graceful --ansi"
     },
     {
@@ -18578,8 +18578,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_composer_extra",
-      "community": 661,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "extra"
     },
     {
@@ -18589,8 +18589,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_composer_extra_laravel",
-      "community": 661,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "laravel"
     },
     {
@@ -18600,8 +18600,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_composer_laravel_dont_discover",
-      "community": 661,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "dont-discover"
     },
     {
@@ -18843,7 +18843,7 @@
       "_origin": "ast",
       "id": "backend_database_factories_userfactory",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": "userfactory.php"
     },
     {
@@ -18854,7 +18854,7 @@
       "_origin": "ast",
       "id": "backend_database_factories_userfactory_userfactory",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": "userfactory"
     },
     {
@@ -18865,7 +18865,7 @@
       "_origin": "ast",
       "id": "backend_database_factories_userfactory_userfactory_definition",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": ".definition()"
     },
     {
@@ -18876,7 +18876,7 @@
       "_origin": "ast",
       "id": "backend_database_factories_userfactory_userfactory_unverified",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": ".unverified()"
     },
     {
@@ -18887,7 +18887,7 @@
       "_origin": "ast",
       "id": "static",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": "static"
     },
     {
@@ -34874,7 +34874,7 @@
       "label": "DynamicLeaveType",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L31",
+      "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_dynamicleavetype",
       "community": 5,
@@ -34885,7 +34885,7 @@
       "label": "DEFAULT_JENIS_CUTI",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L40",
+      "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_default_jenis_cuti",
       "community": 5,
@@ -34896,7 +34896,7 @@
       "label": "parseLocalDate()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L50",
+      "source_location": "L48",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_parselocaldate",
       "community": 5,
@@ -34907,7 +34907,7 @@
       "label": "calculateLeaveDays()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L55",
+      "source_location": "L53",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_calculateleavedays",
       "community": 5,
@@ -34918,7 +34918,7 @@
       "label": "CatatSuratIzinModalProps",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L92",
+      "source_location": "L90",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_catatsuratizinmodalprops",
       "community": 5,
@@ -34929,7 +34929,7 @@
       "label": "CatatSuratIzinModal()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L98",
+      "source_location": "L96",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_catatsuratizinmodal",
       "community": 4,
@@ -35292,7 +35292,7 @@
       "label": "EmployeeLeaveData",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L52",
+      "source_location": "L51",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_employeeleavedata",
       "community": 0,
@@ -35303,7 +35303,7 @@
       "label": "LeaveRecordItem",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L70",
+      "source_location": "L69",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_leaverecorditem",
       "community": 0,
@@ -35314,7 +35314,7 @@
       "label": "ApiResponse",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L92",
+      "source_location": "L91",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_apiresponse",
       "community": 0,
@@ -35325,7 +35325,7 @@
       "label": "EmployeeLeaveTabProps",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L102",
+      "source_location": "L101",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_employeeleavetabprops",
       "community": 0,
@@ -35336,7 +35336,7 @@
       "label": "JENIS_CUTI_OPTIONS",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L106",
+      "source_location": "L105",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_jenis_cuti_options",
       "community": 0,
@@ -35347,7 +35347,7 @@
       "label": "parseLocalDate()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L118",
+      "source_location": "L117",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_parselocaldate",
       "community": 0,
@@ -35358,7 +35358,7 @@
       "label": "DynamicLeaveType",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L123",
+      "source_location": "L122",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_dynamicleavetype",
       "community": 0,
@@ -35369,7 +35369,7 @@
       "label": "calculateLeaveDays()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L132",
+      "source_location": "L131",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_calculateleavedays",
       "community": 0,
@@ -35380,7 +35380,7 @@
       "label": "EmployeeLeaveTab()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L171",
+      "source_location": "L170",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_employeeleavetab",
       "community": 0,
@@ -44799,8 +44799,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_parsedateparts",
-      "community": 503,
-      "community_name": "surat-tugas/page.tsx",
+      "community": 377,
+      "community_name": "letter-utils.ts",
       "norm_label": "parsedateparts()"
     },
     {
@@ -44810,8 +44810,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_formatdaterangeindonesian",
-      "community": 503,
-      "community_name": "surat-tugas/page.tsx",
+      "community": 377,
+      "community_name": "letter-utils.ts",
       "norm_label": "formatdaterangeindonesian()"
     },
     {
@@ -56404,8 +56404,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agents_skills_security_audit_validation_and_reporting",
-      "community": 113,
-      "community_name": "ATTACK-CLASSES.md",
+      "community": 609,
+      "community_name": "Validation, Structured Output, Verification, and Reporting",
       "norm_label": "validation-and-reporting.md"
     },
     {
@@ -91307,8 +91307,8 @@
       "source_location": "L726",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_177_penyelarasan_form_buat_surat_tugas_mobile_date_picker",
-      "community": 757,
-      "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 177: penyelarasan form buat surat tugas mobile & date picker"
     },
     {
@@ -91318,8 +91318,8 @@
       "source_location": "L733",
       "_origin": "ast",
       "id": "docs_progress_penyelarasan_form_buat_surat_tugas_mobile_buatsurattugasscreen_tsx_dengan_localhost",
-      "community": 757,
-      "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "penyelarasan form buat surat tugas mobile (`buatsurattugasscreen.tsx`) dengan localhost"
     },
     {
@@ -91329,8 +91329,8 @@
       "source_location": "L735",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_735",
-      "community": 757,
-      "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -91340,8 +91340,8 @@
       "source_location": "L753",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_753",
-      "community": 757,
-      "community_name": "Penyelarasan Form Buat Surat Tugas Mobile (`BuatSuratTugasScreen.tsx`) dengan Localhost",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92231,8 +92231,8 @@
       "source_location": "L1339",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_156_2_item_per_row_tab_grid_layout_glassmorphic_reset_password_modal",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 620,
+      "community_name": "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal",
       "norm_label": "progress - phase 156: 2-item per row tab grid layout & glassmorphic reset password modal"
     },
     {
@@ -92242,8 +92242,8 @@
       "source_location": "L1346",
       "_origin": "ast",
       "id": "docs_progress_2_item_per_row_tab_grid_layout_glassmorphic_reset_password_modal",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 620,
+      "community_name": "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal",
       "norm_label": "2-item per row tab grid layout & glassmorphic reset password modal"
     },
     {
@@ -92253,8 +92253,8 @@
       "source_location": "L1348",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1348",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 620,
+      "community_name": "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal",
       "norm_label": "status: selesai"
     },
     {
@@ -92264,8 +92264,8 @@
       "source_location": "L1361",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1361",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 620,
+      "community_name": "2-Item Per Row Tab Grid Layout & Glassmorphic Reset Password Modal",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92275,8 +92275,8 @@
       "source_location": "L1367",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_155_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 708,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 155: mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -92286,8 +92286,8 @@
       "source_location": "L1374",
       "_origin": "ast",
       "id": "docs_progress_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 708,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -92297,8 +92297,8 @@
       "source_location": "L1376",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1376",
-      "community": 708,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -92308,8 +92308,8 @@
       "source_location": "L1391",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1391",
-      "community": 708,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92363,8 +92363,8 @@
       "source_location": "L1423",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_153_mobile_employee_detail_screen_superadmin_iam_access_management_modal",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 661,
+      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
       "norm_label": "progress - phase 153: mobile employee detail screen & superadmin iam access management modal"
     },
     {
@@ -92374,8 +92374,8 @@
       "source_location": "L1430",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_detail_screen_superadmin_iam_access_management_modal",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 661,
+      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
       "norm_label": "mobile employee detail screen & superadmin iam access management modal"
     },
     {
@@ -92385,8 +92385,8 @@
       "source_location": "L1432",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1432",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 661,
+      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
       "norm_label": "status: selesai"
     },
     {
@@ -92396,8 +92396,8 @@
       "source_location": "L1448",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1448",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 661,
+      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92583,8 +92583,8 @@
       "source_location": "L1569",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_148_mobile_login_screen_branding_clean_up",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 696,
+      "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "progress - phase 148: mobile login screen branding & clean up"
     },
     {
@@ -92594,8 +92594,8 @@
       "source_location": "L1576",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_screen_branding_clean_up",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 696,
+      "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "mobile login screen branding & clean up"
     },
     {
@@ -92605,8 +92605,8 @@
       "source_location": "L1578",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1578",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 696,
+      "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "status: selesai"
     },
     {
@@ -92616,8 +92616,8 @@
       "source_location": "L1591",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1591",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 696,
+      "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -92715,8 +92715,8 @@
       "source_location": "L1657",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_145_mobile_dashboard_compact_grid_2_row_interactive_tabs",
-      "community": 620,
-      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 145: mobile dashboard compact grid & 2-row interactive tabs"
     },
     {
@@ -92726,8 +92726,8 @@
       "source_location": "L1664",
       "_origin": "ast",
       "id": "docs_progress_mobile_dashboard_compact_grid_2_row_interactive_tabs",
-      "community": 620,
-      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile dashboard compact grid & 2-row interactive tabs"
     },
     {
@@ -92737,8 +92737,8 @@
       "source_location": "L1666",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1666",
-      "community": 620,
-      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -92748,8 +92748,8 @@
       "source_location": "L1679",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1679",
-      "community": 620,
-      "community_name": "Mobile Dashboard Compact Grid & 2-Row Interactive Tabs",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -107587,8 +107587,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_http_uploadedfile",
-      "community": 598,
-      "community_name": "SupabaseStorageService",
+      "community": 44,
+      "community_name": "Closure",
       "norm_label": "illuminate\\http\\uploadedfile"
     },
     {
@@ -108006,7 +108006,7 @@
       "_origin": "ast",
       "id": "illuminate_database_eloquent_factories_factory",
       "community": 479,
-      "community_name": "Poster",
+      "community_name": "static",
       "norm_label": "illuminate\\database\\eloquent\\factories\\factory"
     },
     {
@@ -201832,7 +201832,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L55",
+      "source_location": "L53",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201843,7 +201843,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L98",
+      "source_location": "L96",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201854,7 +201854,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L92",
+      "source_location": "L90",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201865,7 +201865,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L40",
+      "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201876,7 +201876,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L31",
+      "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201887,7 +201887,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L50",
+      "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201899,7 +201899,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L17",
+      "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201911,7 +201911,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L17",
+      "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201923,7 +201923,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201935,7 +201935,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201947,7 +201947,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201959,7 +201959,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201971,7 +201971,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201983,7 +201983,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -201995,7 +201995,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -202007,7 +202007,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L27",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -202019,7 +202019,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L27",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -202031,7 +202031,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L27",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -202043,7 +202043,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L18",
+      "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -202055,7 +202055,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L18",
+      "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -202067,7 +202067,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L28",
+      "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -202079,7 +202079,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L28",
+      "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
@@ -202103,7 +202103,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L62",
+      "source_location": "L60",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_calculateleavedays",
@@ -202115,7 +202115,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/cuti/_components/CatatSuratIzinModal.tsx",
-      "source_location": "L217",
+      "source_location": "L215",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_catatsuratizinmodal",
@@ -202367,7 +202367,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L50",
+      "source_location": "L49",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -202451,7 +202451,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L50",
+      "source_location": "L49",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -202557,7 +202557,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L50",
+      "source_location": "L49",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203204,7 +203204,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L92",
+      "source_location": "L91",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203215,7 +203215,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L132",
+      "source_location": "L131",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203226,7 +203226,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L123",
+      "source_location": "L122",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203237,7 +203237,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L52",
+      "source_location": "L51",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203248,7 +203248,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L171",
+      "source_location": "L170",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203259,7 +203259,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L102",
+      "source_location": "L101",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203270,7 +203270,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L106",
+      "source_location": "L105",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203281,7 +203281,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L70",
+      "source_location": "L69",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203292,7 +203292,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L118",
+      "source_location": "L117",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203304,7 +203304,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L29",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203316,7 +203316,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L29",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203328,7 +203328,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L40",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203340,7 +203340,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L40",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203352,7 +203352,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L40",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203364,7 +203364,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L40",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203376,7 +203376,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L40",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203388,7 +203388,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L40",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203400,7 +203400,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L40",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203412,7 +203412,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203424,7 +203424,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203436,7 +203436,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203448,7 +203448,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203460,7 +203460,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203472,7 +203472,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203484,7 +203484,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203496,7 +203496,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L30",
+      "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203508,7 +203508,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L30",
+      "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203520,7 +203520,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L31",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203532,7 +203532,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L31",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203568,7 +203568,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L49",
+      "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203580,7 +203580,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L49",
+      "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab",
@@ -203592,7 +203592,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L139",
+      "source_location": "L138",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_calculateleavedays",
@@ -203604,7 +203604,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L420",
+      "source_location": "L449",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_employeeleavetab",
@@ -203617,7 +203617,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L791",
+      "source_location": "L820",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_employeeleavetab",
@@ -203629,7 +203629,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L734",
+      "source_location": "L763",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_employeeleavetab",
@@ -203641,7 +203641,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx",
-      "source_location": "L447",
+      "source_location": "L476",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_components_employeeleavetab_employeeleavetab",
@@ -305829,5 +305829,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "3cefff3d89c6045eebdee7a1c64cadd0e39858fc"
+  "built_at_commit": "645967d97161bb154edd95273d60757b22f7607c"
 }
