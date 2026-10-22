@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
   Inbox, Search, Eye, Edit2, Trash2, Printer, Calendar, User, FileText, Check, AlertCircle, X, FileUp, FileCheck,
-  ChevronDown, MoreHorizontal, CheckCircle2, Clock
+  ChevronDown, MoreHorizontal, CheckCircle2, Clock, Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ import {
   ApproveLeaveModal,
   UploadScanModal,
   ScanViewerModal,
+  CatatSuratIzinModal,
 } from "./_components/CutiModals";
 
 export default function InboxSuratCutiPage() {
@@ -57,6 +58,7 @@ export default function InboxSuratCutiPage() {
   const [approveItem, setApproveItem] = useState<LeaveRequestItem | null>(null);
   const [uploadScanItem, setUploadScanItem] = useState<LeaveRequestItem | null>(null);
   const [viewerModal, setViewerModal] = useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
+  const [isCatatModalOpen, setIsCatatModalOpen] = useState(false);
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -250,6 +252,16 @@ export default function InboxSuratCutiPage() {
             Seluruh riwayat surat penetapan cuti resmi dan pengajuan mandiri dari pegawai BKSDA Kalimantan Timur.
           </p>
         </div>
+
+        {/* Tombol Catat Surat Izin */}
+        <Button
+          type="button"
+          onClick={() => setIsCatatModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl gap-2 h-9 px-4 shadow-xs shrink-0 cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          Catat Surat Izin
+        </Button>
       </div>
 
       {/* Filter Toolbar */}
@@ -689,6 +701,15 @@ export default function InboxSuratCutiPage() {
         fileName={viewerModal?.fileName}
         title={viewerModal?.title}
         onClose={() => setViewerModal(null)}
+      />
+
+      {/* Catat Surat Izin Penetapan Cuti Modal */}
+      <CatatSuratIzinModal
+        isOpen={isCatatModalOpen}
+        onClose={() => setIsCatatModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
+        }}
       />
     </div>
   );

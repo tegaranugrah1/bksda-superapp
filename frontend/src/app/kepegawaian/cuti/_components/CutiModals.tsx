@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FormulirCutiPrint } from "@/app/portal/_components/FormulirCutiPrint";
 
 export { ScanViewerModal } from "./ScanViewerModal";
+export { CatatSuratIzinModal } from "./CatatSuratIzinModal";
 
 export interface LeaveRequestItem {
   id: number;
